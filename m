@@ -1,187 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42137 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59712 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964936AbbHKN4B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 09:56:01 -0400
+	with ESMTP id S1751171AbbHAJWW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 05:22:22 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
-	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
-	sangbae90.lee@samsung.com, rany.kwon@samsung.com
-Subject: Re: [RFC PATCH v2 4/5] media: videobuf2: Define vb2_buf_type and vb2_memory
-Date: Tue, 11 Aug 2015 16:56:54 +0300
-Message-ID: <30625903.5XtBkRR4hc@avalon>
-In-Reply-To: <55C85F34.7040603@xs4all.nl>
-References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com> <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com> <55C85F34.7040603@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Cc: Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 4/4] v4l: atmel-isi: Remove unused platform data fields
+Date: Sat,  1 Aug 2015 12:22:56 +0300
+Message-Id: <1438420976-7899-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The emb_crc_sync, mck_hz, asd and asd_sizes platform data fields are
+unused, remove them.
 
-On Monday 10 August 2015 10:22:12 Hans Verkuil wrote:
-> On 07/31/2015 10:44 AM, Junghak Sung wrote:
-> > Define enum vb2_buf_type and enum vb2_memory for videobuf2-core. This
-> > change requires translation functions that could covert v4l2-core stuffs
-> > to videobuf2-core stuffs in videobuf2-v4l2.c file.
-> > The v4l2-specific member variables(e.g. type, memory) remains in
-> > struct vb2_queue for backward compatibility and performance of type
-> > translation.
-> > 
-> > Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-> > Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-> > Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> > Acked-by: Inki Dae <inki.dae@samsung.com>
-> > ---
-> > 
-> >  drivers/media/v4l2-core/videobuf2-core.c |  139 +++++++++++---------
-> >  drivers/media/v4l2-core/videobuf2-v4l2.c |  209 ++++++++++++++++++-------
-> >  include/media/videobuf2-core.h           |   99 +++++++++++---
-> >  include/media/videobuf2-v4l2.h           |   12 +-
-> >  4 files changed, 299 insertions(+), 160 deletions(-)
-> 
-> <snip>
-> 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > b/drivers/media/v4l2-core/videobuf2-v4l2.c index 85527e9..22dd19c 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> > @@ -30,8 +30,46 @@
-> > 
-> >  #include <media/v4l2-common.h>
-> >  #include <media/videobuf2-v4l2.h>
-> > 
-> > +#define CREATE_TRACE_POINTS
-> > 
-> >  #include <trace/events/v4l2.h>
-> > 
-> > +static const enum vb2_buf_type _tbl_buf_type[] = {
-> > +	[V4L2_BUF_TYPE_VIDEO_CAPTURE]		= VB2_BUF_TYPE_VIDEO_CAPTURE,
-> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT]		= VB2_BUF_TYPE_VIDEO_OUTPUT,
-> > +	[V4L2_BUF_TYPE_VIDEO_OVERLAY]		= VB2_BUF_TYPE_VIDEO_OVERLAY,
-> > +	[V4L2_BUF_TYPE_VBI_CAPTURE]		= VB2_BUF_TYPE_VBI_CAPTURE,
-> > +	[V4L2_BUF_TYPE_VBI_OUTPUT]		= VB2_BUF_TYPE_VBI_OUTPUT,
-> > +	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE]	= 
-VB2_BUF_TYPE_SLICED_VBI_CAPTURE,
-> > +	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]	= VB2_BUF_TYPE_SLICED_VBI_OUTPUT,
-> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY]	=
-> > VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY,
-> > +	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE]	=
-> > VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE]	= 
-VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
-> > +	[V4L2_BUF_TYPE_SDR_CAPTURE]		= VB2_BUF_TYPE_SDR_CAPTURE,
-> > +	[V4L2_BUF_TYPE_PRIVATE]			= VB2_BUF_TYPE_PRIVATE,
-> > +};
-> > +
-> > +static const enum vb2_memory _tbl_memory[] = {
-> > +	[V4L2_MEMORY_MMAP]	= VB2_MEMORY_MMAP,
-> > +	[V4L2_MEMORY_USERPTR]	= VB2_MEMORY_USERPTR,
-> > +	[V4L2_MEMORY_DMABUF]	= VB2_MEMORY_DMABUF,
-> > +};
-> > +
-> > +#define to_vb2_buf_type(type)					\
-> > +({								\
-> > +	enum vb2_buf_type ret = 0;				\
-> > +	if( type > 0 && type < ARRAY_SIZE(_tbl_buf_type) )	\
-> > +		ret = (_tbl_buf_type[type]);			\
-> > +	ret;							\
-> > +})
-> > +
-> > +#define to_vb2_memory(memory)					\
-> > +({								\
-> > +	enum vb2_memory ret = 0;				\
-> > +	if( memory > 0 && memory < ARRAY_SIZE(_tbl_memory) )	\
-> > +		ret = (_tbl_memory[memory]);			\
-> > +	ret;							\
-> > +})
-> > +
-> 
-> <snip>
-> 
-> > diff --git a/include/media/videobuf2-core.h
-> > b/include/media/videobuf2-core.h index dc405da..871fcc6 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h
-> > @@ -15,9 +15,47 @@
-> > 
-> >  #include <linux/mm_types.h>
-> >  #include <linux/mutex.h>
-> >  #include <linux/poll.h>
-> > 
-> > -#include <linux/videodev2.h>
-> > 
-> >  #include <linux/dma-buf.h>
-> > 
-> > +#define VB2_MAX_FRAME               32
-> > +#define VB2_MAX_PLANES               8
-> > +
-> > +enum vb2_buf_type {
-> > +	VB2_BUF_TYPE_UNKNOWN			= 0,
-> > +	VB2_BUF_TYPE_VIDEO_CAPTURE		= 1,
-> > +	VB2_BUF_TYPE_VIDEO_OUTPUT		= 2,
-> > +	VB2_BUF_TYPE_VIDEO_OVERLAY		= 3,
-> > +	VB2_BUF_TYPE_VBI_CAPTURE		= 4,
-> > +	VB2_BUF_TYPE_VBI_OUTPUT			= 5,
-> > +	VB2_BUF_TYPE_SLICED_VBI_CAPTURE		= 6,
-> > +	VB2_BUF_TYPE_SLICED_VBI_OUTPUT		= 7,
-> > +	VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	= 8,
-> > +	VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	= 9,
-> > +	VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE	= 10,
-> > +	VB2_BUF_TYPE_SDR_CAPTURE		= 11,
-> > +	VB2_BUF_TYPE_DVB_CAPTURE		= 12,
-> > +	VB2_BUF_TYPE_PRIVATE			= 0x80,
-> > +};
-> > +
-> > +enum vb2_memory {
-> > +	VB2_MEMORY_UNKNOWN	= 0,
-> > +	VB2_MEMORY_MMAP		= 1,
-> > +	VB2_MEMORY_USERPTR	= 2,
-> > +	VB2_MEMORY_DMABUF	= 4,
-> > +};
-> > +
-> > +#define VB2_TYPE_IS_MULTIPLANAR(type)			\
-> > +	((type) == VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
-> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> > +
-> > +#define VB2_TYPE_IS_OUTPUT(type)				\
-> > +	((type) == VB2_BUF_TYPE_VIDEO_OUTPUT			\
-> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
-> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OVERLAY		\
-> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY		\
-> > +	 || (type) == VB2_BUF_TYPE_VBI_OUTPUT			\
-> > +	 || (type) == VB2_BUF_TYPE_SLICED_VBI_OUTPUT)
-> 
-> You don't actually need to create vb2_buf_type: unless I am mistaken, all
-> that the vb2 core needs to know is if it is a capture or output queue and
-> possibly (not sure about that) if it is single or multiplanar. So add
-> fields to the vb2_queue struct for that information and leave the buf_type
-> to the v4l2 specific header and code.
-> 
-> You also don't need the _tbl_memory[] array. All you need to do is to check
-> in videobuf2-v4l2.c that VB2_MEMORY* equals the V4L2_MEMORY_* defines and
-> generate a #error if not:
-> 
-> #if VB2_MEMORY_MMAP != V4L2_MEMORY_MMAP || VB2_MEMORY_....
-> #error VB2_MEMORY_* != V4L2_MEMORY_*!
-> #endif
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c | 5 -----
+ drivers/media/platform/soc_camera/atmel-isi.h | 5 -----
+ 2 files changed, 10 deletions(-)
 
-Hijacking this e-mail thread a bit, would it make sense for the new vb2-core 
-to support different memory allocation for different planes ? I'm foreseeing 
-use cases for buffers that bundle image data with meta-data, where image data 
-should be captured to a dma-buf imported buffer, but meta-data doesn't need to 
-be shared. In that case it wouldn't be easy for userspace to find a dma-buf 
-provider for the meta-data buffers in order to import all planes. Being able 
-to use dma-buf import for the image plane(s) and mmap for the meta-data plane 
-would be easier.
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index de9237e56f84..e6ff2a75ea42 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -999,11 +999,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
+ 
+-	if (isi->pdata.asd_sizes) {
+-		soc_host->asd = isi->pdata.asd;
+-		soc_host->asd_sizes = isi->pdata.asd_sizes;
+-	}
+-
+ 	ret = soc_camera_host_register(soc_host);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Unable to register soc camera host\n");
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.h b/drivers/media/platform/soc_camera/atmel-isi.h
+index 6008b0985b7b..83493abd1fa2 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.h
++++ b/drivers/media/platform/soc_camera/atmel-isi.h
+@@ -114,7 +114,6 @@ struct v4l2_async_subdev;
+ 
+ struct isi_platform_data {
+ 	u8 has_emb_sync;
+-	u8 emb_crc_sync;
+ 	u8 hsync_act_low;
+ 	u8 vsync_act_low;
+ 	u8 pclk_act_falling;
+@@ -122,10 +121,6 @@ struct isi_platform_data {
+ 	u32 data_width_flags;
+ 	/* Using for ISI_CFG1 */
+ 	u32 frate;
+-	/* Using for ISI_MCK */
+-	u32 mck_hz;
+-	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+-	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+ };
+ 
+ #endif /* __ATMEL_ISI_H__ */
 -- 
-Regards,
-
-Laurent Pinchart
+2.3.6
 
