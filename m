@@ -1,30 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:35838 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932237AbbHHKHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2015 06:07:03 -0400
-Received: by lahi9 with SMTP id i9so3484464lah.2
-        for <linux-media@vger.kernel.org>; Sat, 08 Aug 2015 03:07:00 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 8 Aug 2015 03:06:59 -0700
-Message-ID: <CALFbYK2OO0hJZyCiuDqR5DMUvrnjMFAbMWCnzFAi=ZOVJ+T-BQ@mail.gmail.com>
-Subject: Beagleboard-xM Camera LI-5M03 (MT9P031) Support With Device Tree Tested
-From: Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Andreas Weber <andreas.weber@hs-offenburg.de>,
-	Alaganraj Sandhanam <alaganraj.sandhanam@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59707 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbbHAJWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 05:22:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 0/4] atmel-isi: Remove platform data support
+Date: Sat,  1 Aug 2015 12:22:52 +0300
+Message-Id: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-I've verified beagleboard-xM camera LI-5M03 (mt9p031) with device tree
-on Linux 4.2.0-rc5 with the help of Laurent and Sakari.
+While reviewing patches for the atmel-isi I noticed a couple of small issues
+with the driver. Here's a patch series to fix them, the main change being the
+removal of platform data support now that all users have migrated to DT.
 
-If anybody interested, please go through link for more details
+The patches have been compile-tested only. Josh, would you be able to test
+them on hardware ?
 
-https://alaganraj.wordpress.com/2015/08/08/beagleboard-xm-camera-li-5m03-mt9p031-support-with-device-tree/
+Laurent Pinchart (4):
+  v4l: atmel-isi: Simplify error handling during DT parsing
+  v4l: atmel-isi: Remove unused variable
+  v4l: atmel-isi: Remove support for platform data
+  v4l: atmel-isi: Remove unused platform data fields
 
-Thanks & Regards,
-Alaganraj
+ drivers/media/platform/soc_camera/atmel-isi.c |  40 ++------
+ drivers/media/platform/soc_camera/atmel-isi.h | 126 +++++++++++++++++++++++++
+ include/media/atmel-isi.h                     | 131 --------------------------
+ 3 files changed, 136 insertions(+), 161 deletions(-)
+ create mode 100644 drivers/media/platform/soc_camera/atmel-isi.h
+ delete mode 100644 include/media/atmel-isi.h
+
+-- 
+Regards,
+
+Laurent Pinchart
+
