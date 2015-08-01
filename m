@@ -1,45 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40381 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753265AbbHVR2f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:35 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 01/39] [media] DocBook: fix an unbalanced <para> tag
-Date: Sat, 22 Aug 2015 14:27:46 -0300
-Message-Id: <c9c1006f7eda80d954e6312b4e7c9b55422b15ef.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+Received: from mujunyku.leporine.io ([113.212.96.195]:42516 "EHLO
+	mujunyku.leporine.io" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241AbbHAL4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 07:56:16 -0400
+Message-ID: <55BCB201.2060709@rabbit.us>
+Date: Sat, 01 Aug 2015 13:48:17 +0200
+From: Peter Rabbitson <rabbit@rabbit.us>
+MIME-Version: 1.0
+To: submit@bugs.debian.org
+CC: linux-media@vger.kernel.org
+Subject: Hardware H264 capture regression in UVC subsystem: wheezy(ok) =>
+ jessie(bad)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The </para> got lost on some change at the DVB docbook, making
-the tag unbalanced and causing a warning. Fix it.
+Package: linux-image-3.16.0-4-amd64
+Version: 3.16.7-ckt11-1
+Tags: patch fixed-upstream
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Greetings!
 
-diff --git a/Documentation/DocBook/media/dvb/intro.xml b/Documentation/DocBook/media/dvb/intro.xml
-index d30751338493..51db15648099 100644
---- a/Documentation/DocBook/media/dvb/intro.xml
-+++ b/Documentation/DocBook/media/dvb/intro.xml
-@@ -164,7 +164,7 @@ are called:</para>
- from&#x00A0;0, and M enumerates the devices of each type within each
- adapter, starting from&#x00A0;0, too. We will omit the &#8220;
- <constant>/dev/dvb/adapterN/</constant>&#8221; in the further discussion
--of these devices.
-+of these devices.</para>
- 
- <para>More details about the data structures and function calls of all
- the devices are described in the following chapters.</para>
--- 
-2.4.3
+A little bit after the official Wheezy linux-image (3.2) a change to the 
+UVC subsystem[1] was merged and subsequently released as linux 3.3. A 
+long-unnoticed side effect of this patch was a regression that produced 
+invalid timestamps on hardware-encoded H264 captures, which is known to 
+affect at least 2 different devices: Logitech C920[2] and a builtin Acer 
+Orbicam[3].
 
+The problem was recently acknowledged by the UVC maintainer and a patch 
+was produced which fixes the issue [4]. Afaik it is slated to be 
+included during the Linux 4.3 merge window this month.
+
+Since there is no way to work around this problem in userland [5], and 
+there are many reports of this problem by different users [3], [6], [7], 
+[8] it seems fitting to add this (rather small) patch[4] to debian's 
+linux-image-3.16* quilt.
+
+Thank you in advance!
+Cheers
+
+P.S. Adding a one-time CC to the linux-media mailing list, in case a 
+part of the above is factually incorrect.
+
+[1] 
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=66847ef
+[2] http://sourceforge.net/p/linux-uvc/mailman/message/33164469/
+[3] http://www.spinics.net/lists/linux-media/msg92089.html
+[4] http://www.spinics.net/lists/linux-media/msg92022.html
+[5] http://ffmpeg.org/pipermail/ffmpeg-user/2015-July/027630.html
+[6] https://trac.ffmpeg.org/ticket/3956
+[7] http://sourceforge.net/p/linux-uvc/mailman/message/33564420/
+[8] 
+http://askubuntu.com/questions/456175/logitech-c920-webcam-on-ubuntu-14-04-hesitates-chops-every-3-seconds
