@@ -1,106 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59175 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488AbbHUUqJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 16:46:09 -0400
-Date: Fri, 21 Aug 2015 17:46:04 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v6 1/8] [media] media: create a macro to get entity ID
-Message-ID: <20150821174604.3b0d64d3@recife.lan>
-In-Reply-To: <7241853.lyNlEo06u5@avalon>
-References: <cover.1439981515.git.mchehab@osg.samsung.com>
-	<1504949.EhTF6JoeCK@avalon>
-	<20150821144535.0f75cc92@recife.lan>
-	<7241853.lyNlEo06u5@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtprelay0230.hostedemail.com ([216.40.44.230]:44913 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752089AbbHBUa5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Aug 2015 16:30:57 -0400
+Message-ID: <1438547453.29569.10.camel@perches.com>
+Subject: [TRIVIAL PATCH] [media] s5p-mfc: Correct misuse of %0x<decimal>
+From: Joe Perches <joe@perches.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Date: Sun, 02 Aug 2015 13:30:53 -0700
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Aug 2015 21:11:57 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Correct misuse of 0x%d in logging message.
 
-> Hi Mauro,
-> 
-> On Friday 21 August 2015 14:45:35 Mauro Carvalho Chehab wrote:
-> > Em Fri, 21 Aug 2015 20:27:19 +0300 Laurent Pinchart escreveu:
-> > > On Friday 21 August 2015 05:42:29 Mauro Carvalho Chehab wrote:
-> > >> Em Fri, 21 Aug 2015 03:40:48 +0300 Laurent Pinchart escreveu:
-> > >> > On Wednesday 19 August 2015 08:01:48 Mauro Carvalho Chehab wrote:
-> > >>>> Instead of accessing directly entity.id, let's create a macro,
-> > >>>> as this field will be moved into a common struct later on.
-> > >>>> 
-> > >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > > 
-> > > [snip]
-> > > 
-> > >>>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> > >>>> b/drivers/media/platform/vsp1/vsp1_video.c index
-> > >>>> 17f08973f835..debe4e539df6
-> > >>>> 100644
-> > >>>> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> > >>>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> > >>>> @@ -352,10 +352,10 @@ static int
-> > >>>> vsp1_pipeline_validate_branch(struct
-> > >>>> vsp1_pipeline *pipe,
-> > >>>> 			break;
-> > >>>> 			
-> > >>>>  		/* Ensure the branch has no loop. */
-> > >>>> -		if (entities & (1 << entity->subdev.entity.id))
-> > >>>> +		if (entities & (1 << media_entity_id(&entity->subdevntity)))
-> > >>>>  			return -EPIPE;
-> > >>>> 
-> > >>>> -		entities |= 1 << entity->subdev.entity.id;
-> > >>>> +		entities |= 1 << media_entity_id(&entity->subdev.entity);
-> > >>>> 
-> > >>>>  		/* UDS can't be chained. */
-> > >>>>  		if (entity->type == VSP1_ENTITY_UDS) {
-> > >>> 
-> > >>> I would move the modification of the vsp1 driver to Javier's patch
-> > >>> that modifies the OMAP3 and OMAP4 drivers. Alternatively you could
-> > >>> squash them into this patch, but I believe having a first patch that
-> > >>> adds the inline function and a second patch that modifies all drivers
-> > >>> to use it would be better.
-> > >> 
-> > >> Squashing will lose Javier's authorship. I guess the better is have a
-> > >> first patch with the inline, then my paches and Javier's ones, and
-> > >> latter on the patch removing entity->id.
-> > > 
-> > > What I meant is
-> > > 
-> > > 1. This patch without the VSP1 chunk, with your authorship
-> > > 2. Javier's patches for OMAP3 and OMAP4 + the VSP1 chunk squashed in a
-> > > single patch, with Javier's authorship
-> > > 3. Javier's patch removing entity->id, with Javier's authorship
-> > 
-> > Actually, the removal of entity->id is at the first patch, with my
-> > authorship, but I got the idea ;)
-> 
-> I'm not sure to follow you. The first patch is this one, and it doesn't remove 
-> the id field from struct media_entity.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sorry, I meant to say "the first patch series I submitted after the workshop",
-e. .g RFC v1.
-
-> > Btw, this was noticed because Javier is testing the MC new gen on OMAP3.
-> > We should really enforce that all all drivers should compile with
-> > COMPILE_TEST, as otherwise we'll keep having troubles like that.
-> 
-> I agree with that. I've just sent a patch to enable compilation of the 
-> omap3isp driver with COMPILE_TEST. There's still a compile-time dependency on 
-> ARM, as well as a dependency on OMAP_IOMMU which currently depends on OMAP, 
-> but that can be fixed independently.
-
-See the comments for the patch.
-
-Regards,
-Mauro
-
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 12497f5..c10ad57 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -520,7 +520,7 @@ static int s5p_mfc_set_enc_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
+        writel(addr, mfc_regs->e_stream_buffer_addr); /* 16B align */
+        writel(size, mfc_regs->e_stream_buffer_size);
+ 
+-       mfc_debug(2, "stream buf addr: 0x%08lx, size: 0x%d\n",
++       mfc_debug(2, "stream buf addr: 0x%08lx, size: 0x%x\n",
+                  addr, size);
+ 
+        return 0;
