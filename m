@@ -1,63 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp02.atmel.com ([204.2.163.16]:17549 "EHLO
-	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753522AbbHFIT7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 04:19:59 -0400
-Message-ID: <55C318A6.5090005@atmel.com>
-Date: Thu, 6 Aug 2015 16:19:50 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/4] v4l: atmel-isi: Remove unused variable
-References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com> <1438420976-7899-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1438420976-7899-3-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46371 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755758AbbHCXTl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 19:19:41 -0400
+Date: Mon, 3 Aug 2015 16:19:39 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Jens Axboe <axboe@kernel.dk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2] lib: scatterlist: add sg splitting function
+Message-Id: <20150803161939.2edd494eb64bc81ea8e91c16@linux-foundation.org>
+In-Reply-To: <1438435033-7636-1-git-send-email-robert.jarzmik@free.fr>
+References: <1438435033-7636-1-git-send-email-robert.jarzmik@free.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+On Sat,  1 Aug 2015 15:17:13 +0200 Robert Jarzmik <robert.jarzmik@free.fr> wrote:
 
-On 8/1/2015 5:22 PM, Laurent Pinchart wrote:
-> Fix a compilation warning by removing an unused local variable in the
-> probe function.
+> Sometimes a scatter-gather has to be split into several chunks, or sub scatter
+> lists. This happens for example if a scatter list will be handled by multiple
+> DMA channels, each one filling a part of it.
+> 
+> A concrete example comes with the media V4L2 API, where the scatter list is
+> allocated from userspace to hold an image, regardless of the knowledge of how
+> many DMAs will fill it :
+>  - in a simple RGB565 case, one DMA will pump data from the camera ISP to memory
+>  - in the trickier YUV422 case, 3 DMAs will pump data from the camera ISP pipes,
+>    one for pipe Y, one for pipe U and one for pipe V
+> 
+> For these cases, it is necessary to split the original scatter list into
+> multiple scatter lists, which is the purpose of this patch.
+> 
+> ...
 >
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->   drivers/media/platform/soc_camera/atmel-isi.c | 1 -
->   1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index 9c900d9569e0..a2e50a734fa3 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -920,7 +920,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
->   	struct atmel_isi *isi;
->   	struct resource *regs;
->   	int ret, i;
-> -	struct device *dev = &pdev->dev;
+>  include/linux/scatterlist.h |   5 ++
+>  lib/scatterlist.c           | 189 ++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 194 insertions(+)
 
-After a further check, I find this patch should be squashed with the 
-[PATCH 3/4].
-Since 'dev' is used by platform data in atmel_isi_probe() function by 
-following code:
-
-	pdata = dev->platform_data;
-	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
-		dev_err(&pdev->dev,
-			"No config available for Atmel ISI\n");
-		return -EINVAL;
-	}
-
-So if you agree with it, I will squash this patch with
-     [PATCH 3/4] Remove support for platform data
-in my tree. Does it sound ok for you?
-
-Best Regards,
-Josh Wu
-
->   	struct soc_camera_host *soc_host;
->   	struct isi_platform_data *pdata;
->   
+It's quite a bit of code for a fairly specialised thing.  How ugly
+would it be to put this in a new .c file and have subsystems select it
+in Kconfig?
 
