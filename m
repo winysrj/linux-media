@@ -1,34 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:38874 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbbHaRqF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 13:46:05 -0400
-Subject: Re: [PATCH] media: dvb-core: Don't force CAN_INVERSION_AUTO in
- oneshot mode.
-To: Johann Klammer <klammerj@a1.net>, linux-media@vger.kernel.org
-References: <1441012425-25050-1-git-send-email-tvboxspy@gmail.com>
- <55E488FF.3040608@a1.net>
-Cc: stable@vger.kernel.org
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Message-ID: <55E492B8.4020207@gmail.com>
-Date: Mon, 31 Aug 2015 18:45:28 +0100
+Received: from aserp1040.oracle.com ([141.146.126.69]:48124 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751255AbbHCI0J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 04:26:09 -0400
+Date: Mon, 3 Aug 2015 11:25:52 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Pradheep Shrinivasan <pradheep.sh@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 1/2] staging:media:lirc Remove the extra braces in if
+ statement of lirc_imon
+Message-ID: <20150803082552.GT5180@mwanda>
+References: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <55E488FF.3040608@a1.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Normally, I wait overnight between writing a patch and sending it.
+There is no rush and the delay helps me to be more careful.
 
+The subject is still not perfect.  Do:
 
-On 31/08/15 18:03, Johann Klammer wrote:
->
-> Why not just remove the line?
-> 	info->caps |= FE_CAN_INVERSION_AUTO;
->
-> The capabilities call interacting with the oneshot setting is rather weird and maybe unexpected.
->
->
+	git log --oneline drivers/staging/media/lirc/lirc_imon.c
 
-No, because in normal mode it can do auto inversion.
+On Mon, Aug 03, 2015 at 02:56:31AM -0500, Pradheep Shrinivasan wrote:
+> From: pradheep <pradheep.sh@gmail.com>
+
+This is still wrong.
+
+regards,
+dan carpenter
+
