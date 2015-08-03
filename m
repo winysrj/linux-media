@@ -1,96 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60043 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753078AbbHZOyQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2015 10:54:16 -0400
-Date: Wed, 26 Aug 2015 11:54:03 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>, Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Haneen Mohammed <hamohammed.sa@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
-	anuvazhayil <anuv.1994@gmail.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Jiayi Ye <yejiayily@gmail.com>,
-	Heena Sirwani <heenasirwani@gmail.com>,
-	Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
+Received: from mailout2.samsung.com ([203.254.224.25]:57656 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835AbbHCPeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 11:34:18 -0400
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Joe Perches <joe@perches.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
 	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v7 10/44] [media] media: rename the function that create
- pad links
-Message-ID: <20150826115403.7a794597@recife.lan>
-In-Reply-To: <55DCBA2D.9090901@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<f095b87884d435e296a455ab07a9951a74c0c3a6.1440359643.git.mchehab@osg.samsung.com>
-	<55DCBA2D.9090901@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	linux-media <linux-media@vger.kernel.org>,
+	lm-sensors <lm-sensors@lm-sensors.org>,
+	Kamil Debski <kamil@wypas.org>
+Subject: Re: MAINTAINERS/s5p: Kamil Debski no longer with Samsung?
+Date: Mon, 03 Aug 2015 17:33:24 +0200
+Message-id: <5606140.737HZuKSvR@amdc1976>
+In-reply-to: <1438548040.30149.1.camel@perches.com>
+References: <20150802203128.1B6952691B2@smtprelay05.hostedemail.com>
+ <1438548040.30149.1.camel@perches.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 12:55:41 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-> On 08/23/2015 02:17 PM, Mauro Carvalho Chehab wrote:
-> > Now that a link can be either between two different graph
-> > objects, we'll need to add more functions to create links.
-> 
-> Is this an incomplete sentence. Should it read: "either between
-> two different graph objects or two pads" ?
+Hi,
 
-That would be redundant, as pad is a graph object ;)
+On Sunday, August 02, 2015 01:40:40 PM Joe Perches wrote:
+> On Sun, 2015-08-02 at 20:31 +0000, Mail Delivery System wrote:
+> > <k.debski@samsung.com>: host mailin.samsung.com[203.254.224.12] 
+> > said: 550 5.1.1
+> >     Recipient address rejected: User unknown (in reply to RCPT TO 
+> > command)
+> 
+> His email address bounces.
+> 
+> Should MAINTAINERS be updated?
 
-> 
-> > So, rename the existing one that create links only between
-> > two pads as media_create_pad_link().
-> 
-> > 
-> > No functional changes.
-> > 
-> > This patch was created via this shell script:
-> > 	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
-> > 
-> 
-> Didn't want to experiment with Coccinelle?? :)
+Please wait with these changes, the situation should be clarified soon
+(I've added Kamil to Cc).
 
-I use Coccinelle, but only when I need more complex changes, as
-Coccinelle may mangle with comments.
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
+> ---
+>  MAINTAINERS | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
 > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> 
-> Changes look good to me. After fixing the commit log:
-> 
-> Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
-> 
-> thanks,
-> -- Shuah
-> 
-> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 826affa..b5197c7 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1442,7 +1442,6 @@ F:        arch/arm/mach-s5pv210/
+>  
+>  ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
+>  M:     Kyungmin Park <kyungmin.park@samsung.com>
+> -M:     Kamil Debski <k.debski@samsung.com>
+>  L:     linux-arm-kernel@lists.infradead.org
+>  L:     linux-media@vger.kernel.org
+>  S:     Maintained
+> @@ -1450,7 +1449,6 @@ F:        drivers/media/platform/s5p-g2d/
+>  
+>  ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+>  M:     Kyungmin Park <kyungmin.park@samsung.com>
+> -M:     Kamil Debski <k.debski@samsung.com>
+>  M:     Jeongtae Park <jtp.park@samsung.com>
+>  L:     linux-arm-kernel@lists.infradead.org
+>  L:     linux-media@vger.kernel.org
+> @@ -8248,9 +8246,8 @@ S:        Maintained
+>  F:     drivers/media/usb/pwc/*
+>  
+>  PWM FAN DRIVER
+> -M:     Kamil Debski <k.debski@samsung.com>
+>  L:     lm-sensors@lm-sensors.org
+> -S:     Supported
+> +S:     Orphan
+>  F:     Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+>  F:     Documentation/hwmon/pwm-fan
+>  F:     drivers/hwmon/pwm-fan.c
+> @@ -8906,9 +8903,8 @@ T:        https://github.com/lmajewski/linux-samsung-thermal.git
+>  F:     drivers/thermal/samsung/
+>  
+>  SAMSUNG USB2 PHY DRIVER
+> -M:     Kamil Debski <k.debski@samsung.com>
+>  L:     linux-kernel@vger.kernel.org
+> -S:     Supported
+> +S:     Orphan
+>  F:     Documentation/devicetree/bindings/phy/samsung-phy.txt
+>  F:     Documentation/phy/samsung-usb2.txt
+>  F:     drivers/phy/phy-exynos4210-usb2.c
+
