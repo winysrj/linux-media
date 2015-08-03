@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46621 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934159AbbHKLr5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 07:47:57 -0400
-Message-ID: <55C9E060.6050901@xs4all.nl>
-Date: Tue, 11 Aug 2015 13:45:36 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mike Looijmans <mike.looijmans@topic.nl>, lars@metafoo.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] i2c/adv7511: Fix license, set to GPL v2
-References: <1438081066-31748-1-git-send-email-mike.looijmans@topic.nl>
-In-Reply-To: <1438081066-31748-1-git-send-email-mike.looijmans@topic.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:33536 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756AbbHCIA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 04:00:59 -0400
+Received: by obdeg2 with SMTP id eg2so93414085obd.0
+        for <linux-media@vger.kernel.org>; Mon, 03 Aug 2015 01:00:58 -0700 (PDT)
+From: Pradheep Shrinivasan <pradheep.sh@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Pradheep Shrinivasan <pradheep.sh@gmail.com>
+Subject: [PATCH 2/2] staging:media:lirc This fix changes the spaces to tab in lirc_sasem.c
+Date: Mon,  3 Aug 2015 02:56:32 -0500
+Message-Id: <1438588592-3289-2-git-send-email-pradheep.sh@gmail.com>
+In-Reply-To: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
+References: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+This fix changes the space in the code to tab to fix the ERROR
+"ERROR: code indent should use tabs where possible"
 
-Please split up this patch: these are two different drivers with different
-authors and different subsystems.
+Signed-off-by: Pradheep Shrinivasan <pradheep.sh@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_sasem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The media/i2c/adv7511.c patch I can handle, but the patch for the drm driver
-should go to the dri-devel mailinglist. I can't take that change.
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 8ebee96..c14ca7e 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
+ 		       __func__, retval);
+ 	else
+ 		dev_info(&context->dev->dev,
+-		         "Deregistered Sasem driver (minor:%d)\n", minor);
++			 "Deregistered Sasem driver (minor:%d)\n", minor);
+ 
+ }
+ 
+-- 
+1.9.1
 
-Easiest is just to post two patches, one for each driver.
-
-Regards,
-
-	Hans
-
-On 07/28/15 12:57, Mike Looijmans wrote:
-> Header claims GPL v2, so make the MODULE_LICENSE reflect that properly.
-> 
-> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
-> ---
->  drivers/gpu/drm/i2c/adv7511_core.c | 2 +-
->  drivers/media/i2c/adv7511.c        | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/i2c/adv7511_core.c b/drivers/gpu/drm/i2c/adv7511_core.c
-> index 2564b5d..12e8134 100644
-> --- a/drivers/gpu/drm/i2c/adv7511_core.c
-> +++ b/drivers/gpu/drm/i2c/adv7511_core.c
-> @@ -956,4 +956,4 @@ module_exit(adv7511_exit);
->  
->  MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
->  MODULE_DESCRIPTION("ADV7511 HDMI transmitter driver");
-> -MODULE_LICENSE("GPL");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-> index 02d76c6..1a4275d 100644
-> --- a/drivers/media/i2c/adv7511.c
-> +++ b/drivers/media/i2c/adv7511.c
-> @@ -41,7 +41,7 @@ MODULE_PARM_DESC(debug, "debug level (0-2)");
->  
->  MODULE_DESCRIPTION("Analog Devices ADV7511 HDMI Transmitter Device Driver");
->  MODULE_AUTHOR("Hans Verkuil");
-> -MODULE_LICENSE("GPL");
-> +MODULE_LICENSE("GPL v2");
->  
->  #define MASK_ADV7511_EDID_RDY_INT   0x04
->  #define MASK_ADV7511_MSEN_INT       0x40
-> 
