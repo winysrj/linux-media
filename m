@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1on0132.outbound.protection.outlook.com ([157.56.110.132]:50720
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751727AbbHRNXc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 09:23:32 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <mchehab@osg.samsung.com>
-CC: <maxime.coquelin@st.com>, <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] c8sectpfe: Use %pad to print 'dma_addr_t'
-Date: Tue, 18 Aug 2015 10:23:05 -0300
-Message-ID: <1439904185-21226-1-git-send-email-fabio.estevam@freescale.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:9128 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754537AbbHDGm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 02:42:57 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	<linux-arm-kernel@lists.infradead.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2] media: atmel-isi: parse the DT parameters for vsync/hsync/pixclock polarity
+Date: Tue, 4 Aug 2015 14:47:07 +0800
+Message-ID: <1438670828-19845-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use %pad to print 'dma_addr_t' in order to fix the following
-build warning:
+This patch will get the DT parameters of vsync/hsync/pixclock polarity, and
+pass to driver.
 
-drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c:588:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat=]
+Also add a debug information for test purpose.
 
-Reported-by: Olof's autobuilder <build@lixom.net>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index 1586a1e..486aef5 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -585,9 +585,9 @@ static int configure_memdma_and_inputblock(struct c8sectpfei *fei,
- 	writel(tsin->pid_buffer_busaddr,
- 		fei->io + PIDF_BASE(tsin->tsin_id));
+Changes in v2:
+- rewrite the debug message and add pix clock polarity setup thanks to
+  Laurent.
+- update the commit log.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index fead841..d6f8def 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -1061,6 +1061,11 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+ 		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
  
--	dev_info(fei->dev, "chan=%d PIDF_BASE=0x%x pid_bus_addr=0x%x\n",
-+	dev_info(fei->dev, "chan=%d PIDF_BASE=0x%x pid_bus_addr=%pad\n",
- 		tsin->tsin_id, readl(fei->io + PIDF_BASE(tsin->tsin_id)),
--		tsin->pid_buffer_busaddr);
-+		&tsin->pid_buffer_busaddr);
++	dev_dbg(icd->parent, "vsync active %s, hsync active %s, sampling on pix clock %s\n",
++		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" : "high",
++		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
++		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "falling" : "rising");
++
+ 	if (isi->pdata.has_emb_sync)
+ 		cfg1 |= ISI_CFG1_EMB_SYNC;
+ 	if (isi->pdata.full_mode)
+@@ -1148,6 +1153,13 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
+ 		return -EINVAL;
+ 	}
  
- 	/* Configure and enable HW PID filtering */
++	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++		isi->pdata.hsync_act_low = true;
++	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++		isi->pdata.vsync_act_low = true;
++	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++		isi->pdata.pclk_act_falling = true;
++
+ 	return 0;
+ }
  
 -- 
 1.9.1
