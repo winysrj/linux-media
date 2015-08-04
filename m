@@ -1,67 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:37887 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbbHLR43 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:33679 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756047AbbHDM0P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 13:56:29 -0400
+	Tue, 4 Aug 2015 08:26:15 -0400
+Message-ID: <55C0AF5C.1050307@xs4all.nl>
+Date: Tue, 04 Aug 2015 14:26:04 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1439398807.2825.51.camel@HansenPartnership.com>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-	<1439398807.2825.51.camel@HansenPartnership.com>
-Date: Wed, 12 Aug 2015 10:56:26 -0700
-Message-ID: <CAP6odjhfTHzgEivDUxXyU=VBG4U85ETxv1gcogE9GVGoGQ37-w@mail.gmail.com>
-Subject: Re: RFC: prepare for struct scatterlist entries without page backing
-From: Grant Grundler <grantgrundler@gmail.com>
-To: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Christoph Hellwig <hch@lst.de>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	axboe@kernel.dk, dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	David Woodhouse <dwmw2@infradead.org>,
-	alex.williamson@redhat.com,
-	Grant Grundler <grundler@parisc-linux.org>,
-	open list <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org,
-	linux-parisc <linux-parisc@vger.kernel.org>,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	media-workshop@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH_RFC_v1 2/4] media: Add a common embeed struct for all
+ media graph objects
+References: <cover.1438687440.git.mchehab@osg.samsung.com> <3e0cf7e0a2feed17220b7580df2419d073fe8098.1438687440.git.mchehab@osg.samsung.com>
+In-Reply-To: <3e0cf7e0a2feed17220b7580df2419d073fe8098.1438687440.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2015 at 10:00 AM, James Bottomley
-<James.Bottomley@hansenpartnership.com> wrote:
-> On Wed, 2015-08-12 at 09:05 +0200, Christoph Hellwig wrote:
-...
->> However the ccio (parisc) and sba_iommu (parisc & ia64) IOMMUs seem
->> to be operate mostly on virtual addresses.  It's a fairly odd concept
->> that I don't fully grasp, so I'll need some help with those if we want
->> to bring this forward.
 
-James explained the primary function of IOMMUs on parisc (DMA-Cache
-coherency) much better than I ever could.
 
-Three more observations:
-1) the IOMMU can be bypassed by 64-bit DMA devices on IA64.
+On 08/04/2015 01:41 PM, Mauro Carvalho Chehab wrote:
+> Due to the MC API proposed changes, we'll need to:
+> 	- have an unique object ID for all graph objects;
+> 	- be able to dynamically create/remove objects;
+> 	- be able to group objects;
+> 	- keep the object in memory until we stop use it.
+> 
+> Due to that, create a struct media_graph_obj and put there the
+> common elements that all media objects will have in common.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0c003d817493..faead169fe32 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -27,11 +27,54 @@
+>  #include <linux/kernel.h>
+>  #include <linux/list.h>
+>  #include <linux/media.h>
+> +#include <linux/kref.h>
+> +
+> +/* Enums used internally at the media controller to represent graphs */
+> +
+> +/**
+> + * enum media_graph_type - type of a graph element
+> + *
+> + * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+> + * @MEDIA_GRAPH_PAD:		Identify a media PAD
+> + * @MEDIA_GRAPH_LINK:		Identify a media link
+> + */
+> +enum media_graph_type {
+> +	MEDIA_GRAPH_ENTITY,
+> +	MEDIA_GRAPH_PAD,
+> +	MEDIA_GRAPH_LINK,
+> +};
+> +
+> +
+> +/* Structs to represent the objects that belong to a media graph */
+> +
+> +/**
+> + * struct media_graph_obj - Define a graph object.
+> + *
+> + * @list:		List of media graph objects
+> + * @obj_id:		Non-zero object ID identifier. The ID should be unique
+> + *			inside a media_device
+> + * @type:		Type of the graph object
+> + * @mdev:		Media device that contains the object
+> + * @kref:		pointer to struct kref, used to avoid destroying the
+> + *			object before stopping using it
+> + *
+> + * All elements on the media graph should have this struct embedded
+> + */
+> +struct media_graph_obj {
+> +	struct list_head	list;
+> +	struct list_head	group;
+> +	u32			obj_id;
+> +	enum media_graph_type	type;
 
-2) IOMMU enables 32-bit DMA devices to reach > 32-bit physical memory
-and thus avoiding bounce buffers. parisc and older IA-64 have some
-32-bit PCI devices - e.g. IDE boot HDD.
+I think that using the top 8 bits of the ID for the type and the lower 24 bits for
+the ID is more efficient. I proposed this in my RFC.
 
-3) IOMMU acts as a proxy for IO devices by fetching cachelines of data
-for PA-RISC systems whose memory controllers ONLY serve cacheline
-sized transactions. ie. 32-bit DMA results in the IOMMU fetching the
-cacheline and updating just the 32-bits in a DMA cache coherent
-fashion.
+The IDs are still unique, but you don't need to keep track of the type since that's
+encoded in the ID. You'd need an array of MAX_TYPE atomics to get per-type unique IDs,
+but that's trivial. It also avoid the need for a connector flag since that would be
+a distinct type (although using the same media_entity struct).
 
-Bonus thought:
-4) IOMMU can improve DMA performance in some cases using "hints"
-provided by the OS (e.g. prefetching DMA data or using READ_CURRENT
-bus transactions instead of normal memory fetches.)
+This is not a blocker for me, but I'd like to hear what others think.
 
-cheers,
-grant
+Otherwise this patch series looks OK.
+
+Regards,
+
+	Hans
+
+> +	struct media_device	*mdev;
+> +	struct kref		kref;
+> +};
+> +
+>  
+>  struct media_pipeline {
+>  };
+>  
+>  struct media_link {
+> +	struct media_graph_obj			graph_obj;
+>  	struct media_pad *source;	/* Source pad */
+>  	struct media_pad *sink;		/* Sink pad  */
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+> @@ -39,6 +82,7 @@ struct media_link {
+>  };
+>  
+>  struct media_pad {
+> +	struct media_graph_obj			graph_obj;
+>  	struct media_entity *entity;	/* Entity this pad belongs to */
+>  	u16 index;			/* Pad index in the entity pads array */
+>  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+> @@ -61,6 +105,7 @@ struct media_entity_operations {
+>  };
+>  
+>  struct media_entity {
+> +	struct media_graph_obj			graph_obj;
+>  	struct list_head list;
+>  	struct media_device *parent;	/* Media device this entity belongs to*/
+>  	u32 id;				/* Entity ID, unique in the parent media
+> 
