@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:42115 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965AbbHYGh6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 02:37:58 -0400
-Message-ID: <55DC0D17.20109@xs4all.nl>
-Date: Tue, 25 Aug 2015 08:37:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:52343 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933162AbbHDLlT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 07:41:19 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: media-workshop@linuxtv.org,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Javier Martinez Canillas <javier@osg.samsung.com>,
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 12/44] [media] media: remove media entity .parent field
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <05b394a87249d87c086a44e04182df136ccafbe9.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <05b394a87249d87c086a44e04182df136ccafbe9.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH_RFC_v1 1/4] media: Add some fields to store graph objects
+Date: Tue,  4 Aug 2015 08:41:06 -0300
+Message-Id: <a3c1d738a55bf2b3b34222125ab0b27de28cbcfb.1438687440.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
+References: <cover.1438687440.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
+References: <cover.1438687440.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> Now that the struct media_entity .parent field is unused, it can be
-> safely removed. Since all the previous users were converted to use
-> the .mdev field from the embedded struct media_gobj instead.
-> 
-> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+We'll need unique IDs for graph objects and a way to associate
+them with the media interface.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, add an atomic var to be used to create unique IDs and
+a list to store such objects.
 
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index e0e4b014ce62..239c4ec30ef6 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -103,7 +103,6 @@ struct media_entity_operations {
->  struct media_entity {
->  	struct media_gobj graph_obj;
->  	struct list_head list;
-> -	struct media_device *parent;	/* Media device this entity belongs to*/
->  	const char *name;		/* Entity name */
->  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
->  	u32 revision;			/* Entity revision, driver specific */
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7b39440192d6..e627b0b905ad 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -396,6 +396,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return ret;
+ 	}
+ 
++	/* Initialize media graph object list and ID */
++	atomic_set(&mdev->last_obj_id, 0);
++	INIT_LIST_HEAD(&mdev->object_list);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6e6db78f1ee2..a9d546716e49 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -78,6 +78,10 @@ struct media_device {
+ 
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
++
++	/* Used by media_graph stuff */
++	atomic_t last_obj_id;
++	struct list_head object_list;
+ };
+ 
+ /* Supported link_notify @notification values. */
+-- 
+2.4.3
 
