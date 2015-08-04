@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:34223 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767AbbHSVCU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 17:02:20 -0400
-Received: by laba3 with SMTP id a3so10882769lab.1
-        for <linux-media@vger.kernel.org>; Wed, 19 Aug 2015 14:02:19 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH] rcar_vin: propagate querystd() error upstream
-Date: Thu, 20 Aug 2015 00:02:17 +0300
-Message-ID: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34889 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221AbbHDWHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 18:07:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/4] atmel-isi: Remove platform data support
+Date: Wed, 05 Aug 2015 01:08:19 +0300
+Message-ID: <11161489.E6W8tYM4a4@avalon>
+In-Reply-To: <55BED85D.4090905@atmel.com>
+References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com> <55BED85D.4090905@atmel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method call
-fails (e.g. due to I2C error).  This doesn't work very well when a camera being
-used  outputs NTSC which has different order of fields and resolution.  Let  us
-stop  pretending and return the actual error (which would prevent video capture
-on at least Renesas Henninger/Porter board where I2C seems particularly buggy).
+Hi Josh,
 
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+On Monday 03 August 2015 10:56:29 Josh Wu wrote:
+> On 8/1/2015 5:22 PM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > While reviewing patches for the atmel-isi I noticed a couple of small
+> > issues with the driver. Here's a patch series to fix them, the main
+> > change being the removal of platform data support now that all users have
+> > migrated to DT.
+>
+> Thanks for the patches. It's perfectly make sense.
+> 
+> > The patches have been compile-tested only. Josh, would you be able to test
+> > them on hardware ?
+> 
+> For the whole series, here is my:
+> 
+> Acked-by: Josh Wu <josh.wu@atmel.com>
+> Tested-by: Josh Wu <josh.wu@atmel.com>
 
----
-The patch is against the 'media_tree.git' repo's 'fixes' branch.
+Thank you.
 
- drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Do you plan to take those four patches in your tree and include them in your 
+next pull request ?
 
-Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-===================================================================
---- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
-+++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1592,7 +1592,7 @@ static int rcar_vin_set_fmt(struct soc_c
- 		/* Query for standard if not explicitly mentioned _TB/_BT */
- 		ret = v4l2_subdev_call(sd, video, querystd, &std);
- 		if (ret < 0)
--			std = V4L2_STD_625_50;
-+			return ret;
- 
- 		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
- 						V4L2_FIELD_INTERLACED_BT;
+> > Laurent Pinchart (4):
+> >    v4l: atmel-isi: Simplify error handling during DT parsing
+> >    v4l: atmel-isi: Remove unused variable
+> >    v4l: atmel-isi: Remove support for platform data
+> >    v4l: atmel-isi: Remove unused platform data fields
+> >   
+> >   drivers/media/platform/soc_camera/atmel-isi.c |  40 ++------
+> >   drivers/media/platform/soc_camera/atmel-isi.h | 126 ++++++++++++++++++++
+> >   include/media/atmel-isi.h                     | 131 --------------------
+> >   3 files changed, 136 insertions(+), 161 deletions(-)
+> >   create mode 100644 drivers/media/platform/soc_camera/atmel-isi.h
+> >   delete mode 100644 include/media/atmel-isi.h
+
+-- 
+Regards,
+
+Laurent Pinchart
 
