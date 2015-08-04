@@ -1,53 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47102 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751590AbbHNVJ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 17:09:28 -0400
-Date: Sat, 15 Aug 2015 00:08:55 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v4 2/6] media: create a macro to get entity ID
-Message-ID: <20150814210855.GA28370@valkosipuli.retiisi.org.uk>
-References: <cover.1439563682.git.mchehab@osg.samsung.com>
- <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
+Received: from aae164.rev.netart.pl ([77.55.4.164]:48833 "EHLO
+	aae164.rev.netart.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967AbbHDGhL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 02:37:11 -0400
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: Skrzynka Pocztowa Zostala Tymczasowo Zawieszona!!!
+To: Recipients <biuro@doradztwo-prostepytania.pl>
+From: System Admin <biuro@doradztwo-prostepytania.pl>
+Date: Tue, 04 Aug 2015 07:25:19 +0100
+Reply-To: noreply@math.uni.wroc.pl
+Message-Id: <20150804062524.C79082DBFEA@netteamsc.nazwa.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Konto e-mail uzytkownika Drogi
 
-On Fri, Aug 14, 2015 at 11:56:39AM -0300, Mauro Carvalho Chehab wrote:
-...
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8b21a4d920d9..478d5cd56be9 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -126,6 +126,8 @@ struct media_entity_graph {
->  	int top;
->  };
->  
-> +#define entity_id(entity) ((entity)->id)
-> +
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->  		struct media_pad *pads);
->  void media_entity_cleanup(struct media_entity *entity);
+            Niedawno wykryto nietypowe dzialania z konta e-mail, wiec skrzynka pocztowa zostala tymczasowo zawieszona przez administratora systemu, nalezy odzyskac swoje konto, klikajac na ponizszy link lub skopiuj do przegladarki:
 
-media-entity.h is a pretty widely included header file. Perhaps we should
-think about the naming a bit.
+http://itadminhelpdeskcentered.ezweb123.com/
 
-All the other names in the header begin with media (or __media); I'd very
-much prefer not changing that pattern.
 
--- 
-Regards,
+W zwiazku z tym, mozna otrzymac te wiadomosc w folderze spamu, prosimy przejsc do skrzynki odbiorczej i kliknij w link.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Przepraszamy za niedogodnosci.
+Systemu Administrator
+@ 2015. All Rights Reserved.
+
+---
+This email is free from viruses and malware because avast! Antivirus protection is active.
+https://www.avast.com/antivirus
+
