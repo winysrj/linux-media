@@ -1,118 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40473 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:52339 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444AbbHVR2i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:38 -0400
+	with ESMTP id S933170AbbHDLlT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 07:41:19 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: media-workshop@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 23/39] [media] v4l2-event.h: fix comments and add to DocBook
-Date: Sat, 22 Aug 2015 14:28:08 -0300
-Message-Id: <a5c83477a291a12d8412c1cf3dadb34fee98a757.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH_RFC_v1 2/4] media: Add a common embeed struct for all media graph objects
+Date: Tue,  4 Aug 2015 08:41:07 -0300
+Message-Id: <3e0cf7e0a2feed17220b7580df2419d073fe8098.1438687440.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
+References: <cover.1438687440.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
+References: <cover.1438687440.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The comments there are good enough for DocBook, however they're
-using a wrong format. Fix and add to device-drivers.xml.
+Due to the MC API proposed changes, we'll need to:
+	- have an unique object ID for all graph objects;
+	- be able to dynamically create/remove objects;
+	- be able to group objects;
+	- keep the object in memory until we stop use it.
+
+Due to that, create a struct media_graph_obj and put there the
+common elements that all media objects will have in common.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 5f01f7ad15dc..46e6818b95ce 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -232,9 +232,9 @@ X!Isound/sound_firmware.c
- !Idrivers/media/dvb-core/dvb_math.h
- !Idrivers/media/dvb-core/dvb_ringbuffer.h
- !Iinclude/media/v4l2-ctrls.h
-+!Iinclude/media/v4l2-event.h
- <!-- FIXME: Removed for now due to document generation inconsistency
- X!Iinclude/media/v4l2-dv-timings.h
--X!Iinclude/media/v4l2-event.h
- X!Iinclude/media/v4l2-mediabus.h
- X!Iinclude/media/videobuf2-memops.h
- X!Iinclude/media/videobuf2-core.h
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 1ab9045e52e3..9792f906423b 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -68,10 +68,11 @@ struct v4l2_subdev;
- struct v4l2_subscribed_event;
- struct video_device;
- 
--/** struct v4l2_kevent - Internal kernel event struct.
--  * @list:	List node for the v4l2_fh->available list.
--  * @sev:	Pointer to parent v4l2_subscribed_event.
--  * @event:	The event itself.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0c003d817493..faead169fe32 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -27,11 +27,54 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/media.h>
++#include <linux/kref.h>
++
++/* Enums used internally at the media controller to represent graphs */
++
 +/**
-+ * struct v4l2_kevent - Internal kernel event struct.
-+ * @list:	List node for the v4l2_fh->available list.
-+ * @sev:	Pointer to parent v4l2_subscribed_event.
-+ * @event:	The event itself.
-   */
- struct v4l2_kevent {
- 	struct list_head	list;
-@@ -80,11 +81,12 @@ struct v4l2_kevent {
- };
- 
- /** struct v4l2_subscribed_event_ops - Subscribed event operations.
--  * @add:	Optional callback, called when a new listener is added
--  * @del:	Optional callback, called when a listener stops listening
--  * @replace:	Optional callback that can replace event 'old' with event 'new'.
--  * @merge:	Optional callback that can merge event 'old' into event 'new'.
--  */
++ * enum media_graph_type - type of a graph element
 + *
-+ * @add:	Optional callback, called when a new listener is added
-+ * @del:	Optional callback, called when a listener stops listening
-+ * @replace:	Optional callback that can replace event 'old' with event 'new'.
-+ * @merge:	Optional callback that can merge event 'old' into event 'new'.
++ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
++ * @MEDIA_GRAPH_PAD:		Identify a media PAD
++ * @MEDIA_GRAPH_LINK:		Identify a media link
 + */
- struct v4l2_subscribed_event_ops {
- 	int  (*add)(struct v4l2_subscribed_event *sev, unsigned elems);
- 	void (*del)(struct v4l2_subscribed_event *sev);
-@@ -92,19 +94,20 @@ struct v4l2_subscribed_event_ops {
- 	void (*merge)(const struct v4l2_event *old, struct v4l2_event *new);
++enum media_graph_type {
++	MEDIA_GRAPH_ENTITY,
++	MEDIA_GRAPH_PAD,
++	MEDIA_GRAPH_LINK,
++};
++
++
++/* Structs to represent the objects that belong to a media graph */
++
++/**
++ * struct media_graph_obj - Define a graph object.
++ *
++ * @list:		List of media graph objects
++ * @obj_id:		Non-zero object ID identifier. The ID should be unique
++ *			inside a media_device
++ * @type:		Type of the graph object
++ * @mdev:		Media device that contains the object
++ * @kref:		pointer to struct kref, used to avoid destroying the
++ *			object before stopping using it
++ *
++ * All elements on the media graph should have this struct embedded
++ */
++struct media_graph_obj {
++	struct list_head	list;
++	struct list_head	group;
++	u32			obj_id;
++	enum media_graph_type	type;
++	struct media_device	*mdev;
++	struct kref		kref;
++};
++
+ 
+ struct media_pipeline {
  };
  
--/** struct v4l2_subscribed_event - Internal struct representing a subscribed event.
--  * @list:	List node for the v4l2_fh->subscribed list.
--  * @type:	Event type.
--  * @id:	Associated object ID (e.g. control ID). 0 if there isn't any.
--  * @flags:	Copy of v4l2_event_subscription->flags.
--  * @fh:	Filehandle that subscribed to this event.
--  * @node:	List node that hooks into the object's event list (if there is one).
--  * @ops:	v4l2_subscribed_event_ops
--  * @elems:	The number of elements in the events array.
--  * @first:	The index of the events containing the oldest available event.
--  * @in_use:	The number of queued events.
--  * @events:	An array of @elems events.
--  */
-+/**
-+ * struct v4l2_subscribed_event - Internal struct representing a subscribed event.
-+ * @list:	List node for the v4l2_fh->subscribed list.
-+ * @type:	Event type.
-+ * @id:	Associated object ID (e.g. control ID). 0 if there isn't any.
-+ * @flags:	Copy of v4l2_event_subscription->flags.
-+ * @fh:	Filehandle that subscribed to this event.
-+ * @node:	List node that hooks into the object's event list (if there is one).
-+ * @ops:	v4l2_subscribed_event_ops
-+ * @elems:	The number of elements in the events array.
-+ * @first:	The index of the events containing the oldest available event.
-+ * @in_use:	The number of queued events.
-+ * @events:	An array of @elems events.
-+ */
- struct v4l2_subscribed_event {
- 	struct list_head	list;
- 	u32			type;
+ struct media_link {
++	struct media_graph_obj			graph_obj;
+ 	struct media_pad *source;	/* Source pad */
+ 	struct media_pad *sink;		/* Sink pad  */
+ 	struct media_link *reverse;	/* Link in the reverse direction */
+@@ -39,6 +82,7 @@ struct media_link {
+ };
+ 
+ struct media_pad {
++	struct media_graph_obj			graph_obj;
+ 	struct media_entity *entity;	/* Entity this pad belongs to */
+ 	u16 index;			/* Pad index in the entity pads array */
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+@@ -61,6 +105,7 @@ struct media_entity_operations {
+ };
+ 
+ struct media_entity {
++	struct media_graph_obj			graph_obj;
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+ 	u32 id;				/* Entity ID, unique in the parent media
 -- 
 2.4.3
 
