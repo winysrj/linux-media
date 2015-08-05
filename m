@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40098 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639AbbHGOUV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 10:20:21 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v2 01/16] media: Add some fields to store graph objects
-Date: Fri,  7 Aug 2015 11:19:59 -0300
-Message-Id: <a3c1d738a55bf2b3b34222125ab0b27de28cbcfb.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:34603 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbbHEFP2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2015 01:15:28 -0400
+Received: by oip136 with SMTP id 136so14595891oip.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2015 22:15:28 -0700 (PDT)
+From: Pradheep Shrinivasan <pradheep.sh@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Pradheep Shrinivasan <pradheep.sh@gmail.com>
+Subject: [PATCH 2/2] staging: media: lirc This fix changes the spaces to tab in lirc_sasem.c
+Date: Wed,  5 Aug 2015 00:14:56 -0500
+Message-Id: <1438751698-8254-2-git-send-email-pradheep.sh@gmail.com>
+In-Reply-To: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
+References: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We'll need unique IDs for graph objects and a way to associate
-them with the media interface.
+This fix changes the space in the code to tab to fix the ERROR
+"ERROR: code indent should use tabs where possible"
 
-So, add an atomic var to be used to create unique IDs and
-a list to store such objects.
+Signed-off-by: Pradheep Shrinivasan <pradheep.sh@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_sasem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7b39440192d6..e627b0b905ad 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -396,6 +396,10 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return ret;
- 	}
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 8ebee96..c14ca7e 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
+ 		       __func__, retval);
+ 	else
+ 		dev_info(&context->dev->dev,
+-		         "Deregistered Sasem driver (minor:%d)\n", minor);
++			 "Deregistered Sasem driver (minor:%d)\n", minor);
  
-+	/* Initialize media graph object list and ID */
-+	atomic_set(&mdev->last_obj_id, 0);
-+	INIT_LIST_HEAD(&mdev->object_list);
-+
- 	return 0;
  }
- EXPORT_SYMBOL_GPL(__media_device_register);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6e6db78f1ee2..a9d546716e49 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -78,6 +78,10 @@ struct media_device {
  
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+
-+	/* Used by media_graph stuff */
-+	atomic_t last_obj_id;
-+	struct list_head object_list;
- };
- 
- /* Supported link_notify @notification values. */
 -- 
-2.4.3
+1.9.1
 
