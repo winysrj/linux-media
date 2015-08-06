@@ -1,31 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:34178 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507AbbHaMhF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 08:37:05 -0400
-Received: by ioeu67 with SMTP id u67so13768108ioe.1
-        for <linux-media@vger.kernel.org>; Mon, 31 Aug 2015 05:37:04 -0700 (PDT)
+Received: from nasmtp02.atmel.com ([204.2.163.16]:17549 "EHLO
+	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753522AbbHFIT7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 04:19:59 -0400
+Message-ID: <55C318A6.5090005@atmel.com>
+Date: Thu, 6 Aug 2015 16:19:50 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Date: Mon, 31 Aug 2015 15:37:04 +0300
-Message-ID: <CAJ2oMhKMaEVvqenk99pm=cf9kq_xxJ4+-K1+0xruUrH=6G7XAg@mail.gmail.com>
-Subject: muxing ES to mpeg-ts
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/4] v4l: atmel-isi: Remove unused variable
+References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com> <1438420976-7899-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1438420976-7899-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi, Laurent
 
-I would please like to ask what is a good choice for muxing ES to mpeg
-transport stream. It is required to do this in application (muxing the
-encoder output into mpeg-ts which is transffered in ethernet udp).
+On 8/1/2015 5:22 PM, Laurent Pinchart wrote:
+> Fix a compilation warning by removing an unused local variable in the
+> probe function.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/media/platform/soc_camera/atmel-isi.c | 1 -
+>   1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index 9c900d9569e0..a2e50a734fa3 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -920,7 +920,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>   	struct atmel_isi *isi;
+>   	struct resource *regs;
+>   	int ret, i;
+> -	struct device *dev = &pdev->dev;
 
-I know that both ffmpeg and opencaster can support this.
+After a further check, I find this patch should be squashed with the 
+[PATCH 3/4].
+Since 'dev' is used by platform data in atmel_isi_probe() function by 
+following code:
 
-What do you think will be a good choice for this ? (simplicity to
-integrate in code, latency, debug, etc)
+	pdata = dev->platform_data;
+	if ((!pdata || !pdata->data_width_flags) && !pdev->dev.of_node) {
+		dev_err(&pdev->dev,
+			"No config available for Atmel ISI\n");
+		return -EINVAL;
+	}
 
-Regards,
-Ran
+So if you agree with it, I will squash this patch with
+     [PATCH 3/4] Remove support for platform data
+in my tree. Does it sound ok for you?
+
+Best Regards,
+Josh Wu
+
+>   	struct soc_camera_host *soc_host;
+>   	struct isi_platform_data *pdata;
+>   
+
