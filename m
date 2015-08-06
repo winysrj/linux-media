@@ -1,130 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:55692 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbbHQM0X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2015 08:26:23 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NT8008QX7VXBJ00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Aug 2015 13:26:21 +0100 (BST)
-Subject: Re: [PATCH v2] [media] m2m: fix bad unlock balance
-To: Zahari Doychev <zahari.doychev@linux.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl, kamil@wypas.org
-References: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
-Cc: mchehab@osg.samsung.com
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <55D1D2EC.3010205@samsung.com>
-Date: Mon, 17 Aug 2015 14:26:20 +0200
-MIME-version: 1.0
-In-reply-to: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:36405 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753780AbbHFT4K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 15:56:10 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+ <1434064996.11808.64.camel@misato.fc.hp.com> <557AAD910200007800084014@mail.emea.novell.com>
+ <1434128306.11808.97.camel@misato.fc.hp.com> <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Date: Thu, 6 Aug 2015 12:55:48 -0700
+Message-ID: <CAB=NE6WvaY4p7O3=0MMjWO44AytNYFr6xRsvVmVWDns9qdYZ8Q@mail.gmail.com>
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Jan Beulich <JBeulich@suse.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Jej B <James.Bottomley@hansenpartnership.com>,
+	X86 ML <x86@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
+	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
+	Juergen Gross <JGross@suse.com>, Borislav Petkov <bp@suse.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Aug 6, 2015 at 12:53 PM, Luis R. Rodriguez
+<mcgrof@do-not-panic.com> wrote:
+> For those type of OSes...
+> could it be possible to negotiate or hint to the platform through an
+> attribute somehow that the OS has such capability to not use MTRR?
 
-On 2015-08-17 12:13, Zahari Doychev wrote:
-> This patch removes unnecessary mutex queue unlock/lock sequence causing bad
-> unlock balance in v4l2_m2m_poll when the last buffer on the destination
-> queue has been dequeued and adds spin lock protection for the done list
-> list_empty calls.
->
-> [  144.990873] =====================================
-> [  144.995584] [ BUG: bad unlock balance detected! ]
-> [  145.000301] 4.1.0-00137-ga105070 #98 Tainted: G        W
-> [  145.006140] -------------------------------------
-> [  145.010851] demux:sink/487 is trying to release lock (&dev->dev_mutex) at:
-> [  145.017785] [<808cc578>] mutex_unlock+0x18/0x1c
-> [  145.022322] but there are no more locks to release!
-> [  145.027205]
-> [  145.027205] other info that might help us debug this:
-> [  145.033741] no locks held by demux:sink/487.
-> [  145.038015]
-> [  145.038015] stack backtrace:
-> [  145.042385] CPU: 2 PID: 487 Comm: demux:sink Tainted: G        W       4.1.0-00137-ga105070 #98
-> [  145.051089] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-> [  145.057622] Backtrace:
-> [  145.060102] [<80014a4c>] (dump_backtrace) from [<80014cc4>] (show_stack+0x20/0x24)
-> [  145.067679]  r6:80cedf78 r5:00000000 r4:00000000 r3:00000000
-> [  145.073421] [<80014ca4>] (show_stack) from [<808c61e0>] (dump_stack+0x8c/0xa4)
-> [  145.080661] [<808c6154>] (dump_stack) from [<80072b64>] (print_unlock_imbalance_bug+0xb8/0xe8)
-> [  145.089277]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000001
-> [  145.095020] [<80072aac>] (print_unlock_imbalance_bug) from [<80077db4>] (lock_release+0x1a4/0x250)
-> [  145.103983]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000000
-> [  145.109728] [<80077c10>] (lock_release) from [<808cc470>] (__mutex_unlock_slowpath+0xc4/0x1b4)
-> [  145.118344]  r9:acb27a41 r8:00000000 r7:81553814 r6:808cc578 r5:60030013 r4:ac6cd01c
-> [  145.126190] [<808cc3ac>] (__mutex_unlock_slowpath) from [<808cc578>] (mutex_unlock+0x18/0x1c)
-> [  145.134720]  r7:00000000 r6:aced7cd4 r5:00000041 r4:acb87800
-> [  145.140468] [<808cc560>] (mutex_unlock) from [<805a98b8>] (v4l2_m2m_fop_poll+0x5c/0x64)
-> [  145.148494] [<805a985c>] (v4l2_m2m_fop_poll) from [<805955a0>] (v4l2_poll+0x6c/0xa0)
-> [  145.156243]  r6:aced7bec r5:00000000 r4:ac6cc380 r3:805a985c
-> [  145.161991] [<80595534>] (v4l2_poll) from [<80156edc>] (do_sys_poll+0x230/0x4c0)
-> [  145.169391]  r5:00000000 r4:aced7be4
-> [  145.173013] [<80156cac>] (do_sys_poll) from [<801574a8>] (SyS_ppoll+0x1d4/0x1fc)
-> [  145.180414]  r10:00000000 r9:aced6000 r8:00000000 r7:00000000 r6:75c04538 r5:00000002
-> [  145.188338]  r4:00000000
-> [  145.190906] [<801572d4>] (SyS_ppoll) from [<800108c0>] (ret_fast_syscall+0x0/0x54)
-> [  145.198481]  r8:80010aa4 r7:00000150 r6:75c04538 r5:00000002 r4:00000008
->
-> Signed-off-by: Zahari Doychev <zahari.doychev@linux.com>
+And if that's not possible how about a new platform setting that would
+need to be set at the platform level to enable disabling this junk?
+Then only folks who know what they are doing would enable it, and if
+the customer set it, the issue would not be on the platform.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/v4l2-core/v4l2-mem2mem.c | 23 ++++++++---------------
->   1 file changed, 8 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index ec3ad4e..2f7291c 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -583,32 +583,25 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->   		goto end;
->   	}
->   
-> -	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
-> -		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
-> -	else if (m2m_ctx->q_lock)
-> -		mutex_unlock(m2m_ctx->q_lock);
-> -
-> +	spin_lock_irqsave(&src_q->done_lock, flags);
->   	if (list_empty(&src_q->done_list))
->   		poll_wait(file, &src_q->done_wq, wait);
-> +	spin_unlock_irqrestore(&src_q->done_lock, flags);
-> +
-> +	spin_lock_irqsave(&dst_q->done_lock, flags);
->   	if (list_empty(&dst_q->done_list)) {
->   		/*
->   		 * If the last buffer was dequeued from the capture queue,
->   		 * return immediately. DQBUF will return -EPIPE.
->   		 */
-> -		if (dst_q->last_buffer_dequeued)
-> +		if (dst_q->last_buffer_dequeued) {
-> +			spin_unlock_irqrestore(&dst_q->done_lock, flags);
->   			return rc | POLLIN | POLLRDNORM;
-> +		}
->   
->   		poll_wait(file, &dst_q->done_wq, wait);
->   	}
-> -
-> -	if (m2m_ctx->m2m_dev->m2m_ops->lock)
-> -		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
-> -	else if (m2m_ctx->q_lock) {
-> -		if (mutex_lock_interruptible(m2m_ctx->q_lock)) {
-> -			rc |= POLLERR;
-> -			goto end;
-> -		}
-> -	}
-> +	spin_unlock_irqrestore(&dst_q->done_lock, flags);
->   
->   	spin_lock_irqsave(&src_q->done_lock, flags);
->   	if (!list_empty(&src_q->done_list))
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+ Luis
