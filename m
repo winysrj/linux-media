@@ -1,56 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53340 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965302AbbHLHJ5 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37351 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752836AbbHFCvv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:09:57 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 25/31] frv: handle page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:44 +0200
-Message-Id: <1439363150-8661-26-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+	Wed, 5 Aug 2015 22:51:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F17AC2A00AD
+	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2015 04:51:29 +0200 (CEST)
+Date: Thu, 06 Aug 2015 04:51:29 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150806025129.F17AC2A00AD@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only call kmap_atomic_primary when the SG entry is mapped into
-kernel virtual space.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-XXX: the code already looks odd due to the lack of pairing between
-kmap_atomic_primary and kunmap_atomic_primary.  Does it work either
-before or after this patch?
+Results of the daily build of media_tree:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/frv/mb93090-mb00/pci-dma.c | 3 +++
- 1 file changed, 3 insertions(+)
+date:		Thu Aug  6 04:00:17 CEST 2015
+git branch:	test
+git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/arch/frv/mb93090-mb00/pci-dma.c b/arch/frv/mb93090-mb00/pci-dma.c
-index 4d1f01d..77b3a1c 100644
---- a/arch/frv/mb93090-mb00/pci-dma.c
-+++ b/arch/frv/mb93090-mb00/pci-dma.c
-@@ -63,6 +63,9 @@ int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	dampr2 = __get_DAMPR(2);
- 
- 	for_each_sg(sglist, sg, nents, i) {
-+		if (!sg_has_page(sg))
-+			continue;
-+
- 		vaddr = kmap_atomic_primary(sg_page(sg));
- 
- 		frv_dcache_writeback((unsigned long) vaddr,
--- 
-1.9.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
