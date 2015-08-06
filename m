@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40384 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092AbbHVR2f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:35 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 04/39] [media] DocBook/media/Makefile: Avoid make htmldocs to fail
-Date: Sat, 22 Aug 2015 14:27:49 -0300
-Message-Id: <33d74f5884897ce5a664cddf1f03c6d6851104d4.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:36592 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbbHFJzY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 05:55:24 -0400
+From: Shraddha Barke <shraddha.6596@gmail.com>
+To: Marek Belisko <marek.belisko@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Joe Perches <joe@perches.com>, Peter Karlsson <peter@zapto.se>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Tina Johnson <tinajohnson.1234@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Shraddha Barke <shraddha.6596@gmail.com>
+Subject: [PATCH v3 2/2] Staging: media: lirc: use USB API functions rather than constants
+Date: Thu,  6 Aug 2015 15:24:22 +0530
+Message-Id: <1438854862-10213-2-git-send-email-shraddha.6596@gmail.com>
+In-Reply-To: <1438854862-10213-1-git-send-email-shraddha.6596@gmail.com>
+References: <1438854862-10213-1-git-send-email-shraddha.6596@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If make is called twice like that:
-	make V=1 DOCBOOKS=device-drivers.xml htmldocs
+This patch introduces the use of the function usb_endpoint_type.
 
-Make will fail with:
+The Coccinelle semantic patch that makes these changes is as follows:
 
-	make -f ./scripts/Makefile.build obj=scripts/basic
-	rm -f .tmp_quiet_recordmcount
-	make -f ./scripts/Makefile.build obj=scripts build_docproc
-	make -f ./scripts/Makefile.build obj=Documentation/DocBook htmldocs
-	rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.2.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/device-drivers.html >> Documentation/DocBook/index.html
-	cp ./Documentation/DocBook//bayer.png ./Documentation/DocBook//constraints.png ./Documentation/DocBook//crop.gif ./Documentation/DocBook//dvbstb.png ./Documentation/DocBook//fieldseq_bt.gif ./Documentation/DocBook//fieldseq_tb.gif ./Documentation/DocBook//nv12mt.gif ./Documentation/DocBook//nv12mt_example.gif ./Documentation/DocBook//pipeline.png ./Documentation/DocBook//selection.png ./Documentation/DocBook//vbi_525.gif ./Documentation/DocBook//vbi_625.gif ./Documentation/DocBook//vbi_hsync.gif ./Documentation/DocBook/media/*.svg ./Documentation/DocBook/media/v4l/*.svg ./Documentation/DocBook//media_api
-	cp: target './Documentation/DocBook//media_api' is not a directory
-	Documentation/DocBook/Makefile:53: recipe for target 'htmldocs' failed
+@@ struct usb_endpoint_descriptor *epd; @@
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+- (epd->bmAttributes & \(USB_ENDPOINT_XFERTYPE_MASK\|3\))
++ usb_endpoint_type(epd)
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 23996f88cd58..08527e7ea4d0 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -199,7 +199,8 @@ DVB_DOCUMENTED = \
- #
+Signed-off-by: Shraddha Barke <shraddha.6596@gmail.com>
+---
+Changes in v3:
+  -No changes.
+
+ drivers/staging/media/lirc/lirc_imon.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 62ec9f7..cbeec83 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -739,7 +739,7 @@ static int imon_probe(struct usb_interface *interface,
  
- install_media_images = \
--	$(Q)-cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
-+	$(Q)-mkdir $(MEDIA_OBJ_DIR)/media_api; \
-+	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
+ 		ep = &iface_desc->endpoint[i].desc;
+ 		ep_dir = ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK;
+-		ep_type = ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
++		ep_type = usb_endpoint_type(ep);
  
- $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
- 	$(Q)base64 -d $< >$@
+ 		if (!ir_ep_found &&
+ 			ep_dir == USB_DIR_IN &&
 -- 
-2.4.3
+2.1.0
 
