@@ -1,107 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44695 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751372AbbHaKxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 06:53:16 -0400
-Message-ID: <55E431E3.7070906@xs4all.nl>
-Date: Mon, 31 Aug 2015 12:52:19 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 26/55] [media] media: add a linked list to track interfaces
- by mdev
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <6a5d75004723fe0a822ef389247ae9656d681ca1.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <6a5d75004723fe0a822ef389247ae9656d681ca1.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:35553 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754917AbbHFU0Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 16:26:25 -0400
+Received: by ykcq64 with SMTP id q64so67583223ykc.2
+        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2015 13:26:24 -0700 (PDT)
+From: Helen Fornazier <helen.fornazier@gmail.com>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Cc: Helen Fornazier <helen.fornazier@gmail.com>
+Subject: [PATCH 0/7] vimc: Virtual Media Control VPU's
+Date: Thu,  6 Aug 2015 17:26:07 -0300
+Message-Id: <cover.1438891530.git.helen.fornazier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
-> The media device should list the interface objects, so add a linked list
-> for those interfaces in struct media_device.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+* This patch series add to the vimc driver video processing units ad a debayer and a scaler.
+* The test pattern generator from vivid driver was exported as a module, as it is used by
+  the vimc driver as well.
+* The debayer transforms the bayer format image received in its sink pad to a bayer format
+  by avaraging the pixels within a mean window
+* The scaler only scales up the image for now.
+* The ioctls to configure the format in the pads were implemented to allow testing the pipe
+  from the user space
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 3e649cacfc07..659507bce63f 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
->  		return -EINVAL;
->  
->  	INIT_LIST_HEAD(&mdev->entities);
-> +	INIT_LIST_HEAD(&mdev->interfaces);
->  	spin_lock_init(&mdev->lock);
->  	mutex_init(&mdev->graph_mutex);
->  
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 417673a32c21..15bc92d3a648 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -861,6 +861,8 @@ static void media_interface_init(struct media_device *mdev,
->  	INIT_LIST_HEAD(&intf->links);
->  
->  	media_gobj_init(mdev, gobj_type, &intf->graph_obj);
-> +
-> +	list_add_tail(&intf->list, &mdev->interfaces);
->  }
->  
->  /* Functions related to the media interface via device nodes */
-> @@ -889,6 +891,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
->  void media_devnode_remove(struct media_intf_devnode *devnode)
->  {
->  	media_gobj_remove(&devnode->intf.graph_obj);
-> +	list_del(&devnode->intf.list);
->  	kfree(devnode);
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_remove);
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 3b14394d5701..51807efa505b 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -46,6 +46,7 @@ struct device;
->   * @link_id:	Unique ID used on the last link registered
->   * @intf_devnode_id: Unique ID used on the last interface devnode registered
->   * @entities:	List of registered entities
-> + * @interfaces:	List of registered interfaces
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
->   * @link_notify: Link state change notification callback
-> @@ -77,6 +78,7 @@ struct media_device {
->  	u32 intf_devnode_id;
->  
->  	struct list_head entities;
-> +	struct list_head interfaces;
->  
->  	/* Protects the entities list */
->  	spinlock_t lock;
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 423ff804e686..e7b20bdc735d 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -156,6 +156,8 @@ struct media_entity {
->   * struct media_intf_devnode - Define a Kernel API interface
->   *
->   * @graph_obj:		embedded graph object
-> + * @list:		Linked list used to find other interfaces that belong
-> + *			to the same media controller
->   * @links:		List of links pointing to graph entities
->   * @type:		Type of the interface as defined at the
->   *			uapi/media/media.h header, e. g.
-> @@ -164,6 +166,7 @@ struct media_entity {
->   */
->  struct media_interface {
->  	struct media_gobj		graph_obj;
-> +	struct list_head		list;
->  	struct list_head		links;
->  	u32				type;
->  	u32				flags;
-> 
+The patch series is based on 'vimc/review/video-pipe' branch, it goes on top of the patch
+named "[media] vimc: Virtual Media Controller core, capture and sensor" and is available at
+        https://github.com/helen-fornazier/opw-staging vimc/review/vpu
+
+Helen Fornazier (7):
+  [media] tpg: Export the tpg code from vivid as a module
+  [media] vimc: sen: Integrate the tpg on the sensor
+  [media] vimc: Add vimc_ent_sd_init/cleanup helper functions
+  [media] vimc: Add vimc_pipeline_s_stream in the core
+  [media] vimc: deb: Add debayer filter
+  [media] vimc: sca: Add scaler subdevice
+  [media] vimc: Implement set format in the nodes
+
+ drivers/media/platform/Kconfig                  |    2 +
+ drivers/media/platform/Makefile                 |    1 +
+ drivers/media/platform/tpg/Kconfig              |    5 +
+ drivers/media/platform/tpg/Makefile             |    3 +
+ drivers/media/platform/tpg/tpg-colors.c         | 1181 ++++++++++++
+ drivers/media/platform/tpg/tpg-core.c           | 2211 +++++++++++++++++++++++
+ drivers/media/platform/vimc/Kconfig             |    1 +
+ drivers/media/platform/vimc/Makefile            |    3 +-
+ drivers/media/platform/vimc/vimc-capture.c      |   88 +-
+ drivers/media/platform/vimc/vimc-core.c         |  196 +-
+ drivers/media/platform/vimc/vimc-core.h         |   29 +
+ drivers/media/platform/vimc/vimc-debayer.c      |  503 ++++++
+ drivers/media/platform/vimc/vimc-debayer.h      |   28 +
+ drivers/media/platform/vimc/vimc-scaler.c       |  362 ++++
+ drivers/media/platform/vimc/vimc-scaler.h       |   28 +
+ drivers/media/platform/vimc/vimc-sensor.c       |  175 +-
+ drivers/media/platform/vivid/Kconfig            |    1 +
+ drivers/media/platform/vivid/Makefile           |    2 +-
+ drivers/media/platform/vivid/vivid-core.h       |    2 +-
+ drivers/media/platform/vivid/vivid-tpg-colors.c | 1182 ------------
+ drivers/media/platform/vivid/vivid-tpg-colors.h |   68 -
+ drivers/media/platform/vivid/vivid-tpg.c        | 2191 ----------------------
+ drivers/media/platform/vivid/vivid-tpg.h        |  596 ------
+ include/media/tpg-colors.h                      |   68 +
+ include/media/tpg.h                             |  595 ++++++
+ 25 files changed, 5345 insertions(+), 4176 deletions(-)
+ create mode 100644 drivers/media/platform/tpg/Kconfig
+ create mode 100644 drivers/media/platform/tpg/Makefile
+ create mode 100644 drivers/media/platform/tpg/tpg-colors.c
+ create mode 100644 drivers/media/platform/tpg/tpg-core.c
+ create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
+ create mode 100644 drivers/media/platform/vimc/vimc-debayer.h
+ create mode 100644 drivers/media/platform/vimc/vimc-scaler.c
+ create mode 100644 drivers/media/platform/vimc/vimc-scaler.h
+ delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
+ delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
+ delete mode 100644 drivers/media/platform/vivid/vivid-tpg.c
+ delete mode 100644 drivers/media/platform/vivid/vivid-tpg.h
+ create mode 100644 include/media/tpg-colors.h
+ create mode 100644 include/media/tpg.h
+
+-- 
+1.9.1
 
