@@ -1,247 +1,347 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55284 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755485AbbHYIb7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 04:31:59 -0400
-Message-ID: <55DC275A.6070207@xs4all.nl>
-Date: Tue, 25 Aug 2015 10:29:14 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 14/44] [media] media: add functions to allow creating
- interfaces
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <cf82882b9cb0ab84189c6e5e4f5526165714fa2e.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf82882b9cb0ab84189c6e5e4f5526165714fa2e.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:33032 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755397AbbHFU0b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 16:26:31 -0400
+Received: by ykoo205 with SMTP id o205so72596165yko.0
+        for <linux-media@vger.kernel.org>; Thu, 06 Aug 2015 13:26:31 -0700 (PDT)
+From: Helen Fornazier <helen.fornazier@gmail.com>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Cc: Helen Fornazier <helen.fornazier@gmail.com>
+Subject: [PATCH 3/7] [media] vimc: Add vimc_ent_sd_init/cleanup helper functions
+Date: Thu,  6 Aug 2015 17:26:10 -0300
+Message-Id: <61e4a06a3fbc57ff71050df52ae42fcbf07a5394.1438891530.git.helen.fornazier@gmail.com>
+In-Reply-To: <cover.1438891530.git.helen.fornazier@gmail.com>
+References: <cover.1438891530.git.helen.fornazier@gmail.com>
+In-Reply-To: <cover.1438891530.git.helen.fornazier@gmail.com>
+References: <cover.1438891530.git.helen.fornazier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Interfaces are different than entities: they represent a
-> Kernel<->userspace interaction, while entities represent a
-> piece of hardware/firmware/software that executes a function.
-> 
-> Let's distinguish them by creating a separate structure to
-> store the interfaces.
-> 
-> Latter patches should change the existing drivers and logic
-> to split the current interface embedded inside the entity
-> structure (device nodes) into a separate object of the graph.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index a23c93369a04..d606e312786a 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -44,11 +44,53 @@ static inline const char *gobj_type(enum media_gobj_type type)
->  		return "pad";
->  	case MEDIA_GRAPH_LINK:
->  		return "link";
-> +	case MEDIA_GRAPH_INTF_DEVNODE:
-> +		return "intf_devnode";
->  	default:
->  		return "unknown";
->  	}
->  }
->  
-> +static inline const char *intf_type(struct media_interface *intf)
-> +{
-> +	switch (intf->type) {
-> +	case MEDIA_INTF_T_DVB_FE:
-> +		return "frontend";
-> +	case MEDIA_INTF_T_DVB_DEMUX:
-> +		return "demux";
-> +	case MEDIA_INTF_T_DVB_DVR:
-> +		return "DVR";
-> +	case MEDIA_INTF_T_DVB_CA:
-> +		return  "CA";
-> +	case MEDIA_INTF_T_DVB_NET:
-> +		return "dvbnet";
-> +	case MEDIA_INTF_T_V4L_VIDEO:
-> +		return "video";
-> +	case MEDIA_INTF_T_V4L_VBI:
-> +		return "vbi";
-> +	case MEDIA_INTF_T_V4L_RADIO:
-> +		return "radio";
-> +	case MEDIA_INTF_T_V4L_SUBDEV:
-> +		return "v4l2_subdev";
-> +	case MEDIA_INTF_T_V4L_SWRADIO:
-> +		return "swradio";
-> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-> +		return "pcm_capture";
-> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-> +		return "pcm_playback";
-> +	case MEDIA_INTF_T_ALSA_CONTROL:
-> +		return "alsa_control";
-> +	case MEDIA_INTF_T_ALSA_COMPRESS:
-> +		return "compress";
-> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
-> +		return "rawmidi";
-> +	case MEDIA_INTF_T_ALSA_HWDEP:
-> +		return "hwdep";
-> +	default:
-> +		return "unknown_intf";
-> +	}
-> +};
-> +
->  static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
->  {
->  #if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
-> @@ -84,6 +126,19 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
->  			"%s: id 0x%08x pad#%d: '%s':%d\n",
->  			event_name, gobj->id, media_localid(gobj),
->  			pad->entity->name, pad->index);
-> +		break;
-> +	}
-> +	case MEDIA_GRAPH_INTF_DEVNODE:
-> +	{
-> +		struct media_interface *intf = gobj_to_intf(gobj);
-> +		struct media_intf_devnode *devnode = intf_to_devnode(intf);
-> +
-> +		dev_dbg(gobj->mdev->dev,
-> +			"%s: id 0x%08x intf_devnode#%d: %s - major: %d, minor: %d\n",
-> +			event_name, gobj->id, media_localid(gobj),
-> +			intf_type(intf),
-> +			devnode->major, devnode->minor);
-> +		break;
->  	}
->  	}
->  #endif
-> @@ -119,6 +174,9 @@ void media_gobj_init(struct media_device *mdev,
->  	case MEDIA_GRAPH_LINK:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
->  		break;
-> +	case MEDIA_GRAPH_INTF_DEVNODE:
-> +		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
-> +		break;
->  	}
->  	dev_dbg_obj(__func__, gobj);
->  }
-> @@ -793,3 +851,41 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
->  
->  }
->  EXPORT_SYMBOL_GPL(media_entity_remote_pad);
-> +
-> +
-> +/* Functions related to the media interface via device nodes */
-> +
-> +struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
-> +						u32 type, u32 flags,
-> +						u32 major, u32 minor,
-> +						gfp_t gfp_flags)
-> +{
-> +	struct media_intf_devnode *devnode;
-> +	struct media_interface *intf;
-> +
-> +	devnode = kzalloc(sizeof(*devnode), gfp_flags);
-> +	if (!devnode)
-> +		return NULL;
-> +
-> +	intf = &devnode->intf;
-> +
-> +	intf->type = type;
-> +	intf->flags = flags;
-> +
-> +	devnode->major = major;
-> +	devnode->minor = minor;
-> +
-> +	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
-> +		       &devnode->intf.graph_obj);
-> +
-> +	return devnode;
-> +}
-> +EXPORT_SYMBOL_GPL(media_devnode_create);
-> +
-> +void media_devnode_remove(struct media_intf_devnode *devnode)
-> +{
-> +	media_gobj_remove(&devnode->intf.graph_obj);
-> +	kfree(devnode);
-> +}
-> +EXPORT_SYMBOL_GPL(media_devnode_remove);
-> +
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 05414e351f8e..3b14394d5701 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -44,6 +44,7 @@ struct device;
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
->   * @link_id:	Unique ID used on the last link registered
-> + * @intf_devnode_id: Unique ID used on the last interface devnode registered
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> @@ -73,6 +74,7 @@ struct media_device {
->  	u32 entity_id;
->  	u32 pad_id;
->  	u32 link_id;
-> +	u32 intf_devnode_id;
->  
->  	struct list_head entities;
->  
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 239c4ec30ef6..ddd8d610c357 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -36,11 +36,14 @@
->   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
->   * @MEDIA_GRAPH_PAD:		Identify a media pad
->   * @MEDIA_GRAPH_LINK:		Identify a media link
-> + * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
-> + * 				a device node
->   */
->  enum media_gobj_type {
->  	MEDIA_GRAPH_ENTITY,
->  	MEDIA_GRAPH_PAD,
->  	MEDIA_GRAPH_LINK,
-> +	MEDIA_GRAPH_INTF_DEVNODE,
->  };
->  
->  #define MEDIA_BITS_PER_TYPE		8
-> @@ -141,6 +144,34 @@ struct media_entity {
->  	} info;
->  };
->  
-> +/**
-> + * struct media_intf_devnode - Define a Kernel API interface
-> + *
-> + * @graph_obj:		embedded graph object
-> + * @type:		Type of the interface as defined at the
-> + *			uapi/media/media.h header, e. g.
-> + *			MEDIA_INTF_T_*
-> + * @flags:		Interface flags as defined at uapi/media/media.h
-> + */
-> +struct media_interface {
-> +	struct media_gobj		graph_obj;
-> +	u32				type;
-> +	u32				flags;
-> +};
-> +
-> +/**
-> + * struct media_intf_devnode - Define a Kernel API interface via a device node
-> + *
-> + * @intf:	embedded interface object
-> + * @major:	Major number of a device node
-> + * @minor:	Minor number of a device node
-> + */
-> +struct media_intf_devnode {
-> +	struct media_interface		intf;
-> +	u32				major;
-> +	u32				minor;
-> +};
+As all the subdevices in the topology will be initialized in the same
+way, to avoid code repetition the vimc_ent_sd_init/cleanup helper functions
+were created
 
-What about the substream identifier for alsa?
+Signed-off-by: Helen Fornazier <helen.fornazier@gmail.com>
+---
+ drivers/media/platform/vimc/vimc-core.c   |  76 ++++++++++++++++++++++
+ drivers/media/platform/vimc/vimc-core.h   |  17 +++++
+ drivers/media/platform/vimc/vimc-sensor.c | 104 +++++++++---------------------
+ 3 files changed, 123 insertions(+), 74 deletions(-)
 
-May I suggest to move all alsa changes/additions out of this patch series
-and into an independent series on top of this one? Everything alsa related
-needs an Ack from the alsa devs, so let's keep it separate to avoid alsa
-from blocking the DVB/V4L work.
+diff --git a/drivers/media/platform/vimc/vimc-core.c b/drivers/media/platform/vimc/vimc-core.c
+index 3ef9b51..96d53fd 100644
+--- a/drivers/media/platform/vimc/vimc-core.c
++++ b/drivers/media/platform/vimc/vimc-core.c
+@@ -332,6 +332,82 @@ struct media_pad *vimc_pads_init(u16 num_pads, const unsigned long *pads_flag)
+ 	return pads;
+ }
+ 
++/* media operations */
++static const struct media_entity_operations vimc_ent_sd_mops = {
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++void vimc_ent_sd_cleanup(struct vimc_ent_subdevice *vsd)
++{
++	media_entity_cleanup(vsd->ved.ent);
++	v4l2_device_unregister_subdev(&vsd->sd);
++	kfree(vsd);
++}
++
++struct vimc_ent_subdevice *vimc_ent_sd_init(size_t struct_size,
++				struct v4l2_device *v4l2_dev,
++				const char *const name,
++				u16 num_pads,
++				const unsigned long *pads_flag,
++				const struct v4l2_subdev_ops *sd_ops,
++				void (*sd_destroy)(struct vimc_ent_device *))
++{
++	int ret;
++	struct vimc_ent_subdevice *vsd;
++
++	if (!v4l2_dev || !v4l2_dev->dev || !name || (num_pads && !pads_flag))
++		return ERR_PTR(-EINVAL);
++
++	/* Allocate the vsd struct */
++	vsd = kzalloc(struct_size, GFP_KERNEL);
++	if (!vsd)
++		return ERR_PTR(-ENOMEM);
++
++	/* Link the vimc_deb_device struct with the v4l2 parent */
++	vsd->v4l2_dev = v4l2_dev;
++	/* Link the vimc_deb_device struct with the dev parent */
++	vsd->dev = v4l2_dev->dev;
++
++	/* Allocate the pads */
++	vsd->ved.pads = vimc_pads_init(num_pads, pads_flag);
++	if (IS_ERR(vsd->ved.pads)) {
++		ret = PTR_ERR(vsd->ved.pads);
++		goto err_free_vsd;
++	}
++
++	/* Initialize the media entity */
++	vsd->sd.entity.name = name;
++	vsd->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++	ret = media_entity_init(&vsd->sd.entity, num_pads,
++				vsd->ved.pads, num_pads);
++	if (ret)
++		goto err_clean_pads;
++
++	/* Fill the vimc_ent_device struct */
++	vsd->ved.destroy = sd_destroy;
++	vsd->ved.ent = &vsd->sd.entity;
++
++	/* Initialize the subdev */
++	v4l2_subdev_init(&vsd->sd, sd_ops);
++	vsd->sd.entity.ops = &vimc_ent_sd_mops;
++	vsd->sd.owner = THIS_MODULE;
++	strlcpy(vsd->sd.name, name, sizeof(vsd->sd.name));
++	v4l2_set_subdevdata(&vsd->sd, vsd);
++
++	/* Expose this subdev to user space */
++	vsd->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	/* return the created vimc subdevice*/
++	return vsd;
++
++err_clean_pads:
++	vimc_pads_cleanup(vsd->ved.pads);
++err_free_vsd:
++	kfree(vsd);
++
++	return ERR_PTR(ret);
++}
++
+ /* TODO: remove this function when all the
+  * entities specific code are implemented */
+ static void vimc_raw_destroy(struct vimc_ent_device *ved)
+diff --git a/drivers/media/platform/vimc/vimc-core.h b/drivers/media/platform/vimc/vimc-core.h
+index be05469..295a554 100644
+--- a/drivers/media/platform/vimc/vimc-core.h
++++ b/drivers/media/platform/vimc/vimc-core.h
+@@ -37,6 +37,13 @@ struct vimc_ent_device {
+ 			      struct media_pad *sink, const void *frame);
+ };
+ 
++struct vimc_ent_subdevice {
++	struct vimc_ent_device ved;
++	struct v4l2_subdev sd;
++	struct v4l2_device *v4l2_dev;
++	struct device *dev;
++};
++
+ int vimc_propagate_frame(struct device *dev,
+ 			 struct media_pad *src, const void *frame);
+ 
+@@ -48,6 +55,16 @@ static inline void vimc_pads_cleanup(struct media_pad *pads)
+ 	kfree(pads);
+ }
+ 
++/* Helper function to initialize/cleanup a subdevice used */
++struct vimc_ent_subdevice *vimc_ent_sd_init(size_t struct_size,
++				struct v4l2_device *v4l2_dev,
++				const char *const name,
++				u16 num_pads,
++				const unsigned long *pads_flag,
++				const struct v4l2_subdev_ops *sd_ops,
++				void (*sd_destroy)(struct vimc_ent_device *));
++void vimc_ent_sd_cleanup(struct vimc_ent_subdevice *vsd);
++
+ const struct vimc_pix_map *vimc_pix_map_by_code(u32 code);
+ 
+ const struct vimc_pix_map *vimc_pix_map_by_pixelformat(u32 pixelformat);
+diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+index a2879ad..319bebb 100644
+--- a/drivers/media/platform/vimc/vimc-sensor.c
++++ b/drivers/media/platform/vimc/vimc-sensor.c
+@@ -26,11 +26,8 @@
+ #define VIMC_SEN_FRAME_MAX_WIDTH 4096
+ 
+ struct vimc_sen_device {
+-	struct vimc_ent_device ved;
+-	struct v4l2_subdev sd;
++	struct vimc_ent_subdevice vsd;
+ 	struct tpg_data tpg;
+-	struct v4l2_device *v4l2_dev;
+-	struct device *dev;
+ 	struct task_struct *kthread_sen;
+ 	u8 *frame;
+ 	/* The active format */
+@@ -45,7 +42,7 @@ static int vimc_sen_enum_mbus_code(struct v4l2_subdev *sd,
+ 	struct vimc_sen_device *vsen = v4l2_get_subdevdata(sd);
+ 
+ 	/* Check if it is a valid pad */
+-	if (code->pad >= vsen->sd.entity.num_pads)
++	if (code->pad >= vsen->vsd.sd.entity.num_pads)
+ 		return -EINVAL;
+ 
+ 	code->code = vsen->mbus_format.code;
+@@ -60,8 +57,8 @@ static int vimc_sen_enum_frame_size(struct v4l2_subdev *sd,
+ 	struct vimc_sen_device *vsen = v4l2_get_subdevdata(sd);
+ 
+ 	/* Check if it is a valid pad */
+-	if (fse->pad >= vsen->sd.entity.num_pads ||
+-	    !(vsen->sd.entity.pads[fse->pad].flags & MEDIA_PAD_FL_SOURCE))
++	if (fse->pad >= vsen->vsd.sd.entity.num_pads ||
++	    !(vsen->vsd.sd.entity.pads[fse->pad].flags & MEDIA_PAD_FL_SOURCE))
+ 		return -EINVAL;
+ 
+ 	/* TODO: Add support to other formats */
+@@ -122,11 +119,6 @@ static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
+ 	.set_fmt		= vimc_sen_get_fmt,
+ };
+ 
+-/* media operations */
+-static const struct media_entity_operations vimc_sen_mops = {
+-	.link_validate = v4l2_subdev_link_validate,
+-};
+-
+ static int vimc_thread_sen(void *data)
+ {
+ 	unsigned int i;
+@@ -142,11 +134,13 @@ static int vimc_thread_sen(void *data)
+ 		tpg_fill_plane_buffer(&vsen->tpg, V4L2_STD_PAL, 0, vsen->frame);
+ 
+ 		/* Send the frame to all source pads */
+-		for (i = 0; i < vsen->sd.entity.num_pads; i++)
+-			if (vsen->sd.entity.pads[i].flags & MEDIA_PAD_FL_SOURCE)
+-				vimc_propagate_frame(vsen->dev,
+-						     &vsen->sd.entity.pads[i],
+-						     vsen->frame);
++		for (i = 0; i < vsen->vsd.sd.entity.num_pads; i++) {
++			struct media_pad *pad = &vsen->vsd.sd.entity.pads[i];
++
++			if (pad->flags & MEDIA_PAD_FL_SOURCE)
++				vimc_propagate_frame(vsen->vsd.dev,
++						     pad, vsen->frame);
++		}
+ 
+ 		/* Wait one second */
+ 		schedule_timeout_interruptible(HZ);
+@@ -182,9 +176,10 @@ static int vimc_sen_s_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 		/* Initialize the image generator thread */
+ 		vsen->kthread_sen = kthread_run(vimc_thread_sen, vsen,
+-						"%s-sen", vsen->v4l2_dev->name);
++					"%s-sen", vsen->vsd.v4l2_dev->name);
+ 		if (IS_ERR(vsen->kthread_sen)) {
+-			v4l2_err(vsen->v4l2_dev, "kernel_thread() failed\n");
++			v4l2_err(vsen->vsd.v4l2_dev,
++				 "kernel_thread() failed\n");
+ 			vfree(vsen->frame);
+ 			vsen->frame = NULL;
+ 			return PTR_ERR(vsen->kthread_sen);
+@@ -216,13 +211,11 @@ static const struct v4l2_subdev_ops vimc_sen_ops = {
+ 
+ static void vimc_sen_destroy(struct vimc_ent_device *ved)
+ {
+-	struct vimc_sen_device *vsen = container_of(ved,
+-						struct vimc_sen_device, ved);
++	struct vimc_sen_device *vsen = container_of(ved, struct vimc_sen_device,
++						    vsd.ved);
+ 
+ 	tpg_free(&vsen->tpg);
+-	media_entity_cleanup(ved->ent);
+-	v4l2_device_unregister_subdev(&vsen->sd);
+-	kfree(vsen);
++	vimc_ent_sd_cleanup(&vsen->vsd);
+ }
+ 
+ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+@@ -232,34 +225,15 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ {
+ 	int ret;
+ 	struct vimc_sen_device *vsen;
++	struct vimc_ent_subdevice *vsd;
+ 
+-	if (!v4l2_dev || !v4l2_dev->dev || !name || (num_pads && !pads_flag))
+-		return ERR_PTR(-EINVAL);
+-
+-	/* Allocate the vsen struct */
+-	vsen = kzalloc(sizeof(*vsen), GFP_KERNEL);
+-	if (!vsen)
+-		return ERR_PTR(-ENOMEM);
+-
+-	/* Link the vimc_sen_device struct with the v4l2 parent */
+-	vsen->v4l2_dev = v4l2_dev;
+-	/* Link the vimc_sen_device struct with the dev parent */
+-	vsen->dev = v4l2_dev->dev;
++	vsd = vimc_ent_sd_init(sizeof(struct vimc_sen_device),
++			       v4l2_dev, name, num_pads, pads_flag,
++			       &vimc_sen_ops, vimc_sen_destroy);
++	if (IS_ERR(vsd))
++		return (struct vimc_ent_device *)vsd;
+ 
+-	/* Allocate the pads */
+-	vsen->ved.pads = vimc_pads_init(num_pads, pads_flag);
+-	if (IS_ERR(vsen->ved.pads)) {
+-		ret = PTR_ERR(vsen->ved.pads);
+-		goto err_free_vsen;
+-	}
+-
+-	/* Initialize the media entity */
+-	vsen->sd.entity.name = name;
+-	vsen->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+-	ret = media_entity_init(&vsen->sd.entity, num_pads,
+-				vsen->ved.pads, num_pads);
+-	if (ret)
+-		goto err_clean_pads;
++	vsen = container_of(vsd, struct vimc_sen_device, vsd);
+ 
+ 	/* Set the active frame format (this is hardcoded for now) */
+ 	vsen->mbus_format.width = 640;
+@@ -275,43 +249,25 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+ 		 vsen->mbus_format.height);
+ 	ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
+ 	if (ret)
+-		goto err_clean_m_ent;
++		goto err_clean_vsd;
+ 
+ 	/* Configure the tpg */
+ 	vimc_sen_tpg_s_format(vsen);
+ 
+-	/* Fill the vimc_ent_device struct */
+-	vsen->ved.destroy = vimc_sen_destroy;
+-	vsen->ved.ent = &vsen->sd.entity;
+-
+-	/* Initialize the subdev */
+-	v4l2_subdev_init(&vsen->sd, &vimc_sen_ops);
+-	vsen->sd.entity.ops = &vimc_sen_mops;
+-	vsen->sd.owner = THIS_MODULE;
+-	strlcpy(vsen->sd.name, name, sizeof(vsen->sd.name));
+-	v4l2_set_subdevdata(&vsen->sd, vsen);
+-
+-	/* Expose this subdev to user space */
+-	vsen->sd.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+ 	/* Register the subdev with the v4l2 and the media framework */
+-	ret = v4l2_device_register_subdev(vsen->v4l2_dev, &vsen->sd);
++	ret = v4l2_device_register_subdev(vsen->vsd.v4l2_dev, &vsen->vsd.sd);
+ 	if (ret) {
+-		dev_err(vsen->dev,
++		dev_err(vsen->vsd.dev,
+ 			"subdev register failed (err=%d)\n", ret);
+ 		goto err_free_tpg;
+ 	}
+ 
+-	return &vsen->ved;
++	return &vsen->vsd.ved;
+ 
+ err_free_tpg:
+ 	tpg_free(&vsen->tpg);
+-err_clean_m_ent:
+-	media_entity_cleanup(&vsen->sd.entity);
+-err_clean_pads:
+-	vimc_pads_cleanup(vsen->ved.pads);
+-err_free_vsen:
+-	kfree(vsen);
++err_clean_vsd:
++	vimc_ent_sd_cleanup(vsd);
+ 
+ 	return ERR_PTR(ret);
+ }
+-- 
+1.9.1
 
-Regards,
-
-	Hans
