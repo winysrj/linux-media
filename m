@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50192 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752708AbbHaMCM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 08:02:12 -0400
-Message-ID: <55E4420C.2030706@xs4all.nl>
-Date: Mon, 31 Aug 2015 14:01:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:56368 "EHLO
+	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753103AbbHFFWg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Aug 2015 01:22:36 -0400
+Received: from pps.filterd (m0046660.ppops.net [127.0.0.1])
+	by mx08-00178001.pphosted.com (8.14.5/8.14.5) with SMTP id t765MZbV025263
+	for <linux-media@vger.kernel.org>; Thu, 6 Aug 2015 07:22:35 +0200
+Received: from beta.dmz-ap.st.com (beta.dmz-ap.st.com [138.198.100.35])
+	by mx08-00178001.pphosted.com with ESMTP id 1w3hh6mn5m-1
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-media@vger.kernel.org>; Thu, 06 Aug 2015 07:22:35 +0200
+Received: from zeta.dmz-ap.st.com (ns6.st.com [138.198.234.13])
+	by beta.dmz-ap.st.com (STMicroelectronics) with ESMTP id 1E77C23
+	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2015 05:22:30 +0000 (GMT)
+Received: from Webmail-ap.st.com (eapex1hubcas1.st.com [10.80.176.8])
+	by zeta.dmz-ap.st.com (STMicroelectronics) with ESMTP id 6A8F211A
+	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2015 05:22:29 +0000 (GMT)
+From: Udit KUMAR <udit-dlh.kumar@st.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Udit KUMAR <udit-dlh.kumar@st.com>,
+	Dimple GERA <dimple.gera@st.com>
+Date: Thu, 6 Aug 2015 13:22:27 +0800
+Subject: VIDIOC_S_EXT_CTRLS 
+Message-ID: <ADCA285CF15CD143BF1E6E2BAF6868AA0894EA4CD6@EAPEX1MAIL1.st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v8 45/55] [media] media: Use a macro to interate between
- all interfaces
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <9e511a1a223c99f489330c29f50d099f58d0c34b.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <9e511a1a223c99f489330c29f50d099f58d0c34b.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
-> Just like we do with entities, use a similar macro for the
-> interfaces loop.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hello 
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+When passing strings which has NULL in between, low level driver will not get full strings. 
+Our typical use case is kernel level muxer, where "PMT" descriptor  is passed as strings, which will have NULL in between. 
 
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 610d2bab1368..95b5b4b11230 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -578,9 +578,10 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	}
->  
->  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
-> -	list_for_each_entry(intf, &mdev->interfaces, list) {
-> +	media_device_for_each_intf(intf, mdev) {
->  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
->  			media_create_intf_link(ca, intf, 0);
-> +
->  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
->  			media_create_intf_link(tuner, intf, 0);
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 51807efa505b..f23d686aaac6 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -113,6 +113,11 @@ struct media_device *media_device_find_devres(struct device *dev);
->  #define media_device_for_each_entity(entity, mdev)			\
->  	list_for_each_entry(entity, &(mdev)->entities, list)
->  
-> +/* Iterate over all interfaces. */
-> +#define media_device_for_each_intf(intf, mdev)			\
-> +	list_for_each_entry(intf, &(mdev)->interfaces, list)
-> +
-> +
->  #else
->  static inline int media_device_register(struct media_device *mdev)
->  {
-> 
+In this case V4L2, copies the whole size and passing only stings to low level driver. 
+If V4L2 sends size along with strings to low level driver then it will fix the problem and let low level driver to decide whether they want to use
+size of strings or size. 
 
+Below patch is proposed to fix such issues. 
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 7e38d59..bd3dc67 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1166,10 +1166,12 @@ static int user_to_new(struct v4l2_ext_control *c,
+ 	u32 size;
+ 
+ 	ctrl->is_new = 1;
++	ctrl->size = c->size;
+ 	switch (ctrl->type) {
+ 	case V4L2_CTRL_TYPE_INTEGER64:
+ 		ctrl->val64 = c->value64;
+ 		break;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 47ada23..75ec59c 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -152,6 +152,7 @@ struct v4l2_ctrl {
+ 		char *string;
+ 	};
+ 	void *priv;
++	u32 size;
+ };
+ 
+ /** struct v4l2_ctrl_ref - The control reference.
+
+
+
+Regards
+Udit
