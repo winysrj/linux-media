@@ -1,126 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57802 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754153AbbHNQPd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 12:15:33 -0400
-Date: Fri, 14 Aug 2015 13:15:27 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 6/6] media: use media_graph_obj inside links
-Message-ID: <20150814131527.18c06c06@recife.lan>
-In-Reply-To: <55CE06C4.7080100@xs4all.nl>
-References: <cover.1439563682.git.mchehab@osg.samsung.com>
-	<b7b0a4f38b7ae2bb3bd69aeaf3476250f489d50a.1439563682.git.mchehab@osg.samsung.com>
-	<55CE06C4.7080100@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:36496 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946377AbbHGXLB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 19:11:01 -0400
+Message-ID: <1438988915.3109.175.camel@hp.com>
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+From: Toshi Kani <toshi.kani@hp.com>
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Cc: Jan Beulich <JBeulich@suse.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Jej B <James.Bottomley@hansenpartnership.com>,
+	X86 ML <x86@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?=
+	<ville.syrjala@linux.intel.com>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Juergen Gross <JGross@suse.com>, Borislav Petkov <bp@suse.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Date: Fri, 07 Aug 2015 17:08:35 -0600
+In-Reply-To: <CAB=NE6V+dAq1u52c3tDhBOYWU1BNMBVL3KzDdM=C-zTkLEx4xA@mail.gmail.com>
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+	 <1434064996.11808.64.camel@misato.fc.hp.com>
+	 <557AAD910200007800084014@mail.emea.novell.com>
+	 <1434128306.11808.97.camel@misato.fc.hp.com>
+	 <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
+	 <1438901893.3109.72.camel@hp.com>
+	 <CAB=NE6VnspTPfrn5+ZFSdgKb3uh_4g7LsuZVwe2FET=noijr5Q@mail.gmail.com>
+	 <1438984574.3109.151.camel@hp.com>
+	 <CAB=NE6V+dAq1u52c3tDhBOYWU1BNMBVL3KzDdM=C-zTkLEx4xA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 14 Aug 2015 17:18:28 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 08/14/2015 04:56 PM, Mauro Carvalho Chehab wrote:
-> > Just like entities and pads, links also need to have unique
-> > Object IDs along a given media controller.
+On Fri, 2015-08-07 at 15:23 -0700, Luis R. Rodriguez wrote:
+> On Fri, Aug 7, 2015 at 2:56 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Fri, 2015-08-07 at 13:25 -0700, Luis R. Rodriguez wrote:
+> > > On Thu, Aug 6, 2015 at 3:58 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > > On Thu, 2015-08-06 at 12:53 -0700, Luis R. Rodriguez wrote:
+> > > > > On Fri, Jun 12, 2015 at 9:58 AM, Toshi Kani <toshi.kani@hp.com> 
+> > > > > wrote:
+ :
+> > > > 
+> > > > No, there is no OS support necessary to use MTRR.  After firmware 
+> > > > sets it up, CPUs continue to use it without any OS support.  I think 
+> > > > the Linux change you are referring is to obsolete legacy interfaces 
+> > > > that modify the MTRR setup.  I agree that Linux should not modify 
+> > > > MTRR.
+> > > 
+> > > Its a bit more than that though. Since you agree that the OS can live
+> > > without MTRR code I was hoping to then see if we can fold out PAT
+> > > Linux code from under the MTRR dependency on Linux and make PAT a
+> > > first class citizen, maybe at least for x86-64. Right now you can only
+> > > get PAT support on Linux if you have MTRR code, but I'd like to see if
+> > > instead we can rip MTRR code out completely under its own Kconfig and
+> > > let it start rotting away.
+> > > 
+> > > Code-wise the only issue I saw was that PAT code also relies on
+> > > mtrr_type_lookup(), see pat_x_mtrr_type(), but other than this I found
+> > > no other obvious issues.
 > > 
-> > So, let's add a media_graph_obj inside it and initialize
-> > the object then a new link is created.
+> > We can rip of the MTTR code that modifies the MTRR setup, but not
+> > mtrr_type_lookup().  This function provides necessary checks per 
+> > documented
+> > in commit 7f0431e3dc89 as follows.
 > > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >     1) reserve_memtype() tracks an effective memory type in case
+> >        a request type is WB (ex. /dev/mem blindly uses WB). Missing
+> >        to track with its effective type causes a subsequent request
+> >        to map the same range with the effective type to fail.
 > > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 3ac5803b327e..9f02939c2864 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -466,6 +466,8 @@ void media_device_unregister_entity(struct media_entity *entity)
-> >  	graph_obj_remove(&entity->graph_obj);
-> >  	for (i = 0; i < entity->num_pads; i++)
-> >  		graph_obj_remove(&entity->pads[i].graph_obj);
-> > +	for (i = 0; entity->num_links; i++)
-> > +		graph_obj_remove(&entity->links[i].graph_obj);
-> >  	list_del(&entity->list);
-> >  	spin_unlock(&mdev->lock);
-> >  	entity->parent = NULL;
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index d3dee6fc79d7..4f18bd10b162 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -50,6 +50,8 @@ void graph_obj_init(struct media_device *mdev,
-> >  		gobj->id |= ++mdev->entity_id;
-> >  	case MEDIA_GRAPH_PAD:
-> >  		gobj->id |= ++mdev->pad_id;
-> > +	case MEDIA_GRAPH_LINK:
-> > +		gobj->id |= ++mdev->pad_id;
+> >     2) pud_set_huge() and pmd_set_huge() check if a requested range
+> >        has any overlap with MTRRs. Missing to detect an overlap may
+> >        cause a performance penalty or undefined behavior.
+> > 
+> > mtrr_type_lookup() is still admittedly awkward, but I do not think we 
+> > have an immediate issue in PAT code calling it.  I do not think it makes 
+> > PAT code a second class citizen.
 > 
-> Same issue with missing breaks. Also for links you want to use link_id, not
-> pad_id. Clearly a copy-and-paste mistake.
+> OK since we know that if MTRR set up code ends up disabled and would
+> return MTRR_TYPE_INVALID what if we just static inline this for the
+> no-MTRR Kconfig build option immediately, and only then have the full
+> blown implementation for the case where MTRR Kconfig option is
+> enabled?
 
-Fixed.
+Yes, the MTRR code could be disabled by Kconfig with such inline stubs as
+long as the kernel is built specifically for a particular platform with MTRR
+disabled, such as Xen guest kernel.
 
-> A bigger question is whether you actually need graph_obj for a link? Links are
-> *between* graph objects, but are they really graph objects in their own right?
+However, since MTRR is a CPU feature enabled on most of the systems, I am
+not sure if it makes sense to be configurable with Kconfig, though.
 
-Yes, a link is a graph object. See any CAD/CAM program and you'll see that
-they're mapping as such on all I'm aware of. If we either need it here or not,
-see below.
-
-> Currently a link is identified by the source/sink objects and I think that is
-> all you need. I didn't realize that when reviewing the v3 patch series, but I'm
-> now wondering about it.
+> > > Platform firmware and SMIs seems to be the only other possible issue.
+> > > More on this below.
+> > > 
+> > > > > For those type of OSes...
+> > > > > could it be possible to negotiate or hint to the platform through 
+> > > > > an attribute somehow that the OS has such capability to not use 
+> > > > > MTRR?
+> > > > 
+> > > > The OS can disable MTRR.  However, this can also cause a problem in
+> > > > firmware, which may rely on MTRR.
+> > > 
+> > > Can you describe what type of issues we could expect ? I tend to care
+> > > more about this for 64-bit systems so if 32-bit platforms would be
+> > > more of the ones which could cause an issue would restricting
+> > > disabling MTRR only for 64-bit help?
+> > 
+> > The SMI handler runs in real-mode and relies on MTRR being effective to
+> > provide right cache types.  It does not matter if it is 64-bit or not.
 > 
-> If you *don't* make links a graph_obj, will anything break or become difficult
-> to use? I don't think so, but let me know if I am overlooking something.
+> I see... since I have no visibility to what goes under the hood, can
+> you provide one example use case where an SMI handler would require
+> getting a cache type through MTRR ? I realize this can vary, vendor by
+> vendor, but any example would do just to satisfy my curiosity.
 
-There are several reasons why we want links to have a common object and
-an unique ID. 
+For fan control, it would need UC access to its registers.
 
-By having an unique ID, whenever we need to pass the link to, we can
-use the ID (or, actually, a pointer to the common object).
+> > > > > Then, only if this bit is set, the platform could then avoid such 
+> > > > > MTRR settings, and if we have issues you can throw rocks at us.
+> > > > 
+> > > > > And if that's not possible how about a new platform setting that 
+> > > > > would need to be set at the platform level to enable disabling 
+> > > > > this junk?
+> > > > > Then only folks who know what they are doing would enable it, and 
+> > > > > if the customer set it, the issue would not be on the platform.
+> > > > 
+> > > > > Could this also be used to prevent SMIs with MTRRs?
+> > > > 
+> > > > ACPI _OSI could be used for firmware to implement some OS-specific
+> > > > features, but it may be too late for firmware to make major changes 
+> > > > and
+> > > > is generally useless unless OS requirements are described in a spec
+> > > > backed by logo certification.
+> > > 
+> > > I see.. So there are no guarantees that platform firmware would not
+> > > expect OS MTRR support.
+> > > 
+> > > >  SMIs are also used for platform management, such as fan
+> > > > speed control.
+> > > 
+> > > And its conceivable that some devices, or the platform itself, may
+> > > trigger SMIs to have the platform firmware poke with MTRRs?
+> > 
+> > SMIs are outside of OS control.  SMI handler relies on MTRR being set. 
+> >  SMI must be quick, so the handler should not be required to initialize 
+> > MTRR or page tables.
+> 
+> Right makes sense.
+> 
+> > > > Is there any issue for Linux to use MTRR set by firmware?
+> > > 
+> > > Even though we don't have the Kconfig option right now to disable MTRR
+> > > cod explicitly I'll note that there are a few other cases that could
+> > > flip Linux to note use MTRR:
+> > > 
+> > >   a) Some BIOSes could let MTRR get disabled
+> > >   b) As of Xen 4.4, the hypervisor disables X86_FEATURE_MTRR which
+> > > disables MTRR on Linux
+> > > 
+> > > If these environments can exist it'd be good to understand possible
+> > > issues that could creep up as a result of the OS not having MTRR
+> > > enabled. If this is a reasonable thing for x86-64 I was hoping we
+> > > could just let users opt-in to a similar build configuration through
+> > > the OS by letting PAT not depend on MTRR.
+> > 
+> > Case a) and b) do not cause any issue.  They simply lead 
+> > mtrr_type_lookup() to return immediately with MTRR_TYPE_INVALID (i.e. 
+> > MTRR disable), and the callers handle this value properly.  These cases 
+> > are only problematic when the OS tries to modify MTRR.
+> 
+> OK if the OS returns MTRR_TYPE_INVALID, for folks who do not want MTRR
+> code on their kernel, we should be OK?
 
-Also, please remember that the type is now embedded with the ID.
-So, in order to be able to check what graph element are used, we need
-either the type or the ID.
+Technically OK.  Not sure if we want such a Kconfig option, though.
 
-A real case, Shuah mentioned via email is that, in order to properly lock
-between ALSA, V4L and DVB, the pertinent drivers need to be notified when
-some links, entities (and maybe interfaces) are created (or removed),
-as the graph creation will be handle by multiple, indepentent drivers.
-
-If we use an unique ID for the links, a single notify function can be
-used to report if a new graph element is added.
-
-For example, where both entities and link creation needs to be tracked,
-such function would do be like:
-
-static void notify_topology_change(struct media_graph_obj *gobj)
-{
-	enum media_graph_type type = gobj->id >> 24;
-
-	switch (type) {
-	case MEDIA_GRAPH_ENTITY:
-	{
-		struct media_entity *entity = gobj_to_entity(gobj);
-		/* something */
-		break;
-	}
-	case MEDIA_GRAPH_LINK:
-	{
-		struct media_link *link = gobj_to_link(gobj);
-		/* something else */
-		break;
-	}
-	default:
-		/* do nothing */
-	}
-}
-
-That's just the initial usecase. I'm pretty sure we'll need it when
-we add support for dynamic creation/removal and, eventually, even
-at the userspace API, but let's go by parts.
-
-Regards,
-Mauro
+Thanks,
+-Toshi
