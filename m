@@ -1,56 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mujunyku.leporine.io ([113.212.96.195]:42516 "EHLO
-	mujunyku.leporine.io" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbbHAL4Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 07:56:16 -0400
-Message-ID: <55BCB201.2060709@rabbit.us>
-Date: Sat, 01 Aug 2015 13:48:17 +0200
-From: Peter Rabbitson <rabbit@rabbit.us>
+Received: from lists.s-osg.org ([54.187.51.154]:56734 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946411AbbHGXzx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Aug 2015 19:55:53 -0400
+Date: Fri, 7 Aug 2015 20:55:34 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC v2 01/16] media: Add some fields to store graph
+ objects
+Message-ID: <20150807205534.06ea65c2@recife.lan>
+In-Reply-To: <20150807231445.GA19840@valkosipuli.retiisi.org.uk>
+References: <cover.1438954897.git.mchehab@osg.samsung.com>
+	<a3c1d738a55bf2b3b34222125ab0b27de28cbcfb.1438954897.git.mchehab@osg.samsung.com>
+	<20150807231445.GA19840@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: submit@bugs.debian.org
-CC: linux-media@vger.kernel.org
-Subject: Hardware H264 capture regression in UVC subsystem: wheezy(ok) =>
- jessie(bad)
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Package: linux-image-3.16.0-4-amd64
-Version: 3.16.7-ckt11-1
-Tags: patch fixed-upstream
+Em Sat, 8 Aug 2015 02:14:46 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Greetings!
+> Hi Mauro,
+> 
+> On Fri, Aug 07, 2015 at 11:19:59AM -0300, Mauro Carvalho Chehab wrote:
+> > We'll need unique IDs for graph objects and a way to associate
+> > them with the media interface.
+> > 
+> > So, add an atomic var to be used to create unique IDs and
+> > a list to store such objects.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 7b39440192d6..e627b0b905ad 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -396,6 +396,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  		return ret;
+> >  	}
+> >  
+> > +	/* Initialize media graph object list and ID */
+> > +	atomic_set(&mdev->last_obj_id, 0);
+> > +	INIT_LIST_HEAD(&mdev->object_list);
+> > +
+> >  	return 0;
+> >  }
+> >  EXPORT_SYMBOL_GPL(__media_device_register);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index 6e6db78f1ee2..a9d546716e49 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -78,6 +78,10 @@ struct media_device {
+> >  
+> >  	int (*link_notify)(struct media_link *link, u32 flags,
+> >  			   unsigned int notification);
+> > +
+> > +	/* Used by media_graph stuff */
+> > +	atomic_t last_obj_id;
+> > +	struct list_head object_list;
+> >  };
+> >  
+> >  /* Supported link_notify @notification values. */
+> 
+> Instead of starting with rework of the MC internals, what would you think of
+> separating interfaces from entities first, and see how that would be used by
+> a driver (e.g. DVB)? 
 
-A little bit after the official Wheezy linux-image (3.2) a change to the 
-UVC subsystem[1] was merged and subsequently released as linux 3.3. A 
-long-unnoticed side effect of this patch was a regression that produced 
-invalid timestamps on hardware-encoded H264 captures, which is known to 
-affect at least 2 different devices: Logitech C920[2] and a builtin Acer 
-Orbicam[3].
+Because that won't attend the requirements we've mapped during the
+workshop. We did some radical changes there, and we want to keep the
+structs more generic, in order to allow MC usage on other subsystems
+like IIO.
 
-The problem was recently acknowledged by the UVC maintainer and a patch 
-was produced which fixes the issue [4]. Afaik it is slated to be 
-included during the Linux 4.3 merge window this month.
+Also, starting the changes at the drivers would just make a way worse
+and harder to work, as it would use a hacky temporary representation
+that will need to change as the MC internals change. That would mean
+more code to be changed latter and more complex patchsets, as we fix
+the MC internals.
 
-Since there is no way to work around this problem in userland [5], and 
-there are many reports of this problem by different users [3], [6], [7], 
-[8] it seems fitting to add this (rather small) patch[4] to debian's 
-linux-image-3.16* quilt.
+You should remind that one of the most complex goals is that we'll need
+to support dynamic entity/pad/link/interface creation/removal. That will
+require changes at the MC internals anyway. So, it is better to do such
+changes first in a way that it would be easier to latter add support for
+it, and, once we have a kABI that works, add the needed things at the
+drivers side.
 
-Thank you in advance!
-Cheers
+With this patch series, the MC internals are better, and will easily
+support the new API that was designed during the meeting.
 
-P.S. Adding a one-time CC to the linux-media mailing list, in case a 
-part of the above is factually incorrect.
+So, my plan for the next week is to test it, in order to be sure that
+everything keeps working, and then add interfaces and the new userspace
+ioctls.
 
-[1] 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=66847ef
-[2] http://sourceforge.net/p/linux-uvc/mailman/message/33164469/
-[3] http://www.spinics.net/lists/linux-media/msg92089.html
-[4] http://www.spinics.net/lists/linux-media/msg92022.html
-[5] http://ffmpeg.org/pipermail/ffmpeg-user/2015-July/027630.html
-[6] https://trac.ffmpeg.org/ticket/3956
-[7] http://sourceforge.net/p/linux-uvc/mailman/message/33564420/
-[8] 
-http://askubuntu.com/questions/456175/logitech-c920-webcam-on-ubuntu-14-04-hesitates-chops-every-3-seconds
+> I think a simple linked list would do per entity, no
+> links would be needed at this point in the internal representation.
+
+The entity/interface links are now represented as linked lists (and
+so the pad/pad links). By sharing the same struct, no code duplication,
+making easier to maintain. Also, if we need graph traversal, the code
+is there.
+
+For now, I opted to use a separate list inside the entity for 
+the entity/interface. This is not really needed, but it would mean
+a shorter time when checking all entity-interface links. The drawback
+is that it makes harder for graph traversal. So, eventually, we might
+want to change it in some future, specially if we need to represent
+indirect control and do graph traversal for interfaces. I guess we
+may need graph traversal for the Kernelspace-userspace sinks, like
+ALSA PCM capture interfaces. So, we may need to revisit that.
+
+> I'll review this better during the next week.
+
+Ok.
+
+Regards,
+Mauro
