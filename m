@@ -1,98 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40423 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416AbbHVR2h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:37 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 18/39] [media] DocBook: add dvb_math.h to documentation
-Date: Sat, 22 Aug 2015 14:28:03 -0300
-Message-Id: <3a8ad6c7a40480d9d09a83f4a5277e9aa43f3669.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+Received: from g4t3425.houston.hp.com ([15.201.208.53]:26158 "EHLO
+	g4t3425.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946338AbbHGXuj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 19:50:39 -0400
+Message-ID: <1438991330.3109.196.camel@hp.com>
+Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
+From: Toshi Kani <toshi.kani@hp.com>
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Cc: Jan Beulich <JBeulich@suse.com>,
+	Andy Lutomirski <luto@amacapital.net>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Jej B <James.Bottomley@hansenpartnership.com>,
+	X86 ML <x86@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?=
+	<ville.syrjala@linux.intel.com>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
+	Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>,
+	Juergen Gross <JGross@suse.com>, Borislav Petkov <bp@suse.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+Date: Fri, 07 Aug 2015 17:48:50 -0600
+In-Reply-To: <CAB=NE6VmpBchJQ=Bfi1qbc+_aSMzcBe1xCqVvJpgbDw8gdrwwQ@mail.gmail.com>
+References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
+	 <1434064996.11808.64.camel@misato.fc.hp.com>
+	 <557AAD910200007800084014@mail.emea.novell.com>
+	 <1434128306.11808.97.camel@misato.fc.hp.com>
+	 <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
+	 <1438901893.3109.72.camel@hp.com>
+	 <CAB=NE6VnspTPfrn5+ZFSdgKb3uh_4g7LsuZVwe2FET=noijr5Q@mail.gmail.com>
+	 <1438984574.3109.151.camel@hp.com>
+	 <CAB=NE6V+dAq1u52c3tDhBOYWU1BNMBVL3KzDdM=C-zTkLEx4xA@mail.gmail.com>
+	 <1438988915.3109.175.camel@hp.com>
+	 <CAB=NE6VmpBchJQ=Bfi1qbc+_aSMzcBe1xCqVvJpgbDw8gdrwwQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are already some comments at dvb_math.h that are ready
-for DocBook, although not properly formatted.
+On Fri, 2015-08-07 at 16:26 -0700, Luis R. Rodriguez wrote:
+> On Fri, Aug 7, 2015 at 4:08 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > On Fri, 2015-08-07 at 15:23 -0700, Luis R. Rodriguez wrote:
+> > > On Fri, Aug 7, 2015 at 2:56 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > > On Fri, 2015-08-07 at 13:25 -0700, Luis R. Rodriguez wrote:
+> > > > > On Thu, Aug 6, 2015 at 3:58 PM, Toshi Kani <toshi.kani@hp.com> 
+> > > > > wrote:
+> > > > > > On Thu, 2015-08-06 at 12:53 -0700, Luis R. Rodriguez wrote:
+> > > > > > > On Fri, Jun 12, 2015 at 9:58 AM, Toshi Kani <toshi.kani@hp.com
+> > > > > > > >
+> > > > > > > wrote:
+ :
+> > > > > 
+> > > > > Its a bit more than that though. Since you agree that the OS can 
+> > > > > live without MTRR code I was hoping to then see if we can fold out 
+> > > > > PAT Linux code from under the MTRR dependency on Linux and make 
+> > > > > PAT a first class citizen, maybe at least for x86-64. Right now 
+> > > > > you can only get PAT support on Linux if you have MTRR code, but 
+> > > > > I'd like to see if instead we can rip MTRR code out completely 
+> > > > > under its own Kconfig and let it start rotting away.
+> > > > > 
+> > > > > Code-wise the only issue I saw was that PAT code also relies on
+> > > > > mtrr_type_lookup(), see pat_x_mtrr_type(), but other than this I 
+> > > > > found no other obvious issues.
+> > > > 
+> > > > We can rip of the MTTR code that modifies the MTRR setup, but not
+> > > > mtrr_type_lookup().  This function provides necessary checks per
+> > > > documented
+> > > > in commit 7f0431e3dc89 as follows.
+> > > > 
+> > > >     1) reserve_memtype() tracks an effective memory type in case
+> > > >        a request type is WB (ex. /dev/mem blindly uses WB). Missing
+> > > >        to track with its effective type causes a subsequent request
+> > > >        to map the same range with the effective type to fail.
+> > > > 
+> > > >     2) pud_set_huge() and pmd_set_huge() check if a requested range
+> > > >        has any overlap with MTRRs. Missing to detect an overlap may
+> > > >        cause a performance penalty or undefined behavior.
+> > > > 
+> > > > mtrr_type_lookup() is still admittedly awkward, but I do not think 
+> > > > we
+> > > > have an immediate issue in PAT code calling it.  I do not think it 
+> > > > makes
+> > > > PAT code a second class citizen.
+> > > 
+> > > OK since we know that if MTRR set up code ends up disabled and would
+> > > return MTRR_TYPE_INVALID what if we just static inline this for the
+> > > no-MTRR Kconfig build option immediately, and only then have the full
+> > > blown implementation for the case where MTRR Kconfig option is
+> > > enabled?
+> > 
+> > Yes, the MTRR code could be disabled by Kconfig with such inline stubs
+> 
+> OK thanks.
+> 
+> > as
+> > long as the kernel is built specifically for a particular platform with 
+> > MTRR disabled, such as Xen guest kernel.
+> 
+> Sure.
+> 
+> > However, since MTRR is a CPU feature enabled on most of the systems, I 
+> > am not sure if it makes sense to be configurable with Kconfig, though.
+> 
+> To me this is about making PAT a first class citizen in code though
+> and validating through Kconfig the option then to opt-out of MTRR from
+> OS code. Perhaps we can recommend to enable it but having the options
+> to split out PAT from MTRR is what I was aiming for.
 
-Convert them, fix some issues and add this file to
-the device-drivers DocBook.
+Since we have CONFIG_MTRR already, we do not need to argue over this option.
+:-)  It makes sense since when MTRR code was introduced, there were CPUs
+without this capability...
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > > > Platform firmware and SMIs seems to be the only other possible 
+> > > > > issue. More on this below.
+> > > > > 
+> > > > > > > For those type of OSes...
+> > > > > > > could it be possible to negotiate or hint to the platform 
+> > > > > > > through an attribute somehow that the OS has such capability 
+> > > > > > > to not use MTRR?
+> > > > > > 
+> > > > > > The OS can disable MTRR.  However, this can also cause a problem 
+> > > > > > in firmware, which may rely on MTRR.
+> > > > > 
+> > > > > Can you describe what type of issues we could expect ? I tend to 
+> > > > > care more about this for 64-bit systems so if 32-bit platforms 
+> > > > > would be more of the ones which could cause an issue would 
+> > > > > restricting disabling MTRR only for 64-bit help?
+> > > > 
+> > > > The SMI handler runs in real-mode and relies on MTRR being effective 
+> > > > to provide right cache types.  It does not matter if it is 64-bit or
+> > > > not.
+> > > 
+> > > I see... since I have no visibility to what goes under the hood, can
+> > > you provide one example use case where an SMI handler would require
+> > > getting a cache type through MTRR ? I realize this can vary, vendor by
+> > > vendor, but any example would do just to satisfy my curiosity.
+> > 
+> > For fan control, it would need UC access to its registers.
+> 
+> OK thanks! To follow up with the example, since the platform firmware
+> would have set up the MTRRs anyway, the SMI should still work, even if
+> the OS didn't do anything, right?
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index fb5c16a24e4b..21fc7684d706 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -229,6 +229,7 @@ X!Isound/sound_firmware.c
- !Iinclude/media/rc-core.h
- !Idrivers/media/dvb-core/dvb_ca_en50221.h
- !Idrivers/media/dvb-core/dvb_frontend.h
-+!Idrivers/media/dvb-core/dvb_math.h
- <!-- FIXME: Removed for now due to document generation inconsistency
- X!Iinclude/media/v4l2-ctrls.h
- X!Iinclude/media/v4l2-dv-timings.h
-@@ -241,7 +242,6 @@ X!Edrivers/media/dvb-core/dvb_demux.c
- X!Idrivers/media/dvb-core/dvbdev.h
- X!Edrivers/media/dvb-core/dvb_net.c
- X!Idrivers/media/dvb-core/dvb_ringbuffer.h
--X!Idrivers/media/dvb-core/dvb_math.h
- -->
- 
-   </chapter>
-diff --git a/drivers/media/dvb-core/dvb_math.h b/drivers/media/dvb-core/dvb_math.h
-index f586aa001ede..34dc1df03cab 100644
---- a/drivers/media/dvb-core/dvb_math.h
-+++ b/drivers/media/dvb-core/dvb_math.h
-@@ -25,7 +25,9 @@
- #include <linux/types.h>
- 
- /**
-- * computes log2 of a value; the result is shifted left by 24 bits
-+ * cintlog2 - computes log2 of a value; the result is shifted left by 24 bits
-+ *
-+ * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-  *   intlog2(value) = intlog2(value * 2^x) - x * 2^24
-@@ -35,13 +37,15 @@
-  *	intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
-  *	intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
-  *
-- * @param value The value (must be != 0)
-- * @return log2(value) * 2^24
-+ *
-+ * return: log2(value) * 2^24
-  */
- extern unsigned int intlog2(u32 value);
- 
- /**
-- * computes log10 of a value; the result is shifted left by 24 bits
-+ * intlog10 - computes log10 of a value; the result is shifted left by 24 bits
-+ *
-+ * @value: The value (must be != 0)
-  *
-  * to use rational values you can use the following method:
-  *   intlog10(value) = intlog10(value * 10^x) - x * 2^24
-@@ -52,8 +56,7 @@ extern unsigned int intlog2(u32 value);
-  *
-  * look at intlog2 for similar examples
-  *
-- * @param value The value (must be != 0)
-- * @return log10(value) * 2^24
-+ * return: log10(value) * 2^24
-  */
- extern unsigned int intlog10(u32 value);
- 
--- 
-2.4.3
+Yes, MTRR works without the OS code.  However, mtrr_type_lookup() is
+necessary to make sure that OS mapping requests are aligned with with the
+MTRR setup.
 
+
+> > > > > > Is there any issue for Linux to use MTRR set by firmware?
+> > > > > 
+> > > > > Even though we don't have the Kconfig option right now to disable 
+> > > > > MTRR cod explicitly I'll note that there are a few other cases 
+> > > > > that could flip Linux to note use MTRR:
+> > > > > 
+> > > > >   a) Some BIOSes could let MTRR get disabled
+> > > > >   b) As of Xen 4.4, the hypervisor disables X86_FEATURE_MTRR which
+> > > > > disables MTRR on Linux
+> > > > > 
+> > > > > If these environments can exist it'd be good to understand 
+> > > > > possible issues that could creep up as a result of the OS not 
+> > > > > having MTRR enabled. If this is a reasonable thing for x86-64 I 
+> > > > > was hoping we could just let users opt-in to a similar build 
+> > > > > configuration through the OS by letting PAT not depend on MTRR.
+> > > > 
+> > > > Case a) and b) do not cause any issue.  They simply lead
+> > > > mtrr_type_lookup() to return immediately with MTRR_TYPE_INVALID 
+> > > > (i.e. MTRR disable), and the callers handle this value properly. 
+> > > >  These cases are only problematic when the OS tries to modify MTRR.
+> > > 
+> > > OK if the OS returns MTRR_TYPE_INVALID, for folks who do not want MTRR
+> > > code on their kernel, we should be OK?
+> > 
+> > Technically OK.  Not sure if we want such a Kconfig option, though.
+> 
+> Its more of me wanting to get PAT out from under MTRR. Does that make 
+> sense?
+
+It makes sense if you need to make the kernel size a bit smaller, and you
+build kernels specific to Xen guests.  Leaving the MTRR code enabled on Xen
+guests does not cause you any issue, though.
+
+Thanks,
+-Toshi
