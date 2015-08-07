@@ -1,74 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:37533 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755872AbbHYUer (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 16:34:47 -0400
+Received: from hl140.dinaserver.com ([82.98.160.94]:54046 "EHLO
+	hl140.dinaserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbbHGLEV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 07:04:21 -0400
+Received: from [192.168.2.27] (5.Red-212-170-183.staticIP.rima-tde.net [212.170.183.5])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by hl140.dinaserver.com (Postfix) with ESMTPSA id 7FBBF4964B3F
+	for <linux-media@vger.kernel.org>; Fri,  7 Aug 2015 13:04:14 +0200 (CEST)
+Message-ID: <55C490AD.1010904@by.com.es>
+Date: Fri, 07 Aug 2015 13:04:13 +0200
+From: Javier Martin <javiermartin@by.com.es>
 MIME-Version: 1.0
-In-Reply-To: <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-Date: Tue, 25 Aug 2015 14:34:46 -0600
-Message-ID: <CAKocOOPMBmUKkR=Zz2yxX3e9sLr3ST-cVM0BO7qVFMLN07ktGQ@mail.gmail.com>
-Subject: Re: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, shuahkh@osg.samsung.com
-Content-Type: text/plain; charset=UTF-8
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Re: imx-drm: Color issues scanning out YUV420 frames through the
+ overlay plane.
+References: <55C45D72.1030204@by.com.es>
+In-Reply-To: <55C45D72.1030204@by.com.es>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Declare the interface types that will be used by the new
-> G_TOPOLOGY ioctl that will be defined latter on.
->
-> For now, we need those types, as they'll be used on the
-> internal structs associated with the new media_interface
-> graph object defined on the next patch.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 4e816be3de39..21c96cd7a6ae 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -167,6 +167,35 @@ struct media_links_enum {
->         __u32 reserved[4];
->  };
->
-> +/* Interface type ranges */
-> +
-> +#define MEDIA_INTF_T_DVB_BASE  0x00000000
-> +#define MEDIA_INTF_T_V4L_BASE  0x00000100
-> +#define MEDIA_INTF_T_ALSA_BASE 0x00000200
-> +
-> +/* Interface types */
-> +
-> +#define MEDIA_INTF_T_DVB_FE            (MEDIA_INTF_T_DVB_BASE)
-> +#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
-> +#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
-> +#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
-> +#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
-> +
-> +#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
-> +#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
-> +#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
-> +#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
-> +#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
-> +
-> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+Sorry for sending this to the wrong list.
 
-Is it necessary to add ALSA types at this time without ALSA media
-controller work?
-Can these be added later when ALSA work is done.
+On 07/08/15 09:25, Javier Martin wrote:
+> Hi,
+> I am using mainline kernel 4.1 and I was writing a small application
+> that uses double buffering to read YUV420 frames from a file at 30fps
+> and displays them using the overlay plane in the imx-drm driver.
+>
+> The first issue I noticed is that the image was green so I had to apply
+> the following patches to make the U and V components be scanned out
+> properly:
+>
+> http://lists.freedesktop.org/archives/dri-devel/2014-October/071052.html
+> http://lists.freedesktop.org/archives/dri-devel/2014-October/071025.html
+> http://lists.freedesktop.org/archives/dri-devel/2014-October/071048.html
+>
+> The thing is that, even after applying the 3 patches above, colors are a
+> bit strange. They seem about right but there are some artifacts, like a
+> saturation effect that spoils the image. You can see some snapshots here
+> to see what I am talking about:
+> https://imageshack.com/i/f0nAM5Xbj
+> https://imageshack.com/i/hl7bZMNjj
+> https://imageshack.com/i/eyRjURxRj
+>
+> And the original video is the first one in this page:
+> http://media.xiph.org/video/derf/
+>
+> On the other hand, colors in the primary plane using the fbdev interface
+> and RGB look correct.
+>
+> Has anyone seen something similar or is YUV420 working fine for you?
+>
+> Regards,
+> Javier.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-thanks,
--- Shuah
+
