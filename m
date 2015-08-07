@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52935 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40102 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbbHLUPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:09 -0400
+	with ESMTP id S1753607AbbHGOUV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 10:20:21 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v3 01/16] media: Add some fields to store graph objects
-Date: Wed, 12 Aug 2015 17:14:45 -0300
-Message-Id: <a3c1d738a55bf2b3b34222125ab0b27de28cbcfb.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+Subject: [PATCH RFC v2 14/16] media: add a generic function to remove a link
+Date: Fri,  7 Aug 2015 11:20:12 -0300
+Message-Id: <4a50853da3b2d92020eaf108d6ad1ced6fa265af.1438954897.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
+References: <cover.1438954897.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
+References: <cover.1438954897.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We'll need unique IDs for graph objects and a way to associate
-them with the media interface.
-
-So, add an atomic var to be used to create unique IDs and
-a list to store such objects.
+Removing a link is simple. Yet, better to have a separate
+function for it, as we'll be also sharing it with a
+public API call.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7b39440192d6..e627b0b905ad 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -396,6 +396,10 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return ret;
- 	}
- 
-+	/* Initialize media graph object list and ID */
-+	atomic_set(&mdev->last_obj_id, 0);
-+	INIT_LIST_HEAD(&mdev->object_list);
-+
- 	return 0;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index c68dc421b022..8e77f2ae7197 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -489,6 +489,12 @@ static struct media_link *__media_create_link(struct media_device *mdev,
+ 	return link;
  }
- EXPORT_SYMBOL_GPL(__media_device_register);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6e6db78f1ee2..a9d546716e49 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -78,6 +78,10 @@ struct media_device {
  
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
++static void __media_remove_link(struct media_link *link)
++{
++	list_del(&link->list);
++	kfree(link);
++}
 +
-+	/* Used by media_graph stuff */
-+	atomic_t last_obj_id;
-+	struct list_head object_list;
- };
+ static void __media_entity_remove_link(struct media_entity *entity,
+ 				       struct media_link *link)
+ {
+@@ -514,11 +520,9 @@ static void __media_entity_remove_link(struct media_entity *entity,
+ 			break;
  
- /* Supported link_notify @notification values. */
+ 		/* Remove the remote link */
+-		list_del(&rlink->list);
+-		kfree(rlink);
++		__media_remove_link(rlink);
+ 	}
+-	list_del(&link->list);
+-	kfree(link);
++	__media_remove_link(link);
+ }
+ 
+ int
 -- 
 2.4.3
 
