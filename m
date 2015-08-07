@@ -1,181 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57130 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934115AbbHKLDM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 07:03:12 -0400
-Date: Tue, 11 Aug 2015 08:03:06 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: VIMC: API proposal, configuring the topology through user space
-Message-ID: <20150811080306.087c89ce@recife.lan>
-In-Reply-To: <55C9CFC6.90207@xs4all.nl>
-References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
-	<55C8A305.9010509@xs4all.nl>
-	<CAPW4XYarvYDfQa7iCY9fNMHLb7zFGXE2dzu-cr3Z1oLVBHTjtg@mail.gmail.com>
-	<55C9C039.6000200@xs4all.nl>
-	<20150811063626.76689791@recife.lan>
-	<55C9CFC6.90207@xs4all.nl>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:33375 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932570AbbHGQ4N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 12:56:13 -0400
+Received: by obdeg2 with SMTP id eg2so83501931obd.0
+        for <linux-media@vger.kernel.org>; Fri, 07 Aug 2015 09:56:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <3744183.h9KnBjN9KO@avalon>
+References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com>
+ <55A370DF.2080500@linux.intel.com> <55A51A86.9010800@xs4all.nl> <3744183.h9KnBjN9KO@avalon>
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Fri, 7 Aug 2015 13:55:53 -0300
+Message-ID: <CAPW4XYY02HMgvgw6T1Qj37CzmscbDgE0HWpgBFkAgwkX1CQKOw@mail.gmail.com>
+Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL in
+ link validate default
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com, s.nawrocki@samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Aug 2015 12:34:46 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hello
 
-> On 08/11/15 11:36, Mauro Carvalho Chehab wrote:
-> > Em Tue, 11 Aug 2015 11:28:25 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> >> Hi Helen,
-> >>
-> >> On 08/10/15 19:21, Helen Fornazier wrote:
-> >>> Hi, thanks for your reviews
-> >>>
-> >>> On Mon, Aug 10, 2015 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>>> Hi Helen!
-> >>>>
-> >>>> On 08/08/2015 03:55 AM, Helen Fornazier wrote:
-> >>>>> Hi!
-> >>>>>
-> >>>>> I've made a first sketch about the API of the vimc driver (virtual
-> >>>>> media controller) to configure the topology through user space.
-> >>>>> As first suggested by Laurent Pinchart, it is based on configfs.
-> >>>>>
-> >>>>> I would like to know you opinion about it, if you have any suggestion
-> >>>>> to improve it, otherwise I'll start its implementation as soon as
-> >>>>> possible.
-> >>>>> This API may change with the MC changes and I may see other possible
-> >>>>> configurations as I implementing it but here is the first idea of how
-> >>>>> the API will look like.
-> >>>>>
-> >>>>> vimc project link: https://github.com/helen-fornazier/opw-staging/
-> >>>>> For more information: http://kernelnewbies.org/LaurentPinchart
-> >>>>>
-> >>>>> /***********************
-> >>>>> The API:
-> >>>>> ************************/
-> >>>>>
-> >>>>> In short, a topology like this one: http://goo.gl/Y7eUfu
-> >>>>> Would look like this filesystem tree: https://goo.gl/tCZPTg
-> >>>>> Txt version of the filesystem tree: https://goo.gl/42KX8Y
-> >>>>>
-> >>>>> * The /configfs/vimc subsystem
-> >>>>
-> >>>> I haven't checked the latest vimc driver, but doesn't it support
-> >>>> multiple instances, just like vivid? I would certainly recommend that.
-> >>>
-> >>> Yes, it does support
-> >>>
-> >>>>
-> >>>> And if there are multiple instances, then each instance gets its own
-> >>>> entry in configfs: /configs/vimc0, /configs/vimc1, etc.
-> >>>
-> >>> You are right, I'll add those
-> >>>
-> >>>>
-> >>>>> The vimc driver registers a subsystem in the configfs with the
-> >>>>> following contents:
-> >>>>>         > ls /configfs/vimc
-> >>>>>         build_topology status
-> >>>>> The build_topology attribute file will be used to tell the driver the
-> >>>>> configuration is done and it can build the topology internally
-> >>>>>         > echo -n "anything here" > /configfs/vimc/build_topology
-> >>>>> Reading from the status attribute can have 3 different classes of outputs
-> >>>>> 1) deployed: the current configured tree is built
-> >>>>> 2) undeployed: no errors, the user has modified the configfs tree thus
-> >>>>> the topology was undeployed
-> >>>>> 3) error error_message: the topology configuration is wrong
-> >>>>
-> >>>> I don't see the status file in the filesystem tree links above.
-> >>>
-> >>> Sorry, I forgot to add
-> >>>
-> >>>>
-> >>>> I actually wonder if we can't use build_topology for that: reading it
-> >>>> will just return the status.
-> >>>
-> >>> Yes we can, I was just wondering what should be the name of the file,
-> >>> as getting the status from reading the build_topology file doesn't
-> >>> seem much intuitive
-> >>
-> >> I'm not opposed to a status file, but it would be good to know what Laurent
-> >> thinks.
-> >>
-> >>>
-> >>>>
-> >>>> What happens if it is deployed and you want to 'undeploy' it? Instead of
-> >>>> writing anything to build_topology it might be useful to write a real
-> >>>> command to it. E.g. 'deploy', 'destroy'.
-> >>>>
-> >>>> What happens when you make changes while a topology is deployed? Should
-> >>>> such changes be rejected until the usecount of the driver goes to 0, or
-> >>>> will it only be rejected when you try to deploy the new configuration?
-> >>>
-> >>> I was thinking that if the user try changing the topology, or it will
-> >>> fail (because the device instance is in use) or it will undeploy the
-> >>> old topology (if the device is not in use). Then a 'destroy' command
-> >>> won't be useful, the user can just unload the driver when it won't be
-> >>> used anymore,
-> > 
-> > Well, we're planning to add support for dynamic addition/removal of
-> > entities, interfaces, pads and links. So, instead of undeploy the
-> > old topology, one could just do:
-> > 	rm -rf <part of the tree>
-> 
-> Dynamic entities and interfaces yes, but dynamic pads? The entity defines
-> the number of pads it has, which is related to the hardware or IP properties
-> of the entity. I don't see how that can be dynamic.
+On Tue, Jul 14, 2015 at 11:32 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Hans,
+>
+> On Tuesday 14 July 2015 16:19:50 Hans Verkuil wrote:
+>> On 07/13/15 10:03, Sakari Ailus wrote:
+>> > Helen Fornazier wrote:
+>> >> On Tue, Jun 30, 2015 at 4:26 PM, Helen Fornazier wrote:
+>> >>> On Tue, Jun 30, 2015 at 6:19 AM, Sakari Ailus wrote:
+>> >>>> Laurent Pinchart wrote:
+>> >>>>> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
+>> >>>>>> Helen Fornazier wrote:
+>> >>>>>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return
+>> >>>
+>> >>> EPIPE
+>> >>>
+>> >>>>>>> when the pipeline configuration is invalid.
+>> >>>>>>>
+>> >>>>>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the
+>> >>>
+>> >>> error
+>> >>>
+>> >>>>>>> caused by the v4l2_subdev_link_validate_default (if it is in use),
+>> >>>>>>> it
+>> >>>>>>> should return -EPIPE if it detects a format mismatch in the pipeline
+>> >>>>>>> configuration
+>> >>>>>>
+>> >>>>>> Only link configuration errors have yielded -EPIPE so far, sub-device
+>> >>>>>> format configuration error has returned -INVAL instead as you
+>> >>>>>> noticed.
+>> >>>>>
+>> >>>>> It should also be noted that while v4l2_subdev_link_validate() will
+>> >>>
+>> >>> return -
+>> >>>
+>> >>>>> EINVAL in case of error, the only driver that performs custom link
+>> >>>
+>> >>> validation
+>> >>>
+>> >>>>> (omap3isp/ispccdc.c) will return -EPIPE.
+>> >>>>
+>> >>>> Good point. That has escaped me until now.
+>> >>>>
+>> >>>>>> There are not many sources of -EINVAL while enabling streaming and
+>> >>>>>> all others are directly caused by the application; I lean towards
+>> >>>>>> thinking the code is good as it was. The documentation could be
+>> >>>>>> improved though. It may not be clear which error codes could be
+>> >>>>>> caused by different conditions.
+>> >>>>>>
+>> >>>>>> The debug level messages from media module
+>> >>>>>> (drivers/media/media-entity.c) do provide more information if needed,
+>> >>>>>> albeit this certainly is not an application interface.
+>> >>>>>>
+>> >>>>>> I wonder what others think.
+>> >>>>>
+>> >>>>> There's a discrepancy between the implementation and the
+>> >>>>> documentation, so at least one of them need to be fixed. -EPIPE would
+>> >>>>> be coherent with the documentation and seems appropriately named, but
+>> >>>>> another error code would allow userspace to tell link configuration
+>> >>>>> and format configuration problems apart.
+>> >>>>
+>> >>>> That was the original intent, I think.
+>> >>>>
+>> >>>>> Do you think -EINVAL is the most appropriate error code for format
+>> >>>>> configuration ? It's already used to indicate that the stream type is
+>> >>>>> invalid or that not enough buffers have been allocated, and is also
+>> >>>>> used by drivers directly for various purposes.
+>> >>>>
+>> >>>> That's true, it's been used also for that purpose. At the time this
+>> >>>> certainly was not the primary concern. If you can think of a better
+>> >>>> error code for the purpose (than EINVAL) I'm certainly fine with using
+>> >>>> one. I still think that -EPIPE is worse for telling about incorrect
+>> >>>> format configuration than -EINVAL since it's relatively easy to avoid -
+>> >>>> EINVAL for the documented reasons.
+>> >>>
+>> >>> I'd like just to point out where in the docs EPIPE for format mismatch
+>> >>> is specified, as it is not described in the streamon page as I thought
+>> >>> it would, but it is in the subdev page in case anyone is looking for
+>> >>> it (as I took some time to find it too):
+>> >>>
+>> >>> http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+>> >>> "Applications are responsible for configuring coherent parameters on
+>> >>> the whole pipeline and making sure that connected pads have compatible
+>> >>> formats. The pipeline is checked for formats mismatch at
+>> >>> VIDIOC_STREAMON time, and an EPIPE error code is then returned if the
+>> >>> configuration is invalid"
+>> >>>
+>> >>> So maybe the doc should be improved as you already stated.
+>> >>
+>> >> I would like to revive this subject.
+>> >>
+>> >> Should we change the docs? Change the -EINVAL to -EPIPE, or create
+>> >> another error code? What are your opinion?
+>> >>
+>> >> I read in the docs of dev-kmsg that EPIPE is returned when messages get
+>> >> overwritten, and in other parts of the code EPIPE is returned when there
+>> >> is an error in the pipeline communication level while trying to send
+>> >> information through the pipe or a pipe broken error.
+>> >>
+>> >> But in the error-codes.txt files, the EPIPE error is defined as:
+>> >> *EPIPE "The pipe type specified in the URB doesn't match the endpoint's
+>> >> actual type"*
+>> >
+>> > This exact definition sound USB specific to me.
+>> >
+>> >> Then, if EPIPE is used when types don't match between two endpoints, it
+>> >> seems reasonable to me to use EPIPE when formats don't match either. Or
+>> >> do "types" in this context have a specific definition? I don't know much
+>> >> about URB, you may be able to judge this better.
+>> >
+>> > A short recap of the current situation as far as I understand it:
+>> >
+>> > - MC link validation failure yields EPIPE to the user space,
+>> >
+>> > - V4L2 sub-device format validation failure generally results in EINVAL,
+>> > except that
+>>
+>> I think that returning EINVAL here is wrong. EINVAL is returned when you
+>> set e.g. a format and the format is invalid. In this case the format for
+>> each subdev is perfectly fine, it's just that the sink and source formats
+>> do not match.
+>>
+>> Rather than returning EINVAL I think ENOLINK would work well here as you
+>> can't setup a link between two entities. And EPIPE can still be used
+>> for other higher-level pipeline errors.
+>>
+>> > - omap3isp CCDC driver returns EPIPE instead and
+>>
+>> That seems definitely the wrong thing to do.
+>
+> The VIDIOC_STREAMON documentation states that
+>
+> "EPIPE
+>
+> The driver implements pad-level format configuration and the pipeline
+> configuration is invalid."
+>
+> According to the documentation, EINVAL is clearly wrong, and EPIPE should be
+> used. I'm open to the idea of using different error codes to indicate severed
+> link errors and links with an invalid configuration, but how about backward
+> compatibility ?
+>
 
-It can be dynamic. DVB has usages for that, on two different situations:
+I don't think backward compatibility is a big issue, as it seems the
+code wasn't returning what the docs says and nobody complained about
+it so far.
 
-1) DVB demux
+I see 4 options then:
 
-There are some hardware that has an IP block that provides more than one
-demuxes, but they share a number of TS filters. The amount of TS filters
-per demux can be dynamically changed.
+1) Keep -EINVAL and update the docs
+2) Change the code to -EPIPE (there is no need in updating the docs here)
+3) Change the code to -ENOLINK and update the docs
+4) Create another error (-EFMT for example), change the code to it and
+update the docs
 
-For example, such hardware may have 2 demuxes and 32 shared TS filters.
+which one do you prefer?
 
-At DVB driver init, let's assume that each demux will have 16 filters.
-So:
-	demux 0 - 16 TS filters = 16 pads
-	demux 1 - 16 TS buffers = 16 pads
+>> > - EINVAL is used for many other purposes.
+>> >
+>> > The issues are inconsistency between omap3isp CCDC and other drivers in
+>> > informing the user the sub-device format configuration is wrong. Also
+>> > V4L2 sub-device format validation error cannot be told apart from other
+>> > errors. These problems should be fixed, so that all three sources of
+>> > errors yield a different error code (MC link validation, V4L2 format
+>> > configuration and other plain V4L2 related errors).
+>> >
+>> > V4L2 will continue using EINVAL, that's for sure.
+>> >
+>> > Another error code I could think of is EMLINK ("Too many links"), which
+>> > is not a perfect match, but could be used. This is a better match for a
+>> > link validation failure; V4L2 sub-device link validation failure would
+>> > then use EPIPE (as omap3isp CCDC driver already does).
+>> >
+>> > Another option could be that V4L2 format validation failure would use
+>> > ENOEXEC ("Exec format error") instead, and EPIPE would be left to link
+>> > validation failures.
+>> >
+>> > Better suggestions are welcome of course. I think I'm leaning towards
+>> > the first option, but from backwards compatibility point of view the
+>> > latter is better. The MC is no longer experimental so the latter might
+>> > be the only option.
+>> >
+>> > My view is that this boils down to picking the most suitable error
+>> > codes. Then fixing the documentation is easy.
+>> >
+>> > I wonder what Laurent and Hans think.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-On a given time, let's assume that the first demux has all 16 filters
-already in usage, but the second demux is using only 4 filters. It is
-possible to dynamically change the hardware to move, let's say, 4
-buffers from the second demux to the first one. After such change,
-we'll have:
-	demux 0 - 20 TS filters = 20 pads
-	demux 1 - 12 TS filters = 12 pads
 
-Ok, one might think on initializing both with 32 pads, and create
-32 ringbuffers at the Kernelspace for each demux, but if the number
-of TS filters is big, this will mean lots of wasted memory to store
-data that will never be used. The amount of memory spent is really
-big, as each ringbuffer will allocate several data pages, in order
-to prepare to receive the DMA data from the hardware filters
-(or do emulate in software).
 
-2) DVB network
-
-The DVB net core will likely need dynamic pads as well, as the output
-will be  different for each different network interface, as each output
-is associated to a different TS. As the DVB core allows dynamic creation
-of network interfaces, the number of PADs at the demux will also change,
-as we create new ringbuffers and new ULE/MPE decap filters for each
-different network traffic.
-
-> I certainly wouldn't bother with that in vimc.
-
-Allowing dynamic removal? Well, if we want the vimc driver to be able
-to test the MC functionalities, it should support at least all MC core
-features.
-
-Regards,
-Mauro
+-- 
+Helen Fornazier
