@@ -1,206 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46143 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752456AbbHaKw1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 06:52:27 -0400
-Message-ID: <55E431B2.9030602@xs4all.nl>
-Date: Mon, 31 Aug 2015 12:51:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-oi0-f52.google.com ([209.85.218.52]:32871 "EHLO
+	mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946535AbbHHBzs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 21:55:48 -0400
+Received: by oio137 with SMTP id 137so61680132oio.0
+        for <linux-media@vger.kernel.org>; Fri, 07 Aug 2015 18:55:48 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v8 25/55] [media] dvbdev: add support for interfaces
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <b43ac3b0574f7ca0e88867cd39f12fb6c30c97db.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <b43ac3b0574f7ca0e88867cd39f12fb6c30c97db.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Fri, 7 Aug 2015 22:55:28 -0300
+Message-ID: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
+Subject: VIMC: API proposal, configuring the topology through user space
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
-> Now that the infrastruct for that is set, add support for
-> interfaces.
-> 
-> Please notice that we're missing two links:
-> 	DVB FE intf    -> tuner
-> 	DVB demux intf -> dvr
-> 
-> Those should be added latter, after having the entire graph
-> set. With the current infrastructure, those should be added
-> at dvb_create_media_graph(), but it would also require some
-> extra core changes, to allow the function to enumerate the
-> interfaces.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi!
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I've made a first sketch about the API of the vimc driver (virtual
+media controller) to configure the topology through user space.
+As first suggested by Laurent Pinchart, it is based on configfs.
 
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 65f59f2124b4..6bf61d42c017 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -180,14 +180,36 @@ skip:
->  	return -ENFILE;
->  }
->  
-> -static void dvb_register_media_device(struct dvb_device *dvbdev,
-> -				      int type, int minor)
-> +static void dvb_create_media_entity(struct dvb_device *dvbdev,
-> +				       int type, int minor)
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
->  	int ret = 0, npads;
->  
-> -	if (!dvbdev->adapter->mdev)
-> +	switch (type) {
-> +	case DVB_DEVICE_FRONTEND:
-> +		npads = 2;
-> +		break;
-> +	case DVB_DEVICE_DEMUX:
-> +		npads = 2;
-> +		break;
-> +	case DVB_DEVICE_CA:
-> +		npads = 2;
-> +		break;
-> +	case DVB_DEVICE_NET:
-> +		/*
-> +		 * We should be creating entities for the MPE/ULE
-> +		 * decapsulation hardware (or software implementation).
-> +		 *
-> +		 * However, the number of for the MPE/ULE decaps may not be
-> +		 * fixed. As we don't have yet dynamic support for PADs at
-> +		 * the Media Controller, let's not create the decap
-> +		 * entities yet.
-> +		 */
->  		return;
-> +	default:
-> +		return;
-> +	}
->  
->  	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
->  	if (!dvbdev->entity)
-> @@ -197,19 +219,6 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  	dvbdev->entity->info.dev.minor = minor;
->  	dvbdev->entity->name = dvbdev->name;
->  
-> -	switch (type) {
-> -	case DVB_DEVICE_CA:
-> -	case DVB_DEVICE_DEMUX:
-> -	case DVB_DEVICE_FRONTEND:
-> -		npads = 2;
-> -		break;
-> -	case DVB_DEVICE_NET:
-> -		npads = 0;
-> -		break;
-> -	default:
-> -		npads = 1;
-> -	}
-> -
->  	if (npads) {
->  		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
->  				       GFP_KERNEL);
-> @@ -230,18 +239,11 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
-> -	case DVB_DEVICE_DVR:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-> -		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-> -		break;
->  	case DVB_DEVICE_CA:
->  		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
-> -	case DVB_DEVICE_NET:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-> -		break;
->  	default:
->  		kfree(dvbdev->entity);
->  		dvbdev->entity = NULL;
-> @@ -263,11 +265,63 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  		return;
->  	}
->  
-> -	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
-> +	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
->  		__func__, dvbdev->entity->name);
->  #endif
->  }
->  
-> +static void dvb_register_media_device(struct dvb_device *dvbdev,
-> +				      int type, int minor)
-> +{
-> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> +	u32 intf_type;
-> +
-> +	if (!dvbdev->adapter->mdev)
-> +		return;
-> +
-> +	dvb_create_media_entity(dvbdev, type, minor);
-> +
-> +	switch (type) {
-> +	case DVB_DEVICE_FRONTEND:
-> +		intf_type = MEDIA_INTF_T_DVB_FE;
-> +		break;
-> +	case DVB_DEVICE_DEMUX:
-> +		intf_type = MEDIA_INTF_T_DVB_DEMUX;
-> +		break;
-> +	case DVB_DEVICE_DVR:
-> +		intf_type = MEDIA_INTF_T_DVB_DVR;
-> +		break;
-> +	case DVB_DEVICE_CA:
-> +		intf_type = MEDIA_INTF_T_DVB_CA;
-> +		break;
-> +	case DVB_DEVICE_NET:
-> +		intf_type = MEDIA_INTF_T_DVB_NET;
-> +		break;
-> +	default:
-> +		return;
-> +	}
-> +
-> +	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
-> +						 intf_type, 0,
-> +						 DVB_MAJOR, minor,
-> +						 GFP_KERNEL);
-> +
-> +	/*
-> +	 * Create the "obvious" link, e. g. the ones that represent
-> +	 * a direct association between an interface and an entity.
-> +	 * Other links should be created elsewhere, like:
-> +	 *		DVB FE intf    -> tuner
-> +	 *		DVB demux intf -> dvr
-> +	 */
-> +
-> +	if (!dvbdev->entity || !dvbdev->intf_devnode)
-> +		return;
-> +
-> +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
-> +
-> +#endif
-> +}
-> +
->  int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
->  			const struct dvb_device *template, void *priv, int type)
->  {
-> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> index c61a4f03a66f..5f37b4dd1e69 100644
-> --- a/drivers/media/dvb-core/dvbdev.h
-> +++ b/drivers/media/dvb-core/dvbdev.h
-> @@ -149,6 +149,7 @@ struct dvb_device {
->  
->  	/* Allocated and filled inside dvbdev.c */
->  	struct media_entity *entity;
-> +	struct media_intf_devnode *intf_devnode;
->  	struct media_pad *pads;
->  #endif
->  
-> 
+I would like to know you opinion about it, if you have any suggestion
+to improve it, otherwise I'll start its implementation as soon as
+possible.
+This API may change with the MC changes and I may see other possible
+configurations as I implementing it but here is the first idea of how
+the API will look like.
 
+vimc project link: https://github.com/helen-fornazier/opw-staging/
+For more information: http://kernelnewbies.org/LaurentPinchart
+
+/***********************
+The API:
+************************/
+
+In short, a topology like this one: http://goo.gl/Y7eUfu
+Would look like this filesystem tree: https://goo.gl/tCZPTg
+Txt version of the filesystem tree: https://goo.gl/42KX8Y
+
+* The /configfs/vimc subsystem
+The vimc driver registers a subsystem in the configfs with the
+following contents:
+        > ls /configfs/vimc
+        build_topology status
+The build_topology attribute file will be used to tell the driver the
+configuration is done and it can build the topology internally
+        > echo -n "anything here" > /configfs/vimc/build_topology
+Reading from the status attribute can have 3 different classes of outputs
+1) deployed: the current configured tree is built
+2) undeployed: no errors, the user has modified the configfs tree thus
+the topology was undeployed
+3) error error_message: the topology configuration is wrong
+
+* Creating an entity:
+Use mkdir in the /configfs/vimc to create an entity representation, e.g.:
+        > mkdir /configfs/vimc/sensor_a
+The attribute files will be created by the driver through configfs:
+        > ls /configfs/vimc/sensor_a
+        name role
+Configure the name that will appear to the /dev/media0 and what this
+node do (debayer, scaler, capture, input, generic)
+        > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
+        > echo -n "sensor" > /configfs/vimc/sensor_a/role
+
+* Creating a pad:
+Use mkdir inside an entity's folder, the attribute called "direction"
+will be automatically created in the process, for example:
+        > mkdir /configfs/vimc/sensor_a/pad_0
+        > ls /configfs/vimc/sensor_a/pad_0
+        direction
+        > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
+The direction attribute can be "source" or "sink"
+
+* Creating a link between pads in two steps:
+Step 1)
+Create a folder inside the source pad folder, the attribute called
+"flag" will be automatically created in the process, for example:
+        > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+        > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+        flags
+        > echo -n "enabled,immutable" >
+/configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
+In the flags attribute we can have all the links attributes (enabled,
+immutable and dynamic) separated by comma
+
+Step 2)
+Add a symlink between the previous folder we just created in the
+source pad and the sink pad folder we want to connect. Lets say we
+want to connect with the pad on the raw_capture_0 entity pad 0
+        > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+/configfs/vimc/raw_capture_0/pad_0/
+
+* Build the topology.
+After configuring it, tell the driver we finished:
+        > echo -n "anything here" > /configfs/vimc/build_topology
+        > cat /configfs/vimc/status
+
+NOTE 1: The entity's numbering, as read from /dev/media0, will be the
+order of the creation, same about the pads. Pad 0 will be the first
+pad created in an entity's folder.
+
+NOTE 2: Most of the errors will be captured while configuring the
+topology, e.g., the user won't be able to setup a link if the pad
+which contains the /configfs/ent/pad/link/ folder does not have the
+direction attribute set to source and the use can't change the
+direction of a pad to sink if it already has a symlink going out of
+the current pad.
+
+NOTE 3: The user won't be able to modify the configfs tree if any
+streaming is on.
+
+
+That's it, I hope it is clear.
+
+Regards
+-- 
+Helen M. Koike Fornazier
