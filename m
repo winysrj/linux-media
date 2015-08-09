@@ -1,86 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57157 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964881AbbHKNII (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 09:08:08 -0400
-Date: Tue, 11 Aug 2015 10:08:04 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.3] Various fixes
-Message-ID: <20150811100804.4cbb0ab7@recife.lan>
-In-Reply-To: <55B749C7.4070005@xs4all.nl>
-References: <55B749C7.4070005@xs4all.nl>
+Received: from dub004-omc2s11.hotmail.com ([157.55.1.150]:55873 "EHLO
+	DUB004-OMC2S11.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754532AbbHIOnM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Aug 2015 10:43:12 -0400
+Message-ID: <DUB128-DS34AACE45DAD5FC6ADB9C6EA710@phx.gbl>
+From: Graham Eccleston <grahameccleston_@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: [PATCH] Compro U650F support
+Date: Sun, 9 Aug 2015 15:38:07 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 28 Jul 2015 11:22:15 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Added Compro U650F to the rtl28xxu devices.
 
-> This pull request contains a pile of fixes/enhancements, mostly soc-camera
-> related.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
-> 
->   [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.3e
-> 
-> for you to fetch changes up to 9a400ca65ee917dc438cb9b553c11580269b4460:
-> 
->   v4l2: export videobuf2 trace points (2015-07-28 11:15:04 +0200)
-> 
-> ----------------------------------------------------------------
-> Ezequiel Garcia (1):
->       tw68: Move PCI vendor and device IDs to pci_ids.h
-> 
-> Hans Verkuil (13):
->       sh-veu: initialize timestamp_flags and copy timestamp info
->       tw9910: don't use COLORSPACE_JPEG
->       tw9910: init priv->scale and update standard
->       ak881x: simplify standard checks
->       mt9t112: JPEG -> SRGB
->       sh_mobile_ceu_camera: fix querycap
->       sh_mobile_ceu_camera: set field to FIELD_NONE
->       soc_camera: fix enum_input
->       soc_camera: fix expbuf support
->       soc_camera: compliance fixes
->       soc_camera: pass on streamoff error
->       soc_camera: always release queue for queue owner
->       mt9v032: fix uninitialized variable warning
-> 
-> Laurent Pinchart (1):
->       v4l: subdev: Add pad config allocator and init
+Reported-by: Graham Eccleston
+Signed-off-by: Graham Eccleston <grahameccleston_@hotmail.com>
 
-As explained, we won't be adding any changes at the MC while we don't fix
-the MC mess.
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c 
+b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index c3cac4c..31a9d4c 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1885,6 +1885,8 @@ static const struct usb_device_id rtl28xxu_id_table[] 
+= {
+                &rtl28xxu_props, "MSI DIGIVOX Micro HD", NULL) },
+        { DVB_USB_DEVICE(USB_VID_COMPRO, 0x0620,
+                &rtl28xxu_props, "Compro VideoMate U620F", NULL) },
++       { DVB_USB_DEVICE(USB_VID_COMPRO, 0x0650,
++                &rtl28xxu_props, "Compro VideoMate U650F", NULL) },
+        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
+                &rtl28xxu_props, "MaxMedia HU394-T", NULL) },
+        { DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a03, 
 
-As I don't know what patches here are dependent of this change, I'm 
-stopping handling this patch series at patch #15, with means that the
-following patches aren't merged:
-
-0015-v4l-subdev-Add-pad-config-allocator-and-init.patch
-0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
-0017-media-soc_camera-pad-aware-driver-initialisation.patch
-0018-media-rcar_vin-Use-correct-pad-number-in-try_fmt.patch
-0019-media-soc_camera-soc_scale_crop-Use-correct-pad-numb.patch
-0020-media-rcar_vin-fill-in-bus_info-field.patch
-0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
-0022-mt9v032-fix-uninitialized-variable-warning.patch
-0023-tw68-Move-PCI-vendor-and-device-IDs-to-pci_ids.h.patch
-0024-v4l2-export-videobuf2-trace-points.patch
-
-Feel free to submit the remaining fix patches from this series that
-aren't related to media controller on a separate pull request.
-
-Regards,
-Mauro
