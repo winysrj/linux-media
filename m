@@ -1,45 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58557 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751943AbbHSPhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 11:37:03 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 4/4] [media] media: remove media entity .parent field
-Date: Wed, 19 Aug 2015 17:35:22 +0200
-Message-Id: <1439998526-12832-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
-References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34166 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S2992842AbbHICwG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Aug 2015 22:52:06 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9EAC02A0267
+	for <linux-media@vger.kernel.org>; Sun,  9 Aug 2015 04:51:39 +0200 (CEST)
+Date: Sun, 09 Aug 2015 04:51:39 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150809025139.9EAC02A0267@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the struct media_entity .parent field is unused, it can be
-safely removed. Since all the previous users were converted to use
-the .mdev field from the embedded struct media_gobj instead.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Results of the daily build of media_tree:
 
----
+date:		Sun Aug  9 04:00:16 CEST 2015
+git branch:	test
+git hash:	4dc102b2f53d63207fa12a6ad49c7b6448bc3301
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
- include/media/media-entity.h | 1 -
- 1 file changed, 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 3b653e9321f2..d7e007f624a5 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -103,7 +103,6 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;
- 	struct list_head list;
--	struct media_device *parent;	/* Media device this entity belongs to*/
- 	const char *name;		/* Entity name */
- 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
- 	u32 revision;			/* Entity revision, driver specific */
--- 
-2.4.3
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
