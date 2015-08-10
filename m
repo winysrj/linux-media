@@ -1,70 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48835 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752281AbbHKPSn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 11:18:43 -0400
-Subject: Re: [PATCH 09/12] tda10071: use jiffies when poll firmware status
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1436414792-9716-1-git-send-email-crope@iki.fi>
- <1436414792-9716-9-git-send-email-crope@iki.fi>
- <20150811072055.55eeb0d4@recife.lan>
-Cc: linux-media@vger.kernel.org
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <55CA124F.9080507@iki.fi>
-Date: Tue, 11 Aug 2015 18:18:39 +0300
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51773 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932201AbbHJKMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 06:12:07 -0400
+Message-ID: <55C878DB.5080404@xs4all.nl>
+Date: Mon, 10 Aug 2015 12:11:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150811072055.55eeb0d4@recife.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
+	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
+	sangbae90.lee@samsung.com, rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>	<55C86147.4090307@xs4all.nl> <20150810063255.2f087b24@recife.lan>
+In-Reply-To: <20150810063255.2f087b24@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/11/2015 01:20 PM, Mauro Carvalho Chehab wrote:
-> Em Thu,  9 Jul 2015 07:06:29 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> Use jiffies to set timeout for firmware command status polling.
->> It is more elegant solution than poll X times with sleep.
+On 08/10/2015 11:32 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Aug 2015 10:31:03 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi Jungsak,
+>>
+>> On 07/31/2015 10:44 AM, Junghak Sung wrote:
+>>> Hello everybody,
+>>>
+>>> This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
+>>> The purpose of this patch series is to separate existing VB2 framework
+>>> into core part and V4L2 specific part. So that not only V4L2 but also other
+>>> frameworks can use them to manage buffer and utilize queue.
+>>>
+>>> Why do we try to make the VB2 framework to be common?
+>>>
+>>> As you may know, current DVB framework uses ringbuffer mechanism to demux
+>>> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+>>> extra memory copy because DVB framework provides only read() system call for
+>>> application - read() system call copies the kernel data to user-space buffer.
+>>> So if we can use VB2 framework which supports streaming I/O and buffer
+>>> sharing mechanism, then we could enhance existing DVB framework by removing
+>>> the extra memory copy - with VB2 framework, application can access the kernel
+>>> data directly through mmap system call.
+>>>
+>>> We have a plan for this work as follows:
+>>> 1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
+>>>    Of course, this change will not affect other v4l2-based
+>>>    device drivers. This patch series corresponds to this step.
+>>>
+>>> 2. Add and implement new APIs for DVB streaming I/O.
+>>>    We can remove unnecessary memory copy between kernel-space and user-space
+>>>    by using these new APIs. However, we leaves legacy interfaces as-is
+>>>    for backward compatibility.
+>>>
+>>> This patch series is the first step for it.
+>>> The previous version of this patch series can be found at [1].
+>>>
+>>> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+>>
+>> This v2 looks much better, but, as per my comment to patch 1/5, it needs a bit
+>> more work before I can do a really good review. I think things will be much
+>> clearer once patch 3 shows the code moving from core.c/h to v4l2.c/h instead
+>> of the other way around. That shouldn't be too difficult.
+> 
+> Hans,
+> 
+> I suggested Junkhak to do that. On his previous patchset, he did what
+> you're suggestiong, e. g moving things from vb2-core into vb2-v4l2, and
+> that resulted on patches big enough to not be catched by vger.
 
->>   	/* wait cmd execution terminate */
->> -	for (i = 1000, uitmp = 1; i && uitmp; i--) {
->> +	#define CMD_EXECUTE_TIMEOUT 30
->> +	timeout = jiffies + msecs_to_jiffies(CMD_EXECUTE_TIMEOUT);
->> +	for (uitmp = 1; !time_after(jiffies, timeout) && uitmp;) {
->>   		ret = regmap_read(dev->regmap, 0x1f, &uitmp);
->>   		if (ret)
->>   			goto error;
->> -
->> -		usleep_range(200, 5000);
->
-> Hmm... removing the usleep() doesn't sound a good idea. You'll be
-> flooding the I2C bus with read commands and spending CPU cycles
-> for 30ms spending more power than the previous code. That doesn't
-> sound more "elegant solution than poll X times with sleep" for me.
->
-> So, I would keep the usleep_range() here and add a better
-> comment on the patch description.
+Actually, that wasn't the reason why the patches became so big. I just
+reorganized the patch series as I suggested above (pretty easy to do) and
+the size of patch 3 went down.
 
-First of all, polling firmware ready status is very common for chips 
-having firmware. And there is 2 ways to implement it:
-1) poll N times in a loop using X sleep, timeout = N * X
-2) poll in a loop using jiffies as a timeout
+> Also, IMHO, it is cleared this way, as we can see what parts of VB2 will
+> actually be shared, as there are lots of things that won't be shared:
+> overlay, userptr, multiplanar.
 
-IMHO 2 is more elegant solution and I have started using it recently.
+That's why I prefer to see what moves *out* from the core.
 
-What you now propose is add some throttle in order to slow down polling 
-interval to reduce I2C I/O. Yes sure less I/O is better, but downside is 
-that it makes some unneeded extra delay to code path. Usually these sort 
-firmware ready polling ends rather quickly, in a loop or two.
+To be honest, it depends on what your preference is.
 
-Sure it eats some extra CPU cycles, but I think extra control messages 
-are about nothing compared to I/O used for data streaming.
+Junghak, just leave the patch as-is. However, for v3 you should run
+checkpatch.pl over the diff since it complained about various things.
 
-Which kind of throttle delay you think is suitable for polling command 
-status over I2C bus?
+Regards,
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+	Hans
