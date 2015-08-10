@@ -1,187 +1,393 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60790 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752198AbbH1Myl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 08:54:41 -0400
-Date: Fri, 28 Aug 2015 09:54:35 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkhan@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	shuahkh@osg.samsung.com
-Subject: Re: [PATCH v7 07/44] [media] media: use media_gobj inside links
-Message-ID: <20150828095435.5b088d4b@recife.lan>
-In-Reply-To: <CAKocOOP5AkPbs96k2VQ24URavYcrxmsWzaVAa6d7AZCdQcEwsA@mail.gmail.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<8fb52e8c4f3585ef7781d0d3a900ef761ef434dd.1440359643.git.mchehab@osg.samsung.com>
-	<CAKocOOP5AkPbs96k2VQ24URavYcrxmsWzaVAa6d7AZCdQcEwsA@mail.gmail.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37920 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750826AbbHJJei (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 05:34:38 -0400
+Message-ID: <55C87013.1020907@xs4all.nl>
+Date: Mon, 10 Aug 2015 11:34:11 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 10/13] hackrf: add support for transmitter
+References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-11-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-11-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Aug 2015 18:13:13 -0600
-Shuah Khan <shuahkhan@gmail.com> escreveu:
+Some comments below:
 
-> On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > Just like entities and pads, links also need to have unique
-> > Object IDs along a given media controller.
-> >
-> > So, let's add a media_gobj inside it and initialize
-> > the object then a new link is created.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 3bdda16584fe..065f6f08da37 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -438,6 +438,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
-> >         media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-> >         list_add_tail(&entity->list, &mdev->entities);
-> >
-> > +       /*
-> > +        * Initialize objects at the links
-> > +        * in the case where links got created before entity register
-> > +        */
-> > +       for (i = 0; i < entity->num_links; i++)
-> > +               media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-> > +                               &entity->links[i].graph_obj);
-> >         /* Initialize objects at the pads */
-> >         for (i = 0; i < entity->num_pads; i++)
-> >                 media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> > @@ -465,6 +472,8 @@ void media_device_unregister_entity(struct media_entity *entity)
-> >                 return;
-> >
-> >         spin_lock(&mdev->lock);
-> > +       for (i = 0; i < entity->num_links; i++)
-> > +               media_gobj_remove(&entity->links[i].graph_obj);
-> >         for (i = 0; i < entity->num_pads; i++)
-> >                 media_gobj_remove(&entity->pads[i].graph_obj);
-> >         media_gobj_remove(&entity->graph_obj);
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 377c6655c5d0..36d725ec5f3d 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -51,6 +51,9 @@ void media_gobj_init(struct media_device *mdev,
-> >         case MEDIA_GRAPH_PAD:
-> >                 gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-> >                 break;
-> > +       case MEDIA_GRAPH_LINK:
-> > +               gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-> > +               break;
-> >         }
-> >  }
-> >
+On 07/31/2015 04:10 AM, Antti Palosaari wrote:
+> HackRF SDR device has both receiver and transmitter. There is limitation
+> that receiver and transmitter cannot be used at the same time
+> (half-duplex operation). That patch implements transmitter support to
+> existing receiver only driver.
 > 
-> I think collapsing patches 4,5,6, and 7 will make this code so much easier
-> to review.
-
-One logical change per patch.
-
-> Can we simplify media_gobj_init()? If it takes mdev->*_id as a inout/output
-> value, there is no need to have this switch. You can simply range check type.
-
-The switch is needed here, in order to generate the ID, and will be
-needed latter, when we add the object at the media device (a requirement
-for the new API to work. See patches 41 and 42 for the additions here,
-and 43/44 for its usage at the new API).
-
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/usb/hackrf/hackrf.c | 894 ++++++++++++++++++++++++++------------
+>  1 file changed, 627 insertions(+), 267 deletions(-)
 > 
-> 
-> > @@ -491,6 +494,9 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
-> >         link->sink = &sink->pads[sink_pad];
-> >         link->flags = flags;
-> >
-> > +       /* Initialize graph object embedded at the new link */
-> > +       media_gobj_init(source->parent, MEDIA_GRAPH_LINK, &link->graph_obj);
-> 
-> So far calls to  media_gobj_init() are made holding mdev->lock. This
-> is the first
-> case without mdev->lock hold. This could lead race conditions as this routine
-> is changes fields in mdev.
+> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+> index 5bd291b..f4b5606 100644
+> --- a/drivers/media/usb/hackrf/hackrf.c
+> +++ b/drivers/media/usb/hackrf/hackrf.c
 
-True, but we'll need to review the locks anyway due to dynamic support.
-I was asked by Laurent to not bother with anything related to dynamic
-support right now. My first approach were to use atomic vars for the
-object IDs.
+<snip>
 
-We could add a mutex_lock here, but then we need to double check on all
-drivers if they're not locking themselves.
+> @@ -748,15 +925,11 @@ static int hackrf_s_fmt_sdr_cap(struct file *file, void *priv,
+>  		struct v4l2_format *f)
+>  {
+>  	struct hackrf_dev *dev = video_drvdata(file);
+> -	struct vb2_queue *q = &dev->vb_queue;
+>  	int i;
+>  
+>  	dev_dbg(dev->dev, "pixelformat fourcc %4.4s\n",
+>  			(char *)&f->fmt.sdr.pixelformat);
+>  
+> -	if (vb2_is_busy(q))
+> -		return -EBUSY;
+> -
 
-So, yeah, proper lock is at our TODO list.
+Why is this removed?
 
+>  	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
+>  	for (i = 0; i < NUM_FORMATS; i++) {
+>  		if (f->fmt.sdr.pixelformat == formats[i].pixelformat) {
+> @@ -856,17 +1029,64 @@ static int hackrf_g_tuner(struct file *file, void *priv, struct v4l2_tuner *v)
+>  
+>  	if (v->index == 0) {
+>  		strlcpy(v->name, "HackRF ADC", sizeof(v->name));
+> -		v->type = V4L2_TUNER_ADC;
+> +		v->type = V4L2_TUNER_SDR;
+>  		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
+> -		v->rangelow  = bands_adc[0].rangelow;
+> -		v->rangehigh = bands_adc[0].rangehigh;
+> +		v->rangelow  = bands_adc_dac[0].rangelow;
+> +		v->rangehigh = bands_adc_dac[0].rangehigh;
+>  		ret = 0;
+>  	} else if (v->index == 1) {
+> -		strlcpy(v->name, "HackRF RF", sizeof(v->name));
+> +		strlcpy(v->name, "HackRF RF RX", sizeof(v->name));
+
+This seems unnecessary. You're calling g_tuner, so it is obvious that it is RX.
+I'd keep the name as "HackRF RF".
+
+>  		v->type = V4L2_TUNER_RF;
+>  		v->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
+> -		v->rangelow  = bands_rf[0].rangelow;
+> -		v->rangehigh = bands_rf[0].rangehigh;
+> +		v->rangelow  = bands_rx_tx[0].rangelow;
+> +		v->rangehigh = bands_rx_tx[0].rangehigh;
+> +		ret = 0;
+> +	} else {
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int hackrf_s_modulator(struct file *file, void *fh,
+> +		       const struct v4l2_modulator *a)
+> +{
+> +	struct hackrf_dev *dev = video_drvdata(file);
+> +	int ret;
+> +
+> +	dev_dbg(dev->dev, "index=%d\n", a->index);
+> +
+> +	if (a->index == 0)
+> +		ret = 0;
+> +	else if (a->index == 1)
+> +		ret = 0;
+> +	else
+> +		ret = -EINVAL;
+> +
+> +	return ret;
+
+I'd just write:
+
+	return a->index > 1 ? -EINVAL : 0;
+
+More to the point, why implement this at all? At the moment s_modulator is meaningless
+since there is nothing to set.
+
+> +}
+> +
+> +static int hackrf_g_modulator(struct file *file, void *fh,
+> +			      struct v4l2_modulator *a)
+> +{
+> +	struct hackrf_dev *dev = video_drvdata(file);
+> +	int ret;
+> +
+> +	dev_dbg(dev->dev, "index=%d\n", a->index);
+> +
+> +	if (a->index == 0) {
+> +		strlcpy(a->name, "HackRF DAC", sizeof(a->name));
+> +		a->type = V4L2_TUNER_SDR;
+> +		a->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
+> +		a->rangelow  = bands_adc_dac[0].rangelow;
+> +		a->rangehigh = bands_adc_dac[0].rangehigh;
+> +		ret = 0;
+> +	} else if (a->index == 1) {
+> +		strlcpy(a->name, "HackRF RF TX", sizeof(a->name));
+
+Same as with g_tuner: I'd drop the "TX" part in the name.
+
+> +		a->type = V4L2_TUNER_RF;
+> +		a->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
+> +		a->rangelow  = bands_rx_tx[0].rangelow;
+> +		a->rangehigh = bands_rx_tx[0].rangehigh;
+>  		ret = 0;
+>  	} else {
+>  		ret = -EINVAL;
+
+<snip>
+
+> @@ -969,6 +1213,11 @@ static const struct v4l2_ioctl_ops hackrf_ioctl_ops = {
+>  	.vidioc_enum_fmt_sdr_cap  = hackrf_enum_fmt_sdr_cap,
+>  	.vidioc_try_fmt_sdr_cap   = hackrf_try_fmt_sdr_cap,
+>  
+> +	.vidioc_s_fmt_sdr_out     = hackrf_s_fmt_sdr_cap,
+> +	.vidioc_g_fmt_sdr_out     = hackrf_g_fmt_sdr_cap,
+> +	.vidioc_enum_fmt_sdr_out  = hackrf_enum_fmt_sdr_cap,
+> +	.vidioc_try_fmt_sdr_out   = hackrf_try_fmt_sdr_cap,
+> +
+
+Since hackrf_*_fmt_sdr_cap is used for both capture and output I suggest that
+those functions are renamed to hackrf_*_fmt_sdr(), dropping the "_cap" part.
+
+>  	.vidioc_reqbufs           = vb2_ioctl_reqbufs,
+>  	.vidioc_create_bufs       = vb2_ioctl_create_bufs,
+>  	.vidioc_prepare_buf       = vb2_ioctl_prepare_buf,
+> @@ -982,6 +1231,9 @@ static const struct v4l2_ioctl_ops hackrf_ioctl_ops = {
+>  	.vidioc_s_tuner           = hackrf_s_tuner,
+>  	.vidioc_g_tuner           = hackrf_g_tuner,
+>  
+> +	.vidioc_s_modulator       = hackrf_s_modulator,
+> +	.vidioc_g_modulator       = hackrf_g_modulator,
+> +
+>  	.vidioc_s_frequency       = hackrf_s_frequency,
+>  	.vidioc_g_frequency       = hackrf_g_frequency,
+>  	.vidioc_enum_freq_bands   = hackrf_enum_freq_bands,
+> @@ -996,6 +1248,7 @@ static const struct v4l2_file_operations hackrf_fops = {
+>  	.open                     = v4l2_fh_open,
+>  	.release                  = vb2_fop_release,
+>  	.read                     = vb2_fop_read,
+> +	.write                    = vb2_fop_write,
+>  	.poll                     = vb2_fop_poll,
+>  	.mmap                     = vb2_fop_mmap,
+>  	.unlocked_ioctl           = video_ioctl2,
+
+<snip>
+
+> @@ -1089,85 +1393,141 @@ static int hackrf_probe(struct usb_interface *intf,
+>  				buf, BUF_SIZE);
+>  	if (ret) {
+>  		dev_err(dev->dev, "Could not detect board\n");
+> -		goto err_free_mem;
+> +		goto err_kfree;
+>  	}
+>  
+>  	buf[BUF_SIZE - 1] = '\0';
+> -
+>  	dev_info(dev->dev, "Board ID: %02x\n", u8tmp);
+>  	dev_info(dev->dev, "Firmware version: %s\n", buf);
+>  
+> -	/* Init videobuf2 queue structure */
+> -	dev->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
+> -	dev->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+> -	dev->vb_queue.drv_priv = dev;
+> -	dev->vb_queue.buf_struct_size = sizeof(struct hackrf_frame_buf);
+> -	dev->vb_queue.ops = &hackrf_vb2_ops;
+> -	dev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+> -	dev->vb_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> -	ret = vb2_queue_init(&dev->vb_queue);
+> +	/* Init vb2 queue structure for receiver */
+> +	dev->rx_vb2_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
+> +	dev->rx_vb2_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
+
+I suggest that you add VB2_DMABUF here and for tx_vb2_queue.io_modes.
+
+I see no reason to leave that out.
+
+Also add .vidioc_expbuf = vb2_ioctl_expbuf to the ioctl ops.
+
+> +	dev->rx_vb2_queue.ops = &hackrf_vb2_ops;
+> +	dev->rx_vb2_queue.mem_ops = &vb2_vmalloc_memops;
+> +	dev->rx_vb2_queue.drv_priv = dev;
+> +	dev->rx_vb2_queue.buf_struct_size = sizeof(struct hackrf_buffer);
+> +	dev->rx_vb2_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	ret = vb2_queue_init(&dev->rx_vb2_queue);
+> +	if (ret) {
+> +		dev_err(dev->dev, "Could not initialize rx vb2 queue\n");
+> +		goto err_kfree;
+> +	}
+> +
+> +	/* Init vb2 queue structure for transmitter */
+> +	dev->tx_vb2_queue.type = V4L2_BUF_TYPE_SDR_OUTPUT;
+> +	dev->tx_vb2_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_WRITE;
+> +	dev->tx_vb2_queue.ops = &hackrf_vb2_ops;
+> +	dev->tx_vb2_queue.mem_ops = &vb2_vmalloc_memops;
+> +	dev->tx_vb2_queue.drv_priv = dev;
+> +	dev->tx_vb2_queue.buf_struct_size = sizeof(struct hackrf_buffer);
+> +	dev->tx_vb2_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	ret = vb2_queue_init(&dev->tx_vb2_queue);
+>  	if (ret) {
+> -		dev_err(dev->dev, "Could not initialize vb2 queue\n");
+> -		goto err_free_mem;
+> +		dev_err(dev->dev, "Could not initialize tx vb2 queue\n");
+> +		goto err_kfree;
+>  	}
+>  
+> -	/* Init video_device structure */
+> -	dev->vdev = hackrf_template;
+> -	dev->vdev.queue = &dev->vb_queue;
+> -	dev->vdev.queue->lock = &dev->vb_queue_lock;
+> -	video_set_drvdata(&dev->vdev, dev);
+> +	/* Register controls for receiver */
+> +	v4l2_ctrl_handler_init(&dev->rx_ctrl_handler, 5);
+> +	dev->rx_bandwidth_auto = v4l2_ctrl_new_std(&dev->rx_ctrl_handler,
+> +		&hackrf_ctrl_ops_rx, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO,
+> +		0, 1, 0, 1);
+> +	dev->rx_bandwidth = v4l2_ctrl_new_std(&dev->rx_ctrl_handler,
+> +		&hackrf_ctrl_ops_rx, V4L2_CID_RF_TUNER_BANDWIDTH,
+> +		1750000, 28000000, 50000, 1750000);
+> +	v4l2_ctrl_auto_cluster(2, &dev->rx_bandwidth_auto, 0, false);
+> +	dev->rx_rf_gain = v4l2_ctrl_new_std(&dev->rx_ctrl_handler,
+> +		&hackrf_ctrl_ops_rx, V4L2_CID_RF_TUNER_RF_GAIN, 0, 12, 12, 0);
+> +	dev->rx_lna_gain = v4l2_ctrl_new_std(&dev->rx_ctrl_handler,
+> +		&hackrf_ctrl_ops_rx, V4L2_CID_RF_TUNER_LNA_GAIN, 0, 40, 8, 0);
+> +	dev->rx_if_gain = v4l2_ctrl_new_std(&dev->rx_ctrl_handler,
+> +		&hackrf_ctrl_ops_rx, V4L2_CID_RF_TUNER_IF_GAIN, 0, 62, 2, 0);
+> +	if (dev->rx_ctrl_handler.error) {
+> +		ret = dev->rx_ctrl_handler.error;
+> +		dev_err(dev->dev, "Could not initialize controls\n");
+> +		goto err_v4l2_ctrl_handler_free_rx;
+> +	}
+> +	v4l2_ctrl_handler_setup(&dev->rx_ctrl_handler);
+> +
+> +	/* Register controls for transmitter */
+> +	v4l2_ctrl_handler_init(&dev->tx_ctrl_handler, 4);
+> +	dev->tx_bandwidth_auto = v4l2_ctrl_new_std(&dev->tx_ctrl_handler,
+> +		&hackrf_ctrl_ops_tx, V4L2_CID_RF_TUNER_BANDWIDTH_AUTO,
+> +		0, 1, 0, 1);
+> +	dev->tx_bandwidth = v4l2_ctrl_new_std(&dev->tx_ctrl_handler,
+> +		&hackrf_ctrl_ops_tx, V4L2_CID_RF_TUNER_BANDWIDTH,
+> +		1750000, 28000000, 50000, 1750000);
+> +	v4l2_ctrl_auto_cluster(2, &dev->tx_bandwidth_auto, 0, false);
+> +	dev->tx_lna_gain = v4l2_ctrl_new_std(&dev->tx_ctrl_handler,
+> +		&hackrf_ctrl_ops_tx, V4L2_CID_RF_TUNER_LNA_GAIN, 0, 47, 1, 0);
+> +	dev->tx_rf_gain = v4l2_ctrl_new_std(&dev->tx_ctrl_handler,
+> +		&hackrf_ctrl_ops_tx, V4L2_CID_RF_TUNER_RF_GAIN, 0, 15, 15, 0);
+> +	if (dev->tx_ctrl_handler.error) {
+> +		ret = dev->tx_ctrl_handler.error;
+> +		dev_err(dev->dev, "Could not initialize controls\n");
+> +		goto err_v4l2_ctrl_handler_free_tx;
+> +	}
+> +	v4l2_ctrl_handler_setup(&dev->tx_ctrl_handler);
+>  
+>  	/* Register the v4l2_device structure */
+>  	dev->v4l2_dev.release = hackrf_video_release;
+>  	ret = v4l2_device_register(&intf->dev, &dev->v4l2_dev);
+>  	if (ret) {
+>  		dev_err(dev->dev, "Failed to register v4l2-device (%d)\n", ret);
+> -		goto err_free_mem;
+> +		goto err_v4l2_ctrl_handler_free_tx;
+>  	}
+>  
+> -	/* Register controls */
+> -	v4l2_ctrl_handler_init(&dev->hdl, 5);
+> -	dev->bandwidth_auto = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+> -			V4L2_CID_RF_TUNER_BANDWIDTH_AUTO, 0, 1, 1, 1);
+> -	dev->bandwidth = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+> -			V4L2_CID_RF_TUNER_BANDWIDTH,
+> -			1750000, 28000000, 50000, 1750000);
+> -	v4l2_ctrl_auto_cluster(2, &dev->bandwidth_auto, 0, false);
+> -	dev->rf_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+> -			V4L2_CID_RF_TUNER_RF_GAIN, 0, 12, 12, 0);
+> -	dev->lna_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+> -			V4L2_CID_RF_TUNER_LNA_GAIN, 0, 40, 8, 0);
+> -	dev->if_gain = v4l2_ctrl_new_std(&dev->hdl, &hackrf_ctrl_ops,
+> -			V4L2_CID_RF_TUNER_IF_GAIN, 0, 62, 2, 0);
+> -	if (dev->hdl.error) {
+> -		ret = dev->hdl.error;
+> -		dev_err(dev->dev, "Could not initialize controls\n");
+> -		goto err_free_controls;
+> +	/* Init video_device structure for receiver */
+> +	dev->rx_vdev = hackrf_template;
+> +	dev->rx_vdev.queue = &dev->rx_vb2_queue;
+> +	dev->rx_vdev.queue->lock = &dev->vb_queue_lock;
+> +	dev->rx_vdev.v4l2_dev = &dev->v4l2_dev;
+> +	dev->rx_vdev.ctrl_handler = &dev->rx_ctrl_handler;
+> +	dev->rx_vdev.lock = &dev->v4l2_lock;
+> +	dev->rx_vdev.vfl_dir = VFL_DIR_RX;
+> +	video_set_drvdata(&dev->rx_vdev, dev);
+> +	ret = video_register_device(&dev->rx_vdev, VFL_TYPE_SDR, -1);
+> +	if (ret) {
+> +		dev_err(dev->dev,
+> +			"Failed to register as video device (%d)\n", ret);
+> +		goto err_v4l2_device_unregister;
+>  	}
+> -
+> -	v4l2_ctrl_handler_setup(&dev->hdl);
+> -
+> -	dev->v4l2_dev.ctrl_handler = &dev->hdl;
+> -	dev->vdev.v4l2_dev = &dev->v4l2_dev;
+> -	dev->vdev.lock = &dev->v4l2_lock;
+> -
+> -	ret = video_register_device(&dev->vdev, VFL_TYPE_SDR, -1);
+> +	dev_info(dev->dev, "Registered as %s\n",
+> +		 video_device_node_name(&dev->rx_vdev));
+> +
+> +	/* Init video_device structure for transmitter */
+> +	dev->tx_vdev = hackrf_template;
+> +	dev->tx_vdev.queue = &dev->tx_vb2_queue;
+> +	dev->tx_vdev.queue->lock = &dev->vb_queue_lock;
+> +	dev->tx_vdev.v4l2_dev = &dev->v4l2_dev;
+> +	dev->tx_vdev.ctrl_handler = &dev->tx_ctrl_handler;
+> +	dev->tx_vdev.lock = &dev->v4l2_lock;
+> +	dev->tx_vdev.vfl_dir = VFL_DIR_TX;
+> +	video_set_drvdata(&dev->tx_vdev, dev);
+> +	ret = video_register_device(&dev->tx_vdev, VFL_TYPE_SDR, -1);
+>  	if (ret) {
+> -		dev_err(dev->dev, "Failed to register as video device (%d)\n",
+> -				ret);
+> -		goto err_unregister_v4l2_dev;
+> +		dev_err(dev->dev,
+> +			"Failed to register as video device (%d)\n", ret);
+> +		goto err_video_unregister_device_rx;
+>  	}
+>  	dev_info(dev->dev, "Registered as %s\n",
+> -			video_device_node_name(&dev->vdev));
+> +		 video_device_node_name(&dev->tx_vdev));
+> +
+>  	dev_notice(dev->dev, "SDR API is still slightly experimental and functionality changes may follow\n");
+>  	return 0;
+> -
+> -err_free_controls:
+> -	v4l2_ctrl_handler_free(&dev->hdl);
+> -err_unregister_v4l2_dev:
+> +err_video_unregister_device_rx:
+> +	video_unregister_device(&dev->rx_vdev);
+> +err_v4l2_device_unregister:
+>  	v4l2_device_unregister(&dev->v4l2_dev);
+> -err_free_mem:
+> +err_v4l2_ctrl_handler_free_tx:
+> +	v4l2_ctrl_handler_free(&dev->tx_ctrl_handler);
+> +err_v4l2_ctrl_handler_free_rx:
+> +	v4l2_ctrl_handler_free(&dev->rx_ctrl_handler);
+> +err_kfree:
+>  	kfree(dev);
+> +err:
+> +	dev_dbg(dev->dev, "failed=%d\n", ret);
+>  	return ret;
+>  }
+>  
 > 
-> thanks,
-> -- Shuah
-> 
-> > +
-> >         /* Create the backlink. Backlinks are used to help graph traversal and
-> >          * are not reported to userspace.
-> >          */
-> > @@ -504,6 +510,9 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
-> >         backlink->sink = &sink->pads[sink_pad];
-> >         backlink->flags = flags;
-> >
-> > +       /* Initialize graph object embedded at the new link */
-> > +       media_gobj_init(sink->parent, MEDIA_GRAPH_LINK, &backlink->graph_obj);
-> > +
-> >         link->reverse = backlink;
-> >         backlink->reverse = link;
-> >
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > index 9493721f630e..05414e351f8e 100644
-> > --- a/include/media/media-device.h
-> > +++ b/include/media/media-device.h
-> > @@ -43,6 +43,7 @@ struct device;
-> >   * @driver_version: Device driver version
-> >   * @entity_id: Unique ID used on the last entity registered
-> >   * @pad_id:    Unique ID used on the last pad registered
-> > + * @link_id:   Unique ID used on the last link registered
-> >   * @entities:  List of registered entities
-> >   * @lock:      Entities list lock
-> >   * @graph_mutex: Entities graph operation lock
-> > @@ -71,6 +72,7 @@ struct media_device {
-> >
-> >         u32 entity_id;
-> >         u32 pad_id;
-> > +       u32 link_id;
-> >
-> >         struct list_head entities;
-> >
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index ce4c654486d6..cd08a96bfbaa 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -35,10 +35,12 @@
-> >   *
-> >   * @MEDIA_GRAPH_ENTITY:                Identify a media entity
-> >   * @MEDIA_GRAPH_PAD:           Identify a media pad
-> > + * @MEDIA_GRAPH_LINK:          Identify a media link
-> >   */
-> >  enum media_gobj_type {
-> >         MEDIA_GRAPH_ENTITY,
-> >         MEDIA_GRAPH_PAD,
-> > +       MEDIA_GRAPH_LINK,
-> >  };
-> >
-> >  #define MEDIA_BITS_PER_TYPE            8
-> > @@ -67,6 +69,7 @@ struct media_pipeline {
-> >  };
-> >
-> >  struct media_link {
-> > +       struct media_gobj graph_obj;
-> >         struct media_pad *source;       /* Source pad */
-> >         struct media_pad *sink;         /* Sink pad  */
-> >         struct media_link *reverse;     /* Link in the reverse direction */
-> > --
-> > 2.4.3
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+
+	Hans
