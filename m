@@ -1,139 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38057 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496AbbHSITZ (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45572 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753302AbbHJJoS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 04:19:25 -0400
-Message-ID: <55D43BE5.7030800@xs4all.nl>
-Date: Wed, 19 Aug 2015 10:18:45 +0200
+	Mon, 10 Aug 2015 05:44:18 -0400
+Message-ID: <55C87258.9070409@xs4all.nl>
+Date: Mon, 10 Aug 2015 11:43:52 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v5 5/8] [media] media: use media_gobj inside links
-References: <cover.1439927113.git.mchehab@osg.samsung.com> <86e21f1449e1c83b62e0b9c795d86bdae3e8de28.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <86e21f1449e1c83b62e0b9c795d86bdae3e8de28.1439927113.git.mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 13/13] DocBook: add tuner types SDR and RF for G_TUNER
+ / S_TUNER
+References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-14-git-send-email-crope@iki.fi>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/2015 10:04 PM, Mauro Carvalho Chehab wrote:
-> Just like entities and pads, links also need to have unique
-> Object IDs along a given media controller.
+On 07/31/2015 04:10 AM, Antti Palosaari wrote:
+> Add V4L2_TUNER_SDR and V4L2_TUNER_RF to supported tuner types to
+> table.
 > 
-> So, let's add a media_gobj inside it and initialize
-> the object then a new link is created.
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> index b0d8659..10737a1 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+> @@ -261,6 +261,16 @@ applications must set the array to zero.</entry>
+>  	    <entry>2</entry>
+>  	    <entry></entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_TUNER_SDR</constant></entry>
+> +	    <entry>4</entry>
+> +	    <entry></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_TUNER_RF</constant></entry>
+> +	    <entry>5</entry>
+> +	    <entry></entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> 
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The description should also be filled in here. It was never filled in for the
+RADIO and ANALOG_TV since that was obvious, but for these two new types it
+should be set. For consistency just set the description of the RADIO type to
+"Radio" and for ANALOG_TV to "Analog TV".
 
-Thanks!
+Regards,
 
 	Hans
-
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 24551d4ddfb8..7f512223249b 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -436,6 +436,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
->  	list_add_tail(&entity->list, &mdev->entities);
->  
-> +	/*
-> +	 * Initialize objects at the links
-> +	 * in the case where links got created before entity register
-> +	 */
-> +	for (i = 0; i < entity->num_links; i++)
-> +		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-> +				&entity->links[i].graph_obj);
->  	/* Initialize objects at the pads */
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> @@ -463,6 +470,8 @@ void media_device_unregister_entity(struct media_entity *entity)
->  		return;
->  
->  	spin_lock(&mdev->lock);
-> +	for (i = 0; i < entity->num_links; i++)
-> +		media_gobj_remove(&entity->links[i].graph_obj);
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_remove(&entity->pads[i].graph_obj);
->  	media_gobj_remove(&entity->graph_obj);
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 377c6655c5d0..a6be50e04736 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -51,6 +51,9 @@ void media_gobj_init(struct media_device *mdev,
->  	case MEDIA_GRAPH_PAD:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
->  		break;
-> +	case MEDIA_GRAPH_LINK:
-> +		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-> +		break;
->  	}
->  }
->  
-> @@ -469,6 +472,13 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
->  		entity->links = links;
->  	}
->  
-> +	/* Initialize graph object embedded at the new link */
-> +	if (entity->parent)
-> +		media_gobj_init(entity->parent, MEDIA_GRAPH_LINK,
-> +				&entity->links[entity->num_links].graph_obj);
-> +	else
-> +		pr_warn("Link created before entity register!\n");
-> +
->  	return &entity->links[entity->num_links++];
->  }
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 4b5d1ee2b67e..e0f63c0da2dd 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -43,6 +43,7 @@ struct device;
->   * @driver_version: Device driver version
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
-> + * @link_id:	Unique ID used on the last link registered
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> @@ -71,6 +72,7 @@ struct media_device {
->  
->  	u32 entity_id;
->  	u32 pad_id;
-> +	u32 link_id;
->  
->  	struct list_head entities;
->  
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 01ae1e320e36..2ffe015629fa 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -35,10 +35,12 @@
->   *
->   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
->   * @MEDIA_GRAPH_PAD:		Identify a media pad
-> + * @MEDIA_GRAPH_LINK:		Identify a media link
->   */
->  enum media_gobj_type {
->  	MEDIA_GRAPH_ENTITY,
->  	MEDIA_GRAPH_PAD,
-> +	MEDIA_GRAPH_LINK,
->  };
->  
->  #define BITS_PER_TYPE		8
-> @@ -65,6 +67,7 @@ struct media_pipeline {
->  };
->  
->  struct media_link {
-> +	struct media_gobj graph_obj;
->  	struct media_pad *source;	/* Source pad */
->  	struct media_pad *sink;		/* Sink pad  */
->  	struct media_link *reverse;	/* Link in the reverse direction */
-> 
-
