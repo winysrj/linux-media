@@ -1,224 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:33375 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570AbbHGQ4N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 12:56:13 -0400
-Received: by obdeg2 with SMTP id eg2so83501931obd.0
-        for <linux-media@vger.kernel.org>; Fri, 07 Aug 2015 09:56:12 -0700 (PDT)
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46877 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754024AbbHJI6M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 04:58:12 -0400
+Message-ID: <55C86789.60404@xs4all.nl>
+Date: Mon, 10 Aug 2015 10:57:45 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <3744183.h9KnBjN9KO@avalon>
-References: <1435538742-32447-1-git-send-email-helen.fornazier@gmail.com>
- <55A370DF.2080500@linux.intel.com> <55A51A86.9010800@xs4all.nl> <3744183.h9KnBjN9KO@avalon>
-From: Helen Fornazier <helen.fornazier@gmail.com>
-Date: Fri, 7 Aug 2015 13:55:53 -0300
-Message-ID: <CAPW4XYY02HMgvgw6T1Qj37CzmscbDgE0HWpgBFkAgwkX1CQKOw@mail.gmail.com>
-Subject: Re: [PATCH] [media] v4l2-subdev: return -EPIPE instead of -EINVAL in
- link validate default
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com, s.nawrocki@samsung.com
-Content-Type: text/plain; charset=UTF-8
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 03/13] DocBook: document tuner RF gain control
+References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-4-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On 07/31/2015 04:10 AM, Antti Palosaari wrote:
+> Add brief description for tuner RF gain control.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
 
-On Tue, Jul 14, 2015 at 11:32 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Hans,
->
-> On Tuesday 14 July 2015 16:19:50 Hans Verkuil wrote:
->> On 07/13/15 10:03, Sakari Ailus wrote:
->> > Helen Fornazier wrote:
->> >> On Tue, Jun 30, 2015 at 4:26 PM, Helen Fornazier wrote:
->> >>> On Tue, Jun 30, 2015 at 6:19 AM, Sakari Ailus wrote:
->> >>>> Laurent Pinchart wrote:
->> >>>>> On Monday 29 June 2015 10:23:34 Sakari Ailus wrote:
->> >>>>>> Helen Fornazier wrote:
->> >>>>>>> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return
->> >>>
->> >>> EPIPE
->> >>>
->> >>>>>>> when the pipeline configuration is invalid.
->> >>>>>>>
->> >>>>>>> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the
->> >>>
->> >>> error
->> >>>
->> >>>>>>> caused by the v4l2_subdev_link_validate_default (if it is in use),
->> >>>>>>> it
->> >>>>>>> should return -EPIPE if it detects a format mismatch in the pipeline
->> >>>>>>> configuration
->> >>>>>>
->> >>>>>> Only link configuration errors have yielded -EPIPE so far, sub-device
->> >>>>>> format configuration error has returned -INVAL instead as you
->> >>>>>> noticed.
->> >>>>>
->> >>>>> It should also be noted that while v4l2_subdev_link_validate() will
->> >>>
->> >>> return -
->> >>>
->> >>>>> EINVAL in case of error, the only driver that performs custom link
->> >>>
->> >>> validation
->> >>>
->> >>>>> (omap3isp/ispccdc.c) will return -EPIPE.
->> >>>>
->> >>>> Good point. That has escaped me until now.
->> >>>>
->> >>>>>> There are not many sources of -EINVAL while enabling streaming and
->> >>>>>> all others are directly caused by the application; I lean towards
->> >>>>>> thinking the code is good as it was. The documentation could be
->> >>>>>> improved though. It may not be clear which error codes could be
->> >>>>>> caused by different conditions.
->> >>>>>>
->> >>>>>> The debug level messages from media module
->> >>>>>> (drivers/media/media-entity.c) do provide more information if needed,
->> >>>>>> albeit this certainly is not an application interface.
->> >>>>>>
->> >>>>>> I wonder what others think.
->> >>>>>
->> >>>>> There's a discrepancy between the implementation and the
->> >>>>> documentation, so at least one of them need to be fixed. -EPIPE would
->> >>>>> be coherent with the documentation and seems appropriately named, but
->> >>>>> another error code would allow userspace to tell link configuration
->> >>>>> and format configuration problems apart.
->> >>>>
->> >>>> That was the original intent, I think.
->> >>>>
->> >>>>> Do you think -EINVAL is the most appropriate error code for format
->> >>>>> configuration ? It's already used to indicate that the stream type is
->> >>>>> invalid or that not enough buffers have been allocated, and is also
->> >>>>> used by drivers directly for various purposes.
->> >>>>
->> >>>> That's true, it's been used also for that purpose. At the time this
->> >>>> certainly was not the primary concern. If you can think of a better
->> >>>> error code for the purpose (than EINVAL) I'm certainly fine with using
->> >>>> one. I still think that -EPIPE is worse for telling about incorrect
->> >>>> format configuration than -EINVAL since it's relatively easy to avoid -
->> >>>> EINVAL for the documented reasons.
->> >>>
->> >>> I'd like just to point out where in the docs EPIPE for format mismatch
->> >>> is specified, as it is not described in the streamon page as I thought
->> >>> it would, but it is in the subdev page in case anyone is looking for
->> >>> it (as I took some time to find it too):
->> >>>
->> >>> http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
->> >>> "Applications are responsible for configuring coherent parameters on
->> >>> the whole pipeline and making sure that connected pads have compatible
->> >>> formats. The pipeline is checked for formats mismatch at
->> >>> VIDIOC_STREAMON time, and an EPIPE error code is then returned if the
->> >>> configuration is invalid"
->> >>>
->> >>> So maybe the doc should be improved as you already stated.
->> >>
->> >> I would like to revive this subject.
->> >>
->> >> Should we change the docs? Change the -EINVAL to -EPIPE, or create
->> >> another error code? What are your opinion?
->> >>
->> >> I read in the docs of dev-kmsg that EPIPE is returned when messages get
->> >> overwritten, and in other parts of the code EPIPE is returned when there
->> >> is an error in the pipeline communication level while trying to send
->> >> information through the pipe or a pipe broken error.
->> >>
->> >> But in the error-codes.txt files, the EPIPE error is defined as:
->> >> *EPIPE "The pipe type specified in the URB doesn't match the endpoint's
->> >> actual type"*
->> >
->> > This exact definition sound USB specific to me.
->> >
->> >> Then, if EPIPE is used when types don't match between two endpoints, it
->> >> seems reasonable to me to use EPIPE when formats don't match either. Or
->> >> do "types" in this context have a specific definition? I don't know much
->> >> about URB, you may be able to judge this better.
->> >
->> > A short recap of the current situation as far as I understand it:
->> >
->> > - MC link validation failure yields EPIPE to the user space,
->> >
->> > - V4L2 sub-device format validation failure generally results in EINVAL,
->> > except that
->>
->> I think that returning EINVAL here is wrong. EINVAL is returned when you
->> set e.g. a format and the format is invalid. In this case the format for
->> each subdev is perfectly fine, it's just that the sink and source formats
->> do not match.
->>
->> Rather than returning EINVAL I think ENOLINK would work well here as you
->> can't setup a link between two entities. And EPIPE can still be used
->> for other higher-level pipeline errors.
->>
->> > - omap3isp CCDC driver returns EPIPE instead and
->>
->> That seems definitely the wrong thing to do.
->
-> The VIDIOC_STREAMON documentation states that
->
-> "EPIPE
->
-> The driver implements pad-level format configuration and the pipeline
-> configuration is invalid."
->
-> According to the documentation, EINVAL is clearly wrong, and EPIPE should be
-> used. I'm open to the idea of using different error codes to indicate severed
-> link errors and links with an invalid configuration, but how about backward
-> compatibility ?
->
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I don't think backward compatibility is a big issue, as it seems the
-code wasn't returning what the docs says and nobody complained about
-it so far.
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+>  Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
+>  Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+>  3 files changed, 19 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index f56faf5..eb091c7 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+>  <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+>  	  </para>
+>  	</listitem>
+> +	<listitem>
+> +	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
+> +RF Tuner control.</para>
+> +	</listitem>
+>        </orderedlist>
+>      </section>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 6e1667b..7cae933 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+>                <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+>              </row>
+>              <row>
+> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
+> +              <entry>integer</entry>
+> +            </row>
+> +            <row>
+> +              <entry spanname="descr">The RF amplifier is the very first
+> +amplifier on the receiver signal path, just right after the antenna input.
+> +The difference between the LNA gain and the RF gain in this document is that
+> +the LNA gain is integrated in the tuner chip while the RF gain is a separate
+> +chip. There may be both RF and LNA gain controls in the same device.
+> +The range and step are driver-specific.</entry>
+> +            </row>
+> +            <row>
+>                <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+>                <entry>integer</entry>
+>              </row>
+> @@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+>                <entry spanname="descr">LNA (low noise amplifier) gain is first
+>  gain stage on the RF tuner signal path. It is located very close to tuner
+>  antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
+> +See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
+> +and LNA gain differs from the each others.
+>  The range and step are driver-specific.</entry>
+>              </row>
+>              <row>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index c9eedc1..ab9fca4 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -156,6 +156,7 @@ applications. -->
+>  	<date>2015-05-26</date>
+>  	<authorinitials>ap</authorinitials>
+>  	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
+> +Added V4L2_CID_RF_TUNER_RF_GAIN control.
+>  	</revremark>
+>        </revision>
+>  
+> 
 
-I see 4 options then:
-
-1) Keep -EINVAL and update the docs
-2) Change the code to -EPIPE (there is no need in updating the docs here)
-3) Change the code to -ENOLINK and update the docs
-4) Create another error (-EFMT for example), change the code to it and
-update the docs
-
-which one do you prefer?
-
->> > - EINVAL is used for many other purposes.
->> >
->> > The issues are inconsistency between omap3isp CCDC and other drivers in
->> > informing the user the sub-device format configuration is wrong. Also
->> > V4L2 sub-device format validation error cannot be told apart from other
->> > errors. These problems should be fixed, so that all three sources of
->> > errors yield a different error code (MC link validation, V4L2 format
->> > configuration and other plain V4L2 related errors).
->> >
->> > V4L2 will continue using EINVAL, that's for sure.
->> >
->> > Another error code I could think of is EMLINK ("Too many links"), which
->> > is not a perfect match, but could be used. This is a better match for a
->> > link validation failure; V4L2 sub-device link validation failure would
->> > then use EPIPE (as omap3isp CCDC driver already does).
->> >
->> > Another option could be that V4L2 format validation failure would use
->> > ENOEXEC ("Exec format error") instead, and EPIPE would be left to link
->> > validation failures.
->> >
->> > Better suggestions are welcome of course. I think I'm leaning towards
->> > the first option, but from backwards compatibility point of view the
->> > latter is better. The MC is no longer experimental so the latter might
->> > be the only option.
->> >
->> > My view is that this boils down to picking the most suitable error
->> > codes. Then fixing the documentation is easy.
->> >
->> > I wonder what Laurent and Hans think.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-
-
--- 
-Helen Fornazier
