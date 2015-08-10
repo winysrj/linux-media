@@ -1,89 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40433 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753429AbbHVR2h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:37 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:56891 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932261AbbHJKtT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 06:49:19 -0400
+Date: Mon, 10 Aug 2015 07:49:11 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 14/39] [media] v4l2_subdev: describe ioctl parms at the remaining structs
-Date: Sat, 22 Aug 2015 14:27:59 -0300
-Message-Id: <4c8e889254c066bee00adff6a84682a08db7c186.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
+	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
+	sangbae90.lee@samsung.com, rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
+Message-ID: <20150810074911.0b6e9ff0@recife.lan>
+In-Reply-To: <55C878DB.5080404@xs4all.nl>
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>
+	<55C86147.4090307@xs4all.nl>
+	<20150810063255.2f087b24@recife.lan>
+	<55C878DB.5080404@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following warnings:
+Em Mon, 10 Aug 2015 12:11:39 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Warning(.//include/media/v4l2-subdev.h:445): No description found for parameter 'g_sliced_vbi_cap'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'enum_mbus_code'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'enum_frame_size'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'enum_frame_interval'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'get_fmt'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'set_fmt'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'get_selection'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'set_selection'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'get_edid'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'set_edid'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'dv_timings_cap'
-Warning(.//include/media/v4l2-subdev.h:589): No description found for parameter 'enum_dv_timings'
+> On 08/10/2015 11:32 AM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 10 Aug 2015 10:31:03 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> Hi Jungsak,
+> >>
+> >> On 07/31/2015 10:44 AM, Junghak Sung wrote:
+> >>> Hello everybody,
+> >>>
+> >>> This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
+> >>> The purpose of this patch series is to separate existing VB2 framework
+> >>> into core part and V4L2 specific part. So that not only V4L2 but also other
+> >>> frameworks can use them to manage buffer and utilize queue.
+> >>>
+> >>> Why do we try to make the VB2 framework to be common?
+> >>>
+> >>> As you may know, current DVB framework uses ringbuffer mechanism to demux
+> >>> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+> >>> extra memory copy because DVB framework provides only read() system call for
+> >>> application - read() system call copies the kernel data to user-space buffer.
+> >>> So if we can use VB2 framework which supports streaming I/O and buffer
+> >>> sharing mechanism, then we could enhance existing DVB framework by removing
+> >>> the extra memory copy - with VB2 framework, application can access the kernel
+> >>> data directly through mmap system call.
+> >>>
+> >>> We have a plan for this work as follows:
+> >>> 1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
+> >>>    Of course, this change will not affect other v4l2-based
+> >>>    device drivers. This patch series corresponds to this step.
+> >>>
+> >>> 2. Add and implement new APIs for DVB streaming I/O.
+> >>>    We can remove unnecessary memory copy between kernel-space and user-space
+> >>>    by using these new APIs. However, we leaves legacy interfaces as-is
+> >>>    for backward compatibility.
+> >>>
+> >>> This patch series is the first step for it.
+> >>> The previous version of this patch series can be found at [1].
+> >>>
+> >>> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+> >>
+> >> This v2 looks much better, but, as per my comment to patch 1/5, it needs a bit
+> >> more work before I can do a really good review. I think things will be much
+> >> clearer once patch 3 shows the code moving from core.c/h to v4l2.c/h instead
+> >> of the other way around. That shouldn't be too difficult.
+> > 
+> > Hans,
+> > 
+> > I suggested Junkhak to do that. On his previous patchset, he did what
+> > you're suggestiong, e. g moving things from vb2-core into vb2-v4l2, and
+> > that resulted on patches big enough to not be catched by vger.
+> 
+> Actually, that wasn't the reason why the patches became so big. I just
+> reorganized the patch series as I suggested above (pretty easy to do) and
+> the size of patch 3 went down.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Ah, ok.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index c33c24360b86..c6205c038b06 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -432,6 +432,8 @@ struct v4l2_subdev_video_ops {
-  *	member (to determine whether CC data from the first or second field
-  *	should be obtained).
-  *
-+ * @g_sliced_vbi_cap: callback for VIDIOC_SLICED_VBI_CAP ioctl handler code.
-+ *
-  * @s_raw_fmt: setup the video encoder/decoder for raw VBI.
-  *
-  * @g_sliced_fmt: retrieve the current sliced VBI settings.
-@@ -549,7 +551,35 @@ struct v4l2_subdev_pad_config {
- 
- /**
-  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
-+ *
-+ * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
-+ *		    code.
-+ * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
-+ *		     code.
-+ *
-+ * @enum_frame_interval: callback for VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL ioctl
-+ *			 handler code.
-+ *
-+ * @get_fmt: callback for VIDIOC_SUBDEV_G_FMT ioctl handler code.
-+ *
-+ * @set_fmt: callback for VIDIOC_SUBDEV_S_FMT ioctl handler code.
-+ *
-+ * @get_selection: callback for VIDIOC_SUBDEV_G_SELECTION ioctl handler code.
-+ *
-+ * @set_selection: callback for VIDIOC_SUBDEV_S_SELECTION ioctl handler code.
-+ *
-+ * @get_edid: callback for VIDIOC_SUBDEV_G_EDID ioctl handler code.
-+ *
-+ * @set_edid: callback for VIDIOC_SUBDEV_S_EDID ioctl handler code.
-+ *
-+ * @dv_timings_cap: callback for VIDIOC_SUBDEV_DV_TIMINGS_CAP ioctl handler
-+ *		    code.
-+ *
-+ * @enum_dv_timings: callback for VIDIOC_SUBDEV_ENUM_DV_TIMINGS ioctl handler
-+ *		     code.
-+ *
-  * @get_frame_desc: get the current low level media bus frame parameters.
-+ *
-  * @get_frame_desc: set the low level media bus frame parameters, @fd array
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
--- 
-2.4.3
+> > Also, IMHO, it is cleared this way, as we can see what parts of VB2 will
+> > actually be shared, as there are lots of things that won't be shared:
+> > overlay, userptr, multiplanar.
+> 
+> That's why I prefer to see what moves *out* from the core.
+> 
+> To be honest, it depends on what your preference is.
 
+Yeah. I actually prefer to see what will be shared, because the
+non-shared code won't have changes (except for minor kABI things),
+while the shared code will be more affected :)
+
+> Junghak, just leave the patch as-is. However, for v3 you should run
+> checkpatch.pl over the diff since it complained about various things.
+
+There are two things here:
+
+1) on patches that just move things around, we should not
+run checkpatch, as otherwise it would be a nightmare for
+review. Ok, as we're doing a remanufacturing, it is a good
+idea to run checkpatch at the end and see what should be fixed
+(or do it before), but this is out of the scope of the manufacturing.
+I can do that myself when applying the series.
+
+2) For all other patches that are adding/changing the code, then
+Junghak should run checkpatch and fix (most) stuff complained there.
+
+Regards,
+Mauro
