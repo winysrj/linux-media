@@ -1,130 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52497 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754683AbbHNPTB (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60395 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752830AbbHJIWk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 11:19:01 -0400
-Message-ID: <55CE06C4.7080100@xs4all.nl>
-Date: Fri, 14 Aug 2015 17:18:28 +0200
+	Mon, 10 Aug 2015 04:22:40 -0400
+Message-ID: <55C85F34.7040603@xs4all.nl>
+Date: Mon, 10 Aug 2015 10:22:12 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 6/6] media: use media_graph_obj inside links
-References: <cover.1439563682.git.mchehab@osg.samsung.com> <b7b0a4f38b7ae2bb3bd69aeaf3476250f489d50a.1439563682.git.mchehab@osg.samsung.com>
-In-Reply-To: <b7b0a4f38b7ae2bb3bd69aeaf3476250f489d50a.1439563682.git.mchehab@osg.samsung.com>
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 4/5] media: videobuf2: Define vb2_buf_type and
+ vb2_memory
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com> <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com>
+In-Reply-To: <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2015 04:56 PM, Mauro Carvalho Chehab wrote:
-> Just like entities and pads, links also need to have unique
-> Object IDs along a given media controller.
+On 07/31/2015 10:44 AM, Junghak Sung wrote:
+> Define enum vb2_buf_type and enum vb2_memory for videobuf2-core. This
+> change requires translation functions that could covert v4l2-core stuffs
+> to videobuf2-core stuffs in videobuf2-v4l2.c file.
+> The v4l2-specific member variables(e.g. type, memory) remains in
+> struct vb2_queue for backward compatibility and performance of type translation.
 > 
-> So, let's add a media_graph_obj inside it and initialize
-> the object then a new link is created.
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |  139 +++++++++++---------
+>  drivers/media/v4l2-core/videobuf2-v4l2.c |  209 ++++++++++++++++++++----------
+>  include/media/videobuf2-core.h           |   99 +++++++++++---
+>  include/media/videobuf2-v4l2.h           |   12 +-
+>  4 files changed, 299 insertions(+), 160 deletions(-)
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 3ac5803b327e..9f02939c2864 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -466,6 +466,8 @@ void media_device_unregister_entity(struct media_entity *entity)
->  	graph_obj_remove(&entity->graph_obj);
->  	for (i = 0; i < entity->num_pads; i++)
->  		graph_obj_remove(&entity->pads[i].graph_obj);
-> +	for (i = 0; entity->num_links; i++)
-> +		graph_obj_remove(&entity->links[i].graph_obj);
->  	list_del(&entity->list);
->  	spin_unlock(&mdev->lock);
->  	entity->parent = NULL;
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index d3dee6fc79d7..4f18bd10b162 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -50,6 +50,8 @@ void graph_obj_init(struct media_device *mdev,
->  		gobj->id |= ++mdev->entity_id;
->  	case MEDIA_GRAPH_PAD:
->  		gobj->id |= ++mdev->pad_id;
-> +	case MEDIA_GRAPH_LINK:
-> +		gobj->id |= ++mdev->pad_id;
 
-Same issue with missing breaks. Also for links you want to use link_id, not
-pad_id. Clearly a copy-and-paste mistake.
+<snip>
 
-A bigger question is whether you actually need graph_obj for a link? Links are
-*between* graph objects, but are they really graph objects in their own right?
-
-Currently a link is identified by the source/sink objects and I think that is
-all you need. I didn't realize that when reviewing the v3 patch series, but I'm
-now wondering about it.
-
-If you *don't* make links a graph_obj, will anything break or become difficult
-to use? I don't think so, but let me know if I am overlooking something.
-
->  	}
->  }
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 85527e9..22dd19c 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -30,8 +30,46 @@
+>  #include <media/v4l2-common.h>
+>  #include <media/videobuf2-v4l2.h>
 >  
-> @@ -469,6 +471,10 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
->  		entity->links = links;
->  	}
+> +#define CREATE_TRACE_POINTS
+>  #include <trace/events/v4l2.h>
 >  
-> +	/* Initialize graph object embedded at the new link */
-> +	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
-> +			&entity->links[entity->num_links].graph_obj);
+> +static const enum vb2_buf_type _tbl_buf_type[] = {
+> +	[V4L2_BUF_TYPE_VIDEO_CAPTURE]		= VB2_BUF_TYPE_VIDEO_CAPTURE,
+> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT]		= VB2_BUF_TYPE_VIDEO_OUTPUT,
+> +	[V4L2_BUF_TYPE_VIDEO_OVERLAY]		= VB2_BUF_TYPE_VIDEO_OVERLAY,
+> +	[V4L2_BUF_TYPE_VBI_CAPTURE]		= VB2_BUF_TYPE_VBI_CAPTURE,
+> +	[V4L2_BUF_TYPE_VBI_OUTPUT]		= VB2_BUF_TYPE_VBI_OUTPUT,
+> +	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE]	= VB2_BUF_TYPE_SLICED_VBI_CAPTURE,
+> +	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]	= VB2_BUF_TYPE_SLICED_VBI_OUTPUT,
+> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY]	= VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY,
+> +	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE]	= VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE]	= VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> +	[V4L2_BUF_TYPE_SDR_CAPTURE]		= VB2_BUF_TYPE_SDR_CAPTURE,
+> +	[V4L2_BUF_TYPE_PRIVATE]			= VB2_BUF_TYPE_PRIVATE,
+> +};
 > +
->  	return &entity->links[entity->num_links++];
->  }
+> +static const enum vb2_memory _tbl_memory[] = {
+> +	[V4L2_MEMORY_MMAP]	= VB2_MEMORY_MMAP,
+> +	[V4L2_MEMORY_USERPTR]	= VB2_MEMORY_USERPTR,
+> +	[V4L2_MEMORY_DMABUF]	= VB2_MEMORY_DMABUF,
+> +};
+> +
+> +#define to_vb2_buf_type(type)					\
+> +({								\
+> +	enum vb2_buf_type ret = 0;				\
+> +	if( type > 0 && type < ARRAY_SIZE(_tbl_buf_type) )	\
+> +		ret = (_tbl_buf_type[type]);			\
+> +	ret;							\
+> +})
+> +
+> +#define to_vb2_memory(memory)					\
+> +({								\
+> +	enum vb2_memory ret = 0;				\
+> +	if( memory > 0 && memory < ARRAY_SIZE(_tbl_memory) )	\
+> +		ret = (_tbl_memory[memory]);			\
+> +	ret;							\
+> +})
+> +
+
+<snip>
+
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index dc405da..871fcc6 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -15,9 +15,47 @@
+>  #include <linux/mm_types.h>
+>  #include <linux/mutex.h>
+>  #include <linux/poll.h>
+> -#include <linux/videodev2.h>
+>  #include <linux/dma-buf.h>
 >  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 2a9d9260cccc..2d9a050d46f7 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -43,6 +43,7 @@ struct device;
->   * @driver_version: Device driver version
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
-> + * @link_id:	Unique ID used on the last link registered
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> @@ -72,6 +73,7 @@ struct media_device {
->  	/* Unique object ID counter */
->  	u32 entity_id;
->  	u32 pad_id;
-> +	u32 link_id;
->  
->  	struct list_head entities;
->  
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 936f68f27bba..30eaae47d72e 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -35,10 +35,12 @@
->   *
->   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
->   * @MEDIA_GRAPH_PAD:		Identify a media pad
-> + * @MEDIA_GRAPH_LINK:		Identify a media link
->   */
->  enum media_graph_type {
->  	MEDIA_GRAPH_ENTITY,
->  	MEDIA_GRAPH_PAD,
-> +	MEDIA_GRAPH_LINK,
->  };
->  
->  
-> @@ -61,6 +63,7 @@ struct media_pipeline {
->  };
->  
->  struct media_link {
-> +	struct media_graph_obj graph_obj;
->  	struct media_pad *source;	/* Source pad */
->  	struct media_pad *sink;		/* Sink pad  */
->  	struct media_link *reverse;	/* Link in the reverse direction */
-> 
+> +#define VB2_MAX_FRAME               32
+> +#define VB2_MAX_PLANES               8
+> +
+> +enum vb2_buf_type {
+> +	VB2_BUF_TYPE_UNKNOWN			= 0,
+> +	VB2_BUF_TYPE_VIDEO_CAPTURE		= 1,
+> +	VB2_BUF_TYPE_VIDEO_OUTPUT		= 2,
+> +	VB2_BUF_TYPE_VIDEO_OVERLAY		= 3,
+> +	VB2_BUF_TYPE_VBI_CAPTURE		= 4,
+> +	VB2_BUF_TYPE_VBI_OUTPUT			= 5,
+> +	VB2_BUF_TYPE_SLICED_VBI_CAPTURE		= 6,
+> +	VB2_BUF_TYPE_SLICED_VBI_OUTPUT		= 7,
+> +	VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	= 8,
+> +	VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	= 9,
+> +	VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE	= 10,
+> +	VB2_BUF_TYPE_SDR_CAPTURE		= 11,
+> +	VB2_BUF_TYPE_DVB_CAPTURE		= 12,
+> +	VB2_BUF_TYPE_PRIVATE			= 0x80,
+> +};
+> +
+> +enum vb2_memory {
+> +	VB2_MEMORY_UNKNOWN	= 0,
+> +	VB2_MEMORY_MMAP		= 1,
+> +	VB2_MEMORY_USERPTR	= 2,
+> +	VB2_MEMORY_DMABUF	= 4,
+> +};
+> +
+> +#define VB2_TYPE_IS_MULTIPLANAR(type)			\
+> +	((type) == VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
+> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +
+> +#define VB2_TYPE_IS_OUTPUT(type)				\
+> +	((type) == VB2_BUF_TYPE_VIDEO_OUTPUT			\
+> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
+> +	 || (type) == VB2_BUF_TYPE_VIDEO_OVERLAY		\
+> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY		\
+> +	 || (type) == VB2_BUF_TYPE_VBI_OUTPUT			\
+> +	 || (type) == VB2_BUF_TYPE_SLICED_VBI_OUTPUT)
+
+You don't actually need to create vb2_buf_type: unless I am mistaken, all that the
+vb2 core needs to know is if it is a capture or output queue and possibly (not
+sure about that) if it is single or multiplanar. So add fields to the vb2_queue struct
+for that information and leave the buf_type to the v4l2 specific header and code.
+
+You also don't need the _tbl_memory[] array. All you need to do is to check in
+videobuf2-v4l2.c that VB2_MEMORY* equals the V4L2_MEMORY_* defines and generate
+a #error if not:
+
+#if VB2_MEMORY_MMAP != V4L2_MEMORY_MMAP || VB2_MEMORY_....
+#error VB2_MEMORY_* != V4L2_MEMORY_*!
+#endif
 
 Regards,
 
