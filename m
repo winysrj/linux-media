@@ -1,71 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50028 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067AbbHSIjL (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35450 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932726AbbHJV0L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 04:39:11 -0400
-Message-ID: <55D44082.6000600@xs4all.nl>
-Date: Wed, 19 Aug 2015 10:38:26 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 10 Aug 2015 17:26:11 -0400
+From: poma <pomidorabelisima@gmail.com>
+Subject: WARNING: CPU: 1 PID: 813 at kernel/module.c:291
+ module_assert_mutex_or_preempt+0x49/0x90()
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>
+Message-ID: <55C916F0.8010303@gmail.com>
+Date: Mon, 10 Aug 2015 23:26:08 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?windows-1252?Q?S=F6ren_Brink?= =?windows-1252?Q?mann?=
-	<soren.brinkmann@xilinx.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Haneen Mohammed <hamohammed.sa@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
-	Jiayi Ye <yejiayily@gmail.com>,
-	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
-	Heena Sirwani <heenasirwani@gmail.com>,
-	Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH RFC v5 8/8] [media] media: rename the function that create
- pad links
-References: <cover.1439927113.git.mchehab@osg.samsung.com> <4b0c0aa7604f5202401997f946297c0b35c1b692.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <4b0c0aa7604f5202401997f946297c0b35c1b692.1439927113.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/2015 10:04 PM, Mauro Carvalho Chehab wrote:
-> Now that a link can be either between two different graph
-> objects, we'll need to add more functions to create links.
-> So, rename the existing one that create links only between
-> two pads as media_create_pad_link().
-> 
-> No functional changes.
-> 
-> This patch was created via this shell script:
-> 	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 813 at kernel/module.c:291 module_assert_mutex_or_preempt+0x49/0x90()
+Modules linked in: mxl5007t af9013 ... dvb_usb_af9015(+) ... dvb_usb_v2 dvb_core rc_core ...
+CPU: 1 PID: 813 Comm: systemd-udevd Not tainted 4.2.0-0.rc6.git0.1.fc24.x86_64+debug #1
+...
+Call Trace:
+ [<ffffffff81868d8e>] dump_stack+0x4c/0x65
+ [<ffffffff810ab406>] warn_slowpath_common+0x86/0xc0
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffff810ab53a>] warn_slowpath_null+0x1a/0x20
+ [<ffffffff81150529>] module_assert_mutex_or_preempt+0x49/0x90
+ [<ffffffff81150822>] __module_address+0x32/0x150
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffff81150956>] __module_text_address+0x16/0x70
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+ [<ffffffff81150f19>] symbol_put_addr+0x29/0x40
+ [<ffffffffa04b77ad>] dvb_frontend_detach+0x7d/0x90 [dvb_core]
+ [<ffffffffa04cdfd5>] dvb_usbv2_probe+0xc85/0x11a0 [dvb_usb_v2]
+ [<ffffffffa05607c4>] af9015_probe+0x84/0xf0 [dvb_usb_af9015]
+ [<ffffffff8161c03b>] usb_probe_interface+0x1bb/0x2e0
+ [<ffffffff81579f26>] driver_probe_device+0x1f6/0x450
+ [<ffffffff8157a214>] __driver_attach+0x94/0xa0
+ [<ffffffff8157a180>] ? driver_probe_device+0x450/0x450
+ [<ffffffff815778f3>] bus_for_each_dev+0x73/0xc0
+ [<ffffffff815796fe>] driver_attach+0x1e/0x20
+ [<ffffffff8157922e>] bus_add_driver+0x1ee/0x280
+ [<ffffffff8157b0a0>] driver_register+0x60/0xe0
+ [<ffffffff8161a87d>] usb_register_driver+0xad/0x160
+ [<ffffffffa0567000>] ? 0xffffffffa0567000
+ [<ffffffffa056701e>] af9015_usb_driver_init+0x1e/0x1000 [dvb_usb_af9015]
+ [<ffffffff81002123>] do_one_initcall+0xb3/0x200
+ [<ffffffff8124ac65>] ? kmem_cache_alloc_trace+0x355/0x380
+ [<ffffffff81867c37>] ? do_init_module+0x28/0x1e9
+ [<ffffffff81867c6f>] do_init_module+0x60/0x1e9
+ [<ffffffff81154167>] load_module+0x21f7/0x28d0
+ [<ffffffff8114f600>] ? m_show+0x1b0/0x1b0
+ [<ffffffff81026d79>] ? sched_clock+0x9/0x10
+ [<ffffffff810e6ddc>] ? local_clock+0x1c/0x20
+ [<ffffffff811549b8>] SyS_init_module+0x178/0x1c0
+ [<ffffffff8187282e>] entry_SYSCALL_64_fastpath+0x12/0x76
+---[ end trace 31a9dd90d4f559f5 ]---
 
-Thanks!
 
-	Hans
+Ref.
+https://bugzilla.redhat.com/show_bug.cgi?id=1252167
+https://bugzilla.kernel.org/show_bug.cgi?id=102631
 
