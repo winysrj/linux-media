@@ -1,73 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:25057 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbbHRIiy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 04:38:54 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org, linux@arm.linux.org.uk,
-	Hans Verkuil <hansverk@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv8 10/15] v4l2-subdev: add HDMI CEC ops
-Date: Tue, 18 Aug 2015 10:26:35 +0200
-Message-Id: <ffa7f5ed1e2f16db7eb3272f87c75b06a3ada2ca.1439886203.git.hans.verkuil@cisco.com>
-In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
-References: <cover.1439886203.git.hans.verkuil@cisco.com>
-In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
-References: <cover.1439886203.git.hans.verkuil@cisco.com>
+Received: from lists.s-osg.org ([54.187.51.154]:56912 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751691AbbHJNTl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 09:19:41 -0400
+Date: Mon, 10 Aug 2015 10:19:36 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: media-workshop@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [media-workshop] [RFC] Media graph flow for an hybrid device as
+ discussed at the media workshop
+Message-ID: <20150810101936.238ad3f7@recife.lan>
+In-Reply-To: <20150810100524.09fb089f@recife.lan>
+References: <20150808083330.7daf111f@recife.lan>
+	<55C89C86.2070707@xs4all.nl>
+	<20150810100524.09fb089f@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add CEC callbacks to the v4l2_subdev_video_ops. These are the low-level CEC
-ops that subdevs that support CEC have to implement.
+Em Mon, 10 Aug 2015 10:05:24 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-subdev.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+> Em Mon, 10 Aug 2015 14:43:50 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Hi Mauro,
+> 
+> Thanks for the review!
+> 
+> > 
+> > On 08/08/2015 01:33 PM, Mauro Carvalho Chehab wrote:
+> > > During the discussions at the Media Workshop, we came with some dot files that
+> > > would describe a hybrid PC-consumer TV stick with radio, analog video, analog
+> > > TV and digital TV on it.
+> > > 
+> > > I consolidated all the dot files we've worked there, and added the
+> > > connectors for RF, S-Video and Composite.
+> > > 
+> > > The dot file and the corresponding picture is at:
+> > > 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.dot
+> > > 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.png
+> > > 
+> > > As my plan is to start working on some real driver to produce such graph,
+> > > please validate if the entities, interfaces, data links and interface links
+> > > are correct, and if the namespace nomenclature is ok, or if I miss something.
+> > 
+> > This looks OK to me, except for one small detail: I wouldn't use the name
+> > "Source entities" for connectors. Instead use "Connector entities" since
+> > such entities correspond to actual real connectors on a backplane. 
+> 
+> Yeah. Well, they're actually "Source connector entities" ;) But I see
+> your point. All connectors should be marked with a different type at
+> the media_graph_obj.
+> 
+> > A proper
+> > source entity would be a sensor or test pattern generator. Which actually
+> > can occur with the em28xx since it's used in webcams as well.
+> 
+> Ah, true. I'll add that in the graph and use a different color to
+> distinguish between "source" and "connector" entities.
+> 
+> > 
+> > And a really, really small detail: in the legend the 'interface link' is an
+> > arrow, but it should be a line, since there is no direction. The graph itself
+> > is fine.
+> 
+> Well, I didn't find a way to put a line there. The legend is produced by
+> an html code. I would need to have a "line" character, or to add an image.
+> 
+> Perhaps I should look deeper to find a bold horizontal line at the UTF-8
+> charset. &#8212; and &#8213; are too thin. Do you know any char that would
+> look better there?
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 370fc38..1b04d94 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -42,6 +42,10 @@
- 
- #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
- 
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 3, u32)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 4, struct cec_msg)
-+#define V4L2_SUBDEV_CEC_CONN_INPUTS		_IOW('v', 5, u16)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event;
-@@ -51,6 +55,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
- 
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -339,6 +344,10 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	unsigned (*cec_available_log_addrs)(struct v4l2_subdev *sd);
-+	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*cec_transmit)(struct v4l2_subdev *sd, u32 timeout_ms, struct cec_msg *msg);
- };
- 
- /*
--- 
-2.1.4
+Found one character ;)
 
+I also added a webcam sensor and fixed the legend. See below:
+
+http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.png
+http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.dot
+
+> 
+> > As you mentioned on irc, the v4l-subdevX nodes won't be created for this device
+> > since all the configuration happens via the standard interfaces.
+> > 
+> > But if they were to be created, then they would appear where they are in this
+> > example.
+> 
+> Thanks!
+> Mauro
+> 
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > _______________________________________________
+> > media-workshop mailing list
+> > media-workshop@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
