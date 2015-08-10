@@ -1,48 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41525 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964833AbbHKNfj (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49493 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753842AbbHJJEf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 09:35:39 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	=?UTF-8?q?Jan=20Kl=C3=B6tzke?= <jan@kloetzke.net>
-Subject: [PATCH] mantis: remove an uneeded goto
-Date: Tue, 11 Aug 2015 10:33:54 -0300
-Message-Id: <15f02b430a12af3098f078192cb8242f6b786d44.1439299913.git.mchehab@osg.samsung.com>
+	Mon, 10 Aug 2015 05:04:35 -0400
+Message-ID: <55C86909.6030900@xs4all.nl>
+Date: Mon, 10 Aug 2015 11:04:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 09/13] hackrf: switch to single function which configures
+ everything
+References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-10-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gotos makes a little harder to check the code. In this
-particular case, the goto is doing nothing but jumping into
-a return.
+On 07/31/2015 04:10 AM, Antti Palosaari wrote:
+> Implement single funtion, hackrf_set_params(), which handles all
+> needed settings. Controls and other IOCTLs are just wrappers to that
+> function. That way we can get easily better control what we could do
+> on different device states - sleeping, receiving, transmitting.
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-Instead, just replace the goto by the return, making it
-simpler.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/pci/mantis/mantis_dma.c b/drivers/media/pci/mantis/mantis_dma.c
-index 87990ece5848..2ce310b0a022 100644
---- a/drivers/media/pci/mantis/mantis_dma.c
-+++ b/drivers/media/pci/mantis/mantis_dma.c
-@@ -140,12 +140,10 @@ int mantis_dma_init(struct mantis_pci *mantis)
- 		/* Stop RISC Engine */
- 		mmwrite(0, MANTIS_DMA_CTL);
- 
--		goto err;
-+		return err;
- 	}
- 
- 	return 0;
--err:
--	return err;
- }
- EXPORT_SYMBOL_GPL(mantis_dma_init);
- 
--- 
-2.4.3
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
