@@ -1,651 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45602 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932248AbbHMXq2 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:35702 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753093AbbHJIba (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 19:46:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Helen Fornazier <helen.fornazier@gmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH 5/7] [media] vimc: deb: Add debayer filter
-Date: Fri, 14 Aug 2015 02:47:25 +0300
-Message-ID: <1749349.R2hMpZa7vT@avalon>
-In-Reply-To: <d3a2978a1096b97cce7f82c645205ccbc2c0cc6e.1438891530.git.helen.fornazier@gmail.com>
-References: <cover.1438891530.git.helen.fornazier@gmail.com> <d3a2978a1096b97cce7f82c645205ccbc2c0cc6e.1438891530.git.helen.fornazier@gmail.com>
+	Mon, 10 Aug 2015 04:31:30 -0400
+Message-ID: <55C86147.4090307@xs4all.nl>
+Date: Mon, 10 Aug 2015 10:31:03 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>
+In-Reply-To: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Hi Jungsak,
 
-Thank you for the patch.
-
-On Thursday 06 August 2015 17:26:12 Helen Fornazier wrote:
-> Implement the debayer filter and integrate it with the core
+On 07/31/2015 10:44 AM, Junghak Sung wrote:
+> Hello everybody,
 > 
-> Signed-off-by: Helen Fornazier <helen.fornazier@gmail.com>
-> ---
->  drivers/media/platform/vimc/Makefile       |   2 +-
->  drivers/media/platform/vimc/vimc-core.c    |   6 +-
->  drivers/media/platform/vimc/vimc-core.h    |   2 +
->  drivers/media/platform/vimc/vimc-debayer.c | 471 ++++++++++++++++++++++++++
->  drivers/media/platform/vimc/vimc-debayer.h |  28 ++
->  5 files changed, 507 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/media/platform/vimc/vimc-debayer.c
->  create mode 100644 drivers/media/platform/vimc/vimc-debayer.h
+> This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
+> The purpose of this patch series is to separate existing VB2 framework
+> into core part and V4L2 specific part. So that not only V4L2 but also other
+> frameworks can use them to manage buffer and utilize queue.
 > 
-> diff --git a/drivers/media/platform/vimc/Makefile
-> b/drivers/media/platform/vimc/Makefile index c45195e..a6708f9 100644
-> --- a/drivers/media/platform/vimc/Makefile
-> +++ b/drivers/media/platform/vimc/Makefile
-> @@ -1,3 +1,3 @@
-> -vimc-objs := vimc-core.o vimc-capture.o vimc-sensor.o
-> +vimc-objs := vimc-core.o vimc-capture.o vimc-debayer.o vimc-sensor.o
+> Why do we try to make the VB2 framework to be common?
 > 
->  obj-$(CONFIG_VIDEO_VIMC) += vimc.o
-> diff --git a/drivers/media/platform/vimc/vimc-core.c
-> b/drivers/media/platform/vimc/vimc-core.c index a824b31..373ea9c 100644
-> --- a/drivers/media/platform/vimc/vimc-core.c
-> +++ b/drivers/media/platform/vimc/vimc-core.c
-> @@ -24,6 +24,7 @@
+> As you may know, current DVB framework uses ringbuffer mechanism to demux
+> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+> extra memory copy because DVB framework provides only read() system call for
+> application - read() system call copies the kernel data to user-space buffer.
+> So if we can use VB2 framework which supports streaming I/O and buffer
+> sharing mechanism, then we could enhance existing DVB framework by removing
+> the extra memory copy - with VB2 framework, application can access the kernel
+> data directly through mmap system call.
 > 
->  #include "vimc-capture.h"
->  #include "vimc-core.h"
-> +#include "vimc-debayer.h"
->  #include "vimc-sensor.h"
+> We have a plan for this work as follows:
+> 1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
+>    Of course, this change will not affect other v4l2-based
+>    device drivers. This patch series corresponds to this step.
 > 
->  #define VIMC_PDEV_NAME "vimc"
-> @@ -552,9 +553,12 @@ static int vimc_device_register(struct vimc_device
-> *vimc) create_func = vimc_cap_create;
->  			break;
+> 2. Add and implement new APIs for DVB streaming I/O.
+>    We can remove unnecessary memory copy between kernel-space and user-space
+>    by using these new APIs. However, we leaves legacy interfaces as-is
+>    for backward compatibility.
 > 
-> +		case VIMC_ENT_NODE_DEBAYER:
-> +			create_func = vimc_deb_create;
-> +			break;
-> +
->  		/* TODO: Instantiate the specific topology node */
->  		case VIMC_ENT_NODE_INPUT:
-> -		case VIMC_ENT_NODE_DEBAYER:
->  		case VIMC_ENT_NODE_SCALER:
->  		default:
->  			/* TODO: remove this when all the entities specific
-> diff --git a/drivers/media/platform/vimc/vimc-core.h
-> b/drivers/media/platform/vimc/vimc-core.h index 38d4855..892341a 100644
-> --- a/drivers/media/platform/vimc/vimc-core.h
-> +++ b/drivers/media/platform/vimc/vimc-core.h
-> @@ -20,6 +20,8 @@
+> This patch series is the first step for it.
+> The previous version of this patch series can be found at [1].
 > 
->  #include <media/v4l2-device.h>
-> 
-> +#define VIMC_FRAME_INDEX(lin, col, width, bpp) ((lin * width + col) * bpp)
-> +
->  /* Struct which matches the MEDIA_BUS_FMT_ codes with the corresponding
->   * V4L2_PIX_FMT_ fourcc pixelformat and its bytes per pixel (bpp) */
->  struct vimc_pix_map {
-> diff --git a/drivers/media/platform/vimc/vimc-debayer.c
-> b/drivers/media/platform/vimc/vimc-debayer.c new file mode 100644
-> index 0000000..470b336
-> --- /dev/null
-> +++ b/drivers/media/platform/vimc/vimc-debayer.c
-> @@ -0,0 +1,471 @@
-> +/*
-> + * vimc-debayer.c Virtual Media Controller Driver
-> + *
-> + * Copyright (C) 2015 Helen Fornazier <helen.fornazier@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#include <linux/freezer.h>
-> +#include <linux/vmalloc.h>
-> +#include <linux/v4l2-mediabus.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#include "vimc-debayer.h"
-> +
-> +/* TODO: add this as a parameter of this module
+> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
 
-How about making it a V4L2 subdev control instead ? It can be left as a TODO 
-item for now of course.
+This v2 looks much better, but, as per my comment to patch 1/5, it needs a bit
+more work before I can do a really good review. I think things will be much
+clearer once patch 3 shows the code moving from core.c/h to v4l2.c/h instead
+of the other way around. That shouldn't be too difficult.
 
-> + * NOTE: the window size need to be an odd number, as the main pixel stays
-> in
-> + * the center of it, otherwise the next odd number is considered */
-> +#define VIMC_DEB_MEAN_WINDOW_SIZE 3
-> +
-> +enum vimc_deb_rgb_colors {
-> +	VIMC_DEB_RED = 0,
-> +	VIMC_DEB_GREEN = 1,
-> +	VIMC_DEB_BLUE = 2,
-> +};
-> +
-> +struct vimc_deb_pix_map {
-> +	u32 code;
-> +	enum vimc_deb_rgb_colors order[2][2];
-> +};
-> +
-> +struct vimc_deb_device {
-> +	struct vimc_ent_subdevice vsd;
-> +	unsigned int mean_win_size;
-> +	/* The active format */
-> +	struct v4l2_mbus_framefmt src_mbus_fmt;
-> +	struct v4l2_mbus_framefmt sink_mbus_fmt;
-
-Given that all format fields but the code are identical between the sink and 
-source pads, and that the source code is always RGB using the same number of 
-bits as the sink code, I would only store the sink format and would name the 
-field format.
-
-> +	void (*set_rgb_src)(struct vimc_deb_device *vdeb, unsigned int lin,
-> +			    unsigned int col, unsigned int rgb[3]);
-> +	/* Values calculated when the stream starts */
-> +	u8 *src_frame;
-> +	unsigned int src_frame_size;
-> +	const struct vimc_deb_pix_map *sink_pix_map;
-> +	unsigned int sink_bpp;
-> +};
-> +
-> +
-> +static const struct vimc_deb_pix_map vimc_deb_pix_map_list[] = {
-> +	{
-> +		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
-> +		.order = { {VIMC_DEB_BLUE, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_RED} }
-
-Nitpicking, the kernel coding style adds a space after { and before }.
-
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_BLUE},
-> +			   {VIMC_DEB_RED, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_RED},
-> +			   {VIMC_DEB_BLUE, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
-> +		.order = { {VIMC_DEB_RED, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_BLUE} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-> +		.order = { {VIMC_DEB_BLUE, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_RED} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_BLUE},
-> +			   {VIMC_DEB_RED, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_RED},
-> +			   {VIMC_DEB_BLUE, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
-> +		.order = { {VIMC_DEB_RED, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_BLUE} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
-> +		.order = { {VIMC_DEB_BLUE, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_RED} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_BLUE},
-> +			   {VIMC_DEB_RED, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
-> +		.order = { {VIMC_DEB_GREEN, VIMC_DEB_RED},
-> +			   {VIMC_DEB_BLUE, VIMC_DEB_GREEN} }
-> +	},
-> +	{
-> +		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
-> +		.order = { {VIMC_DEB_RED, VIMC_DEB_GREEN},
-> +			   {VIMC_DEB_GREEN, VIMC_DEB_BLUE} }
-> +	},
-> +};
-> +
-> +static const struct vimc_deb_pix_map *vimc_deb_pix_map_by_code(u32 code)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(vimc_deb_pix_map_list); i++)
-> +		if (vimc_deb_pix_map_list[i].code == code)
-> +			return &vimc_deb_pix_map_list[i];
-> +
-> +	return NULL;
-> +}
-> +
-> +static int vimc_deb_enum_mbus_code(struct v4l2_subdev *sd,
-> +				   struct v4l2_subdev_pad_config *cfg,
-> +				   struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	struct vimc_deb_device *vdeb = v4l2_get_subdevdata(sd);
-> +	struct media_pad *pad;
-> +
-> +	/* Check if it is a valid pad */
-> +	if (code->pad >= vdeb->vsd.sd.entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	pad = &vdeb->vsd.sd.entity.pads[code->pad];
-> +	if ((pad->flags & MEDIA_PAD_FL_SOURCE))
-> +		code->code = vdeb->src_mbus_fmt.code;
-> +	else if ((pad->flags & MEDIA_PAD_FL_SINK))
-> +		code->code = vdeb->sink_mbus_fmt.code;
-> +	else
-> +		return -EINVAL;
-
-The else clause is redundant with the pad number check above. I'd use the pad 
-number only here, with a hardcoded number of pads. Something like
-
-#define VIMC_DEB_PAD_SINK		0
-#define VIMC_DEB_PAD_SOURCE		1
-
-(at the beginning of the file)
-
-...
-
-	if (code->pad == VIMC_DEB_PAD_SINK)
-		code->code = vdeb->sink_mbus_fmt.code;
-	else if (code->pad == VIMC_DEB_PAD_SOURCE)
-		code->code = vdeb->src_mbus_fmt.code;
-	else
-		return -EINVAL;
-
-Same for the functions below.
-
-You also need to return -EINVAL if code->index is > 0 as that how the driver 
-signals the end of enumeration.
-
-> +	return 0;
-> +}
-> +
-> +static int vimc_deb_enum_frame_size(struct v4l2_subdev *sd,
-> +				    struct v4l2_subdev_pad_config *cfg,
-> +				    struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	struct vimc_deb_device *vdeb = v4l2_get_subdevdata(sd);
-> +	struct media_pad *pad;
-> +
-> +	/* Check if it is a valid pad */
-> +	if (fse->pad >= vdeb->vsd.sd.entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	/* TODO: Add support to other formats sizes */
-> +
-> +	pad = &vdeb->vsd.sd.entity.pads[fse->pad];
-> +	if ((pad->flags & MEDIA_PAD_FL_SOURCE)) {
-> +		fse->min_width = vdeb->src_mbus_fmt.width;
-> +		fse->max_width = vdeb->src_mbus_fmt.width;
-> +		fse->min_height = vdeb->src_mbus_fmt.height;
-> +		fse->max_height = vdeb->src_mbus_fmt.height;
-> +	} else if ((pad->flags & MEDIA_PAD_FL_SINK)) {
-> +		fse->min_width = vdeb->sink_mbus_fmt.width;
-> +		fse->max_width = vdeb->sink_mbus_fmt.width;
-> +		fse->min_height = vdeb->sink_mbus_fmt.height;
-> +		fse->max_height = vdeb->sink_mbus_fmt.height;
-> +	} else
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vimc_deb_get_fmt(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    struct v4l2_subdev_format *format)
-> +{
-> +	struct vimc_deb_device *vdeb = v4l2_get_subdevdata(sd);
-> +	struct media_pad *pad;
-> +
-> +	/* Check if it is a valid pad */
-> +	if (format->pad >= vdeb->vsd.sd.entity.num_pads)
-> +		return -EINVAL;
-> +
-> +	pad = &vdeb->vsd.sd.entity.pads[format->pad];
-> +	if ((pad->flags & MEDIA_PAD_FL_SOURCE))
-> +		format->format = vdeb->src_mbus_fmt;
-> +	else if ((pad->flags & MEDIA_PAD_FL_SINK))
-> +		format->format = vdeb->sink_mbus_fmt;
-> +	else
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct v4l2_subdev_pad_ops vimc_deb_pad_ops = {
-> +	.enum_mbus_code		= vimc_deb_enum_mbus_code,
-> +	.enum_frame_size	= vimc_deb_enum_frame_size,
-> +	.get_fmt		= vimc_deb_get_fmt,
-> +	/* TODO: Add support to other formats */
-> +	.set_fmt		= vimc_deb_get_fmt,
-> +};
-> +
-> +static void vimc_deb_set_rgb_mbus_fmt_rgb888_1x24(struct vimc_deb_device
-> *vdeb,
-> +						  unsigned int lin,
-> +						  unsigned int col,
-> +						  unsigned int rgb[3])
-> +{
-> +	unsigned int i, index;
-> +
-> +	index = VIMC_FRAME_INDEX(lin, col, vdeb->src_mbus_fmt.width, 3);
-> +	for (i = 0; i < 3; i++)
-> +		vdeb->src_frame[index + i] = rgb[i];
-> +}
-> +
-> +static int vimc_deb_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct vimc_deb_device *vdeb = v4l2_get_subdevdata(sd);
-> +
-> +	if (enable) {
-> +		const struct vimc_pix_map *vpix;
-> +
-> +		if (vdeb->src_frame)
-> +			return -EINVAL;
-> +
-> +		/* Calculate the frame size of the source pad */
-> +		vpix = vimc_pix_map_by_code(vdeb->src_mbus_fmt.code);
-> +		/* This should never be NULL, as we won't allow any format
-> +		 * other then the ones in the vimc_pix_map_list table */
-> +		BUG_ON(!vpix);
-
-As explained in a comment to a previous patch BUG_ON should be avoided. Its 
-only valid use case is when a problem is so serious than continuing running 
-would become a risk for system integrity and halting the machine is the only 
-solution.
-
-> +		vdeb->src_frame_size = vdeb->src_mbus_fmt.width *
-> +				       vpix->bpp * vdeb->src_mbus_fmt.height;
-> +
-> +		/* Save the bytes per pixel of the sink */
-> +		vpix = vimc_pix_map_by_code(vdeb->sink_mbus_fmt.code);
-> +		/* This should never be NULL, as we won't allow any format
-> +		 * other then the ones in the vimc_pix_map_list table */
-> +		BUG_ON(!vpix);
-> +		vdeb->sink_bpp = vpix->bpp;
-> +
-> +		/* Get the corresponding pixel map from the table */
-> +		vdeb->sink_pix_map = vimc_deb_pix_map_by_code(
-> +						vdeb->sink_mbus_fmt.code);
-> +		/* This should never be NULL, as we won't allow any format
-> +		 * in sink pad other then the ones in the
-> +		 * vimc_deb_pix_map_list table */
-> +		BUG_ON(!vdeb->sink_pix_map);
-> +
-> +		/* Allocate the frame buffer. Use vmalloc to be able to
-> +		 * allocate a large amount of memory*/
-> +		vdeb->src_frame = vmalloc(vdeb->src_frame_size);
-> +		if (!vdeb->src_frame)
-> +			return -ENOMEM;
-> +
-> +		/* Turn the stream on in the subdevices directly connected */
-> +		if (vimc_pipeline_s_stream(&vdeb->vsd.sd.entity, 1)) {
-> +			vfree(vdeb->src_frame);
-> +			vdeb->src_frame = NULL;
-> +			return -EINVAL;
-> +		}
-> +
-> +	} else {
-> +		if (!vdeb->src_frame)
-> +			return -EINVAL;
-> +		vfree(vdeb->src_frame);
-> +		vdeb->src_frame = NULL;
-> +		vimc_pipeline_s_stream(&vdeb->vsd.sd.entity, 0);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +struct v4l2_subdev_video_ops vimc_deb_video_ops = {
-> +	.s_stream = vimc_deb_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_ops vimc_deb_ops = {
-> +	.pad = &vimc_deb_pad_ops,
-> +	.video = &vimc_deb_video_ops,
-> +};
-> +
-> +static unsigned int vimc_deb_get_val(const u8 *bytes,
-> +				     const unsigned int n_bytes)
-> +{
-> +	unsigned int i;
-> +	unsigned int acc = 0;
-> +
-> +	for (i = 0; i < n_bytes; i++)
-> +		acc = acc + (bytes[i] << (8 * i));
-> +
-> +	return acc;
-> +}
-> +
-> +static void vimc_deb_calc_rgb_sink(struct vimc_deb_device *vdeb,
-> +				   const u8 *frame,
-> +				   const unsigned int lin,
-> +				   const unsigned int col,
-> +				   unsigned int rgb[3])
-> +{
-> +	unsigned int i, seek, wlin, wcol;
-> +	unsigned int n_rgb[3] = {0, 0, 0};
-> +
-> +	for (i = 0; i < 3; i++)
-> +		rgb[i] = 0;
-> +
-> +	/* Calculate how many we need to subtract to get to the pixel in
-> +	 * the top left corner of the mean window (considering the current
-> +	 * pixel as the center) */
-> +	seek = vdeb->mean_win_size / 2;
-> +
-> +	/* Sum the values of the colors in the mean window */
-> +
-> +	dev_dbg(vdeb->vsd.dev,
-> +		"deb: %s: --- Calc pixel %dx%d, window mean %d, seek %d ---\n",
-> +		vdeb->vsd.sd.name, lin, col, vdeb->sink_mbus_fmt.height, seek);
-> +
-> +	/* Iterate through all the lines in the mean window, start
-> +	 * with zero if the pixel is outside the frame and don't pass
-> +	 * the height when the pixel is in the bottom border of the
-> +	 * frame */
-> +	for (wlin = seek > lin ? 0 : lin - seek;
-> +	     wlin < lin + seek + 1 && wlin < vdeb->sink_mbus_fmt.height;
-> +	     wlin++) {
-> +
-> +		/* Iterate through all the columns in the mean window, start
-> +		 * with zero if the pixel is outside the frame and don't pass
-> +		 * the width when the pixel is in the right border of the
-> +		 * frame */
-> +		for (wcol = seek > col ? 0 : col - seek;
-> +		     wcol < col + seek + 1 && wcol < vdeb->sink_mbus_fmt.width;
-> +		     wcol++) {
-> +			enum vimc_deb_rgb_colors color;
-> +			unsigned int index;
-> +
-> +			/* Check which color this pixel is */
-> +			color = vdeb->sink_pix_map->order[wlin % 2][wcol % 2];
-> +
-> +			index = VIMC_FRAME_INDEX(wlin, wcol,
-> +						 vdeb->sink_mbus_fmt.width,
-> +						 vdeb->sink_bpp);
-> +
-> +			dev_dbg(vdeb->vsd.dev,
-> +				"deb: %s: RGB CALC: frame index %d, win pos %dx%d, color 
-%d\n",
-> +				vdeb->vsd.sd.name, index, wlin, wcol, color);
-> +
-> +			/* Get its value */
-> +			rgb[color] = rgb[color] +
-> +				vimc_deb_get_val(&frame[index], vdeb->sink_bpp);
-> +
-> +			/* Save how many values we already added */
-> +			n_rgb[color]++;
-> +
-> +			dev_dbg(vdeb->vsd.dev,
-> +				"deb: %s: RGB CALC: val %d, n %d\n",
-> +				vdeb->vsd.sd.name, rgb[color], n_rgb[color]);
-> +		}
-> +	}
-> +
-> +	/* Calculate the mean */
-> +	for (i = 0; i < 3; i++) {
-> +		dev_dbg(vdeb->vsd.dev, "deb: %s: PRE CALC: %dx%d Color %d, val %d, n
-> %d\n", +			vdeb->vsd.sd.name, lin, col, i, rgb[i], n_rgb[i]);
-> +
-> +		if (n_rgb[i])
-> +			rgb[i] = rgb[i] / n_rgb[i];
-> +
-> +		dev_dbg(vdeb->vsd.dev, "deb: %s: FINAL CALC: %dx%d Color %d, val 
-%d\n",
-> +			vdeb->vsd.sd.name, lin, col, i, rgb[i]);
-> +	}
-> +}
-> +
-> +static void vimc_deb_process_frame(struct vimc_ent_device *ved,
-> +				   struct media_pad *sink,
-> +				   const void *sink_frame)
-> +{
-> +	struct vimc_deb_device *vdeb = container_of(ved,
-> +					struct vimc_deb_device, vsd.ved);
-> +	unsigned int rgb[3];
-> +	unsigned int i, j;
-> +
-> +	/* If the stream in this node is not active, just return */
-> +	if (!vdeb->src_frame)
-> +		return;
-> +
-> +	for (i = 0; i < vdeb->src_mbus_fmt.height; i++)
-> +		for (j = 0; j < vdeb->src_mbus_fmt.width; j++) {
-> +			vimc_deb_calc_rgb_sink(vdeb, sink_frame, i, j, rgb);
-> +			vdeb->set_rgb_src(vdeb, i, j, rgb);
-> +		}
-> +
-> +	/* Propagate the frame thought all source pads */
-> +	for (i = 0; i < vdeb->vsd.sd.entity.num_pads; i++) {
-> +		struct media_pad *pad = &vdeb->vsd.sd.entity.pads[i];
-> +
-> +		if (pad->flags & MEDIA_PAD_FL_SOURCE)
-> +			vimc_propagate_frame(vdeb->vsd.dev,
-> +					     pad, vdeb->src_frame);
-> +	}
-> +}
-> +
-> +static void vimc_deb_destroy(struct vimc_ent_device *ved)
-> +{
-> +	struct vimc_deb_device *vdeb = container_of(ved, struct vimc_deb_device,
-> +						    vsd.ved);
-> +
-> +	vimc_ent_sd_cleanup(&vdeb->vsd);
-> +}
-> +
-> +struct vimc_ent_device *vimc_deb_create(struct v4l2_device *v4l2_dev,
-> +					const char *const name,
-> +					u16 num_pads,
-> +					const unsigned long *pads_flag)
-> +{
-> +	int ret;
-> +	struct vimc_deb_device *vdeb;
-> +	struct vimc_ent_subdevice *vsd;
-> +
-> +	vsd = vimc_ent_sd_init(sizeof(struct vimc_deb_device),
-> +			       v4l2_dev, name, num_pads, pads_flag,
-> +			       &vimc_deb_ops, vimc_deb_destroy);
-> +	if (IS_ERR(vsd))
-> +		return (struct vimc_ent_device *)vsd;
-> +
-> +	vdeb = container_of(vsd, struct vimc_deb_device, vsd);
-> +
-> +	/* Set the default active frame format (this is hardcoded for now) */
-> +	vdeb->sink_mbus_fmt.width = 64;
-> +	vdeb->sink_mbus_fmt.height = 64;
-
-64x64 ? Aren't the sink and source sizes supposed to be the same ?
-
-> +	vdeb->sink_mbus_fmt.field = V4L2_FIELD_NONE;
-> +	vdeb->sink_mbus_fmt.colorspace = V4L2_COLORSPACE_SRGB;
-> +	vdeb->sink_mbus_fmt.quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> +	vdeb->sink_mbus_fmt.xfer_func = V4L2_XFER_FUNC_SRGB;
-> +	vdeb->sink_mbus_fmt.code = MEDIA_BUS_FMT_SRGGB8_1X8;
-> +
-> +	vdeb->src_mbus_fmt.width = 640;
-> +	vdeb->src_mbus_fmt.height = 480;
-> +	vdeb->src_mbus_fmt.field = V4L2_FIELD_NONE;
-> +	vdeb->src_mbus_fmt.colorspace = V4L2_COLORSPACE_SRGB;
-> +	vdeb->src_mbus_fmt.quantization = V4L2_QUANTIZATION_FULL_RANGE;
-> +	vdeb->src_mbus_fmt.xfer_func = V4L2_XFER_FUNC_SRGB;
-> +	vdeb->src_mbus_fmt.code = MEDIA_BUS_FMT_RGB888_1X24;
-> +	vdeb->set_rgb_src = vimc_deb_set_rgb_mbus_fmt_rgb888_1x24;
-> +
-> +	/* Set the window size to calculate the mean */
-> +	vdeb->mean_win_size = VIMC_DEB_MEAN_WINDOW_SIZE;
-> +
-> +	/* Set the process frame callback */
-> +	vdeb->vsd.ved.process_frame = vimc_deb_process_frame;
-> +
-> +	/* Register the subdev with the v4l2 and the media framework */
-> +	ret = v4l2_device_register_subdev(vdeb->vsd.v4l2_dev, &vdeb->vsd.sd);
-> +	if (ret) {
-> +		dev_err(vdeb->vsd.dev,
-> +			"subdev register failed (err=%d)\n", ret);
-> +
-> +		vimc_ent_sd_cleanup(vsd);
-> +
-> +		return ERR_PTR(ret);
-> +	}
-> +
-> +	return &vdeb->vsd.ved;
-> +}
-> diff --git a/drivers/media/platform/vimc/vimc-debayer.h
-> b/drivers/media/platform/vimc/vimc-debayer.h new file mode 100644
-> index 0000000..bc00c97
-> --- /dev/null
-> +++ b/drivers/media/platform/vimc/vimc-debayer.h
-> @@ -0,0 +1,28 @@
-> +/*
-> + * vimc-debayer.h Virtual Media Controller Driver
-> + *
-> + * Copyright (C) 2015 Helen Fornazier <helen.fornazier@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + */
-> +
-> +#ifndef _VIMC_DEBAYER_H_
-> +#define _VIMC_DEBAYER_H_
-> +
-> +#include "vimc-core.h"
-> +
-> +struct vimc_ent_device *vimc_deb_create(struct v4l2_device *v4l2_dev,
-> +					const char *const name,
-> +					u16 num_pads,
-> +					const unsigned long *pads_flag);
-> +
-> +#endif
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Changes since v1:
+> 1. Divide patch set into more pieces
+> v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
+> list with size problem - over 300kb. So I have divided the patch set into five
+> pieces and refined them neatly, which was pointed by Hans.
+> 
+> 2. Add shell scripts for renaming patch
+> In case of renaming patch, shell scripts are included inside the body of the
+> patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
+> be used by reviewers or maintainers to regenerate big patch file if something
+> goes wrong during patch apply.
+> 
+> 3. Remove dependency on v4l2 from videobuf2
+> In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
+> e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
+> from using videobuf2 independently and made them forced to include
+> v4l2-specific stuff.
+> In this version, these dependent stuffs are replaced with VB2 own stuffs.
+> e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
+> required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
+> will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
+> backward compatibility.
+> 
+> 4. Unify duplicated definitions
+> VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
+> duplicated macro functions that invoke callback functions implemented in vb2
+> backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
+> callbacks of device drivers.
+> In previous patch set, these macro functions were defined
+> in both videobuf2-core.c and videobuf2-v4l2.c.
+> 
+> This patch series is base on media_tree.git [2] by Mauro & Hans's request.
+> And I applied this patches to my own git [3] which can be helpful to review.
+> My test boards are ubuntu PC(Intel i7-3770) and odroid-xu3(exynos5422). And
+> basic oprerations, e.g. reqbuf, querybuf, qbuf, dqbuf, are tested with
+> v4l-utils. But, more tests for the all ioctls will be required on many other
+> targets.
+> 
+> [2] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
+> [3] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
+> 
+> Any suggestions and comments are welcome.
+> 
+> Regards,
+> Junghak
+> 
+> Junghak Sung (5):
+>   media: videobuf2: Rename videobuf2-core to videobuf2-v4l2
+>   media: videobuf2: Restructurng struct vb2_buffer for common use.
+>   media: videobuf2: Divide videobuf2-core into 2 parts
+>   media: videobuf2: Define vb2_buf_type and vb2_memory
+>   media: videobuf2: Modify prefix for VB2 functions
+> 
+>  drivers/input/touchscreen/sur40.c                  |   23 +-
+>  drivers/media/dvb-frontends/rtl2832_sdr.c          |   19 +-
+>  drivers/media/pci/cobalt/cobalt-alsa-pcm.c         |    4 +-
+>  drivers/media/pci/cobalt/cobalt-v4l2.c             |    8 +-
+>  drivers/media/pci/cx23885/cx23885-417.c            |   15 +-
+>  drivers/media/pci/cx23885/cx23885-core.c           |   10 +-
+>  drivers/media/pci/cx23885/cx23885-dvb.c            |   13 +-
+>  drivers/media/pci/cx23885/cx23885-vbi.c            |   17 +-
+>  drivers/media/pci/cx23885/cx23885-video.c          |   23 +-
+>  drivers/media/pci/cx23885/cx23885.h                |    2 +-
+>  drivers/media/pci/cx25821/cx25821-video.c          |   22 +-
+>  drivers/media/pci/cx25821/cx25821.h                |    3 +-
+>  drivers/media/pci/cx88/cx88-blackbird.c            |   17 +-
+>  drivers/media/pci/cx88/cx88-core.c                 |    2 +-
+>  drivers/media/pci/cx88/cx88-dvb.c                  |   15 +-
+>  drivers/media/pci/cx88/cx88-mpeg.c                 |    8 +-
+>  drivers/media/pci/cx88/cx88-vbi.c                  |   17 +-
+>  drivers/media/pci/cx88/cx88-video.c                |   21 +-
+>  drivers/media/pci/cx88/cx88.h                      |    2 +-
+>  drivers/media/pci/dt3155/dt3155.c                  |   23 +-
+>  drivers/media/pci/dt3155/dt3155.h                  |    2 +-
+>  drivers/media/pci/saa7134/saa7134-core.c           |    9 +-
+>  drivers/media/pci/saa7134/saa7134-dvb.c            |    6 +-
+>  drivers/media/pci/saa7134/saa7134-empress.c        |    4 +-
+>  drivers/media/pci/saa7134/saa7134-ts.c             |   30 +-
+>  drivers/media/pci/saa7134/saa7134-vbi.c            |   24 +-
+>  drivers/media/pci/saa7134/saa7134-video.c          |   43 +-
+>  drivers/media/pci/saa7134/saa7134.h                |    9 +-
+>  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   35 +-
+>  drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   20 +-
+>  drivers/media/pci/solo6x10/solo6x10.h              |    4 +-
+>  drivers/media/pci/sta2x11/sta2x11_vip.c            |   35 +-
+>  drivers/media/pci/tw68/tw68-video.c                |   22 +-
+>  drivers/media/pci/tw68/tw68.h                      |    2 +-
+>  drivers/media/platform/am437x/am437x-vpfe.c        |   40 +-
+>  drivers/media/platform/am437x/am437x-vpfe.h        |    2 +-
+>  drivers/media/platform/blackfin/bfin_capture.c     |   42 +-
+>  drivers/media/platform/coda/coda-bit.c             |   62 +-
+>  drivers/media/platform/coda/coda-common.c          |   30 +-
+>  drivers/media/platform/coda/coda-jpeg.c            |    6 +-
+>  drivers/media/platform/coda/coda.h                 |    6 +-
+>  drivers/media/platform/coda/trace.h                |    2 +-
+>  drivers/media/platform/davinci/vpbe_display.c      |   16 +-
+>  drivers/media/platform/davinci/vpif_capture.c      |   43 +-
+>  drivers/media/platform/davinci/vpif_capture.h      |    2 +-
+>  drivers/media/platform/davinci/vpif_display.c      |   49 +-
+>  drivers/media/platform/davinci/vpif_display.h      |    2 +-
+>  drivers/media/platform/exynos-gsc/gsc-core.c       |   10 +-
+>  drivers/media/platform/exynos-gsc/gsc-core.h       |    6 +-
+>  drivers/media/platform/exynos-gsc/gsc-m2m.c        |   16 +-
+>  drivers/media/platform/exynos4-is/fimc-capture.c   |   30 +-
+>  drivers/media/platform/exynos4-is/fimc-core.c      |   12 +-
+>  drivers/media/platform/exynos4-is/fimc-core.h      |    6 +-
+>  drivers/media/platform/exynos4-is/fimc-is.h        |    2 +-
+>  drivers/media/platform/exynos4-is/fimc-isp-video.c |   22 +-
+>  drivers/media/platform/exynos4-is/fimc-isp-video.h |    2 +-
+>  drivers/media/platform/exynos4-is/fimc-isp.h       |    4 +-
+>  drivers/media/platform/exynos4-is/fimc-lite.c      |   25 +-
+>  drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
+>  drivers/media/platform/exynos4-is/fimc-m2m.c       |   18 +-
+>  drivers/media/platform/m2m-deinterlace.c           |   26 +-
+>  drivers/media/platform/marvell-ccic/mcam-core.c    |   40 +-
+>  drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
+>  drivers/media/platform/mx2_emmaprp.c               |   25 +-
+>  drivers/media/platform/omap3isp/ispvideo.c         |   47 +-
+>  drivers/media/platform/omap3isp/ispvideo.h         |    4 +-
+>  drivers/media/platform/s3c-camif/camif-capture.c   |   49 +-
+>  drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
+>  drivers/media/platform/s3c-camif/camif-core.h      |    4 +-
+>  drivers/media/platform/s5p-g2d/g2d.c               |   22 +-
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c        |   57 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |   42 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   63 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  120 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |   28 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   28 +-
+>  drivers/media/platform/s5p-tv/mixer.h              |    4 +-
+>  drivers/media/platform/s5p-tv/mixer_grp_layer.c    |    2 +-
+>  drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
+>  drivers/media/platform/s5p-tv/mixer_video.c        |   33 +-
+>  drivers/media/platform/s5p-tv/mixer_vp_layer.c     |    5 +-
+>  drivers/media/platform/sh_veu.c                    |   38 +-
+>  drivers/media/platform/sh_vou.c                    |    8 +-
+>  drivers/media/platform/soc_camera/atmel-isi.c      |   32 +-
+>  drivers/media/platform/soc_camera/mx2_camera.c     |   44 +-
+>  drivers/media/platform/soc_camera/mx3_camera.c     |   39 +-
+>  drivers/media/platform/soc_camera/rcar_vin.c       |   38 +-
+>  .../platform/soc_camera/sh_mobile_ceu_camera.c     |   49 +-
+>  drivers/media/platform/soc_camera/soc_camera.c     |   24 +-
+>  drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |    8 +-
+>  drivers/media/platform/ti-vpe/vpe.c                |   39 +-
+>  drivers/media/platform/vim2m.c                     |   39 +-
+>  drivers/media/platform/vivid/vivid-core.c          |   10 +-
+>  drivers/media/platform/vivid/vivid-core.h          |    4 +-
+>  drivers/media/platform/vivid/vivid-kthread-cap.c   |   20 +-
+>  drivers/media/platform/vivid/vivid-kthread-out.c   |   14 +-
+>  drivers/media/platform/vivid/vivid-sdr-cap.c       |   24 +-
+>  drivers/media/platform/vivid/vivid-vbi-cap.c       |   23 +-
+>  drivers/media/platform/vivid/vivid-vbi-out.c       |   19 +-
+>  drivers/media/platform/vivid/vivid-vid-cap.c       |   25 +-
+>  drivers/media/platform/vivid/vivid-vid-out.c       |   20 +-
+>  drivers/media/platform/vsp1/vsp1_video.c           |   26 +-
+>  drivers/media/platform/vsp1/vsp1_video.h           |    6 +-
+>  drivers/media/platform/xilinx/xilinx-dma.c         |    6 +-
+>  drivers/media/platform/xilinx/xilinx-dma.h         |    2 +-
+>  drivers/media/usb/airspy/airspy.c                  |   22 +-
+>  drivers/media/usb/au0828/au0828-vbi.c              |   15 +-
+>  drivers/media/usb/au0828/au0828-video.c            |   55 +-
+>  drivers/media/usb/au0828/au0828.h                  |    3 +-
+>  drivers/media/usb/em28xx/em28xx-vbi.c              |   17 +-
+>  drivers/media/usb/em28xx/em28xx-video.c            |   33 +-
+>  drivers/media/usb/em28xx/em28xx.h                  |    3 +-
+>  drivers/media/usb/go7007/go7007-driver.c           |    4 +-
+>  drivers/media/usb/go7007/go7007-priv.h             |    4 +-
+>  drivers/media/usb/go7007/go7007-v4l2.c             |   20 +-
+>  drivers/media/usb/hackrf/hackrf.c                  |   20 +-
+>  drivers/media/usb/msi2500/msi2500.c                |   23 +-
+>  drivers/media/usb/pwc/pwc-if.c                     |   28 +-
+>  drivers/media/usb/pwc/pwc-uncompress.c             |    8 +-
+>  drivers/media/usb/pwc/pwc.h                        |    3 +-
+>  drivers/media/usb/s2255/s2255drv.c                 |   26 +-
+>  drivers/media/usb/stk1160/stk1160-v4l.c            |   17 +-
+>  drivers/media/usb/stk1160/stk1160-video.c          |    4 +-
+>  drivers/media/usb/stk1160/stk1160.h                |    4 +-
+>  drivers/media/usb/usbtv/usbtv-video.c              |   24 +-
+>  drivers/media/usb/usbtv/usbtv.h                    |    3 +-
+>  drivers/media/usb/uvc/uvc_queue.c                  |   56 +-
+>  drivers/media/usb/uvc/uvcvideo.h                   |    4 +-
+>  drivers/media/v4l2-core/Makefile                   |    2 +-
+>  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
+>  drivers/media/v4l2-core/v4l2-mem2mem.c             |   30 +-
+>  drivers/media/v4l2-core/videobuf2-core.c           | 2393 +++-----------------
+>  drivers/media/v4l2-core/videobuf2-dvb.c            |    2 +-
+>  drivers/media/v4l2-core/videobuf2-v4l2.c           | 1970 ++++++++++++++++
+>  drivers/usb/gadget/function/uvc_queue.c            |   46 +-
+>  drivers/usb/gadget/function/uvc_queue.h            |    4 +-
+>  include/media/soc_camera.h                         |    2 +-
+>  include/media/v4l2-mem2mem.h                       |   10 +-
+>  include/media/videobuf2-core.h                     |  430 ++--
+>  include/media/videobuf2-dvb.h                      |    2 +-
+>  include/media/videobuf2-v4l2.h                     |  186 ++
+>  include/trace/events/v4l2.h                        |   38 +-
+>  143 files changed, 4185 insertions(+), 3462 deletions(-)
+>  create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
+>  create mode 100644 include/media/videobuf2-v4l2.h
+> 
 
