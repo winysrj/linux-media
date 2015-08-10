@@ -1,461 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53072 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099AbbHLUPM (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34614 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752439AbbHJLpT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:12 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: [PATCH RFC v3 08/16] media: convert links from array to list
-Date: Wed, 12 Aug 2015 17:14:52 -0300
-Message-Id: <49433a16c82ef42285d3e9b50ca55d1a282f237a.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Mon, 10 Aug 2015 07:45:19 -0400
+Message-ID: <55C88EAF.8030100@xs4all.nl>
+Date: Mon, 10 Aug 2015 13:44:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
+	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
+	sangbae90.lee@samsung.com, rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>	<55C86147.4090307@xs4all.nl>	<20150810063255.2f087b24@recife.lan>	<55C878DB.5080404@xs4all.nl> <20150810074911.0b6e9ff0@recife.lan>
+In-Reply-To: <20150810074911.0b6e9ff0@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using memory realloc to increase the size of an array
-is complex and makes harder to remove links. Also, by
-embedding the link inside an array at the entity makes harder
-to change the code to add interfaces, as interfaces will
-also need to use links.
+On 08/10/2015 12:49 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Aug 2015 12:11:39 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 08/10/2015 11:32 AM, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 10 Aug 2015 10:31:03 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> Hi Jungsak,
+>>>>
+>>>> On 07/31/2015 10:44 AM, Junghak Sung wrote:
+>>>>> Hello everybody,
+>>>>>
+>>>>> This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
+>>>>> The purpose of this patch series is to separate existing VB2 framework
+>>>>> into core part and V4L2 specific part. So that not only V4L2 but also other
+>>>>> frameworks can use them to manage buffer and utilize queue.
+>>>>>
+>>>>> Why do we try to make the VB2 framework to be common?
+>>>>>
+>>>>> As you may know, current DVB framework uses ringbuffer mechanism to demux
+>>>>> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+>>>>> extra memory copy because DVB framework provides only read() system call for
+>>>>> application - read() system call copies the kernel data to user-space buffer.
+>>>>> So if we can use VB2 framework which supports streaming I/O and buffer
+>>>>> sharing mechanism, then we could enhance existing DVB framework by removing
+>>>>> the extra memory copy - with VB2 framework, application can access the kernel
+>>>>> data directly through mmap system call.
+>>>>>
+>>>>> We have a plan for this work as follows:
+>>>>> 1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
+>>>>>    Of course, this change will not affect other v4l2-based
+>>>>>    device drivers. This patch series corresponds to this step.
+>>>>>
+>>>>> 2. Add and implement new APIs for DVB streaming I/O.
+>>>>>    We can remove unnecessary memory copy between kernel-space and user-space
+>>>>>    by using these new APIs. However, we leaves legacy interfaces as-is
+>>>>>    for backward compatibility.
+>>>>>
+>>>>> This patch series is the first step for it.
+>>>>> The previous version of this patch series can be found at [1].
+>>>>>
+>>>>> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+>>>>
+>>>> This v2 looks much better, but, as per my comment to patch 1/5, it needs a bit
+>>>> more work before I can do a really good review. I think things will be much
+>>>> clearer once patch 3 shows the code moving from core.c/h to v4l2.c/h instead
+>>>> of the other way around. That shouldn't be too difficult.
+>>>
+>>> Hans,
+>>>
+>>> I suggested Junkhak to do that. On his previous patchset, he did what
+>>> you're suggestiong, e. g moving things from vb2-core into vb2-v4l2, and
+>>> that resulted on patches big enough to not be catched by vger.
+>>
+>> Actually, that wasn't the reason why the patches became so big. I just
+>> reorganized the patch series as I suggested above (pretty easy to do) and
+>> the size of patch 3 went down.
+> 
+> Ah, ok.
+> 
+>>> Also, IMHO, it is cleared this way, as we can see what parts of VB2 will
+>>> actually be shared, as there are lots of things that won't be shared:
+>>> overlay, userptr, multiplanar.
+>>
+>> That's why I prefer to see what moves *out* from the core.
+>>
+>> To be honest, it depends on what your preference is.
+> 
+> Yeah. I actually prefer to see what will be shared, because the
+> non-shared code won't have changes (except for minor kABI things),
+> while the shared code will be more affected :)
+> 
+>> Junghak, just leave the patch as-is. However, for v3 you should run
+>> checkpatch.pl over the diff since it complained about various things.
+> 
+> There are two things here:
+> 
+> 1) on patches that just move things around, we should not
+> run checkpatch, as otherwise it would be a nightmare for
+> review. Ok, as we're doing a remanufacturing, it is a good
+> idea to run checkpatch at the end and see what should be fixed
+> (or do it before), but this is out of the scope of the manufacturing.
+> I can do that myself when applying the series.
 
-So, convert the links from arrays to lists.
+It was actually complaining about new code.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	Hans
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 9fb3f8958265..a95ca981aabb 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -25,6 +25,7 @@
- #include <linux/ioctl.h>
- #include <linux/media.h>
- #include <linux/types.h>
-+#include <linux/slab.h>
- 
- #include <media/media-device.h>
- #include <media/media-devnode.h>
-@@ -148,22 +149,22 @@ static long __media_device_enum_links(struct media_device *mdev,
- 	}
- 
- 	if (links->links) {
--		struct media_link_desc __user *ulink;
--		unsigned int l;
-+		struct media_link *ent_link;
-+		struct media_link_desc __user *ulink = links->links;
- 
--		for (l = 0, ulink = links->links; l < entity->num_links; l++) {
-+		list_for_each_entry(ent_link, &entity->links, list) {
- 			struct media_link_desc link;
- 
- 			/* Ignore backlinks. */
--			if (entity->links[l].source->entity != entity)
-+			if (ent_link->source->entity != entity)
- 				continue;
- 
- 			memset(&link, 0, sizeof(link));
--			media_device_kpad_to_upad(entity->links[l].source,
-+			media_device_kpad_to_upad(ent_link->source,
- 						  &link.source);
--			media_device_kpad_to_upad(entity->links[l].sink,
-+			media_device_kpad_to_upad(ent_link->sink,
- 						  &link.sink);
--			link.flags = entity->links[l].flags;
-+			link.flags = ent_link->flags;
- 			if (copy_to_user(ulink, &link, sizeof(*ulink)))
- 				return -EFAULT;
- 			ulink++;
-@@ -471,6 +472,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- {
- 	int i;
- 	struct media_device *mdev = entity->parent;
-+	struct media_link *link, *tmp;
- 
- 	if (mdev == NULL)
- 		return;
-@@ -479,8 +481,11 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	graph_obj_remove(&entity->graph_obj);
- 	for (i = 0; entity->num_pads; i++)
- 		graph_obj_remove(&entity->pads[i].graph_obj);
--	for (i = 0; entity->num_links; i++)
--		graph_obj_remove(&entity->links[i].graph_obj);
-+	list_for_each_entry_safe(link, tmp, &entity->links, list) {
-+		graph_obj_remove(&link->graph_obj);
-+		list_del(&link->list);
-+		kfree(link);
-+	}
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->parent = NULL;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e8451a4a403b..333c49aa0974 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -76,14 +76,6 @@ void graph_obj_remove(struct media_graph_obj *gobj)
-  * use cases the entity driver can guess the number of links which can safely
-  * be assumed to be equal to or larger than the number of pads.
-  *
-- * For those reasons the links array can be preallocated based on the entity
-- * driver guess and will be reallocated later if extra links need to be
-- * created.
-- *
-- * This function allocates a links array with enough space to hold at least
-- * 'num_pads' + 'extra_links' elements. The media_entity::max_links field will
-- * be set to the number of allocated elements.
-- *
-  * The pads array is managed by the entity driver and passed to
-  * media_entity_init() where its pointer will be stored in the entity structure.
-  */
-@@ -91,21 +83,14 @@ int
- media_entity_init(struct media_entity *entity, u16 num_pads,
- 		  struct media_pad *pads)
- {
--	struct media_link *links;
--	unsigned int max_links = num_pads;
- 	unsigned int i;
- 
--	links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
--	if (links == NULL)
--		return -ENOMEM;
--
- 	entity->group_id = 0;
--	entity->max_links = max_links;
- 	entity->num_links = 0;
- 	entity->num_backlinks = 0;
- 	entity->num_pads = num_pads;
- 	entity->pads = pads;
--	entity->links = links;
-+	INIT_LIST_HEAD(&entity->links);
- 
- 	for (i = 0; i < num_pads; i++) {
- 		pads[i].entity = entity;
-@@ -119,7 +104,13 @@ EXPORT_SYMBOL_GPL(media_entity_init);
- void
- media_entity_cleanup(struct media_entity *entity)
- {
--	kfree(entity->links);
-+	struct media_link *link, *tmp;
-+
-+	list_for_each_entry_safe(link, tmp, &entity->links, list) {
-+		graph_obj_remove(&link->graph_obj);
-+		list_del(&link->list);
-+		kfree(link);
-+	}
- }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
- 
-@@ -145,7 +136,7 @@ static void stack_push(struct media_entity_graph *graph,
- 		return;
- 	}
- 	graph->top++;
--	graph->stack[graph->top].link = 0;
-+	graph->stack[graph->top].link = entity->links;
- 	graph->stack[graph->top].entity = entity;
- }
- 
-@@ -187,6 +178,7 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
- 
-+
- /**
-  * media_entity_graph_walk_next - Get the next entity in the graph
-  * @graph: Media graph structure
-@@ -210,14 +202,16 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 	 * top of the stack until no more entities on the level can be
- 	 * found.
- 	 */
--	while (link_top(graph) < stack_top(graph)->num_links) {
-+	while (list_is_last(&link_top(graph), &(stack_top(graph)->links))) {
- 		struct media_entity *entity = stack_top(graph);
--		struct media_link *link = &entity->links[link_top(graph)];
-+		struct media_link *link;
- 		struct media_entity *next;
- 
-+		link = list_last_entry(&link_top(graph), typeof(*link), list);
-+
- 		/* The link is not enabled so we do not follow. */
- 		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
--			link_top(graph)++;
-+			list_rotate_left(&link_top(graph));
- 			continue;
- 		}
- 
-@@ -228,12 +222,12 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Has the entity already been visited? */
- 		if (__test_and_set_bit(next->id, graph->entities)) {
--			link_top(graph)++;
-+			list_rotate_left(&link_top(graph));
- 			continue;
- 		}
- 
- 		/* Push the new entity to stack and start over. */
--		link_top(graph)++;
-+		list_rotate_left(&link_top(graph));
- 		stack_push(graph, next);
- 	}
- 
-@@ -265,6 +259,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 	struct media_device *mdev = entity->parent;
- 	struct media_entity_graph graph;
- 	struct media_entity *entity_err = entity;
-+	struct media_link *link;
- 	int ret;
- 
- 	mutex_lock(&mdev->graph_mutex);
-@@ -274,7 +269,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		DECLARE_BITMAP(active, entity->num_pads);
- 		DECLARE_BITMAP(has_no_links, entity->num_pads);
--		unsigned int i;
- 
- 		entity->stream_count++;
- 		WARN_ON(entity->pipe && entity->pipe != pipe);
-@@ -290,8 +284,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 		bitmap_zero(active, entity->num_pads);
- 		bitmap_fill(has_no_links, entity->num_pads);
- 
--		for (i = 0; i < entity->num_links; i++) {
--			struct media_link *link = &entity->links[i];
-+		list_for_each_entry(link, &entity->links, list) {
- 			struct media_pad *pad = link->sink->entity == entity
- 						? link->sink : link->source;
- 
-@@ -452,29 +445,25 @@ EXPORT_SYMBOL_GPL(media_entity_put);
- 
- static struct media_link *media_entity_add_link(struct media_entity *entity)
- {
--	if (entity->num_links >= entity->max_links) {
--		struct media_link *links = entity->links;
--		unsigned int max_links = entity->max_links + 2;
--		unsigned int i;
-+	struct media_link *link;
- 
--		links = krealloc(links, max_links * sizeof(*links), GFP_KERNEL);
--		if (links == NULL)
--			return NULL;
-+	link = kzalloc(sizeof(*link), GFP_KERNEL);
-+	if (link == NULL)
-+		return NULL;
- 
--		for (i = 0; i < entity->num_links; i++)
--			links[i].reverse->reverse = &links[i];
--
--		entity->max_links = max_links;
--		entity->links = links;
--	}
-+	INIT_LIST_HEAD(&link->list);
-+	list_add(&entity->links, &link->list);
- 
- 	/* Initialize graph object embedded at the new link */
- 	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
--			&entity->links[entity->num_links].graph_obj);
-+			&link->graph_obj);
- 
--	return &entity->links[entity->num_links++];
-+	return link;
- }
- 
-+static void __media_entity_remove_link(struct media_entity *entity,
-+				       struct media_link *link);
-+
- int
- media_entity_create_link(struct media_entity *source, u16 source_pad,
- 			 struct media_entity *sink, u16 sink_pad, u32 flags)
-@@ -499,7 +488,7 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
- 	 */
- 	backlink = media_entity_add_link(sink);
- 	if (backlink == NULL) {
--		source->num_links--;
-+		__media_entity_remove_link(source, link);
- 		return -ENOMEM;
- 	}
- 
-@@ -516,38 +505,44 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
- }
- EXPORT_SYMBOL_GPL(media_entity_create_link);
- 
--void __media_entity_remove_links(struct media_entity *entity)
-+static void __media_entity_remove_link(struct media_entity *entity,
-+				       struct media_link *link)
- {
--	unsigned int i;
-+	struct media_link *rlink, *tmp;
-+	struct media_entity *remote;
-+	unsigned int r = 0;
- 
--	for (i = 0; i < entity->num_links; i++) {
--		struct media_link *link = &entity->links[i];
--		struct media_entity *remote;
--		unsigned int r = 0;
-+	if (link->source->entity == entity)
-+		remote = link->sink->entity;
-+	else
-+		remote = link->source->entity;
-+
-+	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
-+		if (rlink != link->reverse) {
-+			r++;
-+			continue;
-+		}
- 
- 		if (link->source->entity == entity)
--			remote = link->sink->entity;
--		else
--			remote = link->source->entity;
-+			remote->num_backlinks--;
- 
--		while (r < remote->num_links) {
--			struct media_link *rlink = &remote->links[r];
-+		if (--remote->num_links == 0)
-+			break;
- 
--			if (rlink != link->reverse) {
--				r++;
--				continue;
--			}
--
--			if (link->source->entity == entity)
--				remote->num_backlinks--;
--
--			if (--remote->num_links == 0)
--				break;
--
--			/* Insert last entry in place of the dropped link. */
--			*rlink = remote->links[remote->num_links];
--		}
-+		/* Remove the remote link */
-+		list_del(&rlink->list);
-+		kfree(rlink);
- 	}
-+	list_del(&link->list);
-+	kfree(link);
-+}
-+
-+void __media_entity_remove_links(struct media_entity *entity)
-+{
-+	struct media_link *link, *tmp;
-+
-+	list_for_each_entry_safe(link, tmp, &entity->links, list)
-+		__media_entity_remove_link(entity, link);
- 
- 	entity->num_links = 0;
- 	entity->num_backlinks = 0;
-@@ -672,11 +667,8 @@ struct media_link *
- media_entity_find_link(struct media_pad *source, struct media_pad *sink)
- {
- 	struct media_link *link;
--	unsigned int i;
--
--	for (i = 0; i < source->entity->num_links; ++i) {
--		link = &source->entity->links[i];
- 
-+	list_for_each_entry(link, &source->entity->links, list) {
- 		if (link->source->entity == source->entity &&
- 		    link->source->index == source->index &&
- 		    link->sink->entity == sink->entity &&
-@@ -700,11 +692,9 @@ EXPORT_SYMBOL_GPL(media_entity_find_link);
-  */
- struct media_pad *media_entity_remote_pad(struct media_pad *pad)
- {
--	unsigned int i;
--
--	for (i = 0; i < pad->entity->num_links; i++) {
--		struct media_link *link = &pad->entity->links[i];
-+	struct media_link *link;
- 
-+	list_for_each_entry(link, &pad->entity->links, list) {
- 		if (!(link->flags & MEDIA_LNK_FL_ENABLED))
- 			continue;
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 8f04b125486f..e8baff4d6290 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -106,7 +106,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 	struct media_device *mdev = dev->media_dev;
- 	struct media_entity  *entity, *decoder = NULL, *source;
- 	struct media_link *link, *found_link = NULL;
--	int i, ret, active_links = 0;
-+	int ret, active_links = 0;
- 
- 	if (!mdev)
- 		return 0;
-@@ -127,8 +127,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 	if (!decoder)
- 		return 0;
- 
--	for (i = 0; i < decoder->num_links; i++) {
--		link = &decoder->links[i];
-+	list_for_each_entry(link, &decoder->links, list) {
- 		if (link->sink->entity == decoder) {
- 			found_link = link;
- 			if (link->flags & MEDIA_LNK_FL_ENABLED)
-@@ -141,11 +140,10 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 		return 0;
- 
- 	source = found_link->source->entity;
--	for (i = 0; i < source->num_links; i++) {
-+	list_for_each_entry(link, &source->links, list) {
- 		struct media_entity *sink;
- 		int flags = 0;
- 
--		link = &source->links[i];
- 		sink = link->sink->entity;
- 
- 		if (sink == entity)
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index be6885e7c8ed..403019035424 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -71,6 +71,7 @@ struct media_pipeline {
- };
- 
- struct media_link {
-+	struct list_head list;
- 	struct media_graph_obj			graph_obj;
- 	struct media_pad *source;	/* Source pad */
- 	struct media_pad *sink;		/* Sink pad  */
-@@ -117,10 +118,9 @@ struct media_entity {
- 	u16 num_links;			/* Number of existing links, both
- 					 * enabled and disabled */
- 	u16 num_backlinks;		/* Number of backlinks */
--	u16 max_links;			/* Maximum number of links */
- 
- 	struct media_pad *pads;		/* Pads array (num_pads elements) */
--	struct media_link *links;	/* Links array (max_links elements)*/
-+	struct list_head links;		/* Links list */
- 
- 	const struct media_entity_operations *ops;	/* Entity operations */
- 
-@@ -161,7 +161,7 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- struct media_entity_graph {
- 	struct {
- 		struct media_entity *entity;
--		int link;
-+		struct list_head link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
- 
- 	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
-@@ -177,7 +177,7 @@ void graph_obj_init(struct media_device *mdev,
- void graph_obj_remove(struct media_graph_obj *gobj);
- 
- int media_entity_init(struct media_entity *entity, u16 num_pads,
--		struct media_pad *pads);
-+		      struct media_pad *pads);
- void media_entity_cleanup(struct media_entity *entity);
- 
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
--- 
-2.4.3
+> 
+> 2) For all other patches that are adding/changing the code, then
+> Junghak should run checkpatch and fix (most) stuff complained there.
+> 
+> Regards,
+> Mauro
+> 
 
