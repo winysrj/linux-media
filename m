@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59740 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755388AbbHYKLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 06:11:02 -0400
-Date: Tue, 25 Aug 2015 07:10:58 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 15/44] [media] media: get rid of an unused code
-Message-ID: <20150825071058.29bcc207@recife.lan>
-In-Reply-To: <55DC1501.5000208@xs4all.nl>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<5ccb3df9166af331070f546a7d3c522d65964919.1440359643.git.mchehab@osg.samsung.com>
-	<55DC1501.5000208@xs4all.nl>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56851 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752298AbbHJJlk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Aug 2015 05:41:40 -0400
+Message-ID: <55C871B9.2080207@xs4all.nl>
+Date: Mon, 10 Aug 2015 11:41:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 12/13] DocBook: fix S_FREQUENCY => G_FREQUENCY
+References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1438308650-2702-13-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 09:10:57 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 07/31/2015 04:10 AM, Antti Palosaari wrote:
+> It is VIDIOC_G_FREQUENCY which does not use type to identify tuner,
+> not VIDIOC_S_FREQUENCY. VIDIOC_S_FREQUENCY uses both tuner and type
+> fields. One of these V4L API weirdness...
 
-> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> > This code is not used in practice. Get rid of it before
-> > start converting links to lists.
-> 
-> I assume the reason is that links are always created *after*
-> entities are registered?
+Actually, that's not what this is about. It's about whether g/s_frequency gets/sets
+the frequency for the tuner or the modulator. That has nothing to do with the tuner
+and type fields. The problem described here in the spec is a problem for both G and
+S_FREQUENCY.
 
-That was the assumption. However, Javier found some cases where drivers
-are creating links before. 
+Regards,
 
-So, we should either drop this patch and add some additional logic
-on the next one to handle late graph object init or to fix the
-drivers before.
-
-I'll work on the delayed graph object init, as it sounds the
-easiest way, but let's see how such change will actually work.
+	Hans
 
 > 
-> Can you add that to this commit log?
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/common.xml | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> With that change:
+> diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+> index 8b5e014..f7008ea 100644
+> --- a/Documentation/DocBook/media/v4l/common.xml
+> +++ b/Documentation/DocBook/media/v4l/common.xml
+> @@ -428,7 +428,7 @@ zero, no video outputs.</para>
+>  modulator. Two separate device nodes will have to be used for such
+>  hardware, one that supports the tuner functionality and one that supports
+>  the modulator functionality. The reason is a limitation with the
+> -&VIDIOC-S-FREQUENCY; ioctl where you cannot specify whether the frequency
+> +&VIDIOC-G-FREQUENCY; ioctl where you cannot specify whether the frequency
+>  is for a tuner or a modulator.</para>
+>  
+>        <para>To query and change modulator properties applications use
 > 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 138b18416460..0d85c6c28004 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -443,13 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
-> >  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-> >  	list_add_tail(&entity->list, &mdev->entities);
-> >  
-> > -	/*
-> > -	 * Initialize objects at the links
-> > -	 * in the case where links got created before entity register
-> > -	 */
-> > -	for (i = 0; i < entity->num_links; i++)
-> > -		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-> > -				&entity->links[i].graph_obj);
-> >  	/* Initialize objects at the pads */
-> >  	for (i = 0; i < entity->num_pads; i++)
-> >  		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> > 
-> 
+
