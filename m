@@ -1,138 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:14442 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159AbbHUIC7 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45496 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752998AbbHJNo2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 04:02:59 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Josh Wu <josh.wu@atmel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 3/3] media: atmel-isi: add sanity check for supported formats in try/set_fmt()
-Date: Fri, 21 Aug 2015 16:08:14 +0800
-Message-ID: <1440144494-11800-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
-References: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
+	Mon, 10 Aug 2015 09:44:28 -0400
+Message-ID: <55C8AAA0.9030407@xs4all.nl>
+Date: Mon, 10 Aug 2015 15:44:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: media-workshop@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [media-workshop] [RFC] Media graph flow for an hybrid device
+ as discussed at the media workshop
+References: <20150808083330.7daf111f@recife.lan>	<55C89C86.2070707@xs4all.nl>	<20150810100524.09fb089f@recife.lan> <20150810101936.238ad3f7@recife.lan>
+In-Reply-To: <20150810101936.238ad3f7@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After adding the format check in try_fmt()/set_fmt(), we don't need any
-format check in configure_geometry(). So make configure_geometry() as
-void type.
+On 08/10/2015 03:19 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Aug 2015 10:05:24 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+>> Em Mon, 10 Aug 2015 14:43:50 +0200
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>
+>>> Hi Mauro,
+>>
+>> Thanks for the review!
+>>
+>>>
+>>> On 08/08/2015 01:33 PM, Mauro Carvalho Chehab wrote:
+>>>> During the discussions at the Media Workshop, we came with some dot files that
+>>>> would describe a hybrid PC-consumer TV stick with radio, analog video, analog
+>>>> TV and digital TV on it.
+>>>>
+>>>> I consolidated all the dot files we've worked there, and added the
+>>>> connectors for RF, S-Video and Composite.
+>>>>
+>>>> The dot file and the corresponding picture is at:
+>>>> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.dot
+>>>> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.png
+>>>>
+>>>> As my plan is to start working on some real driver to produce such graph,
+>>>> please validate if the entities, interfaces, data links and interface links
+>>>> are correct, and if the namespace nomenclature is ok, or if I miss something.
+>>>
+>>> This looks OK to me, except for one small detail: I wouldn't use the name
+>>> "Source entities" for connectors. Instead use "Connector entities" since
+>>> such entities correspond to actual real connectors on a backplane. 
+>>
+>> Yeah. Well, they're actually "Source connector entities" ;) But I see
+>> your point. All connectors should be marked with a different type at
+>> the media_graph_obj.
+>>
+>>> A proper
+>>> source entity would be a sensor or test pattern generator. Which actually
+>>> can occur with the em28xx since it's used in webcams as well.
+>>
+>> Ah, true. I'll add that in the graph and use a different color to
+>> distinguish between "source" and "connector" entities.
+>>
+>>>
+>>> And a really, really small detail: in the legend the 'interface link' is an
+>>> arrow, but it should be a line, since there is no direction. The graph itself
+>>> is fine.
+>>
+>> Well, I didn't find a way to put a line there. The legend is produced by
+>> an html code. I would need to have a "line" character, or to add an image.
+>>
+>> Perhaps I should look deeper to find a bold horizontal line at the UTF-8
+>> charset. &#8212; and &#8213; are too thin. Do you know any char that would
+>> look better there?
+> 
+> Found one character ;)
+> 
+> I also added a webcam sensor and fixed the legend. See below:
+> 
+> http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.png
+> http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.dot
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+Looks good. But if you have a sensor, then there should also be a v4l-subdev2
+interface for the sensor entity, and it is also controlled by video0, so that
+interface-to-entity link is missing.
 
-Changes in v3:
-- check the whether format is supported, if no then return a default
-  format.
-- misc changes according to Laurent's feedback.
+And the saa7115 output pads need to be renumbered to 4-6 (there are two pads '3'
+at the moment and the mixer is linked to the input pad 3).
 
-Changes in v2:
-- new added patch
+Regards,
 
- drivers/media/platform/soc_camera/atmel-isi.c | 37 +++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 8 deletions(-)
+	Hans
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index fe9247a..84c91d3 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -102,17 +102,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
- 	return readl(isi->regs + reg);
- }
- 
--static int configure_geometry(struct atmel_isi *isi, u32 width,
-+static void configure_geometry(struct atmel_isi *isi, u32 width,
- 			u32 height, u32 code)
- {
- 	u32 cfg2;
- 
- 	/* According to sensor's output format to set cfg2 */
- 	switch (code) {
--	/* YUV, including grey */
-+	default:
-+	/* Grey */
- 	case MEDIA_BUS_FMT_Y8_1X8:
- 		cfg2 = ISI_CFG2_GRAYSCALE;
- 		break;
-+	/* YUV */
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
- 		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
- 		break;
-@@ -126,8 +128,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
- 		break;
- 	/* RGB, TODO */
--	default:
--		return -EINVAL;
- 	}
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-@@ -138,8 +138,23 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
- 			& ISI_CFG2_IM_VSIZE_MASK;
- 	isi_writel(isi, ISI_CFG2, cfg2);
-+}
- 
--	return 0;
-+static bool is_supported(struct soc_camera_device *icd,
-+		const u32 pixformat)
-+{
-+	switch (pixformat) {
-+	/* YUV, including grey */
-+	case V4L2_PIX_FMT_GREY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_VYUY:
-+		return true;
-+	/* RGB, TODO */
-+	default:
-+		return false;
-+	}
- }
- 
- static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-@@ -390,10 +405,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Disable all interrupts */
- 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
- 
--	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-+	configure_geometry(isi, icd->user_width, icd->user_height,
- 				icd->current_fmt->code);
--	if (ret < 0)
--		return ret;
- 
- 	spin_lock_irq(&isi->lock);
- 	/* Clear any pending interrupt */
-@@ -491,6 +504,10 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
- 	struct v4l2_mbus_framefmt *mf = &format.format;
- 	int ret;
- 
-+	/* check with atmel-isi support format, if not support use UYVY */
-+	if (!is_supported(icd, pix->pixelformat))
-+		pix->pixelformat = V4L2_PIX_FMT_YUYV;
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
- 	if (!xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n",
-@@ -540,6 +557,10 @@ static int isi_camera_try_fmt(struct soc_camera_device *icd,
- 	u32 pixfmt = pix->pixelformat;
- 	int ret;
- 
-+	/* check with atmel-isi support format, if not support use UYVY */
-+	if (!is_supported(icd, pix->pixelformat))
-+		pix->pixelformat = V4L2_PIX_FMT_YUYV;
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (pixfmt && !xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
--- 
-1.9.1
+> 
+>>
+>>> As you mentioned on irc, the v4l-subdevX nodes won't be created for this device
+>>> since all the configuration happens via the standard interfaces.
+>>>
+>>> But if they were to be created, then they would appear where they are in this
+>>> example.
+>>
+>> Thanks!
+>> Mauro
+>>
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>> _______________________________________________
+>>> media-workshop mailing list
+>>> media-workshop@linuxtv.org
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
