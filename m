@@ -1,201 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56797 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752068AbbHUN0J (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52371 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751661AbbHJNjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 09:26:09 -0400
-Message-ID: <55D726C6.9080608@xs4all.nl>
-Date: Fri, 21 Aug 2015 15:25:26 +0200
+	Mon, 10 Aug 2015 09:39:18 -0400
+Message-ID: <55C8A968.40104@xs4all.nl>
+Date: Mon, 10 Aug 2015 15:38:48 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Thierry Reding <treding@nvidia.com>, Bryan Wu <pengw@nvidia.com>
-CC: hansverk@cisco.com, linux-media@vger.kernel.org,
-	ebrower@nvidia.com, jbang@nvidia.com, swarren@nvidia.com,
-	wenjiaz@nvidia.com, davidw@nvidia.com, gfitzer@nvidia.com
-Subject: Re: [PATCH 1/2] [media] v4l: tegra: Add NVIDIA Tegra VI driver
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com> <1440118300-32491-5-git-send-email-pengw@nvidia.com> <20150821130339.GB22118@ulmo.nvidia.com>
-In-Reply-To: <20150821130339.GB22118@ulmo.nvidia.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
+	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
+	sangbae90.lee@samsung.com, rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 3/5] media: videobuf2: Divide videobuf2-core into
+ 2 parts
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>	<1438332277-6542-4-git-send-email-jh1009.sung@samsung.com>	<55C893F9.408@xs4all.nl> <20150810095532.2386616d@recife.lan>
+In-Reply-To: <20150810095532.2386616d@recife.lan>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2015 03:03 PM, Thierry Reding wrote:
-> On Thu, Aug 20, 2015 at 05:51:39PM -0700, Bryan Wu wrote:
->> NVIDIA Tegra processor contains a powerful Video Input (VI) hardware
->> controller which can support up to 6 MIPI CSI camera sensors.
+On 08/10/2015 02:55 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 10 Aug 2015 14:07:21 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> Hi Junghak,
 >>
->> This patch adds a V4L2 media controller and capture driver to support
->> Tegra VI hardware. It's verified with Tegra built-in test pattern
->> generator.
+>> I'm reviewing the header changes since I think there are several improvements
+>> that can be done that will make things more logical and will simplify the code.
+>>
+>> My comments below are a mix of suggestions for improvement and brainstorming.
+>>
+>> Feel free to ask for clarification if something is not clear.
+>>
+>> On 07/31/2015 10:44 AM, Junghak Sung wrote:
+>>> Divide videobuf2-core into core part and v4l2-specific part
+>>>  - core part: videobuf2 core related with buffer management & memory allocation
+>>>  - v4l2-specific part: v4l2-specific stuff
+>>>
+>>> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+>>> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+>>> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+>>> Acked-by: Inki Dae <inki.dae@samsung.com>
+>>> ---
+>>
+>> <snip>
 > 
-> Hi Bryan,
+> ...
 > 
-> I've been looking forward to seeing this posted. I don't know the VI
-> hardware in very much detail, nor am I an expert on the media framework,
-> so I will primarily comment on architectural or SoC-specific things.
+>> I noticed that __qbuf_mmap/userptr/dmabuf are all in -v4l2.c. That's a bad sign:
+>> those are some of the most complex vb2 functions and they really belong in the
+>> core since you'll need it for DVB as well. As suggested above, by moving the index,
+>> length and offset/userptr/fd data to the core structs these functions can all be
+>> moved back into core.c as far as I can see.
 > 
-> By the way, please always Cc linux-tegra@vger.kernel.org on all patches
-> relating to Tegra. That way people not explicitly Cc'ed but still
-> interested in Tegra will see this code, even if they aren't subscribed
-> to the linux-media mailing list.
+> Well, that will depend on how the DVB implementation will actually be.
 > 
->> Signed-off-by: Bryan Wu <pengw@nvidia.com>
->> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/platform/Kconfig               |    1 +
->>  drivers/media/platform/Makefile              |    2 +
->>  drivers/media/platform/tegra/Kconfig         |    9 +
->>  drivers/media/platform/tegra/Makefile        |    3 +
->>  drivers/media/platform/tegra/tegra-channel.c | 1074 ++++++++++++++++++++++++++
->>  drivers/media/platform/tegra/tegra-core.c    |  295 +++++++
->>  drivers/media/platform/tegra/tegra-core.h    |  134 ++++
->>  drivers/media/platform/tegra/tegra-vi.c      |  585 ++++++++++++++
->>  drivers/media/platform/tegra/tegra-vi.h      |  224 ++++++
->>  include/dt-bindings/media/tegra-vi.h         |   35 +
->>  10 files changed, 2362 insertions(+)
->>  create mode 100644 drivers/media/platform/tegra/Kconfig
->>  create mode 100644 drivers/media/platform/tegra/Makefile
->>  create mode 100644 drivers/media/platform/tegra/tegra-channel.c
->>  create mode 100644 drivers/media/platform/tegra/tegra-core.c
->>  create mode 100644 drivers/media/platform/tegra/tegra-core.h
->>  create mode 100644 drivers/media/platform/tegra/tegra-vi.c
->>  create mode 100644 drivers/media/platform/tegra/tegra-vi.h
->>  create mode 100644 include/dt-bindings/media/tegra-vi.h
+> Currently, VB2 has lot of V4L2-dependent code on it, with lots of V4L2
+> structs from videodev2.h that are there.
 > 
-> I can't spot a device tree binding document for this, but we'll need one
-> to properly review this driver.
-> 
->> diff --git a/drivers/media/platform/tegra/Kconfig b/drivers/media/platform/tegra/Kconfig
->> new file mode 100644
->> index 0000000..a69d1b2
->> --- /dev/null
->> +++ b/drivers/media/platform/tegra/Kconfig
->> @@ -0,0 +1,9 @@
->> +config VIDEO_TEGRA
->> +	tristate "NVIDIA Tegra Video Input Driver (EXPERIMENTAL)"
-> 
-> I don't think the (EXPERIMENTAL) is warranted. Either the driver works
-> or it doesn't. And I assume you already tested that it works, even if
-> only using the TPG.
-> 
->> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
-> 
-> This seems to be missing a couple of dependencies. For example I would
-> expect at least TEGRA_HOST1X to be listed here to make sure people can't
-> select this when the host1x API isn't available. I would also expect
-> some sort of architecture dependency because it really makes no sense to
-> build this if Tegra isn't supported.
-> 
-> If you are concerned about compile coverage you can make that explicit
-> using a COMPILE_TEST alternative such as:
-> 
-> 	depends on ARCH_TEGRA || (ARM && COMPILE_TEST)
-> 
-> Note that the ARM dependency in there makes sure that HAVE_IOMEM is
-> selected, so this could also be:
-> 
-> 	depends on ARCH_TEGRA || (HAVE_IOMEM && COMPILE_TEST)
-> 
-> though that'd still leave open the possibility of build breakage because
-> of some missing support.
-> 
-> If you add the dependency on TEGRA_HOST1X that I mentioned above you
-> shouldn't need any architecture dependency because TEGRA_HOST1X implies
-> those already.
-> 
->> +	select VIDEOBUF2_DMA_CONTIG
->> +	---help---
->> +	  Driver for Video Input (VI) device controller in NVIDIA Tegra SoC.
-> 
-> I'd reword this slightly as:
-> 
-> 	  Driver for the Video Input (VI) controller found on NVIDIA Tegra
-> 	  SoCs.
-> 
->> +
->> +	  TO compile this driver as a module, choose M here: the module will be
-> 
-> s/TO/To/.
-> 
->> +	  called tegra-video.
-> 
->> diff --git a/drivers/media/platform/tegra/Makefile b/drivers/media/platform/tegra/Makefile
->> new file mode 100644
->> index 0000000..c8eff0b
->> --- /dev/null
->> +++ b/drivers/media/platform/tegra/Makefile
->> @@ -0,0 +1,3 @@
->> +tegra-video-objs += tegra-core.o tegra-vi.o tegra-channel.o
-> 
-> I'd personally leave out the redundant tegra- prefix here, because the
-> files are in a tegra/ subdirectory already.
+> Well, if we want the core to be re-used, it should not include videodev2.h
+> anymore. Also, it should not assume that all non-V4L2 cores would use
+> exactly the same logic for the userspace API.
 
-This is actually consistent with the other media drivers, so please keep the
-prefix. One can debate whether the prefix makes sense or not, but changing
-that would be a subsystem-wide change.
+Agreed.
 
-<snip>
+> In the DVB case, it makes no sense to have anything similar to OVERLAY
+> there.
 
->> +static int tegra_channel_capture_frame(struct tegra_channel *chan)
->> +{
->> +	struct tegra_channel_buffer *buf = chan->active;
->> +	struct vb2_buffer *vb = &buf->buf;
->> +	int err = 0;
->> +	u32 thresh, value, frame_start;
->> +	int bytes_per_line = chan->format.bytesperline;
->> +
->> +	if (!vb2_start_streaming_called(&chan->queue) || !buf)
->> +		return -EINVAL;
->> +
->> +	if (chan->bypass)
->> +		goto bypass_done;
->> +
->> +	/* Program buffer address */
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_OFFSET_MSB + chan->surface * 8,
->> +		  0x0);
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_OFFSET_LSB + chan->surface * 8,
->> +		  buf->addr);
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_STRIDE + chan->surface * 4,
->> +		  bytes_per_line);
->> +
->> +	/* Program syncpoint */
->> +	frame_start = sp_bit(chan, SP_PP_FRAME_START);
->> +	tegra_channel_write(chan, TEGRA_VI_CFG_VI_INCR_SYNCPT,
->> +			    frame_start | host1x_syncpt_id(chan->sp));
->> +
->> +	csi_write(chan, TEGRA_VI_CSI_SINGLE_SHOT, 0x1);
->> +
->> +	/* Use syncpoint to wake up */
->> +	thresh = host1x_syncpt_incr_max(chan->sp, 1);
->> +
->> +	mutex_unlock(&chan->lock);
->> +	err = host1x_syncpt_wait(chan->sp, thresh,
->> +			         TEGRA_VI_SYNCPT_WAIT_TIMEOUT, &value);
->> +	mutex_lock(&chan->lock);
+VB2 doesn't support overlay at all, so that's no problem.
+
+> I also can't see any usage for USERPTR at DVB neither, as either
+> MMAP or DMABUF should fulfill all userspace needs I'm aware of.
+
+While USERPTR isn't needed for DVB, the actual handling of such buffers
+is completely independent of the API. I think it is from an architecture
+point-of-view a really bad idea if anyone other than the vb2 core would
+call the memops. So yes, the core would have code that is not needed by
+DVB, but it still is something that belongs to the core in my view. Anything
+else is very ugly.
+
 > 
-> What's the point of taking the lock in the first place if you drop it
-> here, even if temporarily? This is a per-channel lock, and it protects
-> the channel against concurrent captures. So if you drop the lock here,
-> don't you run risk of having two captures run concurrently? And by the
-> time you get to the error handling or buffer completion below you can't
-> be sure you're actually dealing with the same buffer that you started
-> with.
+> Also, the meta data for the DVB upcoming ioctls for MMAP/DMABUF aren't
+> yet proposed. They can be very different than the ones inside the V4L2
+> ioctls.
 
-My understanding from Bryan is that syncpt_wait is a blocking wait that
-can take a long time (it's waiting for a new frame). Keeping the lock
-across such a wait will prevent others ioctls that need that same lock
-from being called during that time, which is perfectly legal and desirable.
+Well, it's pretty much constrained by mmap() and the dma-buf API. I.e. an
+offset for for mmap and a fd for dmabuf. You don't have a choice here.
 
-BTW, you can't start two captures simultaneously for the same channel,
-the vb2 framework protects against that.
+> 
+> So, I guess it is better for now to keep those API-dependent stuff at 
+> VB2-v4l2 and, once the DVB code (and the corresponding API bits) are
+> written, revisit it and then move the common code to the VB2 core.
 
-But as you mentioned elsewhere as well, I think this part using workqueues
-should be redesigned. It's not a good fit. Either fully interrupt driven (if
-possible) or using a per-channel kernel thread.
+I strongly disagree with that. Having API-dependent code calling memops
+defeats the purpose. There is nothing wrong with having a vb2 core that
+supports e.g. USERPTR and dma-buf as long as that core is API-independent.
+
+But there is a lot wrong if the API-dependent code is bypassing the vb2 core
+code to call low-level memops.
+
+>> It is good to remember that today the v4l2_buffer struct is used in the vb2
+>> core because vb2 is only used with v4l2, so why duplicate v4l2_buffer fields
+>> in the vb2 core structs? 
+> 
+> We should not have any v4l2_* struct inside VB2 core, as the DVB core
+> should not be dependent on the V4L2 structs. So, everything that it is
+> V4L2-specific should be inside the VB2-v4l2. The reverse is also true:
+> we should not pollute the VB2 core with DVB-specific data structures.
+
+I never said anything else. I was talking about what's used today and why
+it is the way it is now.
+
+> So, all VB2-specific struct should be at VB2-dvb.
+> 
+>> But if we want to reuse it for other subsystems, then
+>> the vb2 core structs should contain all the core buffer information. This avoids
+>> the need for a lot of the ops that you added and makes it possible to keep the
+>> __qbuf_mmap/userptr/dmabuf in the core code as well.
+>>
+>> Adding these fields to the vb2 core structs is something that can be done first,
+>> before splitting up core.c into core.c and v4l2.c.
+> 
+> I'm afraid that we'll lose the big picture if we try to put the
+> API-dependent parts at the core before adding a non-V4L2 usage on VB2.
+> 
+> We can always simplify the code latter, but IMHO we should focus first
+> on adding the new functionality (support for DVB). Afterwards, we'll have
+> a better view on what API-dependent code could be shared.
+
+This is core code. I must be able to follow all the changes and right now
+I can't. So simplifications like this should be done first before the split.
+It will makes things much easier to follow.
+
+The whole goal of a vb2 core is that it:
+
+1) does not use any v4l2/dvb/whatever subsystem specific structs or includes.
+2) deals with *all* the buffer memory handling. This is the most complex part, and
+   that's what really belongs here. So memops being called from API-dependent code
+   is wrong and I'll NACK that.
+3) does all the ringbuffer handling etc.
+
+The split will be much more obvious and logical if things like index, length,
+offset/userptr/fd are added to the vb2 core structs. We could have done that
+when we created vb2 since it's obviously essential core buffer information, but we
+had the v4l2_buffer struct anyway so there was no real need to do so. But now there
+is.
 
 Regards,
 
