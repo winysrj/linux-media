@@ -1,78 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43934 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751898AbbH1Ltf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 07:49:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, ricardo.ribalda@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 4/8] saa7164: add support for control events
-Date: Fri, 28 Aug 2015 13:48:29 +0200
-Message-Id: <1440762513-30457-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
-References: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx6-14.smtp.antispamcloud.com ([95.211.2.226]:37689 "EHLO
+	mx6-14.smtp.antispamcloud.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964936AbbHKNvF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 09:51:05 -0400
+Message-ID: <55C9E97A.1000004@topic.nl>
+Date: Tue, 11 Aug 2015 14:24:26 +0200
+From: Mike Looijmans <mike.looijmans@topic.nl>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, <lars@metafoo.de>
+CC: <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] i2c/adv7511: Fix license, set to GPL v2
+References: <1438081066-31748-1-git-send-email-mike.looijmans@topic.nl> <55C9E060.6050901@xs4all.nl>
+In-Reply-To: <55C9E060.6050901@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+﻿Okay, I split it up and sent it to the proper lists.
 
-Now that saa7164 uses v4l2_fh and that poll() has been fixed, it is
-trivial to add support for control events.
+Just noticed I forgot to set the "in-reply-to" headers though. Hope that won't 
+be a problem.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7164/saa7164-encoder.c | 8 ++++++--
- drivers/media/pci/saa7164/saa7164.h         | 1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+On 11-08-15 13:45, Hans Verkuil wrote:
+> Hi Mike,
+>
+> Please split up this patch: these are two different drivers with different
+> authors and different subsystems.
+>
+> The media/i2c/adv7511.c patch I can handle, but the patch for the drm driver
+> should go to the dri-devel mailinglist. I can't take that change.
+>
+> Easiest is just to post two patches, one for each driver.
+>
+> Regards,
+>
+> 	Hans
+>
+> On 07/28/15 12:57, Mike Looijmans wrote:
+>> Header claims GPL v2, so make the MODULE_LICENSE reflect that properly.
+>>
+>> Signed-off-by: Mike Looijmans <mike.looijmans@topic.nl>
+>> ---
+>>   drivers/gpu/drm/i2c/adv7511_core.c | 2 +-
+>>   drivers/media/i2c/adv7511.c        | 2 +-
+>>   2 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/i2c/adv7511_core.c b/drivers/gpu/drm/i2c/adv7511_core.c
+>> index 2564b5d..12e8134 100644
+>> --- a/drivers/gpu/drm/i2c/adv7511_core.c
+>> +++ b/drivers/gpu/drm/i2c/adv7511_core.c
+>> @@ -956,4 +956,4 @@ module_exit(adv7511_exit);
+>>
+>>   MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
+>>   MODULE_DESCRIPTION("ADV7511 HDMI transmitter driver");
+>> -MODULE_LICENSE("GPL");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
+>> index 02d76c6..1a4275d 100644
+>> --- a/drivers/media/i2c/adv7511.c
+>> +++ b/drivers/media/i2c/adv7511.c
+>> @@ -41,7 +41,7 @@ MODULE_PARM_DESC(debug, "debug level (0-2)");
+>>
+>>   MODULE_DESCRIPTION("Analog Devices ADV7511 HDMI Transmitter Device Driver");
+>>   MODULE_AUTHOR("Hans Verkuil");
+>> -MODULE_LICENSE("GPL");
+>> +MODULE_LICENSE("GPL v2");
+>>
+>>   #define MASK_ADV7511_EDID_RDY_INT   0x04
+>>   #define MASK_ADV7511_MSEN_INT       0x40
+>>
 
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index fd32fa0..3bd76c4 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -919,7 +919,7 @@ static unsigned int fops_poll(struct file *file, poll_table *wait)
- 	struct saa7164_encoder_fh *fh =
- 		(struct saa7164_encoder_fh *)file->private_data;
- 	struct saa7164_port *port = fh->port;
--	unsigned int mask = 0;
-+	unsigned int mask = v4l2_ctrl_poll(file, wait);
- 
- 	port->last_poll_msecs_diff = port->last_poll_msecs;
- 	port->last_poll_msecs = jiffies_to_msecs(jiffies);
-@@ -935,7 +935,7 @@ static unsigned int fops_poll(struct file *file, poll_table *wait)
- 	if (atomic_cmpxchg(&fh->v4l_reading, 0, 1) == 0) {
- 		if (atomic_inc_return(&port->v4l_reader_count) == 1) {
- 			if (saa7164_encoder_initialize(port) < 0)
--				return POLLERR;
-+				return mask | POLLERR;
- 			saa7164_encoder_start_streaming(port);
- 			msleep(200);
- 		}
-@@ -976,6 +976,10 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_g_fmt_vid_cap	 = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap	 = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap	 = vidioc_s_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap	 = vidioc_s_fmt_vid_cap,
-+	.vidioc_log_status	 = v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event  = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static struct video_device saa7164_mpeg_template = {
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 05707e3..1d8e95d 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -65,6 +65,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
- 
- #include "saa7164-reg.h"
- #include "saa7164-types.h"
--- 
-2.1.4
+
+
+Kind regards,
+
+Mike Looijmans
+System Expert
+
+TOPIC Embedded Products
+Eindhovenseweg 32-C, NL-5683 KH Best
+Postbus 440, NL-5680 AK Best
+Telefoon: +31 (0) 499 33 69 79
+Telefax: +31 (0) 499 33 69 70
+E-mail: mike.looijmans@topicproducts.com
+Website: www.topicproducts.com
+
+Please consider the environment before printing this e-mail
+
+
+
+
 
