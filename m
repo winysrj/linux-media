@@ -1,100 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48413 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753269AbbH3DHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:48 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	linux-api@vger.kernel.org
-Subject: [PATCH v8 38/55] [media] v4l2-subdev: use MEDIA_ENT_T_UNKNOWN for new subdevs
-Date: Sun, 30 Aug 2015 00:06:49 -0300
-Message-Id: <662a3bb2bfb02f820f4dafa0033af2cf16d273c5.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:48516 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752675AbbHKWqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 18:46:22 -0400
+Subject: Re: [PATCH 2/3] [media] tda10071: use div_s64() when dividing a s64
+ integer
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
+ <7d0ddc91c854f1f42fd7165e259b3573f53c1d73.1439332733.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55CA7B3B.3020304@iki.fi>
+Date: Wed, 12 Aug 2015 01:46:19 +0300
+MIME-Version: 1.0
+In-Reply-To: <7d0ddc91c854f1f42fd7165e259b3573f53c1d73.1439332733.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of abusing MEDIA_ENT_T_V4L2_SUBDEV, initialize
-new subdev entities as MEDIA_ENT_T_UNKNOWN.
+On 08/12/2015 01:39 AM, Mauro Carvalho Chehab wrote:
+> Otherwise, it will break on 32 bits archs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Look good!
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 659507bce63f..134fe7510195 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -435,6 +435,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- {
- 	int i;
- 
-+	if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN ||
-+	    entity->type == MEDIA_ENT_T_UNKNOWN)
-+		dev_warn(mdev->dev,
-+			 "Entity type for entity %s was not initialized!\n",
-+			 entity->name);
-+
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->graph_obj.mdev != NULL);
- 	entity->graph_obj.mdev = mdev;
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 60da43772de9..b3bcc8253182 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -584,7 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
- EXPORT_SYMBOL(v4l2_subdev_init);
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 3bbda409353f..44b84aae8b02 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -42,6 +42,14 @@ struct media_device_info {
- 
- #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
- 
-+/* Used values for media_entity_desc::type */
-+
-+/*
-+ * Initial value when an entity is created
-+ * Drivers should change it to something useful
-+ */
-+#define MEDIA_ENT_T_UNKNOWN	0x00000000
-+
- /*
-  * Base numbers for entity types
-  *
-@@ -77,6 +85,15 @@ struct media_device_info {
- #define MEDIA_ENT_T_V4L2_SWRADIO	(MEDIA_ENT_T_V4L2_BASE + 7)
- 
- /* V4L2 Sub-device entities */
-+
-+	/*
-+	 * Subdevs are initialized with MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN,
-+	 * in order to preserve backward compatibility.
-+	 * Drivers should change to the proper subdev type before
-+	 * registering the entity.
-+	 */
-+#define MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_T_V4L2_SUBDEV_BASE
-+
- #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 1)
- #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 2)
- #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 3)
+Antti
+
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+> index ee6653124618..119d47596ac8 100644
+> --- a/drivers/media/dvb-frontends/tda10071.c
+> +++ b/drivers/media/dvb-frontends/tda10071.c
+> @@ -527,7 +527,7 @@ static int tda10071_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+>   	unsigned int uitmp;
+>
+>   	if (c->strength.stat[0].scale == FE_SCALE_DECIBEL) {
+> -		uitmp = c->strength.stat[0].svalue / 1000 + 256;
+> +		uitmp = div_s64(c->strength.stat[0].svalue, 1000) + 256;
+>   		uitmp = clamp(uitmp, 181U, 236U); /* -75dBm - -20dBm */
+>   		/* scale value to 0x0000-0xffff */
+>   		*strength = (uitmp-181) * 0xffff / (236-181);
+>
+
 -- 
-2.4.3
-
+http://palosaari.fi/
