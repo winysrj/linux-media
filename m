@@ -1,183 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48414 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273AbbH3DHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:49 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:57172 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964835AbbHKNWL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 09:22:11 -0400
+Date: Tue, 11 Aug 2015 10:22:01 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Akihiro Tsukada <tskd08@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v8 00/55] MC next generation patches
-Date: Sun, 30 Aug 2015 00:06:11 -0300
-Message-Id: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH RFC v2 09/16] media: use media_graph_obj for link
+ endpoints
+Message-ID: <20150811102201.5abaf64d@recife.lan>
+In-Reply-To: <55C9E9AE.5020602@cisco.com>
+References: <cover.1439292977.git.mchehab@osg.samsung.com>
+	<6d02794028ea4f7ad33e3ba0e07e0c690e2feee2.1439292977.git.mchehab@osg.samsung.com>
+	<55C9E9AE.5020602@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That's the 8th version of the MC next generation patches.
+Em Tue, 11 Aug 2015 14:25:18 +0200
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-Differences from version 7:
+> Hi Mauro,
+> 
+> Thanks for posting the missing patches.
 
-- Patches reworked to make the reviewers happy;
-- Bug fixes;
-- ALSA changes got their own separate patches;
-- Javier patches got integrated into this series;
-- media-entity.h structs are now properly documented;
-- Tested on both au0828 and omap3isp.
+Thanks for reviewing this patch series!
 
-Due to the complexity of this change, other platform drivers may
-require some fixes. 
+> 
+> On 08/11/15 14:09, Mauro Carvalho Chehab wrote:
+> > As we'll need to create links between entities and interfaces,
+> > we need to identify the link endpoints by the media_graph_obj.
+> > 
+> > Most of the changes here was done by this small script:
+> > 
+> > for i in `find drivers/media -type f` `find drivers/staging/media -type f`; do
+> > 	perl -ne 's,([\w]+)\-\>(source|sink)\-\>entity,gobj_to_pad($1->$2)->entity,; print $_;' <$i >a && mv a $i
+> > done
+> > 
+> > Please note that, while we're now using graph_obj to reference
+> > the link endpoints, we're still assuming that all endpoints are
+> > pads. This is true for all existing links, so no problems
+> > are expected so far.
+> > 
+> > Yet, as we introduce links between entities and interfaces,
+> > we may need to change some existing code to work with links
+> > that aren't pad to pad.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> 
+> <snip>
+> 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 403019035424..f6e2136480f1 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -43,6 +43,17 @@ enum media_graph_type {
+> >  	MEDIA_GRAPH_LINK,
+> >  };
+> >  
+> > +/**
+> > + * enum media_graph_link_dir - direction of a link
+> > + *
+> > + * @MEDIA_LINK_DIR_BIDIRECTIONAL	Link is bidirectional
+> > + * @MEDIA_LINK_DIR_PAD_0_TO_1		Link is unidirectional,
+> > + *					from port 0 (source) to port 1 (sink)
+> > + */
+> > +enum media_graph_link_dir {
+> > +	MEDIA_LINK_DIR_BIDIRECTIONAL,
+> > +	MEDIA_LINK_DIR_PORT0_TO_PORT1,
+> > +};
+> 
+> 1) the comment and the actual enum are out-of-sync
 
-As the patch series sent before, this is not meant to be sent
-upstream yet. Its goal is to merge it for Kernel 4.4, in order to
-give people enough time to review and fix pending issues.
+Ah, yes. I was in doubt about using PAD or PORT here. I ended by using
+port at the links, as the endpoints can either be an interface/entity
+or a pad. So, I decided to use port.
 
-Regards,
-Mauro
+> 2) why not just make a 'BIRECTIONAL' link flag instead of inventing
+>    a new enum? Adding yet another field seems overkill to me. Have a
+>    'BIDIRECTIONAL' flag seems perfectly OK to me (and useful for the
+>    application as well).
 
-Javier Martinez Canillas (6):
-  [media] staging: omap4iss: get entity ID using media_entity_id()
-  [media] omap3isp: get entity ID using media_entity_id()
-  [media] media: use entity.graph_obj.mdev instead of .parent
-  [media] media: remove media entity .parent field
-  [media] omap3isp: separate links creation from entities init
-  [media] omap3isp: create links after all subdevs have been bound
+Yeah, we can use flags, instead. I decided to use an enum here just
+to make it clearer about the two possible options.
 
-Mauro Carvalho Chehab (49):
-  [media] media: create a macro to get entity ID
-  [media] media: add a common struct to be embed on media graph objects
-  [media] media: use media_gobj inside entities
-  [media] media: use media_gobj inside pads
-  [media] media: use media_gobj inside links
-  [media] media: add messages when media device gets (un)registered
-  [media] media: add a debug message to warn about gobj creation/removal
-  [media] media: rename the function that create pad links
-  [media] uapi/media.h: Declare interface types for V4L2 and DVB
-  [media] media: add functions to allow creating interfaces
-  [media] uapi/media.h: Declare interface types for ALSA
-  [media] media: Don't accept early-created links
-  [media] media: convert links from array to list
-  [media] media: make add link more generic
-  [media] media: make media_link more generic to handle interace links
-  [media] media: make link debug printk more generic
-  [media] media: add support to link interfaces and entities
-  [media] media-entity: add a helper function to create interface
-  [media] dvbdev: add support for interfaces
-  [media] media: add a linked list to track interfaces by mdev
-  [media] dvbdev: add support for indirect interface links
-  [media] uapi/media.h: Fix entity namespace
-  [media] replace all occurrences of MEDIA_ENT_T_DEVNODE_V4L
-  [media] replace all occurrences of MEDIA_ENT_T_DEVNODE_DVB
-  [media] media: add macros to check if subdev or V4L2 DMA
-  [media] media: use macros to check for V4L2 subdev entities
-  [media] omap3/omap4/davinci: get rid of MEDIA_ENT_T_V4L2_SUBDEV abuse
-  [media] s5c73m3: fix subdev type
-  [media] s5k5baf: fix subdev type
-  [media] davinci_vbpe: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
-  [media] omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
-  [media] v4l2-subdev: use MEDIA_ENT_T_UNKNOWN for new subdevs
-  [media] media controller: get rid of entity subtype on Kernel
-  [media] media.h: don't use legacy entity macros at Kernel
-  [media] DocBook: update descriptions for the media controller entities
-  [media] dvb: modify core to implement interfaces/entities at MC new
-    gen
-  [media] media: report if a pad is sink or source at debug msg
-  [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY ioctl
-  [media] media: Use a macro to interate between all interfaces
-  [media] media: move mdev list init to gobj
-  [media] media-device: add pads and links to media_device
-  [media] media_device: add a topology version field
-  [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY ioctl
-  [media] media-entity: unregister entity links
-  [media] remove interface links at media_entity_unregister()
-  [media] media-device: remove interfaces and interface links
-  [media] v4l2-core: create MC interfaces for devnodes
-  [media] au0828: unregister MC at the end
-  [media] media-entity.h: document all the structs
+I was actually considering to rename media_link source/sink to
+port0/port1, as using "source"/"sink" names on a bidirection link
+doesn't make sense. I'm still in doubt about such rename, though,
+as it would make harder to inspect the graph traversal routines.
 
- .../DocBook/media/v4l/media-ioc-enum-entities.xml  |  57 +--
- Documentation/media-framework.txt                  |   2 +-
- drivers/media/dvb-core/dmxdev.c                    |   4 +-
- drivers/media/dvb-core/dvb_ca_en50221.c            |   2 +-
- drivers/media/dvb-core/dvb_frontend.c              |  11 +-
- drivers/media/dvb-core/dvb_net.c                   |   2 +-
- drivers/media/dvb-core/dvbdev.c                    | 278 +++++++++---
- drivers/media/dvb-core/dvbdev.h                    |  10 +-
- drivers/media/firewire/firedtv-ci.c                |   2 +-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c           |   8 +-
- drivers/media/i2c/s5k5baf.c                        |   4 +-
- drivers/media/i2c/smiapp/smiapp-core.c             |   4 +-
- drivers/media/media-device.c                       | 245 +++++++++--
- drivers/media/media-entity.c                       | 473 +++++++++++++++++----
- drivers/media/pci/bt8xx/dst_ca.c                   |   3 +-
- drivers/media/pci/ddbridge/ddbridge-core.c         |   2 +-
- drivers/media/pci/ngene/ngene-core.c               |   2 +-
- drivers/media/pci/ttpci/av7110.c                   |   2 +-
- drivers/media/pci/ttpci/av7110_av.c                |   4 +-
- drivers/media/pci/ttpci/av7110_ca.c                |   2 +-
- drivers/media/platform/exynos4-is/common.c         |   3 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |   5 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |   9 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |  18 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  25 +-
- drivers/media/platform/exynos4-is/media-dev.h      |   8 +-
- drivers/media/platform/omap3isp/isp.c              | 202 +++++----
- drivers/media/platform/omap3isp/ispccdc.c          |  39 +-
- drivers/media/platform/omap3isp/ispccdc.h          |   1 +
- drivers/media/platform/omap3isp/ispccp2.c          |  35 +-
- drivers/media/platform/omap3isp/ispccp2.h          |   1 +
- drivers/media/platform/omap3isp/ispcsi2.c          |  33 +-
- drivers/media/platform/omap3isp/ispcsi2.h          |   1 +
- drivers/media/platform/omap3isp/isppreview.c       |  48 ++-
- drivers/media/platform/omap3isp/isppreview.h       |   1 +
- drivers/media/platform/omap3isp/ispresizer.c       |  46 +-
- drivers/media/platform/omap3isp/ispresizer.h       |   1 +
- drivers/media/platform/omap3isp/ispvideo.c         |  17 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |   2 +-
- drivers/media/platform/s3c-camif/camif-core.c      |   4 +-
- drivers/media/platform/vsp1/vsp1_drv.c             |   4 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |   2 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  15 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |   2 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |  10 +-
- drivers/media/platform/xilinx/xilinx-vipp.c        |   4 +-
- drivers/media/usb/au0828/au0828-core.c             |  18 +-
- drivers/media/usb/au0828/au0828-video.c            |   8 +-
- drivers/media/usb/cx231xx/cx231xx-cards.c          |   6 +-
- drivers/media/usb/cx231xx/cx231xx-video.c          |   8 +-
- drivers/media/usb/uvc/uvc_entity.c                 |   2 +-
- drivers/media/v4l2-core/v4l2-dev.c                 | 105 ++++-
- drivers/media/v4l2-core/v4l2-device.c              |  10 +-
- drivers/media/v4l2-core/v4l2-subdev.c              |   6 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |   9 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  15 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c    |  15 +-
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |  33 +-
- .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  10 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |  17 +-
- drivers/staging/media/omap4iss/iss.c               |  32 +-
- drivers/staging/media/omap4iss/iss_csi2.c          |  13 +-
- drivers/staging/media/omap4iss/iss_ipipe.c         |   9 +-
- drivers/staging/media/omap4iss/iss_ipipeif.c       |  15 +-
- drivers/staging/media/omap4iss/iss_resizer.c       |  13 +-
- drivers/staging/media/omap4iss/iss_video.c         |   9 +-
- include/media/media-device.h                       |  34 +-
- include/media/media-entity.h                       | 305 +++++++++++--
- include/media/v4l2-dev.h                           |   1 +
- include/uapi/linux/media.h                         | 205 ++++++++-
- 70 files changed, 1924 insertions(+), 627 deletions(-)
+Also, I want to force all places that create a link to choose
+between either BIRECTIONAL or PORT0_TO_PORT1, as this makes easier
+to review if the code is doing the right thing when inspecting it.
 
--- 
-2.4.3
+In summary, I would prefer to keep this internally as a separate
+ enum, at least for now. We can latter simplify it and use a flag
+for that (or maybe two flags?).
 
+> 
+> >  
+> >  /* Structs to represent the objects that belong to a media graph */
+> >  
+> > @@ -72,9 +83,9 @@ struct media_pipeline {
+> >  
+> >  struct media_link {
+> >  	struct list_head list;
+> > -	struct media_graph_obj			graph_obj;
+> > -	struct media_pad *source;	/* Source pad */
+> > -	struct media_pad *sink;		/* Sink pad  */
+> > +	struct media_graph_obj		graph_obj;
+> > +	enum media_graph_link_dir	dir;
+> > +	struct media_graph_obj		*source, *sink;
+> 
+> I'm not too keen about all the gobj_to_foo(obj) macros that this requires. It
+> is rather ugly code.
+> 
+> What about this:
+> 
+> 	union {
+> 		struct media_graph_obj *source;
+> 		struct media_pad *source_pad;
+> 		struct media_interface *source_intf;
+> 	};
+> 	union {
+> 		struct media_graph_obj *sink;
+> 		struct media_pad *sink_pad;
+> 		struct media_entity *sink_ent;
+> 	};
+> 
+> Now the code can just use ->source_pad etc.
+
+good idea. Will do that on a version 3. I think that, in this case, the
+best is to write a note that the first element at pad/entity/interface
+should be the graph_obj.
+
+I would actually call port0_intf and port1_ent on the above structs,
+as it makes no sense to call sink/source for interface->entity links.
+
+> >  	struct media_link *reverse;	/* Link in the reverse direction */
+> >  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+> >  };
+> > @@ -115,6 +126,11 @@ struct media_entity {
+> >  	u32 group_id;			/* Entity group ID */
+> >  
+> >  	u16 num_pads;			/* Number of sink and source pads */
+> > +
+> > +	/*
+> > +	 * Both num_links and num_backlinks are used only to report
+> > +	 * the number of links via MEDIA_IOC_ENUM_ENTITIES at media_device.c
+> > +	 */
+> >  	u16 num_links;			/* Number of existing links, both
+> >  					 * enabled and disabled */
+> >  	u16 num_backlinks;		/* Number of backlinks */
+> > @@ -171,6 +187,12 @@ struct media_entity_graph {
+> >  #define gobj_to_entity(gobj) \
+> >  		container_of(gobj, struct media_entity, graph_obj)
+> >  
+> > +#define gobj_to_link(gobj) \
+> > +		container_of(gobj, struct media_link, graph_obj)
+> > +
+> > +#define gobj_to_pad(gobj) \
+> > +		container_of(gobj, struct media_pad, graph_obj)
+> > +
+> 
+> I saw a lot of type checks (if (link->sink.type != MEDIA_GRAPH_PAD))
+> that I think would look cleaner if there was a simple static inline
+> helper:
+> 
+> static inline bool is_pad(const struct media_graph_obj *obj)
+> {
+> 	return obj->type == MEDIA_GRAPH_PAD;
+> }
+> 
+> media_is_pad() will work as well, but I think brevity is more useful
+> in this case. Personal opinion, though.
+
+I would use media_is_pad() instead, to avoid namespace conflicts. We may
+eventually need other inline functions for other types in the future.
+
+> 
+> >  void graph_obj_init(struct media_device *mdev,
+> >  		    enum media_graph_type type,
+> >  		    struct media_graph_obj *gobj);
+> > 
+> 
+> Regards,
+> 
+> 	Hans
