@@ -1,120 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45496 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752998AbbHJNo2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 09:44:28 -0400
-Message-ID: <55C8AAA0.9030407@xs4all.nl>
-Date: Mon, 10 Aug 2015 15:44:00 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from muru.com ([72.249.23.125]:42811 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755153AbbHKLQI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 07:16:08 -0400
+Date: Tue, 11 Aug 2015 04:16:04 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Michael Allwright <michael.allwright@upb.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH RFC] DT support for omap4-iss
+Message-ID: <20150811111604.GD10928@atomide.com>
+References: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: media-workshop@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [media-workshop] [RFC] Media graph flow for an hybrid device
- as discussed at the media workshop
-References: <20150808083330.7daf111f@recife.lan>	<55C89C86.2070707@xs4all.nl>	<20150810100524.09fb089f@recife.lan> <20150810101936.238ad3f7@recife.lan>
-In-Reply-To: <20150810101936.238ad3f7@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2015 03:19 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 10 Aug 2015 10:05:24 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> 
->> Em Mon, 10 Aug 2015 14:43:50 +0200
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>
->>> Hi Mauro,
->>
->> Thanks for the review!
->>
->>>
->>> On 08/08/2015 01:33 PM, Mauro Carvalho Chehab wrote:
->>>> During the discussions at the Media Workshop, we came with some dot files that
->>>> would describe a hybrid PC-consumer TV stick with radio, analog video, analog
->>>> TV and digital TV on it.
->>>>
->>>> I consolidated all the dot files we've worked there, and added the
->>>> connectors for RF, S-Video and Composite.
->>>>
->>>> The dot file and the corresponding picture is at:
->>>> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.dot
->>>> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.png
->>>>
->>>> As my plan is to start working on some real driver to produce such graph,
->>>> please validate if the entities, interfaces, data links and interface links
->>>> are correct, and if the namespace nomenclature is ok, or if I miss something.
->>>
->>> This looks OK to me, except for one small detail: I wouldn't use the name
->>> "Source entities" for connectors. Instead use "Connector entities" since
->>> such entities correspond to actual real connectors on a backplane. 
->>
->> Yeah. Well, they're actually "Source connector entities" ;) But I see
->> your point. All connectors should be marked with a different type at
->> the media_graph_obj.
->>
->>> A proper
->>> source entity would be a sensor or test pattern generator. Which actually
->>> can occur with the em28xx since it's used in webcams as well.
->>
->> Ah, true. I'll add that in the graph and use a different color to
->> distinguish between "source" and "connector" entities.
->>
->>>
->>> And a really, really small detail: in the legend the 'interface link' is an
->>> arrow, but it should be a line, since there is no direction. The graph itself
->>> is fine.
->>
->> Well, I didn't find a way to put a line there. The legend is produced by
->> an html code. I would need to have a "line" character, or to add an image.
->>
->> Perhaps I should look deeper to find a bold horizontal line at the UTF-8
->> charset. &#8212; and &#8213; are too thin. Do you know any char that would
->> look better there?
-> 
-> Found one character ;)
-> 
-> I also added a webcam sensor and fixed the legend. See below:
-> 
-> http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.png
-> http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v3.dot
+* Michael Allwright <michael.allwright@upb.de> [150810 08:19]:
+> +
+> +/*
+> +We need a better solution for this
+> +*/
+> +#include <../arch/arm/mach-omap2/omap-pm.h>
 
-Looks good. But if you have a sensor, then there should also be a v4l-subdev2
-interface for the sensor entity, and it is also controlled by video0, so that
-interface-to-entity link is missing.
+Please let's not do things like this, I end up having to deal with
+all these eventually :(
 
-And the saa7115 output pads need to be renumbered to 4-6 (there are two pads '3'
-at the moment and the mixer is linked to the input pad 3).
+> +static void iss_set_constraints(struct iss_device *iss, bool enable)
+> +{
+> +    if (!iss)
+> +        return;
+> +
+> +    /* FIXME: Look for something more precise as a good throughtput limit */
+> +    omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
+> +                 enable ? 800000 : -1);
+> +}
+> +
+> +static struct iss_platform_data iss_dummy_pdata = {
+> +    .set_constraints = iss_set_constraints,
+> +};
+
+If this is one time setting, you could do it based on the
+compatible string using arch/arm/mach-omap2/pdata-quirks.c.
+
+If you need to toggle it, you could populate a function pointer
+in pdata-quirks.c. Those are easy to fix once there is some Linux
+generic API available :)
 
 Regards,
 
-	Hans
-
-> 
->>
->>> As you mentioned on irc, the v4l-subdevX nodes won't be created for this device
->>> since all the configuration happens via the standard interfaces.
->>>
->>> But if they were to be created, then they would appear where they are in this
->>> example.
->>
->> Thanks!
->> Mauro
->>
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>> _______________________________________________
->>> media-workshop mailing list
->>> media-workshop@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Tony
