@@ -1,159 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54400 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbbHRUE2 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42137 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964936AbbHKN4B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 16:04:28 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v5 2/8] [media] media: add a common struct to be embed on media graph objects
-Date: Tue, 18 Aug 2015 17:04:15 -0300
-Message-Id: <9c2b29164f11d96c5c437165fb3f013aec8715fe.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
+	Tue, 11 Aug 2015 09:56:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
+	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
+	sangbae90.lee@samsung.com, rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v2 4/5] media: videobuf2: Define vb2_buf_type and vb2_memory
+Date: Tue, 11 Aug 2015 16:56:54 +0300
+Message-ID: <30625903.5XtBkRR4hc@avalon>
+In-Reply-To: <55C85F34.7040603@xs4all.nl>
+References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com> <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com> <55C85F34.7040603@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the MC API proposed changes, we'll need to have an unique
-object ID for all graph objects, and have some shared fields
-that will be common on all media graph objects.
+Hello,
 
-Right now, the only common object is the object ID, but other
-fields will be added later on.
+On Monday 10 August 2015 10:22:12 Hans Verkuil wrote:
+> On 07/31/2015 10:44 AM, Junghak Sung wrote:
+> > Define enum vb2_buf_type and enum vb2_memory for videobuf2-core. This
+> > change requires translation functions that could covert v4l2-core stuffs
+> > to videobuf2-core stuffs in videobuf2-v4l2.c file.
+> > The v4l2-specific member variables(e.g. type, memory) remains in
+> > struct vb2_queue for backward compatibility and performance of type
+> > translation.
+> > 
+> > Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> > Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> > Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> > Acked-by: Inki Dae <inki.dae@samsung.com>
+> > ---
+> > 
+> >  drivers/media/v4l2-core/videobuf2-core.c |  139 +++++++++++---------
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c |  209 ++++++++++++++++++-------
+> >  include/media/videobuf2-core.h           |   99 +++++++++++---
+> >  include/media/videobuf2-v4l2.h           |   12 +-
+> >  4 files changed, 299 insertions(+), 160 deletions(-)
+> 
+> <snip>
+> 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > b/drivers/media/v4l2-core/videobuf2-v4l2.c index 85527e9..22dd19c 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > @@ -30,8 +30,46 @@
+> > 
+> >  #include <media/v4l2-common.h>
+> >  #include <media/videobuf2-v4l2.h>
+> > 
+> > +#define CREATE_TRACE_POINTS
+> > 
+> >  #include <trace/events/v4l2.h>
+> > 
+> > +static const enum vb2_buf_type _tbl_buf_type[] = {
+> > +	[V4L2_BUF_TYPE_VIDEO_CAPTURE]		= VB2_BUF_TYPE_VIDEO_CAPTURE,
+> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT]		= VB2_BUF_TYPE_VIDEO_OUTPUT,
+> > +	[V4L2_BUF_TYPE_VIDEO_OVERLAY]		= VB2_BUF_TYPE_VIDEO_OVERLAY,
+> > +	[V4L2_BUF_TYPE_VBI_CAPTURE]		= VB2_BUF_TYPE_VBI_CAPTURE,
+> > +	[V4L2_BUF_TYPE_VBI_OUTPUT]		= VB2_BUF_TYPE_VBI_OUTPUT,
+> > +	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE]	= 
+VB2_BUF_TYPE_SLICED_VBI_CAPTURE,
+> > +	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]	= VB2_BUF_TYPE_SLICED_VBI_OUTPUT,
+> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY]	=
+> > VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY,
+> > +	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE]	=
+> > VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+> > +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE]	= 
+VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+> > +	[V4L2_BUF_TYPE_SDR_CAPTURE]		= VB2_BUF_TYPE_SDR_CAPTURE,
+> > +	[V4L2_BUF_TYPE_PRIVATE]			= VB2_BUF_TYPE_PRIVATE,
+> > +};
+> > +
+> > +static const enum vb2_memory _tbl_memory[] = {
+> > +	[V4L2_MEMORY_MMAP]	= VB2_MEMORY_MMAP,
+> > +	[V4L2_MEMORY_USERPTR]	= VB2_MEMORY_USERPTR,
+> > +	[V4L2_MEMORY_DMABUF]	= VB2_MEMORY_DMABUF,
+> > +};
+> > +
+> > +#define to_vb2_buf_type(type)					\
+> > +({								\
+> > +	enum vb2_buf_type ret = 0;				\
+> > +	if( type > 0 && type < ARRAY_SIZE(_tbl_buf_type) )	\
+> > +		ret = (_tbl_buf_type[type]);			\
+> > +	ret;							\
+> > +})
+> > +
+> > +#define to_vb2_memory(memory)					\
+> > +({								\
+> > +	enum vb2_memory ret = 0;				\
+> > +	if( memory > 0 && memory < ARRAY_SIZE(_tbl_memory) )	\
+> > +		ret = (_tbl_memory[memory]);			\
+> > +	ret;							\
+> > +})
+> > +
+> 
+> <snip>
+> 
+> > diff --git a/include/media/videobuf2-core.h
+> > b/include/media/videobuf2-core.h index dc405da..871fcc6 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -15,9 +15,47 @@
+> > 
+> >  #include <linux/mm_types.h>
+> >  #include <linux/mutex.h>
+> >  #include <linux/poll.h>
+> > 
+> > -#include <linux/videodev2.h>
+> > 
+> >  #include <linux/dma-buf.h>
+> > 
+> > +#define VB2_MAX_FRAME               32
+> > +#define VB2_MAX_PLANES               8
+> > +
+> > +enum vb2_buf_type {
+> > +	VB2_BUF_TYPE_UNKNOWN			= 0,
+> > +	VB2_BUF_TYPE_VIDEO_CAPTURE		= 1,
+> > +	VB2_BUF_TYPE_VIDEO_OUTPUT		= 2,
+> > +	VB2_BUF_TYPE_VIDEO_OVERLAY		= 3,
+> > +	VB2_BUF_TYPE_VBI_CAPTURE		= 4,
+> > +	VB2_BUF_TYPE_VBI_OUTPUT			= 5,
+> > +	VB2_BUF_TYPE_SLICED_VBI_CAPTURE		= 6,
+> > +	VB2_BUF_TYPE_SLICED_VBI_OUTPUT		= 7,
+> > +	VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	= 8,
+> > +	VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	= 9,
+> > +	VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE	= 10,
+> > +	VB2_BUF_TYPE_SDR_CAPTURE		= 11,
+> > +	VB2_BUF_TYPE_DVB_CAPTURE		= 12,
+> > +	VB2_BUF_TYPE_PRIVATE			= 0x80,
+> > +};
+> > +
+> > +enum vb2_memory {
+> > +	VB2_MEMORY_UNKNOWN	= 0,
+> > +	VB2_MEMORY_MMAP		= 1,
+> > +	VB2_MEMORY_USERPTR	= 2,
+> > +	VB2_MEMORY_DMABUF	= 4,
+> > +};
+> > +
+> > +#define VB2_TYPE_IS_MULTIPLANAR(type)			\
+> > +	((type) == VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
+> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> > +
+> > +#define VB2_TYPE_IS_OUTPUT(type)				\
+> > +	((type) == VB2_BUF_TYPE_VIDEO_OUTPUT			\
+> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
+> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OVERLAY		\
+> > +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY		\
+> > +	 || (type) == VB2_BUF_TYPE_VBI_OUTPUT			\
+> > +	 || (type) == VB2_BUF_TYPE_SLICED_VBI_OUTPUT)
+> 
+> You don't actually need to create vb2_buf_type: unless I am mistaken, all
+> that the vb2 core needs to know is if it is a capture or output queue and
+> possibly (not sure about that) if it is single or multiplanar. So add
+> fields to the vb2_queue struct for that information and leave the buf_type
+> to the v4l2 specific header and code.
+> 
+> You also don't need the _tbl_memory[] array. All you need to do is to check
+> in videobuf2-v4l2.c that VB2_MEMORY* equals the V4L2_MEMORY_* defines and
+> generate a #error if not:
+> 
+> #if VB2_MEMORY_MMAP != V4L2_MEMORY_MMAP || VB2_MEMORY_....
+> #error VB2_MEMORY_* != V4L2_MEMORY_*!
+> #endif
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hijacking this e-mail thread a bit, would it make sense for the new vb2-core 
+to support different memory allocation for different planes ? I'm foreseeing 
+use cases for buffers that bundle image data with meta-data, where image data 
+should be captured to a dma-buf imported buffer, but meta-data doesn't need to 
+be shared. In that case it wouldn't be easy for userspace to find a dma-buf 
+provider for the meta-data buffers in order to import all planes. Being able 
+to use dma-buf import for the image plane(s) and mmap for the meta-data plane 
+would be easier.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index cb0ac4e0dfa5..4834172bf6f8 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -27,6 +27,38 @@
- #include <media/media-device.h>
- 
- /**
-+ *  media_gobj_init - Initialize a graph object
-+ *
-+ * @mdev:	Pointer to the media_device that contains the object
-+ * @type:	Type of the object
-+ * @gobj:	Pointer to the object
-+ *
-+ * This routine initializes the embedded struct media_gobj inside a
-+ * media graph object. It is called automatically if media_*_create()
-+ * calls are used. However, if the object (entity, link, pad, interface)
-+ * is embedded on some other object, this function should be called before
-+ * registering the object at the media controller.
-+ */
-+void media_gobj_init(struct media_device *mdev,
-+			   enum media_gobj_type type,
-+			   struct media_gobj *gobj)
-+{
-+	/* For now, nothing to do */
-+}
-+
-+/**
-+ *  media_gobj_remove - Stop using a graph object on a media device
-+ *
-+ * @graph_obj:	Pointer to the object
-+ *
-+ * This should be called at media_device_unregister_*() routines
-+ */
-+void media_gobj_remove(struct media_gobj *gobj)
-+{
-+	/* For now, nothing to do */
-+}
-+
-+/**
-  * media_entity_init - Initialize a media entity
-  *
-  * @num_pads: Total number of sink and source pads.
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0a66fc225559..762593c7424f 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -28,6 +28,37 @@
- #include <linux/list.h>
- #include <linux/media.h>
- 
-+/* Enums used internally at the media controller to represent graphs */
-+
-+/**
-+ * enum media_gobj_type - type of a graph element
-+ *
-+ */
-+enum media_gobj_type {
-+	 /* FIXME: add the types here, as we embed media_gobj */
-+	MEDIA_GRAPH_NONE
-+};
-+
-+#define BITS_PER_TYPE		8
-+#define BITS_PER_LOCAL_ID	(32 - BITS_PER_TYPE)
-+
-+/* Structs to represent the objects that belong to a media graph */
-+
-+/**
-+ * struct media_gobj - Define a graph object.
-+ *
-+ * @id:		Non-zero object ID identifier. The ID should be unique
-+ *		inside a media_device, as it is composed by
-+ *		BITS_PER_TYPE to store the type plus BITS_PER_LOCAL_ID
-+ *		to store a per-type ID (called as "local ID").
-+ *
-+ * All elements on the media graph should have this struct embedded
-+ */
-+struct media_gobj {
-+	u32			id;
-+};
-+
-+
- struct media_pipeline {
- };
- 
-@@ -118,6 +149,26 @@ static inline u32 media_entity_id(struct media_entity *entity)
- 	return entity->id;
- }
- 
-+static inline enum media_gobj_type media_type(struct media_gobj *gobj)
-+{
-+	return gobj->id >> BITS_PER_LOCAL_ID;
-+}
-+
-+static inline u32 media_localid(struct media_gobj *gobj)
-+{
-+	return gobj->id & GENMASK(BITS_PER_LOCAL_ID - 1, 0);
-+}
-+
-+static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
-+{
-+	u32 id;
-+
-+	id = type << BITS_PER_LOCAL_ID;
-+	id |= GENMASK(BITS_PER_LOCAL_ID - 1, 0) & local_id;
-+
-+	return id;
-+}
-+
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
- #define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
-@@ -131,6 +182,14 @@ struct media_entity_graph {
- 	int top;
- };
- 
-+#define gobj_to_entity(gobj) \
-+		container_of(gobj, struct media_entity, graph_obj)
-+
-+void media_gobj_init(struct media_device *mdev,
-+		    enum media_gobj_type type,
-+		    struct media_gobj *gobj);
-+void media_gobj_remove(struct media_gobj *gobj);
-+
- int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads);
- void media_entity_cleanup(struct media_entity *entity);
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
