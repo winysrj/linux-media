@@ -1,111 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53062 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbbHLUPM (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41029 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933715AbbHKJas (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:12 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v3 12/16] media: move __media_entity_remove_link to avoid prototype
-Date: Wed, 12 Aug 2015 17:14:56 -0300
-Message-Id: <9e2e57ef99b8752795600d0adee9f1d1538ffc97.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Tue, 11 Aug 2015 05:30:48 -0400
+Message-ID: <55C9C039.6000200@xs4all.nl>
+Date: Tue, 11 Aug 2015 11:28:25 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Helen Fornazier <helen.fornazier@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	mchehab@osg.samsung.com
+Subject: Re: VIMC: API proposal, configuring the topology through user space
+References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com> <55C8A305.9010509@xs4all.nl> <CAPW4XYarvYDfQa7iCY9fNMHLb7zFGXE2dzu-cr3Z1oLVBHTjtg@mail.gmail.com>
+In-Reply-To: <CAPW4XYarvYDfQa7iCY9fNMHLb7zFGXE2dzu-cr3Z1oLVBHTjtg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we need __media_entity_remove_link() earlier, move it to
-happen earlier, to avoid needing to have a function prototype.
+Hi Helen,
 
-No functional changes.
+On 08/10/15 19:21, Helen Fornazier wrote:
+> Hi, thanks for your reviews
+> 
+> On Mon, Aug 10, 2015 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Helen!
+>>
+>> On 08/08/2015 03:55 AM, Helen Fornazier wrote:
+>>> Hi!
+>>>
+>>> I've made a first sketch about the API of the vimc driver (virtual
+>>> media controller) to configure the topology through user space.
+>>> As first suggested by Laurent Pinchart, it is based on configfs.
+>>>
+>>> I would like to know you opinion about it, if you have any suggestion
+>>> to improve it, otherwise I'll start its implementation as soon as
+>>> possible.
+>>> This API may change with the MC changes and I may see other possible
+>>> configurations as I implementing it but here is the first idea of how
+>>> the API will look like.
+>>>
+>>> vimc project link: https://github.com/helen-fornazier/opw-staging/
+>>> For more information: http://kernelnewbies.org/LaurentPinchart
+>>>
+>>> /***********************
+>>> The API:
+>>> ************************/
+>>>
+>>> In short, a topology like this one: http://goo.gl/Y7eUfu
+>>> Would look like this filesystem tree: https://goo.gl/tCZPTg
+>>> Txt version of the filesystem tree: https://goo.gl/42KX8Y
+>>>
+>>> * The /configfs/vimc subsystem
+>>
+>> I haven't checked the latest vimc driver, but doesn't it support
+>> multiple instances, just like vivid? I would certainly recommend that.
+> 
+> Yes, it does support
+> 
+>>
+>> And if there are multiple instances, then each instance gets its own
+>> entry in configfs: /configs/vimc0, /configs/vimc1, etc.
+> 
+> You are right, I'll add those
+> 
+>>
+>>> The vimc driver registers a subsystem in the configfs with the
+>>> following contents:
+>>>         > ls /configfs/vimc
+>>>         build_topology status
+>>> The build_topology attribute file will be used to tell the driver the
+>>> configuration is done and it can build the topology internally
+>>>         > echo -n "anything here" > /configfs/vimc/build_topology
+>>> Reading from the status attribute can have 3 different classes of outputs
+>>> 1) deployed: the current configured tree is built
+>>> 2) undeployed: no errors, the user has modified the configfs tree thus
+>>> the topology was undeployed
+>>> 3) error error_message: the topology configuration is wrong
+>>
+>> I don't see the status file in the filesystem tree links above.
+> 
+> Sorry, I forgot to add
+> 
+>>
+>> I actually wonder if we can't use build_topology for that: reading it
+>> will just return the status.
+> 
+> Yes we can, I was just wondering what should be the name of the file,
+> as getting the status from reading the build_topology file doesn't
+> seem much intuitive
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I'm not opposed to a status file, but it would be good to know what Laurent
+thinks.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 03c0ebdd8026..eafd26a741e5 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -476,7 +476,36 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
- }
- 
- static void __media_entity_remove_link(struct media_entity *entity,
--				       struct media_link *link);
-+				       struct media_link *link)
-+{
-+	struct media_link *rlink, *tmp;
-+	struct media_entity *remote;
-+	unsigned int r = 0;
-+
-+	if (link->pad0_source->entity == entity)
-+		remote = link->pad1_sink->entity;
-+	else
-+		remote = link->pad0_source->entity;
-+
-+	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
-+		if (rlink != link->reverse) {
-+			r++;
-+			continue;
-+		}
-+
-+		if (link->pad0_source->entity == entity)
-+			remote->num_backlinks--;
-+
-+		if (--remote->num_links == 0)
-+			break;
-+
-+		/* Remove the remote link */
-+		list_del(&rlink->list);
-+		kfree(rlink);
-+	}
-+	list_del(&link->list);
-+	kfree(link);
-+}
- 
- int
- media_create_pad_link(struct media_entity *source, u16 source_pad,
-@@ -519,38 +548,6 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- }
- EXPORT_SYMBOL_GPL(media_create_pad_link);
- 
--static void __media_entity_remove_link(struct media_entity *entity,
--				       struct media_link *link)
--{
--	struct media_link *rlink, *tmp;
--	struct media_entity *remote;
--	unsigned int r = 0;
--
--	if (link->pad0_source->entity == entity)
--		remote = link->pad1_sink->entity;
--	else
--		remote = link->pad0_source->entity;
--
--	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
--		if (rlink != link->reverse) {
--			r++;
--			continue;
--		}
--
--		if (link->pad0_source->entity == entity)
--			remote->num_backlinks--;
--
--		if (--remote->num_links == 0)
--			break;
--
--		/* Remove the remote link */
--		list_del(&rlink->list);
--		kfree(rlink);
--	}
--	list_del(&link->list);
--	kfree(link);
--}
--
- void __media_entity_remove_links(struct media_entity *entity)
- {
- 	struct media_link *link, *tmp;
--- 
-2.4.3
+> 
+>>
+>> What happens if it is deployed and you want to 'undeploy' it? Instead of
+>> writing anything to build_topology it might be useful to write a real
+>> command to it. E.g. 'deploy', 'destroy'.
+>>
+>> What happens when you make changes while a topology is deployed? Should
+>> such changes be rejected until the usecount of the driver goes to 0, or
+>> will it only be rejected when you try to deploy the new configuration?
+> 
+> I was thinking that if the user try changing the topology, or it will
+> fail (because the device instance is in use) or it will undeploy the
+> old topology (if the device is not in use). Then a 'destroy' command
+> won't be useful, the user can just unload the driver when it won't be
+> used anymore,
 
+If you have multiple vimc instances and you want to 'destroy' the topology
+of only one instance, then you can't rmmod the module.
+
+I think I would prefer to have proper commands for the build_topology
+file. It would also keep the state handling of the driver simple: it's
+either deployed or undeployed, and changes to the topology can only
+take place if it is undeployed.
+
+Commands for build_topology can be:
+
+deploy: deploy the current topology
+
+undeploy: undeploy the current topology. but keep the topology, allowing
+the user to make changes
+
+destroy: undeploy the current topology and remove it, giving the user a
+clean slate.
+
+Feel free to come up with better command names :-)
+
+> 
+>>
+>>> * Creating an entity:
+>>> Use mkdir in the /configfs/vimc to create an entity representation, e.g.:
+>>>         > mkdir /configfs/vimc/sensor_a
+>>> The attribute files will be created by the driver through configfs:
+>>>         > ls /configfs/vimc/sensor_a
+>>>         name role
+>>> Configure the name that will appear to the /dev/media0 and what this
+>>> node do (debayer, scaler, capture, input, generic)
+>>>         > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
+>>>         > echo -n "sensor" > /configfs/vimc/sensor_a/role
+>>>
+>>> * Creating a pad:
+>>> Use mkdir inside an entity's folder, the attribute called "direction"
+>>> will be automatically created in the process, for example:
+>>>         > mkdir /configfs/vimc/sensor_a/pad_0
+>>>         > ls /configfs/vimc/sensor_a/pad_0
+>>>         direction
+>>>         > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
+>>> The direction attribute can be "source" or "sink"
+>>
+>> Hmm. Aren't the pads+direction dictated by the entity role? E.g. a sensor
+>> will only have one pad which is always a source. I think setting the role
+>> is what creates the pad directories + direction files.
+> 
+> I thought that we could add as many pads that we want, having a scaler
+> with two or more sink pads (for example) in the same format that
+> scales the frames coming from any sink pad and send it to its source
+> pads, no?
+> Maybe it is better if we don't let this choice.
+
+I'd leave this out. Entities have a fixed number of pads that's determined
+by their IP or HW. I think we should match that in vimc. It also simplifies
+configuring the topology since these pads will appear automatically.
+
+> I need to check if I can modify the configfs dynamically, I mean, if
+> the user writes "debayer" to the role file, I need to create at least
+> one folder (or file) to allow the user to configure the link flag
+> related to its source pad, but if in the future we have another entity
+> role (lets say "new_entity") that has more then one source pad, and
+> the user writes "debayer" in the role and then "new_entity", we will
+> need to erase the folder created by the debayer to create two new
+> folders, I am still not sure if I can do that.
+
+I would expect that it's possible, but I'm not sure about it.
+
+BTW, an alternative might be to use the build_topology file build up
+the topology entirely by sending commands to it:
+
+echo "add entity debayer debayer_a" >build_topology
+
+You can prepare a file with commands and just do:
+
+cat my-config >build_topology.
+
+which would be a nice feature.
+
+I'm not saying you should do this, but it is something to think about.
+
+> 
+>>
+>>>
+>>> * Creating a link between pads in two steps:
+>>> Step 1)
+>>> Create a folder inside the source pad folder, the attribute called
+>>> "flag" will be automatically created in the process, for example:
+>>>         > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>>>         > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>>>         flags
+>>>         > echo -n "enabled,immutable" >
+>>> /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
+>>> In the flags attribute we can have all the links attributes (enabled,
+>>> immutable and dynamic) separated by comma
+>>>
+>>> Step 2)
+>>> Add a symlink between the previous folder we just created in the
+>>> source pad and the sink pad folder we want to connect. Lets say we
+>>> want to connect with the pad on the raw_capture_0 entity pad 0
+>>>         > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>>> /configfs/vimc/raw_capture_0/pad_0/
+>>
+>> Can't this be created automatically? Or possibly not at all, since it is
+>> implicit in step 1.
+> 
+> Do you mean, create the symlink automatically? I don't think so
+> because the driver doesn't know a priori the entities you want to
+> connect together.
+
+I don't follow. If I make a 'link_to_raw_capture_0' directory for pad_0
+of sensor_a, then I know there is a backlink from pad_0 of the raw_capture
+entity, right? At least, that's how I interpret this.
+
+Regards,
+
+	Hans
