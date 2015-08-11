@@ -1,92 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57157 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753279AbbHYGrR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 02:47:17 -0400
-Message-ID: <55DC0F45.7010108@xs4all.nl>
-Date: Tue, 25 Aug 2015 08:46:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:57152 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964863AbbHKNDO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 09:03:14 -0400
+Date: Tue, 11 Aug 2015 10:03:08 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: William Towle <william.towle@codethink.co.uk>,
+	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 05/13] v4l: subdev: Add pad config allocator and init
+Message-ID: <20150811100308.26cc76b4@recife.lan>
+In-Reply-To: <55B247DC.4080606@xs4all.nl>
+References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
+	<1437654103-26409-6-git-send-email-william.towle@codethink.co.uk>
+	<55B247DC.4080606@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> Declare the interface types that will be used by the new
-> G_TOPOLOGY ioctl that will be defined latter on.
+Em Fri, 24 Jul 2015 16:12:44 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 07/23/2015 02:21 PM, William Towle wrote:
+> > From: Laurent Pinchart <laurent.pinchart@linaro.org>
+> > 
+> > Add a new subdev operation to initialize a subdev pad config array, and
+> > a helper function to allocate and initialize the array. This can be used
+> > by bridge drivers to implement try format based on subdev pad
+> > operations.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+> > Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
 > 
-> For now, we need those types, as they'll be used on the
-> internal structs associated with the new media_interface
-> graph object defined on the next patch.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 4e816be3de39..21c96cd7a6ae 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -167,6 +167,35 @@ struct media_links_enum {
->  	__u32 reserved[4];
->  };
->  
-> +/* Interface type ranges */
-> +
-> +#define MEDIA_INTF_T_DVB_BASE	0x00000000
-> +#define MEDIA_INTF_T_V4L_BASE	0x00000100
-> +#define MEDIA_INTF_T_ALSA_BASE	0x00000200
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I would avoid BASE 0 and start with 0x100 for DVB (so ALSA gets 0x300).
+Won't merge this patch. 
 
-This ensures that type is never 0 which is often useful since it catches
-cases where userspace just memsets to 0 and never fills in the type. Or
-it can be used in the future as an ERROR or UNKNOWN type or something.
+The Media Controller implementation is currently broken.
 
-Since there is nothing that requires type to be 0 I would avoid it
-altogether.
+So, as agreed at the MC workshop, we won't be changing anything related
+to the MC while we don't rework its implementation in order to fix its
+mess.
 
-After making this small change:
+In this particular case, we'll very likely need to replace pads from
+arrays to linked lists, in order to properly support dynamic addition
+and removal. If we go to that direction, the implementation of this
+patch will be different.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, it should wait for the changes.
+
+Feel free to submit a new version of this change once we finish
+with the MC rework patches.
 
 Regards,
-
-	Hans
-
-> +
-> +/* Interface types */
-> +
-> +#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
-> +#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
-> +#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
-> +#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
-> +#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
-> +
-> +#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
-> +#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
-> +#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
-> +#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
-> +#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
-> +
-> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-> +
-> +/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-> +
->  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
->  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
-> 
-
+Mauro
