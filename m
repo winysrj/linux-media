@@ -1,485 +1,342 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48565 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753347AbbH3DHy (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:33455 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753379AbbHKUHY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: [PATCH v8 32/55] [media] media: use macros to check for V4L2 subdev entities
-Date: Sun, 30 Aug 2015 00:06:43 -0300
-Message-Id: <b94146f3b95e9adb08b11fffc896a9e747b2fa9c.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Tue, 11 Aug 2015 16:07:24 -0400
+Received: by obbhe7 with SMTP id he7so61046510obb.0
+        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2015 13:07:24 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20150811063626.76689791@recife.lan>
+References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
+ <55C8A305.9010509@xs4all.nl> <CAPW4XYarvYDfQa7iCY9fNMHLb7zFGXE2dzu-cr3Z1oLVBHTjtg@mail.gmail.com>
+ <55C9C039.6000200@xs4all.nl> <20150811063626.76689791@recife.lan>
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Tue, 11 Aug 2015 17:07:04 -0300
+Message-ID: <CAPW4XYYLUNWw6njGJ29zzehRaZKV9uECmVEvEOBz2Y02NnRG9w@mail.gmail.com>
+Subject: Re: VIMC: API proposal, configuring the topology through user space
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of relying on media subtype, use the new macros to detect
-if an entity is a subdev or an A/V DMA entity.
+Hello, thank you for your feedback
 
-Please note that most drivers assume that there's just AV_DMA or
-V4L2 subdevs. This is not true anymore, as we've added MC support
-for DVB, and there are plans to add support for ALSA and FB/DRM
-too.
+On Tue, Aug 11, 2015 at 6:36 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Em Tue, 11 Aug 2015 11:28:25 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+>> Hi Helen,
+>>
+>> On 08/10/15 19:21, Helen Fornazier wrote:
+>> > Hi, thanks for your reviews
+>> >
+>> > On Mon, Aug 10, 2015 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> >> Hi Helen!
+>> >>
+>> >> On 08/08/2015 03:55 AM, Helen Fornazier wrote:
+>> >>> Hi!
+>> >>>
+>> >>> I've made a first sketch about the API of the vimc driver (virtual
+>> >>> media controller) to configure the topology through user space.
+>> >>> As first suggested by Laurent Pinchart, it is based on configfs.
+>> >>>
+>> >>> I would like to know you opinion about it, if you have any suggestion
+>> >>> to improve it, otherwise I'll start its implementation as soon as
+>> >>> possible.
+>> >>> This API may change with the MC changes and I may see other possible
+>> >>> configurations as I implementing it but here is the first idea of how
+>> >>> the API will look like.
+>> >>>
+>> >>> vimc project link: https://github.com/helen-fornazier/opw-staging/
+>> >>> For more information: http://kernelnewbies.org/LaurentPinchart
+>> >>>
+>> >>> /***********************
+>> >>> The API:
+>> >>> ************************/
+>> >>>
+>> >>> In short, a topology like this one: http://goo.gl/Y7eUfu
+>> >>> Would look like this filesystem tree: https://goo.gl/tCZPTg
+>> >>> Txt version of the filesystem tree: https://goo.gl/42KX8Y
+>> >>>
+>> >>> * The /configfs/vimc subsystem
+>> >>
+>> >> I haven't checked the latest vimc driver, but doesn't it support
+>> >> multiple instances, just like vivid? I would certainly recommend that.
+>> >
+>> > Yes, it does support
+>> >
+>> >>
+>> >> And if there are multiple instances, then each instance gets its own
+>> >> entry in configfs: /configs/vimc0, /configs/vimc1, etc.
+>> >
+>> > You are right, I'll add those
+>> >
+>> >>
+>> >>> The vimc driver registers a subsystem in the configfs with the
+>> >>> following contents:
+>> >>>         > ls /configfs/vimc
+>> >>>         build_topology status
+>> >>> The build_topology attribute file will be used to tell the driver the
+>> >>> configuration is done and it can build the topology internally
+>> >>>         > echo -n "anything here" > /configfs/vimc/build_topology
+>> >>> Reading from the status attribute can have 3 different classes of outputs
+>> >>> 1) deployed: the current configured tree is built
+>> >>> 2) undeployed: no errors, the user has modified the configfs tree thus
+>> >>> the topology was undeployed
+>> >>> 3) error error_message: the topology configuration is wrong
+>> >>
+>> >> I don't see the status file in the filesystem tree links above.
+>> >
+>> > Sorry, I forgot to add
+>> >
+>> >>
+>> >> I actually wonder if we can't use build_topology for that: reading it
+>> >> will just return the status.
+>> >
+>> > Yes we can, I was just wondering what should be the name of the file,
+>> > as getting the status from reading the build_topology file doesn't
+>> > seem much intuitive
+>>
+>> I'm not opposed to a status file, but it would be good to know what Laurent
+>> thinks.
+>>
+>> >
+>> >>
+>> >> What happens if it is deployed and you want to 'undeploy' it? Instead of
+>> >> writing anything to build_topology it might be useful to write a real
+>> >> command to it. E.g. 'deploy', 'destroy'.
+>> >>
+>> >> What happens when you make changes while a topology is deployed? Should
+>> >> such changes be rejected until the usecount of the driver goes to 0, or
+>> >> will it only be rejected when you try to deploy the new configuration?
+>> >
+>> > I was thinking that if the user try changing the topology, or it will
+>> > fail (because the device instance is in use) or it will undeploy the
+>> > old topology (if the device is not in use). Then a 'destroy' command
+>> > won't be useful, the user can just unload the driver when it won't be
+>> > used anymore,
+>
+> Well, we're planning to add support for dynamic addition/removal of
+> entities, interfaces, pads and links. So, instead of undeploy the
+> old topology, one could just do:
+>         rm -rf <part of the tree>
 
-Ok, on the current pipelines supported by those drivers, just V4L
-stuff are there, but, assuming that some day a pipeline that also
-works with other subsystems will ever added, it is better to add
-explicit checks for the AV_DMA stuff.
+I think I misunderstood the word dynamic here. Do you mean that
+entities/interfaces/pads/link could be created/removed while their
+file handlers are opened? While an instance (lets say vimc2) is being
+used?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+>>
+>> If you have multiple vimc instances and you want to 'destroy' the topology
+>> of only one instance, then you can't rmmod the module.
+>
+> You can still use "rm" remove just one entire instance of the topology.
 
-diff --git a/drivers/media/platform/exynos4-is/common.c b/drivers/media/platform/exynos4-is/common.c
-index 0eb34ecb8ee4..8c9a29e0e294 100644
---- a/drivers/media/platform/exynos4-is/common.c
-+++ b/drivers/media/platform/exynos4-is/common.c
-@@ -22,8 +22,7 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
- 	while (pad->flags & MEDIA_PAD_FL_SINK) {
- 		/* source pad */
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 0627a93b2f3b..e9810fee4c30 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1141,8 +1141,7 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
- 			}
- 		}
- 
--		if (src_pad == NULL ||
--		    media_entity_type(src_pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!src_pad || !is_media_entity_v4l2_subdev(src_pad->entity))
- 			break;
- 
- 		/* Don't call FIMC subdev operation to avoid nested locking */
-@@ -1397,7 +1396,7 @@ static int fimc_link_setup(struct media_entity *entity,
- 	struct fimc_vid_cap *vc = &fimc->vid_cap;
- 	struct v4l2_subdev *sensor;
- 
--	if (media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!is_media_entity_v4l2_subdev(remote->entity))
- 		return -EINVAL;
- 
- 	if (WARN_ON(fimc == NULL))
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index 3d9ccbf5f10f..5fbaf5e39903 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -467,8 +467,7 @@ static int isp_video_pipeline_validate(struct fimc_isp *isp)
- 
- 		/* Retrieve format at the source pad */
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index b2607da4ad14..c2327147b360 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -814,8 +814,7 @@ static int fimc_pipeline_validate(struct fimc_lite *fimc)
- 		}
- 		/* Retrieve format at the source pad */
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
-@@ -988,7 +987,6 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- {
- 	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
- 	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
--	unsigned int remote_ent_type = media_entity_type(remote->entity);
- 	int ret = 0;
- 
- 	if (WARN_ON(fimc == NULL))
-@@ -1000,7 +998,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 
- 	switch (local->index) {
- 	case FLITE_SD_PAD_SINK:
--		if (remote_ent_type != MEDIA_ENT_T_V4L2_SUBDEV) {
-+		if (!is_media_entity_v4l2_subdev(remote->entity)) {
- 			ret = -EINVAL;
- 			break;
- 		}
-@@ -1018,7 +1016,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 	case FLITE_SD_PAD_SOURCE_DMA:
- 		if (!(flags & MEDIA_LNK_FL_ENABLED))
- 			atomic_set(&fimc->out_path, FIMC_IO_NONE);
--		else if (remote_ent_type == MEDIA_ENT_T_DEVNODE)
-+		else if (is_media_entity_v4l2_io(remote->entity))
- 			atomic_set(&fimc->out_path, FIMC_IO_DMA);
- 		else
- 			ret = -EINVAL;
-@@ -1027,7 +1025,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 	case FLITE_SD_PAD_SOURCE_ISP:
- 		if (!(flags & MEDIA_LNK_FL_ENABLED))
- 			atomic_set(&fimc->out_path, FIMC_IO_NONE);
--		else if (remote_ent_type == MEDIA_ENT_T_V4L2_SUBDEV)
-+		else if (is_media_entity_v4l2_subdev(remote->entity))
- 			atomic_set(&fimc->out_path, FIMC_IO_ISP);
- 		else
- 			ret = -EINVAL;
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 92dbade2fffc..4a25df9dd869 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -88,8 +88,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 				break;
- 		}
- 
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
- 
-@@ -1062,7 +1061,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if (!is_media_entity_v4l2_io(entity))
- 			continue;
- 
- 		ret  = __fimc_md_modify_pipeline(entity, enable);
-@@ -1076,7 +1075,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
- 	media_entity_graph_walk_start(&graph, entity_err);
- 
- 	while ((entity_err = media_entity_graph_walk_next(&graph))) {
--		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
-+		if (!is_media_entity_v4l2_io(entity_err))
- 			continue;
- 
- 		__fimc_md_modify_pipeline(entity_err, !enable);
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 69e7733d36cd..cb8ac90086c1 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -691,7 +691,7 @@ static int isp_pipeline_pm_use_count(struct media_entity *entity)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
--		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_io(entity))
- 			use += entity->use_count;
- 	}
- 
-@@ -714,7 +714,7 @@ static int isp_pipeline_pm_power_one(struct media_entity *entity, int change)
- 	struct v4l2_subdev *subdev;
- 	int ret;
- 
--	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
-+	subdev = is_media_entity_v4l2_subdev(entity)
- 	       ? media_entity_to_v4l2_subdev(entity) : NULL;
- 
- 	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
-@@ -754,7 +754,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_subdev(entity))
- 			ret = isp_pipeline_pm_power_one(entity, change);
- 
- 	if (!ret)
-@@ -764,7 +764,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
- 
- 	while ((first = media_entity_graph_walk_next(&graph))
- 	       && first != entity)
--		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_subdev(first))
- 			isp_pipeline_pm_power_one(first, -change);
- 
- 	return ret;
-@@ -897,8 +897,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 			break;
- 
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = pad->entity;
-@@ -988,8 +987,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
- 			break;
- 
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = pad->entity;
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 4c367352b1f7..52843ac2a9ca 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -210,8 +210,7 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
- 
- 	remote = media_entity_remote_pad(&video->pad);
- 
--	if (remote == NULL ||
--	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
- 		return NULL;
- 
- 	if (pad)
-@@ -243,7 +242,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if (!is_media_entity_v4l2_io(entity))
- 			continue;
- 
- 		__video = to_isp_video(media_entity_to_video_device(entity));
-@@ -917,7 +916,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 		return -EINVAL;
- 	}
- 
--	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!is_media_entity_v4l2_subdev(source))
- 		return 0;
- 
- 	pipe->external = media_entity_to_v4l2_subdev(source);
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index eae667eab1b9..fb5b016cc0a1 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -837,7 +837,7 @@ static int camif_pipeline_validate(struct camif_dev *camif)
- 
- 	/* Retrieve format at the sensor subdev source pad */
- 	pad = media_entity_remote_pad(&camif->pads[0]);
--	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 		return -EPIPE;
- 
- 	src_fmt.pad = pad->index;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 1f94c1a54e00..f74158224b93 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -160,8 +160,7 @@ vsp1_video_remote_subdev(struct media_pad *local, u32 *pad)
- 	struct media_pad *remote;
- 
- 	remote = media_entity_remote_pad(local);
--	if (remote == NULL ||
--	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
- 		return NULL;
- 
- 	if (pad)
-@@ -326,7 +325,7 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 			return -EPIPE;
- 
- 		/* We've reached a video node, that shouldn't have happened. */
--		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!is_media_entity_v4l2_subdev(pad->entity))
- 			return -EPIPE;
- 
- 		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-@@ -423,7 +422,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 		struct vsp1_rwpf *rwpf;
- 		struct vsp1_entity *e;
- 
--		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
-+		if (is_media_entity_v4l2_io(entity)) {
- 			pipe->num_video++;
- 			continue;
- 		}
-@@ -692,7 +691,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
- 
- 	while (pad) {
--		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 88cd789cdaf7..8e14841bf445 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -49,8 +49,7 @@ xvip_dma_remote_subdev(struct media_pad *local, u32 *pad)
- 	struct media_pad *remote;
- 
- 	remote = media_entity_remote_pad(local);
--	if (remote == NULL ||
--	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
- 		return NULL;
- 
- 	if (pad)
-@@ -113,8 +112,7 @@ static int xvip_pipeline_start_stop(struct xvip_pipeline *pipe, bool start)
- 			break;
- 
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = pad->entity;
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index e6e1115d8215..60da43772de9 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -526,7 +526,7 @@ static int
- v4l2_subdev_link_validate_get_format(struct media_pad *pad,
- 				     struct v4l2_subdev_format *fmt)
- {
--	if (media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
-+	if (is_media_entity_v4l2_subdev(pad->entity)) {
- 		struct v4l2_subdev *sd =
- 			media_entity_to_v4l2_subdev(pad->entity);
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 92573fa852a9..16763e0831f2 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -148,7 +148,7 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
- 			continue;
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if ((!is_media_entity_v4l2_io(remote->entity))
- 			continue;
- 		far_end = to_vpfe_video(media_entity_to_video_device(entity));
- 		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-@@ -293,7 +293,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 
--		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
-+		if !is_media_entity_v4l2_subdev(entity))
- 			continue;
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
-@@ -334,7 +334,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 
--		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
-+		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 40591963b42b..44b88ff3ba83 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -397,7 +397,7 @@ static int iss_pipeline_pm_use_count(struct media_entity *entity)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
--		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_io(entity))
- 			use += entity->use_count;
- 	}
- 
-@@ -419,7 +419,7 @@ static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
- {
- 	struct v4l2_subdev *subdev;
- 
--	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
-+	subdev = is_media_entity_v4l2_subdev(entity)
- 	       ? media_entity_to_v4l2_subdev(entity) : NULL;
- 
- 	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
-@@ -461,7 +461,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_subdev(entity))
- 			ret = iss_pipeline_pm_power_one(entity, change);
- 
- 	if (!ret)
-@@ -471,7 +471,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
- 
- 	while ((first = media_entity_graph_walk_next(&graph))
- 	       && first != entity)
--		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
-+		if (is_media_entity_v4l2_subdev(first))
- 			iss_pipeline_pm_power_one(first, -change);
- 
- 	return ret;
-@@ -590,8 +590,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
- 			break;
- 
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = pad->entity;
-@@ -658,8 +657,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
- 			break;
- 
- 		pad = media_entity_remote_pad(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
- 			break;
- 
- 		entity = pad->entity;
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 45a3f2d778fc..cbe5783735dc 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -191,8 +191,7 @@ iss_video_remote_subdev(struct iss_video *video, u32 *pad)
- 
- 	remote = media_entity_remote_pad(&video->pad);
- 
--	if (remote == NULL ||
--	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
- 		return NULL;
- 
- 	if (pad)
-@@ -217,7 +216,7 @@ iss_video_far_end(struct iss_video *video)
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
-+		if (!is_media_entity_v4l2_io(entity))
- 			continue;
- 
- 		far_end = to_iss_video(media_entity_to_video_device(entity));
+Just to be clear:
+They way I was thinking was: the user do the mkdir/rmdir/echo/cat as
+he likes, if some file handler is opened in some device then
+rmdir/mkdir/echo would fail in the folder related to that device:
+
+Lets say we have
+/configfs/vimc/vimc0/ent/name
+/configfs/vimc/vimc1/ent/name
+/configfs/vimc/vimc1/ent_debayer/name
+
+if some file related to vimc0 is opened, then "echo foo >
+/configfs/vimc/vimc0/ent/name" would fail.
+But "echo foo > /configfs/vimc/vimc1/ent/name" would work (assuming we
+are not using the filehandlers of vimc1)
+
+If the user wants to remove vimc1 (as he is not using it anyway), then just:
+$ rmdir -r /configfs/vimc/vimc1
+
+I don't see a big reason to explicitly undeploy a topology (without
+removing the folders) other then to modify the topology.
+Then when the user changes the filesystem tree, it undeploys the
+topology automatically:
+
+$ echo "foo" > /configfs/vimc/vimc1/build_topology # here the topology
+of vimc1 will be deployed
+$ rmdir /configfs/vimc/vimc1/ent_debayer # here the topology will be
+undeployed, or this command will fail if vimc1 is in use
+$ echo "foo" > /configfs/vimc/vimc1/build_topology # here the topology
+of the instance vimc1 will be deployed again without the ent_debayer
+entity (assuming the previous command worked)
+
+Unless it is interesting to easy simulate a disconnect (undeploy) and
+reconnect with the same topology (deploy) without the need to erase
+the /configfs/vimc/vimc0 and re-construct it again, is this
+interesting?
+
+If it is interesting, then an explicit command to undeploy will indeed
+be better, otherwise we can always erase and reconstruct the folders
+tree outside the kernel with a script.
+
+>
+>> I think I would prefer to have proper commands for the build_topology
+>> file. It would also keep the state handling of the driver simple: it's
+>> either deployed or undeployed, and changes to the topology can only
+>> take place if it is undeployed.
+
+This is simpler to implement, and it seems secure, I could do like
+this in the first version and we see later how to improve it.
+
+>>
+>> Commands for build_topology can be:
+>>
+>> deploy: deploy the current topology
+>>
+>> undeploy: undeploy the current topology. but keep the topology, allowing
+>> the user to make changes
+>>
+>> destroy: undeploy the current topology and remove it, giving the user a
+>> clean slate.
+
+What do you mean by "remove it" in the destroy command?
+To completely remove an instance the user could just rmdir
+/configfs/vimc5, or do you see another feature?
+
+>>
+>> Feel free to come up with better command names :-)
+>>
+>> >
+>> >>
+>> >>> * Creating an entity:
+>> >>> Use mkdir in the /configfs/vimc to create an entity representation, e.g.:
+>> >>>         > mkdir /configfs/vimc/sensor_a
+>> >>> The attribute files will be created by the driver through configfs:
+>> >>>         > ls /configfs/vimc/sensor_a
+>> >>>         name role
+>> >>> Configure the name that will appear to the /dev/media0 and what this
+>> >>> node do (debayer, scaler, capture, input, generic)
+>> >>>         > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
+>> >>>         > echo -n "sensor" > /configfs/vimc/sensor_a/role
+>> >>>
+>> >>> * Creating a pad:
+>> >>> Use mkdir inside an entity's folder, the attribute called "direction"
+>> >>> will be automatically created in the process, for example:
+>> >>>         > mkdir /configfs/vimc/sensor_a/pad_0
+>> >>>         > ls /configfs/vimc/sensor_a/pad_0
+>> >>>         direction
+>> >>>         > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
+>> >>> The direction attribute can be "source" or "sink"
+>> >>
+>> >> Hmm. Aren't the pads+direction dictated by the entity role? E.g. a sensor
+>> >> will only have one pad which is always a source. I think setting the role
+>> >> is what creates the pad directories + direction files.
+>> >
+>> > I thought that we could add as many pads that we want, having a scaler
+>> > with two or more sink pads (for example) in the same format that
+>> > scales the frames coming from any sink pad and send it to its source
+>> > pads, no?
+>> > Maybe it is better if we don't let this choice.
+>>
+>> I'd leave this out. Entities have a fixed number of pads that's determined
+>> by their IP or HW. I think we should match that in vimc. It also simplifies
+>> configuring the topology since these pads will appear automatically.
+>>
+>> > I need to check if I can modify the configfs dynamically, I mean, if
+>> > the user writes "debayer" to the role file, I need to create at least
+>> > one folder (or file) to allow the user to configure the link flag
+>> > related to its source pad, but if in the future we have another entity
+>> > role (lets say "new_entity") that has more then one source pad, and
+>> > the user writes "debayer" in the role and then "new_entity", we will
+>> > need to erase the folder created by the debayer to create two new
+>> > folders, I am still not sure if I can do that.
+>>
+>> I would expect that it's possible, but I'm not sure about it.
+>>
+>> BTW, an alternative might be to use the build_topology file build up
+>> the topology entirely by sending commands to it:
+>>
+>> echo "add entity debayer debayer_a" >build_topology
+>>
+>> You can prepare a file with commands and just do:
+>>
+>> cat my-config >build_topology.
+>>
+>> which would be a nice feature.
+
+yes, it would be a nice feature indeed, but the configfs doc says:
+
+"Like sysfs, attributes should be ASCII text files, preferably
+with only one value per file.  The same efficiency caveats from sysfs
+apply. Don't mix more than one attribute in one attribute file"
+
+That is why I thought in using the mkdir/rmdir/echo fs tree
+configuration in the first place.
+
+>>
+>> I'm not saying you should do this, but it is something to think about.
+>>
+>> >
+>> >>
+>> >>>
+>> >>> * Creating a link between pads in two steps:
+>> >>> Step 1)
+>> >>> Create a folder inside the source pad folder, the attribute called
+>> >>> "flag" will be automatically created in the process, for example:
+>> >>>         > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>> >>>         > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>> >>>         flags
+>> >>>         > echo -n "enabled,immutable" >
+>> >>> /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
+>> >>> In the flags attribute we can have all the links attributes (enabled,
+>> >>> immutable and dynamic) separated by comma
+>> >>>
+>> >>> Step 2)
+>> >>> Add a symlink between the previous folder we just created in the
+>> >>> source pad and the sink pad folder we want to connect. Lets say we
+>> >>> want to connect with the pad on the raw_capture_0 entity pad 0
+>> >>>         > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
+>> >>> /configfs/vimc/raw_capture_0/pad_0/
+>> >>
+>> >> Can't this be created automatically? Or possibly not at all, since it is
+>> >> implicit in step 1.
+>> >
+>> > Do you mean, create the symlink automatically? I don't think so
+>> > because the driver doesn't know a priori the entities you want to
+>> > connect together.
+>>
+>> I don't follow. If I make a 'link_to_raw_capture_0' directory for pad_0
+>> of sensor_a, then I know there is a backlink from pad_0 of the raw_capture
+>> entity, right? At least, that's how I interpret this.
+
+I am not sure if I got what you say.
+The user could use the
+/configfs/vimc/vimc0/sensor_a/pad_0/link_to_raw_capture_0 directory to
+link with a debayer instead of the raw_capture node. To connect with
+the debayer, the user could:
+
+$ mkdir -p /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
+$ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
+/configfs/vimc/vimc0/debayer_b/pad_0/
+
+But, instead of linking with the debayer, the user could link with the capture:
+
+$ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
+/configfs/vimc/vimc0/raw_capture_1/pad_0/
+
+Or the user could link with the scaler:
+
+$ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
+/configfs/vimc/vimc0/scaler/pad_0/
+
+Thus the driver can't know in advance to which sink pad this link
+should be connected to when creating a link folder inside the pad
+folder
+
+>>
+>> Regards,
+>>
+>>       Hans
+
+
+Regards
 -- 
-2.4.3
-
+Helen M. Koike Fornazier
