@@ -1,242 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57106 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933620AbbHKJgc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 05:36:32 -0400
-Date: Tue, 11 Aug 2015 06:36:26 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:55197 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964954AbbHKOuI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 10:50:08 -0400
+Date: Tue, 11 Aug 2015 15:50:03 +0100 (BST)
+From: William Towle <william.towle@codethink.co.uk>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: VIMC: API proposal, configuring the topology through user space
-Message-ID: <20150811063626.76689791@recife.lan>
-In-Reply-To: <55C9C039.6000200@xs4all.nl>
-References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
-	<55C8A305.9010509@xs4all.nl>
-	<CAPW4XYarvYDfQa7iCY9fNMHLb7zFGXE2dzu-cr3Z1oLVBHTjtg@mail.gmail.com>
-	<55C9C039.6000200@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	William Towle <william.towle@codethink.co.uk>
+Subject: Re: [GIT PULL FOR v4.3] Various fixes
+In-Reply-To: <55C9F611.3000902@xs4all.nl>
+Message-ID: <alpine.DEB.2.02.1508111526170.4890@xk120.dyn.ducie.codethink.co.uk>
+References: <55B749C7.4070005@xs4all.nl> <20150811100804.4cbb0ab7@recife.lan> <55C9F611.3000902@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Aug 2015 11:28:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Hans,
 
-> Hi Helen,
-> 
-> On 08/10/15 19:21, Helen Fornazier wrote:
-> > Hi, thanks for your reviews
-> > 
-> > On Mon, Aug 10, 2015 at 10:11 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >> Hi Helen!
-> >>
-> >> On 08/08/2015 03:55 AM, Helen Fornazier wrote:
-> >>> Hi!
-> >>>
-> >>> I've made a first sketch about the API of the vimc driver (virtual
-> >>> media controller) to configure the topology through user space.
-> >>> As first suggested by Laurent Pinchart, it is based on configfs.
-> >>>
-> >>> I would like to know you opinion about it, if you have any suggestion
-> >>> to improve it, otherwise I'll start its implementation as soon as
-> >>> possible.
-> >>> This API may change with the MC changes and I may see other possible
-> >>> configurations as I implementing it but here is the first idea of how
-> >>> the API will look like.
-> >>>
-> >>> vimc project link: https://github.com/helen-fornazier/opw-staging/
-> >>> For more information: http://kernelnewbies.org/LaurentPinchart
-> >>>
-> >>> /***********************
-> >>> The API:
-> >>> ************************/
-> >>>
-> >>> In short, a topology like this one: http://goo.gl/Y7eUfu
-> >>> Would look like this filesystem tree: https://goo.gl/tCZPTg
-> >>> Txt version of the filesystem tree: https://goo.gl/42KX8Y
-> >>>
-> >>> * The /configfs/vimc subsystem
-> >>
-> >> I haven't checked the latest vimc driver, but doesn't it support
-> >> multiple instances, just like vivid? I would certainly recommend that.
-> > 
-> > Yes, it does support
-> > 
-> >>
-> >> And if there are multiple instances, then each instance gets its own
-> >> entry in configfs: /configs/vimc0, /configs/vimc1, etc.
-> > 
-> > You are right, I'll add those
-> > 
-> >>
-> >>> The vimc driver registers a subsystem in the configfs with the
-> >>> following contents:
-> >>>         > ls /configfs/vimc
-> >>>         build_topology status
-> >>> The build_topology attribute file will be used to tell the driver the
-> >>> configuration is done and it can build the topology internally
-> >>>         > echo -n "anything here" > /configfs/vimc/build_topology
-> >>> Reading from the status attribute can have 3 different classes of outputs
-> >>> 1) deployed: the current configured tree is built
-> >>> 2) undeployed: no errors, the user has modified the configfs tree thus
-> >>> the topology was undeployed
-> >>> 3) error error_message: the topology configuration is wrong
-> >>
-> >> I don't see the status file in the filesystem tree links above.
-> > 
-> > Sorry, I forgot to add
-> > 
-> >>
-> >> I actually wonder if we can't use build_topology for that: reading it
-> >> will just return the status.
-> > 
-> > Yes we can, I was just wondering what should be the name of the file,
-> > as getting the status from reading the build_topology file doesn't
-> > seem much intuitive
-> 
-> I'm not opposed to a status file, but it would be good to know what Laurent
-> thinks.
-> 
-> > 
-> >>
-> >> What happens if it is deployed and you want to 'undeploy' it? Instead of
-> >> writing anything to build_topology it might be useful to write a real
-> >> command to it. E.g. 'deploy', 'destroy'.
-> >>
-> >> What happens when you make changes while a topology is deployed? Should
-> >> such changes be rejected until the usecount of the driver goes to 0, or
-> >> will it only be rejected when you try to deploy the new configuration?
-> > 
-> > I was thinking that if the user try changing the topology, or it will
-> > fail (because the device instance is in use) or it will undeploy the
-> > old topology (if the device is not in use). Then a 'destroy' command
-> > won't be useful, the user can just unload the driver when it won't be
-> > used anymore,
+On Tue, 11 Aug 2015, Hans Verkuil wrote:
+>> 0015-v4l-subdev-Add-pad-config-allocator-and-init.patch
+>> 0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
+>> 0017-media-soc_camera-pad-aware-driver-initialisation.patch
+>> 0018-media-rcar_vin-Use-correct-pad-number-in-try_fmt.patch
+>> 0019-media-soc_camera-soc_scale_crop-Use-correct-pad-numb.patch
+>> 0020-media-rcar_vin-fill-in-bus_info-field.patch
+>> 0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
+>
+> William, can you take a look at this? Just let me know which patches
+> are independent to patch 0015.
 
-Well, we're planning to add support for dynamic addition/removal of
-entities, interfaces, pads and links. So, instead of undeploy the
-old topology, one could just do:
-	rm -rf <part of the tree>
+   Of those, the patches that *do* call the allocator function directly
+or are otherwise co-dependent are numbers 17-19 inclusive.
 
-> 
-> If you have multiple vimc instances and you want to 'destroy' the topology
-> of only one instance, then you can't rmmod the module.
 
-You can still use "rm" remove just one entire instance of the topology.
+   The independent patches in that list are therefore:
 
-> I think I would prefer to have proper commands for the build_topology
-> file. It would also keep the state handling of the driver simple: it's
-> either deployed or undeployed, and changes to the topology can only
-> take place if it is undeployed.
-> 
-> Commands for build_topology can be:
-> 
-> deploy: deploy the current topology
-> 
-> undeploy: undeploy the current topology. but keep the topology, allowing
-> the user to make changes
-> 
-> destroy: undeploy the current topology and remove it, giving the user a
-> clean slate.
-> 
-> Feel free to come up with better command names :-)
-> 
-> > 
-> >>
-> >>> * Creating an entity:
-> >>> Use mkdir in the /configfs/vimc to create an entity representation, e.g.:
-> >>>         > mkdir /configfs/vimc/sensor_a
-> >>> The attribute files will be created by the driver through configfs:
-> >>>         > ls /configfs/vimc/sensor_a
-> >>>         name role
-> >>> Configure the name that will appear to the /dev/media0 and what this
-> >>> node do (debayer, scaler, capture, input, generic)
-> >>>         > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
-> >>>         > echo -n "sensor" > /configfs/vimc/sensor_a/role
-> >>>
-> >>> * Creating a pad:
-> >>> Use mkdir inside an entity's folder, the attribute called "direction"
-> >>> will be automatically created in the process, for example:
-> >>>         > mkdir /configfs/vimc/sensor_a/pad_0
-> >>>         > ls /configfs/vimc/sensor_a/pad_0
-> >>>         direction
-> >>>         > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
-> >>> The direction attribute can be "source" or "sink"
-> >>
-> >> Hmm. Aren't the pads+direction dictated by the entity role? E.g. a sensor
-> >> will only have one pad which is always a source. I think setting the role
-> >> is what creates the pad directories + direction files.
-> > 
-> > I thought that we could add as many pads that we want, having a scaler
-> > with two or more sink pads (for example) in the same format that
-> > scales the frames coming from any sink pad and send it to its source
-> > pads, no?
-> > Maybe it is better if we don't let this choice.
-> 
-> I'd leave this out. Entities have a fixed number of pads that's determined
-> by their IP or HW. I think we should match that in vimc. It also simplifies
-> configuring the topology since these pads will appear automatically.
-> 
-> > I need to check if I can modify the configfs dynamically, I mean, if
-> > the user writes "debayer" to the role file, I need to create at least
-> > one folder (or file) to allow the user to configure the link flag
-> > related to its source pad, but if in the future we have another entity
-> > role (lets say "new_entity") that has more then one source pad, and
-> > the user writes "debayer" in the role and then "new_entity", we will
-> > need to erase the folder created by the debayer to create two new
-> > folders, I am still not sure if I can do that.
-> 
-> I would expect that it's possible, but I'm not sure about it.
-> 
-> BTW, an alternative might be to use the build_topology file build up
-> the topology entirely by sending commands to it:
-> 
-> echo "add entity debayer debayer_a" >build_topology
-> 
-> You can prepare a file with commands and just do:
-> 
-> cat my-config >build_topology.
-> 
-> which would be a nice feature.
-> 
-> I'm not saying you should do this, but it is something to think about.
-> 
-> > 
-> >>
-> >>>
-> >>> * Creating a link between pads in two steps:
-> >>> Step 1)
-> >>> Create a folder inside the source pad folder, the attribute called
-> >>> "flag" will be automatically created in the process, for example:
-> >>>         > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>>         > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>>         flags
-> >>>         > echo -n "enabled,immutable" >
-> >>> /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
-> >>> In the flags attribute we can have all the links attributes (enabled,
-> >>> immutable and dynamic) separated by comma
-> >>>
-> >>> Step 2)
-> >>> Add a symlink between the previous folder we just created in the
-> >>> source pad and the sink pad folder we want to connect. Lets say we
-> >>> want to connect with the pad on the raw_capture_0 entity pad 0
-> >>>         > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>> /configfs/vimc/raw_capture_0/pad_0/
-> >>
-> >> Can't this be created automatically? Or possibly not at all, since it is
-> >> implicit in step 1.
-> > 
-> > Do you mean, create the symlink automatically? I don't think so
-> > because the driver doesn't know a priori the entities you want to
-> > connect together.
-> 
-> I don't follow. If I make a 'link_to_raw_capture_0' directory for pad_0
-> of sensor_a, then I know there is a backlink from pad_0 of the raw_capture
-> entity, right? At least, that's how I interpret this.
-> 
-> Regards,
-> 
-> 	Hans
+[prerequisite work by Laurent Pinchart (1x)...]
+ 	0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
+[general rcar_vin enhancements by Rob Taylor (2x)...]
+ 	0020-media-rcar_vin-fill-in-bus_info-field.patch
+ 	0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
+
+Cheers,
+   Wills.
