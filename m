@@ -1,56 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:48716 "EHLO newverein.lst.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996AbbHMObx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 10:31:53 -0400
-Date: Thu, 13 Aug 2015 16:31:50 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vineet Gupta <vgupta@synopsys.com>,
-	=?iso-8859-1?Q?H=E5vard?= Skinnemoen <hskinnemoen@gmail.com>,
-	Hans-Christian Egtvedt <egtvedt@samfundet.no>,
-	Miao Steven <realmz6@gmail.com>,
-	David Howells <dhowells@redhat.com>,
-	Michal Simek <monstr@monstr.eu>,
-	the arch/x86 maintainers <x86@kernel.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	grundler@parisc-linux.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	linux-alpha@vger.kernel.org,
-	"linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-	linux-metag@vger.kernel.org,
-	linux-mips <linux-mips@linux-mips.org>,
-	Parisc List <linux-parisc@vger.kernel.org>,
-	ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	"linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 29/31] parisc: handle page-less SG entries
-Message-ID: <20150813143150.GA17183@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de> <1439363150-8661-30-git-send-email-hch@lst.de> <CA+55aFxsH9Lde7wqZi555vqfH2uxeQqC9cjeca9L6Wr=XpyzXA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFxsH9Lde7wqZi555vqfH2uxeQqC9cjeca9L6Wr=XpyzXA@mail.gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:40906 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952AbbHKTnZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 15:43:25 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] c8sectpfe: Allow compiling it with COMPILE_TEST
+Date: Tue, 11 Aug 2015 16:41:46 -0300
+Message-Id: <1439322106-6966-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2015 at 09:01:02AM -0700, Linus Torvalds wrote:
-> I'm assuming that anybody who wants to use the page-less
-> scatter-gather lists always does so on memory that isn't actually
-> virtually mapped at all, or only does so on sane architectures that
-> are cache coherent at a physical level, but I'd like that assumption
-> *documented* somewhere.
+While it won't work, it is good to allow it to build with
+COMPILE_TEST, as we can check if other patches would break
+compilation for this driver.
 
-It's temporarily mapped by kmap-like helpers.  That code isn't in
-this series. The most recent version of it is here:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/platform/sti/c8sectpfe/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-https://git.kernel.org/cgit/linux/kernel/git/djbw/nvdimm.git/commit/?h=pfn&id=de8237c99fdb4352be2193f3a7610e902b9bb2f0
+diff --git a/drivers/media/platform/sti/c8sectpfe/Kconfig b/drivers/media/platform/sti/c8sectpfe/Kconfig
+index d1bfd4c646ae..a7227d2ab6cc 100644
+--- a/drivers/media/platform/sti/c8sectpfe/Kconfig
++++ b/drivers/media/platform/sti/c8sectpfe/Kconfig
+@@ -1,6 +1,6 @@
+ config DVB_C8SECTPFE
+ 	tristate "STMicroelectronics C8SECTPFE DVB support"
+-	depends on DVB_CORE && I2C && (ARCH_STI || ARCH_MULTIPLATFORM)
++	depends on DVB_CORE && I2C && (ARCH_STI || ARCH_MULTIPLATFORM || COMPILE_TEST)
+ 	select LIBELF_32
+ 	select FW_LOADER
+ 	select FW_LOADER_USER_HELPER_FALLBACK
+-- 
+2.4.3
 
-note that it's not doing the cache flushing it would have to do yet, but
-it's also only enabled for x86 at the moment.
