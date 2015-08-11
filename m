@@ -1,81 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:33630 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbbHVH0L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 03:26:11 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Isely <isely@pobox.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v3 07/10] media/usb/pvrusb2: Support for V4L2_CTRL_WHICH_DEF_VAL
-Date: Sat, 22 Aug 2015 09:26:06 +0200
-Message-Id: <1440228366-18431-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:57157 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964881AbbHKNII (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 09:08:08 -0400
+Date: Tue, 11 Aug 2015 10:08:04 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.3] Various fixes
+Message-ID: <20150811100804.4cbb0ab7@recife.lan>
+In-Reply-To: <55B749C7.4070005@xs4all.nl>
+References: <55B749C7.4070005@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver does not use the control infrastructure.
-Add support for the new field which on structure
- v4l2_ext_controls
+Em Tue, 28 Jul 2015 11:22:15 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Acked-By: Mike Isely <isely@pobox.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
-changes v3:
+> This pull request contains a pile of fixes/enhancements, mostly soc-camera
+> related.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 4dc102b2f53d63207fa12a6ad49c7b6448bc3301:
+> 
+>   [media] dvb_core: Replace memset with eth_zero_addr (2015-07-22 13:32:21 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.3e
+> 
+> for you to fetch changes up to 9a400ca65ee917dc438cb9b553c11580269b4460:
+> 
+>   v4l2: export videobuf2 trace points (2015-07-28 11:15:04 +0200)
+> 
+> ----------------------------------------------------------------
+> Ezequiel Garcia (1):
+>       tw68: Move PCI vendor and device IDs to pci_ids.h
+> 
+> Hans Verkuil (13):
+>       sh-veu: initialize timestamp_flags and copy timestamp info
+>       tw9910: don't use COLORSPACE_JPEG
+>       tw9910: init priv->scale and update standard
+>       ak881x: simplify standard checks
+>       mt9t112: JPEG -> SRGB
+>       sh_mobile_ceu_camera: fix querycap
+>       sh_mobile_ceu_camera: set field to FIELD_NONE
+>       soc_camera: fix enum_input
+>       soc_camera: fix expbuf support
+>       soc_camera: compliance fixes
+>       soc_camera: pass on streamoff error
+>       soc_camera: always release queue for queue owner
+>       mt9v032: fix uninitialized variable warning
+> 
+> Laurent Pinchart (1):
+>       v4l: subdev: Add pad config allocator and init
 
-By Mike Isely <isely@pobox.com>
-elevate the call to pvr2_hdw_get_ctrl_v4l() out of the if-statement
+As explained, we won't be adding any changes at the MC while we don't fix
+the MC mess.
 
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+As I don't know what patches here are dependent of this change, I'm 
+stopping handling this patch series at patch #15, with means that the
+following patches aren't merged:
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 1c5f85bf7ed4..81f788b7b242 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -628,6 +628,7 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
- 	struct v4l2_ext_control *ctrl;
-+	struct pvr2_ctrl *cptr;
- 	unsigned int idx;
- 	int val;
- 	int ret;
-@@ -635,8 +636,15 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
- 	ret = 0;
- 	for (idx = 0; idx < ctls->count; idx++) {
- 		ctrl = ctls->controls + idx;
--		ret = pvr2_ctrl_get_value(
--				pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id), &val);
-+		cptr = pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id);
-+		if (cptr) {
-+			if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
-+				pvr2_ctrl_get_def(cptr, &val);
-+			else
-+				ret = pvr2_ctrl_get_value(cptr, &val);
-+		} else
-+			ret = -EINVAL;
-+
- 		if (ret) {
- 			ctls->error_idx = idx;
- 			return ret;
-@@ -658,6 +666,10 @@ static int pvr2_s_ext_ctrls(struct file *file, void *priv,
- 	unsigned int idx;
- 	int ret;
- 
-+	/* Default value cannot be changed */
-+	if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
-+		return -EINVAL;
-+
- 	ret = 0;
- 	for (idx = 0; idx < ctls->count; idx++) {
- 		ctrl = ctls->controls + idx;
--- 
-2.5.0
+0015-v4l-subdev-Add-pad-config-allocator-and-init.patch
+0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
+0017-media-soc_camera-pad-aware-driver-initialisation.patch
+0018-media-rcar_vin-Use-correct-pad-number-in-try_fmt.patch
+0019-media-soc_camera-soc_scale_crop-Use-correct-pad-numb.patch
+0020-media-rcar_vin-fill-in-bus_info-field.patch
+0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
+0022-mt9v032-fix-uninitialized-variable-warning.patch
+0023-tw68-Move-PCI-vendor-and-device-IDs-to-pci_ids.h.patch
+0024-v4l2-export-videobuf2-trace-points.patch
 
+Feel free to submit the remaining fix patches from this series that
+aren't related to media controller on a separate pull request.
+
+Regards,
+Mauro
