@@ -1,94 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55402 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752676AbbHUWyK (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:42508 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752675AbbHKWku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 18:54:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 7/8] [media] media: add a debug message to warn about gobj creation/removal
-Date: Sat, 22 Aug 2015 01:54:07 +0300
-Message-ID: <5814209.73Ea5OdygA@avalon>
-In-Reply-To: <20150821180931.4c492767@recife.lan>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <2758453.qxSJXS9IU1@avalon> <20150821180931.4c492767@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 11 Aug 2015 18:40:50 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/3] [media] tda10071: use div_s64() when dividing a s64 integer
+Date: Tue, 11 Aug 2015 19:39:05 -0300
+Message-Id: <7d0ddc91c854f1f42fd7165e259b3573f53c1d73.1439332733.git.mchehab@osg.samsung.com>
+In-Reply-To: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
+References: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
+In-Reply-To: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
+References: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Otherwise, it will break on 32 bits archs.
 
-On Friday 21 August 2015 18:09:31 Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Aug 2015 20:54:29 +0300 Laurent Pinchart escreveu:
-> > On Friday 21 August 2015 07:19:21 Mauro Carvalho Chehab wrote:
-> >> Em Fri, 21 Aug 2015 04:32:51 +0300 Laurent Pinchart escreveu:
-> >>> On Wednesday 19 August 2015 08:01:54 Mauro Carvalho Chehab wrote:
-> >>>> It helps to check if the media controller is doing the
-> >>>> right thing with the object creation and removal.
-> >>>> 
-> >>>> No extra code/data will be produced if DEBUG or
-> >>>> CONFIG_DYNAMIC_DEBUG is not enabled.
-> >>> 
-> >>> CONFIG_DYNAMIC_DEBUG is often enabled.
-> >> 
-> >> True, but once a driver/core is properly debugged, images without DEBUG
-> >> could be used in production, if the amount of memory constraints are
-> >> too tight.
-> >> 
-> >> > You're more or less adding function call tracing in this patch, isn't
-> >> > that something that ftrace is supposed to do ?
-> >> 
-> >> Ftrace is a great infrastructure and helps a lot when we need to
-> >> identify bottlenecks and other performance related stuff, but it
-> >> doesn't replace debug functions.
-> >> 
-> >> There are some fundamental differences on what you could do with ftrace
-> >> and what you can't.
-> >> 
-> >> At least on this stage, what I need is something that will provide
-> >> output via serial console when the driver gets loaded, and that provides
-> >> a synchronous output with the other Kernel messages.
-> >> 
-> >> This is the only way to debug certain OOPSes that are happening during
-> >> the development of the patches.
-> >> 
-> >> This is something you cannot do with ftrace, but dynamic DEBUG works
-> >> like a charm.
-> > 
-> > I understand the need for debug messages during development of a patch
-> > series, but I don't think this level of debugging belongs to mainline.
-> > Debug messages for function call tracing, even more in patch 6/8 and 7/8,
-> > is frowned upon in the kernel.
-> > 
-> > Or maybe I got it wrong and patches 6/8 and 7/8 are only for development
-> > and you don't plan to get them in mainline ?
-> 
-> As we've agreed, the first phase won't have dynamic support. Both patches
-> 6/8 and 7/8 are important until then.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Why are they more important with dynamic support ?
-
-> So, they should reach mainline together with the first MC new gen series.
-
-Patch 6/8 states in its commit message that
-
-"We can only free the media device after being sure that no graph object is 
-used. In order to help tracking it, let's add debug messages that will print 
-when the media controller gets registered or unregistered."
-
-Instead of debug messages that need to be enabled and tracked manually, why 
-not detecting the condition and issuing a WARN_ON() ?
-
-> Patch 6/8 can be reverted after we finish implementing dynamic support.
-> 
-> I think patch 7/8 will still be a good debug feature, but we can discuss
-> about that after implementing dynamic support.
-
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index ee6653124618..119d47596ac8 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -527,7 +527,7 @@ static int tda10071_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 	unsigned int uitmp;
+ 
+ 	if (c->strength.stat[0].scale == FE_SCALE_DECIBEL) {
+-		uitmp = c->strength.stat[0].svalue / 1000 + 256;
++		uitmp = div_s64(c->strength.stat[0].svalue, 1000) + 256;
+ 		uitmp = clamp(uitmp, 181U, 236U); /* -75dBm - -20dBm */
+ 		/* scale value to 0x0000-0xffff */
+ 		*strength = (uitmp-181) * 0xffff / (236-181);
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
