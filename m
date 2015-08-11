@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57134 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755088AbbHKLMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 07:12:49 -0400
-Date: Tue, 11 Aug 2015 08:12:43 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH RFC v2 08/16] media: convert links from array to list
-Message-ID: <20150811081243.39bddfbf@recife.lan>
-In-Reply-To: <55C9D344.8090905@xs4all.nl>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-	<65340c7d01bdfcadbb82f92d63a3571871d07930.1438954897.git.mchehab@osg.samsung.com>
-	<55C9D344.8090905@xs4all.nl>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46340 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964822AbbHKM7n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 08:59:43 -0400
+Message-ID: <55C9F131.2080306@xs4all.nl>
+Date: Tue, 11 Aug 2015 14:57:21 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+CC: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
+	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v10.1] media: Add registration helpers for V4L2 flash
+ sub-devices
+References: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com> <55B752A0.9060301@xs4all.nl> <55C9F0F4.1060602@samsung.com>
+In-Reply-To: <55C9F0F4.1060602@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Aug 2015 12:49:40 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 08/11/15 14:56, Jacek Anaszewski wrote:
+> On 07/28/2015 12:00 PM, Hans Verkuil wrote:
+>> On 06/19/2015 09:31 AM, Jacek Anaszewski wrote:
+>>> This patch adds helper functions for registering/unregistering
+>>> LED Flash class devices as V4L2 sub-devices. The functions should
+>>> be called from the LED subsystem device driver. In case the
+>>> support for V4L2 Flash sub-devices is disabled in the kernel
+>>> config the functions' empty versions will be used.
+>>>
+>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>> - fixed possible NULL fled_cdev pointer dereference
+>>>    in the v4l2_flash_init function
+>>>
+>>>   drivers/media/v4l2-core/Kconfig                |   11 +
+>>>   drivers/media/v4l2-core/Makefile               |    2 +
+>>>   drivers/media/v4l2-core/v4l2-flash-led-class.c |  710 ++++++++++++++++++++++++
+>>>   include/media/v4l2-flash-led-class.h           |  148 +++++
+>>>   4 files changed, 871 insertions(+)
+>>>   create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
+>>>   create mode 100644 include/media/v4l2-flash-led-class.h
+>>>
+>>
+>> <snip>
+>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+>>> new file mode 100644
+>>> index 0000000..5bdfb8d
+>>> --- /dev/null
+>>> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+>>
+>> <snip>
+>>
+>>> +static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
+>>> +    .queryctrl = v4l2_subdev_queryctrl,
+>>> +    .querymenu = v4l2_subdev_querymenu,
+>>
+>> Why are these here? This should not be necessary. As long as the sd.ctrl_handler
+>> pointer is set, this is handled automatically.
+> 
+> I removed these two lines and indeed driver works well without it.
+> 
+>>> +};
+>>> +
+>>> +static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
+>>> +    .core = &v4l2_flash_core_ops,
+>>> +};
+>>> +
+>>
+>> And if v4l2_flash_core_ops goes away, then this can go away as well.
+> 
+> What should I pass as the second argument to v4l2_subdev_init then?
+> It seems that ops can't be NULL:
+> 
+> void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+> {
+>         INIT_LIST_HEAD(&sd->list);
+>         BUG_ON(!ops);     <---------------
 
-> On 08/07/15 16:20, Mauro Carvalho Chehab wrote:
-> > Using memory realloc to increase the size of an array
-> > is complex and makes harder to remove links. Also, by
-> > embedding the link inside an array at the entity makes harder
-> > to change the code to add interfaces, as interfaces will
-> > also need to use links.
-> > 
-> > So, convert the links from arrays to lists.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 9fb3f8958265..a95ca981aabb 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> 
-> <snip>
-> 
-> > @@ -452,27 +445,21 @@ EXPORT_SYMBOL_GPL(media_entity_put);
-> >  
-> >  static struct media_link *media_entity_add_link(struct media_entity *entity)
-> >  {
-> > -	if (entity->num_links >= entity->max_links) {
-> > -		struct media_link *links = entity->links;
-> > -		unsigned int max_links = entity->max_links + 2;
-> > -		unsigned int i;
-> > +	struct media_link *link;
-> >  
-> > -		links = krealloc(links, max_links * sizeof(*links), GFP_KERNEL);
-> > -		if (links == NULL)
-> > -			return NULL;
-> > +	link = kzalloc(sizeof(*link), GFP_KERNEL);
-> > +	if (link == NULL)
-> > +		return NULL;
-> >  
-> > -		for (i = 0; i < entity->num_links; i++)
-> > -			links[i].reverse->reverse = &links[i];
-> > -
-> > -		entity->max_links = max_links;
-> > -		entity->links = links;
-> > -	}
-> > +	link->reverse->reverse = link;
-> 
-> Huh? link points to a zeroed struct, so link->reverse will be NULL.
-> This can't work.
-> 
-> Are you sure this line should be here? The original code doesn't set it
-> either for the new link, it just updates the reverse links for the
-> realloced links.
+In that case just give an empty ops struct.
 
-You're right. I think I can just remove that line.
+I really need to look at this whether I can remove that BUG_ON.
 
-I had to confess that I didn't understand well that the reverse links
-stuff. I mean, IMHO, the entire concept of storing a second copy of
-the link, calling it as "reverse" on some places and as "backlink"
-on others is messy, and I guess we should get rid of duplicating the
-number of links for no good reason.
+Regards,
 
-It is easy to just add the same link to a list at the other entity,
-and keep the link just once in the memory.
+	Hans
 
+>         sd->ops = ops;
+>         sd->v4l2_dev = NULL;
+>         sd->flags = 0;
+>         sd->name[0] = '\0';
+>         sd->grp_id = 0;
+>         sd->dev_priv = NULL;
+>         sd->host_priv = NULL;
+> #if defined(CONFIG_MEDIA_CONTROLLER)
+>         sd->entity.name = sd->name;
+>         sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+> #endif
+> }
 > 
-> > +	INIT_LIST_HEAD(&link->list);
-> > +	list_add(&entity->links, &link->list);
-> >  
-> >  	/* Initialize graph object embedded at the new link */
-> >  	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
-> > -			&entity->links[entity->num_links].graph_obj);
-> > +			&link->graph_obj);
-> >  
-> > -	return &entity->links[entity->num_links++];
-> > +	return link;
-> >  }
-> >  
-> >  int
+>>
+>> I know this driver has been merged, but I just noticed this while looking at
+>> something else.
+>>
+>> Regards,
+>>
+>>     Hans
+>>
 > 
-> Regards,
-> 
-> 	Hans
