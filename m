@@ -1,55 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:37434 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932726AbbHJVrA (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52958 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932086AbbHKSnh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 17:47:00 -0400
-Received: by wibhh20 with SMTP id hh20so168993560wib.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Aug 2015 14:46:59 -0700 (PDT)
-Subject: Re: dvb_usb_af9015: command failed=1 _ kernel >= 4.1.x
-To: Olli Salonen <olli.salonen@iki.fi>
-References: <mhnd10gxck9p5yqwsxbonfty.1436213845281@email.android.com>
- <559B9261.4050409@gmail.com> <55A38988.80404@gmail.com>
- <55BB8E31.8030907@gmail.com>
- <CAAZRmGym49dG6Jj-ZeKZmy0rgr4ozph7-ggjLoWtGOvT1m4oBA@mail.gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Jose Alberto Reguero <jareguero@telefonica.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: poma <pomidorabelisima@gmail.com>
-Message-ID: <55C91BD1.9010807@gmail.com>
-Date: Mon, 10 Aug 2015 23:46:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAAZRmGym49dG6Jj-ZeKZmy0rgr4ozph7-ggjLoWtGOvT1m4oBA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Aug 2015 14:43:37 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sergey Kozlov <serjk@netup.ru>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/3] [media] horus3a: don't use variable length arrays
+Date: Tue, 11 Aug 2015 15:41:57 -0300
+Message-Id: <1439318518-27746-2-git-send-email-mchehab@osg.samsung.com>
+In-Reply-To: <1439318518-27746-1-git-send-email-mchehab@osg.samsung.com>
+References: <1439318518-27746-1-git-send-email-mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31.07.2015 17:55, Olli Salonen wrote:
-> Hi Poma,
-> 
-> Might I suggest reading points 9, 10 and 11 from the following document:
-> https://www.kernel.org/doc/Documentation/SubmittingPatches
-> 
-> Especially point 11 needs to be taken care of in order for your patch to be
-> merged.
-> 
-> Cheers,
-> -olli
-> 
+The Linux stack is short; we need to be able to count the number
+of bytes used at stack on each function. So, we don't like to
+use variable-length arrays, as complained by smatch:
+	drivers/media/dvb-frontends/horus3a.c:57:19: warning: Variable length array is used.
 
-This is why top posting is so bad:
+The max usecase of the driver seems to be 5 bytes + 1 for the
+register.
 
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-  
+So, let's be safe and allocate 6 bytes for the write buffer.
+This should be enough to cover all cases. If not, let's print
+an error message.
 
-Furthermore, to fix this issue - AF9015 DVB-T USB2.0 stick brokenness - is the responsibility of developers.
-I am here only proven tester.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/horus3a.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-I hope we understand each other, and this problem will be resolved in good faith.
-
+diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
+index 46a82dc586d8..5074305b289e 100644
+--- a/drivers/media/dvb-frontends/horus3a.c
++++ b/drivers/media/dvb-frontends/horus3a.c
+@@ -26,6 +26,8 @@
+ #include "horus3a.h"
+ #include "dvb_frontend.h"
+ 
++#define MAX_WRITE_REGSIZE      5
++
+ enum horus3a_state {
+ 	STATE_UNKNOWN,
+ 	STATE_SLEEP,
+@@ -54,16 +56,22 @@ static int horus3a_write_regs(struct horus3a_priv *priv,
+ 			      u8 reg, const u8 *data, u32 len)
+ {
+ 	int ret;
+-	u8 buf[len+1];
++	u8 buf[MAX_WRITE_REGSIZE + 1];
+ 	struct i2c_msg msg[1] = {
+ 		{
+ 			.addr = priv->i2c_address,
+ 			.flags = 0,
+-			.len = sizeof(buf),
++			.len = len + 1,
+ 			.buf = buf,
+ 		}
+ 	};
+ 
++	if (len + 1 >= sizeof(buf)) {
++		dev_warn(&priv->i2c->dev,"wr reg=%04x: len=%d is too big!\n",
++			 reg, len + 1);
++		return -E2BIG;
++	}
++
+ 	horus3a_i2c_debug(priv, reg, 1, data, len);
+ 	buf[0] = reg;
+ 	memcpy(&buf[1], data, len);
+-- 
+2.4.3
 
