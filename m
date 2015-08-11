@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53398 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:42418 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965382AbbHLHKH (ORCPT
+	with ESMTP id S965155AbbHKPUM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:10:07 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 28/31] powerpc: handle page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:47 +0200
-Message-Id: <1439363150-8661-29-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+	Tue, 11 Aug 2015 11:20:12 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 3/4] ov2659: get rid of unused values
+Date: Tue, 11 Aug 2015 12:18:32 -0300
+Message-Id: <64e82329e4957b77788544b2584e4993ee389b31.1439306295.git.mchehab@osg.samsung.com>
+In-Reply-To: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
+References: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
+In-Reply-To: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
+References: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make all cache invalidation conditional on sg_has_page().
+Why to store the chosed values for prediv, postdiv and mult if
+those won't be used?
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/powerpc/kernel/dma.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+drivers/media/i2c/ov2659.c: In function 'ov2659_pll_calc_params':
+drivers/media/i2c/ov2659.c:912:35: warning: variable 's_mult' set but not used [-Wunused-but-set-variable]
+  u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
+                                   ^
+drivers/media/i2c/ov2659.c:912:20: warning: variable 's_postdiv' set but not used [-Wunused-but-set-variable]
+  u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
+                    ^
+drivers/media/i2c/ov2659.c:912:6: warning: variable 's_prediv' set but not used [-Wunused-but-set-variable]
+  u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
+      ^
 
-diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
-index 35e4dcc..cece40b 100644
---- a/arch/powerpc/kernel/dma.c
-+++ b/arch/powerpc/kernel/dma.c
-@@ -135,7 +135,10 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
- 	for_each_sg(sgl, sg, nents, i) {
- 		sg->dma_address = sg_phys(sg) + get_dma_offset(dev);
- 		sg->dma_length = sg->length;
--		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
-+		if (sg_has_page(sg)) {
-+			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
-+					direction);
-+		}
- 	}
+This is likely some leftover from some past change.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
+index 6edffc7b74e3..49109f4f5bb4 100644
+--- a/drivers/media/i2c/ov2659.c
++++ b/drivers/media/i2c/ov2659.c
+@@ -909,7 +909,6 @@ static void ov2659_pll_calc_params(struct ov2659 *ov2659)
+ 	u8 ctrl1_reg = 0, ctrl2_reg = 0, ctrl3_reg = 0;
+ 	struct i2c_client *client = ov2659->client;
+ 	unsigned int desired = pdata->link_frequency;
+-	u32 s_prediv = 1, s_postdiv = 1, s_mult = 1;
+ 	u32 prediv, postdiv, mult;
+ 	u32 bestdelta = -1;
+ 	u32 delta, actual;
+@@ -929,9 +928,6 @@ static void ov2659_pll_calc_params(struct ov2659 *ov2659)
  
- 	return nents;
-@@ -200,7 +203,10 @@ static inline void dma_direct_sync_sg(struct device *dev,
- 	int i;
- 
- 	for_each_sg(sgl, sg, nents, i)
--		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
-+		if (sg_has_page(sg)) {
-+			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
-+					direction);
-+		}
- }
- 
- static inline void dma_direct_sync_single(struct device *dev,
+ 				if ((delta < bestdelta) || (bestdelta == -1)) {
+ 					bestdelta = delta;
+-					s_mult    = mult;
+-					s_prediv  = prediv;
+-					s_postdiv = postdiv;
+ 					ctrl1_reg = ctrl1[i].reg;
+ 					ctrl2_reg = mult;
+ 					ctrl3_reg = ctrl3[j].reg;
 -- 
-1.9.1
+2.4.3
 
