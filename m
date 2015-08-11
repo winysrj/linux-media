@@ -1,56 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59497 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115AbbHXR6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 13:58:09 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+Received: from mail-io0-f174.google.com ([209.85.223.174]:33183 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965175AbbHKPXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 11:23:01 -0400
+Received: by iods203 with SMTP id s203so8662926iod.0
+        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2015 08:23:01 -0700 (PDT)
+From: Abhilash Jindal <klock.android@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: don't try to empty links list in media_entity_cleanup()
-Date: Mon, 24 Aug 2015 19:57:53 +0200
-Message-Id: <1440439073-4082-1-git-send-email-javier@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, Abhilash Jindal <klock.android@gmail.com>
+Subject: [PATCH] [media] bt8xxx: Use monotonic time
+Date: Tue, 11 Aug 2015 11:22:57 -0400
+Message-Id: <1439306577-3281-1-git-send-email-klock.android@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media_entity_cleanup() function only cleans up the entity links list
-but this operation is already made in media_device_unregister_entity().
+Wall time obtained from do_gettimeofday is susceptible to sudden jumps due to
+user setting the time or due to NTP.
 
-In most cases this should be harmless (besides having duplicated code)
-since the links list would be empty so the iteration would not happen
-but the links list is initialized in media_device_register_entity() so
-if a driver fails to register an entity with a media device and clean up
-the entity in the error path, a NULL deference pointer error will happen.
+Monotonic time is constantly increasing time better suited for comparing two
+timestamps.
 
-So don't try to empty the links list in media_entity_cleanup() since
-is either done already or haven't been initialized yet.
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
+Signed-off-by: Abhilash Jindal <klock.android@gmail.com>
 ---
+ drivers/media/pci/bt8xx/bttv-input.c |   23 +++++++++--------------
+ drivers/media/pci/bt8xx/bttvp.h      |    2 +-
+ 2 files changed, 10 insertions(+), 15 deletions(-)
 
- drivers/media/media-entity.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index fc6bb48027ab..acb65f734508 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -252,13 +252,6 @@ EXPORT_SYMBOL_GPL(media_entity_init);
- void
- media_entity_cleanup(struct media_entity *entity)
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 67c8d6b..0f21771 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -194,21 +194,18 @@ static u32 bttv_rc5_decode(unsigned int code)
+ static void bttv_rc5_timer_end(unsigned long data)
  {
--	struct media_link *link, *tmp;
--
--	list_for_each_entry_safe(link, tmp, &entity->links, list) {
--		media_gobj_remove(&link->graph_obj);
--		list_del(&link->list);
--		kfree(link);
+ 	struct bttv_ir *ir = (struct bttv_ir *)data;
+-	struct timeval tv;
++	ktime_t tv;
+ 	u32 gap, rc5, scancode;
+ 	u8 toggle, command, system;
+ 
+ 	/* get time */
+-	do_gettimeofday(&tv);
++	tv = ktime_get();
+ 
++	gap = ktime_to_us(ktime_sub(tv, ir->base_time));
+ 	/* avoid overflow with gap >1s */
+-	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
++	if (gap > USEC_PER_SEC) {
+ 		gap = 200000;
+-	} else {
+-		gap = 1000000 * (tv.tv_sec - ir->base_time.tv_sec) +
+-		    tv.tv_usec - ir->base_time.tv_usec;
 -	}
- }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
+-
++	} 
+ 	/* signal we're ready to start a new code */
+ 	ir->active = false;
+ 
+@@ -249,7 +246,7 @@ static void bttv_rc5_timer_end(unsigned long data)
+ static int bttv_rc5_irq(struct bttv *btv)
+ {
+ 	struct bttv_ir *ir = btv->remote;
+-	struct timeval tv;
++	ktime_t tv;
+ 	u32 gpio;
+ 	u32 gap;
+ 	unsigned long current_jiffies;
+@@ -259,14 +256,12 @@ static int bttv_rc5_irq(struct bttv *btv)
+ 
+ 	/* get time of bit */
+ 	current_jiffies = jiffies;
+-	do_gettimeofday(&tv);
++	tv = ktime_get();
+ 
++	gap = ktime_to_us(ktime_sub(tv, ir->base_time));
+ 	/* avoid overflow with gap >1s */
+-	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
++	if (gap > USEC_PER_SEC) {
+ 		gap = 200000;
+-	} else {
+-		gap = 1000000 * (tv.tv_sec - ir->base_time.tv_sec) +
+-		    tv.tv_usec - ir->base_time.tv_usec;
+ 	}
+ 
+ 	dprintk("RC5 IRQ: gap %d us for %s\n",
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index a444cfb..31bf79d 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -140,7 +140,7 @@ struct bttv_ir {
+ 	bool			rc5_gpio;   /* Is RC5 legacy GPIO enabled? */
+ 	u32                     last_bit;   /* last raw bit seen */
+ 	u32                     code;       /* raw code under construction */
+-	struct timeval          base_time;  /* time of last seen code */
++	ktime_t          				base_time;  /* time of last seen code */
+ 	bool                    active;     /* building raw code */
+ };
  
 -- 
-2.4.3
+1.7.9.5
 
