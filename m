@@ -1,94 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57951 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529AbbHOO4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2015 10:56:24 -0400
-Date: Sat, 15 Aug 2015 11:56:18 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v4 3/6] media: add a common struct to be embed on media
- graph objects
-Message-ID: <20150815115618.7af73c68@recife.lan>
-In-Reply-To: <20150814212514.GB28370@valkosipuli.retiisi.org.uk>
-References: <cover.1439563682.git.mchehab@osg.samsung.com>
-	<02ddd65348f36f5499acd338e692397baf92b045.1439563682.git.mchehab@osg.samsung.com>
-	<20150814212514.GB28370@valkosipuli.retiisi.org.uk>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44170 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754818AbbHKKwG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Aug 2015 06:52:06 -0400
+Message-ID: <55C9D344.8090905@xs4all.nl>
+Date: Tue, 11 Aug 2015 12:49:40 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH RFC v2 08/16] media: convert links from array to list
+References: <cover.1438954897.git.mchehab@osg.samsung.com> <65340c7d01bdfcadbb82f92d63a3571871d07930.1438954897.git.mchehab@osg.samsung.com>
+In-Reply-To: <65340c7d01bdfcadbb82f92d63a3571871d07930.1438954897.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 15 Aug 2015 00:25:15 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-
-> Hi Mauro,
+On 08/07/15 16:20, Mauro Carvalho Chehab wrote:
+> Using memory realloc to increase the size of an array
+> is complex and makes harder to remove links. Also, by
+> embedding the link inside an array at the entity makes harder
+> to change the code to add interfaces, as interfaces will
+> also need to use links.
 > 
-> On Fri, Aug 14, 2015 at 11:56:40AM -0300, Mauro Carvalho Chehab wrote:
-> > Due to the MC API proposed changes, we'll need to have an unique
-> > object ID for all graph objects, and have some shared fields
-> > that will be common on all media graph objects.
-> > 
-> > Right now, the only common object is the object ID, but other
-> > fields will be added latter on.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index b8102bda664d..046f1fe40b50 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -27,6 +27,39 @@
-> >  #include <media/media-device.h>
-> >  
-> >  /**
-> > + *  graph_obj_init - Initialize a graph object
-> > + *
-> > + * @mdev:	Pointer to the media_device that contains the object
-> > + * @type:	Type of the object
-> > + * @gobj:	Pointer to the object
-> > + *
-> > + * This routine initializes the embedded struct media_graph_obj inside a
-> > + * media graph object. It is called automatically if media_*_create()
-> > + * calls are used. However, if the object (entity, link, pad, interface)
-> > + * is embedded on some other object, this function should be called before
-> > + * registering the object at the media controller.
-> > + */
-> > +void graph_obj_init(struct media_device *mdev,
-> > +			   enum media_graph_type type,
-> > +			   struct media_graph_obj *gobj)
-> > +{
-> > +	/* An unique object ID will be provided on next patches */
-> > +	gobj->id = type << 24;
+> So, convert the links from arrays to lists.
 > 
-> Ugh. This will mean the object IDs are going to be huge to begin with,
-> ending up being a nuisance to work with as you often write them by hand. Do
-> we win anything by doing so?
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 9fb3f8958265..a95ca981aabb 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
 
-There is a problem on the current implementation of the graph: it uses
-a bitmap in order to detect if the graph traversal entered inside a loop.
-Also, one of the drivers (vsp1, I think) assumes that the maximum ID
-for an entity is 31 (as it uses 1 << entity->id).
+<snip>
 
-Due to that, we should have a separate range for entities starting from
-0. 
+> @@ -452,27 +445,21 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+>  
+>  static struct media_link *media_entity_add_link(struct media_entity *entity)
+>  {
+> -	if (entity->num_links >= entity->max_links) {
+> -		struct media_link *links = entity->links;
+> -		unsigned int max_links = entity->max_links + 2;
+> -		unsigned int i;
+> +	struct media_link *link;
+>  
+> -		links = krealloc(links, max_links * sizeof(*links), GFP_KERNEL);
+> -		if (links == NULL)
+> -			return NULL;
+> +	link = kzalloc(sizeof(*link), GFP_KERNEL);
+> +	if (link == NULL)
+> +		return NULL;
+>  
+> -		for (i = 0; i < entity->num_links; i++)
+> -			links[i].reverse->reverse = &links[i];
+> -
+> -		entity->max_links = max_links;
+> -		entity->links = links;
+> -	}
+> +	link->reverse->reverse = link;
 
-That should not affect neither debug printks or userspace, provided that
-the object type is known, as one could always do:
+Huh? link points to a zeroed struct, so link->reverse will be NULL.
+This can't work.
 
-#define gobj_id(gobj) ( (gobj)->id & ( (1 << 25) - 1) )
+Are you sure this line should be here? The original code doesn't set it
+either for the new link, it just updates the reverse links for the
+realloced links.
 
-dev_dbg(mdev->dev, "MC create: %s#%d\n",
-        gobj_type[media_gobj_type(gobj)],
-        gobj_id(gobj));
-
-
-in order to report the ID into a reasonable range.
-
-I'm actually doing that on some debug patches I'm writing right now
-in order to allow me to test object creation/removal.
+> +	INIT_LIST_HEAD(&link->list);
+> +	list_add(&entity->links, &link->list);
+>  
+>  	/* Initialize graph object embedded at the new link */
+>  	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
+> -			&entity->links[entity->num_links].graph_obj);
+> +			&link->graph_obj);
+>  
+> -	return &entity->links[entity->num_links++];
+> +	return link;
+>  }
+>  
+>  int
 
 Regards,
-Mauro
+
+	Hans
