@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60101 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752860AbbHZPZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2015 11:25:46 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 1/2] [media] media: don't try to empty links list in media_entity_cleanup()
-Date: Wed, 26 Aug 2015 17:25:18 +0200
-Message-Id: <1440602719-12500-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1440602719-12500-1-git-send-email-javier@osg.samsung.com>
-References: <1440602719-12500-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:37887 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbbHLR43 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 13:56:29 -0400
+MIME-Version: 1.0
+In-Reply-To: <1439398807.2825.51.camel@HansenPartnership.com>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
+	<1439398807.2825.51.camel@HansenPartnership.com>
+Date: Wed, 12 Aug 2015 10:56:26 -0700
+Message-ID: <CAP6odjhfTHzgEivDUxXyU=VBG4U85ETxv1gcogE9GVGoGQ37-w@mail.gmail.com>
+Subject: Re: RFC: prepare for struct scatterlist entries without page backing
+From: Grant Grundler <grantgrundler@gmail.com>
+To: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Christoph Hellwig <hch@lst.de>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	axboe@kernel.dk, dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	David Woodhouse <dwmw2@infradead.org>,
+	alex.williamson@redhat.com,
+	Grant Grundler <grundler@parisc-linux.org>,
+	open list <linux-kernel@vger.kernel.org>,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org,
+	linux-parisc <linux-parisc@vger.kernel.org>,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media_entity_cleanup() function only cleans up the entity links list
-but this operation is already made in media_device_unregister_entity().
+On Wed, Aug 12, 2015 at 10:00 AM, James Bottomley
+<James.Bottomley@hansenpartnership.com> wrote:
+> On Wed, 2015-08-12 at 09:05 +0200, Christoph Hellwig wrote:
+...
+>> However the ccio (parisc) and sba_iommu (parisc & ia64) IOMMUs seem
+>> to be operate mostly on virtual addresses.  It's a fairly odd concept
+>> that I don't fully grasp, so I'll need some help with those if we want
+>> to bring this forward.
 
-In most cases this should be harmless (besides having duplicated code)
-since the links list would be empty so the iteration would not happen
-but the links list is initialized in media_device_register_entity() so
-if a driver fails to register an entity with a media device and clean up
-the entity in the error path, a NULL deference pointer error will happen.
+James explained the primary function of IOMMUs on parisc (DMA-Cache
+coherency) much better than I ever could.
 
-So don't try to empty the links list in media_entity_cleanup() since
-is either done already or haven't been initialized yet.
+Three more observations:
+1) the IOMMU can be bypassed by 64-bit DMA devices on IA64.
 
-Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+2) IOMMU enables 32-bit DMA devices to reach > 32-bit physical memory
+and thus avoiding bounce buffers. parisc and older IA-64 have some
+32-bit PCI devices - e.g. IDE boot HDD.
 
- drivers/media/media-entity.c | 7 -------
- 1 file changed, 7 deletions(-)
+3) IOMMU acts as a proxy for IO devices by fetching cachelines of data
+for PA-RISC systems whose memory controllers ONLY serve cacheline
+sized transactions. ie. 32-bit DMA results in the IOMMU fetching the
+cacheline and updating just the 32-bits in a DMA cache coherent
+fashion.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 7e6fb5a86b21..27eeb691765d 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -252,13 +252,6 @@ EXPORT_SYMBOL_GPL(media_entity_init);
- void
- media_entity_cleanup(struct media_entity *entity)
- {
--	struct media_link *link, *tmp;
--
--	list_for_each_entry_safe(link, tmp, &entity->links, list) {
--		media_gobj_remove(&link->graph_obj);
--		list_del(&link->list);
--		kfree(link);
--	}
- }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
- 
--- 
-2.4.3
+Bonus thought:
+4) IOMMU can improve DMA performance in some cases using "hints"
+provided by the OS (e.g. prefetching DMA data or using READ_CURRENT
+bus transactions instead of normal memory fetches.)
 
+cheers,
+grant
