@@ -1,162 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35699 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755402AbbHYJgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:36:18 -0400
-Message-ID: <55DC366C.5050509@xs4all.nl>
-Date: Tue, 25 Aug 2015 11:33:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:57438 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751302AbbHLVHl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 17:07:41 -0400
+Message-ID: <55CBB594.1070308@osg.samsung.com>
+Date: Wed, 12 Aug 2015 15:07:32 -0600
+From: Shuah Khan <shuahkh@osg.samsung.com>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v7 39/44] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
- ioctl
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <31b28b78f6a37ca7ff4554207bb05cd1a1db788c.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <31b28b78f6a37ca7ff4554207bb05cd1a1db788c.1440359643.git.mchehab@osg.samsung.com>
+	Shuah Khan <shuahkhan@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH RFC v3 14/16] media: add a generic function to remove
+ a link
+References: <cover.1439410053.git.mchehab@osg.samsung.com> <68d8610deb78010dc1f923b991163f80466c4994.1439410053.git.mchehab@osg.samsung.com> <CAKocOON1GkPWjvgyCy-GDToSi5JF64RSW8k=D7jNS-pO1M633A@mail.gmail.com> <20150812175208.1f57e73e@recife.lan>
+In-Reply-To: <20150812175208.1f57e73e@recife.lan>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Add a new ioctl that will report the entire topology on
-> one go.
+On 08/12/2015 02:52 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 12 Aug 2015 14:45:52 -0600
+> Shuah Khan <shuahkhan@gmail.com> escreveu:
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> On Wed, Aug 12, 2015 at 2:14 PM, Mauro Carvalho Chehab
+>> <mchehab@osg.samsung.com> wrote:
+>>> Removing a link is simple. Yet, better to have a separate
+>>> function for it, as we'll be also sharing it with a
+>>> public API call.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>> One thing to think about is whether or not we need some kind of callback
+>> mechanism to alert the entity on the other side of the link and other entities
+>> associated with the media device when a link is removed.
+>>
+>> This patch is fine for now and we can enhance it as and when we have the
+>> need for such notifications.
 > 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 796e4a490af8..0111d9652b78 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -181,6 +181,8 @@ struct media_interface {
->   */
->  struct media_intf_devnode {
->  	struct media_interface		intf;
-> +
-> +	/* Should match the fields at media_v2_intf_devnode */
->  	u32				major;
->  	u32				minor;
->  };
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index ceea791dd6e9..7fcf7f477ae3 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -238,11 +238,94 @@ struct media_links_enum {
->  #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
->  #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
->  
-> -/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-> +/*
-> + * MC next gen API definitions
-> + *
-> + * NOTE: The declarations below are close to the MC RFC for the Media
-> + *	 Controller, the next generation. Yet, there are a few adjustments
-> + *	 to do, as we want to be able to have a functional API before
-> + *	 the MC properties change. Those will be properly marked below.
-> + *	 Please also notice that I removed "num_pads", "num_links",
-> + *	 from the proposal, as a proper userspace application will likely
-> + *	 use lists for pads/links, just as we intend todo in Kernelspace.
-> + *	 The API definition should be freed from fields that are bound to
-> + *	 some specific data structure.
-> + *
-> + * FIXME: Currently, I opted to name the new types as "media_v2", as this
-> + *	  won't cause any conflict with the Kernelspace namespace, nor with
-> + *	  the previous kAPI media_*_desc namespace. This can be changed
-> + *	  latter, before the adding this API upstream.
-> + */
-> +
-> +
-> +#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
-> +#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
-> +#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
-> +#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
-> +
-> +struct media_v2_entity {
-> +	__u32 id;
-> +	char name[64];		/* FIXME: move to a property? (RFC says so) */
-> +	__u16 reserved[14];
-> +};
-> +
-> +/* Should match the specific fields at media_intf_devnode */
-> +struct media_v2_intf_devnode {
-> +	__u32 major;
-> +	__u32 minor;
-> +};
-> +
-> +struct media_v2_interface {
-> +	__u32 id;
-> +	__u32 intf_type;
-> +	__u32 flags;
-> +	__u32 reserved[9];
-> +
-> +	union {
-> +		struct media_v2_intf_devnode devnode;
-> +		__u32 raw[16];
-> +	};
-> +};
-> +
-> +struct media_v2_pad {
-> +	__u32 id;
-> +	__u32 entity_id;
-> +	__u32 flags;
-> +	__u16 reserved[9];
-> +};
-> +
-> +struct media_v2_link {
-> +    __u32 id;
-> +    __u32 source_id;
-> +    __u32 sink_id;
-> +    __u32 flags;
-> +    __u32 reserved[5];
-> +};
-> +
-> +struct media_v2_topology {
-> +	__u32 topology_version;
-> +
-> +	__u32 num_entities;
-> +	struct media_v2_entity *entities;
-> +
-> +	__u32 num_interfaces;
-> +	struct media_v2_interface *interfaces;
-> +
-> +	__u32 num_pads;
-> +	struct media_v2_pad *pads;
-> +
-> +	__u32 num_links;
-> +	struct media_v2_link *links;
-> +
-> +	__u32 reserved[64];
-
-As I suggested elsewhere, replace this by:
-
-	struct {
-		__u32 num_reserved;
-		void *ptr_reserved;
-	} reserved_ptrs[8];
-
-This will keep the number of reserved num/pointer pairs identical
-between 32 and 64 bit architectures. Without that doing compat32
-handling will be very difficult indeed.
-
-We might want a separate __u32 reserved[] array so we're able to add
-non-pointer fields in the future.
-
-Regards,
-
-	Hans
-
-> +};
-> +
-> +/* ioctls */
->  
->  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
->  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-> +#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
->  
->  #endif /* __LINUX_MEDIA_H */
+> Well, now, all elements of the graph are of the type media_graph_obj.
 > 
+> One of the things it is stored there is the media_device. It would
+> be very easy to add a notify function[1] that would call a callback
+> when a new object is created or removed. A single callback function
+> could be used for any topology change.
+> 
+> So, I think that it is now simpler to track topology changes than
+> before ;)
+> 
+> [1] Actually, I would implement a list with notification callbacks
+> as more than one driver may want to be notified about topology
+> changes.
+> 
+
+Right. It has to be a list as opposed to a single call.
+
+-- Shuah
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
