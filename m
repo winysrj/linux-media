@@ -1,47 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.uni-paderborn.de ([131.234.142.9]:46462 "EHLO
-	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbbHSIhU (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53114 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965083AbbHLHJW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 04:37:20 -0400
-MIME-Version: 1.0
-In-Reply-To: <CALcgO_471LouPKvdDAfOSbtWX+ne4iqvbxC-+fMwy-nQM8Go2w@mail.gmail.com>
-References: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com>
-	<20150811111604.GD10928@atomide.com>
-	<CALcgO_471LouPKvdDAfOSbtWX+ne4iqvbxC-+fMwy-nQM8Go2w@mail.gmail.com>
-Date: Wed, 19 Aug 2015 10:37:16 +0200
-Message-ID: <CALcgO_44y2dxLgysj-UVZjPoWoWo2uMskL_9UNTYo7=W1caS_w@mail.gmail.com>
-Subject: Re: [PATCH RFC] DT support for omap4-iss
-From: Michael Allwright <michael.allwright@upb.de>
-To: Tony Lindgren <tony@atomide.com>, Tero Kristo <t-kristo@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Wed, 12 Aug 2015 03:09:22 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 13/31] sparc/ldc: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:32 +0200
+Message-Id: <1439363150-8661-14-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Everyone,
+Use
 
-I'm thinking of using systemtap to create watchpoints on all memory
-regions of the ISS and associated PRCM registers to generate two log
-files with all memory accesses at any given point of time, one for
-3.17 and one for 4.1.4.
+    sg_phys(sg) & PAGE_MASK
 
-Does this sound like reasonable approach, or is this over the top /
-inefficient in your experience?
+instead of
 
-All the best,
+    page_to_pfn(sg_page(sg)) << PAGE_SHIFT
 
-Michael Allwright
+to get at the page-aligned physical address ofa SG entry, so that
+we don't require a page backing for SG entries.
 
-PhD Student
-Paderborn Institute for Advanced Studies in Computer Science and Engineering
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/ldc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-University of Paderborn
-Office-number 02-10
-Zukunftsmeile 1
-33102 Paderborn
-Germany
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 1ae5eb1..0a29974 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -2051,7 +2051,7 @@ static void fill_cookies(struct cookie_state *sp, unsigned long pa,
+ 
+ static int sg_count_one(struct scatterlist *sg)
+ {
+-	unsigned long base = page_to_pfn(sg_page(sg)) << PAGE_SHIFT;
++	unsigned long base = sg_phys(sg) & PAGE_MASK;
+ 	long len = sg->length;
+ 
+ 	if ((sg->offset | len) & (8UL - 1))
+@@ -2114,7 +2114,7 @@ int ldc_map_sg(struct ldc_channel *lp,
+ 	state.nc = 0;
+ 
+ 	for_each_sg(sg, s, num_sg, i) {
+-		fill_cookies(&state, page_to_pfn(sg_page(s)) << PAGE_SHIFT,
++		fill_cookies(&state, sg_phys(s) & PAGE_MASK,
+ 			     s->offset, s->length);
+ 	}
+ 
+-- 
+1.9.1
+
