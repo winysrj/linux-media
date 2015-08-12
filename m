@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48895 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934360AbbHLHO6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52911 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934045AbbHLHIz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:14:58 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 741F22A0097
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2015 09:14:28 +0200 (CEST)
-Message-ID: <55CAF254.50808@xs4all.nl>
-Date: Wed, 12 Aug 2015 09:14:28 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] horus3a: fix compiler warning
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 03:08:55 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: RFC: prepare for struct scatterlist entries without page backing
+Date: Wed, 12 Aug 2015 09:05:19 +0200
+Message-Id: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Shut up this compiler warning that I get during the daily build:
+Dan Williams started to look into addressing I/O to and from
+Persistent Memory in his series from June:
 
-horus3a.c: In function 'horus3a_set_params':
-horus3a.c:308:24: warning: 'rolloff' may be used uninitialized in this function [-Wmaybe-uninitialized]
-     symbol_rate * (100 + rolloff), 200000) + 5;
-                        ^
+	http://thread.gmane.org/gmane.linux.kernel.cross-arch/27944
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+I've started looking into DMA mapping of these SGLs specifically instead
+of the map_pfn method in there.  In addition to supporting NVDIMM backed
+I/O I also suspect this would be highly useful for media drivers that
+go through nasty hoops to be able to DMA from/to their ioremapped regions,
+with vb2_dc_get_userptr in drivers/media/v4l2-core/videobuf2-dma-contig.c
+being a prime example for the unsafe hacks currently used.
 
-diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
-index 5074305..000606a 100644
---- a/drivers/media/dvb-frontends/horus3a.c
-+++ b/drivers/media/dvb-frontends/horus3a.c
-@@ -285,6 +285,7 @@ static int horus3a_set_params(struct dvb_frontend *fe)
- 			rolloff = 20;
- 			break;
- 		case ROLLOFF_AUTO:
-+		default:
- 			dev_err(&priv->i2c->dev,
- 				"horus3a: auto roll-off is not supported\n");
- 			return -EINVAL;
+It turns out most DMA mapping implementation can handle SGLs without
+page structures with some fairly simple mechanical work.  Most of it
+is just about consistently using sg_phys.  For implementations that
+need to flush caches we need a new helper that skips these cache
+flushes if a entry doesn't have a kernel virtual address.
+
+However the ccio (parisc) and sba_iommu (parisc & ia64) IOMMUs seem
+to be operate mostly on virtual addresses.  It's a fairly odd concept
+that I don't fully grasp, so I'll need some help with those if we want
+to bring this forward.
+
+Additional this series skips ARM entirely for now.  The reason is
+that most arm implementations of the .map_sg operation just iterate
+over all entries and call ->map_page for it, which means we'd need
+to convert those to a ->map_pfn similar to Dan's previous approach.
+
