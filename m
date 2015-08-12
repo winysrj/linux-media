@@ -1,43 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59275 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:52939 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323AbbHXOgr (ORCPT
+	with ESMTP id S1751989AbbHLUPJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 10:36:47 -0400
-Subject: Re: linux-next: Tree for Aug 24 (media/i2c/tc358743.c)
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-References: <20150824215249.41824451@canb.auug.org.au>
-Cc: linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Ramakrishnan Muthukrishnan <ram@rkrishnan.org>,
-	Mikhail Khelik <mkhelik@cisco.com>,
-	Mats Randgaard <matrandg@cisco.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <55DB2BFD.9090309@infradead.org>
-Date: Mon, 24 Aug 2015 07:36:45 -0700
-MIME-Version: 1.0
-In-Reply-To: <20150824215249.41824451@canb.auug.org.au>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 16:15:09 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v3 05/16] media: initialize PAD objects
+Date: Wed, 12 Aug 2015 17:14:49 -0300
+Message-Id: <a15077ffbaf8b388298d835dd8a674b4554875d4.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/24/15 04:52, Stephen Rothwell wrote:
-> Hi all,
-> 
-> Changes since 20150821:
-> 
+PAD embedded objects also need to be initialized. Those are
+currently created via media_entity_init() and, once created,
+never change.
 
+While this will likely change in the future, for now we can
+just initialize those objects once, when registering the
+entity.
 
-on x86_64:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-drivers/built-in.o: In function `print_avi_infoframe':
-tc358743.c:(.text.unlikely+0x7849): undefined reference to `hdmi_infoframe_unpack'
-tc358743.c:(.text.unlikely+0x787e): undefined reference to `hdmi_infoframe_log'
-
-
-Needs to select HDMI ?
-
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 960a4e30c68d..56724f7853bf 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -430,6 +430,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	int i;
++
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->parent != NULL);
+ 	entity->parent = mdev;
+@@ -438,6 +440,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	/* Initialize media_graph_obj embedded at the entity */
+ 	graph_obj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ 
++	/* Initialize objects at the pads */
++	for (i = 0; entity->num_pads; i++)
++		graph_obj_init(mdev, MEDIA_GRAPH_PAD,
++			       &entity->pads[i].graph_obj);
++
+ 	/*
+ 	 * FIXME: should it use the unique object ID or would it
+ 	 * break support on the legacy MC API?
+@@ -462,6 +469,7 @@ EXPORT_SYMBOL_GPL(media_device_register_entity);
+  */
+ void media_device_unregister_entity(struct media_entity *entity)
+ {
++	int i;
+ 	struct media_device *mdev = entity->parent;
+ 
+ 	if (mdev == NULL)
+@@ -469,6 +477,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 
+ 	spin_lock(&mdev->lock);
+ 	graph_obj_remove(&entity->graph_obj);
++	for (i = 0; entity->num_pads; i++)
++		graph_obj_remove(&entity->pads[i].graph_obj);
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
 -- 
-~Randy
+2.4.3
+
