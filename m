@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50489 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752371AbbHYIlz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53454 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965451AbbHLHKQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 04:41:55 -0400
-Message-ID: <55DC29AE.40700@xs4all.nl>
-Date: Tue, 25 Aug 2015 10:39:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v7 23/44] [media] dvbdev: add support for indirect interface
- links
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <c3591e8e83b785ede03633be38cb601c6284542e.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <c3591e8e83b785ede03633be38cb601c6284542e.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 03:10:16 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 31/31] dma-mapping-common: skip kmemleak checks for page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:50 +0200
+Message-Id: <1439363150-8661-32-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Some interfaces indirectly control multiple entities.
-> Add support for those.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 747372ba4fe1..5a2bd03f5dc0 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -440,6 +440,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	struct media_device *mdev = adap->mdev;
->  	struct media_entity *entity, *tuner = NULL, *fe = NULL;
->  	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
-> +	struct media_interface *intf;
->  
->  	if (!mdev)
->  		return;
-> @@ -475,6 +476,17 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  
->  	if (demux && ca)
->  		media_create_pad_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
-> +
-> +	/* Create indirect interface links for DVR and tuner */
-> +
-> +	list_for_each_entry(intf, &mdev->interfaces, list) {
-> +		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
-> +			media_create_intf_link(tuner, intf, 0);
-> +		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
-> +			media_create_intf_link(demux, intf, 0);
-> +	}
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/asm-generic/dma-mapping-common.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Shouldn't there also be a link between the CA entity and CA interface?
+diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
+index 940d5ec..afc3eaf 100644
+--- a/include/asm-generic/dma-mapping-common.h
++++ b/include/asm-generic/dma-mapping-common.h
+@@ -51,8 +51,10 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+ 	int i, ents;
+ 	struct scatterlist *s;
+ 
+-	for_each_sg(sg, s, nents, i)
+-		kmemcheck_mark_initialized(sg_virt(s), s->length);
++	for_each_sg(sg, s, nents, i) {
++		if (sg_has_page(s))
++			kmemcheck_mark_initialized(sg_virt(s), s->length);
++	}
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
+ 	BUG_ON(ents < 0);
+-- 
+1.9.1
 
-> +
-> +
-
-Spurious newlines at the end of the function.
-
->  }
->  EXPORT_SYMBOL_GPL(dvb_create_media_graph);
->  #endif
-> 
-
-Regards,
-
-	Hans
