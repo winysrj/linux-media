@@ -1,71 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:34044 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179AbbHXRx5 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53061 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773AbbHLUPM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 13:53:57 -0400
-Received: by igui7 with SMTP id i7so67093261igu.1
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 10:53:56 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <89b52db55e6ab0ad54e2ed0e760ba0ca3f54dec8.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<89b52db55e6ab0ad54e2ed0e760ba0ca3f54dec8.1440359643.git.mchehab@osg.samsung.com>
-Date: Mon, 24 Aug 2015 11:53:56 -0600
-Message-ID: <CAKocOOPYg3ac6GFA1ybo3cg=quczpd8Uh+8frhbsdGWrUEV5Mw@mail.gmail.com>
-Subject: Re: [PATCH v7 02/44] [media] staging: omap4iss: get entity ID using media_entity_id()
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Wed, 12 Aug 2015 16:15:12 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, shuahkh@osg.samsung.com
-Content-Type: text/plain; charset=UTF-8
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH RFC v3 15/16] media: rename media_entity_remove_foo functions
+Date: Wed, 12 Aug 2015 17:14:59 -0300
+Message-Id: <80fd5ced9d58ce3c648e733f01dca3fbc25401bf.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> The struct media_entity does not have an .id field anymore since
-> now the entity ID is stored in the embedded struct media_gobj.
->
-> This caused the omap4iss driver fail to build. Fix by using the
-> media_entity_id() macro to obtain the entity ID.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> index 9bfb725b9986..e54a7afd31de 100644
-> --- a/drivers/staging/media/omap4iss/iss.c
-> +++ b/drivers/staging/media/omap4iss/iss.c
-> @@ -607,7 +607,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
->                          * crashed. Mark it as such, the ISS will be reset when
->                          * applications will release it.
->                          */
-> -                       iss->crashed |= 1U << subdev->entity.id;
-> +                       iss->crashed |= 1U << media_entity_id(&subdev->entity);
->                         failure = -ETIMEDOUT;
->                 }
->         }
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> index bae67742706f..25e9e7a6b99d 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -784,7 +784,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->         entity = &video->video.entity;
->         media_entity_graph_walk_start(&graph, entity);
->         while ((entity = media_entity_graph_walk_next(&graph)))
-> -               pipe->entities |= 1 << entity->id;
-> +               pipe->entities |= 1 << media_entity_id(entity);
->
+As entities will also have links to interfaces, we need to
+rename the existing functions that remove links, to avoid
+namespace collision and confusion.
 
-Looks good to me.
+No functional changes.
 
-Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+The rename was made by this script:
+	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_remove,media_remove_pad,g <$i >a && mv a $i; done
 
-thanks,
--- Shuah
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index f43af2fda306..c3bc8a6f660b 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -490,7 +490,7 @@ static void __media_remove_link(struct media_link *link)
+ 	kfree(link);
+ }
+ 
+-static void __media_entity_remove_link(struct media_entity *entity,
++static void __media_remove_pad_link(struct media_entity *entity,
+ 				       struct media_link *link)
+ {
+ 	struct media_link *rlink, *tmp;
+@@ -548,7 +548,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 				      &sink->pads[sink_pad].graph_obj,
+ 				      flags, &sink->links);
+ 	if (backlink == NULL) {
+-		__media_entity_remove_link(source, link);
++		__media_remove_pad_link(source, link);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -561,29 +561,29 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ }
+ EXPORT_SYMBOL_GPL(media_create_pad_link);
+ 
+-void __media_entity_remove_links(struct media_entity *entity)
++void __media_remove_pad_links(struct media_entity *entity)
+ {
+ 	struct media_link *link, *tmp;
+ 
+ 	list_for_each_entry_safe(link, tmp, &entity->links, list)
+-		__media_entity_remove_link(entity, link);
++		__media_remove_pad_link(entity, link);
+ 
+ 	entity->num_links = 0;
+ 	entity->num_backlinks = 0;
+ }
+-EXPORT_SYMBOL_GPL(__media_entity_remove_links);
++EXPORT_SYMBOL_GPL(__media_remove_pad_links);
+ 
+-void media_entity_remove_links(struct media_entity *entity)
++void media_remove_pad_links(struct media_entity *entity)
+ {
+ 	/* Do nothing if the entity is not registered. */
+ 	if (entity->parent == NULL)
+ 		return;
+ 
+ 	mutex_lock(&entity->parent->graph_mutex);
+-	__media_entity_remove_links(entity);
++	__media_remove_pad_links(entity);
+ 	mutex_unlock(&entity->parent->graph_mutex);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_remove_links);
++EXPORT_SYMBOL_GPL(media_remove_pad_links);
+ 
+ static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
+ {
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 5b0a30b9252b..bbec6d87f5f8 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -285,7 +285,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (v4l2_dev->mdev) {
+-		media_entity_remove_links(&sd->entity);
++		media_remove_pad_links(&sd->entity);
+ 		media_device_unregister_entity(&sd->entity);
+ 	}
+ #endif
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 8400c517ff1f..e63e402ca6d1 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -213,8 +213,8 @@ void media_entity_cleanup(struct media_entity *entity);
+ 
+ int media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
+-void __media_entity_remove_links(struct media_entity *entity);
+-void media_entity_remove_links(struct media_entity *entity);
++void __media_remove_pad_links(struct media_entity *entity);
++void media_remove_pad_links(struct media_entity *entity);
+ 
+ int __media_entity_setup_link(struct media_link *link, u32 flags);
+ int media_entity_setup_link(struct media_link *link, u32 flags);
+-- 
+2.4.3
+
