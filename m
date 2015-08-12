@@ -1,131 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:35071 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932336AbbHXSOK (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53092 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965007AbbHLHJT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 14:14:10 -0400
-Received: by igbjg10 with SMTP id jg10so68113922igb.0
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 11:14:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0c7d9114cb585da8f24c6ac9861bed9cd7f5a794.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<0c7d9114cb585da8f24c6ac9861bed9cd7f5a794.1440359643.git.mchehab@osg.samsung.com>
-Date: Mon, 24 Aug 2015 12:14:09 -0600
-Message-ID: <CAKocOOO37DPG520cpYrTFgXWyCrTRjRDCvdk13n1EC0PWPrpzQ@mail.gmail.com>
-Subject: Re: [PATCH v7 03/44] [media] omap3isp: get entity ID using media_entity_id()
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	shuahkh@osg.samsung.com
-Content-Type: text/plain; charset=UTF-8
+	Wed, 12 Aug 2015 03:09:19 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 12/31] mn10300: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:31 +0200
+Message-Id: <1439363150-8661-13-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> X-Patchwork-Delegate: laurent.pinchart@ideasonboard.com
-> The struct media_entity does not have an .id field anymore since
-> now the entity ID is stored in the embedded struct media_gobj.
->
-> This caused the omap3isp driver fail to build. Fix by using the
-> media_entity_id() macro to obtain the entity ID.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 56e683b19a73..e08183f9d0f7 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
->         struct v4l2_subdev *subdev;
->         int failure = 0;
->         int ret;
-> +       u32 id;
->
->         /*
->          * We need to stop all the modules after CCDC first or they'll
-> @@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
->                 if (ret) {
->                         dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
->                         isp->stop_failure = true;
-> -                       if (subdev == &isp->isp_prev.subdev)
-> -                               isp->crashed |= 1U << subdev->entity.id;
-> +                       if (subdev == &isp->isp_prev.subdev) {
-> +                               id = media_entity_id(&subdev->entity);
-> +                               isp->crashed |= 1U << id;
+Just remove a BUG_ON, the code handles them just fine as-is.
 
-Is there a reason why you need id defined here, unlike the cases
-below. Can you do
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/mn10300/include/asm/dma-mapping.h | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-isp->crashed |= 1U << media_entity_id(&subdev->entity);
+diff --git a/arch/mn10300/include/asm/dma-mapping.h b/arch/mn10300/include/asm/dma-mapping.h
+index a18abfc..b1b1050 100644
+--- a/arch/mn10300/include/asm/dma-mapping.h
++++ b/arch/mn10300/include/asm/dma-mapping.h
+@@ -57,11 +57,8 @@ int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
+ 	BUG_ON(!valid_dma_direction(direction));
+ 	WARN_ON(nents == 0 || sglist[0].length == 0);
+ 
+-	for_each_sg(sglist, sg, nents, i) {
+-		BUG_ON(!sg_page(sg));
+-
++	for_each_sg(sglist, sg, nents, i)
+ 		sg->dma_address = sg_phys(sg);
+-	}
+ 
+ 	mn10300_dcache_flush_inv();
+ 	return nents;
+-- 
+1.9.1
 
-
-> +                       }
->                         failure = -ETIMEDOUT;
->                 }
->         }
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-> index 3b10304b580b..d96e3be5e252 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
->         /* Wait for the CCDC to become idle. */
->         if (ccdc_sbl_wait_idle(ccdc, 1000)) {
->                 dev_info(isp->dev, "CCDC won't become idle!\n");
-> -               isp->crashed |= 1U << ccdc->subdev.entity.id;
-> +               isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
->                 omap3isp_pipeline_cancel_stream(pipe);
->                 return 0;
->         }
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index 3094572f8897..6c89dc40df85 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -235,7 +235,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
->         while ((entity = media_entity_graph_walk_next(&graph))) {
->                 struct isp_video *__video;
->
-> -               pipe->entities |= 1 << entity->id;
-> +               pipe->entities |= 1 << media_entity_id(entity);
->
->                 if (far_end != NULL)
->                         continue;
-> @@ -891,6 +891,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->         struct v4l2_ext_control ctrl;
->         unsigned int i;
->         int ret;
-> +       u32 id;
->
->         /* Memory-to-memory pipelines have no external subdev. */
->         if (pipe->input != NULL)
-> @@ -898,7 +899,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->
->         for (i = 0; i < ARRAY_SIZE(ents); i++) {
->                 /* Is the entity part of the pipeline? */
-> -               if (!(pipe->entities & (1 << ents[i]->id)))
-> +               if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
->                         continue;
->
->                 /* ISP entities have always sink pad == 0. Find source. */
-> @@ -950,7 +951,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->
->         pipe->external_rate = ctrl.value64;
->
-> -       if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
-> +       id = media_entity_id(&isp->isp_ccdc.subdev.entity);
-> +       if (pipe->entities & (1 << id)) {
->                 unsigned int rate = UINT_MAX;
->                 /*
->                  * Check that maximum allowed CCDC pixel rate isn't
-> --
-> 2.4.3
->
-
-thanks,
--- Shuah
