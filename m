@@ -1,135 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48365 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754153AbbHNPCj (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53422 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965302AbbHLHKK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 11:02:39 -0400
-Message-ID: <55CE02EE.7030407@xs4all.nl>
-Date: Fri, 14 Aug 2015 17:02:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v4 2/6] media: create a macro to get entity ID
-References: <cover.1439563682.git.mchehab@osg.samsung.com> <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
-In-Reply-To: <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 03:10:10 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 29/31] parisc: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:48 +0200
+Message-Id: <1439363150-8661-30-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/14/2015 04:56 PM, Mauro Carvalho Chehab wrote:
-> Instead of accessing direcly entity.id, let's create a macro,
+Make all cache invalidation conditional on sg_has_page() and use
+sg_phys to get the physical address directly.
 
-s/direcly/directly/
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/parisc/kernel/pci-dma.c | 29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
-> as this field will be moved into a common struct later on.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 7b39440192d6..b9382f06044a 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -75,8 +75,8 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
->  	spin_lock(&mdev->lock);
->  
->  	media_device_for_each_entity(entity, mdev) {
-> -		if ((entity->id == id && !next) ||
-> -		    (entity->id > id && next)) {
-> +		if (((entity_id(entity) == id) && !next) ||
-> +		    ((entity_id(entity) > id) && next)) {
->  			spin_unlock(&mdev->lock);
->  			return entity;
->  		}
-> @@ -102,7 +102,7 @@ static long media_device_enum_entities(struct media_device *mdev,
->  	if (ent == NULL)
->  		return -EINVAL;
->  
-> -	u_ent.id = ent->id;
-> +	u_ent.id = entity_id(ent);
->  	if (ent->name)
->  		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
->  	u_ent.type = ent->type;
-> @@ -120,7 +120,7 @@ static long media_device_enum_entities(struct media_device *mdev,
->  static void media_device_kpad_to_upad(const struct media_pad *kpad,
->  				      struct media_pad_desc *upad)
->  {
-> -	upad->entity = kpad->entity->id;
-> +	upad->entity = entity_id(kpad->entity);
->  	upad->index = kpad->index;
->  	upad->flags = kpad->flags;
->  }
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 78440c7aad94..b8102bda664d 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -141,10 +141,10 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  	graph->stack[graph->top].entity = NULL;
->  	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
->  
-> -	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-> +	if (WARN_ON(entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
->  		return;
->  
-> -	__set_bit(entity->id, graph->entities);
-> +	__set_bit(entity_id(entity), graph->entities);
->  	stack_push(graph, entity);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-> @@ -185,11 +185,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
->  
->  		/* Get the entity in the other end of the link . */
->  		next = media_entity_other(entity, link);
-> -		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-> +		if (WARN_ON(entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
->  			return NULL;
->  
->  		/* Has the entity already been visited? */
-> -		if (__test_and_set_bit(next->id, graph->entities)) {
-> +		if (__test_and_set_bit(entity_id(next), graph->entities)) {
->  			link_top(graph)++;
->  			continue;
->  		}
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-> index 17f08973f835..01bc3c48a2b4 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
->  			break;
->  
->  		/* Ensure the branch has no loop. */
-> -		if (entities & (1 << entity->subdev.entity.id))
-> +		if (entities & (1 << entity_id(&entity->subdev.entity)))
->  			return -EPIPE;
->  
-> -		entities |= 1 << entity->subdev.entity.id;
-> +		entities |= 1 << entity_id(&entity->subdev.entity);
->  
->  		/* UDS can't be chained. */
->  		if (entity->type == VSP1_ENTITY_UDS) {
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8b21a4d920d9..478d5cd56be9 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -126,6 +126,8 @@ struct media_entity_graph {
->  	int top;
->  };
->  
-> +#define entity_id(entity) ((entity)->id)
-> +
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->  		struct media_pad *pads);
->  void media_entity_cleanup(struct media_entity *entity);
-> 
+diff --git a/arch/parisc/kernel/pci-dma.c b/arch/parisc/kernel/pci-dma.c
+index b9402c9..6cad0e0 100644
+--- a/arch/parisc/kernel/pci-dma.c
++++ b/arch/parisc/kernel/pci-dma.c
+@@ -483,11 +483,13 @@ static int pa11_dma_map_sg(struct device *dev, struct scatterlist *sglist, int n
+ 	BUG_ON(direction == DMA_NONE);
+ 
+ 	for_each_sg(sglist, sg, nents, i) {
+-		unsigned long vaddr = (unsigned long)sg_virt(sg);
+-
+-		sg_dma_address(sg) = (dma_addr_t) virt_to_phys(vaddr);
++		sg_dma_address(sg) = sg_phys(sg);
+ 		sg_dma_len(sg) = sg->length;
+-		flush_kernel_dcache_range(vaddr, sg->length);
++
++		if (sg_has_page(sg)) {
++			flush_kernel_dcache_range((unsigned long)sg_virt(sg),
++						  sg->length);
++		}
+ 	}
+ 	return nents;
+ }
+@@ -504,9 +506,10 @@ static void pa11_dma_unmap_sg(struct device *dev, struct scatterlist *sglist, in
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for_each_sg(sglist, sg, nents, i)
+-		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+-	return;
++	for_each_sg(sglist, sg, nents, i) {
++		if (sg_has_page(sg))
++			flush_kernel_vmap_range(sg_virt(sg), sg->length);
++	}
+ }
+ 
+ static void pa11_dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, unsigned long offset, size_t size, enum dma_data_direction direction)
+@@ -530,8 +533,10 @@ static void pa11_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for_each_sg(sglist, sg, nents, i)
+-		flush_kernel_vmap_range(sg_virt(sg), sg->length);
++	for_each_sg(sglist, sg, nents, i) {
++		if (sg_has_page(sg))
++			flush_kernel_vmap_range(sg_virt(sg), sg->length);
++	}
+ }
+ 
+ static void pa11_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+@@ -541,8 +546,10 @@ static void pa11_dma_sync_sg_for_device(struct device *dev, struct scatterlist *
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for_each_sg(sglist, sg, nents, i)
+-		flush_kernel_vmap_range(sg_virt(sg), sg->length);
++	for_each_sg(sglist, sg, nents, i) {
++		if (sg_has_page(sg))
++			flush_kernel_vmap_range(sg_virt(sg), sg->length);
++	}
+ }
+ 
+ struct hppa_dma_ops pcxl_dma_ops = {
+-- 
+1.9.1
 
