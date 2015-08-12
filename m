@@ -1,138 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54404 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752110AbbHRUE2 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39136 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843AbbHLJ7A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 16:04:28 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v5 4/8] [media] media: use media_gobj inside pads
-Date: Tue, 18 Aug 2015 17:04:17 -0300
-Message-Id: <f443416df795b9316c49218c34230df7566b4b26.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
+	Wed, 12 Aug 2015 05:59:00 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NSY00DECRQAEJ20@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Aug 2015 10:58:58 +0100 (BST)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2] media: videobuf2-dc: set properly dma_max_segment_size
+Date: Wed, 12 Aug 2015 11:58:53 +0200
+Message-id: <1439373533-23299-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PADs also need unique object IDs that won't conflict with
-the entity object IDs.
+If device has no DMA max_seg_size set, we assume that there is no limit
+and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
+let DMA-mapping API always create contiguous mappings in DMA address
+space. This is essential for all devices, which use dma-contig
+videobuf2 memory allocator.
 
-The pad objects are currently created via media_entity_init()
-and, once created, never change.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+Changelog:
+v2:
+- set max segment size only if a new dma params structure has been
+  allocated, as suggested by Laurent Pinchart
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-While this will likely change in the future in order to
-support dynamic changes, for now we'll keep PADs as arrays
-and initialize the media_gobj embedded structs when
-registering the entity.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index e6caec8f62b7..24551d4ddfb8 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -425,6 +425,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 94c1e64..455e925 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -862,6 +862,21 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ void *vb2_dma_contig_init_ctx(struct device *dev)
  {
-+	int i;
+ 	struct vb2_dc_conf *conf;
++	int err;
 +
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->parent != NULL);
- 	entity->parent = mdev;
-@@ -433,6 +435,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
- 	list_add_tail(&entity->list, &mdev->entities);
-+
-+	/* Initialize objects at the pads */
-+	for (i = 0; i < entity->num_pads; i++)
-+		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-+			       &entity->pads[i].graph_obj);
-+
- 	spin_unlock(&mdev->lock);
++	/*
++	 * if device has no max_seg_size set, we assume that there is no limit
++	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
++	 * in DMA address space
++	 */
++	if (!dev->dma_parms) {
++		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
++		if (!dev->dma_parms)
++			return ERR_PTR(-ENOMEM);
++		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
++		if (err)
++			return ERR_PTR(err);
++	}
  
- 	return 0;
-@@ -448,12 +456,15 @@ EXPORT_SYMBOL_GPL(media_device_register_entity);
-  */
- void media_device_unregister_entity(struct media_entity *entity)
- {
-+	int i;
- 	struct media_device *mdev = entity->parent;
- 
- 	if (mdev == NULL)
- 		return;
- 
- 	spin_lock(&mdev->lock);
-+	for (i = 0; i < entity->num_pads; i++)
-+		media_gobj_remove(&entity->pads[i].graph_obj);
- 	media_gobj_remove(&entity->graph_obj);
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 888cb88e19bf..377c6655c5d0 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -48,6 +48,9 @@ void media_gobj_init(struct media_device *mdev,
- 	case MEDIA_GRAPH_ENTITY:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
- 		break;
-+	case MEDIA_GRAPH_PAD:
-+		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-+		break;
- 	}
- }
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 3b9a31c8eba9..4b5d1ee2b67e 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -42,6 +42,7 @@ struct device;
-  * @hw_revision: Hardware device revision
-  * @driver_version: Device driver version
-  * @entity_id:	Unique ID used on the last entity registered
-+ * @pad_id:	Unique ID used on the last pad registered
-  * @entities:	List of registered entities
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-@@ -69,6 +70,7 @@ struct media_device {
- 	u32 driver_version;
- 
- 	u32 entity_id;
-+	u32 pad_id;
- 
- 	struct list_head entities;
- 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 18d74a44091c..01ae1e320e36 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -34,9 +34,11 @@
-  * enum media_gobj_type - type of a graph element
-  *
-  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-+ * @MEDIA_GRAPH_PAD:		Identify a media pad
-  */
- enum media_gobj_type {
- 	MEDIA_GRAPH_ENTITY,
-+	MEDIA_GRAPH_PAD,
- };
- 
- #define BITS_PER_TYPE		8
-@@ -70,6 +72,7 @@ struct media_link {
- };
- 
- struct media_pad {
-+	struct media_gobj graph_obj;
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+ 	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+ 	if (!conf)
 -- 
-2.4.3
+1.9.2
 
