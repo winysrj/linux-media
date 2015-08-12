@@ -1,148 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46935 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:53398 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755409AbbHNO6b (ORCPT
+	with ESMTP id S965382AbbHLHKH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 10:58:31 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v4 4/6] media: use media_graph_obj inside entities
-Date: Fri, 14 Aug 2015 11:56:41 -0300
-Message-Id: <c4f28657fcd882ce4eef2738a4319bb685f70915.1439563682.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
-References: <cover.1439563682.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
-References: <cover.1439563682.git.mchehab@osg.samsung.com>
+	Wed, 12 Aug 2015 03:10:07 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 28/31] powerpc: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:47 +0200
+Message-Id: <1439363150-8661-29-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As entities are graph elements, let's embeed media_graph_obj
-on it. That ensures an unique ID for entities that can be
-global along the entire media controller.
+Make all cache invalidation conditional on sg_has_page().
 
-For now, we'll keep the already existing entity ID. Such
-field need to be dropped on some point, but for now, let's
-not do this, to avoid needing to review all drivers and
-the userspace apps.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/powerpc/kernel/dma.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index b9382f06044a..f06b08392007 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -377,7 +377,6 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
- 		return -EINVAL;
+diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
+index 35e4dcc..cece40b 100644
+--- a/arch/powerpc/kernel/dma.c
++++ b/arch/powerpc/kernel/dma.c
+@@ -135,7 +135,10 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg) + get_dma_offset(dev);
+ 		sg->dma_length = sg->length;
+-		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
++		if (sg_has_page(sg)) {
++			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
++					direction);
++		}
+ 	}
  
--	mdev->entity_id = 1;
- 	INIT_LIST_HEAD(&mdev->entities);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
-@@ -431,11 +430,9 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	entity->parent = mdev;
+ 	return nents;
+@@ -200,7 +203,10 @@ static inline void dma_direct_sync_sg(struct device *dev,
+ 	int i;
  
- 	spin_lock(&mdev->lock);
--	if (entity->id == 0)
--		entity->id = mdev->entity_id++;
--	else
--		mdev->entity_id = max(entity->id + 1, mdev->entity_id);
--	list_add_tail(&entity->list, &mdev->entities);
-+	/* Initialize media_graph_obj embedded at the entity */
-+	graph_obj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-+
- 	spin_unlock(&mdev->lock);
- 
- 	return 0;
-@@ -457,6 +454,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- 		return;
- 
- 	spin_lock(&mdev->lock);
-+	graph_obj_remove(&entity->graph_obj);
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->parent = NULL;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 046f1fe40b50..c06546509a89 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -43,8 +43,12 @@ void graph_obj_init(struct media_device *mdev,
- 			   enum media_graph_type type,
- 			   struct media_graph_obj *gobj)
- {
--	/* An unique object ID will be provided on next patches */
-+	/* Create a per-type unique object ID */
- 	gobj->id = type << 24;
-+	switch (type) {
-+	case MEDIA_GRAPH_ENTITY:
-+		gobj->id |= ++mdev->entity_id;
-+	}
+ 	for_each_sg(sgl, sg, nents, i)
+-		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
++		if (sg_has_page(sg)) {
++			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
++					direction);
++		}
  }
  
- /**
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6e6db78f1ee2..35634c0da362 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -41,7 +41,7 @@ struct device;
-  * @bus_info:	Unique and stable device location identifier
-  * @hw_revision: Hardware device revision
-  * @driver_version: Device driver version
-- * @entity_id:	ID of the next entity to be registered
-+ * @entity_id:	Unique ID used on the last entity registered
-  * @entities:	List of registered entities
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-@@ -68,7 +68,9 @@ struct media_device {
- 	u32 hw_revision;
- 	u32 driver_version;
- 
-+	/* Unique object ID counter */
- 	u32 entity_id;
-+
- 	struct list_head entities;
- 
- 	/* Protects the entities list */
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 58938bb980fe..2c775f3ef24f 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -33,10 +33,10 @@
- /**
-  * enum media_graph_type - type of a graph element
-  *
-+ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-  */
- enum media_graph_type {
--	 /* FIXME: add the types here, as we embeed media_graph_obj */
--	MEDIA_GRAPH_NONE
-+	MEDIA_GRAPH_ENTITY,
- };
- 
- 
-@@ -88,10 +88,9 @@ struct media_entity_operations {
- };
- 
- struct media_entity {
-+	struct media_graph_obj graph_obj;
- 	struct list_head list;
- 	struct media_device *parent;	/* Media device this entity belongs to*/
--	u32 id;				/* Entity ID, unique in the parent media
--					 * device context */
- 	const char *name;		/* Entity name */
- 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
- 	u32 revision;			/* Entity revision, driver specific */
-@@ -153,7 +152,7 @@ struct media_entity_graph {
- 	int top;
- };
- 
--#define entity_id(entity) ((entity)->id)
-+#define entity_id(entity) ((entity)->graph_obj.id)
- 
- #define gobj_to_entity(gobj) \
- 		container_of(gobj, struct media_entity, graph_obj)
+ static inline void dma_direct_sync_single(struct device *dev,
 -- 
-2.4.3
+1.9.1
 
