@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:37659 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115AbbH0MaO (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:32981 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932147AbbHLPKL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2015 08:30:14 -0400
-Received: by widdq5 with SMTP id dq5so43597069wid.0
-        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 05:30:12 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 1/5] ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
-Date: Thu, 27 Aug 2015 13:29:31 +0100
-Message-Id: <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
-References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+	Wed, 12 Aug 2015 11:10:11 -0400
+From: Aparna Karuthodi <kdasaparna@gmail.com>
+To: kdasaparna@gmail.com
+Cc: jarod@wilsonet.com, mchehab@osg.samsung.com,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging: media:lirc: Added a newline character after declaration
+Date: Wed, 12 Aug 2015 20:41:42 +0530
+Message-Id: <1439392302-3579-1-git-send-email-kdasaparna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding these properties makes the I2C bus to the demodulators much
-more reliable, and we no longer suffer from I2C errors when tuning.
+Added a newline character to remove a coding style warning detected
+by checkpatch.
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+The warning is given below:
+drivers/staging/media/lirc/lirc_serial.c:1169: WARNING: quoted string split
+across lines
+
+Signed-off-by: Aparna Karuthodi <kdasaparna@gmail.com>
 ---
- arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/staging/media/lirc/lirc_serial.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index f589fe4..62994ae 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -27,12 +27,18 @@
- 			};
- 		};
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index 19628d0..628577f 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -1165,7 +1165,7 @@ module_init(lirc_serial_init_module);
+ module_exit(lirc_serial_exit_module);
  
--		i2c@9842000 {
-+		ssc2: i2c@9842000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
+ MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
+-MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
++MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff,\n"
+ 	      "Christoph Bartelmus, Andrei Tanas");
+ MODULE_LICENSE("GPL");
  
--		i2c@9843000 {
-+		ssc3: i2c@9843000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
- 
- 		i2c@9844000 {
 -- 
-1.9.1
+1.7.9.5
 
