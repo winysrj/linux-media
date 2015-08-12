@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53454 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965451AbbHLHKQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:10:16 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 31/31] dma-mapping-common: skip kmemleak checks for page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:50 +0200
-Message-Id: <1439363150-8661-32-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+Received: from lists.s-osg.org ([54.187.51.154]:57431 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750767AbbHLUwN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 16:52:13 -0400
+Date: Wed, 12 Aug 2015 17:52:08 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkhan@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	shuahkh@osg.samsung.com
+Subject: Re: [PATCH RFC v3 14/16] media: add a generic function to remove a
+ link
+Message-ID: <20150812175208.1f57e73e@recife.lan>
+In-Reply-To: <CAKocOON1GkPWjvgyCy-GDToSi5JF64RSW8k=D7jNS-pO1M633A@mail.gmail.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	<68d8610deb78010dc1f923b991163f80466c4994.1439410053.git.mchehab@osg.samsung.com>
+	<CAKocOON1GkPWjvgyCy-GDToSi5JF64RSW8k=D7jNS-pO1M633A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/asm-generic/dma-mapping-common.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Em Wed, 12 Aug 2015 14:45:52 -0600
+Shuah Khan <shuahkhan@gmail.com> escreveu:
 
-diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
-index 940d5ec..afc3eaf 100644
---- a/include/asm-generic/dma-mapping-common.h
-+++ b/include/asm-generic/dma-mapping-common.h
-@@ -51,8 +51,10 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
- 	int i, ents;
- 	struct scatterlist *s;
- 
--	for_each_sg(sg, s, nents, i)
--		kmemcheck_mark_initialized(sg_virt(s), s->length);
-+	for_each_sg(sg, s, nents, i) {
-+		if (sg_has_page(s))
-+			kmemcheck_mark_initialized(sg_virt(s), s->length);
-+	}
- 	BUG_ON(!valid_dma_direction(dir));
- 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
- 	BUG_ON(ents < 0);
--- 
-1.9.1
+> On Wed, Aug 12, 2015 at 2:14 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Removing a link is simple. Yet, better to have a separate
+> > function for it, as we'll be also sharing it with a
+> > public API call.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> One thing to think about is whether or not we need some kind of callback
+> mechanism to alert the entity on the other side of the link and other entities
+> associated with the media device when a link is removed.
+> 
+> This patch is fine for now and we can enhance it as and when we have the
+> need for such notifications.
 
+Well, now, all elements of the graph are of the type media_graph_obj.
+
+One of the things it is stored there is the media_device. It would
+be very easy to add a notify function[1] that would call a callback
+when a new object is created or removed. A single callback function
+could be used for any topology change.
+
+So, I think that it is now simpler to track topology changes than
+before ;)
+
+[1] Actually, I would implement a list with notification callbacks
+as more than one driver may want to be notified about topology
+changes.
+
+Regards,
+Mauro
