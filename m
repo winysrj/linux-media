@@ -1,34 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:35468 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226AbbHEFpm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2015 01:45:42 -0400
-Received: by pabxd6 with SMTP id xd6so9441038pab.2
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2015 22:45:41 -0700 (PDT)
-Date: Wed, 5 Aug 2015 11:15:35 +0530
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Pradheep Shrinivasan <pradheep.sh@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] staging: media: lirc Remove the extra braces in if
- statement of lirc_imon
-Message-ID: <20150805054535.GD4958@sudip-pc>
-References: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:53076 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965040AbbHLHJQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 03:09:16 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 11/31] sparc/iommu: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:30 +0200
+Message-Id: <1439363150-8661-12-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 05, 2015 at 12:14:55AM -0500, Pradheep Shrinivasan wrote:
-> From: pradheep <pradheep.sh@gmail.com>
-Dan had previously told you that it is wrong.
-Here From: line is only required if you are not able to configure the
-email From: header while using some corporate server. But your email
-From: header is ok.
+Use sg_phys() instead of __pa(sg_virt(sg)) so that we don't
+require a kernel virtual address.
 
-regards
-sudip
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/iommu.c        | 2 +-
+ arch/sparc/kernel/iommu_common.h | 4 +---
+ arch/sparc/kernel/pci_sun4v.c    | 2 +-
+ 3 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5320689..2ad89d2 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -486,7 +486,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			continue;
+ 		}
+ 		/* Allocate iommu entries for that segment */
+-		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
++		paddr = sg_phys(s);
+ 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
+ 		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
+ 					      &handle, (unsigned long)(-1), 0);
+diff --git a/arch/sparc/kernel/iommu_common.h b/arch/sparc/kernel/iommu_common.h
+index b40cec2..8e2c211 100644
+--- a/arch/sparc/kernel/iommu_common.h
++++ b/arch/sparc/kernel/iommu_common.h
+@@ -33,15 +33,13 @@
+  */
+ #define IOMMU_PAGE_SHIFT		13
+ 
+-#define SG_ENT_PHYS_ADDRESS(SG)	(__pa(sg_virt((SG))))
+-
+ static inline int is_span_boundary(unsigned long entry,
+ 				   unsigned long shift,
+ 				   unsigned long boundary_size,
+ 				   struct scatterlist *outs,
+ 				   struct scatterlist *sg)
+ {
+-	unsigned long paddr = SG_ENT_PHYS_ADDRESS(outs);
++	unsigned long paddr = sg_phys(outs);
+ 	int nr = iommu_num_pages(paddr, outs->dma_length + sg->length,
+ 				 IO_PAGE_SIZE);
+ 
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index d2fe57d..a7a6e41 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -370,7 +370,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			continue;
+ 		}
+ 		/* Allocate iommu entries for that segment */
+-		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
++		paddr = sg_phys(s);
+ 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
+ 		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
+ 					      &handle, (unsigned long)(-1), 0);
+-- 
+1.9.1
+
