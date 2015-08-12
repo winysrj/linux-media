@@ -1,75 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:58883 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490AbbHLMY3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52909 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934042AbbHLHIz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 08:24:29 -0400
-Subject: Re: [PATCH 1/4] tc358743: don't use variable length array for I2C
- writes
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-From: "Mats Randgaard (matrandg)" <matrandg@cisco.com>
-Message-ID: <55CB3AFB.50606@cisco.com>
-Date: Wed, 12 Aug 2015 14:24:27 +0200
-MIME-Version: 1.0
-In-Reply-To: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 03:08:55 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 04/31] x86/pci-nommu: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:23 +0200
+Message-Id: <1439363150-8661-5-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/11/2015 05:18 PM, Mauro Carvalho Chehab wrote:
-> drivers/media/i2c/tc358743.c:148:19: warning: Variable length array is used.
->
-> As the maximum size is 1026, we can't use dynamic var, as it
-> would otherwise spend 1056 bytes of the stack at i2c_wr() function.
->
-> So, allocate a buffer with the allowed maximum size together with
-> the state var.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index 2e926317d7e9..fe42c9a1cb78 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -59,6 +59,9 @@ MODULE_LICENSE("GPL");
->   #define EDID_NUM_BLOCKS_MAX 8
->   #define EDID_BLOCK_SIZE 128
->   
-> +/* Max transfer size done by I2C transfer functions */
-> +#define MAX_XFER_SIZE  (EDID_NUM_BLOCKS_MAX * EDID_BLOCK_SIZE + 2)
-> +
->   static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
->   	.type = V4L2_DV_BT_656_1120,
->   	/* keep this initialization for compatibility with GCC < 4.4.6 */
-> @@ -94,6 +97,9 @@ struct tc358743_state {
->   	/* edid  */
->   	u8 edid_blocks_written;
->   
-> +	/* used by i2c_wr() */
-> +	u8 wr_data[MAX_XFER_SIZE];
-> +
->   	struct v4l2_dv_timings timings;
->   	u32 mbus_fmt_code;
->   
-> @@ -143,9 +149,13 @@ static void i2c_wr(struct v4l2_subdev *sd, u16 reg, u8 *values, u32 n)
->   {
->   	struct tc358743_state *state = to_state(sd);
->   	struct i2c_client *client = state->i2c_client;
-> +	u8 *data = state->wr_data;
->   	int err, i;
->   	struct i2c_msg msg;
-> -	u8 data[2 + n];
-> +
-> +	if ((2 + n) > sizeof(state->wr_data))
-> +		v4l2_warn(sd, "i2c wr reg=%04x: len=%d is too big!\n",
-> +			  reg, 2 + n);
->   
->   	msg.addr = client->addr;
->   	msg.buf = data;
+Just remove a BUG_ON, the code handles them just fine as-is.
 
-Acked-by: Mats Randgaard <matrandg@cisco.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/x86/kernel/pci-nommu.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
+index da15918..a218059 100644
+--- a/arch/x86/kernel/pci-nommu.c
++++ b/arch/x86/kernel/pci-nommu.c
+@@ -63,7 +63,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 	WARN_ON(nents == 0 || sg[0].length == 0);
+ 
+ 	for_each_sg(sg, s, nents, i) {
+-		BUG_ON(!sg_page(s));
+ 		s->dma_address = sg_phys(s);
+ 		if (!check_addr("map_sg", hwdev, s->dma_address, s->length))
+ 			return 0;
+-- 
+1.9.1
 
