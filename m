@@ -1,70 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55581 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755159AbbHYJ2u (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53067 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094AbbHLUPM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:28:50 -0400
-Message-ID: <55DC34AD.3000507@xs4all.nl>
-Date: Tue, 25 Aug 2015 11:26:05 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v7 40/44] [media] media: Use a macro to interate between
- all interfaces
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <b9c9cbab4cbddfacb2f21a8b1a5ca17934eb8157.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <b9c9cbab4cbddfacb2f21a8b1a5ca17934eb8157.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Aug 2015 16:15:12 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v3 16/16] media: add functions to allow creating interfaces
+Date: Wed, 12 Aug 2015 17:15:00 -0300
+Message-Id: <48c57c3b6726d69104835868399431a79a59b959.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Just like we do with entities, use a similar macro for the
-> interfaces loop.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Interfaces are different than entities: they represent a
+Kernel<->userspace interaction, while entities represent a
+piece of hardware/firmware/software that executes a function.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Let's distinguish them by creating a separate structure to
+store the interfaces.
 
-I think this patch can be moved to an earlier place in this patch series.
+Latter patches should change the existing drivers and logic
+to split the current interface embedded inside the entity
+structure (device nodes) into a separate object of the graph.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-	Hans
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index c3bc8a6f660b..8cd529d3180a 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -733,3 +733,59 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+ 
+ }
+ EXPORT_SYMBOL_GPL(media_entity_remote_pad);
++
++
++/* Functions related to the media interface via device nodes */
++
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 major, u32 minor,
++						gfp_t gfp_flags)
++{
++	struct media_intf_devnode *devnode;
++
++	devnode = kzalloc(sizeof(*devnode), gfp_flags);
++	if (!devnode)
++		return NULL;
++
++	devnode->major = major;
++	devnode->minor = minor;
++	INIT_LIST_HEAD(&devnode->intf.entity_links);
++
++	graph_obj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
++		       &devnode->intf.graph_obj);
++
++	return devnode;
++}
++EXPORT_SYMBOL_GPL(media_devnode_create);
++
++void media_devnode_remove(struct media_intf_devnode *devnode)
++{
++	graph_obj_remove(&devnode->intf.graph_obj);
++	kfree(devnode);
++}
++EXPORT_SYMBOL_GPL(media_devnode_remove);
++
++struct media_link *media_create_intf_link(struct media_entity *entity,
++					  struct media_graph_obj *gobj,
++					  u32 flags)
++{
++	struct media_link *link;
++
++	/* Only accept links between entity<==>interface */
++	if (gobj->type != MEDIA_GRAPH_INTF_DEVNODE)
++		return NULL;
++
++	link = __media_create_link(entity->parent,
++				   MEDIA_LINK_DIR_BIDIRECTIONAL,
++			           &entity->graph_obj,
++				   gobj,
++				   flags, &entity->intf_links);
++	if (link == NULL)
++		return NULL;
++
++	/* Create the link at the interface */
++	list_add(&gobj_to_interface(gobj)->entity_links, &link->list);
++
++	return link;
++}
++EXPORT_SYMBOL_GPL(media_create_intf_link);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e63e402ca6d1..80df883cb336 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -36,11 +36,14 @@
+  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  * @MEDIA_GRAPH_PAD:		Identify a media PAD
+  * @MEDIA_GRAPH_LINK:		Identify a media link
++ * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
++ * 				a device node
+  */
+ enum media_graph_type {
+ 	MEDIA_GRAPH_ENTITY,
+ 	MEDIA_GRAPH_PAD,
+ 	MEDIA_GRAPH_LINK,
++	MEDIA_GRAPH_INTF_DEVNODE,
+ };
+ 
+ /**
+@@ -145,7 +148,9 @@ struct media_entity {
+ 	u16 num_backlinks;		/* Number of backlinks */
+ 
+ 	struct media_pad *pads;		/* Pads array (num_pads elements) */
+-	struct list_head links;		/* Links list */
++	struct list_head links;		/* PAD links list */
++
++	struct list_head intf_links;	/* Interface links list */
+ 
+ 	const struct media_entity_operations *ops;	/* Entity operations */
+ 
+@@ -170,6 +175,30 @@ struct media_entity {
+ 	} info;
+ };
+ 
++/**
++ * struct media_intf_devnode - Define a Kernel API interface
++ *
++ * @graph_obj:		embedded graph object
++ * @ent_links:		List of links pointing to graph entities
++ */
++struct media_interface {
++	struct media_graph_obj		graph_obj;
++	struct list_head		entity_links;
++};
++
++/**
++ * struct media_intf_devnode - Define a Kernel API interface via a device node
++ *
++ * @intf:	embedded interface object
++ * @major:	Major number of a device node
++ * @minor:	Minor number of a device node
++ */
++struct media_intf_devnode {
++	struct media_interface		intf;
++	u32				major;
++	u32				minor;
++};
++
+ static inline u32 media_entity_type(struct media_entity *entity)
+ {
+ 	return entity->type & MEDIA_ENT_TYPE_MASK;
+@@ -202,6 +231,9 @@ struct media_entity_graph {
+ #define gobj_to_pad(gobj) \
+ 		container_of(gobj, struct media_pad, graph_obj)
+ 
++#define gobj_to_interface(gobj) \
++		container_of(gobj, struct media_interface, graph_obj)
++
+ void graph_obj_init(struct media_device *mdev,
+ 		    enum media_graph_type type,
+ 		    struct media_graph_obj *gobj);
+@@ -233,6 +265,14 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 					     struct media_pipeline *pipe);
+ void media_entity_pipeline_stop(struct media_entity *entity);
+ 
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 major, u32 minor,
++						gfp_t gfp_flags);
++void media_devnode_remove(struct media_intf_devnode *devnode);
++struct media_link *media_create_intf_link(struct media_entity *entity,
++					   struct media_graph_obj *gobj,
++					   u32 flags);
++
+ #define media_entity_call(entity, operation, args...)			\
+ 	(((entity)->ops && (entity)->ops->operation) ?			\
+ 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+-- 
+2.4.3
 
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 24fee38730f5..288ab158adad 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -577,7 +577,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	}
->  
->  	/* Create indirect interface links for tuner and TS out entities */
-> -	list_for_each_entry(intf, &mdev->interfaces, list) {
-> +	media_device_for_each_intf(intf, mdev) {
->  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
->  			media_create_intf_link(tuner, intf, 0);
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 51807efa505b..f23d686aaac6 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -113,6 +113,11 @@ struct media_device *media_device_find_devres(struct device *dev);
->  #define media_device_for_each_entity(entity, mdev)			\
->  	list_for_each_entry(entity, &(mdev)->entities, list)
->  
-> +/* Iterate over all interfaces. */
-> +#define media_device_for_each_intf(intf, mdev)			\
-> +	list_for_each_entry(intf, &(mdev)->interfaces, list)
-> +
-> +
->  #else
->  static inline int media_device_register(struct media_device *mdev)
->  {
-> 
