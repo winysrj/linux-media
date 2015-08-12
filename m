@@ -1,78 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48350 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:52910 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753201AbbH3DHo (ORCPT
+	with ESMTP id S934044AbbHLHIz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:44 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH v8 15/55] [media] uapi/media.h: Declare interface types for ALSA
-Date: Sun, 30 Aug 2015 00:06:26 -0300
-Message-Id: <cd69226f7f42baafbc4a3db5f8a8c387fba879dd.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Wed, 12 Aug 2015 03:08:55 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 03/31] dma-debug: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:22 +0200
+Message-Id: <1439363150-8661-4-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare the interface types to be used on alsa for the new
-G_TOPOLOGY ioctl.
+Use sg_pfn to get a the PFN and skip checks that require a kernel
+virtual address.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/dma-debug.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 583666e2cc25..01946baa32d5 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -74,6 +74,18 @@ static inline const char *intf_type(struct media_interface *intf)
- 		return "v4l2-subdev";
- 	case MEDIA_INTF_T_V4L_SWRADIO:
- 		return "swradio";
-+	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-+		return "pcm-capture";
-+	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-+		return "pcm-playback";
-+	case MEDIA_INTF_T_ALSA_CONTROL:
-+		return "alsa-control";
-+	case MEDIA_INTF_T_ALSA_COMPRESS:
-+		return "compress";
-+	case MEDIA_INTF_T_ALSA_RAWMIDI:
-+		return "rawmidi";
-+	case MEDIA_INTF_T_ALSA_HWDEP:
-+		return "hwdep";
- 	default:
- 		return "unknown-intf";
- 	}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 3ad3d6be293f..aca828709bad 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -171,6 +171,7 @@ struct media_links_enum {
+diff --git a/lib/dma-debug.c b/lib/dma-debug.c
+index dace71f..a215a80 100644
+--- a/lib/dma-debug.c
++++ b/lib/dma-debug.c
+@@ -1368,7 +1368,7 @@ void debug_dma_map_sg(struct device *dev, struct scatterlist *sg,
  
- #define MEDIA_INTF_T_DVB_BASE	0x00000100
- #define MEDIA_INTF_T_V4L_BASE	0x00000200
-+#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+ 		entry->type           = dma_debug_sg;
+ 		entry->dev            = dev;
+-		entry->pfn	      = page_to_pfn(sg_page(s));
++		entry->pfn	      = sg_pfn(s);
+ 		entry->offset	      = s->offset,
+ 		entry->size           = sg_dma_len(s);
+ 		entry->dev_addr       = sg_dma_address(s);
+@@ -1376,7 +1376,7 @@ void debug_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 		entry->sg_call_ents   = nents;
+ 		entry->sg_mapped_ents = mapped_ents;
  
- /* Interface types */
- 
-@@ -186,6 +187,13 @@ struct media_links_enum {
- #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
- #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
- 
-+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-+#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-+#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-+#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-+#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-+
- /* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
- 
- #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+-		if (!PageHighMem(sg_page(s))) {
++		if (sg_has_page(s) && !PageHighMem(sg_page(s))) {
+ 			check_for_stack(dev, sg_virt(s));
+ 			check_for_illegal_area(dev, sg_virt(s), sg_dma_len(s));
+ 		}
+@@ -1419,7 +1419,7 @@ void debug_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		struct dma_debug_entry ref = {
+ 			.type           = dma_debug_sg,
+ 			.dev            = dev,
+-			.pfn		= page_to_pfn(sg_page(s)),
++			.pfn		= sg_pfn(s),
+ 			.offset		= s->offset,
+ 			.dev_addr       = sg_dma_address(s),
+ 			.size           = sg_dma_len(s),
+@@ -1580,7 +1580,7 @@ void debug_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+ 		struct dma_debug_entry ref = {
+ 			.type           = dma_debug_sg,
+ 			.dev            = dev,
+-			.pfn		= page_to_pfn(sg_page(s)),
++			.pfn		= sg_pfn(s),
+ 			.offset		= s->offset,
+ 			.dev_addr       = sg_dma_address(s),
+ 			.size           = sg_dma_len(s),
+@@ -1613,7 +1613,7 @@ void debug_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ 		struct dma_debug_entry ref = {
+ 			.type           = dma_debug_sg,
+ 			.dev            = dev,
+-			.pfn		= page_to_pfn(sg_page(s)),
++			.pfn		= sg_pfn(s),
+ 			.offset		= s->offset,
+ 			.dev_addr       = sg_dma_address(s),
+ 			.size           = sg_dma_len(s),
 -- 
-2.4.3
+1.9.1
 
