@@ -1,40 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:34476 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228AbbHDPnO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 11:43:14 -0400
-Received: by labow3 with SMTP id ow3so10199751lab.1
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2015 08:43:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <DUB128-W255CECEF72511B6BBD79E19C770@phx.gbl>
-References: <DUB128-W255CECEF72511B6BBD79E19C770@phx.gbl>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 4 Aug 2015 16:42:43 +0100
-Message-ID: <CA+V-a8s=d4HOvkYc2iqG3b+ouBjytqPrUmxeXTcigKWMn9cqCg@mail.gmail.com>
-Subject: Re: drivers/media/platform/am437x/am437x-vpfe.c:1698: bad test ?
-To: David Binderman <dcb314@hotmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:52940 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbbHLUPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 16:15:09 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v3 13/16] media: make the internal function to create links more generic
+Date: Wed, 12 Aug 2015 17:14:57 -0300
+Message-Id: <0bfcb1f6134c7c9b7c1a90388db646723e118a82.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
+In preparation to add a public function to add links, let's
+make the internal function that creates link more generic.
 
-On Mon, Aug 3, 2015 at 3:02 PM, David Binderman <dcb314@hotmail.com> wrote:
-> Hello there,
->
-> drivers/media/platform/am437x/am437x-vpfe.c:1698:27: warning: self-comparison always evaluates to true [-Wtautological-compare]
->
->      if (client->addr == curr_client->addr &&
->             client->adapter->nr == client->adapter->nr) {
->
-> maybe
->
->      if (client->addr == curr_client->addr &&
->             client->adapter->nr == curr_client->adapter->nr) {
->
-Good catch!
-I'll post a patch fixing it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Cheers,
---Prabhakar Lad
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index eafd26a741e5..b8991d38c565 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -457,7 +457,12 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+  * Links management
+  */
+ 
+-static struct media_link *media_entity_add_link(struct media_entity *entity)
++static struct media_link *__media_create_link(struct media_device *mdev,
++					      enum media_graph_link_dir dir,
++					      struct media_graph_obj *port0,
++					      struct media_graph_obj *port1,
++					      u32 flags,
++					      struct list_head *list)
+ {
+ 	struct media_link *link;
+ 
+@@ -465,12 +470,16 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 	if (link == NULL)
+ 		return NULL;
+ 
++	link->dir = dir;
++	link->port0 = port0;
++	link->port1 = port1;
++	link->flags = flags;
++
+ 	INIT_LIST_HEAD(&link->list);
+-	list_add(&entity->links, &link->list);
++	list_add(list, &link->list);
+ 
+ 	/* Initialize graph object embedded at the new link */
+-	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
+-			&link->graph_obj);
++	graph_obj_init(mdev, MEDIA_GRAPH_LINK, &link->graph_obj);
+ 
+ 	return link;
+ }
+@@ -509,7 +518,7 @@ static void __media_entity_remove_link(struct media_entity *entity,
+ 
+ int
+ media_create_pad_link(struct media_entity *source, u16 source_pad,
+-			 struct media_entity *sink, u16 sink_pad, u32 flags)
++		      struct media_entity *sink, u16 sink_pad, u32 flags)
+ {
+ 	struct media_link *link;
+ 	struct media_link *backlink;
+@@ -518,27 +527,27 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	BUG_ON(source_pad >= source->num_pads);
+ 	BUG_ON(sink_pad >= sink->num_pads);
+ 
+-	link = media_entity_add_link(source);
++	link = __media_create_link(source->parent,
++				   MEDIA_LINK_DIR_PORT0_TO_PORT1,
++			           &source->pads[source_pad].graph_obj,
++				   &sink->pads[sink_pad].graph_obj,
++				   flags, &source->links);
+ 	if (link == NULL)
+ 		return -ENOMEM;
+ 
+-	link->pad0_source = &source->pads[source_pad];
+-	link->pad1_sink = &sink->pads[sink_pad];
+-	link->flags = flags;
+-
+ 	/* Create the backlink. Backlinks are used to help graph traversal and
+ 	 * are not reported to userspace.
+ 	 */
+-	backlink = media_entity_add_link(sink);
++	backlink = __media_create_link(sink->parent,
++				      MEDIA_LINK_DIR_PORT0_TO_PORT1,
++			              &source->pads[source_pad].graph_obj,
++				      &sink->pads[sink_pad].graph_obj,
++				      flags, &sink->links);
+ 	if (backlink == NULL) {
+ 		__media_entity_remove_link(source, link);
+ 		return -ENOMEM;
+ 	}
+ 
+-	backlink->pad0_source = &source->pads[source_pad];
+-	backlink->pad1_sink = &sink->pads[sink_pad];
+-	backlink->flags = flags;
+-
+ 	link->reverse = backlink;
+ 	backlink->reverse = link;
+ 
+-- 
+2.4.3
+
