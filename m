@@ -1,138 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58879 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:52941 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbbHWUSI (ORCPT
+	with ESMTP id S1751964AbbHLUPJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
+	Wed, 12 Aug 2015 16:15:09 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 06/44] [media] media: use media_gobj inside pads
-Date: Sun, 23 Aug 2015 17:17:23 -0300
-Message-Id: <7b9317dcb8348d99eb5fba38d24a3281b3e1f64a.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+Subject: [PATCH RFC v3 03/16] media: add functions to inialize media_graph_obj
+Date: Wed, 12 Aug 2015 17:14:47 -0300
+Message-Id: <aa98d5399a89dae2f27bb622b10fe179817d3e42.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PADs also need unique object IDs that won't conflict with
-the entity object IDs.
+We need to initialize the common media_graph_obj that
+it is now embedded inside each media controller object.
 
-The pad objects are currently created via media_entity_init()
-and, once created, never change.
-
-While this will likely change in the future in order to
-support dynamic changes, for now we'll keep PADs as arrays
-and initialize the media_gobj embedded structs when
-registering the entity.
+Latter patches will use those functions to ensure that
+the object will be properly initialized.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 81d6a130efef..3bdda16584fe 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -427,6 +427,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
- {
-+	int i;
-+
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->parent != NULL);
- 	entity->parent = mdev;
-@@ -435,6 +437,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
- 	list_add_tail(&entity->list, &mdev->entities);
-+
-+	/* Initialize objects at the pads */
-+	for (i = 0; i < entity->num_pads; i++)
-+		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-+			       &entity->pads[i].graph_obj);
-+
- 	spin_unlock(&mdev->lock);
- 
- 	return 0;
-@@ -450,12 +458,15 @@ EXPORT_SYMBOL_GPL(media_device_register_entity);
-  */
- void media_device_unregister_entity(struct media_entity *entity)
- {
-+	int i;
- 	struct media_device *mdev = entity->parent;
- 
- 	if (mdev == NULL)
- 		return;
- 
- 	spin_lock(&mdev->lock);
-+	for (i = 0; i < entity->num_pads; i++)
-+		media_gobj_remove(&entity->pads[i].graph_obj);
- 	media_gobj_remove(&entity->graph_obj);
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
 diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 888cb88e19bf..377c6655c5d0 100644
+index 4d8e01c7b1b2..19ad316f2f33 100644
 --- a/drivers/media/media-entity.c
 +++ b/drivers/media/media-entity.c
-@@ -48,6 +48,9 @@ void media_gobj_init(struct media_device *mdev,
- 	case MEDIA_GRAPH_ENTITY:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
- 		break;
-+	case MEDIA_GRAPH_PAD:
-+		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-+		break;
- 	}
- }
+@@ -27,6 +27,44 @@
+ #include <media/media-device.h>
  
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index f6deef6e5820..9493721f630e 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -42,6 +42,7 @@ struct device;
-  * @hw_revision: Hardware device revision
-  * @driver_version: Device driver version
-  * @entity_id:	Unique ID used on the last entity registered
-+ * @pad_id:	Unique ID used on the last pad registered
-  * @entities:	List of registered entities
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-@@ -69,6 +70,7 @@ struct media_device {
- 	u32 driver_version;
- 
- 	u32 entity_id;
-+	u32 pad_id;
- 
- 	struct list_head entities;
- 
+ /**
++ *  graph_obj_init - Initialize a graph object
++ *
++ * @mdev:	Pointer to the media_device that contains the object
++ * @type:	Type of the object
++ * @gobj:	Pointer to the object
++ *
++ * This routine initializes the embedded struct media_graph_obj inside a
++ * media graph object. It is called automatically if media_*_create()
++ * calls are used. However, if the object (entity, link, pad, interface)
++ * is embedded on some other object, this function should be called before
++ * registering the object at the media controller.
++ */
++void graph_obj_init(struct media_device *mdev,
++			   enum media_graph_type type,
++			   struct media_graph_obj *gobj)
++{
++	INIT_LIST_HEAD(&gobj->list);
++
++	list_add_tail(&gobj->list, &mdev->object_list);
++	gobj->obj_id = atomic_inc_return(&mdev->last_obj_id);
++	gobj->type = type;
++	gobj->mdev = mdev;
++}
++
++/**
++ *  graph_obj_remove - Stop using a graph object on a media device
++ *
++ * @graph_obj:	Pointer to the object
++ *
++ * This is called at media_device_unregister_*() routines, and removes a
++ * graph object from the mdev object lists.
++ */
++void graph_obj_remove(struct media_graph_obj *gobj)
++{
++	list_del(&gobj->list);
++}
++
++/**
+  * media_entity_init - Initialize a media entity
+  *
+  * @num_pads: Total number of sink and source pads.
 diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index bb74b5883cbb..ce4c654486d6 100644
+index 051aa3f8bbfe..738e1d5d25dc 100644
 --- a/include/media/media-entity.h
 +++ b/include/media/media-entity.h
-@@ -34,9 +34,11 @@
-  * enum media_gobj_type - type of a graph object
-  *
-  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-+ * @MEDIA_GRAPH_PAD:		Identify a media pad
-  */
- enum media_gobj_type {
- 	MEDIA_GRAPH_ENTITY,
-+	MEDIA_GRAPH_PAD,
+@@ -168,6 +168,14 @@ struct media_entity_graph {
+ 	int top;
  };
  
- #define MEDIA_BITS_PER_TYPE		8
-@@ -72,6 +74,7 @@ struct media_link {
- };
- 
- struct media_pad {
-+	struct media_gobj graph_obj;
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
++#define gobj_to_entity(gobj) \
++		container_of(gobj, struct media_entity, graph_obj)
++
++void graph_obj_init(struct media_device *mdev,
++		    enum media_graph_type type,
++		    struct media_graph_obj *gobj);
++void graph_obj_remove(struct media_graph_obj *gobj);
++
+ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ 		struct media_pad *pads, u16 extra_links);
+ void media_entity_cleanup(struct media_entity *entity);
 -- 
 2.4.3
 
