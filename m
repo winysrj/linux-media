@@ -1,57 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:48764 "EHLO newverein.lst.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244AbbHMOfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 10:35:31 -0400
-Date: Thu, 13 Aug 2015 16:35:28 +0200
+Received: from bombadil.infradead.org ([198.137.202.9]:52907 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934041AbbHLHIz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 03:08:55 -0400
 From: Christoph Hellwig <hch@lst.de>
-To: Julian Calaby <julian.calaby@gmail.com>
-Cc: Boaz Harrosh <boaz@plexistor.com>, Christoph Hellwig <hch@lst.de>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	axboe@kernel.dk, linux-mips@linux-mips.org,
-	linux-ia64@vger.kernel.org, linux-nvdimm@ml01.01.org,
-	David Howells <dhowells@redhat.com>,
-	sparclinux <sparclinux@vger.kernel.org>,
-	Hans-Christian Egtvedt <egtvedt@samfundet.no>,
-	linux-arch@vger.kernel.org, linux-s390@vger.kernel.org,
-	x86@kernel.org, David Woodhouse <dwmw2@infradead.org>,
-	=?iso-8859-1?Q?H=E5vard?= Skinnemoen <hskinnemoen@gmail.com>,
-	linux-xtensa@linux-xtensa.org, grundler@parisc-linux.org,
-	realmz6@gmail.com, alex.williamson@redhat.com,
-	linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>,
-	linux-parisc@vger.kernel.org, vgupta@synopsys.com,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-alpha@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linuxppc-dev@lists.ozlabs.org
-Subject: Re: RFC: prepare for struct scatterlist entries without page
-	backing
-Message-ID: <20150813143528.GC17183@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de> <55CB3F47.3000902@plexistor.com> <CAGRGNgUKkaPnyvn30DXyNpdiXQzS6J=1+mQ3ick8C8=bhx_RHA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGRGNgUKkaPnyvn30DXyNpdiXQzS6J=1+mQ3ick8C8=bhx_RHA@mail.gmail.com>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 02/31] scatterlist: use sg_phys()
+Date: Wed, 12 Aug 2015 09:05:21 +0200
+Message-Id: <1439363150-8661-3-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 13, 2015 at 09:37:37AM +1000, Julian Calaby wrote:
-> I.e. ~90% of this patch set seems to be just mechanically dropping
-> BUG_ON()s and converting open coded stuff to use accessor functions
-> (which should be macros or get inlined, right?) - and the remaining
-> bit is not flushing if we don't have a physical page somewhere.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Which is was 90%.  By lines changed most actually is the diffs for
-the cache flushing.
+Coccinelle cleanup to replace open coded sg to physical address
+translations.  This is in preparation for introducing scatterlists that
+reference __pfn_t.
 
-> Would it make sense to split this patch set into a few bits: one to
-> drop all the useless BUG_ON()s, one to convert all the open coded
-> stuff to accessor functions, then another to do the actual page-less
-> sg stuff?
+// sg_phys.cocci: convert usage page_to_phys(sg_page(sg)) to sg_phys(sg)
+// usage: make coccicheck COCCI=sg_phys.cocci MODE=patch
 
-Without the ifs the BUG_ON() actually are useful to assert we
-never feed the sort of physical addresses we can't otherwise support,
-so I don't think that part is doable.
+virtual patch
 
-A simple series to make more use of sg_phys and add sg_pfn might
-still be useful, though.
+@@
+struct scatterlist *sg;
+@@
+
+- page_to_phys(sg_page(sg)) + sg->offset
++ sg_phys(sg)
+
+@@
+struct scatterlist *sg;
+@@
+
+- page_to_phys(sg_page(sg))
++ sg_phys(sg) & PAGE_MASK
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/arm/mm/dma-mapping.c                    | 2 +-
+ arch/microblaze/kernel/dma.c                 | 3 +--
+ drivers/iommu/intel-iommu.c                  | 4 ++--
+ drivers/iommu/iommu.c                        | 2 +-
+ drivers/staging/android/ion/ion_chunk_heap.c | 4 ++--
+ 5 files changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index cba12f3..3d3d6aa 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -1520,7 +1520,7 @@ static int __map_sg_chunk(struct device *dev, struct scatterlist *sg,
+ 		return -ENOMEM;
+ 
+ 	for (count = 0, s = sg; count < (size >> PAGE_SHIFT); s = sg_next(s)) {
+-		phys_addr_t phys = page_to_phys(sg_page(s));
++		phys_addr_t phys = sg_phys(s) & PAGE_MASK;
+ 		unsigned int len = PAGE_ALIGN(s->offset + s->length);
+ 
+ 		if (!is_coherent &&
+diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
+index bf4dec2..c89da63 100644
+--- a/arch/microblaze/kernel/dma.c
++++ b/arch/microblaze/kernel/dma.c
+@@ -61,8 +61,7 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	/* FIXME this part of code is untested */
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg);
+-		__dma_sync(page_to_phys(sg_page(sg)) + sg->offset,
+-							sg->length, direction);
++		__dma_sync(sg_phys(sg), sg->length, direction);
+ 	}
+ 
+ 	return nents;
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 0649b94..3541d65 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -2097,7 +2097,7 @@ static int __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
+ 			sg_res = aligned_nrpages(sg->offset, sg->length);
+ 			sg->dma_address = ((dma_addr_t)iov_pfn << VTD_PAGE_SHIFT) + sg->offset;
+ 			sg->dma_length = sg->length;
+-			pteval = page_to_phys(sg_page(sg)) | prot;
++			pteval = (sg_phys(sg) & PAGE_MASK) | prot;
+ 			phys_pfn = pteval >> VTD_PAGE_SHIFT;
+ 		}
+ 
+@@ -3623,7 +3623,7 @@ static int intel_nontranslate_map_sg(struct device *hddev,
+ 
+ 	for_each_sg(sglist, sg, nelems, i) {
+ 		BUG_ON(!sg_page(sg));
+-		sg->dma_address = page_to_phys(sg_page(sg)) + sg->offset;
++		sg->dma_address = sg_phys(sg);
+ 		sg->dma_length = sg->length;
+ 	}
+ 	return nelems;
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index f286090..049df49 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -1408,7 +1408,7 @@ size_t default_iommu_map_sg(struct iommu_domain *domain, unsigned long iova,
+ 	min_pagesz = 1 << __ffs(domain->ops->pgsize_bitmap);
+ 
+ 	for_each_sg(sg, s, nents, i) {
+-		phys_addr_t phys = page_to_phys(sg_page(s)) + s->offset;
++		phys_addr_t phys = sg_phys(s);
+ 
+ 		/*
+ 		 * We are mapping on IOMMU page boundaries, so offset within
+diff --git a/drivers/staging/android/ion/ion_chunk_heap.c b/drivers/staging/android/ion/ion_chunk_heap.c
+index 5474615..f7b6ef9 100644
+--- a/drivers/staging/android/ion/ion_chunk_heap.c
++++ b/drivers/staging/android/ion/ion_chunk_heap.c
+@@ -81,7 +81,7 @@ static int ion_chunk_heap_allocate(struct ion_heap *heap,
+ err:
+ 	sg = table->sgl;
+ 	for (i -= 1; i >= 0; i--) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) & PAGE_MASK,
+ 			      sg->length);
+ 		sg = sg_next(sg);
+ 	}
+@@ -109,7 +109,7 @@ static void ion_chunk_heap_free(struct ion_buffer *buffer)
+ 							DMA_BIDIRECTIONAL);
+ 
+ 	for_each_sg(table->sgl, sg, table->nents, i) {
+-		gen_pool_free(chunk_heap->pool, page_to_phys(sg_page(sg)),
++		gen_pool_free(chunk_heap->pool, sg_phys(sg) & PAGE_MASK,
+ 			      sg->length);
+ 	}
+ 	chunk_heap->allocated -= allocated_size;
+-- 
+1.9.1
+
