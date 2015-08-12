@@ -1,117 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:33908 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbbH1G5o (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53203 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965187AbbHLHJg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 02:57:44 -0400
-Received: by wibcx1 with SMTP id cx1so3812542wib.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 23:57:43 -0700 (PDT)
-Date: Fri, 28 Aug 2015 07:57:40 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 4/5] [media] c8sectpfe: Update binding to reset-gpios
-Message-ID: <20150828065740.GD4796@x1>
-References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
- <1440678575-21646-5-git-send-email-peter.griffin@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1440678575-21646-5-git-send-email-peter.griffin@linaro.org>
+	Wed, 12 Aug 2015 03:09:36 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 18/31] nios2: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:37 +0200
+Message-Id: <1439363150-8661-19-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 Aug 2015, Peter Griffin wrote:
+Make all cache invalidation conditional on sg_has_page() and use
+sg_phys to get the physical address directly.
 
-> gpio.txt documents that GPIO properties should be named
-> "[<name>-]gpios", with <name> being the purpose of this
-> GPIO for the device.
-> 
-> This change has been done as one atomic commit.
-> 
-> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> ---
->  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
->  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
->  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
->  3 files changed, 6 insertions(+), 6 deletions(-)
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/nios2/mm/dma-mapping.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
-
-> diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> index d4def76..e70d840 100644
-> --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
->  
->  - tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
->  - i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
-> -- rst-gpio	: reset gpio for this tsin channel.
-> +- reset-gpios	: reset gpio for this tsin channel.
->  
->  Optional properties (tsin (child) node):
->  
-> @@ -75,7 +75,7 @@ Example:
->  			tsin-num		= <0>;
->  			serial-not-parallel;
->  			i2c-bus			= <&ssc2>;
-> -			rst-gpio		= <&pio15 4 0>;
-> +			reset-gpios		= <&pio15 4 GPIO_ACTIVE_HIGH>;
->  			dvb-card		= <STV0367_TDA18212_NIMA_1>;
->  		};
->  
-> @@ -83,7 +83,7 @@ Example:
->  			tsin-num		= <3>;
->  			serial-not-parallel;
->  			i2c-bus			= <&ssc3>;
-> -			rst-gpio		= <&pio15 7 0>;
-> +			reset-gpios		= <&pio15 7 GPIO_ACTIVE_HIGH>;
->  			dvb-card		= <STV0367_TDA18212_NIMB_1>;
->  		};
->  	};
-> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> index c014173..f932bfd 100644
-> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> @@ -6,8 +6,8 @@
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
->   */
-> -
->  #include <dt-bindings/clock/stih407-clks.h>
-> +#include <dt-bindings/gpio/gpio.h>
->  #include <dt-bindings/media/c8sectpfe.h>
->  / {
->  	soc {
-> @@ -115,7 +115,7 @@
->  				tsin-num	= <0>;
->  				serial-not-parallel;
->  				i2c-bus		= <&ssc2>;
-> -				rst-gpio	= <&pio15 4 0>;
-> +				reset-gpios	= <&pio15 4 GPIO_ACTIVE_HIGH>;
->  				dvb-card	= <STV0367_TDA18212_NIMA_1>;
->  			};
->  		};
-> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> index 3a91093..c691e13 100644
-> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> @@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
->  		}
->  		of_node_put(i2c_bus);
->  
-> -		tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
-> +		tsin->rst_gpio = of_get_named_gpio(child, "reset-gpios", 0);
->  
->  		ret = gpio_is_valid(tsin->rst_gpio);
->  		if (!ret) {
-
+diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
+index ac5da75..1a0a68d 100644
+--- a/arch/nios2/mm/dma-mapping.c
++++ b/arch/nios2/mm/dma-mapping.c
+@@ -64,13 +64,11 @@ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+ 	for_each_sg(sg, sg, nents, i) {
+-		void *addr;
+-
+-		addr = sg_virt(sg);
+-		if (addr) {
+-			__dma_sync_for_device(addr, sg->length, direction);
+-			sg->dma_address = sg_phys(sg);
++		if (sg_has_page(sg)) {
++			__dma_sync_for_device(sg_virt(sg), sg->length,
++						direction);
+ 		}
++		sg->dma_address = sg_phys(sg);
+ 	}
+ 
+ 	return nents;
+@@ -113,9 +111,8 @@ void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
+ 		return;
+ 
+ 	for_each_sg(sg, sg, nhwentries, i) {
+-		addr = sg_virt(sg);
+-		if (addr)
+-			__dma_sync_for_cpu(addr, sg->length, direction);
++		if (sg_has_page(sg))
++			__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+ 	}
+ }
+ EXPORT_SYMBOL(dma_unmap_sg);
+@@ -166,8 +163,10 @@ void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+ 	/* Make sure that gcc doesn't leave the empty loop body.  */
+-	for_each_sg(sg, sg, nelems, i)
+-		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
++	for_each_sg(sg, sg, nelems, i) {
++		if (sg_has_page(sg))
++			__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
++	}
+ }
+ EXPORT_SYMBOL(dma_sync_sg_for_cpu);
+ 
+@@ -179,8 +178,10 @@ void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+ 	/* Make sure that gcc doesn't leave the empty loop body.  */
+-	for_each_sg(sg, sg, nelems, i)
+-		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
+-
++	for_each_sg(sg, sg, nelems, i) {
++		if (sg_has_page(sg))
++			__dma_sync_for_device(sg_virt(sg), sg->length,
++					direction);
++	}
+ }
+ EXPORT_SYMBOL(dma_sync_sg_for_device);
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.9.1
+
