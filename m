@@ -1,87 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56261 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750764AbbHRI4L (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.47.9]:44204 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046AbbHLK3I convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 04:56:11 -0400
-Message-ID: <55D2F0E0.7080604@xs4all.nl>
-Date: Tue, 18 Aug 2015 10:46:24 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 12 Aug 2015 06:29:08 -0400
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+To: Christoph Hellwig <hch@lst.de>,
+	"torvalds@linux-foundation.org" <torvalds@linux-foundation.org>,
+	"axboe@kernel.dk" <axboe@kernel.dk>
+CC: "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"hskinnemoen@gmail.com" <hskinnemoen@gmail.com>,
+	"egtvedt@samfundet.no" <egtvedt@samfundet.no>,
+	"realmz6@gmail.com" <realmz6@gmail.com>,
+	"dhowells@redhat.com" <dhowells@redhat.com>,
+	"monstr@monstr.eu" <monstr@monstr.eu>,
+	"x86@kernel.org" <x86@kernel.org>,
+	"dwmw2@infradead.org" <dwmw2@infradead.org>,
+	"alex.williamson@redhat.com" <alex.williamson@redhat.com>,
+	"grundler@parisc-linux.org" <grundler@parisc-linux.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+	"linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
+	"linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
+	"linux-metag@vger.kernel.org" <linux-metag@vger.kernel.org>,
+	"linux-mips@linux-mips.org" <linux-mips@linux-mips.org>,
+	"linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
+	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+	"linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>,
+	"linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 19/31] arc: handle page-less SG entries
+Date: Wed, 12 Aug 2015 10:28:55 +0000
+Message-ID: <C2D7FE5348E1B147BCA15975FBA23075665B21F5@IN01WEMBXB.internal.synopsys.com>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
+ <1439363150-8661-20-git-send-email-hch@lst.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-CC: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org, linux@arm.linux.org.uk
-Subject: Re: [PATCHv2 0/4] cec-ctl/compliance: new CEC utilities
-References: <cover.1439886496.git.hans.verkuil@cisco.com>
-In-Reply-To: <cover.1439886496.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oops, this cover letter is incomplete, here is the full cover letter:
+On Wednesday 12 August 2015 12:39 PM, Christoph Hellwig wrote:
+> Make all cache invalidation conditional on sg_has_page() and use
+> sg_phys to get the physical address directly.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-This patch series adds two new utilities to the v4l-utils git repository
-(http://git.linuxtv.org/cgit.cgi/v4l-utils.git/). It assumes that the new
-CEC framework (v8) is available in the kernel:
+With a minor nit below.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg91285.html
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
 
-The first patch adds the new cec headers to the 'sync-with-kernel' target,
-the second syncs with the kernel and adds the new cec headers to v4l-utils,
-the third adds the compliance utility and the last adds the cec-ctl utility.
+> ---
+>  arch/arc/include/asm/dma-mapping.h | 26 +++++++++++++++++++-------
+>  1 file changed, 19 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
+> index 2d28ba9..42eb526 100644
+> --- a/arch/arc/include/asm/dma-mapping.h
+> +++ b/arch/arc/include/asm/dma-mapping.h
+> @@ -108,9 +108,13 @@ dma_map_sg(struct device *dev, struct scatterlist *sg,
+>  	struct scatterlist *s;
+>  	int i;
+>  
+> -	for_each_sg(sg, s, nents, i)
+> -		s->dma_address = dma_map_page(dev, sg_page(s), s->offset,
+> -					       s->length, dir);
+> +	for_each_sg(sg, s, nents, i) {
+> +		if (sg_has_page(s)) {
+> +			_dma_cache_sync((unsigned long)sg_virt(s), s->length,
+> +					dir);
+> +		}
+> +		s->dma_address = sg_phys(s);
+> +	}
+>  
+>  	return nents;
+>  }
+> @@ -163,8 +167,12 @@ dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
+>  	int i;
+>  	struct scatterlist *sg;
+>  
+> -	for_each_sg(sglist, sg, nelems, i)
+> -		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
+> +	for_each_sg(sglist, sg, nelems, i) {
+> +		if (sg_has_page(sg)) {
+> +			_dma_cache_sync((unsigned int)sg_virt(sg), sg->length,
+> +					dir);
+> +		}
+> +	}
+>  }
+>  
+>  static inline void
+> @@ -174,8 +182,12 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
+>  	int i;
+>  	struct scatterlist *sg;
+>  
+> -	for_each_sg(sglist, sg, nelems, i)
+> -		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
+> +	for_each_sg(sglist, sg, nelems, i) {
+> +		if (sg_has_page(sg)) {
+> +			_dma_cache_sync((unsigned int)sg_virt(sg), sg->length,
+> +				dir);
 
-The cec-compliance utility is by no means 100% coverage, in particular the
-event API and non-blocking ioctls are untested. But it is a starting point,
-and a complex protocol like CEC really needs a compliance tool.
+For consistency, could u please fix the left alignment of @dir above - another tab
+perhaps ?
 
-The cec-ctl utility has almost full CEC message coverage: all generated from
-the cec headers, so this is easy to keep up to date.
+> +		}
+> +	}
+>  }
+>  
+>  static inline int dma_supported(struct device *dev, u64 dma_mask)
 
-Regards,
-
-        Hans
-
-Changes since v1:
-
-- cec-ctl: added CEC message logging/monitoring.
-- cec-ctl: add support to clear the logical addresses.
-- cec-ctl: log events.
-
-
-
-On 08/18/15 10:36, Hans Verkuil wrote:
-> Hans Verkuil (4):
->   Makefile.am: copy cec headers with make sync-with-kernel
->   sync-with-kernel
->   cec-compliance: add new CEC compliance utility
->   cec-ctl: CEC control utility
-> 
->  Makefile.am                                   |    4 +
->  configure.ac                                  |    2 +
->  contrib/freebsd/include/linux/input.h         |   29 +
->  contrib/freebsd/include/linux/v4l2-controls.h |    4 +
->  include/linux/cec-funcs.h                     | 1771 +++++++++++++++++++++++++
->  include/linux/cec.h                           |  781 +++++++++++
->  include/linux/v4l2-controls.h                 |    4 +
->  utils/Makefile.am                             |    2 +
->  utils/cec-compliance/Makefile.am              |    3 +
->  utils/cec-compliance/cec-compliance.cpp       |  926 +++++++++++++
->  utils/cec-compliance/cec-compliance.h         |   87 ++
->  utils/cec-ctl/Makefile.am                     |    8 +
->  utils/cec-ctl/cec-ctl.cpp                     | 1296 ++++++++++++++++++
->  utils/cec-ctl/msg2ctl.pl                      |  430 ++++++
->  utils/keytable/parse.h                        |   18 +
->  utils/keytable/rc_keymaps/lme2510             |  132 +-
->  utils/keytable/rc_maps.cfg                    |    1 +
->  17 files changed, 5432 insertions(+), 66 deletions(-)
->  create mode 100644 include/linux/cec-funcs.h
->  create mode 100644 include/linux/cec.h
->  create mode 100644 utils/cec-compliance/Makefile.am
->  create mode 100644 utils/cec-compliance/cec-compliance.cpp
->  create mode 100644 utils/cec-compliance/cec-compliance.h
->  create mode 100644 utils/cec-ctl/Makefile.am
->  create mode 100644 utils/cec-ctl/cec-ctl.cpp
->  create mode 100644 utils/cec-ctl/msg2ctl.pl
-> 
