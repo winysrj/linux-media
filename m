@@ -1,65 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:38684 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856AbbHLLTn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53037 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964947AbbHLHJK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 07:19:43 -0400
-Date: Wed, 12 Aug 2015 13:19:36 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: "Shah, Yash (Y.)" <yshah1@visteon.com>
-Cc: "mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-	"prabhakar.csengg@gmail.com" <prabhakar.csengg@gmail.com>,
-	"hamohammed.sa@gmail.com" <hamohammed.sa@gmail.com>,
-	"luis@debethencourt.com" <luis@debethencourt.com>,
-	"wsa@the-dreams.de" <wsa@the-dreams.de>,
-	"elfring@users.sourceforge.net" <elfring@users.sourceforge.net>,
-	"carlos@cgarcia.org" <carlos@cgarcia.org>,
-	"vthakkar1994@gmail.com" <vthakkar1994@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Babu, Viswanathan (V.)" <vbabu3@visteon.com>
-Subject: Re: [PATCH] Staging: media/bcm2048: Fix line over 80 characters
- warning as  detected by checkpatch.pl
-Message-ID: <20150812111935.GA15037@pali>
-References: <20150812111245.GA24492@ubuntu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20150812111245.GA24492@ubuntu>
+	Wed, 12 Aug 2015 03:09:10 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 09/31] ia64/pci_dma: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:28 +0200
+Message-Id: <1439363150-8661-10-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 12 August 2015 11:12:49 Shah, Yash (Y.) wrote:
-> From: Yash Shah <yshah1@visteon.com>
-> 
-> Fix line over 80 characters warning as detected by checkpatch.pl
-> 
-> Signed-off-by: Yash Shah <yshah1@visteon.com>
-> ---
->  drivers/staging/media/bcm2048/radio-bcm2048.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index 8bc68e2..d36350e 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -2243,7 +2243,8 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
->  
->  		tmpbuf[i] = bdev->rds_info.radio_text[bdev->rd_index+i+2];
->  		tmpbuf[i+1] = bdev->rds_info.radio_text[bdev->rd_index+i+1];
-> -		tmpbuf[i+2] = (bdev->rds_info.radio_text[bdev->rd_index + i] & 0xf0) >> 4;
-> +		tmpbuf[i+2] = (bdev->rds_info.radio_text[bdev->rd_index + i]
-> +				 & 0xf0) >> 4;
->  		if ((bdev->rds_info.radio_text[bdev->rd_index+i] &
->  			BCM2048_RDS_CRC_MASK) == BCM2048_RDS_CRC_UNRECOVARABLE)
->  			tmpbuf[i+2] |= 0x80;
+Use sg_phys() instead of virt_to_phys(sg_virt(sg)) so that we don't
+require a kernel virtual address.
 
-Hi! I think that code after this change is less readable as before.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/ia64/sn/pci/pci_dma.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
+diff --git a/arch/ia64/sn/pci/pci_dma.c b/arch/ia64/sn/pci/pci_dma.c
+index d0853e8..8f713c8 100644
+--- a/arch/ia64/sn/pci/pci_dma.c
++++ b/arch/ia64/sn/pci/pci_dma.c
+@@ -18,9 +18,6 @@
+ #include <asm/sn/pcidev.h>
+ #include <asm/sn/sn_sal.h>
+ 
+-#define SG_ENT_VIRT_ADDRESS(sg)	(sg_virt((sg)))
+-#define SG_ENT_PHYS_ADDRESS(SG)	virt_to_phys(SG_ENT_VIRT_ADDRESS(SG))
+-
+ /**
+  * sn_dma_supported - test a DMA mask
+  * @dev: device to test
+@@ -291,7 +288,7 @@ static int sn_dma_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	 */
+ 	for_each_sg(sgl, sg, nhwentries, i) {
+ 		dma_addr_t dma_addr;
+-		phys_addr = SG_ENT_PHYS_ADDRESS(sg);
++		phys_addr = sg_phys(sg);
+ 		if (dmabarr)
+ 			dma_addr = provider->dma_map_consistent(pdev,
+ 								phys_addr,
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+1.9.1
+
