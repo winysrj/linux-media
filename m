@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57152 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964863AbbHKNDO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 09:03:14 -0400
-Date: Tue, 11 Aug 2015 10:03:08 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:52931 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967AbbHLUPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 16:15:09 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: William Towle <william.towle@codethink.co.uk>,
-	linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 05/13] v4l: subdev: Add pad config allocator and init
-Message-ID: <20150811100308.26cc76b4@recife.lan>
-In-Reply-To: <55B247DC.4080606@xs4all.nl>
-References: <1437654103-26409-1-git-send-email-william.towle@codethink.co.uk>
-	<1437654103-26409-6-git-send-email-william.towle@codethink.co.uk>
-	<55B247DC.4080606@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v3 06/16] media: initialize the graph object inside the media links
+Date: Wed, 12 Aug 2015 17:14:50 -0300
+Message-Id: <7656123ff16ffb0820f997f0c30ee139ce6d2605.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
+References: <cover.1439410053.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 24 Jul 2015 16:12:44 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+When a new link is created, we need to initialize the object
+inside it.
 
-> On 07/23/2015 02:21 PM, William Towle wrote:
-> > From: Laurent Pinchart <laurent.pinchart@linaro.org>
-> > 
-> > Add a new subdev operation to initialize a subdev pad config array, and
-> > a helper function to allocate and initialize the array. This can be used
-> > by bridge drivers to implement try format based on subdev pad
-> > operations.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-> > Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Won't merge this patch. 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 56724f7853bf..9fb3f8958265 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -479,6 +479,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	graph_obj_remove(&entity->graph_obj);
+ 	for (i = 0; entity->num_pads; i++)
+ 		graph_obj_remove(&entity->pads[i].graph_obj);
++	for (i = 0; entity->num_links; i++)
++		graph_obj_remove(&entity->links[i].graph_obj);
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 19ad316f2f33..6985d5c53632 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -469,6 +469,10 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 		entity->links = links;
+ 	}
+ 
++	/* Initialize graph object embedded at the new link */
++	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
++			&entity->links[entity->num_links].graph_obj);
++
+ 	return &entity->links[entity->num_links++];
+ }
+ 
+-- 
+2.4.3
 
-The Media Controller implementation is currently broken.
-
-So, as agreed at the MC workshop, we won't be changing anything related
-to the MC while we don't rework its implementation in order to fix its
-mess.
-
-In this particular case, we'll very likely need to replace pads from
-arrays to linked lists, in order to properly support dynamic addition
-and removal. If we go to that direction, the implementation of this
-patch will be different.
-
-So, it should wait for the changes.
-
-Feel free to submit a new version of this change once we finish
-with the MC rework patches.
-
-Regards,
-Mauro
