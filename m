@@ -1,105 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58989 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584AbbHWUSL (ORCPT
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:34146 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114AbbHLQ1I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:11 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 22/44] [media] media: add a linked list to track interfaces by mdev
-Date: Sun, 23 Aug 2015 17:17:39 -0300
-Message-Id: <cc0587807ee794a75a61b953d054bd782a06eb03.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Wed, 12 Aug 2015 12:27:08 -0400
+MIME-Version: 1.0
+In-Reply-To: <1439363150-8661-32-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de> <1439363150-8661-32-git-send-email-hch@lst.de>
+From: Catalin Marinas <catalin.marinas@gmail.com>
+Date: Wed, 12 Aug 2015 17:26:44 +0100
+Message-ID: <CAHkRjk6ykXd1=DLZ16dKiyrBXWmd80WC4gLyoN50JYigJG_-bQ@mail.gmail.com>
+Subject: Re: [PATCH 31/31] dma-mapping-common: skip kmemleak checks for
+ page-less SG entries
+To: Christoph Hellwig <hch@lst.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, axboe@kernel.dk,
+	Dan Williams <dan.j.williams@intel.com>, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	David Howells <dhowells@redhat.com>,
+	Michal Simek <monstr@monstr.eu>,
+	"x86@kernel.org" <x86@kernel.org>,
+	David Woodhouse <dwmw2@infradead.org>,
+	alex.williamson@redhat.com, grundler@parisc-linux.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+	linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+	linux-metag@vger.kernel.org, linux-mips@linux-mips.org,
+	linux-parisc@vger.kernel.org,
+	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to be able to navigate at the interfaces that
-belong to a given media device, in to indirect
-interface links.
+Christoph,
 
-So, add a linked list to track them.
+On 12 August 2015 at 08:05, Christoph Hellwig <hch@lst.de> wrote:
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  include/asm-generic/dma-mapping-common.h | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
+> index 940d5ec..afc3eaf 100644
+> --- a/include/asm-generic/dma-mapping-common.h
+> +++ b/include/asm-generic/dma-mapping-common.h
+> @@ -51,8 +51,10 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+>         int i, ents;
+>         struct scatterlist *s;
+>
+> -       for_each_sg(sg, s, nents, i)
+> -               kmemcheck_mark_initialized(sg_virt(s), s->length);
+> +       for_each_sg(sg, s, nents, i) {
+> +               if (sg_has_page(s))
+> +                       kmemcheck_mark_initialized(sg_virt(s), s->length);
+> +       }
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Just a nitpick for the subject, it should say "kmemcheck" rather than
+"kmemleak" (different features ;)).
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 3e649cacfc07..659507bce63f 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return -EINVAL;
- 
- 	INIT_LIST_HEAD(&mdev->entities);
-+	INIT_LIST_HEAD(&mdev->interfaces);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
- 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 16d7d96abb9f..05976c891c17 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -875,6 +875,8 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
- 	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
- 		       &devnode->intf.graph_obj);
- 
-+	list_add_tail(&intf->list, &mdev->interfaces);
-+
- 	return devnode;
- }
- EXPORT_SYMBOL_GPL(media_devnode_create);
-@@ -882,6 +884,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
- void media_devnode_remove(struct media_intf_devnode *devnode)
- {
- 	media_gobj_remove(&devnode->intf.graph_obj);
-+	list_del(&devnode->intf.list);
- 	kfree(devnode);
- }
- EXPORT_SYMBOL_GPL(media_devnode_remove);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 3b14394d5701..51807efa505b 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -46,6 +46,7 @@ struct device;
-  * @link_id:	Unique ID used on the last link registered
-  * @intf_devnode_id: Unique ID used on the last interface devnode registered
-  * @entities:	List of registered entities
-+ * @interfaces:	List of registered interfaces
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-  * @link_notify: Link state change notification callback
-@@ -77,6 +78,7 @@ struct media_device {
- 	u32 intf_devnode_id;
- 
- 	struct list_head entities;
-+	struct list_head interfaces;
- 
- 	/* Protects the entities list */
- 	spinlock_t lock;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index aeb390a9e0f3..35d97017dd19 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -156,6 +156,8 @@ struct media_entity {
-  * struct media_intf_devnode - Define a Kernel API interface
-  *
-  * @graph_obj:		embedded graph object
-+ * @list:		Linked list used to find other interfaces that belong
-+ *			to the same media controller
-  * @links:		List of links pointing to graph entities
-  * @type:		Type of the interface as defined at the
-  *			uapi/media/media.h header, e. g.
-@@ -164,6 +166,7 @@ struct media_entity {
-  */
- struct media_interface {
- 	struct media_gobj		graph_obj;
-+	struct list_head		list;
- 	struct list_head		links;
- 	u32				type;
- 	u32				flags;
 -- 
-2.4.3
-
+Catalin
