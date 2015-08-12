@@ -1,39 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59712 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158AbbHAJWV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 05:22:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 2/4] v4l: atmel-isi: Remove unused variable
-Date: Sat,  1 Aug 2015 12:22:54 +0300
-Message-Id: <1438420976-7899-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:53128 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965137AbbHLHJZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Aug 2015 03:09:25 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
+	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
+	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
+	dwmw2@infradead.org, alex.williamson@redhat.com,
+	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
+	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Subject: [PATCH 14/31] sparc32/io-unit: handle page-less SG entries
+Date: Wed, 12 Aug 2015 09:05:33 +0200
+Message-Id: <1439363150-8661-15-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a compilation warning by removing an unused local variable in the
-probe function.
+For the iommu offset we just need and offset into the page.  Calculate
+that using the physical address instead of using the virtual address
+so that we don't require a virtual mapping.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/sparc/mm/io-unit.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 9c900d9569e0..a2e50a734fa3 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -920,7 +920,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	struct atmel_isi *isi;
- 	struct resource *regs;
- 	int ret, i;
--	struct device *dev = &pdev->dev;
- 	struct soc_camera_host *soc_host;
- 	struct isi_platform_data *pdata;
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index f311bf2..82f97ae 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -91,13 +91,14 @@ static int __init iounit_init(void)
+ subsys_initcall(iounit_init);
  
+ /* One has to hold iounit->lock to call this */
+-static unsigned long iounit_get_area(struct iounit_struct *iounit, unsigned long vaddr, int size)
++static dma_addr_t iounit_get_area(struct iounit_struct *iounit,
++		unsigned long paddr, int size)
+ {
+ 	int i, j, k, npages;
+-	unsigned long rotor, scan, limit;
++	unsigned long rotor, scan, limit, dma_addr;
+ 	iopte_t iopte;
+ 
+-        npages = ((vaddr & ~PAGE_MASK) + size + (PAGE_SIZE-1)) >> PAGE_SHIFT;
++        npages = ((paddr & ~PAGE_MASK) + size + (PAGE_SIZE-1)) >> PAGE_SHIFT;
+ 
+ 	/* A tiny bit of magic ingredience :) */
+ 	switch (npages) {
+@@ -106,7 +107,7 @@ static unsigned long iounit_get_area(struct iounit_struct *iounit, unsigned long
+ 	default: i = 0x0213; break;
+ 	}
+ 	
+-	IOD(("iounit_get_area(%08lx,%d[%d])=", vaddr, size, npages));
++	IOD(("iounit_get_area(%08lx,%d[%d])=", paddr, size, npages));
+ 	
+ next:	j = (i & 15);
+ 	rotor = iounit->rotor[j - 1];
+@@ -121,7 +122,7 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
+ 		}
+ 		i >>= 4;
+ 		if (!(i & 15))
+-			panic("iounit_get_area: Couldn't find free iopte slots for (%08lx,%d)\n", vaddr, size);
++			panic("iounit_get_area: Couldn't find free iopte slots for (%08lx,%d)\n", paddr, size);
+ 		goto next;
+ 	}
+ 	for (k = 1, scan++; k < npages; k++)
+@@ -129,14 +130,14 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
+ 			goto nexti;
+ 	iounit->rotor[j - 1] = (scan < limit) ? scan : iounit->limit[j - 1];
+ 	scan -= npages;
+-	iopte = MKIOPTE(__pa(vaddr & PAGE_MASK));
+-	vaddr = IOUNIT_DMA_BASE + (scan << PAGE_SHIFT) + (vaddr & ~PAGE_MASK);
++	iopte = MKIOPTE(paddr & PAGE_MASK);
++	dma_addr = IOUNIT_DMA_BASE + (scan << PAGE_SHIFT) + (paddr & ~PAGE_MASK);
+ 	for (k = 0; k < npages; k++, iopte = __iopte(iopte_val(iopte) + 0x100), scan++) {
+ 		set_bit(scan, iounit->bmap);
+ 		sbus_writel(iopte, &iounit->page_table[scan]);
+ 	}
+-	IOD(("%08lx\n", vaddr));
+-	return vaddr;
++	IOD(("%08lx\n", dma_addr));
++	return dma_addr;
+ }
+ 
+ static __u32 iounit_get_scsi_one(struct device *dev, char *vaddr, unsigned long len)
+@@ -145,7 +146,7 @@ static __u32 iounit_get_scsi_one(struct device *dev, char *vaddr, unsigned long
+ 	unsigned long ret, flags;
+ 	
+ 	spin_lock_irqsave(&iounit->lock, flags);
+-	ret = iounit_get_area(iounit, (unsigned long)vaddr, len);
++	ret = iounit_get_area(iounit, virt_to_phys(vaddr), len);
+ 	spin_unlock_irqrestore(&iounit->lock, flags);
+ 	return ret;
+ }
+@@ -159,7 +160,7 @@ static void iounit_get_scsi_sgl(struct device *dev, struct scatterlist *sg, int
+ 	spin_lock_irqsave(&iounit->lock, flags);
+ 	while (sz != 0) {
+ 		--sz;
+-		sg->dma_address = iounit_get_area(iounit, (unsigned long) sg_virt(sg), sg->length);
++		sg->dma_address = iounit_get_area(iounit, sg_phys(sg), sg->length);
+ 		sg->dma_length = sg->length;
+ 		sg = sg_next(sg);
+ 	}
 -- 
-2.3.6
+1.9.1
 
