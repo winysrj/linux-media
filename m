@@ -1,127 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52518 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752085AbbHaM6w (ORCPT
+Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:53657 "EHLO
+	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752573AbbHMLg6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 08:58:52 -0400
-Message-ID: <55E44F54.4020609@xs4all.nl>
-Date: Mon, 31 Aug 2015 14:57:56 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 52/55] [media] media-device: remove interfaces and
- interface links
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 13 Aug 2015 07:36:58 -0400
+From: William Towle <william.towle@codethink.co.uk>
+To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
+Cc: linux-sh@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/3] media: adv7604: automatic "default-input" selection
+Date: Thu, 13 Aug 2015 12:36:50 +0100
+Message-Id: <1439465811-936-3-git-send-email-william.towle@codethink.co.uk>
+In-Reply-To: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
+References: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
-> Just like what's done with entities, when the media controller is
-> unregistered, release and interface and interface links that
+Add logic such that the "default-input" property becomes unnecessary
+for chips that only have one suitable input (ADV7611 by design, and
+ADV7612 due to commit 7111cddd "[media] media: adv7604: reduce support
+to first (digital) input").
 
-s/release and/release any/
+Additionally, Ian's documentation in commit bf9c8227 ("[media] media:
+adv7604: ability to read default input port from DT") states that the
+"default-input" property should reside directly in the node for
+adv7612. Hence, also adjust the parsing to make the implementation
+consistent with this.
 
-> might still be there.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 638c682b79c4..2c16a46ea530 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -554,6 +554,22 @@ void media_device_unregister(struct media_device *mdev)
->  {
->  	struct media_entity *entity;
->  	struct media_entity *next;
-> +	struct media_link *link, *tmp_link;
-> +	struct media_interface *intf, *tmp_intf;
-> +
-> +	/* Remove interface links from the media device */
-> +	list_for_each_entry_safe(link, tmp_link, &mdev->links,
-> +				 graph_obj.list) {
-> +		media_gobj_remove(&link->graph_obj);
-> +		kfree(link);
-> +	}
-> +
-> +	/* Remove all interfaces from the media device */
-> +	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
-> +				 graph_obj.list) {
-> +		media_gobj_remove(&intf->graph_obj);
-> +		kfree(intf);
-> +	}
->  
->  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
->  		media_device_unregister_entity(entity);
-> @@ -631,7 +647,6 @@ void media_device_unregister_entity(struct media_entity *entity)
->  	/* Remove all data links that belong to this entity */
->  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
->  		media_gobj_remove(&link->graph_obj);
-> -		list_del(&link->list);
->  		kfree(link);
->  	}
->  
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 96303a0ade59..1cdda9cb0512 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -206,6 +206,10 @@ void media_gobj_remove(struct media_gobj *gobj)
->  
->  	/* Remove the object from mdev list */
->  	list_del(&gobj->list);
-> +
-> +	/* Links have their own list - we need to drop them there too */
-> +	if (media_type(gobj) == MEDIA_GRAPH_LINK)
-> +		list_del(&gobj_to_link(gobj)->list);
->  }
->  
->  /**
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0e7e193a6736..7fd6265f0bcb 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -153,7 +153,7 @@ struct media_entity {
->  };
->  
->  /**
-> - * struct media_intf_devnode - Define a Kernel API interface
-> + * struct media_interface - Define a Kernel API interface
->   *
->   * @graph_obj:		embedded graph object
->   * @list:		Linked list used to find other interfaces that belong
-> @@ -163,6 +163,11 @@ struct media_entity {
->   *			uapi/media/media.h header, e. g.
->   *			MEDIA_INTF_T_*
->   * @flags:		Interface flags as defined at uapi/media/media.h
-> + *
-> + * NOTE: As media_device_unregister() will free the address of the
-> + *	 media_interface, this structure should be embedded as the first
-> + *	 element of the derivated functions, in order for the address to be
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+---
+ drivers/media/i2c/adv7604.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-s/derivated/derived/
-
-> + *	 the same.
->   */
->  struct media_interface {
->  	struct media_gobj		graph_obj;
-> @@ -179,11 +184,11 @@ struct media_interface {
->   * @minor:	Minor number of a device node
->   */
->  struct media_intf_devnode {
-> -	struct media_interface		intf;
-> +	struct media_interface	intf; /* must be first field in struct */
->  
->  	/* Should match the fields at media_v2_intf_devnode */
-> -	u32				major;
-> -	u32				minor;
-> +	u32			major;
-> +	u32			minor;
->  };
->  
->  static inline u32 media_entity_id(struct media_entity *entity)
-> 
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 5631ec0..5bd81bd 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2799,7 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
+-	u32 v;
++	u32 v= -1;
+ 
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+ 
+@@ -2809,14 +2809,25 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 		return -EINVAL;
+ 
+ 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+-
+-	if (!of_property_read_u32(endpoint, "default-input", &v))
+-		state->pdata.default_input = v;
+-	else
+-		state->pdata.default_input = -1;
+-
+ 	of_node_put(endpoint);
+ 
++	if (of_property_read_u32(np, "default-input", &v)) {
++		/* not specified ... can we choose automatically? */
++		switch (state->info->type) {
++		case ADV7611:
++			v = 0;
++			break;
++		case ADV7612:
++			if (state->info->max_port
++					== ADV76XX_PAD_HDMI_PORT_A)
++				v = 0;
++			/* else is unhobbled, leave unspecified */
++		default:
++			break;
++		}
++	}
++	state->pdata.default_input = v;
++
+ 	flags = bus_cfg.bus.parallel.flags;
+ 
+ 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+-- 
+1.7.10.4
 
