@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:35450 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932726AbbHJV0L (ORCPT
+Received: from smtp-out-200.synserver.de ([212.40.185.200]:1070 "EHLO
+	smtp-out-200.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751460AbbHMMkt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 17:26:11 -0400
-From: poma <pomidorabelisima@gmail.com>
-Subject: WARNING: CPU: 1 PID: 813 at kernel/module.c:291
- module_assert_mutex_or_preempt+0x49/0x90()
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Linux Kernel list <linux-kernel@vger.kernel.org>
-Message-ID: <55C916F0.8010303@gmail.com>
-Date: Mon, 10 Aug 2015 23:26:08 +0200
+	Thu, 13 Aug 2015 08:40:49 -0400
+Message-ID: <55CC904E.4040907@metafoo.de>
+Date: Thu, 13 Aug 2015 14:40:46 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] media: videobuf2-dc: set properly dma_max_segment_size
+References: <1439373533-23299-1-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1439373533-23299-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/12/2015 11:58 AM, Marek Szyprowski wrote:
+> If device has no DMA max_seg_size set, we assume that there is no limit
+> and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
+> let DMA-mapping API always create contiguous mappings in DMA address
+> space. This is essential for all devices, which use dma-contig
+> videobuf2 memory allocator.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+> Changelog:
+> v2:
+> - set max segment size only if a new dma params structure has been
+>   allocated, as suggested by Laurent Pinchart
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 94c1e64..455e925 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -862,6 +862,21 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+>  void *vb2_dma_contig_init_ctx(struct device *dev)
+>  {
+>  	struct vb2_dc_conf *conf;
+> +	int err;
+> +
+> +	/*
+> +	 * if device has no max_seg_size set, we assume that there is no limit
+> +	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
+> +	 * in DMA address space
+> +	 */
+> +	if (!dev->dma_parms) {
+> +		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
+> +		if (!dev->dma_parms)
+> +			return ERR_PTR(-ENOMEM);
+> +		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
+> +		if (err)
+> +			return ERR_PTR(err);
+> +	}
 
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 813 at kernel/module.c:291 module_assert_mutex_or_preempt+0x49/0x90()
-Modules linked in: mxl5007t af9013 ... dvb_usb_af9015(+) ... dvb_usb_v2 dvb_core rc_core ...
-CPU: 1 PID: 813 Comm: systemd-udevd Not tainted 4.2.0-0.rc6.git0.1.fc24.x86_64+debug #1
-...
-Call Trace:
- [<ffffffff81868d8e>] dump_stack+0x4c/0x65
- [<ffffffff810ab406>] warn_slowpath_common+0x86/0xc0
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffff810ab53a>] warn_slowpath_null+0x1a/0x20
- [<ffffffff81150529>] module_assert_mutex_or_preempt+0x49/0x90
- [<ffffffff81150822>] __module_address+0x32/0x150
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffff81150956>] __module_text_address+0x16/0x70
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
- [<ffffffff81150f19>] symbol_put_addr+0x29/0x40
- [<ffffffffa04b77ad>] dvb_frontend_detach+0x7d/0x90 [dvb_core]
- [<ffffffffa04cdfd5>] dvb_usbv2_probe+0xc85/0x11a0 [dvb_usb_v2]
- [<ffffffffa05607c4>] af9015_probe+0x84/0xf0 [dvb_usb_af9015]
- [<ffffffff8161c03b>] usb_probe_interface+0x1bb/0x2e0
- [<ffffffff81579f26>] driver_probe_device+0x1f6/0x450
- [<ffffffff8157a214>] __driver_attach+0x94/0xa0
- [<ffffffff8157a180>] ? driver_probe_device+0x450/0x450
- [<ffffffff815778f3>] bus_for_each_dev+0x73/0xc0
- [<ffffffff815796fe>] driver_attach+0x1e/0x20
- [<ffffffff8157922e>] bus_add_driver+0x1ee/0x280
- [<ffffffff8157b0a0>] driver_register+0x60/0xe0
- [<ffffffff8161a87d>] usb_register_driver+0xad/0x160
- [<ffffffffa0567000>] ? 0xffffffffa0567000
- [<ffffffffa056701e>] af9015_usb_driver_init+0x1e/0x1000 [dvb_usb_af9015]
- [<ffffffff81002123>] do_one_initcall+0xb3/0x200
- [<ffffffff8124ac65>] ? kmem_cache_alloc_trace+0x355/0x380
- [<ffffffff81867c37>] ? do_init_module+0x28/0x1e9
- [<ffffffff81867c6f>] do_init_module+0x60/0x1e9
- [<ffffffff81154167>] load_module+0x21f7/0x28d0
- [<ffffffff8114f600>] ? m_show+0x1b0/0x1b0
- [<ffffffff81026d79>] ? sched_clock+0x9/0x10
- [<ffffffff810e6ddc>] ? local_clock+0x1c/0x20
- [<ffffffff811549b8>] SyS_init_module+0x178/0x1c0
- [<ffffffff8187282e>] entry_SYSCALL_64_fastpath+0x12/0x76
----[ end trace 31a9dd90d4f559f5 ]---
+I'm not sure if this is such a good idea. The DMA provider is responsible
+for setting this up. We shouldn't be overwriting this here on the DMA
+consumer side. This will just mask the bug that the provider didn't setup
+this correctly and might cause bugs on its own if it is not correct. It will
+lead to conflicts with DMA providers that have multiple consumers (e.g.
+shared DMA core). And also the current assumption is that if a driver
+doesn't set this up explicitly the maximum segement size is 65536.
 
-
-Ref.
-https://bugzilla.redhat.com/show_bug.cgi?id=1252167
-https://bugzilla.kernel.org/show_bug.cgi?id=102631
+>  
+>  	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+>  	if (!conf)
+> 
 
