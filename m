@@ -1,114 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-2.cisco.com ([72.163.197.26]:2627 "EHLO
-	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbbHORPT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2015 13:15:19 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC PATCH] vivid: add support for reduced fps in video out.
-Date: Sat, 15 Aug 2015 22:45:15 +0530
-Message-Id: <1439658915-2511-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1439658915-2511-1-git-send-email-prladdha@cisco.com>
-References: <1439658915-2511-1-git-send-email-prladdha@cisco.com>
+Received: from verein.lst.de ([213.95.11.211]:48818 "EHLO newverein.lst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752061AbbHMOkj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Aug 2015 10:40:39 -0400
+Date: Thu, 13 Aug 2015 16:40:36 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Boaz Harrosh <boaz@plexistor.com>
+Cc: Christoph Hellwig <hch@lst.de>, torvalds@linux-foundation.org,
+	axboe@kernel.dk, linux-mips@linux-mips.org,
+	linux-ia64@vger.kernel.org, linux-nvdimm@ml01.01.org,
+	dhowells@redhat.com, sparclinux@vger.kernel.org,
+	egtvedt@samfundet.no, linux-arch@vger.kernel.org,
+	linux-s390@vger.kernel.org, x86@kernel.org, dwmw2@infradead.org,
+	hskinnemoen@gmail.com, linux-xtensa@linux-xtensa.org,
+	grundler@parisc-linux.org, realmz6@gmail.com,
+	alex.williamson@redhat.com, linux-metag@vger.kernel.org,
+	monstr@monstr.eu, linux-parisc@vger.kernel.org,
+	vgupta@synopsys.com, linux-kernel@vger.kernel.org,
+	linux-alpha@vger.kernel.org, linux-media@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org
+Subject: Re: RFC: prepare for struct scatterlist entries without page
+	backing
+Message-ID: <20150813144036.GB17375@lst.de>
+References: <1439363150-8661-1-git-send-email-hch@lst.de> <55CB3F47.3000902@plexistor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55CB3F47.3000902@plexistor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If bt timing has REDUCED_FPS flag set, then reduce the frame rate
-by factor of 1000 / 1001. For vivid, timeperframe_vid_out indicates
-the frame timings used by video out thread. The timeperframe_vid_out
-is derived from pixel clock. Adjusting the timeperframe_vid_out by
-scaling down pixel clock with factor of 1000 / 1001.
+On Wed, Aug 12, 2015 at 03:42:47PM +0300, Boaz Harrosh wrote:
+> The support I have suggested and submitted for zone-less sections.
+> (In my add_persistent_memory() patchset)
+>
+> Would work perfectly well and transparent for all such multimedia cases.
+> (All hacks removed). In fact I have loaded pmem (with-pages) on a VRAM
+> a few times and it is great easy fun. (I wanted to experiment with cached
+> memory over a pcie)
 
-The reduced fps is supported for CVT timings if reduced blanking v2
-(indicated by vsync = 8) is true. For CEA861 timings, reduced fps is
-supported if V4L2_DV_FL_CAN_REDUCE_FPS flag is true. For GTF timings,
-reduced fps is not supported.
+And everyone agree that it was both buggy and incomplete.
 
-The reduced fps will allow refresh rates like 29.97, 59.94 etc.
+Dan has done a respin of the page backed nvdimm work with most of
+these comments addressed.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/platform/vivid/vivid-vid-out.c | 30 +++++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-dv-timings.c    |  5 +++++
- 2 files changed, 34 insertions(+), 1 deletion(-)
+I have to say I hate both pfn-based I/O [1] and page backed nvdimms with
+passion, so we're looking into the lesser evil with an open mind.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index c404e27..ca6ec78 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -213,6 +213,27 @@ const struct vb2_ops vivid_vid_out_qops = {
- };
- 
- /*
-+ * Called to check conditions for reduced fps. For CVT timings, reduced
-+ * fps is allowed only with reduced blanking v2 (vsync == 8). For CEA861
-+ * timings, reduced fps is allowed if V4L2_DV_FL_CAN_REDUCE_FPS flag is
-+ * true.
-+ */
-+static bool reduce_fps(struct v4l2_bt_timings *bt)
-+{
-+	if (!(bt->flags & V4L2_DV_FL_REDUCED_FPS))
-+		return false;
-+
-+	if ((bt->standards & V4L2_DV_BT_STD_CVT) && (bt->vsync == 8))
-+			return true;
-+
-+	if ((bt->standards & V4L2_DV_BT_STD_CEA861) &&
-+	    (bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS))
-+			return true;
-+
-+	return false;
-+}
-+
-+/*
-  * Called whenever the format has to be reset which can occur when
-  * changing outputs, standard, timings, etc.
-  */
-@@ -220,6 +241,7 @@ void vivid_update_format_out(struct vivid_dev *dev)
- {
- 	struct v4l2_bt_timings *bt = &dev->dv_timings_out.bt;
- 	unsigned size, p;
-+	u64 pixelclock;
- 
- 	switch (dev->output_type[dev->output]) {
- 	case SVID:
-@@ -241,8 +263,14 @@ void vivid_update_format_out(struct vivid_dev *dev)
- 		dev->sink_rect.width = bt->width;
- 		dev->sink_rect.height = bt->height;
- 		size = V4L2_DV_BT_FRAME_WIDTH(bt) * V4L2_DV_BT_FRAME_HEIGHT(bt);
-+
-+		if (reduce_fps(bt))
-+			pixelclock = div_u64((bt->pixelclock * 1000), 1001);
-+		else
-+			pixelclock = bt->pixelclock;
-+
- 		dev->timeperframe_vid_out = (struct v4l2_fract) {
--			size / 100, (u32)bt->pixelclock / 100
-+			size / 100, (u32)pixelclock / 100
- 		};
- 		if (bt->interlaced)
- 			dev->field_out = V4L2_FIELD_ALTERNATE;
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 6a83d61..adc03bd 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -210,7 +210,12 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 					  fnc, fnc_handle) &&
- 		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i,
- 					  pclock_delta)) {
-+			u32 flags = t->bt.flags & V4L2_DV_FL_REDUCED_FPS;
-+
- 			*t = v4l2_dv_timings_presets[i];
-+			if (t->bt.flags & V4L2_DV_FL_CAN_REDUCE_FPS)
-+				t->bt.flags |= flags;
-+
- 			return true;
- 		}
- 	}
--- 
-1.9.1
-
+[1] not the SGL part posted here, which I think is quite sane.  The bio
+    side is much worse, though.
