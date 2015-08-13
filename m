@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53037 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964947AbbHLHJK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:09:10 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 09/31] ia64/pci_dma: handle page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:28 +0200
-Message-Id: <1439363150-8661-10-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+Received: from tux25.hoststar.at ([85.10.203.25]:45037 "EHLO tux25.hoststar.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022AbbHMUWN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Aug 2015 16:22:13 -0400
+Received: from Dagon (chello084114214250.5.15.vie.surfer.at [84.114.214.250])
+	(authenticated bits=0)
+	by tux25.hoststar.at (8.13.8/8.12.11) with ESMTP id t7DJlEAP010691
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2015 21:47:15 +0200
+Date: Thu, 13 Aug 2015 21:47:12 +0200
+From: "Robert 'Bobby' Zenz" <Robert.Zenz@bonsaimind.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Fixed syntax errors in v4.1_pat_enabled.patch.
+Message-ID: <20150813214712.7e5c2814@Dagon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use sg_phys() instead of virt_to_phys(sg_virt(sg)) so that we don't
-require a kernel virtual address.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Robert Zenz <Robert.Zenz@bonsaimind.org>
 ---
- arch/ia64/sn/pci/pci_dma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ backports/v4.1_pat_enabled.patch | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/ia64/sn/pci/pci_dma.c b/arch/ia64/sn/pci/pci_dma.c
-index d0853e8..8f713c8 100644
---- a/arch/ia64/sn/pci/pci_dma.c
-+++ b/arch/ia64/sn/pci/pci_dma.c
-@@ -18,9 +18,6 @@
- #include <asm/sn/pcidev.h>
- #include <asm/sn/sn_sal.h>
- 
--#define SG_ENT_VIRT_ADDRESS(sg)	(sg_virt((sg)))
--#define SG_ENT_PHYS_ADDRESS(SG)	virt_to_phys(SG_ENT_VIRT_ADDRESS(SG))
--
- /**
-  * sn_dma_supported - test a DMA mask
-  * @dev: device to test
-@@ -291,7 +288,7 @@ static int sn_dma_map_sg(struct device *dev, struct scatterlist *sgl,
- 	 */
- 	for_each_sg(sgl, sg, nhwentries, i) {
- 		dma_addr_t dma_addr;
--		phys_addr = SG_ENT_PHYS_ADDRESS(sg);
-+		phys_addr = sg_phys(sg);
- 		if (dmabarr)
- 			dma_addr = provider->dma_map_consistent(pdev,
- 								phys_addr,
+diff --git a/backports/v4.1_pat_enabled.patch b/backports/v4.1_pat_enabled.patch
+index b266d9d..66a8671 100644
+--- a/backports/v4.1_pat_enabled.patch
++++ b/backports/v4.1_pat_enabled.patch
+@@ -10,9 +10,8 @@ index 8b95eef..020955d 100644
+ -		pr_warn("ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+ +#ifdef CONFIG_X86_PAT
+ +	if (WARN(pat_enabled,
+-+		"ivtvfb needs PAT disabled, boot with nopat kernel parameter\n");
+++		"ivtvfb needs PAT disabled, boot with nopat kernel parameter\n"))
+  		return -ENODEV;
+- 	}
+  #endif
+ +#endif
+  
 -- 
 1.9.1
-
