@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54430 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143AbbHRUE3 (ORCPT
+Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:47073
+	"EHLO mail.upit.ro" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576AbbHNXij (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 16:04:29 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v5 6/8] [media] media: add messages when media device gets (un)registered
-Date: Tue, 18 Aug 2015 17:04:19 -0300
-Message-Id: <f77b929eedd92943a14390a650dd1699cfda305c.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
+	Fri, 14 Aug 2015 19:38:39 -0400
+Message-ID: <34ecd247f6e256e739d39add8fee7b74.squirrel@mail.upit.ro>
+Date: Fri, 14 Aug 2015 19:20:09 +0300 (EEST)
+Subject: =?iso-8859-1?Q?Gratul=E1lunk_!!!?=
+From: "www.facebook.com" <claudiu.neagoe@upit.ro>
+Reply-To: fb_deliveryservice@yeah.net
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We can only free the media device after being sure that no
-graph object is used.
 
-In order to help tracking it, let's add debug messages
-that will print when the media controller gets registered
-or unregistered.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7f512223249b..d72d283c4f29 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -357,6 +357,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
- 
- static void media_device_release(struct media_devnode *mdev)
- {
-+	dev_dbg(mdev->parent, "Media device released\n");
- }
- 
- /**
-@@ -395,6 +396,8 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return ret;
- 	}
- 
-+	dev_dbg(mdev->dev, "Media device registered\n");
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
-@@ -414,6 +417,8 @@ void media_device_unregister(struct media_device *mdev)
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	media_devnode_unregister(&mdev->devnode);
-+
-+	dev_dbg(mdev->dev, "Media device unregistered\n");
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
--- 
-2.4.3
+www.facebook.com
+
+Gratulálunk !!!
+
+Örülünk, hogy be, hogy a Facebook számla került véletlenszer&#369;en
+kiválasztott, a kedvezményezett $ 1,000,000.00usd a 2014/2015 Facebook Év
+{Grand Jutalmak gy&#337;ztes}.
+
+Küldjön e-mailt az alábbi adatokat: fb_deliveryservice@yeah.net
+
+MEGHÍVÓ AZONOSÍTÓ: NW90W0W0-XANSIEW-1014
+1) összeget nyert: $ 1,000,000.00 USD
+2) facebook felhasználónév:
+3) A jelenlegi lakóhelye szerinti ország:
+4) Útlevél / száma:
+
+Küldd el ezt a részleteket, hogy az e-mail fent: fb_deliveryservice@yeah.net
+
+
+George Jones.
+Program koordinátora,
+Facebook jutalmazási program,
++ 1-209-300-9000
+www.facebook.com
+Minden jog fenntartva 2015.
+
+
+--
+This mail was scanned by BitDefender
+For more information please visit http://www.bitdefender.com/
+
 
