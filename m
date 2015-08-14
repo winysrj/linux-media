@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40092 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587AbbHGOUV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 10:20:21 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v2 06/16] media: initialize the graph object inside the media links
-Date: Fri,  7 Aug 2015 11:20:04 -0300
-Message-Id: <7656123ff16ffb0820f997f0c30ee139ce6d2605.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48125 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755465AbbHNPAd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Aug 2015 11:00:33 -0400
+Message-ID: <55CE0268.9050400@xs4all.nl>
+Date: Fri, 14 Aug 2015 16:59:52 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Harry Wei <harryxiyou@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVuIEJyaW5rbWFubg==?= <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Axel Lin <axel.lin@ingics.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	anuvazhayil <anuv.1994@gmail.com>,
+	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	linux-doc@vger.kernel.org, linux-kernel@zh-kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v4 1/6] media: get rid of unused "extra_links" param on
+ media_entity_init()
+References: <cover.1439563682.git.mchehab@osg.samsung.com> <b0b576e0bfcc043b4fdab3a57665b525fc054add.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <b0b576e0bfcc043b4fdab3a57665b525fc054add.1439563682.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When a new link is created, we need to initialize the object
-inside it.
+On 08/14/2015 04:56 PM, Mauro Carvalho Chehab wrote:
+> Currently, media_entity_init() creates an array with the links,
+> allocated at init time. It provides a parameter (extra_links)
+> that would allocate more links than the current needs, but this
+> is not used by any driver.
+> 
+> As we want to be able to do dynamic link allocation/removal,
+> we'll need to change the implementation of the links. So,
+> before doing that, let's first remove that extra unused
+> parameter, in order to cleanup the interface first.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 56724f7853bf..9fb3f8958265 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -479,6 +479,8 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	graph_obj_remove(&entity->graph_obj);
- 	for (i = 0; entity->num_pads; i++)
- 		graph_obj_remove(&entity->pads[i].graph_obj);
-+	for (i = 0; entity->num_links; i++)
-+		graph_obj_remove(&entity->links[i].graph_obj);
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->parent = NULL;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 19ad316f2f33..6985d5c53632 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -469,6 +469,10 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
- 		entity->links = links;
- 	}
- 
-+	/* Initialize graph object embedded at the new link */
-+	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
-+			&entity->links[entity->num_links].graph_obj);
-+
- 	return &entity->links[entity->num_links++];
- }
- 
--- 
-2.4.3
+Thanks!
 
+	Hans
