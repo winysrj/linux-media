@@ -1,63 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48584 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753356AbbH3DHz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47102 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751590AbbHNVJ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:55 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 51/55] [media] remove interface links at media_entity_unregister()
-Date: Sun, 30 Aug 2015 00:07:02 -0300
-Message-Id: <36ec2d60b61f769115982c5060d550d35e3ca602.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Fri, 14 Aug 2015 17:09:28 -0400
+Date: Sat, 15 Aug 2015 00:08:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v4 2/6] media: create a macro to get entity ID
+Message-ID: <20150814210855.GA28370@valkosipuli.retiisi.org.uk>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
+ <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <89205b71de7a6edc3638eb14df8d0b0e4df32bc2.1439563682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Interface links connected to an entity should be removed
-before being able of removing the entity.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Fri, Aug 14, 2015 at 11:56:39AM -0300, Mauro Carvalho Chehab wrote:
+...
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 8b21a4d920d9..478d5cd56be9 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -126,6 +126,8 @@ struct media_entity_graph {
+>  	int top;
+>  };
+>  
+> +#define entity_id(entity) ((entity)->id)
+> +
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>  		struct media_pad *pads);
+>  void media_entity_cleanup(struct media_entity *entity);
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index a91e1ec076a6..638c682b79c4 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -618,14 +618,30 @@ void media_device_unregister_entity(struct media_entity *entity)
- 		return;
- 
- 	spin_lock(&mdev->lock);
-+
-+	/* Remove interface links with this entity on it */
-+	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
-+		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
-+		    && link->entity == entity) {
-+			media_gobj_remove(&link->graph_obj);
-+			kfree(link);
-+		}
-+	}
-+
-+	/* Remove all data links that belong to this entity */
- 	list_for_each_entry_safe(link, tmp, &entity->links, list) {
- 		media_gobj_remove(&link->graph_obj);
- 		list_del(&link->list);
- 		kfree(link);
- 	}
-+
-+	/* Remove all pads that belong to this entity */
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_remove(&entity->pads[i].graph_obj);
-+
-+	/* Remove the entity */
- 	media_gobj_remove(&entity->graph_obj);
-+
- 	spin_unlock(&mdev->lock);
- 	entity->graph_obj.mdev = NULL;
- }
+media-entity.h is a pretty widely included header file. Perhaps we should
+think about the naming a bit.
+
+All the other names in the header begin with media (or __media); I'd very
+much prefer not changing that pattern.
+
 -- 
-2.4.3
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
