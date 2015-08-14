@@ -1,79 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38629 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752035AbbHTMpt (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38769 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755413AbbHNQRq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 08:45:49 -0400
-Message-ID: <55D5CB5F.2010106@xs4all.nl>
-Date: Thu, 20 Aug 2015 14:43:11 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 14 Aug 2015 12:17:46 -0400
+Received: by wicja10 with SMTP id ja10so25990357wic.1
+        for <linux-media@vger.kernel.org>; Fri, 14 Aug 2015 09:17:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-CC: =?windows-1252?Q?S=F6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	devel@driverdev.osuosl.org, Kukjin Kim <kgene@kernel.org>,
-	linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] [media] media: use entity.graph_obj.mdev instead
- of .parent
-References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com> <1439998526-12832-4-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1439998526-12832-4-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20150813.211155.1774898831276303437.davem@davemloft.net>
+References: <20150813143150.GA17183@lst.de>
+	<CAA9_cmcNA__N_yVTKsEqLAKBuoL-hx73t6opdsmb7w-0qKXaWg@mail.gmail.com>
+	<1439524760.8421.23.camel@HansenPartnership.com>
+	<20150813.211155.1774898831276303437.davem@davemloft.net>
+Date: Fri, 14 Aug 2015 09:17:45 -0700
+Message-ID: <CAPcyv4idztwrtr5wBQkiTSNT8L3HWf8zk9webheQAmunLD7cBw@mail.gmail.com>
+Subject: Re: [PATCH 29/31] parisc: handle page-less SG entries
+From: Dan Williams <dan.j.williams@intel.com>
+To: David Miller <davem@davemloft.net>
+Cc: Jej B <James.Bottomley@hansenpartnership.com>,
+	Christoph Hellwig <hch@lst.de>,
+	"torvalds@linux-foundation.org" <torvalds@linux-foundation.org>,
+	linux-mips@linux-mips.org, linux-ia64@vger.kernel.org,
+	linux-nvdimm <linux-nvdimm@ml01.01.org>, dhowells@redhat.com,
+	sparclinux@vger.kernel.org, egtvedt@samfundet.no,
+	linux-arch@vger.kernel.org, linux-s390@vger.kernel.org,
+	X86 ML <x86@kernel.org>, David Woodhouse <dwmw2@infradead.org>,
+	hskinnemoen@gmail.com, linux-xtensa@linux-xtensa.org,
+	grundler@parisc-linux.org, realmz6@gmail.com,
+	alex.williamson@redhat.com, linux-metag@vger.kernel.org,
+	Jens Axboe <axboe@kernel.dk>, Michal Simek <monstr@monstr.eu>,
+	linux-parisc@vger.kernel.org, vgupta@synopsys.com,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-alpha@vger.kernel.org, linux-media@vger.kernel.org,
+	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/15 17:35, Javier Martinez Canillas wrote:
-> The struct media_entity has a .parent field that stores a pointer
-> to the parent struct media_device. But recently a media_gobj was
-> embedded into the entities and since struct media_gojb already has
-> a pointer to a struct media_device in the .mdev field, the .parent
-> field becomes redundant and can be removed.
-> 
-> This patch replaces all the usage of .parent by .graph_obj.mdev so
-> that field will become unused and can be removed on a later patch.
-> 
-> No functional changes.
-> 
-> The transformation was made using the following coccinelle spatch:
-> 
-> @@
-> struct media_entity *me;
-> @@
-> 
-> - me->parent
-> + me->graph_obj.mdev
-> 
-> @@
-> struct media_entity *link;
-> @@
-> 
-> - link->source->entity->parent
-> + link->source->entity->graph_obj.mdev
-> 
-> @@
-> struct exynos_video_entity *ve;
-> @@
-> 
-> - ve->vdev.entity.parent
-> + ve->vdev.entity.graph_obj.mdev
-> 
-> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+On Thu, Aug 13, 2015 at 9:11 PM, David Miller <davem@davemloft.net> wrote:
+> From: James Bottomley <James.Bottomley@HansenPartnership.com>
+>> At least on some PA architectures, you have to be very careful.
+>> Improperly managed, multiple aliases will cause the system to crash
+>> (actually a machine check in the cache chequerboard). For the most
+>> temperamental systems, we need the cache line flushed and the alias
+>> mapping ejected from the TLB cache before we access the same page at an
+>> inequivalent alias.
+>
+> Also, I want to mention that on sparc64 we manage the cache aliasing
+> state in the page struct.
+>
+> Until a page is mapped into userspace, we just record the most recent
+> cpu to store into that page with kernel side mappings.  Once the page
+> ends up being mapped or the cpu doing kernel side stores changes, we
+> actually perform the cache flush.
+>
+> Generally speaking, I think that all actual physical memory the kernel
+> operates on should have a struct page backing it.  So this whole
+> discussion of operating on physical memory in scatter lists without
+> backing page structs feels really foreign to me.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+So the only way for page-less pfns to enter the system is through the
+->direct_access() method provided by a pmem device's struct
+block_device_operations.  Architectures that require struct page for
+cache management to must disable ->direct_access() in this case.
 
-Regards,
+If an arch still wants to support pmem+DAX then it needs something
+like this patchset (feedback welcome) to map pmem pfns:
 
-	Hans
+https://lkml.org/lkml/2015/8/12/970
+
+Effectively this would disable ->direct_access() on /dev/pmem0, but
+permit ->direct_access() on /dev/pmem0m.
