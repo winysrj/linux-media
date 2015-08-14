@@ -1,113 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52940 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbbHLUPJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46372 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754456AbbHNPPv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:09 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v3 13/16] media: make the internal function to create links more generic
-Date: Wed, 12 Aug 2015 17:14:57 -0300
-Message-Id: <0bfcb1f6134c7c9b7c1a90388db646723e118a82.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Fri, 14 Aug 2015 11:15:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Harry Wei <harryxiyou@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Joe Perches <joe@perches.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Ricardo Ribald a Delgado <ricardo.ribalda@gmail.com>,
+	Axel Lin <axel.lin@ingics.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	anuvazhayil <anuv.1994@gmail.com>,
+	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	linux-doc@vger.kernel.org, linux-kernel@zh-kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v4 1/6] media: get rid of unused "extra_links" param on media_entity_init()
+Date: Fri, 14 Aug 2015 18:16:49 +0300
+Message-ID: <3975256.nCAQDV8Exf@avalon>
+In-Reply-To: <b0b576e0bfcc043b4fdab3a57665b525fc054add.1439563682.git.mchehab@osg.samsung.com>
+References: <cover.1439563682.git.mchehab@osg.samsung.com> <b0b576e0bfcc043b4fdab3a57665b525fc054add.1439563682.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation to add a public function to add links, let's
-make the internal function that creates link more generic.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thank you for the patch.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index eafd26a741e5..b8991d38c565 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -457,7 +457,12 @@ EXPORT_SYMBOL_GPL(media_entity_put);
-  * Links management
-  */
- 
--static struct media_link *media_entity_add_link(struct media_entity *entity)
-+static struct media_link *__media_create_link(struct media_device *mdev,
-+					      enum media_graph_link_dir dir,
-+					      struct media_graph_obj *port0,
-+					      struct media_graph_obj *port1,
-+					      u32 flags,
-+					      struct list_head *list)
- {
- 	struct media_link *link;
- 
-@@ -465,12 +470,16 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
- 	if (link == NULL)
- 		return NULL;
- 
-+	link->dir = dir;
-+	link->port0 = port0;
-+	link->port1 = port1;
-+	link->flags = flags;
-+
- 	INIT_LIST_HEAD(&link->list);
--	list_add(&entity->links, &link->list);
-+	list_add(list, &link->list);
- 
- 	/* Initialize graph object embedded at the new link */
--	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
--			&link->graph_obj);
-+	graph_obj_init(mdev, MEDIA_GRAPH_LINK, &link->graph_obj);
- 
- 	return link;
- }
-@@ -509,7 +518,7 @@ static void __media_entity_remove_link(struct media_entity *entity,
- 
- int
- media_create_pad_link(struct media_entity *source, u16 source_pad,
--			 struct media_entity *sink, u16 sink_pad, u32 flags)
-+		      struct media_entity *sink, u16 sink_pad, u32 flags)
- {
- 	struct media_link *link;
- 	struct media_link *backlink;
-@@ -518,27 +527,27 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- 	BUG_ON(source_pad >= source->num_pads);
- 	BUG_ON(sink_pad >= sink->num_pads);
- 
--	link = media_entity_add_link(source);
-+	link = __media_create_link(source->parent,
-+				   MEDIA_LINK_DIR_PORT0_TO_PORT1,
-+			           &source->pads[source_pad].graph_obj,
-+				   &sink->pads[sink_pad].graph_obj,
-+				   flags, &source->links);
- 	if (link == NULL)
- 		return -ENOMEM;
- 
--	link->pad0_source = &source->pads[source_pad];
--	link->pad1_sink = &sink->pads[sink_pad];
--	link->flags = flags;
--
- 	/* Create the backlink. Backlinks are used to help graph traversal and
- 	 * are not reported to userspace.
- 	 */
--	backlink = media_entity_add_link(sink);
-+	backlink = __media_create_link(sink->parent,
-+				      MEDIA_LINK_DIR_PORT0_TO_PORT1,
-+			              &source->pads[source_pad].graph_obj,
-+				      &sink->pads[sink_pad].graph_obj,
-+				      flags, &sink->links);
- 	if (backlink == NULL) {
- 		__media_entity_remove_link(source, link);
- 		return -ENOMEM;
- 	}
- 
--	backlink->pad0_source = &source->pads[source_pad];
--	backlink->pad1_sink = &sink->pads[sink_pad];
--	backlink->flags = flags;
--
- 	link->reverse = backlink;
- 	backlink->reverse = link;
- 
+On Friday 14 August 2015 11:56:38 Mauro Carvalho Chehab wrote:
+> Currently, media_entity_init() creates an array with the links,
+> allocated at init time. It provides a parameter (extra_links)
+> that would allocate more links than the current needs, but this
+> is not used by any driver.
+> 
+> As we want to be able to do dynamic link allocation/removal,
+> we'll need to change the implementation of the links. So,
+> before doing that, let's first remove that extra unused
+> parameter, in order to cleanup the interface first.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> diff --git a/Documentation/media-framework.txt
+> b/Documentation/media-framework.txt index f552a75c0e70..2cc6019f7147 100644
+> --- a/Documentation/media-framework.txt
+> +++ b/Documentation/media-framework.txt
+> @@ -104,7 +104,7 @@ although drivers can allocate entities directly.
+>  Drivers initialize entities by calling
+> 
+>  	media_entity_init(struct media_entity *entity, u16 num_pads,
+> -			  struct media_pad *pads, u16 extra_links);
+> +			  struct media_pad *pads);
+> 
+>  The media_entity name, type, flags, revision and group_id fields can be
+>  initialized before or after calling media_entity_init. Entities embedded in
+
+The extra_links parameter is documented later on in this file. Could you 
+replace the paragraph
+
+"Unlike the number of pads, the total number of links isn't always known in
+advance by the entity driver. As an initial estimate, media_entity_init
+pre-allocates a number of links equal to the number of pads plus an optional
+number of extra links. The links array will be reallocated if it grows beyond
+the initial estimate."
+
+with
+
+"Unlike the number of pads, the total number of links isn't always known in
+advance by the entity driver. As an initial estimate, media_entity_init
+pre-allocates a number of links equal to the number of pads. The links array 
+will be reallocated if it grows beyond the initial estimate."
+
+?
+
+[snip]
+
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 4d8e01c7b1b2..78440c7aad94 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -30,7 +30,6 @@
+>   * media_entity_init - Initialize a media entity
+>   *
+>   * @num_pads: Total number of sink and source pads.
+> - * @extra_links: Initial estimate of the number of extra links.
+>   * @pads: Array of 'num_pads' pads.
+>   *
+>   * The total number of pads is an intrinsic property of entities known by
+> the
+
+Similarly here, I would rewrite the documentation as
+
+ * The total number of pads is an intrinsic property of entities known by the
+ * entity driver, while the total number of links depends on hardware design
+ * and is an extrinsic property unknown to the entity driver. However, in most
+ * use cases the number of links can safely be assumed to be equal to or
+ * larger than the number of pads.
+ *
+ * For those reasons the links array can be preallocated based on the number
+ * of pads and will be reallocated later if extra links need to be created.
+ *
+ * This function allocates a links array with enough space to hold at least
+ * 'num_pads' elements. The media_entity::max_links field will be set to the
+ * number of allocated elements.
+
+With that fixed,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+And feel free to merge this patch for v4.3 independently of the rest.
+
+> @@ -52,10 +51,10 @@
+>   */
+>  int
+>  media_entity_init(struct media_entity *entity, u16 num_pads,
+> -		  struct media_pad *pads, u16 extra_links)
+> +		  struct media_pad *pads)
+>  {
+>  	struct media_link *links;
+> -	unsigned int max_links = num_pads + extra_links;
+> +	unsigned int max_links = num_pads;
+>  	unsigned int i;
+> 
+>  	links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
+
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
