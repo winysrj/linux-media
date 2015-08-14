@@ -1,94 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43066 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751322AbbHaLc3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46928 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755407AbbHNO6b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 07:32:29 -0400
-Message-ID: <55E43B14.9050506@xs4all.nl>
-Date: Mon, 31 Aug 2015 13:31:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev
- or V4L2 DMA
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Aug 2015 10:58:31 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 6/6] media: use media_graph_obj inside links
+Date: Fri, 14 Aug 2015 11:56:43 -0300
+Message-Id: <b7b0a4f38b7ae2bb3bd69aeaf3476250f489d50a.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
-> As we'll be removing entity subtypes from the Kernel, we need
-> to provide a way for drivers and core to check if a given
-> entity is represented by a V4L2 subdev or if it is an V4L2
-> I/O entity (typically with DMA).
+Just like entities and pads, links also need to have unique
+Object IDs along a given media controller.
 
-This needs more discussion. The plan (as I understand it) is to have properties
-that describe the entity's functionalities.
+So, let's add a media_graph_obj inside it and initialize
+the object then a new link is created.
 
-The existing entity subtypes will exist only as backwards compat types, but in
-the future properties should be used to describe the functionalities.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This raises the question if we shouldn't use MEDIA_ENT_T_V4L2_SUBDEV to tell
-userspace that this is a subdev-controlled entity, and let userspace look at
-the properties to figure out what it is exactly?
-
-It could be that this is a transitional patch, and this will be fixed later.
-If so, this should be mentioned in the commit message.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index e7b20bdc735d..b0cfbc0dffc7 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
->  	return id;
->  }
->  
-> +static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-> +{
-> +	if (!entity)
-> +		return false;
-> +
-> +	switch (entity->type) {
-> +	case MEDIA_ENT_T_V4L2_VIDEO:
-> +	case MEDIA_ENT_T_V4L2_VBI:
-> +	case MEDIA_ENT_T_V4L2_SWRADIO:
-> +		return true;
-> +	default:
-> +		return false;
-> +	}
-> +}
-> +
-> +static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
-> +{
-> +	if (!entity)
-> +		return false;
-> +
-> +	switch (entity->type) {
-> +	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
-> +	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
-> +	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
-> +	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
-> +	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-> +		return true;
-> +
-> +	default:
-> +		return false;
-> +	}
-> +}
-> +
->  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
->  #define MEDIA_ENTITY_ENUM_MAX_ID	64
->  
-> 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3ac5803b327e..9f02939c2864 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -466,6 +466,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	graph_obj_remove(&entity->graph_obj);
+ 	for (i = 0; i < entity->num_pads; i++)
+ 		graph_obj_remove(&entity->pads[i].graph_obj);
++	for (i = 0; entity->num_links; i++)
++		graph_obj_remove(&entity->links[i].graph_obj);
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d3dee6fc79d7..4f18bd10b162 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -50,6 +50,8 @@ void graph_obj_init(struct media_device *mdev,
+ 		gobj->id |= ++mdev->entity_id;
+ 	case MEDIA_GRAPH_PAD:
+ 		gobj->id |= ++mdev->pad_id;
++	case MEDIA_GRAPH_LINK:
++		gobj->id |= ++mdev->pad_id;
+ 	}
+ }
+ 
+@@ -469,6 +471,10 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 		entity->links = links;
+ 	}
+ 
++	/* Initialize graph object embedded at the new link */
++	graph_obj_init(entity->parent, MEDIA_GRAPH_LINK,
++			&entity->links[entity->num_links].graph_obj);
++
+ 	return &entity->links[entity->num_links++];
+ }
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 2a9d9260cccc..2d9a050d46f7 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -43,6 +43,7 @@ struct device;
+  * @driver_version: Device driver version
+  * @entity_id:	Unique ID used on the last entity registered
+  * @pad_id:	Unique ID used on the last pad registered
++ * @link_id:	Unique ID used on the last link registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+@@ -72,6 +73,7 @@ struct media_device {
+ 	/* Unique object ID counter */
+ 	u32 entity_id;
+ 	u32 pad_id;
++	u32 link_id;
+ 
+ 	struct list_head entities;
+ 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 936f68f27bba..30eaae47d72e 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -35,10 +35,12 @@
+  *
+  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  * @MEDIA_GRAPH_PAD:		Identify a media pad
++ * @MEDIA_GRAPH_LINK:		Identify a media link
+  */
+ enum media_graph_type {
+ 	MEDIA_GRAPH_ENTITY,
+ 	MEDIA_GRAPH_PAD,
++	MEDIA_GRAPH_LINK,
+ };
+ 
+ 
+@@ -61,6 +63,7 @@ struct media_pipeline {
+ };
+ 
+ struct media_link {
++	struct media_graph_obj graph_obj;
+ 	struct media_pad *source;	/* Source pad */
+ 	struct media_pad *sink;		/* Sink pad  */
+ 	struct media_link *reverse;	/* Link in the reverse direction */
+-- 
+2.4.3
 
