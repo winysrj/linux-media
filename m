@@ -1,131 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55394 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400AbbHUWrl (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42116 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754456AbbHNPPc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 18:47:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 3/8] [media] media: use media_gobj inside entities
-Date: Sat, 22 Aug 2015 01:47:37 +0300
-Message-ID: <1912893.Q3rk0pZ5kO@avalon>
-In-Reply-To: <20150821180131.701b509e@recife.lan>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <110787800.OoCXmhqZpK@avalon> <20150821180131.701b509e@recife.lan>
+	Fri, 14 Aug 2015 11:15:32 -0400
+Message-ID: <55CE0431.2040306@xs4all.nl>
+Date: Fri, 14 Aug 2015 17:07:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 4/6] media: use media_graph_obj inside entities
+References: <cover.1439563682.git.mchehab@osg.samsung.com> <c4f28657fcd882ce4eef2738a4319bb685f70915.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <c4f28657fcd882ce4eef2738a4319bb685f70915.1439563682.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 08/14/2015 04:56 PM, Mauro Carvalho Chehab wrote:
+> As entities are graph elements, let's embeed media_graph_obj
 
-On Friday 21 August 2015 18:01:31 Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Aug 2015 20:51:10 +0300 Laurent Pinchart escreveu:
-> > On Friday 21 August 2015 07:09:44 Mauro Carvalho Chehab wrote:
-> >> Em Fri, 21 Aug 2015 04:10:03 +0300 Laurent Pinchart escreveu:
-> >>> On Wednesday 19 August 2015 08:01:50 Mauro Carvalho Chehab wrote:
-> >>>> As entities are graph elements, let's embed media_gobj
-> >>>> on it. That ensures an unique ID for entities that can be
-> >>>> global along the entire media controller.
-> >>>> 
-> >>>> For now, we'll keep the already existing entity ID. Such
-> >>>> field need to be dropped at some point, but for now, let's
-> >>>> not do this, to avoid needing to review all drivers and
-> >>>> the userspace apps.
-> >>>> 
-> >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >>>> 
-> >>>> diff --git a/drivers/media/media-device.c
-> >>>> b/drivers/media/media-device.c
-> >>>> index e429605ca2c3..81d6a130efef 100644
-> >>>> --- a/drivers/media/media-device.c
-> >>>> +++ b/drivers/media/media-device.c
-> >>>> @@ -379,7 +379,6 @@ int __must_check __media_device_register(struct
-> >>>> media_device *mdev,
-> >>>> 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
-> >>>>  		return -EINVAL;
-> >>>> 
-> >>>> -	mdev->entity_id = 1;
-> >>>>  	INIT_LIST_HEAD(&mdev->entities);
-> >>>>  	spin_lock_init(&mdev->lock);
-> >>>>  	mutex_init(&mdev->graph_mutex);
-> >>>> @@ -433,10 +432,8 @@ int __must_check 
-> >>>> media_device_register_entity(struct media_device *mdev,
-> >>>> 
-> >>>> 	entity->parent = mdev;
-> >>>> 	
-> >>>>  	spin_lock(&mdev->lock);
-> >>>> 
-> >>>> -	if (entity->id == 0)
-> >>>> -		entity->id = mdev->entity_id++;
-> >>>> -	else
-> >>>> -		mdev->entity_id = max(entity->id + 1, mdev->entity_id);
-> >>>> +	/* Initialize media_gobj embedded at the entity */
-> >>>> +	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-> >>> 
-> >>> Graph object initialization should be moved to media_entity_init() to
-> >>> keep initialization separate from registration.
-> >> 
-> >> Won't work. I tried. My first RFC patches were doing that.
-> >> 
-> >> The problem is that media_entity_init() is currently called too early
-> >> at the V4L2 drivers, before having mdev assigned.
-> > 
-> > That looks like a problem that should be fixed in the drivers then. The
-> > initialization of media devices and entities hasn't been thought of
-> > correctly, let's not carry mistakes forward.
+s/embeed/embed/
+
+> on it. That ensures an unique ID for entities that can be
+> global along the entire media controller.
 > 
-> In this particular case, calling media_gobj_init() during
-> media_entity_register() won't cause any troubles, and moving it latter
-> to media_entity_init() is a two lines patch, once drivers got fixed
-> by the drivers maintainers.
+> For now, we'll keep the already existing entity ID. Such
+> field need to be dropped on some point, but for now, let's
 
-It's the "once drivers got fixed by the drivers maintainers" that worries me. 
-We all know it unfortunately doesn't happen by itself, and I believe it will 
-become more and more difficult as time goes by and more drivers use the MC 
-framework. We're trying to refactor, clean up and extend MC, both in-kernel 
-and towards userspace, to correct design and implementation mistakes. I'm 
-worried that we'll make different but similarly painful mistakes if we don't 
-take a bit of time to do things properly now. And while it will require a 
-couple more patches, I don't think we're looking at months of work either.
+s/on/at/
 
-It might be that assigning an ID to objects can only be done at at 
-registration time, especially for standalone subdev drivers (I'm thinking 
-about the I2C camera sensors in particular). Still, calling media_gobj_init() 
-in media_device_register_entity() doesn't sound right. Maybe the solution is 
-to use media_gobj_init() for init-time initialization, and creating a 
-media_gobj_assign_id() (or similarly-named) function to call at registration 
-time. What I'd really like to see is clear explicit rules regarding how 
-init/cleanup and register/unregister interact and how they should be used by 
-drivers. The current mess is partly caused by not having thought this out 
-properly to start with.
-
-I also have a feeling that we'll realize changes are required when 
-implementing support for dynamic changes.
-
-> >> Also, objects without PADs don't call media_entity_init(). At long
-> >> term, this function may even disappear, as it only exists today to
-> >> allocate arrays for pads/links. If we get rid of the pads array, it
-> >> will make no sense to keep it.
-> > 
-> > I wouldn't do that, as if we later add a field to media_entity that
-> > requires an initialization function to be called we would need to go and
-> > patch all the code that instantiates media_entity to add init calls. I'd
-> > prefer keeping the media_entity_init function even if all it does is call
-> > media_gobj_init.
->
-> OK.
+> not do this, to avoid needing to review all drivers and
+> the userspace apps.
 > 
-> >>>>  	list_add_tail(&entity->list, &mdev->entities);
-> >>>>  	spin_unlock(&mdev->lock);
-> >>>> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index b9382f06044a..f06b08392007 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -377,7 +377,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+>  		return -EINVAL;
+>  
+> -	mdev->entity_id = 1;
+>  	INIT_LIST_HEAD(&mdev->entities);
+>  	spin_lock_init(&mdev->lock);
+>  	mutex_init(&mdev->graph_mutex);
+> @@ -431,11 +430,9 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  	entity->parent = mdev;
+>  
+>  	spin_lock(&mdev->lock);
+> -	if (entity->id == 0)
+> -		entity->id = mdev->entity_id++;
+> -	else
+> -		mdev->entity_id = max(entity->id + 1, mdev->entity_id);
+> -	list_add_tail(&entity->list, &mdev->entities);
+> +	/* Initialize media_graph_obj embedded at the entity */
+> +	graph_obj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+> +
+>  	spin_unlock(&mdev->lock);
+>  
+>  	return 0;
+> @@ -457,6 +454,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  		return;
+>  
+>  	spin_lock(&mdev->lock);
+> +	graph_obj_remove(&entity->graph_obj);
+>  	list_del(&entity->list);
+>  	spin_unlock(&mdev->lock);
+>  	entity->parent = NULL;
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 046f1fe40b50..c06546509a89 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -43,8 +43,12 @@ void graph_obj_init(struct media_device *mdev,
+>  			   enum media_graph_type type,
+>  			   struct media_graph_obj *gobj)
+>  {
+> -	/* An unique object ID will be provided on next patches */
+> +	/* Create a per-type unique object ID */
+>  	gobj->id = type << 24;
+> +	switch (type) {
+> +	case MEDIA_GRAPH_ENTITY:
+> +		gobj->id |= ++mdev->entity_id;
 
--- 
+Please add a break here.
+
+> +	}
+>  }
+>  
+>  /**
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 6e6db78f1ee2..35634c0da362 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -41,7 +41,7 @@ struct device;
+>   * @bus_info:	Unique and stable device location identifier
+>   * @hw_revision: Hardware device revision
+>   * @driver_version: Device driver version
+> - * @entity_id:	ID of the next entity to be registered
+> + * @entity_id:	Unique ID used on the last entity registered
+>   * @entities:	List of registered entities
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+> @@ -68,7 +68,9 @@ struct media_device {
+>  	u32 hw_revision;
+>  	u32 driver_version;
+>  
+> +	/* Unique object ID counter */
+>  	u32 entity_id;
+> +
+>  	struct list_head entities;
+>  
+>  	/* Protects the entities list */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 58938bb980fe..2c775f3ef24f 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -33,10 +33,10 @@
+>  /**
+>   * enum media_graph_type - type of a graph element
+>   *
+> + * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+>   */
+>  enum media_graph_type {
+> -	 /* FIXME: add the types here, as we embeed media_graph_obj */
+> -	MEDIA_GRAPH_NONE
+> +	MEDIA_GRAPH_ENTITY,
+>  };
+>  
+>  
+> @@ -88,10 +88,9 @@ struct media_entity_operations {
+>  };
+>  
+>  struct media_entity {
+> +	struct media_graph_obj graph_obj;
+>  	struct list_head list;
+>  	struct media_device *parent;	/* Media device this entity belongs to*/
+> -	u32 id;				/* Entity ID, unique in the parent media
+> -					 * device context */
+>  	const char *name;		/* Entity name */
+>  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+>  	u32 revision;			/* Entity revision, driver specific */
+> @@ -153,7 +152,7 @@ struct media_entity_graph {
+>  	int top;
+>  };
+>  
+> -#define entity_id(entity) ((entity)->id)
+> +#define entity_id(entity) ((entity)->graph_obj.id)
+>  
+>  #define gobj_to_entity(gobj) \
+>  		container_of(gobj, struct media_entity, graph_obj)
+> 
+
+With the small items above fixed:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
