@@ -1,54 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:35316 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbbHZSw3 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57712 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751856AbbHNMQc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2015 14:52:29 -0400
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: [PATCH] media/pci/cobalt: Use %*ph to print small buffers
-Date: Thu, 27 Aug 2015 00:51:50 +0600
-Message-Id: <1440615110-11575-1-git-send-email-kuleshovmail@gmail.com>
+	Fri, 14 Aug 2015 08:16:32 -0400
+Message-ID: <55CDDBFE.3020905@xs4all.nl>
+Date: Fri, 14 Aug 2015 14:15:58 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 2/7] [media] vimc: sen: Integrate the tpg on the sensor
+References: <cover.1438891530.git.helen.fornazier@gmail.com> <e3c80eb0aebe828d2df72be9971ad720f439bb71.1438891530.git.helen.fornazier@gmail.com>
+In-Reply-To: <e3c80eb0aebe828d2df72be9971ad720f439bb71.1438891530.git.helen.fornazier@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-printk() supports %*ph format specifier for printing a small buffers,
-let's use it intead of %02x %02x...
+On 08/06/2015 10:26 PM, Helen Fornazier wrote:
+> Initialize the test pattern generator on the sensor
+> Generate a colored bar image instead of a grey one
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
----
- drivers/media/pci/cobalt/cobalt-cpld.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+You don't want to put the tpg in every sensor and have all the blocks in
+between process the video. This is all virtual, so all that is necessary
+is to put the tpg in every DMA engine (video node) but have the subdevs
+modify the tpg setting when you start the pipeline.
 
-diff --git a/drivers/media/pci/cobalt/cobalt-cpld.c b/drivers/media/pci/cobalt/cobalt-cpld.c
-index e83f5c9..e406eab 100644
---- a/drivers/media/pci/cobalt/cobalt-cpld.c
-+++ b/drivers/media/pci/cobalt/cobalt-cpld.c
-@@ -290,8 +290,8 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
- 	   0x01, 0xc7, 0xfc, 0x7f, 0x53, 0x62).
- 	 */
- 
--	cobalt_dbg(1, "%u: %02x %02x %02x %02x %02x %02x\n", f_out,
--			regs[0], regs[1], regs[2], regs[3], regs[4], regs[5]);
-+	cobalt_dbg(1, "%u: %6ph\n", f_out, regs);
-+
- 	while (retries--) {
- 		u8 read_regs[6];
- 
-@@ -330,9 +330,7 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
- 
- 		if (!memcmp(read_regs, regs, sizeof(read_regs)))
- 			break;
--		cobalt_dbg(1, "retry: %02x %02x %02x %02x %02x %02x\n",
--			read_regs[0], read_regs[1], read_regs[2],
--			read_regs[3], read_regs[4], read_regs[5]);
-+		cobalt_dbg(1, "retry: %6ph\n");
- 	}
- 	if (2 - retries)
- 		cobalt_info("Needed %d retries\n", 2 - retries);
--- 
-2.5.0
+So the source would set the width/height to the sensor resolution, and it
+will initialize the crop/compose rectangles. Every other entity in the
+pipeline will continue modifying according to what they do. E.g. a scaler
+will just change the compose rectangle.
 
+When you start streaming the tpg will generate the image based on all those
+settings as if all the entities would actually do the work.
+
+Of course, this assumes the processing the entities do map to what the tpg
+can do, but that's true for vimc.
+
+An additional advantage is that the entities can use a wide range of
+mediabus formats since the tpg can generate basically anything. Implementing
+multiplanar is similarly easy. This would be much harder if you had to write
+the image processing code for the entities since you'd either have to support
+lots of different formats (impractical) or limit yourself to just a few.
+
+> 
+> Signed-off-by: Helen Fornazier <helen.fornazier@gmail.com>
+> ---
+>  drivers/media/platform/vimc/Kconfig       |  1 +
+>  drivers/media/platform/vimc/vimc-sensor.c | 44 +++++++++++++++++++++++++++++--
+>  2 files changed, 43 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vimc/Kconfig b/drivers/media/platform/vimc/Kconfig
+> index 81279f4..7cf7e84 100644
+> --- a/drivers/media/platform/vimc/Kconfig
+> +++ b/drivers/media/platform/vimc/Kconfig
+> @@ -1,6 +1,7 @@
+>  config VIDEO_VIMC
+>  	tristate "Virtual Media Controller Driver (VIMC)"
+>  	select VIDEO_V4L2_SUBDEV_API
+> +	select VIDEO_TPG
+>  	default n
+>  	---help---
+>  	  Skeleton driver for Virtual Media Controller
+> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+> index d613792..a2879ad 100644
+> --- a/drivers/media/platform/vimc/vimc-sensor.c
+> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+> @@ -16,15 +16,19 @@
+>   */
+>  
+>  #include <linux/freezer.h>
+> +#include <media/tpg.h>
+>  #include <linux/vmalloc.h>
+>  #include <linux/v4l2-mediabus.h>
+>  #include <media/v4l2-subdev.h>
+>  
+>  #include "vimc-sensor.h"
+>  
+> +#define VIMC_SEN_FRAME_MAX_WIDTH 4096
+> +
+>  struct vimc_sen_device {
+>  	struct vimc_ent_device ved;
+>  	struct v4l2_subdev sd;
+> +	struct tpg_data tpg;
+>  	struct v4l2_device *v4l2_dev;
+>  	struct device *dev;
+>  	struct task_struct *kthread_sen;
+> @@ -87,6 +91,29 @@ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>  
+> +static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
+> +{
+> +	const struct vimc_pix_map *vpix;
+> +
+> +	vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
+> +	/* This should never be NULL, as we won't allow any format other then
+> +	 * the ones in the vimc_pix_map_list table */
+> +	BUG_ON(!vpix);
+> +
+> +	tpg_s_bytesperline(&vsen->tpg, 0,
+> +			   vsen->mbus_format.width * vpix->bpp);
+> +	tpg_s_buf_height(&vsen->tpg, vsen->mbus_format.height);
+> +	tpg_s_fourcc(&vsen->tpg, vpix->pixelformat);
+> +	/* TODO: check why the tpg_s_field need this third argument if
+> +	 * it is already receiving the field */
+> +	tpg_s_field(&vsen->tpg, vsen->mbus_format.field,
+> +		    vsen->mbus_format.field == V4L2_FIELD_ALTERNATE);
+
+Actually the second argument argument cannot be FIELD_ALTERNATE. If it
+is field ALTERNATE, then the second argument must be either FIELD_TOP or
+FIELD_BOTTOM: i.e. it tells the generator which field comes first in the
+FIELD_ALTERNATE case.
+
+And in case you are wondering: it's always FIELD_TOP except for 60 Hz SDTV
+formats where it is FIELD_BOTTOM.
+
+> +	tpg_s_colorspace(&vsen->tpg, vsen->mbus_format.colorspace);
+> +	tpg_s_ycbcr_enc(&vsen->tpg, vsen->mbus_format.ycbcr_enc);
+> +	tpg_s_quantization(&vsen->tpg, vsen->mbus_format.quantization);
+> +	tpg_s_xfer_func(&vsen->tpg, vsen->mbus_format.xfer_func);
+> +}
+> +
+>  static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
+>  	.enum_mbus_code		= vimc_sen_enum_mbus_code,
+>  	.enum_frame_size	= vimc_sen_enum_frame_size,
+> @@ -112,7 +139,7 @@ static int vimc_thread_sen(void *data)
+>  		if (kthread_should_stop())
+>  			break;
+>  
+> -		memset(vsen->frame, 100, vsen->frame_size);
+> +		tpg_fill_plane_buffer(&vsen->tpg, V4L2_STD_PAL, 0, vsen->frame);
+>  
+>  		/* Send the frame to all source pads */
+>  		for (i = 0; i < vsen->sd.entity.num_pads; i++)
+> @@ -192,6 +219,7 @@ static void vimc_sen_destroy(struct vimc_ent_device *ved)
+>  	struct vimc_sen_device *vsen = container_of(ved,
+>  						struct vimc_sen_device, ved);
+>  
+> +	tpg_free(&vsen->tpg);
+>  	media_entity_cleanup(ved->ent);
+>  	v4l2_device_unregister_subdev(&vsen->sd);
+>  	kfree(vsen);
+> @@ -242,6 +270,16 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+>  	vsen->mbus_format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+>  	vsen->mbus_format.xfer_func = V4L2_XFER_FUNC_SRGB;
+>  
+> +	/* Initialize the test pattern generator */
+> +	tpg_init(&vsen->tpg, vsen->mbus_format.width,
+> +		 vsen->mbus_format.height);
+> +	ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
+> +	if (ret)
+> +		goto err_clean_m_ent;
+> +
+> +	/* Configure the tpg */
+> +	vimc_sen_tpg_s_format(vsen);
+> +
+>  	/* Fill the vimc_ent_device struct */
+>  	vsen->ved.destroy = vimc_sen_destroy;
+>  	vsen->ved.ent = &vsen->sd.entity;
+> @@ -261,11 +299,13 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+>  	if (ret) {
+>  		dev_err(vsen->dev,
+>  			"subdev register failed (err=%d)\n", ret);
+> -		goto err_clean_m_ent;
+> +		goto err_free_tpg;
+>  	}
+>  
+>  	return &vsen->ved;
+>  
+> +err_free_tpg:
+> +	tpg_free(&vsen->tpg);
+>  err_clean_m_ent:
+>  	media_entity_cleanup(&vsen->sd.entity);
+>  err_clean_pads:
+> 
+
+Regards,
+
+	Hans
