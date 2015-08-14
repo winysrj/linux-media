@@ -1,164 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58702 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932207AbbHSLPM (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36259 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751399AbbHNLy1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 07:15:12 -0400
-Message-ID: <55D464A6.7010103@xs4all.nl>
-Date: Wed, 19 Aug 2015 13:12:38 +0200
+	Fri, 14 Aug 2015 07:54:27 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8E83D2A0091
+	for <linux-media@vger.kernel.org>; Fri, 14 Aug 2015 13:53:54 +0200 (CEST)
+Message-ID: <55CDD6D2.3070704@xs4all.nl>
+Date: Fri, 14 Aug 2015 13:53:54 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 7/8] [media] media: add a debug message to warn about
- gobj creation/removal
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <7424c6b03ca0bcb8d5af55a6bda6f4c3414d3083.1439981515.git.mchehab@osg.samsung.com>
-In-Reply-To: <7424c6b03ca0bcb8d5af55a6bda6f4c3414d3083.1439981515.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.3] More fixes
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/15 13:01, Mauro Carvalho Chehab wrote:
-> It helps to check if the media controller is doing the
-> right thing with the object creation and removal.
-> 
-> No extra code/data will be produced if DEBUG or
-> CONFIG_DYNAMIC_DEBUG is not enabled.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+These patches are the last set for 4.3 (except for this one
+https://patchwork.linuxtv.org/patch/30895/ that I just posted).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Some have been posted before as part of the 'Various fixes' git pull request
+that wasn't fully merged (the tw68 and rcar patches).
 
-Thanks!
+Regards,
 
 	Hans
 
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 36d725ec5f3d..6d515e149d7f 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -27,6 +27,69 @@
->  #include <media/media-device.h>
->  
->  /**
-> + *  dev_dbg_obj - Prints in debug mode a change on some object
-> + *
-> + * @event_name:	Name of the event to report. Could be __func__
-> + * @gobj:	Pointer to the object
-> + *
-> + * Enabled only if DEBUG or CONFIG_DYNAMIC_DEBUG. Otherwise, it
-> + * won't produce any code.
-> + */
-> +static inline const char *gobj_type(enum media_gobj_type type)
-> +{
-> +	switch (type) {
-> +	case MEDIA_GRAPH_ENTITY:
-> +		return "entity";
-> +	case MEDIA_GRAPH_PAD:
-> +		return "pad";
-> +	case MEDIA_GRAPH_LINK:
-> +		return "link";
-> +	default:
-> +		return "unknown";
-> +	}
-> +}
-> +
-> +static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
-> +{
-> +#if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
-> +	switch (media_type(gobj)) {
-> +	case MEDIA_GRAPH_ENTITY:
-> +		dev_dbg(gobj->mdev->dev,
-> +			"%s: id 0x%08x entity#%d: '%s'\n",
-> +			event_name, gobj->id, media_localid(gobj),
-> +			gobj_to_entity(gobj)->name);
-> +		break;
-> +	case MEDIA_GRAPH_LINK:
-> +	{
-> +		struct media_link *link = gobj_to_link(gobj);
-> +
-> +		dev_dbg(gobj->mdev->dev,
-> +			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
-> +			event_name, gobj->id, media_localid(gobj),
-> +
-> +			link->source->entity->name,
-> +			gobj_type(media_type(&link->source->graph_obj)),
-> +			media_localid(&link->source->graph_obj),
-> +
-> +			link->sink->entity->name,
-> +			gobj_type(media_type(&link->sink->graph_obj)),
-> +			media_localid(&link->sink->graph_obj));
-> +		break;
-> +	}
-> +	case MEDIA_GRAPH_PAD:
-> +	{
-> +		struct media_pad *pad = gobj_to_pad(gobj);
-> +
-> +		dev_dbg(gobj->mdev->dev,
-> +			"%s: id 0x%08x pad#%d: '%s':%d\n",
-> +			event_name, gobj->id, media_localid(gobj),
-> +			pad->entity->name, pad->index);
-> +	}
-> +	}
-> +#endif
-> +}
-> +
-> +/**
->   *  media_gobj_init - Initialize a graph object
->   *
->   * @mdev:	Pointer to the media_device that contains the object
-> @@ -43,6 +106,8 @@ void media_gobj_init(struct media_device *mdev,
->  			   enum media_gobj_type type,
->  			   struct media_gobj *gobj)
->  {
-> +	gobj->mdev = mdev;
-> +
->  	/* Create a per-type unique object ID */
->  	switch (type) {
->  	case MEDIA_GRAPH_ENTITY:
-> @@ -55,6 +120,7 @@ void media_gobj_init(struct media_device *mdev,
->  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
->  		break;
->  	}
-> +	dev_dbg_obj(__func__, gobj);
->  }
->  
->  /**
-> @@ -66,7 +132,7 @@ void media_gobj_init(struct media_device *mdev,
->   */
->  void media_gobj_remove(struct media_gobj *gobj)
->  {
-> -	/* For now, nothing to do */
-> +	dev_dbg_obj(__func__, gobj);
->  }
->  
->  /**
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 749b46c91217..bdd5e565ae76 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -61,6 +61,7 @@ enum media_gobj_type {
->   * All elements on the media graph should have this struct embedded
->   */
->  struct media_gobj {
-> +	struct media_device	*mdev;
->  	u32			id;
->  };
->  
-> @@ -192,6 +193,12 @@ struct media_entity_graph {
->  #define gobj_to_entity(gobj) \
->  		container_of(gobj, struct media_entity, graph_obj)
->  
-> +#define gobj_to_pad(gobj) \
-> +		container_of(gobj, struct media_pad, graph_obj)
-> +
-> +#define gobj_to_link(gobj) \
-> +		container_of(gobj, struct media_link, graph_obj)
-> +
->  void media_gobj_init(struct media_device *mdev,
->  		    enum media_gobj_type type,
->  		    struct media_gobj *gobj);
-> 
+The following changes since commit 2696f495bdc046d84da6c909a1e7f535138a2a62:
+
+  [media] Staging: media: lirc: use USB API functions rather than constants (2015-08-11 18:00:30 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.3g
+
+for you to fetch changes up to d124cac1097f8877fb34add564f5c609db19bf76:
+
+  horus3a: fix compiler warning (2015-08-14 13:34:02 +0200)
+
+----------------------------------------------------------------
+Abhilash Jindal (2):
+      zoran: Use monotonic time
+      bt8xxx: Use monotonic time
+
+Ezequiel Garcia (1):
+      tw68: Move PCI vendor and device IDs to pci_ids.h
+
+Hans Verkuil (1):
+      horus3a: fix compiler warning
+
+Mike Looijmans (1):
+      i2c/adv7511: Fix license, set to GPL v2
+
+Rob Taylor (2):
+      media: rcar_vin: fill in bus_info field
+      media: rcar_vin: Reject videobufs that are too small for current format
+
+William Towle (1):
+      media: soc_camera: rcar_vin: Add BT.709 24-bit RGB888 input support
+
+ drivers/media/dvb-frontends/horus3a.c        |  1 +
+ drivers/media/i2c/adv7511.c                  |  2 +-
+ drivers/media/pci/bt8xx/bttv-input.c         | 21 ++++++++-------------
+ drivers/media/pci/bt8xx/bttvp.h              |  2 +-
+ drivers/media/pci/tw68/tw68-core.c           | 21 +++++++++++----------
+ drivers/media/pci/tw68/tw68.h                | 16 ----------------
+ drivers/media/pci/zoran/zoran_device.c       | 18 +++++-------------
+ drivers/media/platform/soc_camera/rcar_vin.c | 16 ++++++++++++++--
+ include/linux/pci_ids.h                      |  9 +++++++++
+ 9 files changed, 50 insertions(+), 56 deletions(-)
