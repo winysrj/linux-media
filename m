@@ -1,85 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52651 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753032AbbHaNtX (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46937 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755411AbbHNO6b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 09:49:23 -0400
-Message-ID: <55E45B2B.8010404@xs4all.nl>
-Date: Mon, 31 Aug 2015 15:48:27 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Fri, 14 Aug 2015 10:58:31 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY
- ioctl
-References: <cover.1440902901.git.mchehab@osg.samsung.com>	<8e914e59660fc35b074b72e39dc1b1200d52617b.1440902901.git.mchehab@osg.samsung.com>	<55E44CC7.2020801@xs4all.nl> <20150831104045.58119a87@recife.lan>
-In-Reply-To: <20150831104045.58119a87@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v4 0/6] MC preparation patches
+Date: Fri, 14 Aug 2015 11:56:37 -0300
+Message-Id: <cover.1439563682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2015 03:40 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 31 Aug 2015 14:47:03 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
->>> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
->>> with the RFC for the MC next generation.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>> index 5b2c9f7fcd45..a91e1ec076a6 100644
->>> --- a/drivers/media/media-device.c
->>> +++ b/drivers/media/media-device.c
->>> @@ -232,6 +232,136 @@ static long media_device_setup_link(struct media_device *mdev,
->>>  	return ret;
->>>  }
->>>  
->>> +static long __media_device_get_topology(struct media_device *mdev,
->>> +				      struct media_v2_topology *topo)
->>> +{
->>> +	struct media_entity *entity;
->>> +	struct media_interface *intf;
->>> +	struct media_pad *pad;
->>> +	struct media_link *link;
->>> +	struct media_v2_entity uentity;
->>> +	struct media_v2_interface uintf;
->>> +	struct media_v2_pad upad;
->>> +	struct media_v2_link ulink;
->>> +	int ret = 0, i;
->>> +
->>> +	topo->topology_version = mdev->topology_version;
->>> +
->>> +	/* Get entities and number of entities */
->>> +	i = 0;
->>> +	media_device_for_each_entity(entity, mdev) {
->>> +		i++;
->>> +
->>> +		if (ret || !topo->entities)
->>> +			continue;
->>
->> I would add:
->>
->> 		if (i > topo->num_entities)
->> 			continue;
->>
->> The copy_to_user can succeed, even if i > num_entities depending on how the
->> memory was allocated. So I would always check num_entities and refuse to go
->> beyond it.
-> 
-> I think that the best is:
-> 
-> 	if (i > topo->num_entities) {
-> 		ret = -ENOSPC;
-> 		continue;
-> 	}
+Those are the initial patches from my previous series of MC changes.
 
-Agreed.
+The first patch removes an unused parameter when creating links.
 
-Regards,
+The next 5 patches warrant that all object types (entities, pads and
+links) will have an unique ID, as agreed at the MC workshop.
 
-	Hans
+They prepare for the addition of the media interfaces and interface
+links.
+
+Mauro Carvalho Chehab (6):
+  media: get rid of unused "extra_links" param on media_entity_init()
+  media: create a macro to get entity ID
+  media: add a common struct to be embed on media graph objects
+  media: use media_graph_obj inside entities
+  media: use media_graph_obj inside pads
+  media: use media_graph_obj inside links
+
+ Documentation/media-framework.txt                  |  2 +-
+ Documentation/video4linux/v4l2-framework.txt       |  4 +-
+ Documentation/zh_CN/video4linux/v4l2-framework.txt |  4 +-
+ drivers/media/dvb-core/dvbdev.c                    |  2 +-
+ drivers/media/i2c/ad9389b.c                        |  2 +-
+ drivers/media/i2c/adp1653.c                        |  2 +-
+ drivers/media/i2c/adv7180.c                        |  2 +-
+ drivers/media/i2c/adv7511.c                        |  2 +-
+ drivers/media/i2c/adv7604.c                        |  2 +-
+ drivers/media/i2c/adv7842.c                        |  2 +-
+ drivers/media/i2c/as3645a.c                        |  2 +-
+ drivers/media/i2c/cx25840/cx25840-core.c           |  2 +-
+ drivers/media/i2c/lm3560.c                         |  2 +-
+ drivers/media/i2c/lm3646.c                         |  2 +-
+ drivers/media/i2c/m5mols/m5mols_core.c             |  2 +-
+ drivers/media/i2c/mt9m032.c                        |  2 +-
+ drivers/media/i2c/mt9p031.c                        |  2 +-
+ drivers/media/i2c/mt9t001.c                        |  2 +-
+ drivers/media/i2c/mt9v032.c                        |  2 +-
+ drivers/media/i2c/noon010pc30.c                    |  2 +-
+ drivers/media/i2c/ov2659.c                         |  2 +-
+ drivers/media/i2c/ov9650.c                         |  2 +-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c           |  4 +-
+ drivers/media/i2c/s5k4ecgx.c                       |  2 +-
+ drivers/media/i2c/s5k5baf.c                        |  4 +-
+ drivers/media/i2c/s5k6a3.c                         |  2 +-
+ drivers/media/i2c/s5k6aa.c                         |  2 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |  4 +-
+ drivers/media/i2c/tc358743.c                       |  2 +-
+ drivers/media/i2c/tvp514x.c                        |  2 +-
+ drivers/media/i2c/tvp7002.c                        |  2 +-
+ drivers/media/media-device.c                       | 29 +++++++----
+ drivers/media/media-entity.c                       | 58 +++++++++++++++++++---
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  4 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.c       |  2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  4 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c      |  2 +-
+ drivers/media/platform/omap3isp/ispccdc.c          |  2 +-
+ drivers/media/platform/omap3isp/ispccp2.c          |  2 +-
+ drivers/media/platform/omap3isp/ispcsi2.c          |  2 +-
+ drivers/media/platform/omap3isp/isppreview.c       |  2 +-
+ drivers/media/platform/omap3isp/ispresizer.c       |  2 +-
+ drivers/media/platform/omap3isp/ispstat.c          |  2 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
+ drivers/media/platform/s3c-camif/camif-capture.c   |  4 +-
+ drivers/media/platform/vsp1/vsp1_entity.c          |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  6 +--
+ drivers/media/platform/xilinx/xilinx-dma.c         |  2 +-
+ drivers/media/platform/xilinx/xilinx-tpg.c         |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |  4 +-
+ drivers/media/usb/uvc/uvc_entity.c                 |  4 +-
+ drivers/media/v4l2-core/tuner-core.c               |  2 +-
+ drivers/media/v4l2-core/v4l2-flash-led-class.c     |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    |  2 +-
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |  6 +--
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  2 +-
+ drivers/staging/media/omap4iss/iss_csi2.c          |  2 +-
+ drivers/staging/media/omap4iss/iss_ipipe.c         |  2 +-
+ drivers/staging/media/omap4iss/iss_ipipeif.c       |  2 +-
+ drivers/staging/media/omap4iss/iss_resizer.c       |  2 +-
+ drivers/staging/media/omap4iss/iss_video.c         |  2 +-
+ include/media/media-device.h                       |  8 ++-
+ include/media/media-entity.h                       | 48 ++++++++++++++++--
+ 67 files changed, 200 insertions(+), 97 deletions(-)
+
+-- 
+2.4.3
 
