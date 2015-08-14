@@ -1,81 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server2.tcghosting.com ([168.93.115.130]:40207 "EHLO
-	server2.tcghosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273AbbH2UfX (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46249 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751892AbbHNNEX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 16:35:23 -0400
-Received: from h69-130-139-79.prsstn.broadband.dynamic.tds.net ([69.130.139.79]:44815 helo=[192.168.1.100])
-	by server2.tcghosting.com with esmtpa (Exim 4.85)
-	(envelope-from <ron@tallent.ws>)
-	id 1ZVmaR-00079Y-LR
-	for linux-media@vger.kernel.org; Sat, 29 Aug 2015 15:18:52 -0500
-Message-ID: <1440879529.17552.4.camel@Amy>
-Subject: Subject: em28xx: new board id [1f4d:1abe]
-From: Ronald Tallent <ron@tallent.ws>
-To: linux-media@vger.kernel.org
-Date: Sat, 29 Aug 2015 15:18:49 -0500
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Aug 2015 09:04:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/7] [media] vimc: sen: Integrate the tpg on the sensor
+Date: Fri, 14 Aug 2015 16:05:21 +0300
+Message-ID: <3258949.42PN1APzHG@avalon>
+In-Reply-To: <55CDDBFE.3020905@xs4all.nl>
+References: <cover.1438891530.git.helen.fornazier@gmail.com> <e3c80eb0aebe828d2df72be9971ad720f439bb71.1438891530.git.helen.fornazier@gmail.com> <55CDDBFE.3020905@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, 
+Hi Hans,
 
-I've tested my USB easycap device (Geniatech iGrabber) in Ubuntu
-14.04.
+On Friday 14 August 2015 14:15:58 Hans Verkuil wrote:
+> On 08/06/2015 10:26 PM, Helen Fornazier wrote:
+> > Initialize the test pattern generator on the sensor
+> > Generate a colored bar image instead of a grey one
+> 
+> You don't want to put the tpg in every sensor and have all the blocks in
+> between process the video. This is all virtual, so all that is necessary
+> is to put the tpg in every DMA engine (video node) but have the subdevs
+> modify the tpg setting when you start the pipeline.
+> 
+> So the source would set the width/height to the sensor resolution, and it
+> will initialize the crop/compose rectangles. Every other entity in the
+> pipeline will continue modifying according to what they do. E.g. a scaler
+> will just change the compose rectangle.
+> 
+> When you start streaming the tpg will generate the image based on all those
+> settings as if all the entities would actually do the work.
+> 
+> Of course, this assumes the processing the entities do map to what the tpg
+> can do, but that's true for vimc.
 
-Make: Geniatech
-Model: iGrabber for MAC
-Vendor/Product ID: [1f4d:1abe]
-Product website: www.geniatech.com/pa/igrabber.asp
+There will be small differences, as generating a YUV image won't be exactly 
+the same as debayering a bayer image. It probably doesn't matter much though.
 
-Tests Made:
-- Audio Capture [worked]
-- Video Capture [device not detected]
-- DVB [does not have DVB]
+A bigger problem is that the driver aims at supporting output video device 
+nodes at some point in mem-to-mem pipelines. For that the debayer, color space 
+conversion and scaler subdevs need to perform real image processing.
 
-Tested by:
-ron@tallent.ws
+> An additional advantage is that the entities can use a wide range of
+> mediabus formats since the tpg can generate basically anything. Implementing
+> multiplanar is similarly easy. This would be much harder if you had to
+> write the image processing code for the entities since you'd either have to
+> support lots of different formats (impractical) or limit yourself to just a
+> few.
 
+-- 
+Regards,
 
-Detailed information on device and system below for reference:
-
-uname -a:
-3.13.0-62-generic #102-Ubuntu SMP Tue Aug 11 14:29:36 UTC 2015 x86_64 
-x86_64 x86_64 GNU/Linux
-
-dmesg:
-[] usb 3-3.3: new high-speed USB device number 8 using xhci_hcd
-[] usb 3-3.3: New USB device found, idVendor=1f4d, idProduct=1abe
-[] usb 3-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-[] usb 3-3.3: Product: USB Device
-[] usbcore: registered new interface driver snd-usb-audio
-
-lsusb:
-Bus 003 Device 008: ID 1f4d:1abe G-Tek Electronics Group 
-
-Hardware: 
-Opened the case and found the following text printed on the board:
-   HandyCap
-   v1.51
-   2007-4-24
-
-Three chips on board are:
-1: empia
-   EM2860
-   P8367-010
-   201036-01AG
-
-2: Trident
-   SAA7113H
-   C2P409.00 02
-   A5G11152
-
-3: eMPIA
-   Technology
-   EMP202
-   UT11958
-   1027
-
+Laurent Pinchart
 
