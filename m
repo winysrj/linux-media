@@ -1,164 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60395 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752830AbbHJIWk (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46935 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755409AbbHNO6b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 04:22:40 -0400
-Message-ID: <55C85F34.7040603@xs4all.nl>
-Date: Mon, 10 Aug 2015 10:22:12 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	pawel@osciak.com
-CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com
-Subject: Re: [RFC PATCH v2 4/5] media: videobuf2: Define vb2_buf_type and
- vb2_memory
-References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com> <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com>
-In-Reply-To: <1438332277-6542-5-git-send-email-jh1009.sung@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Aug 2015 10:58:31 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v4 4/6] media: use media_graph_obj inside entities
+Date: Fri, 14 Aug 2015 11:56:41 -0300
+Message-Id: <c4f28657fcd882ce4eef2738a4319bb685f70915.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439563682.git.mchehab@osg.samsung.com>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2015 10:44 AM, Junghak Sung wrote:
-> Define enum vb2_buf_type and enum vb2_memory for videobuf2-core. This
-> change requires translation functions that could covert v4l2-core stuffs
-> to videobuf2-core stuffs in videobuf2-v4l2.c file.
-> The v4l2-specific member variables(e.g. type, memory) remains in
-> struct vb2_queue for backward compatibility and performance of type translation.
-> 
-> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Acked-by: Inki Dae <inki.dae@samsung.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |  139 +++++++++++---------
->  drivers/media/v4l2-core/videobuf2-v4l2.c |  209 ++++++++++++++++++++----------
->  include/media/videobuf2-core.h           |   99 +++++++++++---
->  include/media/videobuf2-v4l2.h           |   12 +-
->  4 files changed, 299 insertions(+), 160 deletions(-)
-> 
+As entities are graph elements, let's embeed media_graph_obj
+on it. That ensures an unique ID for entities that can be
+global along the entire media controller.
 
-<snip>
+For now, we'll keep the already existing entity ID. Such
+field need to be dropped on some point, but for now, let's
+not do this, to avoid needing to review all drivers and
+the userspace apps.
 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 85527e9..22dd19c 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -30,8 +30,46 @@
->  #include <media/v4l2-common.h>
->  #include <media/videobuf2-v4l2.h>
->  
-> +#define CREATE_TRACE_POINTS
->  #include <trace/events/v4l2.h>
->  
-> +static const enum vb2_buf_type _tbl_buf_type[] = {
-> +	[V4L2_BUF_TYPE_VIDEO_CAPTURE]		= VB2_BUF_TYPE_VIDEO_CAPTURE,
-> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT]		= VB2_BUF_TYPE_VIDEO_OUTPUT,
-> +	[V4L2_BUF_TYPE_VIDEO_OVERLAY]		= VB2_BUF_TYPE_VIDEO_OVERLAY,
-> +	[V4L2_BUF_TYPE_VBI_CAPTURE]		= VB2_BUF_TYPE_VBI_CAPTURE,
-> +	[V4L2_BUF_TYPE_VBI_OUTPUT]		= VB2_BUF_TYPE_VBI_OUTPUT,
-> +	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE]	= VB2_BUF_TYPE_SLICED_VBI_CAPTURE,
-> +	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]	= VB2_BUF_TYPE_SLICED_VBI_OUTPUT,
-> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY]	= VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY,
-> +	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE]	= VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-> +	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE]	= VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
-> +	[V4L2_BUF_TYPE_SDR_CAPTURE]		= VB2_BUF_TYPE_SDR_CAPTURE,
-> +	[V4L2_BUF_TYPE_PRIVATE]			= VB2_BUF_TYPE_PRIVATE,
-> +};
-> +
-> +static const enum vb2_memory _tbl_memory[] = {
-> +	[V4L2_MEMORY_MMAP]	= VB2_MEMORY_MMAP,
-> +	[V4L2_MEMORY_USERPTR]	= VB2_MEMORY_USERPTR,
-> +	[V4L2_MEMORY_DMABUF]	= VB2_MEMORY_DMABUF,
-> +};
-> +
-> +#define to_vb2_buf_type(type)					\
-> +({								\
-> +	enum vb2_buf_type ret = 0;				\
-> +	if( type > 0 && type < ARRAY_SIZE(_tbl_buf_type) )	\
-> +		ret = (_tbl_buf_type[type]);			\
-> +	ret;							\
-> +})
-> +
-> +#define to_vb2_memory(memory)					\
-> +({								\
-> +	enum vb2_memory ret = 0;				\
-> +	if( memory > 0 && memory < ARRAY_SIZE(_tbl_memory) )	\
-> +		ret = (_tbl_memory[memory]);			\
-> +	ret;							\
-> +})
-> +
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-<snip>
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index b9382f06044a..f06b08392007 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -377,7 +377,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+ 		return -EINVAL;
+ 
+-	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+@@ -431,11 +430,9 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	entity->parent = mdev;
+ 
+ 	spin_lock(&mdev->lock);
+-	if (entity->id == 0)
+-		entity->id = mdev->entity_id++;
+-	else
+-		mdev->entity_id = max(entity->id + 1, mdev->entity_id);
+-	list_add_tail(&entity->list, &mdev->entities);
++	/* Initialize media_graph_obj embedded at the entity */
++	graph_obj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
++
+ 	spin_unlock(&mdev->lock);
+ 
+ 	return 0;
+@@ -457,6 +454,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 		return;
+ 
+ 	spin_lock(&mdev->lock);
++	graph_obj_remove(&entity->graph_obj);
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 046f1fe40b50..c06546509a89 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -43,8 +43,12 @@ void graph_obj_init(struct media_device *mdev,
+ 			   enum media_graph_type type,
+ 			   struct media_graph_obj *gobj)
+ {
+-	/* An unique object ID will be provided on next patches */
++	/* Create a per-type unique object ID */
+ 	gobj->id = type << 24;
++	switch (type) {
++	case MEDIA_GRAPH_ENTITY:
++		gobj->id |= ++mdev->entity_id;
++	}
+ }
+ 
+ /**
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6e6db78f1ee2..35634c0da362 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -41,7 +41,7 @@ struct device;
+  * @bus_info:	Unique and stable device location identifier
+  * @hw_revision: Hardware device revision
+  * @driver_version: Device driver version
+- * @entity_id:	ID of the next entity to be registered
++ * @entity_id:	Unique ID used on the last entity registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+@@ -68,7 +68,9 @@ struct media_device {
+ 	u32 hw_revision;
+ 	u32 driver_version;
+ 
++	/* Unique object ID counter */
+ 	u32 entity_id;
++
+ 	struct list_head entities;
+ 
+ 	/* Protects the entities list */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 58938bb980fe..2c775f3ef24f 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -33,10 +33,10 @@
+ /**
+  * enum media_graph_type - type of a graph element
+  *
++ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  */
+ enum media_graph_type {
+-	 /* FIXME: add the types here, as we embeed media_graph_obj */
+-	MEDIA_GRAPH_NONE
++	MEDIA_GRAPH_ENTITY,
+ };
+ 
+ 
+@@ -88,10 +88,9 @@ struct media_entity_operations {
+ };
+ 
+ struct media_entity {
++	struct media_graph_obj graph_obj;
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+-	u32 id;				/* Entity ID, unique in the parent media
+-					 * device context */
+ 	const char *name;		/* Entity name */
+ 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+ 	u32 revision;			/* Entity revision, driver specific */
+@@ -153,7 +152,7 @@ struct media_entity_graph {
+ 	int top;
+ };
+ 
+-#define entity_id(entity) ((entity)->id)
++#define entity_id(entity) ((entity)->graph_obj.id)
+ 
+ #define gobj_to_entity(gobj) \
+ 		container_of(gobj, struct media_entity, graph_obj)
+-- 
+2.4.3
 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index dc405da..871fcc6 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -15,9 +15,47 @@
->  #include <linux/mm_types.h>
->  #include <linux/mutex.h>
->  #include <linux/poll.h>
-> -#include <linux/videodev2.h>
->  #include <linux/dma-buf.h>
->  
-> +#define VB2_MAX_FRAME               32
-> +#define VB2_MAX_PLANES               8
-> +
-> +enum vb2_buf_type {
-> +	VB2_BUF_TYPE_UNKNOWN			= 0,
-> +	VB2_BUF_TYPE_VIDEO_CAPTURE		= 1,
-> +	VB2_BUF_TYPE_VIDEO_OUTPUT		= 2,
-> +	VB2_BUF_TYPE_VIDEO_OVERLAY		= 3,
-> +	VB2_BUF_TYPE_VBI_CAPTURE		= 4,
-> +	VB2_BUF_TYPE_VBI_OUTPUT			= 5,
-> +	VB2_BUF_TYPE_SLICED_VBI_CAPTURE		= 6,
-> +	VB2_BUF_TYPE_SLICED_VBI_OUTPUT		= 7,
-> +	VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	= 8,
-> +	VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	= 9,
-> +	VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE	= 10,
-> +	VB2_BUF_TYPE_SDR_CAPTURE		= 11,
-> +	VB2_BUF_TYPE_DVB_CAPTURE		= 12,
-> +	VB2_BUF_TYPE_PRIVATE			= 0x80,
-> +};
-> +
-> +enum vb2_memory {
-> +	VB2_MEMORY_UNKNOWN	= 0,
-> +	VB2_MEMORY_MMAP		= 1,
-> +	VB2_MEMORY_USERPTR	= 2,
-> +	VB2_MEMORY_DMABUF	= 4,
-> +};
-> +
-> +#define VB2_TYPE_IS_MULTIPLANAR(type)			\
-> +	((type) == VB2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
-> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-> +
-> +#define VB2_TYPE_IS_OUTPUT(type)				\
-> +	((type) == VB2_BUF_TYPE_VIDEO_OUTPUT			\
-> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
-> +	 || (type) == VB2_BUF_TYPE_VIDEO_OVERLAY		\
-> +	 || (type) == VB2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY		\
-> +	 || (type) == VB2_BUF_TYPE_VBI_OUTPUT			\
-> +	 || (type) == VB2_BUF_TYPE_SLICED_VBI_OUTPUT)
-
-You don't actually need to create vb2_buf_type: unless I am mistaken, all that the
-vb2 core needs to know is if it is a capture or output queue and possibly (not
-sure about that) if it is single or multiplanar. So add fields to the vb2_queue struct
-for that information and leave the buf_type to the v4l2 specific header and code.
-
-You also don't need the _tbl_memory[] array. All you need to do is to check in
-videobuf2-v4l2.c that VB2_MEMORY* equals the V4L2_MEMORY_* defines and generate
-a #error if not:
-
-#if VB2_MEMORY_MMAP != V4L2_MEMORY_MMAP || VB2_MEMORY_....
-#error VB2_MEMORY_* != V4L2_MEMORY_*!
-#endif
-
-Regards,
-
-	Hans
