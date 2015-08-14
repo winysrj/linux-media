@@ -1,51 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59432 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932065AbbHLPtb (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58766 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754490AbbHNL6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 11:49:31 -0400
-Date: Wed, 12 Aug 2015 08:49:30 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Aparna Karuthodi <kdasaparna@gmail.com>
-Cc: devel@driverdev.osuosl.org, mchehab@osg.samsung.com,
-	jarod@wilsonet.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] staging: media:lirc: Added a newline character after
- declaration
-Message-ID: <20150812154930.GA13396@kroah.com>
-References: <1439392302-3579-1-git-send-email-kdasaparna@gmail.com>
+	Fri, 14 Aug 2015 07:58:25 -0400
+Message-ID: <55CDD7BF.8070105@xs4all.nl>
+Date: Fri, 14 Aug 2015 13:57:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1439392302-3579-1-git-send-email-kdasaparna@gmail.com>
+To: Kamil Debski <kamil@wypas.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Zahari Doychev <zahari.doychev@linux.com>,
+	linux-media@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 2/2] [media] m2m: fix bad unlock balance
+References: <cover.1436361987.git.zahari.doychev@linux.com> <ccf89324d232ddb3861bde57379d044bc587e5d5.1436361987.git.zahari.doychev@linux.com> <55B74514.6010601@xs4all.nl> <55CB3135.8080706@samsung.com> <CAP3TMiGi=JswcQV=WmjG-Ds0-pTdBgErPsq9SN=2L0ACdYfc_w@mail.gmail.com>
+In-Reply-To: <CAP3TMiGi=JswcQV=WmjG-Ds0-pTdBgErPsq9SN=2L0ACdYfc_w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2015 at 08:41:42PM +0530, Aparna Karuthodi wrote:
-> Added a newline character to remove a coding style warning detected
-> by checkpatch.
+On 08/12/2015 05:50 PM, Kamil Debski wrote:
+> Hi,
 > 
-> The warning is given below:
-> drivers/staging/media/lirc/lirc_serial.c:1169: WARNING: quoted string split
-> across lines
+> On 12 August 2015 at 13:42, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+>> Hello Hans,
+>>
+>> I'm sorry for a delay. Once again I've been busy with some other internal
+>> stuff.
+>>
+>> On 2015-07-28 11:02, Hans Verkuil wrote:
+>>>
+>>> Kamil, Marek,
+>>>
+>>> Why does v4l2_m2m_poll unlock and lock in that function?
+>>
+>>
+>> I've checked the code and indeed the poll_wait() function doesn't do
+>> anything that
+>> should not be done with queue mutex being taken. I don't remember if it was
+>> always
+>> like that. You are right that the unlock&lock code should be removed.
+>>
+>>> Zahari is right that the locking is unbalanced, but I don't see the reason
+>>> for the unlock/lock sequence in the first place. I'm wondering if that
+>>> shouldn't just be removed.
+>>>
+>>> Am I missing something?
+>>>
+>>> Instead, I would expect to see a spin_lock_irqsave(&src/dst_q->done_lock,
+>>> flags)
+>>> around the list_empty(&src/dst_q->done_list) calls.
+>>
+>>
+>> Indeed, that's another thing that should be fixed in this function. I looks
+>> that
+>> commit c16218402a000bb25c1277c43ae98c11bcb59bd1 ("[media] videobuf2: return
+>> -EPIPE
+>> from DQBUF after the last buffer") is the root cause of both issues
+>> (unballanced
+>> locking and lack of spinlock protection), while the unnecessary queue
+>> unlock/lock
+>> sequence was there from the beginning.
+>>
 > 
-> Signed-off-by: Aparna Karuthodi <kdasaparna@gmail.com>
-> ---
->  drivers/staging/media/lirc/lirc_serial.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-> index 19628d0..628577f 100644
-> --- a/drivers/staging/media/lirc/lirc_serial.c
-> +++ b/drivers/staging/media/lirc/lirc_serial.c
-> @@ -1165,7 +1165,7 @@ module_init(lirc_serial_init_module);
->  module_exit(lirc_serial_exit_module);
->  
->  MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
-> -MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
-> +MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff,\n"
->  	      "Christoph Bartelmus, Andrei Tanas");
+> I am all with Marek on this. Unlock/lock was there from the beginning,
+> it is not necessary. I agree also that spin_lock/unlock should be
+> added for the list_empty call.
 
-No, you just changed the way this string looks, that's not ok at all.
+Zahari, will you make a new version of this patch with the suggested changes?
 
-This is fine the way it is, you can ignore it.
+Regards,
+
+	Hans
