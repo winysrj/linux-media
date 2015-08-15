@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:3850 "EHLO
-	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbbHYRE5 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39226 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751964AbbHOCvW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 13:04:57 -0400
-Message-ID: <55DCA00C.3090303@nvidia.com>
-Date: Tue, 25 Aug 2015 10:04:12 -0700
-From: Bryan Wu <pengw@nvidia.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Thierry Reding <treding@nvidia.com>
-CC: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<wenjiaz@nvidia.com>, <davidw@nvidia.com>, <gfitzer@nvidia.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] v4l: tegra: Add NVIDIA Tegra VI driver
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com> <1440118300-32491-5-git-send-email-pengw@nvidia.com> <20150821130339.GB22118@ulmo.nvidia.com> <55DBB62C.4020606@nvidia.com> <55DC0B91.2000204@xs4all.nl>
-In-Reply-To: <55DC0B91.2000204@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Aug 2015 22:51:22 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2F80A2A0091
+	for <linux-media@vger.kernel.org>; Sat, 15 Aug 2015 04:50:48 +0200 (CEST)
+Date: Sat, 15 Aug 2015 04:50:48 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150815025048.2F80A2A0091@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/24/2015 11:30 PM, Hans Verkuil wrote:
-> A quick follow-up to Thierry's excellent review:
->
-> On 08/25/2015 02:26 AM, Bryan Wu wrote:
->> On 08/21/2015 06:03 AM, Thierry Reding wrote:
->>> On Thu, Aug 20, 2015 at 05:51:39PM -0700, Bryan Wu wrote:
-> <snip>
->
->>>> +static void
->>>> +__tegra_channel_try_format(struct tegra_channel *chan, struct v4l2_pix_format *pix,
->>>> +		      const struct tegra_video_format **fmtinfo)
->>>> +{
->>>> +	const struct tegra_video_format *info;
->>>> +	unsigned int min_width;
->>>> +	unsigned int max_width;
->>>> +	unsigned int min_bpl;
->>>> +	unsigned int max_bpl;
->>>> +	unsigned int width;
->>>> +	unsigned int align;
->>>> +	unsigned int bpl;
->>>> +
->>>> +	/* Retrieve format information and select the default format if the
->>>> +	 * requested format isn't supported.
->>>> +	 */
->>>> +	info = tegra_core_get_format_by_fourcc(pix->pixelformat);
->>>> +	if (!info)
->>>> +		info = tegra_core_get_format_by_fourcc(TEGRA_VF_DEF_FOURCC);
->>> Should this not be an error? As far as I can tell this is silently
->>> substituting the default format for the requested one if the requested
->>> one isn't supported. Isn't the whole point of this to find out if some
->>> format is supported?
->>>
->> I think it should return some error and escape following code. I will
->> fix that.
-> Actually, this code is according to the V4L2 spec: if the given format is
-> not supported, then VIDIOC_TRY_FMT should replace it with a valid default
-> format.
->
-> The reality is a bit more complex: in many drivers this was never reviewed
-> correctly and we ended up with some drivers that return an error for this
-> case and some drivers that follow the spec. Historically TV capture drivers
-> return an error, webcam drivers don't. Most unfortunate.
->
-> Since this driver is much more likely to be used with sensors I would
-> follow the spec here and substitute an invalid format with a default
-> format.
->
->
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for letting me know this. It's actually quite confusing since I 
-looked at several drivers, some of them return error some of them use 
-default format.
+Results of the daily build of media_tree:
 
--Bryan
+date:		Sat Aug 15 04:00:27 CEST 2015
+git branch:	test
+git hash:	2696f495bdc046d84da6c909a1e7f535138a2a62
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
