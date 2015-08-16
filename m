@@ -1,54 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42158 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964892AbbHKODV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 10:03:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
-	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
-	sangbae90.lee@samsung.com, rany.kwon@samsung.com
-Subject: Re: [RFC PATCH v2 4/5] media: videobuf2: Define vb2_buf_type and vb2_memory
-Date: Tue, 11 Aug 2015 17:04:14 +0300
-Message-ID: <1984978.8NWP8Sj4WI@avalon>
-In-Reply-To: <55C9FFC7.8030308@xs4all.nl>
-References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com> <30625903.5XtBkRR4hc@avalon> <55C9FFC7.8030308@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:58000 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751173AbbHPLlt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Aug 2015 07:41:49 -0400
+Date: Sun, 16 Aug 2015 08:41:41 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v4 3/6] media: add a common struct to be embed on media
+ graph objects
+Message-ID: <20150816084141.24dd7d96@recife.lan>
+In-Reply-To: <1623419.sEUamBU9MU@avalon>
+References: <cover.1439563682.git.mchehab@osg.samsung.com>
+	<20150814212514.GB28370@valkosipuli.retiisi.org.uk>
+	<20150815115618.7af73c68@recife.lan>
+	<1623419.sEUamBU9MU@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sat, 15 Aug 2015 19:42:59 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-On Tuesday 11 August 2015 15:59:35 Hans Verkuil wrote:
-> On 08/11/15 15:56, Laurent Pinchart wrote:
-> > Hijacking this e-mail thread a bit, would it make sense for the new
-> > vb2-core to support different memory allocation for different planes ?
-> > I'm foreseeing use cases for buffers that bundle image data with
-> > meta-data, where image data should be captured to a dma-buf imported
-> > buffer, but meta-data doesn't need to be shared. In that case it wouldn't
-> > be easy for userspace to find a dma-buf provider for the meta-data
-> > buffers in order to import all planes. Being able to use dma-buf import
-> > for the image plane(s) and mmap for the meta-data plane would be easier.
+> Hi Mauro,
 > 
-> Yes, that would make sense, but I'd postpone that until someone actually
-> needs it.
+> On Saturday 15 August 2015 11:56:18 Mauro Carvalho Chehab wrote:
+> > Em Sat, 15 Aug 2015 00:25:15 +0300 Sakari Ailus escreveu:
+> > > On Fri, Aug 14, 2015 at 11:56:40AM -0300, Mauro Carvalho Chehab wrote:
+> > > > Due to the MC API proposed changes, we'll need to have an unique
+> > > > object ID for all graph objects, and have some shared fields
+> > > > that will be common on all media graph objects.
+> > > > 
+> > > > Right now, the only common object is the object ID, but other
+> > > > fields will be added latter on.
+> > > > 
+> > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > > 
+> > > > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > > > index b8102bda664d..046f1fe40b50 100644
+> > > > --- a/drivers/media/media-entity.c
+> > > > +++ b/drivers/media/media-entity.c
+> > > > @@ -27,6 +27,39 @@
+> > > > 
+> > > >  #include <media/media-device.h>
+> > > >  
+> > > >  /**
+> > > > + *  graph_obj_init - Initialize a graph object
+> > > > + *
+> > > > + * @mdev:	Pointer to the media_device that contains the object
+> > > > + * @type:	Type of the object
+> > > > + * @gobj:	Pointer to the object
+> > > > + *
+> > > > + * This routine initializes the embedded struct media_graph_obj inside
+> > > > a
+> > > > + * media graph object. It is called automatically if media_*_create()
+> > > > + * calls are used. However, if the object (entity, link, pad,
+> > > > interface)
+> > > > + * is embedded on some other object, this function should be called
+> > > > before
+> > > > + * registering the object at the media controller.
+> > > > + */
+> > > > +void graph_obj_init(struct media_device *mdev,
+> > > > +			   enum media_graph_type type,
+> > > > +			   struct media_graph_obj *gobj)
+> > > > +{
+> > > > +	/* An unique object ID will be provided on next patches */
+> > > > +	gobj->id = type << 24;
+> > > 
+> > > Ugh. This will mean the object IDs are going to be huge to begin with,
+> > > ending up being a nuisance to work with as you often write them by hand.
+> > > Do we win anything by doing so?
+> > 
+> > There is a problem on the current implementation of the graph: it uses
+> > a bitmap in order to detect if the graph traversal entered inside a loop.
+> > Also, one of the drivers (vsp1, I think) assumes that the maximum ID
+> > for an entity is 31 (as it uses 1 << entity->id).
+> 
+> If core code or drivers do the wrong thing they should be fixed instead of 
+> working around the problem.
+> 
+> A fixed bitmap in the graph walk will just not scale when we'll add support 
+> for dynamically adding or removing entities. We thus need to change the 
+> algorithm anyway.
 
-I might need it soon. Looks like my cunning plan to let someone else implement 
-it failed ;-)
+Yes, but such change can happen latter, when we add support for dynamic
+entity add/removal.
 
-> The biggest hurdle would be how to adapt the V4L2 API to this, and not the
-> actual vb2 core code.
+> The OMAP3 ISP and VSP1 drivers could use fixed size bitmaps as they won't 
+> support dynamic addition or removal of entities, so the maximum ID will be 
+> known at init time.
 
-Changes will be needed in both, but I agree that in-kernel changes should be 
-less of a hassle.
+This is true only if we keep the current ID range for entities, as my
+patches are doing. If we use a global ID range for all element graphs, 
+the risk of breaking OMAP3 and VSP1 are high.
 
--- 
-Regards,
+So, at least for now, we need to preserve the current ID range for
+entities.
 
-Laurent Pinchart
+This could be changed on some future patch, but the one doing such
+change would need to have OMAP3 and VSP1 drivers in order to check if
+the changes won't break them. If I were to do such changes there, I would
+actually try to move those driver-specific graph traversal code to the core,
+as having those spread on drivers make harder to do some core changes.
 
+> For other drivers that have similar needs core helper functions would probably 
+> be helpful.
+> 
+> > Due to that, we should have a separate range for entities starting from
+> > 0.
+> > 
+> > That should not affect neither debug printks or userspace, provided that
+> > the object type is known, as one could always do:
+> > 
+> > #define gobj_id(gobj) ( (gobj)->id & ( (1 << 25) - 1) )
+> > 
+> > dev_dbg(mdev->dev, "MC create: %s#%d\n",
+> >         gobj_type[media_gobj_type(gobj)],
+> >         gobj_id(gobj));
+> > 
+> > 
+> > in order to report the ID into a reasonable range.
+> > 
+> > I'm actually doing that on some debug patches I'm writing right now
+> > in order to allow me to test object creation/removal.
+> 
