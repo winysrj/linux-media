@@ -1,71 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:34616 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbbH1HB2 (ORCPT
+Received: from mail.data-modul.de ([212.184.205.171]:30256 "EHLO
+	mail2.data-modul.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750847AbbHQKOE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 03:01:28 -0400
-Received: by wibcx1 with SMTP id cx1so3907050wib.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 00:01:27 -0700 (PDT)
-Date: Fri, 28 Aug 2015 08:01:24 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] ARM: DT: STi: stihxxx-b2120: Add pulse-width
- properties to ssc2 & ssc3
-Message-ID: <20150828070124.GG4796@x1>
-References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
- <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
+	Mon, 17 Aug 2015 06:14:04 -0400
+From: Zahari Doychev <zahari.doychev@linux.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	m.szyprowski@samsung.com, kamil@wypas.org
+Cc: mchehab@osg.samsung.com, zahari.doychev@linux.com
+Subject: [PATCH v2] [media] m2m: fix bad unlock balance
+Date: Mon, 17 Aug 2015 12:13:53 +0200
+Message-Id: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 Aug 2015, Peter Griffin wrote:
+This patch removes unnecessary mutex queue unlock/lock sequence causing bad
+unlock balance in v4l2_m2m_poll when the last buffer on the destination
+queue has been dequeued and adds spin lock protection for the done list
+list_empty calls.
 
-> Adding these properties makes the I2C bus to the demodulators much
-> more reliable, and we no longer suffer from I2C errors when tuning.
-> 
-> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> ---
->  arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
+[  144.990873] =====================================
+[  144.995584] [ BUG: bad unlock balance detected! ]
+[  145.000301] 4.1.0-00137-ga105070 #98 Tainted: G        W
+[  145.006140] -------------------------------------
+[  145.010851] demux:sink/487 is trying to release lock (&dev->dev_mutex) at:
+[  145.017785] [<808cc578>] mutex_unlock+0x18/0x1c
+[  145.022322] but there are no more locks to release!
+[  145.027205]
+[  145.027205] other info that might help us debug this:
+[  145.033741] no locks held by demux:sink/487.
+[  145.038015]
+[  145.038015] stack backtrace:
+[  145.042385] CPU: 2 PID: 487 Comm: demux:sink Tainted: G        W       4.1.0-00137-ga105070 #98
+[  145.051089] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+[  145.057622] Backtrace:
+[  145.060102] [<80014a4c>] (dump_backtrace) from [<80014cc4>] (show_stack+0x20/0x24)
+[  145.067679]  r6:80cedf78 r5:00000000 r4:00000000 r3:00000000
+[  145.073421] [<80014ca4>] (show_stack) from [<808c61e0>] (dump_stack+0x8c/0xa4)
+[  145.080661] [<808c6154>] (dump_stack) from [<80072b64>] (print_unlock_imbalance_bug+0xb8/0xe8)
+[  145.089277]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000001
+[  145.095020] [<80072aac>] (print_unlock_imbalance_bug) from [<80077db4>] (lock_release+0x1a4/0x250)
+[  145.103983]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000000
+[  145.109728] [<80077c10>] (lock_release) from [<808cc470>] (__mutex_unlock_slowpath+0xc4/0x1b4)
+[  145.118344]  r9:acb27a41 r8:00000000 r7:81553814 r6:808cc578 r5:60030013 r4:ac6cd01c
+[  145.126190] [<808cc3ac>] (__mutex_unlock_slowpath) from [<808cc578>] (mutex_unlock+0x18/0x1c)
+[  145.134720]  r7:00000000 r6:aced7cd4 r5:00000041 r4:acb87800
+[  145.140468] [<808cc560>] (mutex_unlock) from [<805a98b8>] (v4l2_m2m_fop_poll+0x5c/0x64)
+[  145.148494] [<805a985c>] (v4l2_m2m_fop_poll) from [<805955a0>] (v4l2_poll+0x6c/0xa0)
+[  145.156243]  r6:aced7bec r5:00000000 r4:ac6cc380 r3:805a985c
+[  145.161991] [<80595534>] (v4l2_poll) from [<80156edc>] (do_sys_poll+0x230/0x4c0)
+[  145.169391]  r5:00000000 r4:aced7be4
+[  145.173013] [<80156cac>] (do_sys_poll) from [<801574a8>] (SyS_ppoll+0x1d4/0x1fc)
+[  145.180414]  r10:00000000 r9:aced6000 r8:00000000 r7:00000000 r6:75c04538 r5:00000002
+[  145.188338]  r4:00000000
+[  145.190906] [<801572d4>] (SyS_ppoll) from [<800108c0>] (ret_fast_syscall+0x0/0x54)
+[  145.198481]  r8:80010aa4 r7:00000150 r6:75c04538 r5:00000002 r4:00000008
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Zahari Doychev <zahari.doychev@linux.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> index f589fe4..62994ae 100644
-> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> @@ -27,12 +27,18 @@
->  			};
->  		};
->  
-> -		i2c@9842000 {
-> +		ssc2: i2c@9842000 {
->  			status = "okay";
-> +			clock-frequency = <100000>;
-> +			st,i2c-min-scl-pulse-width-us = <0>;
-> +			st,i2c-min-sda-pulse-width-us = <5>;
->  		};
->  
-> -		i2c@9843000 {
-> +		ssc3: i2c@9843000 {
->  			status = "okay";
-> +			clock-frequency = <100000>;
-> +			st,i2c-min-scl-pulse-width-us = <0>;
-> +			st,i2c-min-sda-pulse-width-us = <5>;
->  		};
->  
->  		i2c@9844000 {
-
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index ec3ad4e..2f7291c 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -583,32 +583,25 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		goto end;
+ 	}
+ 
+-	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
+-		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
+-	else if (m2m_ctx->q_lock)
+-		mutex_unlock(m2m_ctx->q_lock);
+-
++	spin_lock_irqsave(&src_q->done_lock, flags);
+ 	if (list_empty(&src_q->done_list))
+ 		poll_wait(file, &src_q->done_wq, wait);
++	spin_unlock_irqrestore(&src_q->done_lock, flags);
++
++	spin_lock_irqsave(&dst_q->done_lock, flags);
+ 	if (list_empty(&dst_q->done_list)) {
+ 		/*
+ 		 * If the last buffer was dequeued from the capture queue,
+ 		 * return immediately. DQBUF will return -EPIPE.
+ 		 */
+-		if (dst_q->last_buffer_dequeued)
++		if (dst_q->last_buffer_dequeued) {
++			spin_unlock_irqrestore(&dst_q->done_lock, flags);
+ 			return rc | POLLIN | POLLRDNORM;
++		}
+ 
+ 		poll_wait(file, &dst_q->done_wq, wait);
+ 	}
+-
+-	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+-		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+-	else if (m2m_ctx->q_lock) {
+-		if (mutex_lock_interruptible(m2m_ctx->q_lock)) {
+-			rc |= POLLERR;
+-			goto end;
+-		}
+-	}
++	spin_unlock_irqrestore(&dst_q->done_lock, flags);
+ 
+ 	spin_lock_irqsave(&src_q->done_lock, flags);
+ 	if (!list_empty(&src_q->done_list))
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.5.0
+
