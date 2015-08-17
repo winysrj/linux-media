@@ -1,985 +1,336 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.uni-paderborn.de ([131.234.142.9]:58156 "EHLO
-	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433AbbHJPco (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:58109 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755556AbbHQQ4W convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 11:32:44 -0400
+	Mon, 17 Aug 2015 12:56:22 -0400
+Received: from recife.lan (201.47.149.208.dynamic.adsl.gvt.net.br [201.47.149.208])
+	by lists.s-osg.org (Postfix) with ESMTPSA id 623F1462CB
+	for <linux-media@vger.kernel.org>; Mon, 17 Aug 2015 09:56:20 -0700 (PDT)
+Date: Mon, 17 Aug 2015 13:56:16 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [ANNOUNCE] Report for the Media Controller Workshop - Espoo - Aug,
+ 17 2015
+Message-ID: <20150817135616.43840b4d@recife.lan>
 MIME-Version: 1.0
-Date: Mon, 10 Aug 2015 17:16:30 +0200
-Message-ID: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com>
-Subject: [PATCH RFC] DT support for omap4-iss
-From: Michael Allwright <michael.allwright@upb.de>
-To: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tero Kristo <t-kristo@ti.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
-
-The following PRELIMINARY patch adds DT support to the OMAP4 ISS. It
-also fixes some problems a have found along the way. It is tightly
-modelled after the omap3-isp media platform driver. This patch is a
-work in progress as I would like feedback. It contains debugging
-messages that need to be removed, as well as disgusting abuses of the
-C language as required (i.e. clk_core_fake and clk_fake).
-
-I'm working in the latest stable mainline which as far as this patch
-is concerned is compatible with media tree master. I have had this
-omap4-iss working on my hardware in the 3.17 kernel, however I'm
-currently having the following issue in 4.1.4 stable when I start to
-stream:
-
-[  141.612609] omap4iss 52000000.iss: CSI2: CSI2_96M_FCLK reset timeout!
-
-Any feedback regarding this issue would really be appreciated. After
-resolving this issue, we still need to do a proper implementation
-using syscon and also to find a solution regarding where to put the
-iss_set_constraints function. I have to give up for the next couple of
-weeks as I need to submit a conference paper, which I'm going to use
-my 3.17 implementation for. The following is an example of how the ISS
-would be instantiated in the top level device tree:
-
-iss_csi21_pins: pinmux_iss_csi21_pins {
-    pinctrl-single,pins = <
-        OMAP4_IOPAD(0x0a0, PIN_INPUT | MUX_MODE0)        /*
-csi21_dx0.csi21_dx0 */
-        OMAP4_IOPAD(0x0a2, PIN_INPUT | MUX_MODE0)        /*
-csi21_dy0.csi21_dy0 */
-        OMAP4_IOPAD(0x0a4, PIN_INPUT | MUX_MODE0)        /*
-csi21_dx1.csi21_dx1 */
-        OMAP4_IOPAD(0x0a6, PIN_INPUT | MUX_MODE0)        /*
-csi21_dy1.csi21_dy1 */
-        OMAP4_IOPAD(0x0a8, PIN_INPUT | MUX_MODE0)        /*
-csi21_dx2.csi21_dx2 */
-        OMAP4_IOPAD(0x0aa, PIN_INPUT | MUX_MODE0)        /*
-csi21_dy2.csi21_dy2 */
-    >;
-};
-
-&iss {
-    status = "ok";
-
-    pinctrl-names = "default";
-    pinctrl-0 = <&iss_csi21_pins>;
-
-    ports {
-        port@0 {
-            reg = <0>;
-            csi2a_ep: endpoint {
-                remote-endpoint = <&ov5640_1_cam_ep>;
-                clock-lanes = <1>;
-                data-lanes = <2>;
-                crc = <0>;
-                lane-polarities = <0 0>;
-            };
-        };
-    };
-};
-
-and for the connected camera:
-
-ov5640_1_camera: ov5640@3c {
-    compatible = "omnivision,ov5640";
-    status = "ok";
-    reg = <0x3c>;
-
-    pwdn-gpios = <&ov5640_1_gpio 5 GPIO_ACTIVE_HIGH>;
-    reset-gpios = <&ov5640_1_gpio 6 GPIO_ACTIVE_LOW>;
-
-    avdd-supply = <&switch_ov5640_1_avdd>;
-    dvdd-supply = <&switch_ov5640_1_dvdd>;
-
-    clocks = <&ov5640_1_camera_clk>;
-
-    port {
-        ov5640_1_cam_ep: endpoint {
-            clock-lanes = <0>;
-            data-lanes = <1>;
-            remote-endpoint = <&csi2a_ep>;
-        };
-    };
-};
-
->From 919995491fb34cf7e2bd8a331c47e45cad677ce6 Mon Sep 17 00:00:00 2001
-From: Michael Allwright <allsey87@gmail.com>
-Date: Mon, 10 Aug 2015 16:55:57 +0200
-Subject: [PATCH] omap4-iss: Add device support (WIP)
-
----
- arch/arm/boot/dts/omap4.dtsi                |  33 +++
- drivers/staging/media/omap4iss/iss.c        | 419 +++++++++++++++++++++-------
- drivers/staging/media/omap4iss/iss.h        |  11 +
- drivers/staging/media/omap4iss/iss_csi2.c   |   4 +-
- drivers/staging/media/omap4iss/iss_csiphy.c |  16 +-
- drivers/staging/media/omap4iss/iss_video.c  |   6 +-
- include/media/omap4iss.h                    |  18 +-
- 7 files changed, 393 insertions(+), 114 deletions(-)
-
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index f884d6a..bd37437 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -923,6 +923,39 @@
-             status = "disabled";
-         };
-
-+        iss: iss@52000000 {
-+            compatible = "ti,omap4-iss";
-+            reg = <0x52000000 0x100>, /* top */
-+                  <0x52001000 0x170>, /* csi2_a_regs1 */
-+                  <0x52001170 0x020>, /* camerarx_core1 */
-+                  <0x52001400 0x170>, /* csi2_b_regs1 */
-+                  <0x52001570 0x020>, /* camerarx_core2 */
-+                  <0x52002000 0x200>, /* bte */
-+                  <0x52010000 0x0a0>, /* isp_sys1 */
-+                  <0x52010400 0x400>, /* isp_resizer */
-+                  <0x52010800 0x800>, /* isp_ipipe */
-+                  <0x52011000 0x200>, /* isp_isif */
-+                  <0x52011200 0x080>; /* isp_ipipeif */
-+            reg-names = "top",
-+                        "csi2_a_regs1",
-+                        "camerarx_core1",
-+                        "csi2_b_regs1",
-+                        "camerarx_core2",
-+                        "bte",
-+                        "isp_sys1",
-+                        "isp_resizer",
-+                        "isp_ipipe",
-+                        "isp_isif",
-+                        "isp_ipipeif";
-+            status = "ok";
-+            ti,hwmods = "iss";
-+            interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
-+            clocks = <&ducati_clk_mux_ck>, <&iss_ctrlclk>;
-+            clock-names = "iss_fck", "iss_ctrlclk";
-+            dmas = <&sdma 9>, <&sdma 10>, <&sdma 12>, <&sdma 13>;
-+            dma-names = "1", "2", "3", "4";
-+        };
-+
-         dss: dss@58000000 {
-             compatible = "ti,omap4-dss";
-             reg = <0x58000000 0x80>;
-diff --git a/drivers/staging/media/omap4iss/iss.c
-b/drivers/staging/media/omap4iss/iss.c
-index 7ced940..0ad1206 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -14,6 +14,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/of_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
-@@ -28,6 +29,8 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-
-+#include <linux/pm_runtime.h>
-+
- #include "iss.h"
- #include "iss_regs.h"
-
-@@ -129,7 +132,8 @@ int omap4iss_get_external_info(struct iss_pipeline *pipe,
-     struct iss_device *iss =
-         container_of(pipe, struct iss_video, pipe)->iss;
-     struct v4l2_subdev_format fmt;
--    struct v4l2_ctrl *ctrl;
-+    struct v4l2_ext_controls ctrls;
-+    struct v4l2_ext_control ctrl;
-     int ret;
-
-     if (!pipe->external)
-@@ -149,15 +153,23 @@ int omap4iss_get_external_info(struct iss_pipeline *pipe,
-
-     pipe->external_bpp = omap4iss_video_format_info(fmt.format.code)->bpp;
-
--    ctrl = v4l2_ctrl_find(pipe->external->ctrl_handler,
--                  V4L2_CID_PIXEL_RATE);
--    if (ctrl == NULL) {
--        dev_warn(iss->dev, "no pixel rate control in subdev %s\n",
-+    memset(&ctrls, 0, sizeof(ctrls));
-+    memset(&ctrl, 0, sizeof(ctrl));
-+
-+    ctrl.id = V4L2_CID_PIXEL_RATE;
-+    ctrls.count = 1;
-+    ctrls.controls = &ctrl;
-+
-+    ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+    if (ret < 0) {
-+        dev_warn(iss->dev, "no pixel rate control in subdev %s\n",
-              pipe->external->name);
--        return -EPIPE;
-+        return ret;
-     }
-
--    pipe->external_rate = v4l2_ctrl_g_ctrl_int64(ctrl);
-+    pipe->external_rate = ctrl.value64;
-+    dev_info(iss->dev, "subdev %s pixel rate = %u\n",
-+         pipe->external->name, pipe->external_rate);
-
-     return 0;
- }
-@@ -993,13 +1005,13 @@ static int iss_enable_clocks(struct iss_device *iss)
- {
-     int ret;
-
--    ret = clk_enable(iss->iss_fck);
-+    ret = clk_prepare_enable(iss->iss_fck);
-     if (ret) {
-         dev_err(iss->dev, "clk_enable iss_fck failed\n");
-         return ret;
-     }
-
--    ret = clk_enable(iss->iss_ctrlclk);
-+    ret = clk_prepare_enable(iss->iss_ctrlclk);
-     if (ret) {
-         dev_err(iss->dev, "clk_enable iss_ctrlclk failed\n");
-         clk_disable(iss->iss_fck);
-@@ -1015,15 +1027,26 @@ static int iss_enable_clocks(struct iss_device *iss)
-  */
- static void iss_disable_clocks(struct iss_device *iss)
- {
--    clk_disable(iss->iss_ctrlclk);
--    clk_disable(iss->iss_fck);
-+    clk_disable_unprepare(iss->iss_ctrlclk);
-+    clk_disable_unprepare(iss->iss_fck);
- }
-
-+struct clk_core_fake {
-+    const char        *name;
-+};
-+
-+struct clk_fake {
-+    struct clk_core_fake    *core;
-+    const char *dev_id;
-+    const char *con_id;
-+};
-+
-+
- static int iss_get_clocks(struct iss_device *iss)
- {
--    iss->iss_fck = devm_clk_get(iss->dev, "iss_fck");
-+    iss->iss_fck = devm_clk_get(iss->dev, "ducati_clk_mux_ck");
-     if (IS_ERR(iss->iss_fck)) {
--        dev_err(iss->dev, "Unable to get iss_fck clock info\n");
-+        dev_err(iss->dev, "Unable to get ducati_clk_mux_ck clock info\n");
-         return PTR_ERR(iss->iss_fck);
-     }
-
-@@ -1033,6 +1056,11 @@ static int iss_get_clocks(struct iss_device *iss)
-         return PTR_ERR(iss->iss_ctrlclk);
-     }
-
-+    dev_info(iss->dev, "Got clocks\n%s(%s:%s)\n%s(%s:%s)\n", ((struct
-clk_core_fake*)((struct clk_fake*)iss->iss_fck)->core)->name,
-+                                 ((struct
-clk_fake*)iss->iss_fck)->dev_id, ((struct
-clk_fake*)iss->iss_fck)->con_id,
-+                                 ((struct clk_core_fake*)((struct
-clk_fake*)iss->iss_ctrlclk)->core)->name,
-+                                 ((struct
-clk_fake*)iss->iss_ctrlclk)->dev_id, ((struct
-clk_fake*)iss->iss_ctrlclk)->con_id);
-+
-     return 0;
- }
-
-@@ -1125,58 +1153,221 @@ static void iss_unregister_entities(struct
-iss_device *iss)
- }
-
- /*
-- * iss_register_subdev_group - Register a group of subdevices
-+ * iss_register_subdev - Register a sub-device
-  * @iss: OMAP4 ISS device
-- * @board_info: I2C subdevs board information array
-+ * @iss_subdev: platform data related to a sub-device
-  *
-- * Register all I2C subdevices in the board_info array. The array must be
-- * terminated by a NULL entry, and the first entry must be the sensor.
-+ * Register an I2C sub-device which has not been registered by other
-+ * means (such as the Device Tree).
-  *
-- * Return a pointer to the sensor media entity if it has been successfully
-+ * Return a pointer to the sub-device if it has been successfully
-  * registered, or NULL otherwise.
-  */
- static struct v4l2_subdev *
--iss_register_subdev_group(struct iss_device *iss,
--             struct iss_subdev_i2c_board_info *board_info)
-+iss_register_subdev(struct iss_device *iss,
-+            struct iss_platform_subdev *iss_subdev)
- {
--    struct v4l2_subdev *sensor = NULL;
--    unsigned int first;
-+    struct i2c_adapter *adapter;
-+    struct v4l2_subdev *sd;
-
--    if (board_info->board_info == NULL)
-+    if (iss_subdev->board_info == NULL)
-         return NULL;
-
--    for (first = 1; board_info->board_info; ++board_info, first = 0) {
--        struct v4l2_subdev *subdev;
--        struct i2c_adapter *adapter;
-+    adapter = i2c_get_adapter(iss_subdev->i2c_adapter_id);
-+    if (adapter == NULL) {
-+        dev_err(iss->dev,
-+            "%s: Unable to get I2C adapter %d for device %s\n",
-+            __func__, iss_subdev->i2c_adapter_id,
-+            iss_subdev->board_info->type);
-+        return NULL;
-+    }
-
--        adapter = i2c_get_adapter(board_info->i2c_adapter_id);
--        if (adapter == NULL) {
--            dev_err(iss->dev,
--                "%s: Unable to get I2C adapter %d for device %s\n",
--                __func__, board_info->i2c_adapter_id,
--                board_info->board_info->type);
--            continue;
-+    sd = v4l2_i2c_new_subdev_board(&iss->v4l2_dev, adapter,
-+                       iss_subdev->board_info, NULL);
-+    if (sd == NULL) {
-+        dev_err(iss->dev, "%s: Unable to register subdev %s\n",
-+            __func__, iss_subdev->board_info->type);
-+        return NULL;
-+    }
-+
-+    return sd;
-+}
-+
-+
-+static int iss_link_entity(
-+    struct iss_device *iss, struct media_entity *entity,
-+    enum iss_interface_type interface)
-+{
-+    struct media_entity *input;
-+    unsigned int flags;
-+    unsigned int pad;
-+    unsigned int i;
-+
-+    /* Connect the sensor to the correct interface module.
-+     * serial sensors are connected to the CSI2a or CSI2b
-+     */
-+    switch (interface) {
-+
-+    case ISS_INTERFACE_CSI2A_PHY1:
-+        input = &iss->csi2a.subdev.entity;
-+        pad = CSI2_PAD_SINK;
-+        flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+        break;
-+
-+    case ISS_INTERFACE_CSI2B_PHY2:
-+        input = &iss->csi2b.subdev.entity;
-+        pad = CSI2_PAD_SINK;
-+        flags = MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED;
-+        break;
-+
-+    default:
-+        dev_err(iss->dev, "%s: invalid interface type %u\n", __func__,
-+            interface);
-+        return -EINVAL;
-+    }
-+
-+    for (i = 0; i < entity->num_pads; i++) {
-+        if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
-+            break;
-+    }
-+    if (i == entity->num_pads) {
-+        dev_err(iss->dev, "%s: no source pad in external entity\n",
-+            __func__);
-+        return -EINVAL;
-+    }
-+
-+    return media_entity_create_link(entity, i, input, pad, flags);
-+}
-+
-+static int iss_of_parse_node(struct device *dev, struct device_node *node,
-+                 struct iss_async_subdev *isd)
-+{
-+    struct iss_bus_cfg *buscfg = &isd->bus;
-+    struct v4l2_of_endpoint vep;
-+    unsigned int i, lanes;
-+
-+    v4l2_of_parse_endpoint(node, &vep);
-+
-+    dev_info(dev, "parsing endpoint %s, interface %u\n", node->full_name,
-+        vep.base.port);
-+
-+    switch(vep.base.port) {
-+    case ISS_INTERFACE_CSI2A_PHY1:
-+        buscfg->interface = ISS_INTERFACE_CSI2A_PHY1;
-+        lanes = ISS_CSIPHY1_NUM_DATA_LANES;
-+        break;
-+
-+    case ISS_INTERFACE_CSI2B_PHY2:
-+        buscfg->interface = ISS_INTERFACE_CSI2B_PHY2;
-+        lanes = ISS_CSIPHY2_NUM_DATA_LANES;
-+        break;
-+
-+    default:
-+        dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
-+             vep.base.port);
-+        return -EINVAL;
-+    }
-+
-+    buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
-+    buscfg->bus.csi2.lanecfg.clk.pol =
-+        vep.bus.mipi_csi2.lane_polarities[0];
-+    dev_info(dev, "clock lane polarity %u, pos %u\n",
-+        buscfg->bus.csi2.lanecfg.clk.pol,
-+        buscfg->bus.csi2.lanecfg.clk.pos);
-+
-+    for (i = 0; i < lanes; i++) {
-+        buscfg->bus.csi2.lanecfg.data[i].pos =
-+            vep.bus.mipi_csi2.data_lanes[i];
-+        buscfg->bus.csi2.lanecfg.data[i].pol =
-+            vep.bus.mipi_csi2.lane_polarities[i + 1];
-+        dev_info(dev, "data lane %u polarity %u, pos %u\n", i,
-+            buscfg->bus.csi2.lanecfg.data[i].pol,
-+            buscfg->bus.csi2.lanecfg.data[i].pos);
-+    }
-+
-+    /*
-+     * FIXME: now we assume the CRC is always there.
-+     * Implement a way to obtain this information from the
-+     * sensor. Frame descriptors, perhaps?
-+     */
-+    buscfg->bus.csi2.crc = 0;
-+
-+    return 0;
-+}
-+
-+static int iss_of_parse_nodes(struct device *dev,
-+                  struct v4l2_async_notifier *notifier)
-+{
-+    struct device_node *node = NULL;
-+
-+    notifier->subdevs = devm_kcalloc(
-+        dev, ISS_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
-+    if (!notifier->subdevs)
-+        return -ENOMEM;
-+
-+    while (notifier->num_subdevs < ISS_MAX_SUBDEVS &&
-+           (node = of_graph_get_next_endpoint(dev->of_node, node))) {
-+        struct iss_async_subdev *isd;
-+
-+        isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
-+        if (!isd) {
-+            of_node_put(node);
-+            return -ENOMEM;
-         }
-
--        subdev = v4l2_i2c_new_subdev_board(&iss->v4l2_dev, adapter,
--                board_info->board_info, NULL);
--        if (subdev == NULL) {
--            dev_err(iss->dev, "Unable to register subdev %s\n",
--                board_info->board_info->type);
--            continue;
-+        notifier->subdevs[notifier->num_subdevs] = &isd->asd;
-+
-+        if (iss_of_parse_node(dev, node, isd)) {
-+            of_node_put(node);
-+            return -EINVAL;
-         }
-
--        if (first)
--            sensor = subdev;
-+        isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
-+        of_node_put(node);
-+        if (!isd->asd.match.of.node) {
-+            dev_warn(dev, "bad remote port parent\n");
-+            return -EINVAL;
-+        }
-+
-+        isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+        notifier->num_subdevs++;
-     }
-
--    return sensor;
-+    return notifier->num_subdevs;
-+}
-+
-+static int iss_subdev_notifier_bound(struct v4l2_async_notifier *async,
-+                     struct v4l2_subdev *subdev,
-+                     struct v4l2_async_subdev *asd)
-+{
-+    struct iss_device *iss = container_of(async, struct iss_device,
-+                          notifier);
-+    struct iss_async_subdev *isd =
-+        container_of(asd, struct iss_async_subdev, asd);
-+    int ret;
-+
-+    ret = iss_link_entity(iss, &subdev->entity, isd->bus.interface);
-+    if (ret < 0)
-+        return ret;
-+
-+    isd->sd = subdev;
-+    isd->sd->host_priv = &isd->bus;
-+
-+    return ret;
-+}
-+
-+static int iss_subdev_notifier_complete(struct v4l2_async_notifier *async)
-+{
-+    struct iss_device *iss = container_of(async, struct iss_device,
-+                          notifier);
-+
-+    return v4l2_device_register_subdev_nodes(&iss->v4l2_dev);
- }
-
- static int iss_register_entities(struct iss_device *iss)
- {
-     struct iss_platform_data *pdata = iss->pdata;
--    struct iss_v4l2_subdevs_group *subdevs;
-+    struct iss_platform_subdev *iss_subdev;
-     int ret;
-
-     iss->media_dev.dev = iss->dev;
-@@ -1220,56 +1411,40 @@ static int iss_register_entities(struct iss_device *iss)
-     if (ret < 0)
-         goto done;
-
-+    /*
-+     * Device Tree --- the external sub-devices will be registered
-+     * later. The same goes for the sub-device node registration.
-+     */
-+    if (iss->dev->of_node)
-+        return 0;
-+
-     /* Register external entities */
--    for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
--        struct v4l2_subdev *sensor;
--        struct media_entity *input;
--        unsigned int flags;
--        unsigned int pad;
--
--        sensor = iss_register_subdev_group(iss, subdevs->subdevs);
--        if (sensor == NULL)
--            continue;
-+    for (iss_subdev = pdata ? pdata->subdevs : NULL;
-+         iss_subdev && iss_subdev->board_info; iss_subdev++) {
-+        struct v4l2_subdev *sd;
-
--        sensor->host_priv = subdevs;
-+        sd = iss_register_subdev(iss, iss_subdev);
-
--        /* Connect the sensor to the correct interface module.
--         * CSI2a receiver through CSIPHY1, or
--         * CSI2b receiver through CSIPHY2
-+        /*
-+         * No bus information --- this is either a flash or a
-+         * lens subdev.
-          */
--        switch (subdevs->interface) {
--        case ISS_INTERFACE_CSI2A_PHY1:
--            input = &iss->csi2a.subdev.entity;
--            pad = CSI2_PAD_SINK;
--            flags = MEDIA_LNK_FL_IMMUTABLE
--                  | MEDIA_LNK_FL_ENABLED;
--            break;
-+        if (!sd || !iss_subdev->bus)
-+            continue;
-
--        case ISS_INTERFACE_CSI2B_PHY2:
--            input = &iss->csi2b.subdev.entity;
--            pad = CSI2_PAD_SINK;
--            flags = MEDIA_LNK_FL_IMMUTABLE
--                  | MEDIA_LNK_FL_ENABLED;
--            break;
-+        sd->host_priv = iss_subdev->bus;
-
--        default:
--            dev_err(iss->dev, "invalid interface type %u\n",
--                subdevs->interface);
--            ret = -EINVAL;
--            goto done;
--        }
--
--        ret = media_entity_create_link(&sensor->entity, 0, input, pad,
--                           flags);
-+        ret = iss_link_entity(iss, &sd->entity,
-+                      iss_subdev->bus->interface);
-         if (ret < 0)
-             goto done;
-     }
-
-     ret = v4l2_device_register_subdev_nodes(&iss->v4l2_dev);
--
- done:
--    if (ret < 0)
-+    if (ret < 0) {
-         iss_unregister_entities(iss);
-+    }
-
-     return ret;
- }
-@@ -1362,24 +1537,62 @@ error_csiphy:
-     return ret;
- }
-
-+
-+/*
-+We need a better solution for this
-+*/
-+#include <../arch/arm/mach-omap2/omap-pm.h>
-+
-+static void iss_set_constraints(struct iss_device *iss, bool enable)
-+{
-+    if (!iss)
-+        return;
-+
-+    /* FIXME: Look for something more precise as a good throughtput limit */
-+    omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
-+                 enable ? 800000 : -1);
-+}
-+
-+static struct iss_platform_data iss_dummy_pdata = {
-+    .set_constraints = iss_set_constraints,
-+};
-+
- static int iss_probe(struct platform_device *pdev)
- {
--    struct iss_platform_data *pdata = pdev->dev.platform_data;
-     struct iss_device *iss;
-     unsigned int i;
--    int ret;
--
--    if (pdata == NULL)
--        return -EINVAL;
-+    int ret, r;
-
-     iss = devm_kzalloc(&pdev->dev, sizeof(*iss), GFP_KERNEL);
--    if (!iss)
-+    if (!iss) {
-+        dev_err(&pdev->dev, "could not allocate memory\n");
-         return -ENOMEM;
-+    }
-+
-+    if (IS_ENABLED(CONFIG_OF) && pdev->dev.of_node) {
-+        ret = iss_of_parse_nodes(&pdev->dev, &iss->notifier);
-+        if (ret < 0)
-+            return ret;
-+        ret = v4l2_async_notifier_register(&iss->v4l2_dev,
-+                           &iss->notifier);
-+        if (ret)
-+            return ret;
-+
-+        /* use dummy pdata with set constraints function */
-+        iss->pdata = &iss_dummy_pdata;
-+    } else {
-+        iss->pdata = pdev->dev.platform_data;
-+        dev_warn(&pdev->dev,
-+             "Platform data support is deprecated! Please move to DT now!\n");
-+    }
-+
-+    pm_runtime_enable(&pdev->dev);
-+    r = pm_runtime_get_sync(&pdev->dev);
-
-     mutex_init(&iss->iss_mutex);
-
-     iss->dev = &pdev->dev;
--    iss->pdata = pdata;
-+    iss->ref_count = 0;
-
-     iss->raw_dmamask = DMA_BIT_MASK(32);
-     iss->dev->dma_mask = &iss->raw_dmamask;
-@@ -1415,30 +1628,30 @@ static int iss_probe(struct platform_device *pdev)
-
-     iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
-     dev_info(iss->dev, "Revision %08x found\n", iss->revision);
--
-+dev_info(iss->dev, "A\n");
-     for (i = 1; i < OMAP4_ISS_MEM_LAST; i++) {
-         ret = iss_map_mem_resource(pdev, iss, i);
-         if (ret)
-             goto error_iss;
-     }
--
-+dev_info(iss->dev, "B\n");
-     /* Configure BTE BW_LIMITER field to max recommended value (1 GB) */
-     iss_reg_update(iss, OMAP4_ISS_MEM_BTE, BTE_CTRL,
-                BTE_CTRL_BW_LIMITER_MASK,
-                18 << BTE_CTRL_BW_LIMITER_SHIFT);
--
-+dev_info(iss->dev, "C\n");
-     /* Perform ISP reset */
-     ret = omap4iss_subclk_enable(iss, OMAP4_ISS_SUBCLK_ISP);
-     if (ret < 0)
-         goto error_iss;
--
-+dev_info(iss->dev, "D\n");
-     ret = iss_isp_reset(iss);
-     if (ret < 0)
-         goto error_iss;
--
-+dev_info(iss->dev, "E\n");
-     dev_info(iss->dev, "ISP Revision %08x found\n",
-          iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_REVISION));
--
-+dev_info(iss->dev, "F\n");
-     /* Interrupt */
-     iss->irq_num = platform_get_irq(pdev, 0);
-     if (iss->irq_num <= 0) {
-@@ -1446,28 +1659,32 @@ static int iss_probe(struct platform_device *pdev)
-         ret = -ENODEV;
-         goto error_iss;
-     }
--
-+dev_info(iss->dev, "G\n");
-     if (devm_request_irq(iss->dev, iss->irq_num, iss_isr, IRQF_SHARED,
-                  "OMAP4 ISS", iss)) {
-         dev_err(iss->dev, "Unable to request IRQ\n");
-         ret = -EINVAL;
-         goto error_iss;
-     }
--
-+dev_info(iss->dev, "H\n");
-     /* Entities */
-     ret = iss_initialize_modules(iss);
-     if (ret < 0)
-         goto error_iss;
-+dev_info(iss->dev, "I\n");
-+    iss->notifier.bound = iss_subdev_notifier_bound;
-+    iss->notifier.complete = iss_subdev_notifier_complete;
-
-     ret = iss_register_entities(iss);
-     if (ret < 0)
-         goto error_modules;
--
-+dev_info(iss->dev, "J\n");
-     omap4iss_put(iss);
--
-+dev_info(iss->dev, "K\n");
-     return 0;
-
- error_modules:
-+    v4l2_async_notifier_unregister(&iss->notifier);
-     iss_cleanup_modules(iss);
- error_iss:
-     omap4iss_put(iss);
-@@ -1495,12 +1712,20 @@ static struct platform_device_id omap4iss_id_table[] = {
- };
- MODULE_DEVICE_TABLE(platform, omap4iss_id_table);
-
-+static struct of_device_id omap4iss_of_table[] = {
-+    { .compatible = "ti,omap4-iss" },
-+    { },
-+};
-+MODULE_DEVICE_TABLE(of, omap4iss_of_table);
-+
-+
- static struct platform_driver iss_driver = {
-     .probe        = iss_probe,
-     .remove        = iss_remove,
-     .id_table    = omap4iss_id_table,
-     .driver = {
-         .name    = "omap4iss",
-+        .of_match_table = omap4iss_of_table,
-     },
- };
-
-diff --git a/drivers/staging/media/omap4iss/iss.h
-b/drivers/staging/media/omap4iss/iss.h
-index 35df8b4..7830061 100644
---- a/drivers/staging/media/omap4iss/iss.h
-+++ b/drivers/staging/media/omap4iss/iss.h
-@@ -15,6 +15,7 @@
- #define _OMAP4_ISS_H_
-
- #include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- #include <linux/device.h>
- #include <linux/io.h>
- #include <linux/platform_device.h>
-@@ -86,6 +87,7 @@ struct iss_reg {
-  */
- struct iss_device {
-     struct v4l2_device v4l2_dev;
-+    struct v4l2_async_notifier notifier;
-     struct media_device media_dev;
-     struct device *dev;
-     u32 revision;
-@@ -119,6 +121,15 @@ struct iss_device {
-
-     unsigned int subclk_resources;
-     unsigned int isp_subclk_resources;
-+
-+#define ISS_MAX_SUBDEVS        2
-+    struct v4l2_subdev *subdevs[ISS_MAX_SUBDEVS];
-+};
-+
-+struct iss_async_subdev {
-+    struct v4l2_subdev *sd;
-+    struct iss_bus_cfg bus;
-+    struct v4l2_async_subdev asd;
- };
-
- #define v4l2_dev_to_iss_device(dev) \
-diff --git a/drivers/staging/media/omap4iss/iss_csi2.c
-b/drivers/staging/media/omap4iss/iss_csi2.c
-index d7ff769..0002869 100644
---- a/drivers/staging/media/omap4iss/iss_csi2.c
-+++ b/drivers/staging/media/omap4iss/iss_csi2.c
-@@ -479,6 +479,7 @@ static void csi2_irq_status_set(struct
-iss_csi2_device *csi2, int enable)
-         iss_reg_write(csi2->iss, csi2->regs1, CSI2_IRQENABLE, 0);
- }
-
-+static void csi2_print_status(struct iss_csi2_device *csi2);
- /*
-  * omap4iss_csi2_reset - Resets the CSI2 module.
-  *
-@@ -515,6 +516,7 @@ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
-         REGISTER1_RESET_DONE_CTRLCLK, 10000, 100, 500);
-     if (timeout) {
-         dev_err(csi2->iss->dev, "CSI2: CSI2_96M_FCLK reset timeout!\n");
-+csi2_print_status(csi2);
-         return -EBUSY;
-     }
-
-@@ -528,7 +530,7 @@ int omap4iss_csi2_reset(struct iss_csi2_device *csi2)
-
- static int csi2_configure(struct iss_csi2_device *csi2)
- {
--    const struct iss_v4l2_subdevs_group *pdata;
-+    const struct iss_bus_cfg *pdata;
-     struct iss_csi2_timing_cfg *timing = &csi2->timing[0];
-     struct v4l2_subdev *sensor;
-     struct media_pad *pad;
-diff --git a/drivers/staging/media/omap4iss/iss_csiphy.c
-b/drivers/staging/media/omap4iss/iss_csiphy.c
-index 748607f..da59dca 100644
---- a/drivers/staging/media/omap4iss/iss_csiphy.c
-+++ b/drivers/staging/media/omap4iss/iss_csiphy.c
-@@ -121,7 +121,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
- {
-     struct iss_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
-     struct iss_pipeline *pipe = to_iss_pipeline(&csi2_subdev->entity);
--    struct iss_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
-+    struct iss_bus_cfg *buscfg = pipe->external->host_priv;
-     struct iss_csiphy_dphy_cfg csi2phy;
-     int csi2_ddrclk_khz;
-     struct iss_csiphy_lanes_cfg *lanes;
-@@ -129,7 +129,14 @@ int omap4iss_csiphy_config(struct iss_device *iss,
-     u32 cam_rx_ctrl;
-     unsigned int i;
-
--    lanes = &subdevs->bus.csi2.lanecfg;
-+    if (!buscfg) {
-+        struct iss_async_subdev *isd =
-+            container_of(pipe->external->asd,
-+                     struct iss_async_subdev, asd);
-+        buscfg = &isd->bus;
-+    }
-+
-+    lanes = &buscfg->bus.csi2.lanecfg;
-
-     /*
-      * SCM.CONTROL_CAMERA_RX
-@@ -147,7 +154,8 @@ int omap4iss_csiphy_config(struct iss_device *iss,
-      */
-     regmap_read(iss->syscon, 0x68, &cam_rx_ctrl);
-
--    if (subdevs->interface == ISS_INTERFACE_CSI2A_PHY1) {
-+
-+    if (buscfg->interface == ISS_INTERFACE_CSI2A_PHY1) {
-         cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-                 OMAP4_CAMERARX_CSI21_CAMMODE_MASK);
-         /* NOTE: Leave CSIPHY1 config to 0x0: D-PHY mode */
-@@ -158,7 +166,7 @@ int omap4iss_csiphy_config(struct iss_device *iss,
-         cam_rx_ctrl |= OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK;
-     }
-
--    if (subdevs->interface == ISS_INTERFACE_CSI2B_PHY2) {
-+    if (buscfg->interface == ISS_INTERFACE_CSI2B_PHY2) {
-         cam_rx_ctrl &= ~(OMAP4_CAMERARX_CSI22_LANEENABLE_MASK |
-                 OMAP4_CAMERARX_CSI22_CAMMODE_MASK);
-         /* NOTE: Leave CSIPHY2 config to 0x0: D-PHY mode */
-diff --git a/drivers/staging/media/omap4iss/iss_video.c
-b/drivers/staging/media/omap4iss/iss_video.c
-index 85c54fe..daf85c4 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -844,7 +844,7 @@ iss_video_streamon(struct file *file, void *fh,
-enum v4l2_buf_type type)
-     pipe->external_bpp = 0;
-     pipe->entities = 0;
-
--    if (video->iss->pdata->set_constraints)
-+    if (video->iss->pdata && video->iss->pdata->set_constraints)
-         video->iss->pdata->set_constraints(video->iss, true);
-
-     ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
-@@ -932,7 +932,7 @@ err_omap4iss_set_stream:
- err_iss_video_check_format:
-     media_entity_pipeline_stop(&video->video.entity);
- err_media_entity_pipeline_start:
--    if (video->iss->pdata->set_constraints)
-+    if (video->iss->pdata && video->iss->pdata->set_constraints)
-         video->iss->pdata->set_constraints(video->iss, false);
-     video->queue = NULL;
-
-@@ -974,7 +974,7 @@ iss_video_streamoff(struct file *file, void *fh,
-enum v4l2_buf_type type)
-     vb2_streamoff(&vfh->queue, type);
-     video->queue = NULL;
-
--    if (video->iss->pdata->set_constraints)
-+    if (video->iss->pdata && video->iss->pdata->set_constraints)
-         video->iss->pdata->set_constraints(video->iss, false);
-     media_entity_pipeline_stop(&video->video.entity);
-
-diff --git a/include/media/omap4iss.h b/include/media/omap4iss.h
-index 0d7620d..8f25cf1 100644
---- a/include/media/omap4iss.h
-+++ b/include/media/omap4iss.h
-@@ -6,7 +6,7 @@
- struct iss_device;
-
- enum iss_interface_type {
--    ISS_INTERFACE_CSI2A_PHY1,
-+    ISS_INTERFACE_CSI2A_PHY1 = 0,
-     ISS_INTERFACE_CSI2B_PHY2,
- };
-
-@@ -44,21 +44,21 @@ struct iss_csi2_platform_data {
-     struct iss_csiphy_lanes_cfg lanecfg;
- };
-
--struct iss_subdev_i2c_board_info {
--    struct i2c_board_info *board_info;
--    int i2c_adapter_id;
--};
--
--struct iss_v4l2_subdevs_group {
--    struct iss_subdev_i2c_board_info *subdevs;
-+struct iss_bus_cfg {
-     enum iss_interface_type interface;
-     union {
-         struct iss_csi2_platform_data csi2;
-     } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
- };
-
-+struct iss_platform_subdev {
-+    struct i2c_board_info *board_info;
-+    int i2c_adapter_id;
-+    struct iss_bus_cfg *bus;
-+};
-+
- struct iss_platform_data {
--    struct iss_v4l2_subdevs_group *subdevs;
-+    struct iss_platform_subdev *subdevs;
-     void (*set_constraints)(struct iss_device *iss, bool enable);
- };
-
--- 
-1.9.1
+============================================================================
+Report of the Media Controller workshop in Espoo, Finland – July, 29-31 2015
+============================================================================
+
+	PS.: For those that prefer, a web version is at: http://linuxtv.org/news.php?entry=2015-08-17.mchehab
+
+This is the first workshop dedicated to the Linux Media Controller. We had a v4l summit back in 2010, also in Finland, that established the current foundation for the media controller, andto properly satisfy the needs of properly reporting the pipelines on the smartphone System on a Chip (SoC). The focus of this year's workshop was to clarify the kernel→userspace interfaces and extend the Media Controller to be used on other subsystems that need to represent graphs, like Digital Video Broadcasting (DVB), Advanced Linux Sound Architecture (ALSA), and Industrial I/O (IIO).
+
+Main event attendees:
+
+Antti Laakso <antti.laakso@intel.com>
+Hans Verkuil<hansverk@cisco.com>
+Lars-Peter Clausen <lars@metafoo.de>
+Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Mauro Chehab <mchehab@osg.samsung.com>
+Sakari Ailus <sakari.ailus@iki.fi>
+Shuah Khan <shuahkh@osg.samsung.com>
+Tuukka Toivonen <tuukka.toivonen@intel.com>
+
+MC videoconf attendees:
+
+Dong-Joo Kim <dj98.kim@samsung.com>
+Geunyoung Kim <nenggun.kim@samsung.com>
+In-Ki Dae <inki.dae@samsung.com>
+Junghak Sung <jh1009.sung@samsung.com>
+Minsong Kim <ms17.kim@samsung.com>
+Ohin Kwon <rany.kwon@samsung.com>
+Seung-Woo Kim <sw0312.kim@samsung.com>
+
+EDITOR'S NOTE: Usually, we produce the summit reports using a cronologic approach. This time, I opted to move the content of the second day to the beginning of the report, as they're basically several presentations we had covering the Media Controller needs. I opted to put the presentations first, and then put the discussions we had on July 29 and 31 together.
+
+============================================================================
+
+1) Presentations made on July, 30
+
+1.1. Videobuf2 redesign to allow it to support DVB
+
+Representatives from Samsung offered a presentation via video conference about the scheduled changes that are planned in order to split the videobuf2 core from the V4L2 specific part. This will allow the videobuf2 core to also be for DVB.
+
+1.2. DVB pipelines
+
+Samsung representatives via video conference presented about the pipelines. Essencially, the pipelines on real use-cases for embedded devices would look like:
+
+   tuner 1 ->          -> demux    -> Video
+   tuner 2 ->   cam 1  -> demux    -> Audio
+   tuner 3 ->   cam 2  -> demux    -> Data
+           -> V4L2
+           -> ALSA    
+
+1.3. ASoC
+
+http://linuxtv.org/downloads/presentations/mc_ws_2015/sound_media_controller.pdf
+
+This presentation covered the following topics:
+    Generic DT machine driver can support around half of DT based devices
+    Not all required is data available in ACPI, meaning ACPI based devices typically have their own drivers.
+    DAPM handles power management in ASoC much like the current omap3isp driver implementation does.
+    Walks the graph
+    ALSA supports large numbers of entities and cyclical graphs
+    ALSA contains ASoC dependencies, but the core of the algorithm is generic
+    A stack based, iterative version is in the works
+    MC has generic graph walking code as well
+    Iterative
+    Less concerned with performance
+    omap3isp driver has PM code, which could be more generic
+    Ideally we should have single implementation for graph walking and for power management
+
+1.4 Updates to ALSA and au0828 to share resources:
+
+http://linuxtv.org/downloads/presentations/mc_ws_2015/alsa_media_controller.pdf
+
+1. The au8522 pad that sends data to the ALSA entity is currently represented as state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SINK. It should be, instead MEDIA_PAD_FL_SOURCE, as it provides data to the ALSA PCM capture device node.
+2. ALSA PCM operates in atomic context by default holding a spinlock. This atomic locking conflicts with graph_mutex hold from Media Controller API from ALSA and au0828 drivers.
+   However, there are concerns about I2C drivers breaking if graph_mutex is changed to a spinlock.
+   Lars suggested, instead, to use ALSA in non-atomic context:
+      Not a good idea to change graph_mutex to spinlock at MC as this will badly impact calls from I2C drivers, causing them to break.
+      Using ALSA in non-atomic is simple: just initialize pcm->substream->nonatomic = 1
+      IRQ safe start/stop pipeline will not be necessary anymore.
+   This will reduce the work and patch series v6 becomes smaller.
+3. An enable_source() function is necessary at media_device level, but find a better name
+4. A Write helper function to hide decoder and tuner details from ALSA should be written
+5. Support for remove links are needed - Shuah can do that as part of ALSA work, after adding support for it at the core
+6. Managed Media Controller API uses devres - change it to get reference and put reference (kref), as it isn't safe to delete media_device device resource.
+   Shuah will create a media_device_get() and media_device_put() set of functions.
+   In addition, deleting media device Managed or otherwise is a problem. This problem isn't just a Managed Media Device issue.
+
+1.5 IIO - Industrial I/O
+
+http://linuxtv.org/downloads/presentations/mc_ws_2015/iio_media_controller.pdf
+
+- ADC, DAC, accelerometer, gyro, light sensor, pressure, manometer
+- typically: low speed < 10kbaud, I2C/SPI
+- changes: up to 5Gbaud, separate control and data bus (LVDS, JESD204b)
+- can be used by multi-channel SDR
+- Complex processing pipelines
+  - Inside a converter (built-in filters, digital modulator/demodulator)
+  - Inside the FPGA (processing, DMA, HW loopback)
+  - On the PCB, multiple (synchronous converters)
+- Topology information needs to be available => media controller
+
+2) Keysign party at the afternoon of July, 30
+
+We did a Keysign party, where the gpg keys got cross-signed among the participants.
+
+3) Discussions about the Media Controller API and the needs to extend it to support the requirements for DVB, ALSA and IIO
+
+3.1) Discussions took at July, 29
+
+Basic requirements:
+	- Properly represent kernel→userspace API interfaces;
+	- Allow dynamic pipeline changes;
+	- Define the namespace for interfaces and entities;
+	- Support additional properties;
+	- Better represent entities that belong to more than one type
+
+It was proposed to use the concept of planes, as defined by ITU and IEEE to represent different layers of a data or media network (ITU-T G.800). So, we would have control and data planes.
+
+http://linuxtv.org/downloads/presentations/mc_ws_2015/media_controller_summit_needs.pdf
+
+This is a concept largely used on networks, as show at: http://etherealmind.com/controller-based-networks-for-data-centres/
+
+Multiple options to express association between device nodes and entities:
+    - Same IOCTL API as for data links, difference made between data and control links
+    - Different IOCTL API to enumerate interfaces, with associated entities
+    - Properties
+
+The decision was, instead, to add a new graph element type (Interface) to represent the elements that controls the entities.
+
+It was agreed with the following terminology:
+    - Entity: Functional unit, typically a hardware component or subunit in a hardware component
+    - Pad: Data Input/Output of an entity
+    - Interface: Control point implementing a userspace API
+    - Link: Connection between a source pad and a sink pad
+
+It was also proposed to use the name “association” for the links between interface and entity, but there was no consensus about that idea.
+
+EDITOR'S NOTE: On July, 31 we started using the name “links” also for the connection between an entity and an interface. We used the term “interface links” for such links when we need to distinguish them from “data links” (e. g. pad to pad links).
+
+Mauro's concern is that there will be lots of code duplication in the Kernel if we use a different graph type for the interface links.
+
+The relationship between Interfaces and entities are n-n:
+    -  One interface can control multiple entities
+    -  One entity can be controlled by multiple interfaces
+
+Media interfaces
+    - A concept of user space facing interfaces
+    - An object of its own right (such as media entities)
+    - At the same level than entities, e. g. they'll be at the same graph, and not on separate planes
+
+Working proposal (as proposed on July, 29)
+
+    - Introduce struct media_interface as an object type alongside with entities in the Kernel and in the user space
+    - See how the patches will look like; start with V4L2 and proceed with DVB
+    - How much will there be code duplication?
+    - Target 4.3 at earliest, more likely 4.4
+
+The current API does a crap job on properly defining entities that are coupled to interfaces, and prevented the enablement of the MC DVB support, submitted in December, 2014. That needs to be fixed as soon as possible, as it is causing bad impact on using MC even for other V4L2 device types, like radio. So, Mauro stated that, as the MC API is currently on a broken state, no patches, drivers or framework changes related to the Media Controller will be merged upstream until this is fixed. Fixup patches may be merged, though.
+
+    - Hans would try to do the work (of proposing the userspace API) at the week after the MC workshop.
+
+Userspace API Requirements:
+    - Enumerate Entities + pads/links (exists today)
+    - Enumerate Interfaces + entity associations (and define which interface is the default one)
+    - For entities: enumerate associated interfaces
+    - Should support two application models: Entity-centric and Interface-centric
+    
+Additional API requirements that should be addressed in the future:
+    - MC: 'versioning number' so apps are informed if the topology has changed.
+    - MC: Notification events for topology changes
+    
+Points to solve:
+     - entity.type - should be renamed to reflect what's there;
+     - How to represent DVB entities/interfaces?
+     - How to represent DVB network interfaces?
+     - How to represent ALSA entities?
+     - What fields are needed for media interfaces at the public API?
+     - Changes at media-ctl userspace application
+
+Some notes to help with network interface definitions:
+    - man 7 netdevice
+    - man 7 rtnetlink
+    - Network interface index is constant for a network device
+    - Network interface index can be converted to name etc. by an IOCTL
+
+DRM subsystem uses u64 instead of pointers at the public API:
+    - IOCTL design: http://blog.ffwll.ch/2013/11/botching-up-ioctls.html
+    - Not widely used outside DRM
+    - Most sub-systems have their own conventions
+
+TODO:
+    - Add graph topology version to the enumeration (and possibly other) ioctls
+
+Question: should we redesign everything in order to support topology changes?
+
+3.2) Discussions took at the afternoon of July30 and on July, 31st
+
+It was discussed if we should add a generic graph framework in the kernel. This would require review on linux-kernel and such review may take a long time, as different requirements could pop up. So, perhaps not this time.
+
+It was presented some topology for simple hybrid TV hardware (PC-customer hardware), at:
+http://linuxtv.org/downloads/presentations/mc_ws_2015/media_controller_summit_TV_pipelines.pdf
+
+An agreement was arrived for the UAPI interface.
+
+What was agreed:
+    media interfaces will be a separate graph element;
+    links will be used to connect both entities (pads to pads) and media interfaces;
+    PADs will use unique IDs
+    preliminary header changes: http://linuxtv.org/downloads/presentations/mc_ws_2015/media.h
+
+
+V4L2 applications need to know if they can capture from an input/tuner. To make that easy for them, it was proposed to add a new flag to VIDIOC_ENUMINPUT and whether the tuner is in use (and/or the tuner state) through VIDIOC_G_TUNER. This can't be done at the DVB side, however, as there are no reserved fields there.
+It should be noticed that, on DVB API, userspace doesn't query anything before setting the frontend. The first thing it does after open() is to set the frontend. So, there's no way to add it and being backward compatible.
+Also, hybrid TV devices typically have other bottlenecks that prevent both analog and digital part of the chipset to be used at the same time. So, it is not physically possible to stream from an S-Video connector while DVB is tuned. So, adding a flag at V4L2 saying tha the tuner is in usage or not won't help.
+Such bottleneck could be at DMA transfers or at the USB bridge or can simply be the lack of support on the internal firmware of the device. As a general rule, we don't know exactly where the constraint is, as vendors don't document the exact hardware architecture on their datasheets. So, the only alternative left is to decouple the interface links on the digital side when analog is in usage and vice-versa.
+
+It was discussed about the need to allow bidirectional pads (needed for connectors like a coax that are bidirectional using time or frequency multiplexing)
+
+TODO: Connector entities
+
+It was proposed the following possible types of entities:
+    Connector, DMA engine, processing block and controller block
+
+Whather an entity is a connector needs to be told, as this can't be discovered
+
+All others can be derived from other information already in the graph?
+
+Entity functional properties
+
+    Most of the properties at entity level would be used to signal capabilities that can be figured out using sub-system specific interfaces the application already uses
+
+
+Interfaces
+
+    Agreement: interfaces do have a type
+    Types include V4L2, ALSA, DVB etc.
+    Sub-types are used to tell between different interface types inside the sub-system
+
+    An interface can be a device node, network interface or a sysfs directory
+
+It was proposed two new ioctls:
+    G_TOPOLOGY IOCTL should not be used to convey arbitrary sysfs paths. It was agreed, instead, that sysfs paths will be passed via MC properties.
+    G_INTERFACE to pass information on single interface; there, a single pointer set by the user would be feasible. The struct can be the same.
+
+
+Finding entities - current situation
+    Especially device specific applications often need to find an exact entity the application requires
+    This may be a certain scaler in the graph, for instance
+    Configuration may involve e.g. private IOCTLs only a certain sub-device implements
+    Name is only 32 bytes at the moment
+    In practice, external entities have used i2c bus number and i2c address as part of the name
+    This does not scale for DT based devices where the device is uniquely identified by a string that can be very long
+    Blocks that are a part of an ISP there's been just a name of the block without any device specific information
+    This causes that if one has multiple such devices in the system, the name is no longer unique
+    The entity name is not enough to uniquely find an entity in a general case
+    In a general case it is not possible to recognise an entity
+    Hot pluggable buses and entities that have no serial numbers or something equivalent
+    In order to best help the user space, all the information that matters should be provided to the user
+
+So, it ended by having device names such as "omap3isp resizer"
+
+Other data could be used to enhance the device name, like:
+    Bus
+    Serial number
+    Sysfs name - Unfortunately, in practice, this is not as stable as it would be expected, despite sysfs being documented at Documentation/ABI/. Yet, it may still be better than bus in some cases
+
+This should enable most of the use cases where entities need to be found
+
+
+Properties
+
+Array of properties as an IOCTL argument has the problem that the user would have to allocate enough memory for each key-value pair in the array. This is unfeasible.
+
+The original proposal used a text-based format for the purpose of discussing what properties should be, and left the question of the binary format for the ABI open. So, one question remains if the API should use either a text-based onr a binary-based format. Using a text based format requires parsing by the user, albeit the kernel interface would remain simple
+
+The new proposal at the new media.h file (http://linuxtv.org/downloads/presentations/mc_ws_2015/media.h) combines the best of both: a single memory area amended with an array of properties that refer to the memory area
+
+For the media properties, using strings the key type has benefits, as hierarchy is possible, with is not possible using an u32 integer for instance.
+
+Should values be always strings or should other types be accepted? Probably having other types is a good idea.
+
+Different options for arrays. For example:
+    As part of the key: entity.0/name
+    As part of the property: add a length field. This is convenient except for strings, where it works as well --- just count the nul characters.
+
+The better representation for arrays should be discussed on a RFC for the properties.
+
+Properties could be seen as re-implementing sysfs on the discussions with linux-api people. However they're much more light-weight. Also, there's no atomic access of all sysfs properties and sysfs is limited to page size
+Properties can be queried by media object, in which case the media object id would be provided
+The entire tree of properties can be obtained using object id 0
+
+Another option for the kernel interface: key/length/value
+    E.g.  type (u32) | length (u32) | value (string) | key (string)
+
+
+Media objects
+    Media objects have an unique ID in the system
+    Objects can be entities, pads or interfaces, for instance
+    A few bits can be reserved for object types, e.g. entity == 0; interface == 1, pad == 2
+
+Action Items:
+
+- media_interface/media_topology: RFC for userspace API: Hans
+- RFC patch series: internal implementation for interface/topology: Mauro
+- Migration: add v4l-subdev media_interface: Laurent
+- Migration: add explicit DMA Engine entity: Laurent
+- media_properties: RFC userspace API: Sakari
+- MC core support for dynamically adding/removing from the media graph: Samsung
+- Clarify/implement DVB network interface: Mauro
+- MC support for Alsa: Lars: Need RFC before Alsa summit during ELCE
+- MC support for DVB: Mauro
+- MC default core support for interface-centric V4L2: Hans (?)
+- MC support for IIO: Lars
+- VIDIOC_ENUMINPUTS/G_TUNER: tell if the tuner/input is busy: RFC Hans, Shuah has a backend for this.
+- Fix media_device broken alloc/remove (devres): Shuah
+
