@@ -1,102 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48346 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753203AbbH3DHo (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:55692 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751427AbbHQM0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:44 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 26/55] [media] media: add a linked list to track interfaces by mdev
-Date: Sun, 30 Aug 2015 00:06:37 -0300
-Message-Id: <6a5d75004723fe0a822ef389247ae9656d681ca1.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Mon, 17 Aug 2015 08:26:23 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NT8008QX7VXBJ00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Aug 2015 13:26:21 +0100 (BST)
+Subject: Re: [PATCH v2] [media] m2m: fix bad unlock balance
+To: Zahari Doychev <zahari.doychev@linux.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl, kamil@wypas.org
+References: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
+Cc: mchehab@osg.samsung.com
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <55D1D2EC.3010205@samsung.com>
+Date: Mon, 17 Aug 2015 14:26:20 +0200
+MIME-version: 1.0
+In-reply-to: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media device should list the interface objects, so add a linked list
-for those interfaces in struct media_device.
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 2015-08-17 12:13, Zahari Doychev wrote:
+> This patch removes unnecessary mutex queue unlock/lock sequence causing bad
+> unlock balance in v4l2_m2m_poll when the last buffer on the destination
+> queue has been dequeued and adds spin lock protection for the done list
+> list_empty calls.
+>
+> [  144.990873] =====================================
+> [  144.995584] [ BUG: bad unlock balance detected! ]
+> [  145.000301] 4.1.0-00137-ga105070 #98 Tainted: G        W
+> [  145.006140] -------------------------------------
+> [  145.010851] demux:sink/487 is trying to release lock (&dev->dev_mutex) at:
+> [  145.017785] [<808cc578>] mutex_unlock+0x18/0x1c
+> [  145.022322] but there are no more locks to release!
+> [  145.027205]
+> [  145.027205] other info that might help us debug this:
+> [  145.033741] no locks held by demux:sink/487.
+> [  145.038015]
+> [  145.038015] stack backtrace:
+> [  145.042385] CPU: 2 PID: 487 Comm: demux:sink Tainted: G        W       4.1.0-00137-ga105070 #98
+> [  145.051089] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+> [  145.057622] Backtrace:
+> [  145.060102] [<80014a4c>] (dump_backtrace) from [<80014cc4>] (show_stack+0x20/0x24)
+> [  145.067679]  r6:80cedf78 r5:00000000 r4:00000000 r3:00000000
+> [  145.073421] [<80014ca4>] (show_stack) from [<808c61e0>] (dump_stack+0x8c/0xa4)
+> [  145.080661] [<808c6154>] (dump_stack) from [<80072b64>] (print_unlock_imbalance_bug+0xb8/0xe8)
+> [  145.089277]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000001
+> [  145.095020] [<80072aac>] (print_unlock_imbalance_bug) from [<80077db4>] (lock_release+0x1a4/0x250)
+> [  145.103983]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000000
+> [  145.109728] [<80077c10>] (lock_release) from [<808cc470>] (__mutex_unlock_slowpath+0xc4/0x1b4)
+> [  145.118344]  r9:acb27a41 r8:00000000 r7:81553814 r6:808cc578 r5:60030013 r4:ac6cd01c
+> [  145.126190] [<808cc3ac>] (__mutex_unlock_slowpath) from [<808cc578>] (mutex_unlock+0x18/0x1c)
+> [  145.134720]  r7:00000000 r6:aced7cd4 r5:00000041 r4:acb87800
+> [  145.140468] [<808cc560>] (mutex_unlock) from [<805a98b8>] (v4l2_m2m_fop_poll+0x5c/0x64)
+> [  145.148494] [<805a985c>] (v4l2_m2m_fop_poll) from [<805955a0>] (v4l2_poll+0x6c/0xa0)
+> [  145.156243]  r6:aced7bec r5:00000000 r4:ac6cc380 r3:805a985c
+> [  145.161991] [<80595534>] (v4l2_poll) from [<80156edc>] (do_sys_poll+0x230/0x4c0)
+> [  145.169391]  r5:00000000 r4:aced7be4
+> [  145.173013] [<80156cac>] (do_sys_poll) from [<801574a8>] (SyS_ppoll+0x1d4/0x1fc)
+> [  145.180414]  r10:00000000 r9:aced6000 r8:00000000 r7:00000000 r6:75c04538 r5:00000002
+> [  145.188338]  r4:00000000
+> [  145.190906] [<801572d4>] (SyS_ppoll) from [<800108c0>] (ret_fast_syscall+0x0/0x54)
+> [  145.198481]  r8:80010aa4 r7:00000150 r6:75c04538 r5:00000002 r4:00000008
+>
+> Signed-off-by: Zahari Doychev <zahari.doychev@linux.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 3e649cacfc07..659507bce63f 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return -EINVAL;
- 
- 	INIT_LIST_HEAD(&mdev->entities);
-+	INIT_LIST_HEAD(&mdev->interfaces);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
- 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 417673a32c21..15bc92d3a648 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -861,6 +861,8 @@ static void media_interface_init(struct media_device *mdev,
- 	INIT_LIST_HEAD(&intf->links);
- 
- 	media_gobj_init(mdev, gobj_type, &intf->graph_obj);
-+
-+	list_add_tail(&intf->list, &mdev->interfaces);
- }
- 
- /* Functions related to the media interface via device nodes */
-@@ -889,6 +891,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
- void media_devnode_remove(struct media_intf_devnode *devnode)
- {
- 	media_gobj_remove(&devnode->intf.graph_obj);
-+	list_del(&devnode->intf.list);
- 	kfree(devnode);
- }
- EXPORT_SYMBOL_GPL(media_devnode_remove);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 3b14394d5701..51807efa505b 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -46,6 +46,7 @@ struct device;
-  * @link_id:	Unique ID used on the last link registered
-  * @intf_devnode_id: Unique ID used on the last interface devnode registered
-  * @entities:	List of registered entities
-+ * @interfaces:	List of registered interfaces
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-  * @link_notify: Link state change notification callback
-@@ -77,6 +78,7 @@ struct media_device {
- 	u32 intf_devnode_id;
- 
- 	struct list_head entities;
-+	struct list_head interfaces;
- 
- 	/* Protects the entities list */
- 	spinlock_t lock;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 423ff804e686..e7b20bdc735d 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -156,6 +156,8 @@ struct media_entity {
-  * struct media_intf_devnode - Define a Kernel API interface
-  *
-  * @graph_obj:		embedded graph object
-+ * @list:		Linked list used to find other interfaces that belong
-+ *			to the same media controller
-  * @links:		List of links pointing to graph entities
-  * @type:		Type of the interface as defined at the
-  *			uapi/media/media.h header, e. g.
-@@ -164,6 +166,7 @@ struct media_entity {
-  */
- struct media_interface {
- 	struct media_gobj		graph_obj;
-+	struct list_head		list;
- 	struct list_head		links;
- 	u32				type;
- 	u32				flags;
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+>   drivers/media/v4l2-core/v4l2-mem2mem.c | 23 ++++++++---------------
+>   1 file changed, 8 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index ec3ad4e..2f7291c 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -583,32 +583,25 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+>   		goto end;
+>   	}
+>   
+> -	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
+> -		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
+> -	else if (m2m_ctx->q_lock)
+> -		mutex_unlock(m2m_ctx->q_lock);
+> -
+> +	spin_lock_irqsave(&src_q->done_lock, flags);
+>   	if (list_empty(&src_q->done_list))
+>   		poll_wait(file, &src_q->done_wq, wait);
+> +	spin_unlock_irqrestore(&src_q->done_lock, flags);
+> +
+> +	spin_lock_irqsave(&dst_q->done_lock, flags);
+>   	if (list_empty(&dst_q->done_list)) {
+>   		/*
+>   		 * If the last buffer was dequeued from the capture queue,
+>   		 * return immediately. DQBUF will return -EPIPE.
+>   		 */
+> -		if (dst_q->last_buffer_dequeued)
+> +		if (dst_q->last_buffer_dequeued) {
+> +			spin_unlock_irqrestore(&dst_q->done_lock, flags);
+>   			return rc | POLLIN | POLLRDNORM;
+> +		}
+>   
+>   		poll_wait(file, &dst_q->done_wq, wait);
+>   	}
+> -
+> -	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+> -		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+> -	else if (m2m_ctx->q_lock) {
+> -		if (mutex_lock_interruptible(m2m_ctx->q_lock)) {
+> -			rc |= POLLERR;
+> -			goto end;
+> -		}
+> -	}
+> +	spin_unlock_irqrestore(&dst_q->done_lock, flags);
+>   
+>   	spin_lock_irqsave(&src_q->done_lock, flags);
+>   	if (!list_empty(&src_q->done_list))
+
+Best regards
 -- 
-2.4.3
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
