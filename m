@@ -1,159 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33205 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752046AbbHaWsc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 18:48:32 -0400
-To: Takashi Iwai <tiwai@suse.de>
-Cc: alsa-devel@alsa-project.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Linux 4.2 ALSA snd-usb-audio inconsistent lock state warn in PCM
- nonatomic mode
-Message-ID: <55E4D9BE.2040308@osg.samsung.com>
-Date: Mon, 31 Aug 2015 16:48:30 -0600
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44720 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752769AbbHQNWA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Aug 2015 09:22:00 -0400
+Message-ID: <55D1DFD2.8050807@xs4all.nl>
+Date: Mon, 17 Aug 2015 15:21:22 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [RFC] Media Controller, the next generation
+References: <55BF75B4.2060301@xs4all.nl>	<1553545.72YdKh14yc@avalon>	<20150816103709.444d59c1@recife.lan>	<55D1B87A.7010107@xs4all.nl> <20150817093923.301ac60b@recife.lan>
+In-Reply-To: <20150817093923.301ac60b@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Takashi,
+On 08/17/2015 02:39 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 17 Aug 2015 12:33:30 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>> That's not what I meant. I meant using the mc_ prefix instead of the media_
+>> prefix for internal structs. So media_entity in the public API would map to
+>> mc_entity in the internal API. Ditto for media_interface/mc_interface,
+>> media_pad/mc_pad, etc.
+> 
+> Ah! that could work. Yet, I guess we decided to not use mc_ internally
+> in the first place several years ago because there was already some 
+> namespace conflict.
+> 
+> Ah, yes:
+> 
+> $ git grep -e \\bmc_
+> ...
+> arch/powerpc/kernel/mce.c:      struct machine_check_event *mc_evt;
+> arch/powerpc/kernel/mce.c:              mc_evt = this_cpu_ptr(&mce_event[index]);
+> arch/powerpc/kernel/mce.c:                      *mce = *mc_evt;
+> ...
+> arch/um/drivers/line.h: struct mc_device mc;
+> ...
+> arch/um/drivers/net_kern.c:static struct mc_device net_mc = {
+> ...
+> 
+> A total of 302 references... Among them, some arch-dependent stuff,
+> including x86 and powerPC error hanlding stuff (MCE, APEI).
+> 
+> I would avoid it, as the risk of namespace collisions are high.
 
-I am seeing the following inconsistent lock state warning when PCM
-is run in nonatomic mode. This is on 4.2.0 and with the following
-change to force PCM on nonatomic mode:
+OK.
 
-diff --git a/sound/usb/stream.c b/sound/usb/stream.c
-index 310a382..16bbb71 100644
---- a/sound/usb/stream.c
-+++ b/sound/usb/stream.c
-@@ -370,6 +370,7 @@ int snd_usb_add_audio_stream(struct snd_usb_audio *chip,
-        pcm->private_data = as;
-        pcm->private_free = snd_usb_audio_pcm_free;
-        pcm->info_flags = 0;
-+       pcm->nonatomic = true;
-        if (chip->pcm_devs > 0)
-                sprintf(pcm->name, "USB Audio #%d", chip->pcm_devs);
-        else
+> 
+>> Using graph_ instead of mc_ is something I would be OK with as well.
 
-The device Bus 003 Device 002: ID 2040:7200 Hauppauge
-Please let me know if you need more information and any ideas on
-how to fix this problem.
+What about graph_ as the internal prefix? Or mctl_?
 
-thanks,
--- Shuah
+>> I am a bit worried about this. To my knowledge applications that use the MC
+>> today are expected to know which pad of an entity does what, and it identifies
+>> the pad by index.
+>>
+>> The new public API should still provide applications with this information in
+>> one way or another. The pad ID won't work, certainly not in the dynamic case,
+>> the PAD_TYPE as suggested here will only work as long as there is only one
+>> pad per type. Suppose there is an entity with two output pads, both for video?
+>> One might be SDTV, one HDTV. How to tell the difference?
+> 
+> The first one will have "SDTV" as type, the other one "HDTV". So, no problem
+> with that.
 
-[  120.283960] =================================
-[  120.283964] [ INFO: inconsistent lock state ]
-[  120.283968] 4.2.0+ #29 Not tainted
-[  120.283972] ---------------------------------
-[  120.283975] inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
-[  120.283980] swapper/1/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
-[  120.283983]  (&(&subs->lock)->rlock){?.+...}, at:
-[<ffffffffa05ed210>] retire_capture_urb+0x140/0x2b0 [snd_usb_audio]
-[  120.284005] {HARDIRQ-ON-W} state was registered at:
-[  120.284008]   [<ffffffff810af230>] __lock_acquire+0xc50/0x2380
-[  120.284016]   [<ffffffff810b1631>] lock_acquire+0xb1/0x130
-[  120.284022]   [<ffffffff817fd4a1>] _raw_spin_lock+0x31/0x40
-[  120.284028]   [<ffffffffa05ee81d>] snd_usb_pcm_pointer+0x5d/0xc0
-[snd_usb_audio]
-[  120.284040]   [<ffffffffa01c6498>] snd_pcm_update_hw_ptr0+0x38/0x3a0
-[snd_pcm]
-[  120.284052]   [<ffffffffa01c73f0>] snd_pcm_update_hw_ptr+0x10/0x20
-[snd_pcm]
-[  120.284063]   [<ffffffffa01beae5>] snd_pcm_hwsync+0x45/0xa0 [snd_pcm]
-[  120.284071]   [<ffffffffa01c1347>] snd_pcm_common_ioctl1+0x277/0xce0
-[snd_pcm]
-[  120.284081]   [<ffffffffa01c227e>] snd_pcm_capture_ioctl1+0x1be/0x2d0
-[snd_pcm]
-[  120.284090]   [<ffffffffa01c2444>] snd_pcm_capture_ioctl+0x34/0x40
-[snd_pcm]
-[  120.284100]   [<ffffffff811ed7e1>] do_vfs_ioctl+0x301/0x560
-[  120.284107]   [<ffffffff811edab9>] SyS_ioctl+0x79/0x90
-[  120.284112]   [<ffffffff817fdf17>] entry_SYSCALL_64_fastpath+0x12/0x6f
-[  120.284119] irq event stamp: 823304
-[  120.284122] hardirqs last  enabled at (823301): [<ffffffff816707ad>]
-cpuidle_enter_state+0xed/0x230
-[  120.284129] hardirqs last disabled at (823302): [<ffffffff817fea28>]
-common_interrupt+0x68/0x6d
-[  120.284135] softirqs last  enabled at (823304): [<ffffffff81060351>]
-_local_bh_enable+0x21/0x50
-[  120.284139] softirqs last disabled at (823303): [<ffffffff810611ac>]
-irq_enter+0x4c/0x70
-[  120.284143]
-other info that might help us debug this:
-[  120.284146]  Possible unsafe locking scenario:
+So now we have SDTV and HDTV, the next entity will have YUV_420 and YUV_422 pads,
+or whatever. The number of types will quickly escalate. It's similar to the
+'entity type' problem (e.g. sensor, flash, video encoder, scaler, etc.).
 
-[  120.284149]        CPU0
-[  120.284150]        ----
-[  120.284152]   lock(&(&subs->lock)->rlock);
-[  120.284155]   <Interrupt>
-[  120.284157]     lock(&(&subs->lock)->rlock);
-[  120.284160]
- *** DEADLOCK ***
-[  120.284163] no locks held by swapper/1/0.
-[  120.284165]
-stack backtrace:
-[  120.284170] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.2.0+ #29
-[  120.284173] Hardware name: Hewlett-Packard HP ProBook 6475b/180F,
-BIOS 68TTU Ver. F.04 08/03/2012
-[  120.284176]  ffffffff828d5630 ffff88023ec83a68 ffffffff817f4ea0
-0000000000000007
-[  120.284181]  ffff880235a6a500 ffff88023ec83ac8 ffffffff810ad97f
-0000000000000000
-[  120.284186]  0000000000000000 ffff880200000001 ffffffff810134df
-ffffffff827c5390
-[  120.284192] Call Trace:
-[  120.284194]  <IRQ>  [<ffffffff817f4ea0>] dump_stack+0x45/0x57
-[  120.284203]  [<ffffffff810ad97f>] print_usage_bug+0x1ff/0x210
-[  120.284209]  [<ffffffff810134df>] ? save_stack_trace+0x2f/0x50
-[  120.284214]  [<ffffffff810adffe>] mark_lock+0x66e/0x6f0
-[  120.284218]  [<ffffffff810aceb0>] ?
-print_shortest_lock_dependencies+0x1d0/0x1d0
-[  120.284222]  [<ffffffff810af3ab>] __lock_acquire+0xdcb/0x2380
-[  120.284226]  [<ffffffff81091a2c>] ? __enqueue_entity+0x6c/0x70
-[  120.284230]  [<ffffffff810ab8dd>] ? __lock_is_held+0x4d/0x70
-[  120.284234]  [<ffffffff810ab8dd>] ? __lock_is_held+0x4d/0x70
-[  120.284238]  [<ffffffff810ab8dd>] ? __lock_is_held+0x4d/0x70
-[  120.284242]  [<ffffffff810ab8dd>] ? __lock_is_held+0x4d/0x70
-[  120.284246]  [<ffffffff810b1631>] lock_acquire+0xb1/0x130
-[  120.284256]  [<ffffffffa05ed210>] ? retire_capture_urb+0x140/0x2b0
-[snd_usb_audio]
-[  120.284261]  [<ffffffff817fd61c>] _raw_spin_lock_irqsave+0x3c/0x50
-[  120.284270]  [<ffffffffa05ed210>] ? retire_capture_urb+0x140/0x2b0
-[snd_usb_audio]
-[  120.284276]  [<ffffffff81595325>] ? usb_hcd_get_frame_number+0x25/0x30
-[  120.284285]  [<ffffffffa05ed210>] retire_capture_urb+0x140/0x2b0
-[snd_usb_audio]
-[  120.284294]  [<ffffffffa05e513c>] snd_complete_urb+0x13c/0x250
-[snd_usb_audio]
-[  120.284298]  [<ffffffff81592cb2>] __usb_hcd_giveback_urb+0x72/0x110
-[  120.284303]  [<ffffffff81592e53>] usb_hcd_giveback_urb+0x43/0x140
-[  120.284307]  [<ffffffff815d1b02>] xhci_irq+0xd42/0x1fc0
-[  120.284312]  [<ffffffff815d2d91>] xhci_msi_irq+0x11/0x20
-[  120.284317]  [<ffffffff810c4570>] handle_irq_event_percpu+0x80/0x1a0
-[  120.284322]  [<ffffffff810c46da>] handle_irq_event+0x4a/0x70
-[  120.284325]  [<ffffffff810c7794>] ? handle_edge_irq+0x24/0x150
-[  120.284329]  [<ffffffff810c77f1>] handle_edge_irq+0x81/0x150
-[  120.284333]  [<ffffffff81005c85>] handle_irq+0x25/0x40
-[  120.284337]  [<ffffffff818008ef>] do_IRQ+0x4f/0xe0
-[  120.284341]  [<ffffffff817fea2d>] common_interrupt+0x6d/0x6d
-[  120.284343]  <EOI>  [<ffffffff816707b2>] ? cpuidle_enter_state+0xf2/0x230
-[  120.284351]  [<ffffffff816707ad>] ? cpuidle_enter_state+0xed/0x230
-[  120.284355]  [<ffffffff81670927>] cpuidle_enter+0x17/0x20
-[  120.284360]  [<ffffffff810a3862>] call_cpuidle+0x32/0x60
-[  120.284364]  [<ffffffff81670903>] ? cpuidle_select+0x13/0x20
-[  120.284369]  [<ffffffff810a3aa6>] cpu_startup_entry+0x216/0x2d0
-[  120.284374]  [<ffffffff8103679d>] start_secondary+0x12d/0x150
-[  125.426447] device: 'ep_84': device_unregister
-[  125.426511] PM: Removing info for No Bus:ep_84
-[  125.426542] device: 'ep_84': device_add
-[  125.426602] PM: Adding info for No Bus:ep_84
+> 
+> There are, however, some usages where an index is enough. For example, the
+> hardware demux filter outputs can fully be identified by just an index, and
+> each index could (ideally) be mapped into a different DMA.
+> 
+> So, I guess we need to offer the flexibility to keep using indexes where
+> it makes sense.
+> 
+> That's why I proposed a find_pad function that would allow to use an
+> index:
+> 	media_pad *find_pad(struct media_entity entity, enum pad_usage usage, int idx);
+> or
+>  	media_pad *find_pad(struct media_entity entity, char *pad_name);
+> 
+>> One option might be to have a pad_type or data_type for basic type information
+>> to have generic code that just wants to find VBI/VIDEO/AUDIO streaming pads,
+>> and a name[32] field that is uniquely identifying the pad and that can be used
+>> in userspace applications (or drivers for that matter by adding a find_pad_name()).
+> 
+> just a name could be enough:
+> 	vbi_pad = find_pad(entity, "vbi");
+> 
+> However, that would require to have a strict namespace if we want the core
+> to rely on it.
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+I think names would work: we can make a number of 'core' names that should be
+used where appropriate, and leave it up to the driver otherwise.
+
+So if there is only one video source pad, then call the pad "video". If there
+are multiple video source pads, then zero or one pads can be called "video",
+the others should get different names "video-sdtv").
+
+To be honest, I'm not terribly keen on this. I think a data/pad type + name
+would work better.
+
+>>> };
+>>>
+>>> And have the structs with (some) properties embed on it, like:
+>>>
+>>> struct media_graph_entity {
+>>> 	struct media_graph_object obj;
+>>
+>> This doesn't make sense: struct media_graph_topology would fill in an
+>> array of struct media_graph_object would point to media objects that
+>> in turn contain a struct media_graph_object.
+> 
+> Sorry, I didn't get your idea. Could you please give a C code example on
+> what you're thinking?
+> 
+>>
+>> I wouldn't embed a struct media_graph_object in these structs, there
+>> is no point to that. Thinking about this some more you don't need the
+>> length field either, only an id (this gives you the type, so you know
+>> whether the object_data pointer is for a media_entity or a media_pad
+>> or whatever) and the pointer. Strictly speaking you would only need
+>> the 'type' part of the ID, but I see no reason not to fill in the full
+>> ID.
+>>
+>>> 	u32 flags;
+>>> 	/* ... */
+>>> 	char name[64];
+>>> };
+>>>
+>>> Please notice that we don't need to add reserved fields at the structs,
+>>> as we're now putting the struct length at the media_graph_object.
+>>>
+>>> So, if we need to, for example, add a new "foo" inside the
+>>> media_graph_entity:
+>>>
+>>> struct media_graph_entity {
+>>> 	struct media_graph_object obj;
+>>> 	u32 flags;
+>>> 	/* ... */
+>>> 	char name[64];
+>>> 	u32 foo;
+>>> };
+>>
+>> No, you can't. Say you've compiled the application with a header that includes
+>> the foo field, and then you run the same application with an older kernel that
+>> doesn't have the foo field. Any access to foo would give garbage back (or fail).
+>>
+>> You really need those reserved fields. The alternative would be to mess around
+>> with different struct versions, and that's painful.
+> 
+> No. The length will do that. All we need to do is to document that the data
+> should be zeroed on userspace before filling the data from G_TOPOLOGY.
+> 
+> For example:
+> 
+> let's say that, on Kernel 4.3: this is declared as:
+> struct media_graph_entity {
+>  	struct media_graph_object obj;
+>  	u32 flags;
+>  	char name[64];
+> };
+> 
+> And, on Kernel 4.4, the new "foo" field got introduced:
+> 
+> struct media_graph_entity {
+>  	struct media_graph_object obj;
+>  	u32 flags;
+>  	char name[64];
+>  	u32 foo;
+> };
+> 
+> Of course, just like we do with reserved fields, we should ensure that
+> old apps can live without the "foo" field, and that new apps will
+> keep working with older Kernels.
+> 
+> Now, we have:
+> 	
+> The length of the data on 4.3 is: sizeof(obj) + 68
+> The length of the data on 4.4 is: sizeof(obj) + 72
+> 
+> As per my proposal, we need to pass the length for the public API
+> object.
+> 
+> struct media_graph_object {
+>  	u32 length;
+>  	u32 type;
+>  	u32 id;
+> 	void *data;
+> }  __attribute__ ((packed));
+> 
+> An application for the G_TOPOLOGY would do something like:
+> 	
+>  /* p is the pointer for the data returned from Kernel */
+> struct media_graph_entity
+> get_an_entity_graph_obj(struct media_graph_obj *obj)
+> {
+> 	struct media_graph_entity *ent;
+> 	int len;
+> 
+> 	len = sizeof(*ent);
+> 	if (len > obj->length)
+> 		len = obj->length;
+> 
+> 	ent = calloc(len, 1);
+> 	memcpy (ent, obj->data, len);
+> 
+> 	return ent;
+> }
+
+OK, so everything has to be copied in userspace, unpacking the objects.
+
+> 
+> There are three cases:
+> 
+> 1) both app and Kernel are compiled against the same headers
+> 
+> No problem.
+> 
+> 2) app is compiled against v4.4 headers
+>    kernel compiled against v4.3 headers
+> 
+> As the struct were zeroed before memcpy, all entities will have foo = 0.
+> 
+> No problem.
+> 
+> 3) app is compiled against v4.3 headers
+>    kernel compiled against v4.4 headers
+> 
+> As the struct won't have the "foo" field, and it will be ignored.
+> 
+> No problem.
+> 
+> So, I don't see any usage to add reserved fields.
+> 
+>>
+>>>
+>>> There are some advantages of this approach:
+>>> - If the size of the entity will change, and obj.length will be bigger.
+>>>   Userspace will allocate more space to store the object, but will be
+>>>   backward compatible;
+>>> - We can add new object types anytime. If userspace doesn't know the new
+>>>   type, it should simply discard the object and go to the next one. Again,
+>>>   backward compatible.
+>>>
+>>> We may eventually add a way for userspace to request only a subset of
+>>> the graph elements or to add an ioctl or some other sort of event that
+>>> will report topology changes.
+>>
+>> It's an option, but the first 'advantage' doesn't actually work, and I am
+>> not sure about the second. Yes, it is an advantage but it comes at a price:
+>> the void pointer. I very much prefer strict typing.
+> 
+> See above.
+> 
+> We can avoid the void pointer with something like:
+> 
+> struct media_graph_object {
+>  	u32 length;
+>  	u32 type;
+
+Type can be dropped.
+
+>  	u32 id;
+> }  __attribute__ ((packed));
+> 
+> struct media_graph_entity {
+> 	struct media_graph_object obj;
+>  	char name[64];
+> }  __attribute__ ((packed));
+
+This makes more sense without the pointer. But this also means that the
+objects pointer in media_graph_topology isn't an array. Instead the
+next graph object starts at ((void *)objects + objects->length).
+
+> 
+> Of course, length is needed, in order to avoid filling it with reserved
+> stuff.
+> 
+>>
+>> BTW, my initial proposal had a __u32 reserved[64] field, I'd redo that as
+>> follows:
+>>
+>> 	struct
+>> 		__u32 num_reserved;
+>> 		void *ptr_reserved;
+>> 	} reserved[32];
+>>
+>> This will make 32/64 bit pointer size differences much easier to handle.
+>>
+>> And in my opinion, if we end up with so many different object types, then
+>> we have a much bigger problem and another redesign would be required.
+> 
+> Redesign the API because we add more things is crappy! We should do
+> something that, ideally, will never require us to redesign it again.
+
+That's not what I meant. If we end up with so many different object types,
+then the MC API has gone crazy and becomes unusable. The MC is supposed
+to have just a few types: originally entity, pad, link and now we are adding
+interface and property. Perhaps there will be one or two more, but if we
+end up with 30 types, then there is something seriously wrong.
+
+>> In general, I prefer strict typing over void pointers, and having to cast
+>> all the time is something I'd really like to avoid. This API also gives
+>> you filtering for free (just leave the relevant pointers NULL).
+> 
+> Adding a filter field is not hard, and, as pointed above, we don't need
+> void pointers.
+
+Doing it this way means that you return a blob that needs to be unpacked
+first. It's useless without that unpacking step. Is that what I want? I
+would like to hear what others think about this. It makes this a very
+complicated and hard-to-use ioctl.
+
+Regards,
+
+	Hans
+
