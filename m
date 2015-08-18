@@ -1,36 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:35155 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754089AbbHORPS (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:65441 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528AbbHRIi6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Aug 2015 13:15:18 -0400
-Received: from pla-VB.cisco.com ([10.65.77.74])
-	by bgl-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id t7FHFF2s009097
-	for <linux-media@vger.kernel.org>; Sat, 15 Aug 2015 17:15:15 GMT
-From: Prashant Laddha <prladdha@cisco.com>
+	Tue, 18 Aug 2015 04:38:58 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: [RFC PATCH] support reduced fps for vivid video out
-Date: Sat, 15 Aug 2015 22:45:14 +0530
-Message-Id: <1439658915-2511-1-git-send-email-prladdha@cisco.com>
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv8 03/15] dts: exynos4412-odroid*: enable the HDMI CEC device
+Date: Tue, 18 Aug 2015 10:26:28 +0200
+Message-Id: <2e99527a2418168338c3b1747e6624df50ff16b4.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Kamil Debski <kamil@wypas.org>
 
-Thanks to inputs from Hans, I have tried adding reduced fps support for video out in vivid. Please review this patch and share your comments, suggestions.
+Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+family of SoCs.
 
-I am working on adding similar support for video capture. Actually, I wanted to include both patches in one series. However, the changes on capture side are taking time. So, I thought of posting this patch and gather some early feedback.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4210-universal_c210.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Regards,
-Prashant
-
-Prashant Laddha (1):
-  vivid: add support for reduced fps in video out.
-
- drivers/media/platform/vivid/vivid-vid-out.c | 30 +++++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-dv-timings.c    |  5 +++++
- 2 files changed, 34 insertions(+), 1 deletion(-)
-
+diff --git a/arch/arm/boot/dts/exynos4210-universal_c210.dts b/arch/arm/boot/dts/exynos4210-universal_c210.dts
+index d4f2b11..06df693 100644
+--- a/arch/arm/boot/dts/exynos4210-universal_c210.dts
++++ b/arch/arm/boot/dts/exynos4210-universal_c210.dts
+@@ -515,6 +515,10 @@
+ 		enable-active-high;
+ 	};
+ 
++	cec@100B0000 {
++		status = "okay";
++	};
++
+ 	hdmi_ddc: i2c-ddc {
+ 		compatible = "i2c-gpio";
+ 		gpios = <&gpe4 2 0 &gpe4 3 0>;
 -- 
-1.9.1
+2.1.4
 
