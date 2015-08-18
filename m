@@ -1,467 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:13353 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159AbbHYAob (ORCPT
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:10056 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbbHRIis (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 20:44:31 -0400
-Message-ID: <55DBBA43.3020109@nvidia.com>
-Date: Mon, 24 Aug 2015 17:43:47 -0700
-From: Bryan Wu <pengw@nvidia.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, <hansverk@cisco.com>,
-	<linux-media@vger.kernel.org>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<treding@nvidia.com>, <wenjiaz@nvidia.com>, <davidw@nvidia.com>,
-	<gfitzer@nvidia.com>, <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] v4l: tegra: Add NVIDIA Tegra VI driver
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com> <1440118300-32491-5-git-send-email-pengw@nvidia.com> <55D6EF58.7030509@xs4all.nl>
-In-Reply-To: <55D6EF58.7030509@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Aug 2015 04:38:48 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv8 08/15] cec.txt: add CEC framework documentation
+Date: Tue, 18 Aug 2015 10:26:33 +0200
+Message-Id: <73d7569c727ceef0bea30380f8e214e3a1bee76d.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2015 02:28 AM, Hans Verkuil wrote:
-> Hi Bryan,
->
-> Thanks for contributing this driver, very much appreciated.
->
-> I do have some comments below, basically about the same things we discussed
-> privately before.
->
-> On 08/21/2015 02:51 AM, Bryan Wu wrote:
->> NVIDIA Tegra processor contains a powerful Video Input (VI) hardware
->> controller which can support up to 6 MIPI CSI camera sensors.
->>
->> This patch adds a V4L2 media controller and capture driver to support
->> Tegra VI hardware. It's verified with Tegra built-in test pattern
->> generator.
->>
->> Signed-off-by: Bryan Wu <pengw@nvidia.com>
->> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/media/platform/Kconfig               |    1 +
->>   drivers/media/platform/Makefile              |    2 +
->>   drivers/media/platform/tegra/Kconfig         |    9 +
->>   drivers/media/platform/tegra/Makefile        |    3 +
->>   drivers/media/platform/tegra/tegra-channel.c | 1074 ++++++++++++++++++++++++++
->>   drivers/media/platform/tegra/tegra-core.c    |  295 +++++++
->>   drivers/media/platform/tegra/tegra-core.h    |  134 ++++
->>   drivers/media/platform/tegra/tegra-vi.c      |  585 ++++++++++++++
->>   drivers/media/platform/tegra/tegra-vi.h      |  224 ++++++
->>   include/dt-bindings/media/tegra-vi.h         |   35 +
->>   10 files changed, 2362 insertions(+)
->>   create mode 100644 drivers/media/platform/tegra/Kconfig
->>   create mode 100644 drivers/media/platform/tegra/Makefile
->>   create mode 100644 drivers/media/platform/tegra/tegra-channel.c
->>   create mode 100644 drivers/media/platform/tegra/tegra-core.c
->>   create mode 100644 drivers/media/platform/tegra/tegra-core.h
->>   create mode 100644 drivers/media/platform/tegra/tegra-vi.c
->>   create mode 100644 drivers/media/platform/tegra/tegra-vi.h
->>   create mode 100644 include/dt-bindings/media/tegra-vi.h
->>
-> <snip>
->
->> +static int tegra_channel_capture_frame(struct tegra_channel *chan)
->> +{
->> +	struct tegra_channel_buffer *buf = chan->active;
->> +	struct vb2_buffer *vb = &buf->buf;
->> +	int err = 0;
->> +	u32 thresh, value, frame_start;
->> +	int bytes_per_line = chan->format.bytesperline;
->> +
->> +	if (!vb2_start_streaming_called(&chan->queue) || !buf)
->> +		return -EINVAL;
->> +
->> +	if (chan->bypass)
->> +		goto bypass_done;
->> +
->> +	/* Program buffer address */
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_OFFSET_MSB + chan->surface * 8,
->> +		  0x0);
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_OFFSET_LSB + chan->surface * 8,
->> +		  buf->addr);
->> +	csi_write(chan,
->> +		  TEGRA_VI_CSI_SURFACE0_STRIDE + chan->surface * 4,
->> +		  bytes_per_line);
->> +
->> +	/* Program syncpoint */
->> +	frame_start = sp_bit(chan, SP_PP_FRAME_START);
->> +	tegra_channel_write(chan, TEGRA_VI_CFG_VI_INCR_SYNCPT,
->> +			    frame_start | host1x_syncpt_id(chan->sp));
->> +
->> +	csi_write(chan, TEGRA_VI_CSI_SINGLE_SHOT, 0x1);
->> +
->> +	/* Use syncpoint to wake up */
->> +	thresh = host1x_syncpt_incr_max(chan->sp, 1);
->> +
->> +	mutex_unlock(&chan->lock);
->> +	err = host1x_syncpt_wait(chan->sp, thresh,
->> +			         TEGRA_VI_SYNCPT_WAIT_TIMEOUT, &value);
->> +	mutex_lock(&chan->lock);
->> +
->> +	if (err) {
->> +		dev_err(&chan->video.dev, "frame start syncpt timeout!\n");
->> +		tegra_channel_capture_error(chan, err);
->> +	}
->> +
->> +bypass_done:
->> +	/* Captured one frame */
->> +	spin_lock_irq(&chan->queued_lock);
->> +	vb->v4l2_buf.sequence = chan->sequence++;
->> +	vb->v4l2_buf.field = V4L2_FIELD_NONE;
->> +	v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
->> +	vb2_set_plane_payload(vb, 0, chan->format.sizeimage);
->> +	vb2_buffer_done(vb, err < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->> +	spin_unlock_irq(&chan->queued_lock);
->> +
->> +	return err;
->> +}
->> +
->> +static void tegra_channel_work(struct work_struct *work)
->> +{
->> +	struct tegra_channel *chan =
->> +		container_of(work, struct tegra_channel, work);
->> +
->> +	while (1) {
->> +		spin_lock_irq(&chan->queued_lock);
->> +		if (list_empty(&chan->capture)) {
->> +			chan->active = NULL;
->> +			spin_unlock_irq(&chan->queued_lock);
->> +			return;
->> +		}
->> +		chan->active = list_entry(chan->capture.next,
->> +				struct tegra_channel_buffer, queue);
->> +		list_del_init(&chan->active->queue);
->> +		spin_unlock_irq(&chan->queued_lock);
->> +
->> +		mutex_lock(&chan->lock);
->> +		tegra_channel_capture_frame(chan);
->> +		mutex_unlock(&chan->lock);
->> +	}
->> +}
->> +
->> +/* -----------------------------------------------------------------------------
->> + * videobuf2 queue operations
->> + */
->> +
->> +static int
->> +tegra_channel_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
->> +		     unsigned int *nbuffers, unsigned int *nplanes,
->> +		     unsigned int sizes[], void *alloc_ctxs[])
->> +{
->> +	struct tegra_channel *chan = vb2_get_drv_priv(vq);
->> +
->> +	/* Make sure the image size is large enough. */
->> +	if (fmt && fmt->fmt.pix.sizeimage < chan->format.sizeimage)
->> +		return -EINVAL;
->> +
->> +	*nplanes = 1;
->> +
->> +	sizes[0] = fmt ? fmt->fmt.pix.sizeimage : chan->format.sizeimage;
->> +	alloc_ctxs[0] = chan->alloc_ctx;
->> +
->> +	return 0;
->> +}
->> +
->> +static int tegra_channel_buffer_prepare(struct vb2_buffer *vb)
->> +{
->> +	struct tegra_channel *chan = vb2_get_drv_priv(vb->vb2_queue);
->> +	struct tegra_channel_buffer *buf = to_tegra_channel_buffer(vb);
->> +
->> +	buf->chan = chan;
->> +	buf->addr = vb2_dma_contig_plane_dma_addr(vb, 0);
->> +
->> +	return 0;
->> +}
->> +
->> +static void tegra_channel_buffer_queue(struct vb2_buffer *vb)
->> +{
->> +	struct tegra_channel *chan = vb2_get_drv_priv(vb->vb2_queue);
->> +	struct tegra_channel_buffer *buf = to_tegra_channel_buffer(vb);
->> +
->> +	/* Put buffer into the  capture queue */
->> +	spin_lock_irq(&chan->queued_lock);
->> +	list_add_tail(&buf->queue, &chan->capture);
->> +	spin_unlock_irq(&chan->queued_lock);
->> +
->> +	/* Start work queue to capture data to buffer */
->> +	if (vb2_start_streaming_called(&chan->queue))
->> +		schedule_work(&chan->work);
->> +}
->> +
->> +static int tegra_channel_set_stream(struct tegra_channel *chan, bool on)
->> +{
->> +	struct media_entity *entity;
->> +	struct media_pad *pad;
->> +	struct v4l2_subdev *subdev;
->> +	int ret = 0;
->> +
->> +	entity = &chan->video.entity;
->> +
->> +	while (1) {
->> +		if (entity->num_pads > 1 && (chan->port & 0x1))
->> +			pad = &entity->pads[2];
->> +		else
->> +			pad = &entity->pads[0];
->> +
->> +		if (!(pad->flags & MEDIA_PAD_FL_SINK))
->> +			break;
->> +
->> +		pad = media_entity_remote_pad(pad);
->> +		if (pad == NULL ||
->> +		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->> +			break;
->> +
->> +		entity = pad->entity;
->> +		subdev = media_entity_to_v4l2_subdev(entity);
->> +		ret = v4l2_subdev_call(subdev, video, s_stream, on);
->> +		if (on && ret < 0 && ret != -ENOIOCTLCMD)
->> +			return ret;
->> +	}
->> +	return ret;
->> +}
->> +
->> +static int tegra_channel_start_streaming(struct vb2_queue *vq, u32 count)
->> +{
->> +	struct tegra_channel *chan = vb2_get_drv_priv(vq);
->> +	struct media_pipeline *pipe = chan->video.entity.pipe;
->> +	struct tegra_channel_buffer *buf, *nbuf;
->> +	int ret = 0;
->> +
->> +	if (!chan->vi->pg_mode && !chan->remote_entity) {
->> +		dev_err(&chan->video.dev,
->> +			"is not in TPG mode and has not sensor connected!\n");
->> +		ret = -EINVAL;
->> +		goto vb2_queued;
->> +	}
->> +
->> +	mutex_lock(&chan->lock);
->> +
->> +	/* Start CIL clock */
->> +	clk_set_rate(chan->cil_clk, 102000000);
->> +	clk_prepare_enable(chan->cil_clk);
->> +
->> +	/* Disable DPD */
->> +	ret = tegra_io_rail_power_on(chan->io_id);
->> +	if (ret < 0) {
->> +		dev_err(&chan->video.dev,
->> +			"failed to power on CSI rail: %d\n", ret);
->> +		goto error_power_on;
->> +	}
->> +
->> +	/* Clean up status */
->> +	cil_write(chan, TEGRA_CSI_CIL_STATUS, 0xFFFFFFFF);
->> +	cil_write(chan, TEGRA_CSI_CILX_STATUS, 0xFFFFFFFF);
->> +	pp_write(chan, TEGRA_CSI_PIXEL_PARSER_STATUS, 0xFFFFFFFF);
->> +	csi_write(chan, TEGRA_VI_CSI_ERROR_STATUS, 0xFFFFFFFF);
->> +
->> +	ret = media_entity_pipeline_start(&chan->video.entity, pipe);
->> +	if (ret < 0)
->> +		goto error_pipeline_start;
->> +
->> +	/* Start the pipeline. */
->> +	ret = tegra_channel_set_stream(chan, true);
->> +	if (ret < 0)
->> +		goto error_set_stream;
->> +
->> +	/* Note: Program VI registers after TPG, sensors and CSI streaming */
->> +	ret = tegra_channel_capture_setup(chan);
->> +	if (ret < 0)
->> +		goto error_capture_setup;
->> +
->> +	chan->sequence = 0;
->> +	mutex_unlock(&chan->lock);
->> +
->> +	/* Start work queue to capture data to buffer */
->> +	schedule_work(&chan->work);
->> +
->> +	return 0;
->> +
->> +error_capture_setup:
->> +	tegra_channel_set_stream(chan, false);
->> +error_set_stream:
->> +	media_entity_pipeline_stop(&chan->video.entity);
->> +error_pipeline_start:
->> +	tegra_io_rail_power_off(chan->io_id);
->> +error_power_on:
->> +	clk_disable_unprepare(chan->cil_clk);
->> +	mutex_unlock(&chan->lock);
->> +vb2_queued:
->> +	/* Return all queued buffers back to vb2 */
->> +	spin_lock_irq(&chan->queued_lock);
->> +	vq->start_streaming_called = 0;
->> +	list_for_each_entry_safe(buf, nbuf, &chan->capture, queue) {
->> +		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_QUEUED);
->> +		list_del(&buf->queue);
->> +	}
->> +	spin_unlock_irq(&chan->queued_lock);
->> +	return ret;
->> +}
-> OK, so this whole sequence for running the DMA remains very confusing.
->
-> First of all, this needs more documentation, especially about the fact that this
-> uses shadow registers.
+From: Hans Verkuil <hansverk@cisco.com>
 
-Sure, I will put some comments.
+Document the new HDMI CEC framework.
 
-> Secondly, at the very least you need to create per-channel workqueues instead of
-> using the global workqueue (schedule_work schedules the work on the global queue).
->
-> But I would replace the whole workqueue handling with per-channel kthreads instead:
-> where you call schedule_work above in start_streaming you start the thread. The
-> thread keeps going while there are buffers queued, and if no buffers are available
-> it will wait until it is woken up again. In buffer_queue you can wake up the thread
-> after queueing the buffer.
->
-> In stop streaming you stop the thread.
->
-> Doing it this way allows you to remove the 'vq->start_streaming_called = 0' line
-> above: the fact that you need it there is an indication that there is something
-> wrong with the design. The real problem is that buffer_queue does too much: buffer_queue
-> should just queue up the buffer for the DMA engine but it should never (re)start the
-> DMA engine. Starting and stopping should be handled in start/stop_streaming.
->
-> This keeps the design clean. I've seen other drivers that do similar things to what
-> is done here, and that always created a mess.
->
-> In addition, the way it works now in this driver is that the worker function is
-> called on start_streaming AND for every buffer_queue, so it looks like you can get
-> multiple worker functions running at the same time. It's all pretty weird.
->
-> Keeping all the DMA handling in a single thread makes the control mechanism much
-> cleaner.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: add DocBook documentation by Hans Verkuil, with
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/cec.txt | 166 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 166 insertions(+)
+ create mode 100644 Documentation/cec.txt
 
-I agree and I will move to kthread.
+diff --git a/Documentation/cec.txt b/Documentation/cec.txt
+new file mode 100644
+index 0000000..b298249
+--- /dev/null
++++ b/Documentation/cec.txt
+@@ -0,0 +1,166 @@
++CEC Kernel Support
++==================
++
++The CEC framework provides a unified kernel interface for use with HDMI CEC
++hardware. It is designed to handle a multiple variants of hardware. Adding to
++the flexibility of the framework it enables to set which parts of the CEC
++protocol processing is handled by the hardware, by the driver and by the
++userspace application.
++
++
++The CEC Protocol
++----------------
++
++The CEC protocol enables consumer electronic devices to communicate with each
++other through the HDMI connection. The protocol uses logical addresses in the
++communication. The logical address is strictly connected with the functionality
++provided by the device. The TV acting as the communication hub is always
++assigned address 0. The physical address is determined by the physical
++connection between devices.
++
++The protocol enables control of compatible devices with a single remote.
++Synchronous power on/standby, instant playback with changing the content source
++on the TV.
++
++The Kernel Interface
++====================
++
++CEC Adapter
++-----------
++
++#define CEC_LOG_ADDR_INVALID 0xff
++
++/* The maximum number of logical addresses one device can be assigned to.
++ * The CEC 2.0 spec allows for only 2 logical addresses at the moment. The
++ * Analog Devices CEC hardware supports 3. So let's go wild and go for 4. */
++#define CEC_MAX_LOG_ADDRS 4
++
++/* The "Primary Device Type" */
++#define CEC_OP_PRIM_DEVTYPE_TV		0
++#define CEC_OP_PRIM_DEVTYPE_RECORD		1
++#define CEC_OP_PRIM_DEVTYPE_TUNER		3
++#define CEC_OP_PRIM_DEVTYPE_PLAYBACK		4
++#define CEC_OP_PRIM_DEVTYPE_AUDIOSYSTEM	5
++#define CEC_OP_PRIM_DEVTYPE_SWITCH		6
++#define CEC_OP_PRIM_DEVTYPE_VIDEOPROC	7
++
++/* The "All Device Types" flags (CEC 2.0) */
++#define CEC_OP_ALL_DEVTYPE_TV		(1 << 7)
++#define CEC_OP_ALL_DEVTYPE_RECORD	(1 << 6)
++#define CEC_OP_ALL_DEVTYPE_TUNER	(1 << 5)
++#define CEC_OP_ALL_DEVTYPE_PLAYBACK	(1 << 4)
++#define CEC_OP_ALL_DEVTYPE_AUDIOSYSTEM	(1 << 3)
++#define CEC_OP_ALL_DEVTYPE_SWITCH	(1 << 2)
++/* And if you wondering what happened to VIDEOPROC devices: those should
++ * be mapped to a SWITCH. */
++
++/* The logical address types that the CEC device wants to claim */
++#define CEC_LOG_ADDR_TYPE_TV		0
++#define CEC_LOG_ADDR_TYPE_RECORD	1
++#define CEC_LOG_ADDR_TYPE_TUNER		2
++#define CEC_LOG_ADDR_TYPE_PLAYBACK	3
++#define CEC_LOG_ADDR_TYPE_AUDIOSYSTEM	4
++#define CEC_LOG_ADDR_TYPE_SPECIFIC	5
++#define CEC_LOG_ADDR_TYPE_UNREGISTERED	6
++/* Switches should use UNREGISTERED.
++ * Video processors should use SPECIFIC. */
++
++/* The CEC version */
++#define CEC_OP_CEC_VERSION_1_3A		4
++#define CEC_OP_CEC_VERSION_1_4		5
++#define CEC_OP_CEC_VERSION_2_0		6
++
++struct cec_adapter {
++	/* internal fields removed */
++
++	u16 phys_addr;
++	u32 capabilities;
++	u8 version;
++	u8 num_log_addrs;
++	u8 prim_device[CEC_MAX_LOG_ADDRS];
++	u8 log_addr_type[CEC_MAX_LOG_ADDRS];
++	u8 log_addr[CEC_MAX_LOG_ADDRS];
++
++	int (*adap_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
++	int (*adap_transmit)(struct cec_adapter *adap, struct cec_msg *msg);
++	void (*adap_transmit_timed_out)(struct cec_adapter *adap);
++
++	void (*claimed_log_addr)(struct cec_adapter *adap, u8 idx);
++	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
++};
++
++int cec_create_adapter(struct cec_adapter *adap, u32 caps);
++void cec_delete_adapter(struct cec_adapter *adap);
++int cec_transmit_msg(struct cec_adapter *adap, struct cec_data *data, bool block);
++
++/* Called by the adapter */
++void cec_transmit_done(struct cec_adapter *adap, u32 status);
++void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++
++int cec_receive_msg(struct cec_adapter *adap, struct cec_msg *msg, bool block);
++int cec_claim_log_addrs(struct cec_adapter *adap, struct cec_log_addrs *log_addrs, bool block);
++
++The device type defines are defined by the CEC standard.
++
++The cec_adapter structure represents the adapter. It has a number of
++operations that have to be implemented in the driver: adap_enable() enables
++or disables the physical adapter, adap_log_addr() tells the driver which
++logical address should be configured. This may be called multiple times
++to configure multiple logical addresses. Calling adap_enable(false) or
++adap_log_addr(CEC_LOG_ADDR_INVALID) will clear all configured logical
++addresses.
++
++The adap_transmit op will setup the hardware to send out the given CEC message.
++This will return without waiting for the transmission to finish. The
++adap_transmit_timed_out() function is called when the current transmission timed
++out and the hardware needs to be informed of this (the hardware should go back
++from transmitter to receiver mode).
++
++The adapter driver will also call into the adapter: it should call
++cec_transmit_done() when a cec transfer was finalized and cec_received_msg()
++when a new message was received.
++
++When a message is received the received() op is called.
++
++The driver has to call cec_create_adapter to initialize the structure. If
++the 'caps' argument is non-zero, then it will also create a /dev/cecX
++device node to allow userspace to interact with the CEC device. Userspace
++can request those capabilities with the CEC_G_CAPS ioctl.
++
++In order for a CEC adapter to be configured it needs a physical address.
++This is normally assigned by the driver. It is either 0.0.0.0 for a TV (aka
++video receiver) or it is derived from the EDID that the source received
++from the sink. This is normally set by the driver before enabling the CEC
++adapter, or it is set from userspace in the case of CEC USB dongles (although
++embedded systems might also want to set this manually).
++
++After enabling the CEC adapter it has to be configured.
++
++The userspace has to inform the CEC adapter of which type of device it requests
++the adapter to identify itself. After this information is set by userspace, the
++CEC framework will attempt to to find and claim a logical addresses matching the
++requested device type. If none are found, then it will fall back to logical
++address Unregistered (15). To clear the logical addresses list from the list the
++userspace application should set the num_log_addrs field of struct cec_log_addr
++to 0.
++
++The type of device is set from the userspace with the CEC_S_ADAP_LOG_ADDRS. In
++addition, claiming logical addresses can be initiated from the kernel side by
++calling the cec_claim_log_addrs function.
++
++Before the addresses are claimed it is possible to send and receive messages.
++Sending all messages is possible as it is up to the userspace to the source
++and destination addresses in the message payload. However, only broadcast
++messages can be received until a regular logical address is claimed.
++
++When a CEC message is received the CEC framework will take care of the CEC
++core messages CEC_MSG_GET_CEC_VERSION, CEC_MSG_GIVE_PHYS_ADDR and CEC_MSG_ABORT.
++Then it will call the received() op (if set), and finally it will queue it
++for handling by userspace if create_devnode was true, or send back
++FEATURE_ABORT if create_devnode was false.
++
++Drivers can also use the cec_transmit_msg() call to transmit a message. This
++can either be fire-and-forget (the CEC framework will queue up messages in a
++transmit queue), or a blocking wait until there is either an error or a
++reply to the message.
+-- 
+2.1.4
 
-
-> <snip>
->> +static void
->> +__tegra_channel_try_format(struct tegra_channel *chan, struct v4l2_pix_format *pix,
->> +		      const struct tegra_video_format **fmtinfo)
->> +{
->> +	const struct tegra_video_format *info;
->> +	unsigned int min_width;
->> +	unsigned int max_width;
->> +	unsigned int min_bpl;
->> +	unsigned int max_bpl;
->> +	unsigned int width;
->> +	unsigned int align;
->> +	unsigned int bpl;
->> +
->> +	/* Retrieve format information and select the default format if the
->> +	 * requested format isn't supported.
->> +	 */
->> +	info = tegra_core_get_format_by_fourcc(pix->pixelformat);
->> +	if (!info)
->> +		info = tegra_core_get_format_by_fourcc(TEGRA_VF_DEF_FOURCC);
->> +
->> +	pix->pixelformat = info->fourcc;
->> +	pix->field = V4L2_FIELD_NONE;
->> +
->> +	/* The transfer alignment requirements are expressed in bytes. Compute
->> +	 * the minimum and maximum values, clamp the requested width and convert
->> +	 * it back to pixels.
->> +	 */
->> +	align = lcm(chan->align, info->bpp);
->> +	min_width = roundup(TEGRA_MIN_WIDTH, align);
->> +	max_width = rounddown(TEGRA_MAX_WIDTH, align);
->> +	width = rounddown(pix->width * info->bpp, align);
->> +
->> +	pix->width = clamp(width, min_width, max_width) / info->bpp;
->> +	pix->height = clamp(pix->height, TEGRA_MIN_HEIGHT,
->> +			    TEGRA_MAX_HEIGHT);
->> +
->> +	/* Clamp the requested bytes per line value. If the maximum bytes per
->> +	 * line value is zero, the module doesn't support user configurable line
->> +	 * sizes. Override the requested value with the minimum in that case.
->> +	 */
->> +	min_bpl = pix->width * info->bpp;
->> +	max_bpl = rounddown(TEGRA_MAX_WIDTH, chan->align);
->> +	bpl = rounddown(pix->bytesperline, chan->align);
->> +
->> +	pix->bytesperline = clamp(bpl, min_bpl, max_bpl);
->> +	pix->sizeimage = pix->bytesperline * pix->height;
-> The colorspace is still not set: using the test pattern generator as a source
-> I would select SRGB for Bayer and RGB pixelformats and REC709 for YUV pixelformats.
-
-OK, I fixed it.
-
->> +
->> +	if (fmtinfo)
->> +		*fmtinfo = info;
->> +}
-> <snip>
->
->> +static int tegra_channel_v4l2_open(struct file *file)
->> +{
->> +	struct tegra_channel *chan = video_drvdata(file);
->> +	struct tegra_vi_device *vi = chan->vi;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&vi->lock);
->> +	ret = v4l2_fh_open(file);
->> +	if (ret)
->> +		goto unlock;
->> +
->> +	/* The first open then turn on power*/
->> +	if (!vi->power_on_refcnt) {
-> Instead of using your own counter you can also call:
->
-> 	if (v4l2_fh_is_singular_file(file)) {
->
-
-I will rework on this open/release().
-
->> +		tegra_vi_power_on(chan->vi);
->> +
->> +		usleep_range(5, 100);
->> +		tegra_channel_write(chan, TEGRA_VI_CFG_CG_CTRL, 1);
->> +		tegra_channel_write(chan, TEGRA_CSI_CLKEN_OVERRIDE, 0);
->> +		usleep_range(10, 15);
->> +	}
->> +	vi->power_on_refcnt++;
->> +
->> +unlock:
->> +	mutex_unlock(&vi->lock);
->> +	return ret;
->> +}
->> +
->> +static int tegra_channel_v4l2_release(struct file *file)
->> +{
->> +	struct tegra_channel *chan = video_drvdata(file);
->> +	struct tegra_vi_device *vi = chan->vi;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&vi->lock);
->> +	vi->power_on_refcnt--;
->> +	/* The last release then turn off power */
->> +	if (!vi->power_on_refcnt)
-> And here do the same:
->
-> 	if (v4l2_fh_is_singular_file(file)) {
->
->> +		tegra_vi_power_off(chan->vi);
->> +	ret = _vb2_fop_release(file, NULL);
-> Is this the correct order? What if you are streaming and while streaming
-> close the filehandle? Will the fact that the power is turned off before
-> stop_streaming is called (_vb2_fop_release will call that) cause a problem?
->
->> +	mutex_unlock(&vi->lock);
->> +
->> +	return ret;
->> +}
-> Regards,
->
-> 	Hans
->
-
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
