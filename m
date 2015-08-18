@@ -1,85 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-70-136-246.dsl.in-addr.zen.co.uk ([82.70.136.246]:53657 "EHLO
-	xk120.dyn.ducie.codethink.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752573AbbHMLg6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54430 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143AbbHRUE3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 07:36:58 -0400
-From: William Towle <william.towle@codethink.co.uk>
-To: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk
-Cc: linux-sh@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/3] media: adv7604: automatic "default-input" selection
-Date: Thu, 13 Aug 2015 12:36:50 +0100
-Message-Id: <1439465811-936-3-git-send-email-william.towle@codethink.co.uk>
-In-Reply-To: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
-References: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
+	Tue, 18 Aug 2015 16:04:29 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v5 6/8] [media] media: add messages when media device gets (un)registered
+Date: Tue, 18 Aug 2015 17:04:19 -0300
+Message-Id: <f77b929eedd92943a14390a650dd1699cfda305c.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
+References: <cover.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
+References: <cover.1439927113.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add logic such that the "default-input" property becomes unnecessary
-for chips that only have one suitable input (ADV7611 by design, and
-ADV7612 due to commit 7111cddd "[media] media: adv7604: reduce support
-to first (digital) input").
+We can only free the media device after being sure that no
+graph object is used.
 
-Additionally, Ian's documentation in commit bf9c8227 ("[media] media:
-adv7604: ability to read default input port from DT") states that the
-"default-input" property should reside directly in the node for
-adv7612. Hence, also adjust the parsing to make the implementation
-consistent with this.
+In order to help tracking it, let's add debug messages
+that will print when the media controller gets registered
+or unregistered.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
----
- drivers/media/i2c/adv7604.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5631ec0..5bd81bd 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2799,7 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
--	u32 v;
-+	u32 v= -1;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7f512223249b..d72d283c4f29 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -357,6 +357,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
  
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+ static void media_device_release(struct media_devnode *mdev)
+ {
++	dev_dbg(mdev->parent, "Media device released\n");
+ }
  
-@@ -2809,14 +2809,25 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
+ /**
+@@ -395,6 +396,8 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return ret;
+ 	}
  
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
--
--	if (!of_property_read_u32(endpoint, "default-input", &v))
--		state->pdata.default_input = v;
--	else
--		state->pdata.default_input = -1;
--
- 	of_node_put(endpoint);
- 
-+	if (of_property_read_u32(np, "default-input", &v)) {
-+		/* not specified ... can we choose automatically? */
-+		switch (state->info->type) {
-+		case ADV7611:
-+			v = 0;
-+			break;
-+		case ADV7612:
-+			if (state->info->max_port
-+					== ADV76XX_PAD_HDMI_PORT_A)
-+				v = 0;
-+			/* else is unhobbled, leave unspecified */
-+		default:
-+			break;
-+		}
-+	}
-+	state->pdata.default_input = v;
++	dev_dbg(mdev->dev, "Media device registered\n");
 +
- 	flags = bus_cfg.bus.parallel.flags;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+@@ -414,6 +417,8 @@ void media_device_unregister(struct media_device *mdev)
  
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	media_devnode_unregister(&mdev->devnode);
++
++	dev_dbg(mdev->dev, "Media device unregistered\n");
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
 -- 
-1.7.10.4
+2.4.3
 
