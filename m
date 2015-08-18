@@ -1,57 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:34284 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbbHQLUn (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54400 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbbHRUE2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2015 07:20:43 -0400
-From: Masanari Iida <standby24x7@gmail.com>
-To: mchehab@osg.samsung.com, linux-kernel@vger.kernel.org,
-	corbet@lwn.net, sakari.ailus@linux.intel.com,
-	linux-media@vger.kernel.org
-Cc: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] [media] DocBook media: Fix typo "the the" in xml files
-Date: Mon, 17 Aug 2015 20:20:56 +0900
-Message-Id: <1439810456-22401-1-git-send-email-standby24x7@gmail.com>
+	Tue, 18 Aug 2015 16:04:28 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RFC v5 2/8] [media] media: add a common struct to be embed on media graph objects
+Date: Tue, 18 Aug 2015 17:04:15 -0300
+Message-Id: <9c2b29164f11d96c5c437165fb3f013aec8715fe.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
+References: <cover.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
+References: <cover.1439927113.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix spelling typo "the the" found in controls.xml
-and vidioc-g-param.xml.
-These xml files are generated from NOT any files, so I have
-to fix these xml files.
+Due to the MC API proposed changes, we'll need to have an unique
+object ID for all graph objects, and have some shared fields
+that will be common on all media graph objects.
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
----
- Documentation/DocBook/media/v4l/controls.xml      | 2 +-
- Documentation/DocBook/media/v4l/vidioc-g-parm.xml | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Right now, the only common object is the object ID, but other
+fields will be added later on.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 6e1667b..33aece5 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3414,7 +3414,7 @@ giving priority to the center of the metered area.</entry>
- 		<row>
- 		  <entry><constant>V4L2_EXPOSURE_METERING_MATRIX</constant>&nbsp;</entry>
- 		  <entry>A multi-zone metering. The light intensity is measured
--in several points of the frame and the the results are combined. The
-+in several points of the frame and the results are combined. The
- algorithm of the zones selection and their significance in calculating the
- final value is device dependent.</entry>
- 		</row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-index f4e28e7..7217287 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-@@ -267,7 +267,7 @@ is intended for still imaging applications. The idea is to get the
- best possible image quality that the hardware can deliver. It is not
- defined how the driver writer may achieve that; it will depend on the
- hardware and the ingenuity of the driver writer. High quality mode is
--a different mode from the the regular motion video capture modes. In
-+a different mode from the regular motion video capture modes. In
- high quality mode:<itemizedlist>
- 		  <listitem>
- 		    <para>The driver may be able to capture higher
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index cb0ac4e0dfa5..4834172bf6f8 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -27,6 +27,38 @@
+ #include <media/media-device.h>
+ 
+ /**
++ *  media_gobj_init - Initialize a graph object
++ *
++ * @mdev:	Pointer to the media_device that contains the object
++ * @type:	Type of the object
++ * @gobj:	Pointer to the object
++ *
++ * This routine initializes the embedded struct media_gobj inside a
++ * media graph object. It is called automatically if media_*_create()
++ * calls are used. However, if the object (entity, link, pad, interface)
++ * is embedded on some other object, this function should be called before
++ * registering the object at the media controller.
++ */
++void media_gobj_init(struct media_device *mdev,
++			   enum media_gobj_type type,
++			   struct media_gobj *gobj)
++{
++	/* For now, nothing to do */
++}
++
++/**
++ *  media_gobj_remove - Stop using a graph object on a media device
++ *
++ * @graph_obj:	Pointer to the object
++ *
++ * This should be called at media_device_unregister_*() routines
++ */
++void media_gobj_remove(struct media_gobj *gobj)
++{
++	/* For now, nothing to do */
++}
++
++/**
+  * media_entity_init - Initialize a media entity
+  *
+  * @num_pads: Total number of sink and source pads.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0a66fc225559..762593c7424f 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -28,6 +28,37 @@
+ #include <linux/list.h>
+ #include <linux/media.h>
+ 
++/* Enums used internally at the media controller to represent graphs */
++
++/**
++ * enum media_gobj_type - type of a graph element
++ *
++ */
++enum media_gobj_type {
++	 /* FIXME: add the types here, as we embed media_gobj */
++	MEDIA_GRAPH_NONE
++};
++
++#define BITS_PER_TYPE		8
++#define BITS_PER_LOCAL_ID	(32 - BITS_PER_TYPE)
++
++/* Structs to represent the objects that belong to a media graph */
++
++/**
++ * struct media_gobj - Define a graph object.
++ *
++ * @id:		Non-zero object ID identifier. The ID should be unique
++ *		inside a media_device, as it is composed by
++ *		BITS_PER_TYPE to store the type plus BITS_PER_LOCAL_ID
++ *		to store a per-type ID (called as "local ID").
++ *
++ * All elements on the media graph should have this struct embedded
++ */
++struct media_gobj {
++	u32			id;
++};
++
++
+ struct media_pipeline {
+ };
+ 
+@@ -118,6 +149,26 @@ static inline u32 media_entity_id(struct media_entity *entity)
+ 	return entity->id;
+ }
+ 
++static inline enum media_gobj_type media_type(struct media_gobj *gobj)
++{
++	return gobj->id >> BITS_PER_LOCAL_ID;
++}
++
++static inline u32 media_localid(struct media_gobj *gobj)
++{
++	return gobj->id & GENMASK(BITS_PER_LOCAL_ID - 1, 0);
++}
++
++static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
++{
++	u32 id;
++
++	id = type << BITS_PER_LOCAL_ID;
++	id |= GENMASK(BITS_PER_LOCAL_ID - 1, 0) & local_id;
++
++	return id;
++}
++
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+ #define MEDIA_ENTITY_ENUM_MAX_ID	64
+ 
+@@ -131,6 +182,14 @@ struct media_entity_graph {
+ 	int top;
+ };
+ 
++#define gobj_to_entity(gobj) \
++		container_of(gobj, struct media_entity, graph_obj)
++
++void media_gobj_init(struct media_device *mdev,
++		    enum media_gobj_type type,
++		    struct media_gobj *gobj);
++void media_gobj_remove(struct media_gobj *gobj);
++
+ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ 		struct media_pad *pads);
+ void media_entity_cleanup(struct media_entity *entity);
 -- 
-2.5.0.234.gefc8a62
+2.4.3
 
