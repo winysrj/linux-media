@@ -1,45 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:32775 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932726AbbHJVlb (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41457 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752278AbbHRIb3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 17:41:31 -0400
-From: Junsu Shin <jjunes0@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	mahfouz.saif.elyazal@gmail.com, boris.brezillon@free-electrons.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Junsu Shin <jjunes0@gmail.com>
-Subject: [PATCH v2] Staging: media: davinci_vpfe: Fix over 80 characters coding style issue
-Date: Mon, 10 Aug 2015 16:40:59 -0500
-Message-Id: <1439242859-12268-1-git-send-email-jjunes0@gmail.com>
+	Tue, 18 Aug 2015 04:31:29 -0400
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	kernel@pengutronix.de, Mats Randgaard <matrandg@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/2] [media] tc358743: make reset gpio optional
+Date: Tue, 18 Aug 2015 10:31:10 +0200
+Message-Id: <1439886670-12322-2-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1439886670-12322-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1439886670-12322-1-git-send-email-u.kleine-koenig@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a patch to the dm365_ipipe.c that fixes over 80 characters warning detected.
+Commit 256148246852 ("[media] tc358743: support probe from device tree")
+specified in the device tree binding documentation that the reset gpio
+is optional. Make the implementation match accordingly.
 
-Signed-off-by: Junsu Shin <jjunes0@gmail.com>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/i2c/tc358743.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 1bbb90c..a474adf 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1536,8 +1536,9 @@ ipipe_get_format(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
-  * @fse: pointer to v4l2_subdev_frame_size_enum structure.
-  */
- static int
--ipipe_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_pad_config *cfg,
--			  struct v4l2_subdev_frame_size_enum *fse)
-+ipipe_enum_frame_size(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       struct v4l2_subdev_frame_size_enum *fse)
- {
- 	struct vpfe_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt format;
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 6ca6c0817993..c511b43a6ff8 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1749,14 +1749,16 @@ static int tc358743_probe_of(struct tc358743_state *state)
+ 	state->pdata.ths_trailcnt = 0x2;
+ 	state->pdata.hstxvregcnt = 0;
+ 
+-	state->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
++	state->reset_gpio = devm_gpiod_get_optional(dev, "reset",
++						    GPIOD_OUT_LOW);
+ 	if (IS_ERR(state->reset_gpio)) {
+ 		dev_err(dev, "failed to get reset gpio\n");
+ 		ret = PTR_ERR(state->reset_gpio);
+ 		goto disable_clk;
+ 	}
+ 
+-	tc358743_gpio_reset(state);
++	if (state->reset_gpio)
++		tc358743_gpio_reset(state);
+ 
+ 	ret = 0;
+ 	goto free_endpoint;
 -- 
-1.9.1
+2.4.6
 
