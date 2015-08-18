@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sg2apc01hn0226.outbound.protection.outlook.com ([104.47.125.226]:23328
-	"EHLO APC01-SG2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752102AbbHaTTL convert rfc822-to-8bit (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:25057 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484AbbHRIiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 15:19:11 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Re: Do you need a loan?
-To: Recipients@vger.kernel.org
-From: <>
-Date: Tue, 1 Sep 2015 00:48:54 +0530
-Reply-To: <jmfinancialserviceltd@gmail.com>
-Message-ID: <HK2PR0201MB0900435DD1019DFC582B9D55B86B0@HK2PR0201MB0900.apcprd02.prod.outlook.com>
+	Tue, 18 Aug 2015 04:38:54 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
+	Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv8 10/15] v4l2-subdev: add HDMI CEC ops
+Date: Tue, 18 Aug 2015 10:26:35 +0200
+Message-Id: <ffa7f5ed1e2f16db7eb3272f87c75b06a3ada2ca.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
+In-Reply-To: <cover.1439886203.git.hans.verkuil@cisco.com>
+References: <cover.1439886203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We offer private, commercial and personal loans with very low annualinterest rates as low as 2% in one year to 50 years repayment period anywhere in the world. We offer loans ranging from $5000 to $100 million. Our loans are well insured for maximum security is our priority. Are you losing sleep at night worrying how to get a legitimate loan lender? You bite your nails that fast? Instead of beating you, contact JM Financial Services Ltd now, specialists who help stop loans bad credit history to find a solution that victory is our mission. Applicants must fill out a loan application form below:
+Add CEC callbacks to the v4l2_subdev_video_ops. These are the low-level CEC
+ops that subdevs that support CEC have to implement.
 
-FORM credit application
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/v4l2-subdev.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-loan applications
-Your full name *
-Your e-mail *
-Your phone *
-Your address *
-Your city *
-State / Province *
-Country *
-Fax*
-Date of birth *
-Do you have an account? *
-Have you applied before? *
-The loan amount is needed *
-The Loan Duration*
-The life expectancy *
-The purpose of the loan *
-Send me a scanned copy of your passport: *
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 370fc38..1b04d94 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -42,6 +42,10 @@
+ 
+ #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
+ 
++#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 3, u32)
++#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 4, struct cec_msg)
++#define V4L2_SUBDEV_CEC_CONN_INPUTS		_IOW('v', 5, u16)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event;
+@@ -51,6 +55,7 @@ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
+ struct v4l2_mbus_frame_desc;
++struct cec_msg;
+ 
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -339,6 +344,10 @@ struct v4l2_subdev_video_ops {
+ 			     const struct v4l2_mbus_config *cfg);
+ 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+ 			   unsigned int *size);
++	unsigned (*cec_available_log_addrs)(struct v4l2_subdev *sd);
++	int (*cec_enable)(struct v4l2_subdev *sd, bool enable);
++	int (*cec_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
++	int (*cec_transmit)(struct v4l2_subdev *sd, u32 timeout_ms, struct cec_msg *msg);
+ };
+ 
+ /*
+-- 
+2.1.4
 
-Creditor: Mr. Prakash Lass Dickson.
-Company: JM Financial Services Ltd.
-Copyright JM Financial Ltd. All rights reserved.
