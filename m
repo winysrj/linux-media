@@ -1,85 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:50820 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753099AbbHUICx (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:52096 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826AbbHRNcE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 04:02:53 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Josh Wu <josh.wu@atmel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 2/3] media: atmel-isi: move configure_geometry() to start_streaming()
-Date: Fri, 21 Aug 2015 16:08:13 +0800
-Message-ID: <1440144494-11800-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
-References: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 18 Aug 2015 09:32:04 -0400
+Message-id: <55D333CF.9000504@samsung.com>
+Date: Tue, 18 Aug 2015 15:31:59 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Seung-Woo Kim <sw0312.kim@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	k.debski@samsung.com, mchehab@osg.samsung.com
+Cc: m.szyprowski@samsung.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH] s5p-mfc: fix state check from encoder queue_setup
+References: <1431501925-16905-1-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1431501925-16905-1-git-send-email-sw0312.kim@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As in set_fmt() function we only need to know which format is been set,
-we don't need to access the ISI hardware in this moment.
+On 05/13/2015 09:25 AM, Seung-Woo Kim wrote:
+> MFCINST_GOT_INST state is set to encoder context with set_format
+> only for catpure buffer. In queue_setup of encoder called during
+> reqbufs, it is checked MFCINST_GOT_INST state for both capture
+> and output buffer. So this patch fixes to encoder to check
+> MFCINST_GOT_INST state only for capture buffer from queue_setup.
+> 
+> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
 
-So move the configure_geometry(), which access the ISI hardware, to
-start_streaming() will make code more consistent and simpler.
+Looks OK.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 
-Changes in v3: None
-Changes in v2:
-- Add Laurent's reviewed-by tag.
+Regards
+Andrzej
 
- drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index b67da70..fe9247a 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Disable all interrupts */
- 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
- 
-+	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-+				icd->current_fmt->code);
-+	if (ret < 0)
-+		return ret;
-+
- 	spin_lock_irq(&isi->lock);
- 	/* Clear any pending interrupt */
- 	isi_readl(isi, ISI_STATUS);
-@@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
- static int isi_camera_set_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct atmel_isi *isi = ici->priv;
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
-@@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
- 	if (mf->code != xlate->code)
- 		return -EINVAL;
- 
--	/* Enable PM and peripheral clock before operate isi registers */
--	pm_runtime_get_sync(ici->v4l2_dev.dev);
--
--	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
--
--	pm_runtime_put(ici->v4l2_dev.dev);
--
--	if (ret < 0)
--		return ret;
--
- 	pix->width		= mf->width;
- 	pix->height		= mf->height;
- 	pix->field		= mf->field;
--- 
-1.9.1
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    9 +++++----
+>  1 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index e65993f..2e57e9f 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -1819,11 +1819,12 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+>  	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
+>  	struct s5p_mfc_dev *dev = ctx->dev;
+>  
+> -	if (ctx->state != MFCINST_GOT_INST) {
+> -		mfc_err("inavlid state: %d\n", ctx->state);
+> -		return -EINVAL;
+> -	}
+>  	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		if (ctx->state != MFCINST_GOT_INST) {
+> +			mfc_err("inavlid state: %d\n", ctx->state);
+> +			return -EINVAL;
+> +		}
+> +
+>  		if (ctx->dst_fmt)
+>  			*plane_count = ctx->dst_fmt->num_planes;
+>  		else
+> 
 
