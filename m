@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-am1hn0246.outbound.protection.outlook.com ([157.56.112.246]:49460
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751788AbbHZTfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2015 15:35:04 -0400
-Content-Class: urn:content-classes:message
-Reply-To: <bencook551127@yahoo.co.id>
-From: "Mrs. Linda Yong" <spam@practicenet.co.uk>
-Subject: Pls provide the following details
-Date: Wed, 26 Aug 2015 16:56:42 +0200
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:35538 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388AbbHSF4E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2015 01:56:04 -0400
+Received: by oiew67 with SMTP id w67so95461057oie.2
+        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2015 22:56:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-Message-ID: <DEXSERV1RAluo3npvqn00002951@dexam.co.uk>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+In-Reply-To: <1439886670-12322-2-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1439886670-12322-1-git-send-email-u.kleine-koenig@pengutronix.de>
+	<1439886670-12322-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Date: Wed, 19 Aug 2015 07:56:02 +0200
+Message-ID: <CACRpkdbxJJ66JBsFdzxhs5eNSHeuGELk44dHbm_Lz4P-96iHWQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] [media] tc358743: make reset gpio optional
+From: Linus Walleij <linus.walleij@linaro.org>
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Mats Randgaard <matrandg@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir / Madam,
+On Tue, Aug 18, 2015 at 10:31 AM, Uwe Kleine-König
+<u.kleine-koenig@pengutronix.de> wrote:
 
-I am interested in purchasing your products ,  which  sample image is attached to below Login link.
+> Commit 256148246852 ("[media] tc358743: support probe from device tree")
+> specified in the device tree binding documentation that the reset gpio
+> is optional. Make the implementation match accordingly.
+>
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 
-Please follow the link below Login link to view the sample image I am interested to order from your company, and we sincerely hope to establish a long-term business relation with your esteemed company.
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-Click Here to login:  http://www.ptss.edu.my/v6/administrator/templates/system/documents.html
-
-
-If so kindly, provide the following details, send me your latest catalog. Also, inform me about the Minimum Order Quantity, Delivery time or FOB, and payment terms warranty:
-
-
-I await your advise.
-Best Wishes,
-Mrs. Linda Yong
+Yours,
+Linus Walleij
