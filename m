@@ -1,55 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57143 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:58542 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933981AbbHKLQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 07:16:49 -0400
-Date: Tue, 11 Aug 2015 08:16:44 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v2 13/16] media: make the internal function to
- create links more generic
-Message-ID: <20150811081644.05bb088e@recife.lan>
-In-Reply-To: <55C9D500.3050902@xs4all.nl>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-	<078d36a3aa5db1b692ae1b8910d0be0313bd03b9.1438954897.git.mchehab@osg.samsung.com>
-	<55C9D500.3050902@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751617AbbHSPgO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2015 11:36:14 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/4] [media] staging: omap4iss: get entity ID using media_entity_id()
+Date: Wed, 19 Aug 2015 17:35:19 +0200
+Message-Id: <1439998526-12832-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
+References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Aug 2015 12:57:04 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+The struct media_entity does not have an .id field anymore since
+now the entity ID is stored in the embedded struct media_gobj.
 
-> On 08/07/15 16:20, Mauro Carvalho Chehab wrote:
-> > In preparation to add a public function to add links, let's
-> > make the internal function that creates link more generic.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 96d48aec8381..c68dc421b022 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -461,7 +461,12 @@ EXPORT_SYMBOL_GPL(media_entity_put);
-> >   * Links management
-> >   */
-> >  
-> > -static struct media_link *media_entity_add_link(struct media_entity *entity)
-> > +static struct media_link *__media_create_link(struct media_device *mdev,
-> > +					      enum media_graph_link_dir dir,
-> 
-> Am I blind? I can't find the media_graph_link_dir enum definition anywhere in
-> this patch series...
+This caused the omap4iss driver fail to build. Fix by using the
+media_entity_id() macro to obtain the entity ID.
 
-There were a few patches that vger didn't seem to get. This one was added
-by patch 9:
-	0009-media-use-media_graph_obj-for-link-endpoints.patch
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-I'll try to resend the missing patches.
+ drivers/staging/media/omap4iss/iss.c       | 2 +-
+ drivers/staging/media/omap4iss/iss_video.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index f32ab7b98ae2..7226553ceb2f 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -607,7 +607,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+ 			 * crashed. Mark it as such, the ISS will be reset when
+ 			 * applications will release it.
+ 			 */
+-			iss->crashed |= 1U << subdev->entity.id;
++			iss->crashed |= 1U << media_entity_id(&subdev->entity);
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index bae67742706f..25e9e7a6b99d 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -784,7 +784,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	entity = &video->video.entity;
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph)))
+-		pipe->entities |= 1 << entity->id;
++		pipe->entities |= 1 << media_entity_id(entity);
+ 
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+-- 
+2.4.3
+
