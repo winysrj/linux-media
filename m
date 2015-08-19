@@ -1,101 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42536 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755223AbbHYNrH (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56358 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751847AbbHSIhb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 09:47:07 -0400
-Message-ID: <55DC7133.2000808@xs4all.nl>
-Date: Tue, 25 Aug 2015 15:44:19 +0200
+	Wed, 19 Aug 2015 04:37:31 -0400
+Message-ID: <55D44023.6040703@xs4all.nl>
+Date: Wed, 19 Aug 2015 10:36:51 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v7 21/44] [media] dvbdev: add support for interfaces
-References: <cover.1440359643.git.mchehab@osg.samsung.com>	<276e4618235b47251f512337560f68657b414e24.1440359643.git.mchehab@osg.samsung.com>	<55DC1E41.7080706@xs4all.nl> <20150825070439.3340611f@recife.lan>
-In-Reply-To: <20150825070439.3340611f@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC v5 7/8] [media] media: add a debug message to warn
+ about gobj creation/removal
+References: <cover.1439927113.git.mchehab@osg.samsung.com> <b45fb12d0c6c2d45a55522ab7cbcdcd746155528.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <b45fb12d0c6c2d45a55522ab7cbcdcd746155528.1439927113.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/15 12:04, Mauro Carvalho Chehab wrote:
-> Em Tue, 25 Aug 2015 09:50:25 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 08/18/2015 10:04 PM, Mauro Carvalho Chehab wrote:
+> It helps to check if the media controller is doing the
+> right thing with the object creation and removal.
 > 
->> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
->>> Now that the infrastruct for that is set, add support for
->>> interfaces.
->>>
->>> Please notice that we're missing two links:
->>> 	DVB FE intf    -> tuner
->>> 	DVB demux intf -> dvr
->>>
->>> Those should be added latter, after having the entire graph
->>
->> s/latter/later/
->>
->>> set. With the current infrastructure, those should be added
->>> at dvb_create_media_graph(), but it would also require some
->>> extra core changes, to allow the function to enumerate the
->>> interfaces.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
->>> index 65f59f2124b4..747372ba4fe1 100644
->>> --- a/drivers/media/dvb-core/dvbdev.c
->>> +++ b/drivers/media/dvb-core/dvbdev.c
->>> @@ -180,14 +180,35 @@ skip:
->>>  	return -ENFILE;
->>>  }
->>>  
->>> -static void dvb_register_media_device(struct dvb_device *dvbdev,
->>> -				      int type, int minor)
->>> +static void dvb_create_media_entity(struct dvb_device *dvbdev,
->>> +				       int type, int minor)
->>>  {
->>>  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
->>>  	int ret = 0, npads;
->>>  
->>> -	if (!dvbdev->adapter->mdev)
->>> +	switch (type) {
->>> +	case DVB_DEVICE_FRONTEND:
->>> +		npads = 2;
->>> +		break;
->>> +	case DVB_DEVICE_DEMUX:
->>> +		npads = 2;
->>> +		break;
->>> +	case DVB_DEVICE_CA:
->>> +		npads = 2;
->>> +		break;
->>> +	case DVB_DEVICE_NET:
->>> +		/*
->>> +		 * We should be creating entities for the MPE/ULE
->>> +		 * decapsulation hardware (or software implementation).
->>> +		 *
->>> +		 * However, as the number of for the MPE/ULE may not be fixed,
->>> +		 * and we don't have yet dynamic support for PADs at the
->>> +		 * Media Controller.
->>
->> However what? You probably want to add something like:
->>
->> However, ... at the Media Controller, we don't make this entity yet.
+> No extra code/data will be produced if DEBUG or
+> CONFIG_DYNAMIC_DEBUG is not enabled.
 > 
-> What about this:
-> 		 * However, the number of for the MPE/ULE decaps may not be
-> 		 * fixed. As we don't have yet dynamic support for PADs at
-> 		 * the Media Controller, let's not create those yet.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index a6be50e04736..9e5ebc83ff76 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -27,6 +27,67 @@
+>  #include <media/media-device.h>
+>  
+>  /**
+> + *  dev_dbg_obj - Prints in debug mode a change on some object
+> + *
+> + * @event_name:	Name of the event to report. Could be __func__
+> + * @gobj:	Pointer to the object
+> + *
+> + * Enabled only if DEBUG or CONFIG_DYNAMIC_DEBUG. Otherwise, it
+> + * won't produce any code.
+> + */
+> +static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+> +{
+> +#if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
+> +	static const char *gobj_type[] = {
+> +		[MEDIA_GRAPH_ENTITY] = "entity",
+> +		[MEDIA_GRAPH_PAD] = "pad",
+> +		[MEDIA_GRAPH_LINK] = "link",
+> +	};
+> +
+> +	switch (media_type(gobj)) {
+> +	case MEDIA_GRAPH_ENTITY:
+> +		dev_dbg(gobj->mdev->dev,
+> +			"%s: id 0x%08x %s#%d '%s'\n",
+> +			event_name, gobj->id,
+> +			gobj_type[media_type(gobj)],
 
-I'd be explicit:
+You can just fill in "entity" in the string since this is always an entity in
+this case.
 
-s/those/decap entities/
+> +			media_localid(gobj),
+> +			gobj_to_entity(gobj)->name);
+> +		break;
+> +	case MEDIA_GRAPH_LINK:
+> +	{
+> +		struct media_link *link = gobj_to_link(gobj);
+> +
+> +		dev_dbg(gobj->mdev->dev,
+> +			"%s: id 0x%08x %s#%d: '%s' %s#%d ==> '%s' %s#%d\n",
+> +			event_name, gobj->id,
+> +			gobj_type[media_type(gobj)],
 
-Other than that this is OK.
+Ditto.
+
+> +			media_localid(gobj),
+> +
+> +			link->source->entity->name,
+> +			gobj_type[media_type(&link->source->graph_obj)],
+> +			media_localid(&link->source->graph_obj),
+> +
+> +			link->sink->entity->name,
+> +			gobj_type[media_type(&link->sink->graph_obj)],
+> +			media_localid(&link->sink->graph_obj));
+> +		break;
+> +	}
+> +	case MEDIA_GRAPH_PAD:
+> +	{
+> +		struct media_pad *pad = gobj_to_pad(gobj);
+> +
+> +		dev_dbg(gobj->mdev->dev,
+> +			"%s: id 0x%08x %s %s#%d\n",
+> +			event_name, gobj->id,
+> +			pad->entity->name,
+> +			gobj_type[media_type(gobj)],
+
+Ditto.
+
+> +			media_localid(gobj));
+> +	}
+
+I would add a default case here with a WARN(1) or something like that to make
+it very clear that someone forgot to extend this switch after adding a new
+object type.
+
+In the LINK case there is no check for unknown object types in the gobj_type[]
+lookups. I think it is overkill to add a check for that since the objects that
+are linked are going to be created first, so they would trigger the WARN(1) in
+the default case first if they are using unhandled types. That should give
+enough information for the developer.
+
+> +	}
+> +#endif
+> +}
+> +
+> +/**
+>   *  media_gobj_init - Initialize a graph object
+>   *
+>   * @mdev:	Pointer to the media_device that contains the object
+> @@ -43,6 +104,8 @@ void media_gobj_init(struct media_device *mdev,
+>  			   enum media_gobj_type type,
+>  			   struct media_gobj *gobj)
+>  {
+> +	gobj->mdev = mdev;
+> +
+>  	/* Create a per-type unique object ID */
+>  	switch (type) {
+>  	case MEDIA_GRAPH_ENTITY:
+> @@ -55,6 +118,7 @@ void media_gobj_init(struct media_device *mdev,
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+>  		break;
+>  	}
+> +	dev_dbg_obj(__func__, gobj);
+>  }
+>  
+>  /**
+> @@ -66,7 +130,7 @@ void media_gobj_init(struct media_device *mdev,
+>   */
+>  void media_gobj_remove(struct media_gobj *gobj)
+>  {
+> -	/* For now, nothing to do */
+> +	dev_dbg_obj(__func__, gobj);
+>  }
+>  
+>  /**
+> @@ -472,13 +536,6 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+>  		entity->links = links;
+>  	}
+>  
+> -	/* Initialize graph object embedded at the new link */
+> -	if (entity->parent)
+> -		media_gobj_init(entity->parent, MEDIA_GRAPH_LINK,
+> -				&entity->links[entity->num_links].graph_obj);
+> -	else
+> -		pr_warn("Link created before entity register!\n");
+> -
+
+This is confusing: this was added in patch 5 and now it is removed again. This doesn't
+seem to have anything to do with adding this debugging facility.
+
+>  	return &entity->links[entity->num_links++];
+>  }
+>  
+> @@ -501,6 +558,8 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  	link->sink = &sink->pads[sink_pad];
+>  	link->flags = flags;
+>  
+> +	media_gobj_init(source->parent, MEDIA_GRAPH_LINK, &link->graph_obj);
+> +
+
+Same for this,
+
+>  	/* Create the backlink. Backlinks are used to help graph traversal and
+>  	 * are not reported to userspace.
+>  	 */
+> @@ -514,6 +573,8 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  	backlink->sink = &sink->pads[sink_pad];
+>  	backlink->flags = flags;
+>  
+> +	media_gobj_init(sink->parent, MEDIA_GRAPH_LINK, &backlink->graph_obj);
+> +
+
+and this.
+
+Shouldn't these three changes be moved to patch 5?
+
+>  	link->reverse = backlink;
+>  	backlink->reverse = link;
+>  
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 2ffe015629fa..db1f54f09723 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -59,6 +59,7 @@ enum media_gobj_type {
+>   * All elements on the media graph should have this struct embedded
+>   */
+>  struct media_gobj {
+> +	struct media_device	*mdev;
+
+If you add this here, then the parent pointer in struct media_entity should be
+removed to avoid having duplicate fields.
+
+I understand why you add this and I don't object, but I would split this change
+off into a separate patch that also includes removing the media_entity parent
+field.
 
 Regards,
 
 	Hans
+
+>  	u32			id;
+>  };
+>  
+> @@ -190,6 +191,12 @@ struct media_entity_graph {
+>  #define gobj_to_entity(gobj) \
+>  		container_of(gobj, struct media_entity, graph_obj)
+>  
+> +#define gobj_to_pad(gobj) \
+> +		container_of(gobj, struct media_pad, graph_obj)
+> +
+> +#define gobj_to_link(gobj) \
+> +		container_of(gobj, struct media_link, graph_obj)
+> +
+>  void media_gobj_init(struct media_device *mdev,
+>  		    enum media_gobj_type type,
+>  		    struct media_gobj *gobj);
+> 
+
