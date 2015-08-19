@@ -1,47 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48394 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:38122 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256AbbH3DHr (ORCPT
+	with ESMTP id S1753679AbbHSLDo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:47 -0400
+	Wed, 19 Aug 2015 07:03:44 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH v8 35/55] [media] s5k5baf: fix subdev type
-Date: Sun, 30 Aug 2015 00:06:46 -0300
-Message-Id: <7ed3721139e459f5dd4cdd05bd1e58f248fc0781.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v6 3/8] [media] media: use media_gobj inside entities
+Date: Wed, 19 Aug 2015 08:01:50 -0300
+Message-Id: <80431d3c9fc9088a316031de12c8c9e68fedd85b.1439981515.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439981515.git.mchehab@osg.samsung.com>
+References: <cover.1439981515.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1439981515.git.mchehab@osg.samsung.com>
+References: <cover.1439981515.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-X-Patchwork-Delegate: m.chehab@samsung.com
-This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
-some subdevs with a non-existing type.
+As entities are graph elements, let's embed media_gobj
+on it. That ensures an unique ID for entities that can be
+global along the entire media controller.
 
-As this is a sensor driver, the proper type is likely
-MEDIA_ENT_T_V4L2_SUBDEV_SENSOR.
+For now, we'll keep the already existing entity ID. Such
+field need to be dropped at some point, but for now, let's
+not do this, to avoid needing to review all drivers and
+the userspace apps.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index d3bff30bcb6f..0513196bd48c 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e429605ca2c3..81d6a130efef 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -379,7 +379,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+ 		return -EINVAL;
  
- 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
+-	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+@@ -433,10 +432,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	entity->parent = mdev;
  
- 	if (!ret)
+ 	spin_lock(&mdev->lock);
+-	if (entity->id == 0)
+-		entity->id = mdev->entity_id++;
+-	else
+-		mdev->entity_id = max(entity->id + 1, mdev->entity_id);
++	/* Initialize media_gobj embedded at the entity */
++	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ 	list_add_tail(&entity->list, &mdev->entities);
+ 	spin_unlock(&mdev->lock);
+ 
+@@ -459,6 +456,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 		return;
+ 
+ 	spin_lock(&mdev->lock);
++	media_gobj_remove(&entity->graph_obj);
+ 	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->parent = NULL;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 4834172bf6f8..888cb88e19bf 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -43,7 +43,12 @@ void media_gobj_init(struct media_device *mdev,
+ 			   enum media_gobj_type type,
+ 			   struct media_gobj *gobj)
+ {
+-	/* For now, nothing to do */
++	/* Create a per-type unique object ID */
++	switch (type) {
++	case MEDIA_GRAPH_ENTITY:
++		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
++		break;
++	}
+ }
+ 
+ /**
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index a44f18fdf321..f6deef6e5820 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -41,7 +41,7 @@ struct device;
+  * @bus_info:	Unique and stable device location identifier
+  * @hw_revision: Hardware device revision
+  * @driver_version: Device driver version
+- * @entity_id:	ID of the next entity to be registered
++ * @entity_id:	Unique ID used on the last entity registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+@@ -69,6 +69,7 @@ struct media_device {
+ 	u32 driver_version;
+ 
+ 	u32 entity_id;
++
+ 	struct list_head entities;
+ 
+ 	/* Protects the entities list */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index c1cd4fba051d..9ca366334bcf 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -33,10 +33,10 @@
+ /**
+  * enum media_gobj_type - type of a graph element
+  *
++ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  */
+ enum media_gobj_type {
+-	 /* FIXME: add the types here, as we embed media_gobj */
+-	MEDIA_GRAPH_NONE
++	MEDIA_GRAPH_ENTITY,
+ };
+ 
+ #define MEDIA_BITS_PER_TYPE		8
+@@ -94,10 +94,9 @@ struct media_entity_operations {
+ };
+ 
+ struct media_entity {
++	struct media_gobj graph_obj;
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+-	u32 id;				/* Entity ID, unique in the parent media
+-					 * device context */
+ 	const char *name;		/* Entity name */
+ 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+ 	u32 revision;			/* Entity revision, driver specific */
+@@ -148,7 +147,7 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
+ 
+ static inline u32 media_entity_id(struct media_entity *entity)
+ {
+-	return entity->id;
++	return entity->graph_obj.id;
+ }
+ 
+ static inline enum media_gobj_type media_type(struct media_gobj *gobj)
 -- 
 2.4.3
 
