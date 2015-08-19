@@ -1,57 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42515 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753060AbbHKWku (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52718 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbbHSXcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 18:40:50 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/3] [media] c8sectpfe: use a new Kconfig menu for DVB platform drivers
-Date: Tue, 11 Aug 2015 19:39:06 -0300
-Message-Id: <ca05189716c2ce02c60303e9c1228a61d1cb9542.1439332733.git.mchehab@osg.samsung.com>
-In-Reply-To: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
-References: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
-In-Reply-To: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
-References: <53cc7c9043f0a68a66e53623b114c86051a7250c.1439332733.git.mchehab@osg.samsung.com>
+	Wed, 19 Aug 2015 19:32:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: VIMC: API proposal, configuring the topology through user space
+Date: Thu, 20 Aug 2015 02:33:15 +0300
+Message-ID: <1479402.af4JO5SPSd@avalon>
+In-Reply-To: <20150818070636.22c23415@recife.lan>
+References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com> <2082947.pCFORmYODL@avalon> <20150818070636.22c23415@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While this is the first DVB platform drivers, let's keep the
-Kconfig options well organized, adding it on its own DVB menu.
+Hi Mauro,
 
-Of course, it should depend on MEDIA_DIGITAL_TV_SUPPORT, as
-this enables all DVB-related menus.
+On Tuesday 18 August 2015 07:06:36 Mauro Carvalho Chehab wrote:
+> Em Tue, 18 Aug 2015 09:35:14 +0300 Laurent Pinchart escreveu:
+> > On Friday 14 August 2015 12:54:44 Hans Verkuil wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+[snip]
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index ce3eaf050ba7..3adf686e005d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -293,4 +293,13 @@ config VIDEO_VIM2M
- 	  framework.
- endif #V4L_TEST_DRIVERS
- 
-+menuconfig DVB_PLATFORM_DRIVERS
-+	bool "DVB platform devices"
-+	depends on MEDIA_DIGITAL_TV_SUPPORT
-+	default n
-+	---help---
-+	  Say Y here to enable support for platform-specific Digital TV drivers.
-+
-+if DVB_PLATFORM_DRIVERS
- source "drivers/media/platform/sti/c8sectpfe/Kconfig"
-+endif #DVB_PLATFORM_DRIVERS
+> > I think this is becoming too complex. How about considering "deploy" as a
+> > commit instead ? There would then be no need to undeploy, any modification
+> > will start a new transaction that will be applied in one go when
+> > committed. This includes removal of entities by removing the corresponding
+> > directories.
+>
+> Agreed. I would implement just a /configfs/vimc/commit file, instead of
+> /configfs/vimc/vimc1/build_topology.
+> 
+> any write to the "commit" configfs file will make all changes to all vimc
+> instances to be applied, or return an error if committing is not possible.
+
+Wouldn't it be better to have a commit file inside each vimc[0-9]+ directory ? 
+vimc device instances are completely independent, I'd prefer having the 
+configuration API operate per-instance as well.
+
+> A read to it would return a message saying if the changes were committed or
+> not.
+> 
+> This way, an entire vimc instance could be removed with just:
+> 
+> 	rm -rf /configfs/vimc/vimc1
+> 
+> As we won't have unremoved files there anymore.
+
+Some files will be automatically created by the kernel, such as the flags file 
+in link directories, or the name file in entity directories. rm -rf might thus 
+not work. That's a technical detail though, I haven't checked how configfs 
+operates.
+
+> In order to remove a
+> group of objects:
+> 	rm -rf /configfs/vimc/vimc1/[files that belong to the group]
+> 
+> The API also become simpler and clearer, IMHO.
+> 
+> Btw, as we discussed at the userspace API RFC, if we end by having a new
+> type of graph object that represents a group of objects (MEDIA_ID_T_GROUP),
+
+Let's see about that when the userspace API will be agreed on.
+
+> that could be used, for example, to represent a project ARA hardware module,
+> it would be easier to remove an entire group by doing something like:
+> 
+> 	rm -rf /configfs/vimc/vimc1/obj_group_1
+
+[snip]
+
+> >> I misunderstood your original proposal, I thought the name of the
+> >> link_to_raw_capture_0 directory was interpreted by the driver to mean
+> >> that a link between the pad and pad 0 of the raw_capture entity should
+> >> be created. But you don't interpret the name at all.
+> >> 
+> >> I think this is confusing. Wouldn't it be easier to interpret the name
+> >> of the link directory? I.e. it has to be of the form: link_to_<entity
+> >> name>_<pad name>.
+> > 
+> > I'd rather use symlinks and no link directory at all, but then we'd have
+> > no place to specify link flags :-/ I believe that's the reason why a link
+> > directory is needed.
+> > 
+> > Maybe I worry for no reason, but interpreting the name seems to me more
+> > error- prone than using a symlink inside the link directory.
+> 
+> Yeah, using symlinks makes perfect sense to me, although I'm not so sure
+> of adding them inside the pads (/configfs/vimc/vimc0/sensor_a/pad_0/).
+> If we do that, we'll need to represent both links and backlinks, with
+> makes harder to remove them.
+
+I don't think we need to specify both, the forward link should be enough.
+
+> I would, instead, have a separate part of the configfs for the links:
+> 
+> /configfs/vimc/vimc0/links
+> 
+> 	and a link from sensor_a/pad_0 to raw_capture_1/pad_0/ would
+> be represented as:
+> 
+> ../../sensor_a/pad_0 -> /configfs/vimc/vimc0/links/link0/source
+> ../../raw_capture_1/pad_0 -> /configfs/vimc/vimc0/links/link0/sink
+> 
+> This way, if one wants to remove the link, he can do just:
+> 
+> 	rm -rf /configfs/vimc/vimc0/links/link0
+> 
+> Also, the direction of the link is properly expressed by using the
+> names "source" and "sink" there.
+
+That's an interesting option. The drawback is that you can't easily see links 
+in the configfs entities directory tree. I'll think about it.
+
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
