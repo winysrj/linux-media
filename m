@@ -1,47 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58939 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506AbbHWUSK (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:30301 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515AbbHSIBm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:10 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH v7 31/44] [media] s5k5baf: fix subdev type
-Date: Sun, 23 Aug 2015 17:17:48 -0300
-Message-Id: <cf1471aac91cf46f7c5ea9b60604cafe524e267a.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Wed, 19 Aug 2015 04:01:42 -0400
+Date: Wed, 19 Aug 2015 11:01:32 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: serjk@netup.ru
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card
+ driver
+Message-ID: <20150819080132.GA30902@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-X-Patchwork-Delegate: m.chehab@samsung.com
-This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
-some subdevs with a non-existing type.
+Hello Kozlov Sergey,
 
-As this is a sensor driver, the proper type is likely
-MEDIA_ENT_T_V4L2_SUBDEV_SENSOR.
+The patch 52b1eaf4c59a: "[media] netup_unidvb: NetUP Universal
+DVB-S/S2/T/T2/C PCI-E card driver" from Jul 28, 2015, leads to the
+following static checker warning:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	drivers/media/pci/netup_unidvb/netup_unidvb_spi.c:84 netup_spi_interrupt()
+	error: we previously assumed 'spi' could be null (see line 83)
 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index d3bff30bcb6f..0513196bd48c 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
- 
- 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
- 
- 	if (!ret)
--- 
-2.4.3
+drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
+    78  irqreturn_t netup_spi_interrupt(struct netup_spi *spi)
+    79  {
+    80          u16 reg;
+    81          unsigned long flags;
+    82  
+    83          if (!spi) {
+                    ^^^^
+    84                  dev_dbg(&spi->master->dev,
+                                ^^^^^^^^^^^^^^^^^
+    85                          "%s(): SPI not initialized\n", __func__);
+    86                  return IRQ_NONE;
+    87          }
+    88          spin_lock_irqsave(&spi->lock, flags);
 
+
+See also:
+
+	drivers/media/pci/netup_unidvb/netup_unidvb_spi.c:238 netup_spi_release()
+	error: we previously assumed 'spi' could be null (see line 237)
+
+regards,
+dan carpenter
