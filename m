@@ -1,69 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:36662 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754388AbbHXV6L (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38057 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752496AbbHSITZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 17:58:11 -0400
-Received: by labia3 with SMTP id ia3so22075607lab.3
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 14:58:10 -0700 (PDT)
-Subject: Re: [PATCH] rcar_vin: propagate querystd() error upstream
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com>
- <2204711.y8psPZeT2j@avalon>
-Cc: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <55DB936F.2060008@cogentembedded.com>
-Date: Tue, 25 Aug 2015 00:58:07 +0300
+	Wed, 19 Aug 2015 04:19:25 -0400
+Message-ID: <55D43BE5.7030800@xs4all.nl>
+Date: Wed, 19 Aug 2015 10:18:45 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2204711.y8psPZeT2j@avalon>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC v5 5/8] [media] media: use media_gobj inside links
+References: <cover.1439927113.git.mchehab@osg.samsung.com> <86e21f1449e1c83b62e0b9c795d86bdae3e8de28.1439927113.git.mchehab@osg.samsung.com>
+In-Reply-To: <86e21f1449e1c83b62e0b9c795d86bdae3e8de28.1439927113.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello.
+On 08/18/2015 10:04 PM, Mauro Carvalho Chehab wrote:
+> Just like entities and pads, links also need to have unique
+> Object IDs along a given media controller.
+> 
+> So, let's add a media_gobj inside it and initialize
+> the object then a new link is created.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On 08/21/2015 12:51 AM, Laurent Pinchart wrote:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
->> rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method
->> call fails (e.g. due to I2C error).  This doesn't work very well when a
->> camera being used  outputs NTSC which has different order of fields and
->> resolution.  Let  us stop  pretending and return the actual error (which
->> would prevent video capture on at least Renesas Henninger/Porter board
->> where I2C seems particularly buggy).
->>
->> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->>
->> ---
->> The patch is against the 'media_tree.git' repo's 'fixes' branch.
->>
->>   drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
->> ===================================================================
->> --- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -1592,7 +1592,7 @@ static int rcar_vin_set_fmt(struct soc_c
->>   		/* Query for standard if not explicitly mentioned _TB/_BT */
->>   		ret = v4l2_subdev_call(sd, video, querystd, &std);
->>   		if (ret < 0)
->> -			std = V4L2_STD_625_50;
->> +			return ret;
->
-> What if the subdev doesn't implement querystd ? That's the case of camera
-> sensors for instance.
+Thanks!
 
-    Indeed.
+	Hans
 
-> In that case we should default to V4L2_FIELD_NONE.
-
-    Hmm, even if the set_fmt() method is called with V4L2_FIELD_INTERLACED 
-already, like in this case?
-
->>   		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
->>   						V4L2_FIELD_INTERLACED_BT;
-
-MBR, Sergei
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 24551d4ddfb8..7f512223249b 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -436,6 +436,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+>  	list_add_tail(&entity->list, &mdev->entities);
+>  
+> +	/*
+> +	 * Initialize objects at the links
+> +	 * in the case where links got created before entity register
+> +	 */
+> +	for (i = 0; i < entity->num_links; i++)
+> +		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
+> +				&entity->links[i].graph_obj);
+>  	/* Initialize objects at the pads */
+>  	for (i = 0; i < entity->num_pads; i++)
+>  		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
+> @@ -463,6 +470,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  		return;
+>  
+>  	spin_lock(&mdev->lock);
+> +	for (i = 0; i < entity->num_links; i++)
+> +		media_gobj_remove(&entity->links[i].graph_obj);
+>  	for (i = 0; i < entity->num_pads; i++)
+>  		media_gobj_remove(&entity->pads[i].graph_obj);
+>  	media_gobj_remove(&entity->graph_obj);
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 377c6655c5d0..a6be50e04736 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -51,6 +51,9 @@ void media_gobj_init(struct media_device *mdev,
+>  	case MEDIA_GRAPH_PAD:
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+>  		break;
+> +	case MEDIA_GRAPH_LINK:
+> +		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+> +		break;
+>  	}
+>  }
+>  
+> @@ -469,6 +472,13 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+>  		entity->links = links;
+>  	}
+>  
+> +	/* Initialize graph object embedded at the new link */
+> +	if (entity->parent)
+> +		media_gobj_init(entity->parent, MEDIA_GRAPH_LINK,
+> +				&entity->links[entity->num_links].graph_obj);
+> +	else
+> +		pr_warn("Link created before entity register!\n");
+> +
+>  	return &entity->links[entity->num_links++];
+>  }
+>  
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 4b5d1ee2b67e..e0f63c0da2dd 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -43,6 +43,7 @@ struct device;
+>   * @driver_version: Device driver version
+>   * @entity_id:	Unique ID used on the last entity registered
+>   * @pad_id:	Unique ID used on the last pad registered
+> + * @link_id:	Unique ID used on the last link registered
+>   * @entities:	List of registered entities
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+> @@ -71,6 +72,7 @@ struct media_device {
+>  
+>  	u32 entity_id;
+>  	u32 pad_id;
+> +	u32 link_id;
+>  
+>  	struct list_head entities;
+>  
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 01ae1e320e36..2ffe015629fa 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -35,10 +35,12 @@
+>   *
+>   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+>   * @MEDIA_GRAPH_PAD:		Identify a media pad
+> + * @MEDIA_GRAPH_LINK:		Identify a media link
+>   */
+>  enum media_gobj_type {
+>  	MEDIA_GRAPH_ENTITY,
+>  	MEDIA_GRAPH_PAD,
+> +	MEDIA_GRAPH_LINK,
+>  };
+>  
+>  #define BITS_PER_TYPE		8
+> @@ -65,6 +67,7 @@ struct media_pipeline {
+>  };
+>  
+>  struct media_link {
+> +	struct media_gobj graph_obj;
+>  	struct media_pad *source;	/* Source pad */
+>  	struct media_pad *sink;		/* Sink pad  */
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+> 
 
