@@ -1,98 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40094 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753536AbbHGOUV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 10:20:21 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v2 03/16] media: add functions to inialize media_graph_obj
-Date: Fri,  7 Aug 2015 11:20:01 -0300
-Message-Id: <aa98d5399a89dae2f27bb622b10fe179817d3e42.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:36715 "EHLO
+	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016AbbHSFzH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Aug 2015 01:55:07 -0400
+Received: by oiev193 with SMTP id v193so113714008oie.3
+        for <linux-media@vger.kernel.org>; Tue, 18 Aug 2015 22:55:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1439886670-12322-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1439886670-12322-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Date: Wed, 19 Aug 2015 07:55:06 +0200
+Message-ID: <CACRpkdanGtMN0Bs4Q+k2buLUsn_ryAVsDXLVkMrumhKJUXNjpA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] tc358743: set direction of reset gpio using devm_gpiod_get
+From: Linus Walleij <linus.walleij@linaro.org>
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Mats Randgaard <matrandg@cisco.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to initialize the common media_graph_obj that
-it is now embedded inside each media controller object.
+On Tue, Aug 18, 2015 at 10:31 AM, Uwe Kleine-König
+<u.kleine-koenig@pengutronix.de> wrote:
 
-Latter patches will use those functions to ensure that
-the object will be properly initialized.
+> Commit 256148246852 ("[media] tc358743: support probe from device tree")
+> failed to explicitly set the direction of the reset gpio. Use the
+> optional flag of devm_gpiod_get to make up leeway.
+>
+> This is also necessary because the flag parameter will become mandatory
+> soon.
+>
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 4d8e01c7b1b2..19ad316f2f33 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -27,6 +27,44 @@
- #include <media/media-device.h>
- 
- /**
-+ *  graph_obj_init - Initialize a graph object
-+ *
-+ * @mdev:	Pointer to the media_device that contains the object
-+ * @type:	Type of the object
-+ * @gobj:	Pointer to the object
-+ *
-+ * This routine initializes the embedded struct media_graph_obj inside a
-+ * media graph object. It is called automatically if media_*_create()
-+ * calls are used. However, if the object (entity, link, pad, interface)
-+ * is embedded on some other object, this function should be called before
-+ * registering the object at the media controller.
-+ */
-+void graph_obj_init(struct media_device *mdev,
-+			   enum media_graph_type type,
-+			   struct media_graph_obj *gobj)
-+{
-+	INIT_LIST_HEAD(&gobj->list);
-+
-+	list_add_tail(&gobj->list, &mdev->object_list);
-+	gobj->obj_id = atomic_inc_return(&mdev->last_obj_id);
-+	gobj->type = type;
-+	gobj->mdev = mdev;
-+}
-+
-+/**
-+ *  graph_obj_remove - Stop using a graph object on a media device
-+ *
-+ * @graph_obj:	Pointer to the object
-+ *
-+ * This is called at media_device_unregister_*() routines, and removes a
-+ * graph object from the mdev object lists.
-+ */
-+void graph_obj_remove(struct media_graph_obj *gobj)
-+{
-+	list_del(&gobj->list);
-+}
-+
-+/**
-  * media_entity_init - Initialize a media entity
-  *
-  * @num_pads: Total number of sink and source pads.
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 051aa3f8bbfe..738e1d5d25dc 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -168,6 +168,14 @@ struct media_entity_graph {
- 	int top;
- };
- 
-+#define gobj_to_entity(gobj) \
-+		container_of(gobj, struct media_entity, graph_obj)
-+
-+void graph_obj_init(struct media_device *mdev,
-+		    enum media_graph_type type,
-+		    struct media_graph_obj *gobj);
-+void graph_obj_remove(struct media_graph_obj *gobj);
-+
- int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads, u16 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
--- 
-2.4.3
-
+Yours,
+Linus Walleij
