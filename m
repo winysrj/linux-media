@@ -1,111 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.data-modul.de ([212.184.205.171]:30256 "EHLO
-	mail2.data-modul.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750847AbbHQKOE (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52637 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbbHSWYF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2015 06:14:04 -0400
-From: Zahari Doychev <zahari.doychev@linux.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	m.szyprowski@samsung.com, kamil@wypas.org
-Cc: mchehab@osg.samsung.com, zahari.doychev@linux.com
-Subject: [PATCH v2] [media] m2m: fix bad unlock balance
-Date: Mon, 17 Aug 2015 12:13:53 +0200
-Message-Id: <0fb928455b6cd997c70f4fe1c04fb79a01190b5e.1439805593.git.zahari.doychev@linux.com>
+	Wed, 19 Aug 2015 18:24:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Allwright <michael.allwright@upb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH RFC] DT support for omap4-iss
+Date: Thu, 20 Aug 2015 01:25:09 +0300
+Message-ID: <1547053.A10gsslK9b@avalon>
+In-Reply-To: <CALcgO_471LouPKvdDAfOSbtWX+ne4iqvbxC-+fMwy-nQM8Go2w@mail.gmail.com>
+References: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com> <20150811111604.GD10928@atomide.com> <CALcgO_471LouPKvdDAfOSbtWX+ne4iqvbxC-+fMwy-nQM8Go2w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes unnecessary mutex queue unlock/lock sequence causing bad
-unlock balance in v4l2_m2m_poll when the last buffer on the destination
-queue has been dequeued and adds spin lock protection for the done list
-list_empty calls.
+Hi Michael,
 
-[  144.990873] =====================================
-[  144.995584] [ BUG: bad unlock balance detected! ]
-[  145.000301] 4.1.0-00137-ga105070 #98 Tainted: G        W
-[  145.006140] -------------------------------------
-[  145.010851] demux:sink/487 is trying to release lock (&dev->dev_mutex) at:
-[  145.017785] [<808cc578>] mutex_unlock+0x18/0x1c
-[  145.022322] but there are no more locks to release!
-[  145.027205]
-[  145.027205] other info that might help us debug this:
-[  145.033741] no locks held by demux:sink/487.
-[  145.038015]
-[  145.038015] stack backtrace:
-[  145.042385] CPU: 2 PID: 487 Comm: demux:sink Tainted: G        W       4.1.0-00137-ga105070 #98
-[  145.051089] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-[  145.057622] Backtrace:
-[  145.060102] [<80014a4c>] (dump_backtrace) from [<80014cc4>] (show_stack+0x20/0x24)
-[  145.067679]  r6:80cedf78 r5:00000000 r4:00000000 r3:00000000
-[  145.073421] [<80014ca4>] (show_stack) from [<808c61e0>] (dump_stack+0x8c/0xa4)
-[  145.080661] [<808c6154>] (dump_stack) from [<80072b64>] (print_unlock_imbalance_bug+0xb8/0xe8)
-[  145.089277]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000001
-[  145.095020] [<80072aac>] (print_unlock_imbalance_bug) from [<80077db4>] (lock_release+0x1a4/0x250)
-[  145.103983]  r6:808cc578 r5:ac6cd050 r4:ac38e400 r3:00000000
-[  145.109728] [<80077c10>] (lock_release) from [<808cc470>] (__mutex_unlock_slowpath+0xc4/0x1b4)
-[  145.118344]  r9:acb27a41 r8:00000000 r7:81553814 r6:808cc578 r5:60030013 r4:ac6cd01c
-[  145.126190] [<808cc3ac>] (__mutex_unlock_slowpath) from [<808cc578>] (mutex_unlock+0x18/0x1c)
-[  145.134720]  r7:00000000 r6:aced7cd4 r5:00000041 r4:acb87800
-[  145.140468] [<808cc560>] (mutex_unlock) from [<805a98b8>] (v4l2_m2m_fop_poll+0x5c/0x64)
-[  145.148494] [<805a985c>] (v4l2_m2m_fop_poll) from [<805955a0>] (v4l2_poll+0x6c/0xa0)
-[  145.156243]  r6:aced7bec r5:00000000 r4:ac6cc380 r3:805a985c
-[  145.161991] [<80595534>] (v4l2_poll) from [<80156edc>] (do_sys_poll+0x230/0x4c0)
-[  145.169391]  r5:00000000 r4:aced7be4
-[  145.173013] [<80156cac>] (do_sys_poll) from [<801574a8>] (SyS_ppoll+0x1d4/0x1fc)
-[  145.180414]  r10:00000000 r9:aced6000 r8:00000000 r7:00000000 r6:75c04538 r5:00000002
-[  145.188338]  r4:00000000
-[  145.190906] [<801572d4>] (SyS_ppoll) from [<800108c0>] (ret_fast_syscall+0x0/0x54)
-[  145.198481]  r8:80010aa4 r7:00000150 r6:75c04538 r5:00000002 r4:00000008
+On Tuesday 11 August 2015 19:13:08 Michael Allwright wrote:
+> On 11 August 2015 at 13:16, Tony Lindgren <tony@atomide.com> wrote:
+> > * Michael Allwright <michael.allwright@upb.de> [150810 08:19]:
+> >> +
+> >> +/*
+> >> +We need a better solution for this
+> >> +*/
+> >> +#include <../arch/arm/mach-omap2/omap-pm.h>
+> > 
+> > Please let's not do things like this, I end up having to deal with
+> > all these eventually :(
+> > 
+> >> +static void iss_set_constraints(struct iss_device *iss, bool enable)
+> >> +{
+> >> +    if (!iss)
+> >> +        return;
+> >> +
+> >> +    /* FIXME: Look for something more precise as a good throughtput
+> >> limit */ +    omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
+> >> +                 enable ? 800000 : -1);
+> >> +}
+> >> +
+> >> +static struct iss_platform_data iss_dummy_pdata = {
+> >> +    .set_constraints = iss_set_constraints,
+> >> +};
+> > 
+> > If this is one time setting, you could do it based on the
+> > compatible string using arch/arm/mach-omap2/pdata-quirks.c.
+> > 
+> > If you need to toggle it, you could populate a function pointer
+> > in pdata-quirks.c. Those are easy to fix once there is some Linux
+> > generic API available :)
+> > 
+> > Regards,
+> > 
+> > Tony
+> 
+> Hi Tony,
+> 
+> Thanks for the suggestion, I'll move that function into
+> pdata-quirks.c. Please read on, I really need some help regarding the
+> following error, I lost 8-9 hours on this today.
+> 
+>  [  141.612609] omap4iss 52000000.iss: CSI2: CSI2_96M_FCLK reset timeout!
+> 
+> This comes from the function: int omap4iss_csi2_reset(struct
+> iss_csi2_device *csi2) in iss_csi2.c. I have found that bit 29 in
+> REGISTER1 belonging to the CSI2A registers, isn't becoming high after
+> doing the reset on kernel 4.1.4. However it does come high in 3.17.
+> This bit is a flag indicating that the reset on the CSI2_96M_FCLK is
+> complete.
+> 
+> 3.17
+> [   43.399658] omap4-iss 52000000.iss: REGISTER1 = 0x00000000
+> [   43.405456] omap4-iss 52000000.iss: REGISTER1 = 0xe002e10e
+> 
+> 4.1.4
+> [  210.331909] omap4iss 52000000.iss: REGISTER1 = 0x00000000
+> [  210.338470] omap4iss 52000000.iss: REGISTER1 = 0xc002e10e
+> [  210.342609] omap4iss 52000000.iss: CSI2: CSI2_96M_FCLK reset timeout!
+> 
+> Note: the transition from 0x00000000 to 0xc002e10e would seem to
+> indicate that the operation completed, just not successfully...
+> 
+> I have spent the day sampling at different points in the code,
+> checking the contents of all the registers belonging to the ISS and
+> CSI PHY to conclude that there are no differences between the two
+> instances of the driver running on 3.17 and 4.1.4. Using the internal
+> __clk_is_enabled from clk-provider.h I also checked that the muxes
+> responsible for providing the clocks to the module were enabled
+> before, during and after the reset. I have also confirmed the
+> identical issue also occurs on a different board.
+> 
+> I suspect someone has broken something in the hwmods, or PRCM data
+> structures. Although I have not yet been able to find any relevant
+> differences in the source files that I have searched through.
+> 
+> Any suggestions regarding where I should continue to look for this
+> issue are welcome. Unfortunately if I can't get some support on this
+> soon, I will have to abandon working on this patch.
 
-Signed-off-by: Zahari Doychev <zahari.doychev@linux.com>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+How about using git bisect to find the root cause ?
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index ec3ad4e..2f7291c 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -583,32 +583,25 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 		goto end;
- 	}
- 
--	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
--		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
--	else if (m2m_ctx->q_lock)
--		mutex_unlock(m2m_ctx->q_lock);
--
-+	spin_lock_irqsave(&src_q->done_lock, flags);
- 	if (list_empty(&src_q->done_list))
- 		poll_wait(file, &src_q->done_wq, wait);
-+	spin_unlock_irqrestore(&src_q->done_lock, flags);
-+
-+	spin_lock_irqsave(&dst_q->done_lock, flags);
- 	if (list_empty(&dst_q->done_list)) {
- 		/*
- 		 * If the last buffer was dequeued from the capture queue,
- 		 * return immediately. DQBUF will return -EPIPE.
- 		 */
--		if (dst_q->last_buffer_dequeued)
-+		if (dst_q->last_buffer_dequeued) {
-+			spin_unlock_irqrestore(&dst_q->done_lock, flags);
- 			return rc | POLLIN | POLLRDNORM;
-+		}
- 
- 		poll_wait(file, &dst_q->done_wq, wait);
- 	}
--
--	if (m2m_ctx->m2m_dev->m2m_ops->lock)
--		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
--	else if (m2m_ctx->q_lock) {
--		if (mutex_lock_interruptible(m2m_ctx->q_lock)) {
--			rc |= POLLERR;
--			goto end;
--		}
--	}
-+	spin_unlock_irqrestore(&dst_q->done_lock, flags);
- 
- 	spin_lock_irqsave(&src_q->done_lock, flags);
- 	if (!list_empty(&src_q->done_list))
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
