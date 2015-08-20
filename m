@@ -1,66 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59170 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752199AbbHUUpU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 16:45:20 -0400
-Date: Fri, 21 Aug 2015 17:45:15 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH] v4l: omap3isp: Enable driver compilation with
- COMPILE_TEST
-Message-ID: <20150821174515.360b87e9@recife.lan>
-In-Reply-To: <1440180557-28180-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1440180557-28180-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53975 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700AbbHTXl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2015 19:41:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: VIMC: API proposal, configuring the topology through user space
+Date: Fri, 21 Aug 2015 02:41:23 +0300
+Message-ID: <2258601.NCY3XxYnn9@avalon>
+In-Reply-To: <20150820001343.39b5f9cc@recife.lan>
+References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com> <1479402.af4JO5SPSd@avalon> <20150820001343.39b5f9cc@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Aug 2015 21:09:17 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Mauro,
 
-> The omap3isp driver can't be compiled on non-ARM platforms but has no
-> compile-time dependency on OMAP. Drop the OMAP dependency when
-> COMPILE_TEST is set.
+On Thursday 20 August 2015 00:13:43 Mauro Carvalho Chehab wrote:
+> Em Thu, 20 Aug 2015 02:33:15 +0300 Laurent Pinchart escreveu:
+> > On Tuesday 18 August 2015 07:06:36 Mauro Carvalho Chehab wrote:
+> >> Em Tue, 18 Aug 2015 09:35:14 +0300 Laurent Pinchart escreveu:
+> >>> On Friday 14 August 2015 12:54:44 Hans Verkuil wrote:
+> >
+> > [snip]
+> > 
+> >>> I think this is becoming too complex. How about considering "deploy"
+> >>> as a commit instead ? There would then be no need to undeploy, any
+> >>> modification will start a new transaction that will be applied in one
+> >>> go when committed. This includes removal of entities by removing the
+> >>> corresponding directories.
+> >> 
+> >> Agreed. I would implement just a /configfs/vimc/commit file, instead of
+> >> /configfs/vimc/vimc1/build_topology.
+> >> 
+> >> any write to the "commit" configfs file will make all changes to all
+> >> vimc instances to be applied, or return an error if committing is not
+> >> possible.
+> > 
+> > Wouldn't it be better to have a commit file inside each vimc[0-9]+
+> > directory ? vimc device instances are completely independent, I'd prefer
+> > having the configuration API operate per-instance as well.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/Kconfig | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> I have no strong preference... but see below.
 > 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 484038185ae3..95f0f6e6bbc8 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -85,7 +85,9 @@ config VIDEO_M32R_AR_M64278
->  
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support"
-> -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> +	depends on ARCH_OMAP3 || COMPILE_TEST
-> +	depends on ARM
->  	depends on HAS_DMA && OF
->  	depends on OMAP_IOMMU
->  	select ARM_DMA_USE_IOMMU
+> >> A read to it would return a message saying if the changes were committed
+> >> or not.
+> >> 
+> >> This way, an entire vimc instance could be removed with just:
+> >> 	rm -rf /configfs/vimc/vimc1
+> >> 
+> >> As we won't have unremoved files there anymore.
+> > 
+> > Some files will be automatically created by the kernel, such as the flags
+> > file in link directories, or the name file in entity directories. rm -rf
+> > might thus not work. That's a technical detail though, I haven't checked
+> > how configfs operates.
+> 
+> I'm not an expert on configfs either. I guess if we can put those "extra"
+> files outside, then the interface will be better, as we can just use
+> rm -rf to remove a vimc instance.
+> 
+> The only big advantage I see on having a global "commit" is if we
+> can make rm -rf work. Still, it would be possible to have, instead,
+> commit_vimc0, commit_vimc1, ... in such case.
 
-Sorry, but this doesn't make sense.
+I believe having the commit file inside the vimc[0-9]+ directory won't prevent 
+an rmdir, but it might get in the way of rm -rf. Let's check what configfs 
+allows before deciding.
 
-We can only add COMPILE_TEST after getting rid of those
-	depends on OMAP_IOMMU
-  	select ARM_DMA_USE_IOMMU
+By the way, the USB gadget framework uses symlinks to functions to implement 
+something similar to our commit. Maybe that would be a better fit for 
+configfs.
 
-The COMPILE_TEST flag was added to support building drivers with
-allyesconfig/allmodconfig for all archs. Selecting a sub-arch
-specific configuration doesn't help at all (or make any difference,
-as if such subarch is already selected, a make allmodconfig/allyesconfig
-will build the driver anyway).
-
-One of the main reasons why this is interesting is to support the
-Coverity Scan community license, used by the Kernel janitors. This
-tool runs only on x86.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
