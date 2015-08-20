@@ -1,115 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.uni-paderborn.de ([131.234.142.9]:38523 "EHLO
-	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965269AbbHKRNN (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:11157 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752319AbbHTJNx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 13:13:13 -0400
+	Thu, 20 Aug 2015 05:13:53 -0400
+Message-ID: <55D59A34.70300@atmel.com>
+Date: Thu, 20 Aug 2015 17:13:24 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <20150811111604.GD10928@atomide.com>
-References: <CALcgO_6UXp-Xqwim8WpLXz7XWAEpejipR7JNQc0TdH0ETL4JYQ@mail.gmail.com>
-	<20150811111604.GD10928@atomide.com>
-Date: Tue, 11 Aug 2015 19:13:08 +0200
-Message-ID: <CALcgO_471LouPKvdDAfOSbtWX+ne4iqvbxC-+fMwy-nQM8Go2w@mail.gmail.com>
-Subject: Re: [PATCH RFC] DT support for omap4-iss
-From: Michael Allwright <michael.allwright@upb.de>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>, Tero Kristo <t-kristo@ti.com>
-Content-Type: text/plain; charset=UTF-8
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 3/3] media: atmel-isi: add sanity check for supported
+ formats in set_fmt()
+References: <1438745190-21020-1-git-send-email-josh.wu@atmel.com> <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11 August 2015 at 13:16, Tony Lindgren <tony@atomide.com> wrote:
-> * Michael Allwright <michael.allwright@upb.de> [150810 08:19]:
->> +
->> +/*
->> +We need a better solution for this
->> +*/
->> +#include <../arch/arm/mach-omap2/omap-pm.h>
+Hi, Laurent
+
+Could you have time to review this patch? so that I can send a pull 
+request with your reviewed-by tags.
+
+Best Regards,
+Josh Wu
+
+On 8/5/2015 11:26 AM, Josh Wu wrote:
+> After adding the format check in set_fmt(), we don't need any format check
+> in configure_geometry(). So make configure_geometry() as void type.
 >
-> Please let's not do things like this, I end up having to deal with
-> all these eventually :(
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
 >
->> +static void iss_set_constraints(struct iss_device *iss, bool enable)
->> +{
->> +    if (!iss)
->> +        return;
->> +
->> +    /* FIXME: Look for something more precise as a good throughtput limit */
->> +    omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
->> +                 enable ? 800000 : -1);
->> +}
->> +
->> +static struct iss_platform_data iss_dummy_pdata = {
->> +    .set_constraints = iss_set_constraints,
->> +};
+> Changes in v2:
+> - new added patch
 >
-> If this is one time setting, you could do it based on the
-> compatible string using arch/arm/mach-omap2/pdata-quirks.c.
+>   drivers/media/platform/soc_camera/atmel-isi.c | 39 +++++++++++++++++++++------
+>   1 file changed, 31 insertions(+), 8 deletions(-)
 >
-> If you need to toggle it, you could populate a function pointer
-> in pdata-quirks.c. Those are easy to fix once there is some Linux
-> generic API available :)
->
-> Regards,
->
-> Tony
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index cb46aec..d0df518 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -103,17 +103,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>   	return readl(isi->regs + reg);
+>   }
+>   
+> -static int configure_geometry(struct atmel_isi *isi, u32 width,
+> +static void configure_geometry(struct atmel_isi *isi, u32 width,
+>   			u32 height, u32 code)
+>   {
+>   	u32 cfg2;
+>   
+>   	/* According to sensor's output format to set cfg2 */
+>   	switch (code) {
+> -	/* YUV, including grey */
+> +	default:
+> +	/* Grey */
+>   	case MEDIA_BUS_FMT_Y8_1X8:
+>   		cfg2 = ISI_CFG2_GRAYSCALE;
+>   		break;
+> +	/* YUV */
+>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>   		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+>   		break;
+> @@ -127,8 +129,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+>   		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+>   		break;
+>   	/* RGB, TODO */
+> -	default:
+> -		return -EINVAL;
+>   	}
+>   
+>   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> @@ -139,8 +139,29 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+>   	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+>   			& ISI_CFG2_IM_VSIZE_MASK;
+>   	isi_writel(isi, ISI_CFG2, cfg2);
+> +}
+>   
+> -	return 0;
+> +static bool is_supported(struct soc_camera_device *icd,
+> +		const struct soc_camera_format_xlate *xlate)
+> +{
+> +	bool ret = true;
+> +
+> +	switch (xlate->code) {
+> +	/* YUV, including grey */
+> +	case MEDIA_BUS_FMT_Y8_1X8:
+> +	case MEDIA_BUS_FMT_VYUY8_2X8:
+> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+> +	case MEDIA_BUS_FMT_YVYU8_2X8:
+> +	case MEDIA_BUS_FMT_YUYV8_2X8:
+> +		break;
+> +	/* RGB, TODO */
+> +	default:
+> +		dev_err(icd->parent, "not supported format: %d\n",
+> +					xlate->code);
+> +		ret = false;
+> +	}
+> +
+> +	return ret;
+>   }
+>   
+>   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+> @@ -391,10 +412,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>   	/* Disable all interrupts */
+>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>   
+> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
+> +	configure_geometry(isi, icd->user_width, icd->user_height,
+>   				icd->current_fmt->code);
+> -	if (ret < 0)
+> -		return ret;
+>   
+>   	spin_lock_irq(&isi->lock);
+>   	/* Clear any pending interrupt */
+> @@ -515,6 +534,10 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+>   	if (mf->code != xlate->code)
+>   		return -EINVAL;
+>   
+> +	/* check with atmel-isi support format */
+> +	if (!is_supported(icd, xlate))
+> +		return -EINVAL;
+> +
+>   	pix->width		= mf->width;
+>   	pix->height		= mf->height;
+>   	pix->field		= mf->field;
 
-Hi Tony,
-
-Thanks for the suggestion, I'll move that function into
-pdata-quirks.c. Please read on, I really need some help regarding the
-following error, I lost 8-9 hours on this today.
-
- [  141.612609] omap4iss 52000000.iss: CSI2: CSI2_96M_FCLK reset timeout!
-
-This comes from the function: int omap4iss_csi2_reset(struct
-iss_csi2_device *csi2) in iss_csi2.c. I have found that bit 29 in
-REGISTER1 belonging to the CSI2A registers, isn't becoming high after
-doing the reset on kernel 4.1.4. However it does come high in 3.17.
-This bit is a flag indicating that the reset on the CSI2_96M_FCLK is
-complete.
-
-3.17
-[   43.399658] omap4-iss 52000000.iss: REGISTER1 = 0x00000000
-[   43.405456] omap4-iss 52000000.iss: REGISTER1 = 0xe002e10e
-
-4.1.4
-[  210.331909] omap4iss 52000000.iss: REGISTER1 = 0x00000000
-[  210.338470] omap4iss 52000000.iss: REGISTER1 = 0xc002e10e
-[  210.342609] omap4iss 52000000.iss: CSI2: CSI2_96M_FCLK reset timeout!
-
-Note: the transition from 0x00000000 to 0xc002e10e would seem to
-indicate that the operation completed, just not successfully...
-
-I have spent the day sampling at different points in the code,
-checking the contents of all the registers belonging to the ISS and
-CSI PHY to conclude that there are no differences between the two
-instances of the driver running on 3.17 and 4.1.4. Using the internal
-__clk_is_enabled from clk-provider.h I also checked that the muxes
-responsible for providing the clocks to the module were enabled
-before, during and after the reset. I have also confirmed the
-identical issue also occurs on a different board.
-
-I suspect someone has broken something in the hwmods, or PRCM data
-structures. Although I have not yet been able to find any relevant
-differences in the source files that I have searched through.
-
-Any suggestions regarding where I should continue to look for this
-issue are welcome. Unfortunately if I can't get some support on this
-soon, I will have to abandon working on this patch.
-
-
-Michael Allwright
-
-PhD Student
-Paderborn Institute for Advanced Studies in Computer Science and Engineering
-
-University of Paderborn
-Office-number 02-10
-Zukunftsmeile 1
-33102 Paderborn
-Germany
