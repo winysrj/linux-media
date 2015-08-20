@@ -1,84 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40480 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247AbbHVR2i (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38629 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752035AbbHTMpt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:38 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
+	Thu, 20 Aug 2015 08:45:49 -0400
+Message-ID: <55D5CB5F.2010106@xs4all.nl>
+Date: Thu, 20 Aug 2015 14:43:11 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+CC: =?windows-1252?Q?S=F6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	devel@driverdev.osuosl.org, Kukjin Kim <kgene@kernel.org>,
+	linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 28/39] [media] DocBook: Better organize media devices
-Date: Sat, 22 Aug 2015 14:28:13 -0300
-Message-Id: <23b15f8dc101e7accc41a5025a8b15af6534e674.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] [media] media: use entity.graph_obj.mdev instead
+ of .parent
+References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com> <1439998526-12832-4-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1439998526-12832-4-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of putting all media devices on a flat structure,
-split them on 4 types, just like we do with the userspace API:
-	Video2Linux devices
-	Digital TV (DVB) devices
-	Remote Controller devices
-	Media Controller devices
+On 08/19/15 17:35, Javier Martinez Canillas wrote:
+> The struct media_entity has a .parent field that stores a pointer
+> to the parent struct media_device. But recently a media_gobj was
+> embedded into the entities and since struct media_gojb already has
+> a pointer to a struct media_device in the .mdev field, the .parent
+> field becomes redundant and can be removed.
+> 
+> This patch replaces all the usage of .parent by .graph_obj.mdev so
+> that field will become unused and can be removed on a later patch.
+> 
+> No functional changes.
+> 
+> The transformation was made using the following coccinelle spatch:
+> 
+> @@
+> struct media_entity *me;
+> @@
+> 
+> - me->parent
+> + me->graph_obj.mdev
+> 
+> @@
+> struct media_entity *link;
+> @@
+> 
+> - link->source->entity->parent
+> + link->source->entity->graph_obj.mdev
+> 
+> @@
+> struct exynos_video_entity *ve;
+> @@
+> 
+> - ve->vdev.entity.parent
+> + ve->vdev.entity.graph_obj.mdev
+> 
+> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 53a7c5d8b996..5c9375b98303 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -218,25 +218,34 @@ X!Isound/sound_firmware.c
- 
-   <chapter id="mediadev">
-      <title>Media Devices</title>
--!Iinclude/media/media-device.h
--!Iinclude/media/media-devnode.h
--!Iinclude/media/media-entity.h
-+
-+     <sect1><title>Video2Linux devices</title>
- !Iinclude/media/v4l2-async.h
-+!Iinclude/media/v4l2-ctrls.h
-+!Iinclude/media/v4l2-dv-timings.h
-+!Iinclude/media/v4l2-event.h
- !Iinclude/media/v4l2-flash-led-class.h
-+!Iinclude/media/v4l2-mediabus.h
- !Iinclude/media/v4l2-mem2mem.h
- !Iinclude/media/v4l2-of.h
- !Iinclude/media/v4l2-subdev.h
--!Iinclude/media/rc-core.h
-+!Iinclude/media/videobuf2-core.h
-+!Iinclude/media/videobuf2-memops.h
-+     </sect1>
-+     <sect1><title>Digital TV (DVB) devices</title>
- !Idrivers/media/dvb-core/dvb_ca_en50221.h
- !Idrivers/media/dvb-core/dvb_frontend.h
- !Idrivers/media/dvb-core/dvb_math.h
- !Idrivers/media/dvb-core/dvb_ringbuffer.h
--!Iinclude/media/v4l2-ctrls.h
--!Iinclude/media/v4l2-event.h
--!Iinclude/media/v4l2-dv-timings.h
--!Iinclude/media/videobuf2-core.h
--!Iinclude/media/videobuf2-memops.h
--!Iinclude/media/v4l2-mediabus.h
-+     </sect1>
-+     <sect1><title>Remote Controller devices</title>
-+!Iinclude/media/rc-core.h
-+     </sect1>
-+     <sect1><title>Media Controller devices</title>
-+!Iinclude/media/media-device.h
-+!Iinclude/media/media-devnode.h
-+!Iinclude/media/media-entity.h
-+     </sect1>
- 
-   </chapter>
- 
--- 
-2.4.3
+Regards,
 
+	Hans
