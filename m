@@ -1,104 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:64591 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:58832 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752246AbbH3KRD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Aug 2015 06:17:03 -0400
-Date: Sun, 30 Aug 2015 12:16:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	id S1751792AbbHTMvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2015 08:51:00 -0400
+Subject: Re: [PATCH 0/4] [media] Media entity cleanups and build fixes
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
+References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
+ <55D5CB04.50508@xs4all.nl>
+Cc: devel@driverdev.osuosl.org,
+	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	linux-sh@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: atmel-isi: move configure_geometry() to
- start_streaming()
-In-Reply-To: <Pine.LNX.4.64.1508301114130.29683@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1508301216040.29683@axis700.grange>
-References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
- <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1508301114130.29683@axis700.grange>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <55D5CD2D.2010607@osg.samsung.com>
+Date: Thu, 20 Aug 2015 14:50:53 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <55D5CB04.50508@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yep, I see the thread and updates to this patch now, please, ignore this 
-mail, sorry.
+Hello Hans,
 
-Thanks
-Guennadi
+On 08/20/2015 02:41 PM, Hans Verkuil wrote:
+> On 08/19/15 17:35, Javier Martinez Canillas wrote:
+>> Hello,
+>>
+>> This series contains a couple of build fixes and cleanups for the
+>> Media Controller framework. The goal of the series is to get rid of
+>> the struct media_entity .parent member since now that a media_gobj is
+>> embedded into entities, the media_gobj .mdev member can be used to
+>> store a pointer to the parent struct media_device.
+>>
+>> So the .parent field becomes redundant and can be removed after all
+>> the users are converted to use entity .graph_obj.mdev instead.
+>>
+>> Patches 1/4 and 2/4 are build fixes I found while build testing if no
+>> regressions were introduced by the conversion. Patch 3/4 converts
+>> all the drivers and the MC core to use .mdev instead of .parent and
+>> finally patch 4/4 removes the .parent field since now is unused.
+> 
+> Regarding patches 1 and 2: these should of course be merged with Mauro's
+> patches that make this particular change (patch 3/8), otherwise it would
+> break git bisect.
+> 
+> Anyway,
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com> for the changes in patch
 
-On Sun, 30 Aug 2015, Guennadi Liakhovetski wrote:
+Thanks a lot for the acks.
 
-> Hi Josh,
+> 1 and 2, as long as they are added to Mauro's patch 3/8.
+>
+
+Indeed, I completely agree that these should be squashed with
+Mauro's patch to maintain git bisect-ability.
+ 
+> Regards,
 > 
-> On Wed, 17 Jun 2015, Josh Wu wrote:
+> 	Hans
 > 
-> > As in set_fmt() function we only need to know which format is been set,
-> > we don't need to access the ISI hardware in this moment.
-> > 
-> > So move the configure_geometry(), which access the ISI hardware, to
-> > start_streaming() will make code more consistent and simpler.
-> > 
-> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > ---
-> > 
-> >  drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
-> >  1 file changed, 5 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> > index 8bc40ca..b01086d 100644
-> > --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> > @@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
-> >  	/* Disable all interrupts */
-> >  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> >  
-> > +	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-> > +				icd->current_fmt->code);
-> > +	if (ret < 0)
-> > +		return ret;
-> 
-> No. Firstly, you'd have to pm_runtime_put() here if you fail. Secondly I 
-> think it's better to fail earlier - at S_FMT, than here. Not accessing the 
-> hardware in S_FMT is a good idea, but I'd at least do all the checking 
-> there. So, maybe add a "u32 cfg2_cr" field to struct atmel_isi, calculate 
-> it in S_FMT but only write to the hardware in start_streaming()?
-> 
-> Thanks
-> Guennadi
-> 
-> > +
-> >  	spin_lock_irq(&isi->lock);
-> >  	/* Clear any pending interrupt */
-> >  	isi_readl(isi, ISI_STATUS);
-> > @@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
-> >  static int isi_camera_set_fmt(struct soc_camera_device *icd,
-> >  			      struct v4l2_format *f)
-> >  {
-> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > -	struct atmel_isi *isi = ici->priv;
-> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> >  	const struct soc_camera_format_xlate *xlate;
-> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > @@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
-> >  	if (mf->code != xlate->code)
-> >  		return -EINVAL;
-> >  
-> > -	/* Enable PM and peripheral clock before operate isi registers */
-> > -	pm_runtime_get_sync(ici->v4l2_dev.dev);
-> > -
-> > -	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
-> > -
-> > -	pm_runtime_put(ici->v4l2_dev.dev);
-> > -
-> > -	if (ret < 0)
-> > -		return ret;
-> > -
-> >  	pix->width		= mf->width;
-> >  	pix->height		= mf->height;
-> >  	pix->field		= mf->field;
-> > -- 
-> > 1.9.1
-> > 
-> 
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
