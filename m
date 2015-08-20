@@ -1,186 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53067 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752094AbbHLUPM (ORCPT
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:32951 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095AbbHTVL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:12 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v3 16/16] media: add functions to allow creating interfaces
-Date: Wed, 12 Aug 2015 17:15:00 -0300
-Message-Id: <48c57c3b6726d69104835868399431a79a59b959.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Thu, 20 Aug 2015 17:11:58 -0400
+Date: Thu, 20 Aug 2015 14:11:52 -0700
+From: Brian Norris <computersforpeace@gmail.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Michael Hennerich <Michael.Hennerich@analog.com>,
+	linux-iio@vger.kernel.org, linux-wireless@vger.kernel.org,
+	Lee Jones <lee.jones@linaro.org>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	linux-mtd@lists.infradead.org,
+	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
+	=?iso-8859-1?Q?S=F8ren?= Andersen <san@rosetechnology.dk>,
+	devel@driverdev.osuosl.org, Randy Dunlap <rdunlap@infradead.org>,
+	Masanari Iida <standby24x7@gmail.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Devendra Naga <devendra.aaru@gmail.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Stephen Warren <swarren@nvidia.com>,
+	Urs =?iso-8859-1?Q?F=E4ssler?= <urs.fassler@bytesatwork.ch>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	George McCollister <george.mccollister@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Manfred Schlaegl <manfred.schlaegl@gmx.at>,
+	linux-omap@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Antonio Borneo <borneo.antonio@gmail.com>,
+	Andrea Galbusera <gizero@gmail.com>,
+	Michael Welling <mwelling@ieee.org>,
+	Fabian Frederick <fabf@skynet.be>,
+	Mark Brown <broonie@kernel.org>, linux-mmc@vger.kernel.org,
+	linux-spi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>,
+	David Woodhouse <dwmw2@infradead.org>, netdev@vger.kernel.org,
+	linux-media@vger.kernel.org, Peter Meerwald <pmeerw@pmeerw.net>
+Subject: Re: [PATCH 00/18] Export SPI and OF module aliases in missing drivers
+Message-ID: <20150820211152.GI74600@google.com>
+References: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Interfaces are different than entities: they represent a
-Kernel<->userspace interaction, while entities represent a
-piece of hardware/firmware/software that executes a function.
+On Thu, Aug 20, 2015 at 09:07:13AM +0200, Javier Martinez Canillas wrote:
+> Patches #1 and #2 solves a), patches #3 to #8 solves b) and patches
 
-Let's distinguish them by creating a separate structure to
-store the interfaces.
+^^^ I'm dying to know how this sentence ends :)
 
-Latter patches should change the existing drivers and logic
-to split the current interface embedded inside the entity
-structure (device nodes) into a separate object of the graph.
+> Patch #18 changes the logic of spi_uevent() to report an OF modalias if
+> the device was registered using OF. But this patch is included in the
+> series only as an RFC for illustration purposes since changing that
+> without first applying all the other patches in this series, will break
+> module autoloading for the drivers of devices registered using OF but
+> that lacks an of_match_table. I'll repost patch #18 once all the patches
+> in this series have landed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On a more productive note, the patches I've looked at look good to me.
+The missing aliases are a problem enough that should be fixed (i.e.,
+part (b)). I'll leave the SPI framework changes to others to comment on.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c3bc8a6f660b..8cd529d3180a 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -733,3 +733,59 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
- 
- }
- EXPORT_SYMBOL_GPL(media_entity_remote_pad);
-+
-+
-+/* Functions related to the media interface via device nodes */
-+
-+struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
-+						u32 major, u32 minor,
-+						gfp_t gfp_flags)
-+{
-+	struct media_intf_devnode *devnode;
-+
-+	devnode = kzalloc(sizeof(*devnode), gfp_flags);
-+	if (!devnode)
-+		return NULL;
-+
-+	devnode->major = major;
-+	devnode->minor = minor;
-+	INIT_LIST_HEAD(&devnode->intf.entity_links);
-+
-+	graph_obj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
-+		       &devnode->intf.graph_obj);
-+
-+	return devnode;
-+}
-+EXPORT_SYMBOL_GPL(media_devnode_create);
-+
-+void media_devnode_remove(struct media_intf_devnode *devnode)
-+{
-+	graph_obj_remove(&devnode->intf.graph_obj);
-+	kfree(devnode);
-+}
-+EXPORT_SYMBOL_GPL(media_devnode_remove);
-+
-+struct media_link *media_create_intf_link(struct media_entity *entity,
-+					  struct media_graph_obj *gobj,
-+					  u32 flags)
-+{
-+	struct media_link *link;
-+
-+	/* Only accept links between entity<==>interface */
-+	if (gobj->type != MEDIA_GRAPH_INTF_DEVNODE)
-+		return NULL;
-+
-+	link = __media_create_link(entity->parent,
-+				   MEDIA_LINK_DIR_BIDIRECTIONAL,
-+			           &entity->graph_obj,
-+				   gobj,
-+				   flags, &entity->intf_links);
-+	if (link == NULL)
-+		return NULL;
-+
-+	/* Create the link at the interface */
-+	list_add(&gobj_to_interface(gobj)->entity_links, &link->list);
-+
-+	return link;
-+}
-+EXPORT_SYMBOL_GPL(media_create_intf_link);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e63e402ca6d1..80df883cb336 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -36,11 +36,14 @@
-  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-  * @MEDIA_GRAPH_PAD:		Identify a media PAD
-  * @MEDIA_GRAPH_LINK:		Identify a media link
-+ * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
-+ * 				a device node
-  */
- enum media_graph_type {
- 	MEDIA_GRAPH_ENTITY,
- 	MEDIA_GRAPH_PAD,
- 	MEDIA_GRAPH_LINK,
-+	MEDIA_GRAPH_INTF_DEVNODE,
- };
- 
- /**
-@@ -145,7 +148,9 @@ struct media_entity {
- 	u16 num_backlinks;		/* Number of backlinks */
- 
- 	struct media_pad *pads;		/* Pads array (num_pads elements) */
--	struct list_head links;		/* Links list */
-+	struct list_head links;		/* PAD links list */
-+
-+	struct list_head intf_links;	/* Interface links list */
- 
- 	const struct media_entity_operations *ops;	/* Entity operations */
- 
-@@ -170,6 +175,30 @@ struct media_entity {
- 	} info;
- };
- 
-+/**
-+ * struct media_intf_devnode - Define a Kernel API interface
-+ *
-+ * @graph_obj:		embedded graph object
-+ * @ent_links:		List of links pointing to graph entities
-+ */
-+struct media_interface {
-+	struct media_graph_obj		graph_obj;
-+	struct list_head		entity_links;
-+};
-+
-+/**
-+ * struct media_intf_devnode - Define a Kernel API interface via a device node
-+ *
-+ * @intf:	embedded interface object
-+ * @major:	Major number of a device node
-+ * @minor:	Minor number of a device node
-+ */
-+struct media_intf_devnode {
-+	struct media_interface		intf;
-+	u32				major;
-+	u32				minor;
-+};
-+
- static inline u32 media_entity_type(struct media_entity *entity)
- {
- 	return entity->type & MEDIA_ENT_TYPE_MASK;
-@@ -202,6 +231,9 @@ struct media_entity_graph {
- #define gobj_to_pad(gobj) \
- 		container_of(gobj, struct media_pad, graph_obj)
- 
-+#define gobj_to_interface(gobj) \
-+		container_of(gobj, struct media_interface, graph_obj)
-+
- void graph_obj_init(struct media_device *mdev,
- 		    enum media_graph_type type,
- 		    struct media_graph_obj *gobj);
-@@ -233,6 +265,14 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 					     struct media_pipeline *pipe);
- void media_entity_pipeline_stop(struct media_entity *entity);
- 
-+struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
-+						u32 major, u32 minor,
-+						gfp_t gfp_flags);
-+void media_devnode_remove(struct media_intf_devnode *devnode);
-+struct media_link *media_create_intf_link(struct media_entity *entity,
-+					   struct media_graph_obj *gobj,
-+					   u32 flags);
-+
- #define media_entity_call(entity, operation, args...)			\
- 	(((entity)->ops && (entity)->ops->operation) ?			\
- 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
--- 
-2.4.3
-
+Brian
