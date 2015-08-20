@@ -1,60 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58916 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951AbbHWUSK (ORCPT
+Received: from cdptpa-outbound-snat.email.rr.com ([107.14.166.230]:61295 "EHLO
+	cdptpa-oedge-vip.email.rr.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751823AbbHTVDy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:10 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH v7 40/44] [media] media: Use a macro to interate between all interfaces
-Date: Sun, 23 Aug 2015 17:17:57 -0300
-Message-Id: <b9c9cbab4cbddfacb2f21a8b1a5ca17934eb8157.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Thu, 20 Aug 2015 17:03:54 -0400
+Date: Thu, 20 Aug 2015 17:03:43 -0400
+From: Steven Rostedt <rostedt@goodmis.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Clark Williams <williams@redhat.com>, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH] cx231xx: Use wake_up_interruptible() instead of
+ wake_up_interruptible_nr()
+Message-ID: <20150820170343.5938cc15@grimm.local.home>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just like we do with entities, use a similar macro for the
-interfaces loop.
+While looking at use cases of the wake queues in order to add support
+for simple wait queues, I noticed that there was only a single user of
+wake_up_interruptible_nr(), and that use was doing a single task wake
+up. Have that user use the proper wake_up_interruptible() instead, and
+perhaps we can even remove the function wake_up_interruptible_nr().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 24fee38730f5..288ab158adad 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -577,7 +577,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+---
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index c6ff896..9798160 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1875,7 +1875,7 @@ static int cx231xx_close(struct file *filp)
+ 			v4l2_fh_exit(&fh->fh);
+ 			kfree(fh);
+ 			dev->users--;
+-			wake_up_interruptible_nr(&dev->open, 1);
++			wake_up_interruptible(&dev->open);
+ 			return 0;
+ 		}
+ 
+@@ -1908,7 +1908,7 @@ static int cx231xx_close(struct file *filp)
  	}
+ 	v4l2_fh_exit(&fh->fh);
+ 	kfree(fh);
+-	wake_up_interruptible_nr(&dev->open, 1);
++	wake_up_interruptible(&dev->open);
+ 	return 0;
+ }
  
- 	/* Create indirect interface links for tuner and TS out entities */
--	list_for_each_entry(intf, &mdev->interfaces, list) {
-+	media_device_for_each_intf(intf, mdev) {
- 		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
- 			media_create_intf_link(tuner, intf, 0);
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 51807efa505b..f23d686aaac6 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -113,6 +113,11 @@ struct media_device *media_device_find_devres(struct device *dev);
- #define media_device_for_each_entity(entity, mdev)			\
- 	list_for_each_entry(entity, &(mdev)->entities, list)
- 
-+/* Iterate over all interfaces. */
-+#define media_device_for_each_intf(intf, mdev)			\
-+	list_for_each_entry(intf, &(mdev)->interfaces, list)
-+
-+
- #else
- static inline int media_device_register(struct media_device *mdev)
- {
--- 
-2.4.3
-
