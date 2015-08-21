@@ -1,65 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47408 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751094AbbHUMGx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 08:06:53 -0400
-Message-ID: <55D71432.3040001@xs4all.nl>
-Date: Fri, 21 Aug 2015 14:06:10 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:53236 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751730AbbHUUMj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 16:12:39 -0400
+Date: Sat, 22 Aug 2015 04:12:20 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [linux-next:master 7080/10086]
+ drivers/media/i2c/tc358743.c:1960:3-8: No need to set .owner here. The core
+ will do it.
+Message-ID: <201508220418.EFXIwRR6%fengguang.wu@intel.com>
 MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l2-compat-ioctl32: fix struct v4l2_event32 alignment
-References: <55D70787.2080508@xs4all.nl> <1440158630-29620-1-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1440158630-29620-1-git-send-email-a.hajda@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2015 02:03 PM, Andrzej Hajda wrote:
-> Union v4l2_event::u is aligned to 8 bytes on arm32. On arm64 v4l2_event32::u
-> is aligned to 4 bytes. As a result structures v4l2_event and v4l2_event32 have
-> different sizes and VIDOC_DQEVENT ioctl does not work from arm32 apps running
-> on arm64 kernel. The patch fixes it. Using compat_s64 allows to retain 4 bytes
-> alignment on x86 architecture.
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+head:   1ef981bcd18de26dc78bc79f092d6f4bb25e0e8f
+commit: 5cc596c66fe7c725ec049ae2093e7242034c97d6 [7080/10086] [media] i2c: Make all i2c devices visible if COMPILE_TEST=y
 
-What about v4l2_standard32 and v4l2_ext_control32? I very strongly suspect that
-those will break for arm32 apps on an arm64 as well.
 
-I prefer a patch that fixes all three...
+coccinelle warnings: (new ones prefixed by >>)
 
-Regards,
+>> drivers/media/i2c/tc358743.c:1960:3-8: No need to set .owner here. The core will do it.
 
-	Hans
+Please review and possibly fold the followup patch.
 
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
-> Hi Hans,
-> 
-> Tested successfully on arm32 app / arm64 kernel.
-> Thanks for help.
-> 
-> Regards
-> Andrzej
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index af63543..52afffe 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -738,6 +738,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
->  struct v4l2_event32 {
->  	__u32				type;
->  	union {
-> +		compat_s64		value64;
->  		__u8			data[64];
->  	} u;
->  	__u32				pending;
-> 
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
