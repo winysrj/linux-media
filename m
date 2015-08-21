@@ -1,47 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:36405 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780AbbHFT4K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 15:56:10 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:59014 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751633AbbHUKZg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 06:25:36 -0400
+Date: Fri, 21 Aug 2015 07:25:31 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v6 6/8] [media] media: add messages when media device
+ gets (un)registered
+Message-ID: <20150821072531.7115aa4f@recife.lan>
+In-Reply-To: <4280106.agOBtx2TYA@avalon>
+References: <cover.1439981515.git.mchehab@osg.samsung.com>
+	<f07fdec54485863d0db5710845d680f34709686b.1439981515.git.mchehab@osg.samsung.com>
+	<4280106.agOBtx2TYA@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
-References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
- <1434064996.11808.64.camel@misato.fc.hp.com> <557AAD910200007800084014@mail.emea.novell.com>
- <1434128306.11808.97.camel@misato.fc.hp.com> <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Thu, 6 Aug 2015 12:55:48 -0700
-Message-ID: <CAB=NE6WvaY4p7O3=0MMjWO44AytNYFr6xRsvVmVWDns9qdYZ8Q@mail.gmail.com>
-Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Jan Beulich <JBeulich@suse.com>,
-	Andy Lutomirski <luto@amacapital.net>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jej B <James.Bottomley@hansenpartnership.com>,
-	X86 ML <x86@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-	Julia Lawall <julia.lawall@lip6.fr>,
-	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
-	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
-	Juergen Gross <JGross@suse.com>, Borislav Petkov <bp@suse.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 6, 2015 at 12:53 PM, Luis R. Rodriguez
-<mcgrof@do-not-panic.com> wrote:
-> For those type of OSes...
-> could it be possible to negotiate or hint to the platform through an
-> attribute somehow that the OS has such capability to not use MTRR?
+Em Fri, 21 Aug 2015 04:35:04 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-And if that's not possible how about a new platform setting that would
-need to be set at the platform level to enable disabling this junk?
-Then only folks who know what they are doing would enable it, and if
-the customer set it, the issue would not be on the platform.
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 19 August 2015 08:01:53 Mauro Carvalho Chehab wrote:
+> > We can only free the media device after being sure that no
+> > graph object is used.
+> 
+> media_device_release() is currently broken as it should call back to the 
+> driver that has allocated the media_device() structure. I think we should fix 
+> that before adding more code on top of the problem.
 
- Luis
+Either that or move all allocations to happen via some MC function,
+but this is out of the scope of this patch.
+
+Whatever way we fix it, it is important to know when mdev
+is supposed to cease to exist, and if this call happens
+before or after the removal of all objects from the graph.
+
+> 
+> > In order to help tracking it, let's add debug messages
+> > that will print when the media controller gets registered
+> > or unregistered.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 065f6f08da37..0f3844470147 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -359,6 +359,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+> > 
+> >  static void media_device_release(struct media_devnode *mdev)
+> >  {
+> > +	dev_dbg(mdev->parent, "Media device released\n");
+> 
+> As commented on patch 7/8, ftrace is a better candidate for function tracing.
+
+Again, the problem here is to compare this with OOPs and other debug
+messages, to see if the release is happening at the proper place.
+
+Ftrace is not meant to be used for OOPS debug, nor it provides data
+to the console, as it is not designed to be used for that purpose.
+
+> 
+> >  }
+> > 
+> >  /**
+> > @@ -397,6 +398,8 @@ int __must_check __media_device_register(struct
+> > media_device *mdev, return ret;
+> >  	}
+> > 
+> > +	dev_dbg(mdev->dev, "Media device registered\n");
+> > +
+> >  	return 0;
+> >  }
+> >  EXPORT_SYMBOL_GPL(__media_device_register);
+> > @@ -416,6 +419,8 @@ void media_device_unregister(struct media_device *mdev)
+> > 
+> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	media_devnode_unregister(&mdev->devnode);
+> > +
+> > +	dev_dbg(mdev->dev, "Media device unregistered\n");
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_unregister);
+> 
