@@ -1,53 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:46555
-	"EHLO mail.upit.ro" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbbHNXf5 (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:36075 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753159AbbHUJ3v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 19:35:57 -0400
-Message-ID: <1737b383cda8048c67a6f4fc292162b3.squirrel@mail.upit.ro>
-Date: Fri, 14 Aug 2015 19:19:26 +0300 (EEST)
-Subject: =?iso-8859-1?Q?Gratul=E1lunk_!!!?=
-From: "www.facebook.com" <claudiu.neagoe@upit.ro>
-Reply-To: fb_deliveryservice@yeah.net
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+	Fri, 21 Aug 2015 05:29:51 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 0/8] Support getting default values from any control
+Date: Fri, 21 Aug 2015 11:29:38 +0200
+Message-Id: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Integer controls provide a way to get their default/initial value, but
+any other control (p_u32, p_u8.....) provide no other way to get the
+initial value than unloading the module and loading it back.
+
+*What is the actual problem?
+I have a custom control with WIDTH integer values. Every value
+represents the calibrated FPN (fixed pattern noise) correction value for that
+column
+-Application A changes the FPN correction value
+-Application B wants to restore the calibrated value but it cant :(
+
+*What is the proposed solution?
+
+(Kudos to Hans Verkuil!!!)
+
+The key change is in struct v4l2_ext_controls where the __u32 ctrl_class field
+is changed to:
+
+        union {
+                __u32 ctrl_class;
+                __u32 which;
+        };
+
+And two new defines are added:
+
+#define V4L2_CTRL_WHICH_CUR_VAL        0
+#define V4L2_CTRL_WHICH_DEF_VAL        0x0f000000
+
+The 'which' field tells you which controls are get/set/tried.
+
+V4L2_CTRL_WHICH_CUR_VAL: the current value of the controls
+V4L2_CTRL_WHICH_DEF_VAL: the default value of the controls
+V4L2_CTRL_CLASS_*: the current value of the controls belonging to the specified class.
+        Note: this is deprecated usage and is only there for backwards compatibility.
+        Which is also why I don't think there is a need to add V4L2_CTRL_WHICH_
+        aliases for these defines.
 
 
+I have posted a copy of my working tree to
 
-www.facebook.com
+https://github.com/ribalda/linux/tree/which_def
 
-Gratulálunk !!!
+Changelog v1 (compared to v5 of New ioct VIDIOC_G_DEF_EXT_CTRLS):
 
-Örülünk, hogy be, hogy a Facebook számla került véletlenszer&#369;en
-kiválasztott, a kedvezményezett $ 1,000,000.00usd a 2014/2015 Facebook Év
-{Grand Jutalmak gy&#337;ztes}.
+Suggested by Hans Verkuil <hverkuil@xs4all.nl>
 
-Küldjön e-mailt az alábbi adatokat: fb_deliveryservice@yeah.net
+Replace ioctl implementation with a new union on the struct v4l2_ext_controls
+THANKS!
 
-MEGHÍVÓ AZONOSÍTÓ: NW90W0W0-XANSIEW-1014
-1) összeget nyert: $ 1,000,000.00 USD
-2) facebook felhasználónév:
-3) A jelenlegi lakóhelye szerinti ország:
-4) Útlevél / száma:
+Ricardo Ribalda Delgado (8):
+  videodev2.h: Fix typo in comment
+  videodev2.h: Extend struct v4l2_ext_controls
+  media/v4l2-core: struct struct v4l2_ext_controls param which
+  usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+  media/usb/pvrusb2: Support for V4L2_CTRL_WHICH_DEF_VAL
+  media/pci/saa7164-encoder Support for V4L2_CTRL_WHICH_DEF_VAL
+  media/pci/saa7164-vbi Support for V4L2_CTRL_WHICH_DEF_VAL
+  Docbook: media: Document changes on struct v4l2_ext_controls
 
-Küldd el ezt a részleteket, hogy az e-mail fent: fb_deliveryservice@yeah.net
+ Documentation/DocBook/media/v4l/v4l2.xml           |  9 ++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 14 ++++++
+ drivers/media/pci/saa7164/saa7164-encoder.c        | 55 ++++++++++++---------
+ drivers/media/pci/saa7164/saa7164-vbi.c            | 57 +++++++++++++---------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 17 ++++++-
+ drivers/media/usb/uvc/uvc_v4l2.c                   | 14 +++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 35 +++++++++++--
+ include/uapi/linux/videodev2.h                     |  9 +++-
+ 8 files changed, 153 insertions(+), 57 deletions(-)
 
-
-George Jones.
-Program koordinátora,
-Facebook jutalmazási program,
-+ 1-209-300-9000
-www.facebook.com
-Minden jog fenntartva 2015.
-
-
---
-This mail was scanned by BitDefender
-For more information please visit http://www.bitdefender.com/
-
+-- 
+2.5.0
 
