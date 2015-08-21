@@ -1,74 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:56368 "EHLO
-	mx08-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103AbbHFFWg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Aug 2015 01:22:36 -0400
-Received: from pps.filterd (m0046660.ppops.net [127.0.0.1])
-	by mx08-00178001.pphosted.com (8.14.5/8.14.5) with SMTP id t765MZbV025263
-	for <linux-media@vger.kernel.org>; Thu, 6 Aug 2015 07:22:35 +0200
-Received: from beta.dmz-ap.st.com (beta.dmz-ap.st.com [138.198.100.35])
-	by mx08-00178001.pphosted.com with ESMTP id 1w3hh6mn5m-1
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Thu, 06 Aug 2015 07:22:35 +0200
-Received: from zeta.dmz-ap.st.com (ns6.st.com [138.198.234.13])
-	by beta.dmz-ap.st.com (STMicroelectronics) with ESMTP id 1E77C23
-	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2015 05:22:30 +0000 (GMT)
-Received: from Webmail-ap.st.com (eapex1hubcas1.st.com [10.80.176.8])
-	by zeta.dmz-ap.st.com (STMicroelectronics) with ESMTP id 6A8F211A
-	for <linux-media@vger.kernel.org>; Thu,  6 Aug 2015 05:22:29 +0000 (GMT)
-From: Udit KUMAR <udit-dlh.kumar@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Udit KUMAR <udit-dlh.kumar@st.com>,
-	Dimple GERA <dimple.gera@st.com>
-Date: Thu, 6 Aug 2015 13:22:27 +0800
-Subject: VIDIOC_S_EXT_CTRLS 
-Message-ID: <ADCA285CF15CD143BF1E6E2BAF6868AA0894EA4CD6@EAPEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-la0-f47.google.com ([209.85.215.47]:35338 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696AbbHUJ37 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 05:29:59 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 7/8] media/pci/saa7164-vbi Support for V4L2_CTRL_WHICH_DEF_VAL
+Date: Fri, 21 Aug 2015 11:29:45 +0200
+Message-Id: <1440149386-19783-8-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello 
+This driver does not use the control infrastructure.
+Add support for the new field which on structure
+ v4l2_ext_controls
 
-When passing strings which has NULL in between, low level driver will not get full strings. 
-Our typical use case is kernel level muxer, where "PMT" descriptor  is passed as strings, which will have NULL in between. 
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/pci/saa7164/saa7164-vbi.c | 57 +++++++++++++++++++--------------
+ 1 file changed, 33 insertions(+), 24 deletions(-)
 
-In this case V4L2, copies the whole size and passing only stings to low level driver. 
-If V4L2 sends size along with strings to low level driver then it will fix the problem and let low level driver to decide whether they want to use
-size of strings or size. 
-
-Below patch is proposed to fix such issues. 
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 7e38d59..bd3dc67 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1166,10 +1166,12 @@ static int user_to_new(struct v4l2_ext_control *c,
- 	u32 size;
+diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
+index 859fd03d82f9..e8723102a4d2 100644
+--- a/drivers/media/pci/saa7164/saa7164-vbi.c
++++ b/drivers/media/pci/saa7164/saa7164-vbi.c
+@@ -494,30 +494,6 @@ static int saa7164_get_ctrl(struct saa7164_port *port,
+ 	return 0;
+ }
  
- 	ctrl->is_new = 1;
-+	ctrl->size = c->size;
- 	switch (ctrl->type) {
- 	case V4L2_CTRL_TYPE_INTEGER64:
- 		ctrl->val64 = c->value64;
- 		break;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 47ada23..75ec59c 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -152,6 +152,7 @@ struct v4l2_ctrl {
- 		char *string;
- 	};
- 	void *priv;
-+	u32 size;
- };
+-static int vidioc_g_ext_ctrls(struct file *file, void *priv,
+-	struct v4l2_ext_controls *ctrls)
+-{
+-	struct saa7164_vbi_fh *fh = file->private_data;
+-	struct saa7164_port *port = fh->port;
+-	int i, err = 0;
+-
+-	if (ctrls->ctrl_class == V4L2_CTRL_CLASS_MPEG) {
+-		for (i = 0; i < ctrls->count; i++) {
+-			struct v4l2_ext_control *ctrl = ctrls->controls + i;
+-
+-			err = saa7164_get_ctrl(port, ctrl);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-		}
+-		return err;
+-
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ static int saa7164_try_ctrl(struct v4l2_ext_control *ctrl, int ac3)
+ {
+ 	int ret = -EINVAL;
+@@ -810,6 +786,39 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ 	return -EINVAL;
+ }
  
- /** struct v4l2_ctrl_ref - The control reference.
++static int vidioc_g_ext_ctrls(struct file *file, void *priv,
++	struct v4l2_ext_controls *ctrls)
++{
++	struct saa7164_vbi_fh *fh = file->private_data;
++	struct saa7164_port *port = fh->port;
++	int i, err = 0;
++
++	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_MPEG &&
++		ctrls->which != V4L2_CTRL_WHICH_DEF_VAL)
++		return -EINVAL;
++
++	for (i = 0; i < ctrls->count; i++) {
++		struct v4l2_ext_control *ctrl = ctrls->controls + i;
++
++		if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
++			struct v4l2_queryctrl q;
++
++			err = fill_queryctrl(&port->vbi_params, &q);
++			if (!err)
++				ctrl->value = q.default_value;
++		} else
++			err = saa7164_get_ctrl(port, ctrl);
++
++		if (err) {
++			ctrls->error_idx = i;
++			break;
++		}
++	}
++
++	return err;
++}
++
++
+ static int saa7164_vbi_stop_port(struct saa7164_port *port)
+ {
+ 	struct saa7164_dev *dev = port->dev;
+-- 
+2.5.0
 
-
-
-Regards
-Udit
