@@ -1,68 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.aon.at ([195.3.96.117]:47781 "EHLO smtpout.aon.at"
+Received: from lists.s-osg.org ([54.187.51.154]:59175 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753582AbbHaQZY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 12:25:24 -0400
-Message-ID: <55E47FE8.7000206@a1.net>
-Date: Mon, 31 Aug 2015 18:25:12 +0200
-From: Johann Klammer <klammerj@a1.net>
+	id S1752488AbbHUUqJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 16:46:09 -0400
+Date: Fri, 21 Aug 2015 17:46:04 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v6 1/8] [media] media: create a macro to get entity ID
+Message-ID: <20150821174604.3b0d64d3@recife.lan>
+In-Reply-To: <7241853.lyNlEo06u5@avalon>
+References: <cover.1439981515.git.mchehab@osg.samsung.com>
+	<1504949.EhTF6JoeCK@avalon>
+	<20150821144535.0f75cc92@recife.lan>
+	<7241853.lyNlEo06u5@avalon>
 MIME-Version: 1.0
-To: Maximilian Imgrund <max@imgrunds.de>, linux-media@vger.kernel.org
-Subject: Re: New Terratec Cinergy S2 Box usb-id
-References: <201508311109.t7VB9utm008834@higgs.fritz.box> <55E43855.3060409@imgrunds.de>
-In-Reply-To: <55E43855.3060409@imgrunds.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2015 01:19 PM, Maximilian Imgrund wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA256
-> 
-> Dear all,
-> 
-> I am currently figuring out how to get the Terratec Cinergy S2 USB Box
-> up and running. I already modified a patch to  previous version (see
-> attachment) to include the new ID in the device driver, module is also
-> loading with the ds3000 firmware. However, when using w_scan, the
-> reported frequency range is .95GHz ... 2.15Ghz which is roughly a
-> factor of 10 lower than I expected (Astra is 12.515Ghz e.g.). Since
-> the tuner seems to tune in correctly but in the wrong frequency range,
-> I feel that is the reason for me not getting in any channels.
-> 
-> Can you help me with what to change in the driver to get this working
-> ? I feel like an additional .frequency_div should do the job, however
-> I am unable to find further informaion on that...
-> 
-> Best
-> Maximilian Imgrund
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2
-> 
-> iF4EAREIAAYFAlXkOFIACgkQR/X5cR0fI/6sfAD+OVauTyLw0oWSMr8ONzmrguF+
-> Ci/vg4uO9mxZwzjgGXkA/ipgQ/IuX+8n2CSScHg6CFjt9tIBbFOAVzStuUrOpwx2
-> =AAXS
-> -----END PGP SIGNATURE-----
-> 
+Em Fri, 21 Aug 2015 21:11:57 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-The driver has to tune to the intermediate frequency 
-that's output by the LNB. (There is a local oscillator+downmixer in there...)
+> Hi Mauro,
+> 
+> On Friday 21 August 2015 14:45:35 Mauro Carvalho Chehab wrote:
+> > Em Fri, 21 Aug 2015 20:27:19 +0300 Laurent Pinchart escreveu:
+> > > On Friday 21 August 2015 05:42:29 Mauro Carvalho Chehab wrote:
+> > >> Em Fri, 21 Aug 2015 03:40:48 +0300 Laurent Pinchart escreveu:
+> > >> > On Wednesday 19 August 2015 08:01:48 Mauro Carvalho Chehab wrote:
+> > >>>> Instead of accessing directly entity.id, let's create a macro,
+> > >>>> as this field will be moved into a common struct later on.
+> > >>>> 
+> > >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > 
+> > > [snip]
+> > > 
+> > >>>> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> > >>>> b/drivers/media/platform/vsp1/vsp1_video.c index
+> > >>>> 17f08973f835..debe4e539df6
+> > >>>> 100644
+> > >>>> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> > >>>> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> > >>>> @@ -352,10 +352,10 @@ static int
+> > >>>> vsp1_pipeline_validate_branch(struct
+> > >>>> vsp1_pipeline *pipe,
+> > >>>> 			break;
+> > >>>> 			
+> > >>>>  		/* Ensure the branch has no loop. */
+> > >>>> -		if (entities & (1 << entity->subdev.entity.id))
+> > >>>> +		if (entities & (1 << media_entity_id(&entity->subdevntity)))
+> > >>>>  			return -EPIPE;
+> > >>>> 
+> > >>>> -		entities |= 1 << entity->subdev.entity.id;
+> > >>>> +		entities |= 1 << media_entity_id(&entity->subdev.entity);
+> > >>>> 
+> > >>>>  		/* UDS can't be chained. */
+> > >>>>  		if (entity->type == VSP1_ENTITY_UDS) {
+> > >>> 
+> > >>> I would move the modification of the vsp1 driver to Javier's patch
+> > >>> that modifies the OMAP3 and OMAP4 drivers. Alternatively you could
+> > >>> squash them into this patch, but I believe having a first patch that
+> > >>> adds the inline function and a second patch that modifies all drivers
+> > >>> to use it would be better.
+> > >> 
+> > >> Squashing will lose Javier's authorship. I guess the better is have a
+> > >> first patch with the inline, then my paches and Javier's ones, and
+> > >> latter on the patch removing entity->id.
+> > > 
+> > > What I meant is
+> > > 
+> > > 1. This patch without the VSP1 chunk, with your authorship
+> > > 2. Javier's patches for OMAP3 and OMAP4 + the VSP1 chunk squashed in a
+> > > single patch, with Javier's authorship
+> > > 3. Javier's patch removing entity->id, with Javier's authorship
+> > 
+> > Actually, the removal of entity->id is at the first patch, with my
+> > authorship, but I got the idea ;)
+> 
+> I'm not sure to follow you. The first patch is this one, and it doesn't remove 
+> the id field from struct media_entity.
 
-This is what the one here has
+Sorry, I meant to say "the first patch series I submitted after the workshop",
+e. .g RFC v1.
 
-info = {
-      name = "ST STV0299 DVB-S", '\000' <repeats 111 times>, type = FE_QPSK, 
-      frequency_min = 950000, frequency_max = 2150000, 
-      frequency_stepsize = 125, frequency_tolerance = 0, 
-      symbol_rate_min = 1000000, symbol_rate_max = 45000000, 
-      symbol_rate_tolerance = 500, notifier_delay = 0, 
-      caps = (FE_CAN_INVERSION_AUTO | FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO | FE_CAN_QPSK)}, 
+> > Btw, this was noticed because Javier is testing the MC new gen on OMAP3.
+> > We should really enforce that all all drivers should compile with
+> > COMPILE_TEST, as otherwise we'll keep having troubles like that.
+> 
+> I agree with that. I've just sent a patch to enable compilation of the 
+> omap3isp driver with COMPILE_TEST. There's still a compile-time dependency on 
+> ARM, as well as a dependency on OMAP_IOMMU which currently depends on OMAP, 
+> but that can be fixed independently.
 
-Frequency_min and max match yours. 
+See the comments for the patch.
 
-Try a different scan tool, and make sure you get a signal out of your LNB. 
-Proper DISH ALIGNMENT is important, 
-and don't forget a grounding bloc. 
+Regards,
+Mauro
 
 
