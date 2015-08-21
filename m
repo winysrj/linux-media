@@ -1,55 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:44146 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753432AbbHCR6B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Aug 2015 13:58:01 -0400
-Subject: Re: [lm-sensors] MAINTAINERS/s5p: Kamil Debski no longer with
- Samsung?
-From: Jean Delvare <jdelvare@suse.de>
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Joe Perches <joe@perches.com>, Kamil Debski <kamil@wypas.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	lm-sensors <lm-sensors@lm-sensors.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <5606140.737HZuKSvR@amdc1976>
-References: <20150802203128.1B6952691B2@smtprelay05.hostedemail.com>
-	 <1438548040.30149.1.camel@perches.com>  <5606140.737HZuKSvR@amdc1976>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 03 Aug 2015 19:06:52 +0200
-Message-ID: <1438621612.10722.27.camel@chaos.site>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-la0-f47.google.com ([209.85.215.47]:33390 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694AbbHUNTq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 09:19:46 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 08/10] media/pci/saa7164-encoder Support for V4L2_CTRL_WHICH_DEF_VAL
+Date: Fri, 21 Aug 2015 15:19:27 +0200
+Message-Id: <1440163169-18047-9-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bartlomiej,
+This driver does not use the control infrastructure.
+Add support for the new field which on structure
+ v4l2_ext_controls
 
-Le Monday 03 August 2015 à 17:33 +0200, Bartlomiej Zolnierkiewicz a
-écrit :
-> Hi,
-> 
-> On Sunday, August 02, 2015 01:40:40 PM Joe Perches wrote:
-> > On Sun, 2015-08-02 at 20:31 +0000, Mail Delivery System wrote:
-> > > <k.debski@samsung.com>: host mailin.samsung.com[203.254.224.12] 
-> > > said: 550 5.1.1
-> > >     Recipient address rejected: User unknown (in reply to RCPT TO 
-> > > command)
-> > 
-> > His email address bounces.
-> > 
-> > Should MAINTAINERS be updated?
-> 
-> Please wait with these changes, the situation should be clarified soon
-> (I've added Kamil to Cc).
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/pci/saa7164/saa7164-encoder.c | 55 ++++++++++++++++-------------
+ 1 file changed, 31 insertions(+), 24 deletions(-)
 
-Already clarified behind the scenes ;-) The patch should be discarded.
-
-Thanks,
+diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
+index e0ec64ed06fc..4a5c1ee3fb34 100644
+--- a/drivers/media/pci/saa7164/saa7164-encoder.c
++++ b/drivers/media/pci/saa7164/saa7164-encoder.c
+@@ -531,30 +531,6 @@ static int saa7164_get_ctrl(struct saa7164_port *port,
+ 	return 0;
+ }
+ 
+-static int vidioc_g_ext_ctrls(struct file *file, void *priv,
+-	struct v4l2_ext_controls *ctrls)
+-{
+-	struct saa7164_encoder_fh *fh = file->private_data;
+-	struct saa7164_port *port = fh->port;
+-	int i, err = 0;
+-
+-	if (ctrls->which == V4L2_CTRL_CLASS_MPEG) {
+-		for (i = 0; i < ctrls->count; i++) {
+-			struct v4l2_ext_control *ctrl = ctrls->controls + i;
+-
+-			err = saa7164_get_ctrl(port, ctrl);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-		}
+-		return err;
+-
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ static int saa7164_try_ctrl(struct v4l2_ext_control *ctrl, int ac3)
+ {
+ 	int ret = -EINVAL;
+@@ -884,6 +860,37 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ 	return -EINVAL;
+ }
+ 
++static int vidioc_g_ext_ctrls(struct file *file, void *priv,
++	struct v4l2_ext_controls *ctrls)
++{
++	struct saa7164_encoder_fh *fh = file->private_data;
++	struct saa7164_port *port = fh->port;
++	int i, err = 0;
++
++	if (ctrls->which != V4L2_CTRL_CLASS_MPEG &&
++		ctrls->which != V4L2_CTRL_WHICH_DEF_VAL)
++		return -EINVAL;
++
++	for (i = 0; i < ctrls->count; i++) {
++		struct v4l2_ext_control *ctrl = ctrls->controls + i;
++
++		if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
++			struct v4l2_queryctrl q;
++
++			err = fill_queryctrl(&port->encoder_params, &q);
++			if (!err)
++				ctrl->value = q.default_value;
++		} else
++			err = saa7164_get_ctrl(port, ctrl);
++
++		if (err) {
++			ctrls->error_idx = i;
++			break;
++		}
++	}
++	return err;
++}
++
+ static int saa7164_encoder_stop_port(struct saa7164_port *port)
+ {
+ 	struct saa7164_dev *dev = port->dev;
 -- 
-Jean Delvare
-SUSE L3 Support
+2.5.0
 
