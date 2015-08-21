@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:34394 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296AbbHUNTf (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:35277 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440AbbHUJ3w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 09:19:35 -0400
+	Fri, 21 Aug 2015 05:29:52 -0400
 From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mike Isely <isely@pobox.com>,
@@ -14,11 +14,11 @@ To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Vincent Palatin <vpalatin@chromium.org>,
 	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 01/10] videodev2.h: Fix typo in comment
-Date: Fri, 21 Aug 2015 15:19:20 +0200
-Message-Id: <1440163169-18047-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/8] videodev2.h: Fix typo in comment
+Date: Fri, 21 Aug 2015 11:29:39 +0200
+Message-Id: <1440149386-19783-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
