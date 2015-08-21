@@ -1,33 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:32220 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754014AbbHHJzn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2015 05:55:43 -0400
-Date: Sat, 8 Aug 2015 12:55:08 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Junsu Shin <jjunes0@gmail.com>
-Cc: mchehab@osg.samsung.com, gregkh@linuxfoundation.org,
-	devel@driverdev.osuosl.org, boris.brezillon@free-electrons.com,
-	linux-kernel@vger.kernel.org, prabhakar.csengg@gmail.com,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Staging: media: davinci_vpfe: Fix over 80 characters
- coding style issue
-Message-ID: <20150808095507.GF5180@mwanda>
-References: <1439015448-4599-1-git-send-email-jjunes0@gmail.com>
+Received: from ns.unixsol.org ([193.110.159.2]:52582 "EHLO ns.unixsol.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753354AbbHUOhz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 10:37:55 -0400
+Message-ID: <55D73692.3040708@unixsol.org>
+Date: Fri, 21 Aug 2015 17:32:50 +0300
+From: Anton Tinchev <atl@unixsol.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1439015448-4599-1-git-send-email-jjunes0@gmail.com>
+To: Norbert Auge <nauge@digitaldevices.de>, linux-media@vger.kernel.org
+CC: Georgi Chorbadzhiyski <gf@unixsol.org>,
+	Marian Zahariev <marian@unixsol.org>
+Subject: Bugs reporting
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 08, 2015 at 01:30:48AM -0500, Junsu Shin wrote:
-> This is a patch to the dm365_ipipe.c that fixes over 80 characters warning detected.
-> Signed-off-by: Junsu Shin <jjunes0@gmail.com>
+Hi,
+can you point me where is usually reported the bugs with the cards firmware and/or drivers.
+The combination is Cine S2 v6.5 with Duoflex S2 V4.
 
-Put a blank line before the Signed-off-by.
+The miniDiSEqC (AB) is not working on the Duoflex S2 V4. Is not board fault, same behavior have
+all cards i tested - about 20 Duoflex and 8 Cine modules.
+For the protocol i tested:
 
-regards,
-dan carpenter
+Cine S2 v6.5 + Duoflex S2 V4:
+  - ports 0 and 1 (Ports on Cine card) - miniDiSEqC is working
+  - ports 0 and 1 (Ports on Cine card) - DiSEqC is working
+  - ports 2 and up (Ports on Duflex cards) -   DiSEqC is working
+  - ports 2 and up (Ports on Duflex cards) -   miniDiSEqC is NOT WORKING
 
+Cine S2 v6.2 + Duoflex S2 older versions:
+  - all ports - both Cine and Duoflex  - miniDiSEqC is working
+  - all ports - both Cine and Duoflex - DiSEqC is working
+
+
+Cine S2 v6.5 + Duoflex S2 older version:
+  - Not tested, will test soon
+
+Cine S2 v6.2 + Duoflex S2 V4:
+  - Not tested, will test when purchase next batch.
+
+
+Also there is tons of errors on i2c bus to Duoflex S2 V4 tabs.
+
+
+
+This was tested with latest drivers, also was tested with stock drivers with several
+kernel versions from 3.18.11 to 4.2 rc2 - same behavior
