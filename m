@@ -1,77 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58901 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364AbbHWUSI (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49377 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932133AbbHUKL7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 18/44] [media] media: make media_link more generic to handle interace links
-Date: Sun, 23 Aug 2015 17:17:35 -0300
-Message-Id: <cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Fri, 21 Aug 2015 06:11:59 -0400
+Message-ID: <55D6F944.10102@xs4all.nl>
+Date: Fri, 21 Aug 2015 12:11:16 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/8] media/v4l2-core: struct struct v4l2_ext_controls
+ param which
+References: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com> <1440149386-19783-4-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440149386-19783-4-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By adding an union at media_link, we get for free a way to
-represent interface->entity links.
+On 08/21/2015 11:29 AM, Ricardo Ribalda Delgado wrote:
+> Support for new field which on v4l2_ext_controls, used to get the
+> default value of one or more controls.
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 35 ++++++++++++++++++++++++++++++-----
+>  1 file changed, 30 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b6b7dcc1b77d..23a69f637f6d 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1489,6 +1489,17 @@ static int new_to_user(struct v4l2_ext_control *c,
+>  	return ptr_to_user(c, ctrl, ctrl->p_new);
+>  }
+>  
+> +/* Helper function: copy the initial control value back to the caller */
+> +static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
+> +{
+> +	int idx;
+> +
+> +	for (idx = 0; idx < ctrl->elems; idx++)
+> +		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
+> +
+> +	return ptr_to_user(c, ctrl, ctrl->p_new);
+> +}
+> +
+>  /* Helper function: copy the caller-provider value to the given control value */
+>  static int user_to_ptr(struct v4l2_ext_control *c,
+>  		       struct v4l2_ctrl *ctrl,
+> @@ -2708,7 +2719,9 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+>  
+>  		cs->error_idx = i;
+>  
+> -		if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
+> +		if (cs->ctrl_class &&
+> +		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
+> +		    V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
+>  			return -EINVAL;
+>  
+>  		/* Old-style private controls are not allowed for
+> @@ -2787,7 +2800,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+>     whether there are any controls at all. */
+>  static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
+>  {
+> -	if (ctrl_class == 0)
+> +	if (ctrl_class == 0 || ctrl_class == V4L2_CTRL_WHICH_DEF_VAL)
+>  		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
+>  	return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
+>  }
+> @@ -2801,10 +2814,14 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+>  	struct v4l2_ctrl_helper *helpers = helper;
+>  	int ret;
+>  	int i, j;
+> +	bool def_value = false;
+>  
+>  	cs->error_idx = cs->count;
+>  	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
+>  
+> +	if (cs->which == V4L2_CTRL_WHICH_DEF_VAL)
+> +		def_value = true;
+> +
 
-No need to change anything at the code, just at the internal
-header file.
+Ah, this is confusing. First assigning to ctrl_class, then checking 'which'.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+I would add a patch after patch 2/8 that replaces all occurrences of ctrl_class in
+by 'which'. It's only used in v4l2-core, the saa7164 driver and in Documentation.
+The old 'ctrl_class' shouldn't be used in the kernel anymore.
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 17bb5cbbd67d..f6e8fa801cf9 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -75,14 +75,20 @@ struct media_pipeline {
- struct media_link {
- 	struct media_gobj graph_obj;
- 	struct list_head list;
--	struct media_pad *source;	/* Source pad */
--	struct media_pad *sink;		/* Sink pad  */
-+	union {
-+		struct media_gobj *port0;
-+		struct media_pad *source;
-+	};
-+	union {
-+		struct media_gobj *port1;
-+		struct media_pad *sink;
-+	};
- 	struct media_link *reverse;	/* Link in the reverse direction */
- 	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
- };
- 
- struct media_pad {
--	struct media_gobj graph_obj;
-+	struct media_gobj graph_obj;	/* should be the first object */
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-@@ -105,7 +111,7 @@ struct media_entity_operations {
- };
- 
- struct media_entity {
--	struct media_gobj graph_obj;
-+	struct media_gobj graph_obj;	/* should be the first object */
- 	struct list_head list;
- 	const char *name;		/* Entity name */
- 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
-@@ -119,7 +125,7 @@ struct media_entity {
- 	u16 num_backlinks;		/* Number of backlinks */
- 
- 	struct media_pad *pads;		/* Pads array (num_pads objects) */
--	struct list_head links;		/* Links list */
-+	struct list_head links;		/* Pad-to-pad links list */
- 
- 	const struct media_entity_operations *ops;	/* Entity operations */
- 
--- 
-2.4.3
+It is probably a good idea to put #ifndef __KERNEL__ around the ctrl_class field in
+the header. That way it isn't visible in the kernel at all.
 
+I would also rename V4L2_CTRL_ID2CLASS to V4L2_CTRL_ID2WHICH (and keep the old define
+as #define V4L2_CTRL_ID2CLASS V4L2_CTRL_ID2WHICH under #ifndef __KERNEL__).
+
+>  	if (hdl == NULL)
+>  		return -EINVAL;
+>  
+> @@ -2827,9 +2844,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+>  
+>  	for (i = 0; !ret && i < cs->count; i++) {
+>  		int (*ctrl_to_user)(struct v4l2_ext_control *c,
+> -				    struct v4l2_ctrl *ctrl) = cur_to_user;
+> +				    struct v4l2_ctrl *ctrl);
+>  		struct v4l2_ctrl *master;
+>  
+> +		ctrl_to_user = def_value ? def_to_user : cur_to_user;
+> +
+>  		if (helpers[i].mref == NULL)
+>  			continue;
+>  
+> @@ -2839,8 +2858,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+>  		v4l2_ctrl_lock(master);
+>  
+>  		/* g_volatile_ctrl will update the new control values */
+> -		if ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
+> -			(master->has_volatiles && !is_cur_manual(master))) {
+> +		if (!def_value &&
+> +		    ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
+> +		    (master->has_volatiles && !is_cur_manual(master)))) {
+>  			for (j = 0; j < master->ncontrols; j++)
+>  				cur_to_new(master->cluster[j]);
+>  			ret = call_op(master, g_volatile_ctrl);
+> @@ -3062,6 +3082,11 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+>  	int ret;
+>  
+>  	cs->error_idx = cs->count;
+> +
+> +	/* Default value cannot be changed */
+> +	if (cs->which == V4L2_CTRL_WHICH_DEF_VAL)
+> +		return -EINVAL;
+> +
+>  	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
+>  
+>  	if (hdl == NULL)
+> 
+
+Regards,
+
+	Hans
