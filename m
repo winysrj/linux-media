@@ -1,85 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:60824 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042AbbHQUfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Aug 2015 16:35:09 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1ZRR7Z-0001l9-NI
-	for linux-media@vger.kernel.org; Mon, 17 Aug 2015 22:35:05 +0200
-Received: from ip-84-119-160-38.unity-media.net ([84.119.160.38])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 17 Aug 2015 22:35:05 +0200
-Received: from sp170388 by ip-84-119-160-38.unity-media.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 17 Aug 2015 22:35:05 +0200
-To: linux-media@vger.kernel.org
-From: BadTenMan <sp170388@hotmail.com>
-Subject: Re: terratec HTC XS HD USB
-Date: Mon, 17 Aug 2015 20:28:58 +0000 (UTC)
-Message-ID: <loom.20150817T222801-896@post.gmane.org>
-References: <CAE1c1rTnU3svGTKgv3-u0DS3Tb+KKZHmn0=4fp1CrUZZ8b8gGA@mail.gmail.com> <CAE1c1rTkF2S612YN_NAbA6UP8xVTXzA8ys6WKhPX9ZXx0j07aw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44335 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751597AbbHUIIU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 04:08:20 -0400
+Message-ID: <55D6DC48.3070406@xs4all.nl>
+Date: Fri, 21 Aug 2015 10:07:36 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v6 2/8] [media] media: add a common struct to be embed
+ on media graph objects
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com> <1667127.681LBiMjnq@avalon>
+In-Reply-To: <1667127.681LBiMjnq@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Robert N <nrobert13 <at> gmail.com> writes:
+On 08/21/2015 03:02 AM, Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 19 August 2015 08:01:49 Mauro Carvalho Chehab wrote:
+>> +/* Enums used internally at the media controller to represent graphs */
+>> +
+>> +/**
+>> + * enum media_gobj_type - type of a graph element
+> 
+> Let's try to standardize the vocabulary, should it be called graph object or 
+> graph element ? In the first case let's document it as graph object. In the 
+> second case it would be more consistent to refer to it as enum 
+> media_gelem_type (and struct media_gelem below).
+
+For what it is worth, I prefer the term graph object.
 
 > 
-> I will reply my own question. it seems that w_scan is able to find the
-> muxes/services if I push the antenna cable only half way into the
-> tuner stick. I assume my problem is related to RF signal strength. is
-> there a range of valid strengths?
+>> + *
+>> + */
+>> +enum media_gobj_type {
+>> +	 /* FIXME: add the types here, as we embed media_gobj */
+>> +	MEDIA_GRAPH_NONE
+>> +};
+>> +
+>> +#define MEDIA_BITS_PER_TYPE		8
+>> +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
+>> +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
+>> +
+>> +/* Structs to represent the objects that belong to a media graph */
+>> +
+>> +/**
+>> + * struct media_gobj - Define a graph object.
+>> + *
+>> + * @id:		Non-zero object ID identifier. The ID should be unique
+>> + *		inside a media_device, as it is composed by
+>> + *		MEDIA_BITS_PER_TYPE to store the type plus
+>> + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+>> + *		(called as "local ID").
 > 
-> On Fri, Nov 21, 2014 at 5:13 PM, Robert N <nrobert13 <at> gmail.com> wrote:
-> > Hi,
-> >
-> > I'm trying to get my USB tuner stick working on an openwrt, but
-> > getting some errors.
-> >
-> > using w_scan to scan the available channels, gives:
-> >
-> > 113000: sr6900 (time: 00:11) (time: 00:12) signal ok:
-> >         QAM_64   f = 113000 kHz S6900C999
-> > start_filter:1410: ERROR: ioctl DMX_SET_FILTER failed: 97 Message too long
-> > Info: NIT(actual) filter timeout
-> >
-> > I know the 113Mhz is a valid MUX, because tuner works well under windows.
-> >
-> > Any hints what could be the reason of the error messages?
-> >
-> > Thanks.
+> I'd very much prefer using a single ID range and adding a type field. Abusing 
+> bits of the ID field to store the type will just makes IDs impractical to use. 
+> Let's do it properly.
+
+Why is that impractical? I think it is more practical. Why waste memory on something
+that is easy to encode in the ID?
+
+I'm not necessarily opposed to splitting this up (Mauro's initial patch series used
+a separate type field if I remember correctly), but it's not clear to me what the
+benefits are. Keeping it in a single u32 makes describing links also very easy since
+you just give it the two objects that are linked and it is immediately clear which
+object types are linked: no need to either store the types in the link struct or
+look up each object to find the type.
+
+> 
+>> + * All elements on the media graph should have this struct embedded
+> 
+> All elements (objects) or only the ones that need an ID ? Or maybe we'll 
+> define graph element (object) as an element (object) that has an ID, making 
+> some "elements" not elements.
+
+Yes, all objects have an ID. I see no reason to special-case this.
+
+You wrote this at 3 am, so you were probably sleep-deprived when you wrote the
+second sentence as I can't wrap my head around that one :-)
+
+> 
+>> + */
+>> +struct media_gobj {
+>> +	u32			id;
+>> +};
+>> +
+>> +
+>>  struct media_pipeline {
+>>  };
+>>
+>> @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity
+>> *entity) return entity->id;
+>>  }
+>>
+>> +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
+>> +{
+>> +	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
+>> +}
+>> +
+>> +static inline u32 media_localid(struct media_gobj *gobj)
+>> +{
+>> +	return gobj->id & MEDIA_LOCAL_ID_MASK;
+>> +}
+>> +
+>> +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32
+>> local_id)
+>> +{
+>> +	u32 id;
+>> +
+>> +	id = type << MEDIA_BITS_PER_LOCAL_ID;
+>> +	id |= local_id & MEDIA_LOCAL_ID_MASK;
+>> +
+>> +	return id;
+>> +}
+>> +
+>>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+>>  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+>>
+>> @@ -131,6 +184,14 @@ struct media_entity_graph {
+>>  	int top;
+>>  };
+>>
+>> +#define gobj_to_entity(gobj) \
+>> +		container_of(gobj, struct media_entity, graph_obj)
+> 
+> For consistency reason would this be called media_gobj_to_entity ? I would 
+> also turn it into an inline function to ensure type checking.
+
+Good one. I agree.
+
+> 
+>> +
+>> +void media_gobj_init(struct media_device *mdev,
+>> +		    enum media_gobj_type type,
+>> +		    struct media_gobj *gobj);
+>> +void media_gobj_remove(struct media_gobj *gobj);
+>> +
+>>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>>  		struct media_pad *pads);
+>>  void media_entity_cleanup(struct media_entity *entity);
 > 
 
+Regards,
 
-Hi Robert,
-
-I am trying to do achieve the exact same thing as you.
-My hardware:
-TP-Link Archer C5 with OpenWRT 14.07 Barrier Breaker
-Terratec HTC XS HD USB
-(http://www.terratec.net/details.php?artnr=Cinergy+HTC+USB+XS+HD)
-
-I built OpenWRT from source which worked fine. But now after inserting the
-kernel modules for the TV stick and the firmware, I can't get tvheadend to
-perform a scan and w_scan to find anything.
-
-First it threw the same error as you encountered (that's how I found you).
-Thanks to your trick the error is gone, but still no signal, it recognizes a
-valid mux at 121Mhz, but no channels.
-
-My dmesg looks good, just as on the Ubuntu machine where the stick works.
-
-I don't know the specifications (RF signal strength) of the stick, but it
-seems that it is a little bit vulnerable to signal errors. On the Ubuntu
-machine it sometimes has stuttering video for me.
-
-Have you found a solution to make the stick work?
-If you could share it that would be really great.
-
-Best Regards,
-BadTenMan
-
+	Hans
