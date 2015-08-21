@@ -1,81 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59681 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbbHAJLI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 05:11:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] media: atmel-isi: parse the DT parameters for vsync/hsync polarity
-Date: Sat, 01 Aug 2015 12:11:47 +0300
-Message-ID: <1896672.nsMcFlgNH5@avalon>
-In-Reply-To: <1438338812-22329-1-git-send-email-josh.wu@atmel.com>
-References: <1438338812-22329-1-git-send-email-josh.wu@atmel.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59120 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751076AbbHUQyZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 12:54:25 -0400
+Date: Fri, 21 Aug 2015 13:54:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.2] media fixes
+Message-ID: <20150821135418.30abd183@recife.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+Hi Linus,
 
-Thank you for the patch.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.2-3
 
-On Friday 31 July 2015 18:33:32 Josh Wu wrote:
-> This patch will get the DT parameters of vsync/hsync polarity, and pass to
-> the platform data.
-> 
-> Also add a debug information for test purpose.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index fe9247a..a7de55c
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -811,6 +811,11 @@ static int isi_camera_set_bus_param(struct
-> soc_camera_device *icd) if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
->  		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
-> 
-> +	dev_dbg(icd->parent, "vsync is active %s, hsyc is active %s, pix clock is
-> sampling %s\n",
+For some fixes:
+	- a regression fix at the videobuf2 core driver;
+	- Fix error handling at mantis probing code;
+	- Revert the IR encode patches, as the API is not mature enough.
+	  So, better to postpone the changes to a latter Kernel;
+	- Fix Kconfig breakages on some randconfig scenarios.
 
-s/hsyc/hsync/
+Thanks!
+Mauro
 
-I'd write it as "vsync active %s, hsync active %s, sampling on pix clock %s 
-edge\n" with "falling" and "rising" instead of "fall" and "rise".
+PS.: Sorry for the mess on my previous pull request. Yeah, the script
+I was using to get patches from patchwork was broken and were mangling
+the subject when importing e-mails with git Revert subjects.
 
-> +		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" : "high",
-> +		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
-> +		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "fall" : "rise");
-> +
->  	if (isi->pdata.has_emb_sync)
->  		cfg1 |= ISI_CFG1_EMB_SYNC;
->  	if (isi->pdata.full_mode)
-> @@ -898,6 +903,11 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
->  		goto err_probe_dt;
->  	}
-> 
-> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-> +		isi->pdata.hsync_act_low = true;
-> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-> +		isi->pdata.vsync_act_low = true;
+-
 
-While you're at it, how about setting has_emb_sync based on ep.bus_type and 
-pclk_act_falling from flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ?
+The following changes since commit faebbd8f134f0c054f372982c8ddd1bbcc41b440:
 
->  err_probe_dt:
->  	of_node_put(np);
+  [media] lmedm04: fix the range for relative measurements (2015-06-24 08:38:30 -0300)
 
--- 
-Regards,
+are available in the git repository at:
 
-Laurent Pinchart
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.2-3
+
+for you to fetch changes up to 02387b5f25bdba668c7fe2618697bae24f973667:
+
+  [media] mantis: Fix error handling in mantis_dma_init() (2015-08-19 07:04:55 -0300)
+
+----------------------------------------------------------------
+media fixes for v4.2-rc8
+
+----------------------------------------------------------------
+David Härdeman (7):
+      Revert "[media] rc: nuvoton-cir: Add support for writing wakeup samples via sysfs filter callback"
+      Revert "[media] rc: rc-loopback: Add loopback of filter scancodes"
+      Revert "[media] rc: rc-core: Add support for encode_wakeup drivers"
+      Revert "[media] rc: ir-rc6-decoder: Add encode capability"
+      Revert "[media] rc: ir-rc5-decoder: Add encode capability"
+      Revert "[media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper"
+      Revert "[media] rc: rc-ir-raw: Add scancode encoder callback"
+
+Fabio Estevam (1):
+      [media] mantis: Fix error handling in mantis_dma_init()
+
+Laurent Pinchart (1):
+      [media] vb2: Fix compilation breakage when !CONFIG_BUG
+
+Randy Dunlap (2):
+      [media] media/dvb: fix ts2020.c Kconfig and build
+      [media] media/pci/cobalt: fix Kconfig and build when SND is not enabled
+
+Sakari Ailus (1):
+      [media] vb2: Only requeue buffers immediately once streaming is started
+
+ drivers/media/dvb-frontends/Kconfig      |   2 +-
+ drivers/media/pci/cobalt/Kconfig         |   1 +
+ drivers/media/pci/cobalt/cobalt-irq.c    |   2 +-
+ drivers/media/pci/mantis/mantis_dma.c    |   5 +-
+ drivers/media/rc/ir-rc5-decoder.c        | 116 -
+ drivers/media/rc/ir-rc6-decoder.c        | 122 -
+ drivers/media/rc/nuvoton-cir.c           | 127 -
+ drivers/media/rc/nuvoton-cir.h           |   1 -
+ drivers/media/rc/rc-core-priv.h          |  36 -
+ drivers/media/rc/rc-ir-raw.c             | 139 --
+ drivers/media/rc/rc-loopback.c           |  36 -
+ drivers/media/rc/rc-main.c               |   7 +-
+ drivers/media/v4l2-core/videobuf2-core.c |  40 +-
+ include/media/rc-core.h                  |   7 -
+ include/media/videobuf2-core.h           |   2 +
+ 15 files changed, 34 insertions(+), 609 deletions(-)
 
