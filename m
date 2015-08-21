@@ -1,128 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47687 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755324AbbHYJ0M (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:14442 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753159AbbHUIC7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:26:12 -0400
-Message-ID: <55DC340C.8030503@xs4all.nl>
-Date: Tue, 25 Aug 2015 11:23:24 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 21 Aug 2015 04:02:59 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Josh Wu <josh.wu@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v3 3/3] media: atmel-isi: add sanity check for supported formats in try/set_fmt()
+Date: Fri, 21 Aug 2015 16:08:14 +0800
+Message-ID: <1440144494-11800-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
+References: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?windows-1252?Q?S=F6ren_Brink?= =?windows-1252?Q?mann?=
-	<soren.brinkmann@xilinx.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v7 25/44] [media] replace all occurrences of MEDIA_ENT_T_DEVNODE_V4L
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <23e2f9440a259e1162e15dba7e6261dbc4c521c6.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <23e2f9440a259e1162e15dba7e6261dbc4c521c6.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Now that interfaces and entities are distinct, it makes no sense
-> of keeping something named as MEDIA_ENT_T_DEVNODE.
-> 
-> This change was done with this script:
-> 
-> 	for i in $(git grep -l MEDIA_ENT_T|grep -v uapi/linux/media.h); do sed s,MEDIA_ENT_T_DEVNODE_V4L,MEDIA_ENT_T_V4L2_VIDEO, <$i >a && mv a $i; done
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> index 5872f8bbf774..910243d4edb8 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> @@ -183,7 +183,7 @@
->  	    <entry>Unknown device node</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
-> +	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
->  	    <entry>V4L video, radio or vbi device node</entry>
->  	  </row>
+After adding the format check in try_fmt()/set_fmt(), we don't need any
+format check in configure_geometry(). So make configure_geometry() as
+void type.
 
-OK, this makes no sense and that ties in with my confusion of the previous patch.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
-These are not device nodes, in the new scheme these are DMA entities (I know,
-naming TDB) that have an associated interface.
+Changes in v3:
+- check the whether format is supported, if no then return a default
+  format.
+- misc changes according to Laurent's feedback.
 
-I think a much better approach would be to add entity type(s) for such DMA
-engines in patch 24, then use that new name in existing drivers and split
-up the existing DEVNODE_V4L media_entity into a media_entity and a
-media_intf_devnode:
+Changes in v2:
+- new added patch
 
-The current media_entity defined in struct video_device has to be replaced
-by media_intf_devnode, and the DMA entity has to be added as a new entity
-to these drivers.
+ drivers/media/platform/soc_camera/atmel-isi.c | 37 +++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-This reflects these two action items from our meeting:
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index fe9247a..84c91d3 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -102,17 +102,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+ 	return readl(isi->regs + reg);
+ }
+ 
+-static int configure_geometry(struct atmel_isi *isi, u32 width,
++static void configure_geometry(struct atmel_isi *isi, u32 width,
+ 			u32 height, u32 code)
+ {
+ 	u32 cfg2;
+ 
+ 	/* According to sensor's output format to set cfg2 */
+ 	switch (code) {
+-	/* YUV, including grey */
++	default:
++	/* Grey */
+ 	case MEDIA_BUS_FMT_Y8_1X8:
+ 		cfg2 = ISI_CFG2_GRAYSCALE;
+ 		break;
++	/* YUV */
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+ 		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+ 		break;
+@@ -126,8 +128,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+ 		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+ 		break;
+ 	/* RGB, TODO */
+-	default:
+-		return -EINVAL;
+ 	}
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+@@ -138,8 +138,23 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+ 	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+ 			& ISI_CFG2_IM_VSIZE_MASK;
+ 	isi_writel(isi, ISI_CFG2, cfg2);
++}
+ 
+-	return 0;
++static bool is_supported(struct soc_camera_device *icd,
++		const u32 pixformat)
++{
++	switch (pixformat) {
++	/* YUV, including grey */
++	case V4L2_PIX_FMT_GREY:
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_VYUY:
++		return true;
++	/* RGB, TODO */
++	default:
++		return false;
++	}
+ }
+ 
+ static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+@@ -390,10 +405,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Disable all interrupts */
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+ 
+-	ret = configure_geometry(isi, icd->user_width, icd->user_height,
++	configure_geometry(isi, icd->user_width, icd->user_height,
+ 				icd->current_fmt->code);
+-	if (ret < 0)
+-		return ret;
+ 
+ 	spin_lock_irq(&isi->lock);
+ 	/* Clear any pending interrupt */
+@@ -491,6 +504,10 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	struct v4l2_mbus_framefmt *mf = &format.format;
+ 	int ret;
+ 
++	/* check with atmel-isi support format, if not support use UYVY */
++	if (!is_supported(icd, pix->pixelformat))
++		pix->pixelformat = V4L2_PIX_FMT_YUYV;
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+ 	if (!xlate) {
+ 		dev_warn(icd->parent, "Format %x not found\n",
+@@ -540,6 +557,10 @@ static int isi_camera_try_fmt(struct soc_camera_device *icd,
+ 	u32 pixfmt = pix->pixelformat;
+ 	int ret;
+ 
++	/* check with atmel-isi support format, if not support use UYVY */
++	if (!is_supported(icd, pix->pixelformat))
++		pix->pixelformat = V4L2_PIX_FMT_YUYV;
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+ 	if (pixfmt && !xlate) {
+ 		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+-- 
+1.9.1
 
-Migration: add v4l-subdev media_interface: Laurent
-Migration: add explicit DMA Engine entity: Laurent
-
-Unless Laurent says differently I think this is something you'll have to
-do given Laurent's workload.
-
-I think doing this at this stage of the patch series is crucial, otherwise
-the remaining patches really make no sense.
-
-I'll skip reviewing patches 26-38 for now.
-
-Regards,
-
-	Hans
-
->  	  <row>
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-> index 92e8116dc28f..88cd789cdaf7 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> @@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
->  		struct xvip_dma *dma;
->  
-> -		if (entity->type != MEDIA_ENT_T_DEVNODE_V4L)
-> +		if (entity->type != MEDIA_ENT_T_V4L2_VIDEO)
->  			continue;
->  
->  		dma = to_xvip_dma(media_entity_to_video_device(entity));
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index 71a1b93b0790..44b330589787 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -912,7 +912,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
->  	/* Part 5: Register the entity. */
->  	if (vdev->v4l2_dev->mdev &&
->  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
-> -		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
-> +		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
->  		vdev->entity.name = vdev->name;
->  		vdev->entity.info.dev.major = VIDEO_MAJOR;
->  		vdev->entity.info.dev.minor = vdev->minor;
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 83615b8fb46a..e6e1115d8215 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -535,7 +535,7 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
->  		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
->  	}
->  
-> -	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
-> +	WARN(pad->entity->type != MEDIA_ENT_T_V4L2_VIDEO,
->  	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
->  	     pad->entity->type, pad->entity->name);
->  
-> 
