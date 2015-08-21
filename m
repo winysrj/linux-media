@@ -1,208 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52961 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:53751 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbbHLUPJ (ORCPT
+	with ESMTP id S1751337AbbHURj3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:09 -0400
+	Fri, 21 Aug 2015 13:39:29 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Akihiro Tsukada <tskd08@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>
-Subject: [PATCH RFC v3 09/16] media: use media_graph_obj for link endpoints
-Date: Wed, 12 Aug 2015 17:14:53 -0300
-Message-Id: <b118a6801c9c35ffe1e253b5ad1c89f5939feaab.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Jonathan Corbet <corbet@lwn.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-doc@vger.kernel.org
+Subject: [PATCHv2] DocBook/device-drivers: Add drivers/media core stuff
+Date: Fri, 21 Aug 2015 14:39:22 -0300
+Message-Id: <23834b087c3f788c25c87a43201872f5cc3d2509.1440178754.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we'll need to create links between entities and interfaces,
-we need to identify the link endpoints by the media_graph_obj.
+There are lots of docbook marks at the media subsystem, but
+those aren't used.
 
-Please note that, while we're now using graph_obj to reference
-the link endpoints, we're still assuming that all endpoints are
-pads at the existing drivers. This is true for all existing links,
-so no problems are expected so far.
+Add the core headers/code in order to start generating docs.
 
-Yet, as we introduce links between entities and interfaces,
-we may need to change some existing code to work with links
-that aren't pad to pad.
+---
+
+WARNING:
+
+Please notice that, while this doesn't cause any error, still
+there are lots of warnings to be fixed:
+	http://pastebin.com/Ld916dFi
+
+And that's because a lot of media core stuff got commented!
+
+It would be good if someone could address those.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 842b9c8f80c6..3c97ebdf9f2a 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -635,6 +635,8 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index faf09d4a0ea8..e3e0f4880770 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -216,6 +216,36 @@ X!Isound/sound_firmware.c
+ -->
+   </chapter>
  
- 	for (i = 0; i < entity->num_links; i++) {
- 		link = &entity->links[i];
-+		if (link->port1.type != MEDIA_GRAPH_PAD)
-+			continue;
- 		if (link->sink->entity == entity) {
- 			found_link = link;
- 			n_links++;
-@@ -665,6 +667,8 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- 		int flags = 0;
- 
- 		link = &source->links[i];
-+		if (link->port1.type != MEDIA_GRAPH_PAD)
-+			continue;
- 		sink = link->sink->entity;
- 
- 		if (sink == entity)
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index a95ca981aabb..b4bd718ad736 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -155,6 +155,10 @@ static long __media_device_enum_links(struct media_device *mdev,
- 		list_for_each_entry(ent_link, &entity->links, list) {
- 			struct media_link_desc link;
- 
-+			/* Only PAD to PAD links should be enumerated with legacy API */
-+			if (ent_link->port0->type != MEDIA_GRAPH_PAD ||
-+			    ent_link->port1->type != MEDIA_GRAPH_PAD)
-+				continue;
- 			/* Ignore backlinks. */
- 			if (ent_link->source->entity != entity)
- 				continue;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 333c49aa0974..fc2e4886c830 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -121,6 +121,10 @@ EXPORT_SYMBOL_GPL(media_entity_cleanup);
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
- {
-+	/* For now, we only do graph traversal with PADs */
-+	if (link->port0->type != MEDIA_GRAPH_PAD ||
-+	    link->port1->type != MEDIA_GRAPH_PAD)
-+		return NULL;
- 	if (link->source->entity == entity)
- 		return link->sink->entity;
- 	else
-@@ -217,6 +221,10 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
-+		if (!next) {
-+			list_rotate_left(&link_top(graph));
-+			continue;
-+		}
- 		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
- 			return NULL;
- 
-@@ -285,8 +293,14 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 		bitmap_fill(has_no_links, entity->num_pads);
- 
- 		list_for_each_entry(link, &entity->links, list) {
--			struct media_pad *pad = link->sink->entity == entity
--						? link->sink : link->source;
-+			struct media_pad *pad;
++  <chapter id="mediadev">
++     <title>Media Devices</title>
++!Iinclude/media/media-device.h
++!Iinclude/media/media-devnode.h
++!Iinclude/media/media-entity.h
++!Iinclude/media/v4l2-async.h
++!Iinclude/media/v4l2-flash-led-class.h
++!Iinclude/media/v4l2-mem2mem.h
++!Iinclude/media/v4l2-of.h
++!Iinclude/media/v4l2-subdev.h
++!Iinclude/media/rc-core.h
++<!-- FIXME: Removed for now due to document generation inconsistency
++X!Iinclude/media/v4l2-ctrls.h
++X!Iinclude/media/v4l2-dv-timings.h
++X!Iinclude/media/v4l2-event.h
++X!Iinclude/media/v4l2-mediabus.h
++X!Iinclude/media/videobuf2-memops.h
++X!Iinclude/media/videobuf2-core.h
++X!Iinclude/media/lirc.h
++X!Edrivers/media/dvb-core/dvb_demux.c
++X!Idrivers/media/dvb-core/dvb_frontend.h
++X!Idrivers/media/dvb-core/dvbdev.h
++X!Edrivers/media/dvb-core/dvb_net.c
++X!Idrivers/media/dvb-core/dvb_ringbuffer.h
++X!Idrivers/media/dvb-core/dvb_ca_en50221.h
++X!Idrivers/media/dvb-core/dvb_math.h
++-->
 +
-+			/* For now, ignore interface<->entity links */
-+			if (link->port0->type != MEDIA_GRAPH_PAD)
-+				continue;
++  </chapter>
 +
-+			pad = link->sink->entity == entity
-+				? link->sink : link->source;
- 
- 			/* Mark that a pad is connected by a link. */
- 			bitmap_clear(has_no_links, pad->index, 1);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 403019035424..a6464499902e 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -43,6 +43,17 @@ enum media_graph_type {
- 	MEDIA_GRAPH_LINK,
- };
- 
-+/**
-+ * enum media_graph_link_dir - direction of a link
-+ *
-+ * @MEDIA_LINK_DIR_BIDIRECTIONAL	Link is bidirectional
-+ * @MEDIA_LINK_DIR_PORT0_TO_PORT1	Link is unidirectional,
-+ *					from port 0 to port 1
-+ */
-+enum media_graph_link_dir {
-+	MEDIA_LINK_DIR_BIDIRECTIONAL,
-+	MEDIA_LINK_DIR_PORT0_TO_PORT1,
-+};
- 
- /* Structs to represent the objects that belong to a media graph */
- 
-@@ -71,16 +82,25 @@ struct media_pipeline {
- };
- 
- struct media_link {
-+	struct media_graph_obj		graph_obj;	/* should be the first element */
- 	struct list_head list;
--	struct media_graph_obj			graph_obj;
--	struct media_pad *source;	/* Source pad */
--	struct media_pad *sink;		/* Sink pad  */
-+	enum media_graph_link_dir	dir;
-+	union {
-+		struct media_graph_obj *port0;
-+		struct media_pad *source;
-+		struct media_interface *port0_intf;
-+	};
-+	union {
-+		struct media_graph_obj *port1;
-+		struct media_pad *sink;
-+		struct media_entity *port1_entity;
-+	};
- 	struct media_link *reverse;	/* Link in the reverse direction */
- 	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
- };
- 
- struct media_pad {
--	struct media_graph_obj			graph_obj;
-+	struct media_graph_obj graph_obj; /* should be the first element */
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-@@ -103,7 +123,7 @@ struct media_entity_operations {
- };
- 
- struct media_entity {
--	struct media_graph_obj			graph_obj;
-+	struct media_graph_obj	graph_obj; /* should be the first element */
- 	struct list_head list;
- 	struct media_device *parent;	/* Media device this entity belongs to*/
- 	u32 id;				/* Entity ID, unique in the parent media
-@@ -115,6 +135,11 @@ struct media_entity {
- 	u32 group_id;			/* Entity group ID */
- 
- 	u16 num_pads;			/* Number of sink and source pads */
-+
-+	/*
-+	 * Both num_links and num_backlinks are used only to report
-+	 * the number of links via MEDIA_IOC_ENUM_ENTITIES at media_device.c
-+	 */
- 	u16 num_links;			/* Number of existing links, both
- 					 * enabled and disabled */
- 	u16 num_backlinks;		/* Number of backlinks */
-@@ -171,6 +196,12 @@ struct media_entity_graph {
- #define gobj_to_entity(gobj) \
- 		container_of(gobj, struct media_entity, graph_obj)
- 
-+#define gobj_to_link(gobj) \
-+		container_of(gobj, struct media_link, graph_obj)
-+
-+#define gobj_to_pad(gobj) \
-+		container_of(gobj, struct media_pad, graph_obj)
-+
- void graph_obj_init(struct media_device *mdev,
- 		    enum media_graph_type type,
- 		    struct media_graph_obj *gobj);
+   <chapter id="uart16x50">
+      <title>16x50 UART Driver</title>
+ !Edrivers/tty/serial/serial_core.c
+diff --git a/drivers/media/dvb-core/dvb_math.h b/drivers/media/dvb-core/dvb_math.h
+index aecc867e9404..f586aa001ede 100644
+--- a/drivers/media/dvb-core/dvb_math.h
++++ b/drivers/media/dvb-core/dvb_math.h
+@@ -30,9 +30,10 @@
+  * to use rational values you can use the following method:
+  *   intlog2(value) = intlog2(value * 2^x) - x * 2^24
+  *
+- * example: intlog2(8) will give 3 << 24 = 3 * 2^24
+- * example: intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
+- * example: intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
++ * Some usecase examples:
++ *	intlog2(8) will give 3 << 24 = 3 * 2^24
++ *	intlog2(9) will give 3 << 24 + ... = 3.16... * 2^24
++ *	intlog2(1.5) = intlog2(3) - 2^24 = 0.584... * 2^24
+  *
+  * @param value The value (must be != 0)
+  * @return log2(value) * 2^24
+@@ -45,7 +46,8 @@ extern unsigned int intlog2(u32 value);
+  * to use rational values you can use the following method:
+  *   intlog10(value) = intlog10(value * 10^x) - x * 2^24
+  *
+- * example: intlog10(1000) will give 3 << 24 = 3 * 2^24
++ * An usecase example:
++ *	intlog10(1000) will give 3 << 24 = 3 * 2^24
+  *   due to the implementation intlog10(1000) might be not exactly 3 * 2^24
+  *
+  * look at intlog2 for similar examples
 -- 
 2.4.3
 
