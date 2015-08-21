@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46907 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740AbbHKK7Z (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:34394 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753296AbbHUNTf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 06:59:25 -0400
-Message-ID: <55C9D500.3050902@xs4all.nl>
-Date: Tue, 11 Aug 2015 12:57:04 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
+	Fri, 21 Aug 2015 09:19:35 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v2 13/16] media: make the internal function to create
- links more generic
-References: <cover.1438954897.git.mchehab@osg.samsung.com> <078d36a3aa5db1b692ae1b8910d0be0313bd03b9.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <078d36a3aa5db1b692ae1b8910d0be0313bd03b9.1438954897.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 01/10] videodev2.h: Fix typo in comment
+Date: Fri, 21 Aug 2015 15:19:20 +0200
+Message-Id: <1440163169-18047-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/07/15 16:20, Mauro Carvalho Chehab wrote:
-> In preparation to add a public function to add links, let's
-> make the internal function that creates link more generic.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 96d48aec8381..c68dc421b022 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -461,7 +461,12 @@ EXPORT_SYMBOL_GPL(media_entity_put);
->   * Links management
->   */
->  
-> -static struct media_link *media_entity_add_link(struct media_entity *entity)
-> +static struct media_link *__media_create_link(struct media_device *mdev,
-> +					      enum media_graph_link_dir dir,
+Referenced file has moved
 
-Am I blind? I can't find the media_graph_link_dir enum definition anywhere in
-this patch series...
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ include/uapi/linux/videodev2.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3228fbebcd63..72fa3e490e30 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -2271,7 +2271,7 @@ struct v4l2_create_buffers {
+ #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+ 
+ /* Reminder: when adding new ioctls please add support for them to
+-   drivers/media/video/v4l2-compat-ioctl32.c as well! */
++   drivers/media/v4l2-core/v4l2-compat-ioctl32.c as well! */
+ 
+ #define BASE_VIDIOC_PRIVATE	192		/* 192-255 are private */
+ 
+-- 
+2.5.0
 
-	Hans
