@@ -1,108 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59722 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbbHYJxs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:53:48 -0400
-Date: Tue, 25 Aug 2015 06:53:43 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 18/44] [media] media: make media_link more generic to
- handle interace links
-Message-ID: <20150825065343.5829158d@recife.lan>
-In-Reply-To: <55DC1B91.70302@xs4all.nl>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
-	<55DC1B91.70302@xs4all.nl>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:11153 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbbHUDLq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2015 23:11:46 -0400
+Message-ID: <55D696BE.1070001@atmel.com>
+Date: Fri, 21 Aug 2015 11:10:54 +0800
+From: Josh Wu <josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 3/3] media: atmel-isi: add sanity check for supported
+ formats in set_fmt()
+References: <1438745190-21020-1-git-send-email-josh.wu@atmel.com> <1438745190-21020-3-git-send-email-josh.wu@atmel.com> <3666856.U1g2Q81eEo@avalon>
+In-Reply-To: <3666856.U1g2Q81eEo@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 09:38:57 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi, Laurent
 
-> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> > By adding an union at media_link, we get for free a way to
-> > represent interface->entity links.
-> > 
-> > No need to change anything at the code, just at the internal
-> > header file.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 17bb5cbbd67d..f6e8fa801cf9 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -75,14 +75,20 @@ struct media_pipeline {
-> >  struct media_link {
-> >  	struct media_gobj graph_obj;
-> >  	struct list_head list;
-> > -	struct media_pad *source;	/* Source pad */
-> > -	struct media_pad *sink;		/* Sink pad  */
-> > +	union {
-> > +		struct media_gobj *port0;
-> > +		struct media_pad *source;
-> > +	};
-> > +	union {
-> > +		struct media_gobj *port1;
-> 
-> Why add port0 and port1 here instead of intf and entity (now added in patch 20)?
-> port0/port1 isn't used, so I'd postpone adding that until it is needed.
+Thanks for the review.
 
-Because we need to use it to be able to identify the object type.
-This is used (actually, it should be used - see my comments for 19/44)
-on the next patch.
+On 8/21/2015 2:30 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Wednesday 05 August 2015 11:26:29 Josh Wu wrote:
+>> After adding the format check in set_fmt(), we don't need any format check
+>> in configure_geometry(). So make configure_geometry() as void type.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>
+>> Changes in v2:
+>> - new added patch
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 39 ++++++++++++++++++------
+>>   1 file changed, 31 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>> b/drivers/media/platform/soc_camera/atmel-isi.c index cb46aec..d0df518
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -103,17 +103,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>>   	return readl(isi->regs + reg);
+>>   }
+>>
+>> -static int configure_geometry(struct atmel_isi *isi, u32 width,
+>> +static void configure_geometry(struct atmel_isi *isi, u32 width,
+>>   			u32 height, u32 code)
+>>   {
+>>   	u32 cfg2;
+>>
+>>   	/* According to sensor's output format to set cfg2 */
+>>   	switch (code) {
+>> -	/* YUV, including grey */
+>> +	default:
+>> +	/* Grey */
+>>   	case MEDIA_BUS_FMT_Y8_1X8:
+>>   		cfg2 = ISI_CFG2_GRAYSCALE;
+>>   		break;
+>> +	/* YUV */
+>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>>   		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+>>   		break;
+>> @@ -127,8 +129,6 @@ static int configure_geometry(struct atmel_isi *isi, u32
+>> width, cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+>>   		break;
+>>   	/* RGB, TODO */
+>> -	default:
+>> -		return -EINVAL;
+>>   	}
+>>
+>>   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>> @@ -139,8 +139,29 @@ static int configure_geometry(struct atmel_isi *isi,
+>> u32 width, cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+>>   			& ISI_CFG2_IM_VSIZE_MASK;
+>>   	isi_writel(isi, ISI_CFG2, cfg2);
+>> +}
+>>
+>> -	return 0;
+>> +static bool is_supported(struct soc_camera_device *icd,
+>> +		const struct soc_camera_format_xlate *xlate)
+>> +{
+>> +	bool ret = true;
+>> +
+>> +	switch (xlate->code) {
+>> +	/* YUV, including grey */
+>> +	case MEDIA_BUS_FMT_Y8_1X8:
+>> +	case MEDIA_BUS_FMT_VYUY8_2X8:
+>> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+>> +	case MEDIA_BUS_FMT_YVYU8_2X8:
+>> +	case MEDIA_BUS_FMT_YUYV8_2X8:
+> I would just return true here and false below, and remove the ret variable.
+Ok.
 
-> Part of the reason is also that I am not convinced about the 'port' name, so
-> let's not add this yet.
+>
+>> +		break;
+>> +	/* RGB, TODO */
+>> +	default:
+>> +		dev_err(icd->parent, "not supported format: %d\n",
+>> +					xlate->code);
+> If this can happen when userspace asks for an unsupported format I don't think
+> you should print an error message to the kernel log.
 
-I'm not bound to "port" name. If you have a better suggestion, this could
-easily be fixed.
+ok, I will remove this.
 
-However, we can't use here source/sink, as this means something
-directional, but the interface<->entity link is bidirectional.
+>
+>> +		ret = false;
+>> +	}
+>> +
+>> +	return ret;
+>>   }
+>>
+>>   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+>> @@ -391,10 +412,8 @@ static int start_streaming(struct vb2_queue *vq,
+>> unsigned int count) /* Disable all interrupts */
+>>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>>
+>> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
+>> +	configure_geometry(isi, icd->user_width, icd->user_height,
+>>   				icd->current_fmt->code);
+>> -	if (ret < 0)
+>> -		return ret;
+>>
+>>   	spin_lock_irq(&isi->lock);
+>>   	/* Clear any pending interrupt */
+>> @@ -515,6 +534,10 @@ static int isi_camera_set_fmt(struct soc_camera_device
+>> *icd, if (mf->code != xlate->code)
+>>   		return -EINVAL;
+>>
+>> +	/* check with atmel-isi support format */
+>> +	if (!is_supported(icd, xlate))
+>> +		return -EINVAL;
+>> +
+> S_FMT is supposed to pick a suitable default format when the requested format
+> isn't supported. It shouldn't return an error.
 
-I chose "port" because it is the ITU-T name for the graph element that
-represents the connection points at the entities.
+So I will move this check to beginning of S_FMT and if format not 
+support, I will select a default format for it.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +		struct media_pad *sink;
-> > +	};
-> >  	struct media_link *reverse;	/* Link in the reverse direction */
-> >  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
-> >  };
-> >  
-> >  struct media_pad {
-> > -	struct media_gobj graph_obj;
-> > +	struct media_gobj graph_obj;	/* should be the first object */
-> >  	struct media_entity *entity;	/* Entity this pad belongs to */
-> >  	u16 index;			/* Pad index in the entity pads array */
-> >  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-> > @@ -105,7 +111,7 @@ struct media_entity_operations {
-> >  };
-> >  
-> >  struct media_entity {
-> > -	struct media_gobj graph_obj;
-> > +	struct media_gobj graph_obj;	/* should be the first object */
-> >  	struct list_head list;
-> >  	const char *name;		/* Entity name */
-> >  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
-> > @@ -119,7 +125,7 @@ struct media_entity {
-> >  	u16 num_backlinks;		/* Number of backlinks */
-> >  
-> >  	struct media_pad *pads;		/* Pads array (num_pads objects) */
-> > -	struct list_head links;		/* Links list */
-> > +	struct list_head links;		/* Pad-to-pad links list */
-> >  
-> >  	const struct media_entity_operations *ops;	/* Entity operations */
-> >  
-> > 
-> 
+Best Regards,
+Josh Wu
+
+>
+>>   	pix->width		= mf->width;
+>>   	pix->height		= mf->height;
+>>   	pix->field		= mf->field;
+
