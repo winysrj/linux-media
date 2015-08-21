@@ -1,87 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33103 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373AbbHaNmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 09:42:53 -0400
-Date: Mon, 31 Aug 2015 10:42:48 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55402 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676AbbHUWyK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 18:54:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 51/55] [media] remove interface links at
- media_entity_unregister()
-Message-ID: <20150831104248.113615fb@recife.lan>
-In-Reply-To: <55E44E59.5030300@xs4all.nl>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-	<36ec2d60b61f769115982c5060d550d35e3ca602.1440902901.git.mchehab@osg.samsung.com>
-	<55E44E59.5030300@xs4all.nl>
+Subject: Re: [PATCH v6 7/8] [media] media: add a debug message to warn about gobj creation/removal
+Date: Sat, 22 Aug 2015 01:54:07 +0300
+Message-ID: <5814209.73Ea5OdygA@avalon>
+In-Reply-To: <20150821180931.4c492767@recife.lan>
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <2758453.qxSJXS9IU1@avalon> <20150821180931.4c492767@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 31 Aug 2015 14:53:45 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Mauro,
 
-> On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
-> > Interface links connected to an entity should be removed
-> > before being able of removing the entity.
+On Friday 21 August 2015 18:09:31 Mauro Carvalho Chehab wrote:
+> Em Fri, 21 Aug 2015 20:54:29 +0300 Laurent Pinchart escreveu:
+> > On Friday 21 August 2015 07:19:21 Mauro Carvalho Chehab wrote:
+> >> Em Fri, 21 Aug 2015 04:32:51 +0300 Laurent Pinchart escreveu:
+> >>> On Wednesday 19 August 2015 08:01:54 Mauro Carvalho Chehab wrote:
+> >>>> It helps to check if the media controller is doing the
+> >>>> right thing with the object creation and removal.
+> >>>> 
+> >>>> No extra code/data will be produced if DEBUG or
+> >>>> CONFIG_DYNAMIC_DEBUG is not enabled.
+> >>> 
+> >>> CONFIG_DYNAMIC_DEBUG is often enabled.
+> >> 
+> >> True, but once a driver/core is properly debugged, images without DEBUG
+> >> could be used in production, if the amount of memory constraints are
+> >> too tight.
+> >> 
+> >> > You're more or less adding function call tracing in this patch, isn't
+> >> > that something that ftrace is supposed to do ?
+> >> 
+> >> Ftrace is a great infrastructure and helps a lot when we need to
+> >> identify bottlenecks and other performance related stuff, but it
+> >> doesn't replace debug functions.
+> >> 
+> >> There are some fundamental differences on what you could do with ftrace
+> >> and what you can't.
+> >> 
+> >> At least on this stage, what I need is something that will provide
+> >> output via serial console when the driver gets loaded, and that provides
+> >> a synchronous output with the other Kernel messages.
+> >> 
+> >> This is the only way to debug certain OOPSes that are happening during
+> >> the development of the patches.
+> >> 
+> >> This is something you cannot do with ftrace, but dynamic DEBUG works
+> >> like a charm.
 > > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > I understand the need for debug messages during development of a patch
+> > series, but I don't think this level of debugging belongs to mainline.
+> > Debug messages for function call tracing, even more in patch 6/8 and 7/8,
+> > is frowned upon in the kernel.
 > > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index a91e1ec076a6..638c682b79c4 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -618,14 +618,30 @@ void media_device_unregister_entity(struct media_entity *entity)
-> >  		return;
-> >  
-> >  	spin_lock(&mdev->lock);
-> > +
-> > +	/* Remove interface links with this entity on it */
-> > +	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
-> > +		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
-> > +		    && link->entity == entity) {
+> > Or maybe I got it wrong and patches 6/8 and 7/8 are only for development
+> > and you don't plan to get them in mainline ?
 > 
-> I don't think you need the == MEDIA_GRAPH_ENTITY check here. That should always be
-> true if link->entity == entity.
+> As we've agreed, the first phase won't have dynamic support. Both patches
+> 6/8 and 7/8 are important until then.
 
-Yes, I know. Actually, I coded it as just  if (link->entity == entity).
-Latter, when reviewing my own patch, I decided to add the extra
-check, as it sounded me a little better.
+Why are they more important with dynamic support ?
 
-Not sure really what would be the better.
+> So, they should reach mainline together with the first MC new gen series.
 
+Patch 6/8 states in its commit message that
+
+"We can only free the media device after being sure that no graph object is 
+used. In order to help tracking it, let's add debug messages that will print 
+when the media controller gets registered or unregistered."
+
+Instead of debug messages that need to be enabled and tracked manually, why 
+not detecting the condition and issuing a WARN_ON() ?
+
+> Patch 6/8 can be reverted after we finish implementing dynamic support.
 > 
-> > +			media_gobj_remove(&link->graph_obj);
-> > +			kfree(link);
-> > +		}
-> > +	}
-> > +
-> > +	/* Remove all data links that belong to this entity */
-> >  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
-> >  		media_gobj_remove(&link->graph_obj);
-> >  		list_del(&link->list);
-> >  		kfree(link);
-> >  	}
-> > +
-> > +	/* Remove all pads that belong to this entity */
-> >  	for (i = 0; i < entity->num_pads; i++)
-> >  		media_gobj_remove(&entity->pads[i].graph_obj);
-> > +
-> > +	/* Remove the entity */
-> >  	media_gobj_remove(&entity->graph_obj);
-> > +
-> >  	spin_unlock(&mdev->lock);
-> >  	entity->graph_obj.mdev = NULL;
-> >  }
-> > 
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I think patch 7/8 will still be a good debug feature, but we can discuss
+> about that after implementing dynamic support.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
