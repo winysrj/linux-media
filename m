@@ -1,66 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:36290 "EHLO
-	mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745AbbHLQFR (ORCPT
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:36681 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751690AbbHUO0n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 12:05:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <1439363150-8661-32-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-	<1439363150-8661-32-git-send-email-hch@lst.de>
-Date: Wed, 12 Aug 2015 09:05:15 -0700
-Message-ID: <CA+55aFxfZM81HNfo2ysfhGwrhx6GX-+F--+jLFmMVv+Z0id2rw@mail.gmail.com>
-Subject: Re: [PATCH 31/31] dma-mapping-common: skip kmemleak checks for
- page-less SG entries
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vineet Gupta <vgupta@synopsys.com>,
-	=?UTF-8?Q?H=C3=A5vard_Skinnemoen?= <hskinnemoen@gmail.com>,
-	Hans-Christian Egtvedt <egtvedt@samfundet.no>,
-	Miao Steven <realmz6@gmail.com>,
-	David Howells <dhowells@redhat.com>,
-	Michal Simek <monstr@monstr.eu>,
-	"the arch/x86 maintainers" <x86@kernel.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	grundler@parisc-linux.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	linux-alpha@vger.kernel.org,
-	"linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-	linux-metag@vger.kernel.org,
-	linux-mips <linux-mips@linux-mips.org>,
-	Parisc List <linux-parisc@vger.kernel.org>,
-	ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	"linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 21 Aug 2015 10:26:43 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 05/10] media/v4l2-core: struct struct v4l2_ext_controls param which
+Date: Fri, 21 Aug 2015 16:26:38 +0200
+Message-Id: <1440167198-12354-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2015 at 12:05 AM, Christoph Hellwig <hch@lst.de> wrote:
-> +       for_each_sg(sg, s, nents, i) {
-> +               if (sg_has_page(s))
-> +                       kmemcheck_mark_initialized(sg_virt(s), s->length);
-> +       }
+Support for new field which on v4l2_ext_controls, used to get the
+default value of one or more controls.
 
-[ Again, I'm responding to one random patch - this pattern was in
-other patches too.  ]
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+I missed a ;... sorry about that
 
-A question: do we actually expect to mix page-less and pageful SG
-entries in the same SG list?
 
-How does that happen?
+ drivers/media/v4l2-core/v4l2-ctrls.c | 34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
 
-(I'm not saying it can't, I'm just wondering where people expect this
-to happen).
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 580098ba5c0b..0caae655968e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1489,6 +1489,17 @@ static int new_to_user(struct v4l2_ext_control *c,
+ 	return ptr_to_user(c, ctrl, ctrl->p_new);
+ }
+ 
++/* Helper function: copy the initial control value back to the caller */
++static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
++{
++	int idx;
++
++	for (idx = 0; idx < ctrl->elems; idx++)
++		ctrl->type_ops->init(ctrl, idx, ctrl->p_new);
++
++	return ptr_to_user(c, ctrl, ctrl->p_new);
++}
++
+ /* Helper function: copy the caller-provider value to the given control value */
+ static int user_to_ptr(struct v4l2_ext_control *c,
+ 		       struct v4l2_ctrl *ctrl,
+@@ -2708,7 +2719,9 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 
+ 		cs->error_idx = i;
+ 
+-		if (cs->which && V4L2_CTRL_ID2WHICH(id) != cs->which)
++		if (cs->which &&
++		    cs->which != V4L2_CTRL_WHICH_DEF_VAL &&
++		    V4L2_CTRL_ID2WHICH(id) != cs->which)
+ 			return -EINVAL;
+ 
+ 		/* Old-style private controls are not allowed for
+@@ -2787,7 +2800,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+    whether there are any controls at all. */
+ static int class_check(struct v4l2_ctrl_handler *hdl, u32 which)
+ {
+-	if (!which)
++	if (which == 0 || which == V4L2_CTRL_WHICH_DEF_VAL)
+ 		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
+ 	return find_ref_lock(hdl, which | 1) ? 0 : -EINVAL;
+ }
+@@ -2801,6 +2814,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	struct v4l2_ctrl_helper *helpers = helper;
+ 	int ret;
+ 	int i, j;
++	bool def_value;
++
++	def_value = (cs->which == V4L2_CTRL_WHICH_DEF_VAL);
+ 
+ 	cs->error_idx = cs->count;
+ 	cs->which = V4L2_CTRL_ID2WHICH(cs->which);
+@@ -2827,9 +2843,11 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+ 		int (*ctrl_to_user)(struct v4l2_ext_control *c,
+-				    struct v4l2_ctrl *ctrl) = cur_to_user;
++				    struct v4l2_ctrl *ctrl);
+ 		struct v4l2_ctrl *master;
+ 
++		ctrl_to_user = def_value ? def_to_user : cur_to_user;
++
+ 		if (helpers[i].mref == NULL)
+ 			continue;
+ 
+@@ -2839,8 +2857,9 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 		v4l2_ctrl_lock(master);
+ 
+ 		/* g_volatile_ctrl will update the new control values */
+-		if ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
+-			(master->has_volatiles && !is_cur_manual(master))) {
++		if (!def_value &&
++		    ((master->flags & V4L2_CTRL_FLAG_VOLATILE) ||
++		    (master->has_volatiles && !is_cur_manual(master)))) {
+ 			for (j = 0; j < master->ncontrols; j++)
+ 				cur_to_new(master->cluster[j]);
+ 			ret = call_op(master, g_volatile_ctrl);
+@@ -3062,6 +3081,11 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	int ret;
+ 
+ 	cs->error_idx = cs->count;
++
++	/* Default value cannot be changed */
++	if (cs->which == V4L2_CTRL_WHICH_DEF_VAL)
++		return -EINVAL;
++
+ 	cs->which = V4L2_CTRL_ID2WHICH(cs->which);
+ 
+ 	if (hdl == NULL)
+-- 
+2.5.0
 
-IOW, maybe it would be valid to have a rule saying "a SG list is
-either all pageful or pageless, never mixed", and then have the "if"
-statement outside the loop rather than inside.
-
-                      Linus
