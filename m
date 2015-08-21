@@ -1,138 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:33414 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932147AbbH0WTZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54045 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752664AbbHUAkw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2015 18:19:25 -0400
-Received: by lbbsx3 with SMTP id sx3so20091869lbb.0
-        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 15:19:23 -0700 (PDT)
-From: Darek Zielski <dz1125tor@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Darek Zielski <dz1125tor@gmail.com>
-Subject: [PATCH] saa7134: add Leadtek Winfast TV2100 FM card support
-Date: Fri, 28 Aug 2015 00:18:54 +0200
-Message-Id: <1440713934-13062-1-git-send-email-dz1125tor@gmail.com>
+	Thu, 20 Aug 2015 20:40:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v6 1/8] [media] media: create a macro to get entity ID
+Date: Fri, 21 Aug 2015 03:40:48 +0300
+Message-ID: <2334695.Oz27NUDV2a@avalon>
+In-Reply-To: <132df89d552ddd1f5d91d7ab82cd63d3ed43441a.1439981515.git.mchehab@osg.samsung.com>
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <132df89d552ddd1f5d91d7ab82cd63d3ed43441a.1439981515.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Leadtek Winfast TV2100 FM card to saa7134 driver. It is a card bearing
-SAA7130HL chip.
+Hi Mauro,
 
-Signed-off-by: Darek Zielski <dz1125tor@gmail.com>
----
- Documentation/video4linux/CARDLIST.saa7134 |  1 +
- drivers/media/pci/saa7134/saa7134-cards.c  | 43 ++++++++++++++++++++++++++++++
- drivers/media/pci/saa7134/saa7134-input.c  |  7 +++++
- drivers/media/pci/saa7134/saa7134.h        |  1 +
- 4 files changed, 52 insertions(+)
+Thank you for the patch.
 
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
-index f4b395b..2821020 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -193,3 +193,4 @@
- 192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
- 193 -> WIS Voyager or compatible                [1905:7007]
- 194 -> AverMedia AverTV/505                     [1461:a10a]
-+195 -> Leadtek Winfast TV2100 FM                [107d:6f3a]
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index c740576..29d2094 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -5884,6 +5884,42 @@ struct saa7134_board saa7134_boards[] = {
- 			.amux = LINE1,
- 		},
- 	},
-+	[SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM] = {
-+		.name           = "Leadtek Winfast TV2100 FM",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_TNF_5335MF,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.gpiomask       = 0x0d,
-+		.inputs         = {{
-+			.name = name_tv_mono,
-+			.vmux = 1,
-+			.amux = LINE1,
-+			.gpio = 0x00,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE2,
-+			.gpio = 0x08,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+			.gpio = 0x08,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE1,
-+			.gpio = 0x04,
-+		},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = LINE1,
-+			.gpio = 0x08,
-+		},
-+	},
- 
- };
- 
-@@ -7149,6 +7185,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.subdevice    = 0xa10a,
- 		.driver_data  = SAA7134_BOARD_AVERMEDIA_505,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
-+		.subvendor    = 0x107d,
-+		.subdevice    = 0x6f3a,
-+		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7545,6 +7587,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
- 	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
- 	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
-+	case SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM:
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		break;
- 	case SAA7134_BOARD_FLYDVBS_LR300:
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index 11a1720..69d32d3 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -835,6 +835,13 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 		mask_keycode = 0xffff;
- 		raw_decode   = true;
- 		break;
-+	case SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM:
-+		ir_codes     = RC_MAP_LEADTEK_Y04G0051;
-+		mask_keydown = 0x0040000;	/* Enable GPIO18 line on both edges */
-+		mask_keyup   = 0x0040000;
-+		mask_keycode = 0xffff;
-+		raw_decode   = true;
-+		break;
- 	}
- 	if (NULL == ir_codes) {
- 		pr_err("Oops: IR config error [card=%d]\n", dev->board);
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 6b5f6f4..14c2b4e 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -342,6 +342,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_AVERMEDIA_A706		192
- #define SAA7134_BOARD_WIS_VOYAGER           193
- #define SAA7134_BOARD_AVERMEDIA_505         194
-+#define SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM 195
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
+On Wednesday 19 August 2015 08:01:48 Mauro Carvalho Chehab wrote:
+> Instead of accessing directly entity.id, let's create a macro,
+> as this field will be moved into a common struct later on.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index c55ab5029323..e429605ca2c3 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -77,8 +77,8 @@ static struct media_entity *find_entity(struct
+> media_device *mdev, u32 id) spin_lock(&mdev->lock);
+> 
+>  	media_device_for_each_entity(entity, mdev) {
+> -		if ((entity->id == id && !next) ||
+> -		    (entity->id > id && next)) {
+> +		if (((media_entity_id(entity) == id) && !next) ||
+> +		    ((media_entity_id(entity) > id) && next)) {
+>  			spin_unlock(&mdev->lock);
+>  			return entity;
+>  		}
+> @@ -104,7 +104,7 @@ static long media_device_enum_entities(struct
+> media_device *mdev, if (ent == NULL)
+>  		return -EINVAL;
+> 
+> -	u_ent.id = ent->id;
+> +	u_ent.id = media_entity_id(ent);
+>  	if (ent->name)
+>  		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
+>  	u_ent.type = ent->type;
+> @@ -122,7 +122,7 @@ static long media_device_enum_entities(struct
+> media_device *mdev, static void media_device_kpad_to_upad(const struct
+> media_pad *kpad, struct media_pad_desc *upad)
+>  {
+> -	upad->entity = kpad->entity->id;
+> +	upad->entity = media_entity_id(kpad->entity);
+>  	upad->index = kpad->index;
+>  	upad->flags = kpad->flags;
+>  }
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 949e5f92cbdc..cb0ac4e0dfa5 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -140,10 +140,10 @@ void media_entity_graph_walk_start(struct
+> media_entity_graph *graph, graph->stack[graph->top].entity = NULL;
+>  	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
+> 
+> -	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
+> +	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
+>  		return;
+> 
+> -	__set_bit(entity->id, graph->entities);
+> +	__set_bit(media_entity_id(entity), graph->entities);
+>  	stack_push(graph, entity);
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+> @@ -184,11 +184,11 @@ media_entity_graph_walk_next(struct media_entity_graph
+> *graph)
+> 
+>  		/* Get the entity in the other end of the link . */
+>  		next = media_entity_other(entity, link);
+> -		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
+> +		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
+>  			return NULL;
+> 
+>  		/* Has the entity already been visited? */
+> -		if (__test_and_set_bit(next->id, graph->entities)) {
+> +		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
+>  			link_top(graph)++;
+>  			continue;
+>  		}
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 17f08973f835..debe4e539df6
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct
+> vsp1_pipeline *pipe, break;
+> 
+>  		/* Ensure the branch has no loop. */
+> -		if (entities & (1 << entity->subdev.entity.id))
+> +		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
+>  			return -EPIPE;
+> 
+> -		entities |= 1 << entity->subdev.entity.id;
+> +		entities |= 1 << media_entity_id(&entity->subdev.entity);
+> 
+>  		/* UDS can't be chained. */
+>  		if (entity->type == VSP1_ENTITY_UDS) {
+
+I would move the modification of the vsp1 driver to Javier's patch that 
+modifies the OMAP3 and OMAP4 drivers. Alternatively you could squash them into 
+this patch, but I believe having a first patch that adds the inline function 
+and a second patch that modifies all drivers to use it would be better.
+
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 8b21a4d920d9..0a66fc225559 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -113,6 +113,11 @@ static inline u32 media_entity_subtype(struct
+> media_entity *entity) return entity->type & MEDIA_ENT_SUBTYPE_MASK;
+>  }
+> 
+> +static inline u32 media_entity_id(struct media_entity *entity)
+> +{
+> +	return entity->id;
+> +}
+> +
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+>  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
