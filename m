@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48341 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753173AbbH3DHo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:44 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 16/55] [media] media: Don't accept early-created links
-Date: Sun, 30 Aug 2015 00:06:27 -0300
-Message-Id: <31329e1be748d26ce5a90fe050ba15b8d1e5aff1.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58965 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752179AbbHUAOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Aug 2015 20:14:12 -0400
+Subject: Re: [PATCH 1/4] [media] staging: omap4iss: get entity ID using
+ media_entity_id()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com>
+ <1439998526-12832-2-git-send-email-javier@osg.samsung.com>
+ <3021244.b1huftRsSL@avalon>
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <55D66D4D.2030307@osg.samsung.com>
+Date: Fri, 21 Aug 2015 02:14:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <3021244.b1huftRsSL@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Links are graph objects that represent the links of two already
-existing objects in the graph.
+Hello Laurent,
 
-While with the current implementation, it is possible to create
-the links earlier, It doesn't make any sense to allow linking
-two objects when they are not both created.
+On 08/20/2015 08:37 PM, Laurent Pinchart wrote:
+> Hi Javier,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 19 August 2015 17:35:19 Javier Martinez Canillas wrote:
+>> The struct media_entity does not have an .id field anymore since
+>> now the entity ID is stored in the embedded struct media_gobj.
+>>
+>> This caused the omap4iss driver fail to build. Fix by using the
+>> media_entity_id() macro to obtain the entity ID.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> This looks fine to me. The patch needs to be moved between Mauro's 1/8 and 2/8 
+> patches to avoid breaking bisection with patch 3/8. I'd squash this patch and 
+> 2/4 into a single "media: Use media_entity_id() in drivers" patch.
+> 
 
-So, remove the code that would be handling those early-created
-links and add a BUG_ON() to ensure that.
+Yes, Hans and Mauro already mentioned it and I completely agree that
+should be squashed with Mauro's patch to maintain git bisect-ability.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 138b18416460..0d85c6c28004 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -443,13 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
- 	list_add_tail(&entity->list, &mdev->entities);
- 
--	/*
--	 * Initialize objects at the links
--	 * in the case where links got created before entity register
--	 */
--	for (i = 0; i < entity->num_links; i++)
--		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
--				&entity->links[i].graph_obj);
- 	/* Initialize objects at the pads */
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 01946baa32d5..9f8e0145db7a 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -161,6 +161,8 @@ void media_gobj_init(struct media_device *mdev,
- 			   enum media_gobj_type type,
- 			   struct media_gobj *gobj)
- {
-+	BUG_ON(!mdev);
-+
- 	gobj->mdev = mdev;
- 
- 	/* Create a per-type unique object ID */
+Best regards,
 -- 
-2.4.3
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
