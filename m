@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:35031 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933559AbbHLPvc (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:33315 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753706AbbHUJaB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 11:51:32 -0400
-Received: by lbcbn3 with SMTP id bn3so11913662lbc.2
-        for <linux-media@vger.kernel.org>; Wed, 12 Aug 2015 08:51:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <55CB3135.8080706@samsung.com>
-References: <cover.1436361987.git.zahari.doychev@linux.com>
- <ccf89324d232ddb3861bde57379d044bc587e5d5.1436361987.git.zahari.doychev@linux.com>
- <55B74514.6010601@xs4all.nl> <55CB3135.8080706@samsung.com>
-From: Kamil Debski <kamil@wypas.org>
-Date: Wed, 12 Aug 2015 17:50:51 +0200
-Message-ID: <CAP3TMiGi=JswcQV=WmjG-Ds0-pTdBgErPsq9SN=2L0ACdYfc_w@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media] m2m: fix bad unlock balance
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Zahari Doychev <zahari.doychev@linux.com>,
-	linux-media@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 21 Aug 2015 05:30:01 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 8/8] Docbook: media: Document changes on struct v4l2_ext_controls
+Date: Fri, 21 Aug 2015 11:29:46 +0200
+Message-Id: <1440149386-19783-9-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440149386-19783-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Vidioc-g-ext-ctrls can now be used to get the default value of the
+controls.
 
-On 12 August 2015 at 13:42, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> Hello Hans,
->
-> I'm sorry for a delay. Once again I've been busy with some other internal
-> stuff.
->
-> On 2015-07-28 11:02, Hans Verkuil wrote:
->>
->> Kamil, Marek,
->>
->> Why does v4l2_m2m_poll unlock and lock in that function?
->
->
-> I've checked the code and indeed the poll_wait() function doesn't do
-> anything that
-> should not be done with queue mutex being taken. I don't remember if it was
-> always
-> like that. You are right that the unlock&lock code should be removed.
->
->> Zahari is right that the locking is unbalanced, but I don't see the reason
->> for the unlock/lock sequence in the first place. I'm wondering if that
->> shouldn't just be removed.
->>
->> Am I missing something?
->>
->> Instead, I would expect to see a spin_lock_irqsave(&src/dst_q->done_lock,
->> flags)
->> around the list_empty(&src/dst_q->done_list) calls.
->
->
-> Indeed, that's another thing that should be fixed in this function. I looks
-> that
-> commit c16218402a000bb25c1277c43ae98c11bcb59bd1 ("[media] videobuf2: return
-> -EPIPE
-> from DQBUF after the last buffer") is the root cause of both issues
-> (unballanced
-> locking and lack of spinlock protection), while the unnecessary queue
-> unlock/lock
-> sequence was there from the beginning.
->
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ Documentation/DocBook/media/v4l/v4l2.xml               |  9 +++++++++
+ Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-I am all with Marek on this. Unlock/lock was there from the beginning,
-it is not necessary. I agree also that spin_lock/unlock should be
-added for the list_empty call.
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1c39bd..be52bd2fb335 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -153,6 +153,15 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>4.4</revnumber>
++	<date>2015-08-20</date>
++	<authorinitials>rr</authorinitials>
++	<revremark>Extend vidioc-g-ext-ctrls;. Replace ctrl_class with a new
++union with ctrl_class and which. Which is used to select the current value of
++the control or the default value.
++	</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.21</revnumber>
+ 	<date>2015-02-13</date>
+ 	<authorinitials>mcc</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index c5bdbfcc42b3..224fa2bd1481 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -216,7 +216,12 @@ Valid if <constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set for this control
+       <tgroup cols="3">
+ 	&cs-str;
+ 	<tbody valign="top">
++	 <row>
++	    <entry>union</entry>
++	    <entry>(anonymous)</entry>
++	  </row>
+ 	  <row>
++	    <entry></entry>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>ctrl_class</structfield></entry>
+ 	    <entry>The control class to which all controls belong, see
+@@ -228,6 +233,15 @@ with a <structfield>count</structfield> of 0. If that succeeds, then the driver
+ supports this feature.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>which</structfield></entry>
++	    <entry> Which control are get/set/tried. <constant>V4L2_CTRL_WHICH_CUR_VAL</constant>
++will return the current value of the control and <constant>V4L2_CTRL_WHICH_DEF_VAL</constant> will
++return the default value of the control. Please note that the default value of the control cannot
++be set or tried, only get.</entry>
++	  </row>
++	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>count</structfield></entry>
+ 	    <entry>The number of controls in the controls array. May
+-- 
+2.5.0
 
-[snip]
-
-Best wishes,
-Kamil
