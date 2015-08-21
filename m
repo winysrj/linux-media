@@ -1,111 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53624 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755367AbbHKM4X (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54096 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbbHUBfH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 08:56:23 -0400
-Message-id: <55C9F0F4.1060602@samsung.com>
-Date: Tue, 11 Aug 2015 14:56:20 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	pavel@ucw.cz, cooloney@gmail.com, rpurdie@rpsys.net,
-	sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v10.1] media: Add registration helpers for V4L2 flash
- sub-devices
-References: <1434699107-5678-1-git-send-email-j.anaszewski@samsung.com>
- <55B752A0.9060301@xs4all.nl>
-In-reply-to: <55B752A0.9060301@xs4all.nl>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Thu, 20 Aug 2015 21:35:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v6 6/8] [media] media: add messages when media device gets (un)registered
+Date: Fri, 21 Aug 2015 04:35:04 +0300
+Message-ID: <4280106.agOBtx2TYA@avalon>
+In-Reply-To: <f07fdec54485863d0db5710845d680f34709686b.1439981515.git.mchehab@osg.samsung.com>
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <f07fdec54485863d0db5710845d680f34709686b.1439981515.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/2015 12:00 PM, Hans Verkuil wrote:
-> On 06/19/2015 09:31 AM, Jacek Anaszewski wrote:
->> This patch adds helper functions for registering/unregistering
->> LED Flash class devices as V4L2 sub-devices. The functions should
->> be called from the LED subsystem device driver. In case the
->> support for V4L2 Flash sub-devices is disabled in the kernel
->> config the functions' empty versions will be used.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->> - fixed possible NULL fled_cdev pointer dereference
->>    in the v4l2_flash_init function
->>
->>   drivers/media/v4l2-core/Kconfig                |   11 +
->>   drivers/media/v4l2-core/Makefile               |    2 +
->>   drivers/media/v4l2-core/v4l2-flash-led-class.c |  710 ++++++++++++++++++++++++
->>   include/media/v4l2-flash-led-class.h           |  148 +++++
->>   4 files changed, 871 insertions(+)
->>   create mode 100644 drivers/media/v4l2-core/v4l2-flash-led-class.c
->>   create mode 100644 include/media/v4l2-flash-led-class.h
->>
->
-> <snip>
->
->> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
->> new file mode 100644
->> index 0000000..5bdfb8d
->> --- /dev/null
->> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
->
-> <snip>
->
->> +static const struct v4l2_subdev_core_ops v4l2_flash_core_ops = {
->> +	.queryctrl = v4l2_subdev_queryctrl,
->> +	.querymenu = v4l2_subdev_querymenu,
->
-> Why are these here? This should not be necessary. As long as the sd.ctrl_handler
-> pointer is set, this is handled automatically.
+Hi Mauro,
 
-I removed these two lines and indeed driver works well without it.
+Thank you for the patch.
 
->> +};
->> +
->> +static const struct v4l2_subdev_ops v4l2_flash_subdev_ops = {
->> +	.core = &v4l2_flash_core_ops,
->> +};
->> +
->
-> And if v4l2_flash_core_ops goes away, then this can go away as well.
+On Wednesday 19 August 2015 08:01:53 Mauro Carvalho Chehab wrote:
+> We can only free the media device after being sure that no
+> graph object is used.
 
-What should I pass as the second argument to v4l2_subdev_init then?
-It seems that ops can't be NULL:
+media_device_release() is currently broken as it should call back to the 
+driver that has allocated the media_device() structure. I think we should fix 
+that before adding more code on top of the problem.
 
-void v4l2_subdev_init(struct v4l2_subdev *sd, const struct 
-v4l2_subdev_ops *ops)
-{
-         INIT_LIST_HEAD(&sd->list);
-         BUG_ON(!ops);     <---------------
-         sd->ops = ops;
-         sd->v4l2_dev = NULL;
-         sd->flags = 0;
-         sd->name[0] = '\0';
-         sd->grp_id = 0;
-         sd->dev_priv = NULL;
-         sd->host_priv = NULL;
-#if defined(CONFIG_MEDIA_CONTROLLER)
-         sd->entity.name = sd->name;
-         sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
-#endif
-}
+> In order to help tracking it, let's add debug messages
+> that will print when the media controller gets registered
+> or unregistered.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 065f6f08da37..0f3844470147 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -359,6 +359,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+> 
+>  static void media_device_release(struct media_devnode *mdev)
+>  {
+> +	dev_dbg(mdev->parent, "Media device released\n");
 
->
-> I know this driver has been merged, but I just noticed this while looking at
-> something else.
->
-> Regards,
->
-> 	Hans
->
+As commented on patch 7/8, ftrace is a better candidate for function tracing.
+
+>  }
+> 
+>  /**
+> @@ -397,6 +398,8 @@ int __must_check __media_device_register(struct
+> media_device *mdev, return ret;
+>  	}
+> 
+> +	dev_dbg(mdev->dev, "Media device registered\n");
+> +
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(__media_device_register);
+> @@ -416,6 +419,8 @@ void media_device_unregister(struct media_device *mdev)
+> 
+>  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>  	media_devnode_unregister(&mdev->devnode);
+> +
+> +	dev_dbg(mdev->dev, "Media device unregistered\n");
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_unregister);
 
 -- 
-Best Regards,
-Jacek Anaszewski
+Regards,
+
+Laurent Pinchart
+
