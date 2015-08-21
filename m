@@ -1,129 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54427 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbbHRUE3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54064 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751707AbbHUBDC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 16:04:29 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-sh@vger.kernel.org
-Subject: [PATCH RFC v5 1/8] [media] media: create a macro to get entity ID
-Date: Tue, 18 Aug 2015 17:04:14 -0300
-Message-Id: <a6f0ee86dbff4a9cb1b8b03420cfc8af6b45df9e.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
+	Thu, 20 Aug 2015 21:03:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v6 2/8] [media] media: add a common struct to be embed on media graph objects
+Date: Fri, 21 Aug 2015 04:02:57 +0300
+Message-ID: <1667127.681LBiMjnq@avalon>
+In-Reply-To: <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com>
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of accessing directly entity.id, let's create a macro,
-as this field will be moved into a common struct later on.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thank you for the patch.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7b39440192d6..56aebe12aed8 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -75,8 +75,8 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
- 	spin_lock(&mdev->lock);
- 
- 	media_device_for_each_entity(entity, mdev) {
--		if ((entity->id == id && !next) ||
--		    (entity->id > id && next)) {
-+		if (((media_entity_id(entity) == id) && !next) ||
-+		    ((media_entity_id(entity) > id) && next)) {
- 			spin_unlock(&mdev->lock);
- 			return entity;
- 		}
-@@ -102,7 +102,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- 	if (ent == NULL)
- 		return -EINVAL;
- 
--	u_ent.id = ent->id;
-+	u_ent.id = media_entity_id(ent);
- 	if (ent->name)
- 		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
- 	u_ent.type = ent->type;
-@@ -120,7 +120,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- static void media_device_kpad_to_upad(const struct media_pad *kpad,
- 				      struct media_pad_desc *upad)
- {
--	upad->entity = kpad->entity->id;
-+	upad->entity = media_entity_id(kpad->entity);
- 	upad->index = kpad->index;
- 	upad->flags = kpad->flags;
- }
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 949e5f92cbdc..cb0ac4e0dfa5 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -140,10 +140,10 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 	graph->stack[graph->top].entity = NULL;
- 	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
- 
--	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
- 		return;
- 
--	__set_bit(entity->id, graph->entities);
-+	__set_bit(media_entity_id(entity), graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -184,11 +184,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
- 			return NULL;
- 
- 		/* Has the entity already been visited? */
--		if (__test_and_set_bit(next->id, graph->entities)) {
-+		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
- 			link_top(graph)++;
- 			continue;
- 		}
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 17f08973f835..debe4e539df6 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 			break;
- 
- 		/* Ensure the branch has no loop. */
--		if (entities & (1 << entity->subdev.entity.id))
-+		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
- 			return -EPIPE;
- 
--		entities |= 1 << entity->subdev.entity.id;
-+		entities |= 1 << media_entity_id(&entity->subdev.entity);
- 
- 		/* UDS can't be chained. */
- 		if (entity->type == VSP1_ENTITY_UDS) {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8b21a4d920d9..0a66fc225559 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -113,6 +113,11 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- 	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
- }
- 
-+static inline u32 media_entity_id(struct media_entity *entity)
-+{
-+	return entity->id;
-+}
-+
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
- #define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
+On Wednesday 19 August 2015 08:01:49 Mauro Carvalho Chehab wrote:
+> Due to the MC API proposed changes, we'll need to have an unique
+> object ID for all graph objects, and have some shared fields
+> that will be common on all media graph objects.
+> 
+> Right now, the only common object is the object ID, but other
+> fields will be added later on.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index cb0ac4e0dfa5..4834172bf6f8 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -27,6 +27,38 @@
+>  #include <media/media-device.h>
+> 
+>  /**
+> + *  media_gobj_init - Initialize a graph object
+> + *
+> + * @mdev:	Pointer to the media_device that contains the object
+> + * @type:	Type of the object
+> + * @gobj:	Pointer to the object
+> + *
+> + * This routine initializes the embedded struct media_gobj inside a
+> + * media graph object. It is called automatically if media_*_create()
+> + * calls are used. However, if the object (entity, link, pad, interface)
+> + * is embedded on some other object, this function should be called before
+> + * registering the object at the media controller.
+
+Allowing both dynamic allocation and embedding will create a more complex API 
+with more opportunities for drivers to get it wrong. I'd like to try and 
+standardize the expected behaviour.
+
+> + */
+> +void media_gobj_init(struct media_device *mdev,
+> +			   enum media_gobj_type type,
+> +			   struct media_gobj *gobj)
+> +{
+> +	/* For now, nothing to do */
+> +}
+> +
+> +/**
+> + *  media_gobj_remove - Stop using a graph object on a media device
+
+Is this function supposed to be the counterpart of media_gobj_init ? If so it 
+should be called media_gobj_cleanup instead.
+
+> + *
+> + * @graph_obj:	Pointer to the object
+
+The parameter is called gobj. Could you compile the kerneldoc to ensure that 
+such typos get caught ?
+
+> + *
+> + * This should be called at media_device_unregister_*() routines
+> + */
+> +void media_gobj_remove(struct media_gobj *gobj)
+> +{
+> +	/* For now, nothing to do */
+> +}
+> +
+> +/**
+>   * media_entity_init - Initialize a media entity
+>   *
+>   * @num_pads: Total number of sink and source pads.
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0a66fc225559..c1cd4fba051d 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -28,6 +28,39 @@
+>  #include <linux/list.h>
+>  #include <linux/media.h>
+> 
+> +/* Enums used internally at the media controller to represent graphs */
+> +
+> +/**
+> + * enum media_gobj_type - type of a graph element
+
+Let's try to standardize the vocabulary, should it be called graph object or 
+graph element ? In the first case let's document it as graph object. In the 
+second case it would be more consistent to refer to it as enum 
+media_gelem_type (and struct media_gelem below).
+
+> + *
+> + */
+> +enum media_gobj_type {
+> +	 /* FIXME: add the types here, as we embed media_gobj */
+> +	MEDIA_GRAPH_NONE
+> +};
+> +
+> +#define MEDIA_BITS_PER_TYPE		8
+> +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
+> +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
+> +
+> +/* Structs to represent the objects that belong to a media graph */
+> +
+> +/**
+> + * struct media_gobj - Define a graph object.
+> + *
+> + * @id:		Non-zero object ID identifier. The ID should be unique
+> + *		inside a media_device, as it is composed by
+> + *		MEDIA_BITS_PER_TYPE to store the type plus
+> + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+> + *		(called as "local ID").
+
+I'd very much prefer using a single ID range and adding a type field. Abusing 
+bits of the ID field to store the type will just makes IDs impractical to use. 
+Let's do it properly.
+
+> + * All elements on the media graph should have this struct embedded
+
+All elements (objects) or only the ones that need an ID ? Or maybe we'll 
+define graph element (object) as an element (object) that has an ID, making 
+some "elements" not elements.
+
+> + */
+> +struct media_gobj {
+> +	u32			id;
+> +};
+> +
+> +
+>  struct media_pipeline {
+>  };
+> 
+> @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity
+> *entity) return entity->id;
+>  }
+> 
+> +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
+> +{
+> +	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
+> +}
+> +
+> +static inline u32 media_localid(struct media_gobj *gobj)
+> +{
+> +	return gobj->id & MEDIA_LOCAL_ID_MASK;
+> +}
+> +
+> +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32
+> local_id)
+> +{
+> +	u32 id;
+> +
+> +	id = type << MEDIA_BITS_PER_LOCAL_ID;
+> +	id |= local_id & MEDIA_LOCAL_ID_MASK;
+> +
+> +	return id;
+> +}
+> +
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+>  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+> 
+> @@ -131,6 +184,14 @@ struct media_entity_graph {
+>  	int top;
+>  };
+> 
+> +#define gobj_to_entity(gobj) \
+> +		container_of(gobj, struct media_entity, graph_obj)
+
+For consistency reason would this be called media_gobj_to_entity ? I would 
+also turn it into an inline function to ensure type checking.
+
+> +
+> +void media_gobj_init(struct media_device *mdev,
+> +		    enum media_gobj_type type,
+> +		    struct media_gobj *gobj);
+> +void media_gobj_remove(struct media_gobj *gobj);
+> +
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>  		struct media_pad *pads);
+>  void media_entity_cleanup(struct media_entity *entity);
+
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
