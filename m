@@ -1,70 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:33866 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950AbbHSFLx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 01:11:53 -0400
-Date: Tue, 18 Aug 2015 13:22:02 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCHv8 07/15] cec: add HDMI CEC framework
-Message-ID: <20150818202202.GA18724@dtor-pixel>
-References: <cover.1439886203.git.hans.verkuil@cisco.com>
- <87a579ddacf90718a166fbb8a777b5d8cd05200b.1439886203.git.hans.verkuil@cisco.com>
- <20150818100020.GM7557@n2100.arm.linux.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:40752 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752174AbbHUNxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 09:53:40 -0400
+Subject: Re: WARNING: CPU: 1 PID: 813 at kernel/module.c:291
+ module_assert_mutex_or_preempt+0x49/0x90()
+To: poma <pomidorabelisima@gmail.com>,
+	Linux Kernel list <linux-kernel@vger.kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Rusty Russell <rusty@rustcorp.com.au>
+References: <55C916F0.8010303@gmail.com> <55D6FBB0.5000709@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+From: Laura Abbott <labbott@redhat.com>
+Message-ID: <55D72D60.2040500@redhat.com>
+Date: Fri, 21 Aug 2015 06:53:36 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150818100020.GM7557@n2100.arm.linux.org.uk>
+In-Reply-To: <55D6FBB0.5000709@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 18, 2015 at 11:00:20AM +0100, Russell King - ARM Linux wrote:
-> On Tue, Aug 18, 2015 at 10:26:32AM +0200, Hans Verkuil wrote:
-> > +	/* Part 2: Initialize and register the character device */
-> > +	cdev_init(&cecdev->cdev, &cec_devnode_fops);
-> > +	cecdev->cdev.owner = owner;
-> > +
-> > +	ret = cdev_add(&cecdev->cdev, MKDEV(MAJOR(cec_dev_t), cecdev->minor),
-> > +									1);
-> > +	if (ret < 0) {
-> > +		pr_err("%s: cdev_add failed\n", __func__);
-> > +		goto error;
-> > +	}
-> > +
-> > +	/* Part 3: Register the cec device */
-> > +	cecdev->dev.bus = &cec_bus_type;
-> > +	cecdev->dev.devt = MKDEV(MAJOR(cec_dev_t), cecdev->minor);
-> > +	cecdev->dev.release = cec_devnode_release;
-> > +	if (cecdev->parent)
-> > +		cecdev->dev.parent = cecdev->parent;
-> > +	dev_set_name(&cecdev->dev, "cec%d", cecdev->minor);
-> > +	ret = device_register(&cecdev->dev);
-> 
-> It's worth pointing out that you can greatly simplify the lifetime
-> handling (you don't need to get and put cecdev->dev) if you make
-> the cdev a child of the cecdev->dev.
-> 
-> If you grep for kobj.parent in drivers/ you'll see many drivers are
-> doing this.
-> 
-> 	cecdev->cdev.kobj.parent = &cecdev->dev.kobj;
-> 
-> but you will need to call device_initialize() on cecdev->dev first,
-> and use device_add() here.
+On 08/21/2015 03:21 AM, poma wrote:
+> On 10.08.2015 23:26, poma wrote:
+>>
+>> ------------[ cut here ]------------
+>> WARNING: CPU: 1 PID: 813 at kernel/module.c:291 module_assert_mutex_or_preempt+0x49/0x90()
+>> Modules linked in: mxl5007t af9013 ... dvb_usb_af9015(+) ... dvb_usb_v2 dvb_core rc_core ...
+>> CPU: 1 PID: 813 Comm: systemd-udevd Not tainted 4.2.0-0.rc6.git0.1.fc24.x86_64+debug #1
+>> ...
+>> Call Trace:
+>>   [<ffffffff81868d8e>] dump_stack+0x4c/0x65
+>>   [<ffffffff810ab406>] warn_slowpath_common+0x86/0xc0
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffff810ab53a>] warn_slowpath_null+0x1a/0x20
+>>   [<ffffffff81150529>] module_assert_mutex_or_preempt+0x49/0x90
+>>   [<ffffffff81150822>] __module_address+0x32/0x150
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffff81150956>] __module_text_address+0x16/0x70
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
+>>   [<ffffffff81150f19>] symbol_put_addr+0x29/0x40
+>>   [<ffffffffa04b77ad>] dvb_frontend_detach+0x7d/0x90 [dvb_core]
+>>   [<ffffffffa04cdfd5>] dvb_usbv2_probe+0xc85/0x11a0 [dvb_usb_v2]
+>>   [<ffffffffa05607c4>] af9015_probe+0x84/0xf0 [dvb_usb_af9015]
+>>   [<ffffffff8161c03b>] usb_probe_interface+0x1bb/0x2e0
+>>   [<ffffffff81579f26>] driver_probe_device+0x1f6/0x450
+>>   [<ffffffff8157a214>] __driver_attach+0x94/0xa0
+>>   [<ffffffff8157a180>] ? driver_probe_device+0x450/0x450
+>>   [<ffffffff815778f3>] bus_for_each_dev+0x73/0xc0
+>>   [<ffffffff815796fe>] driver_attach+0x1e/0x20
+>>   [<ffffffff8157922e>] bus_add_driver+0x1ee/0x280
+>>   [<ffffffff8157b0a0>] driver_register+0x60/0xe0
+>>   [<ffffffff8161a87d>] usb_register_driver+0xad/0x160
+>>   [<ffffffffa0567000>] ? 0xffffffffa0567000
+>>   [<ffffffffa056701e>] af9015_usb_driver_init+0x1e/0x1000 [dvb_usb_af9015]
+>>   [<ffffffff81002123>] do_one_initcall+0xb3/0x200
+>>   [<ffffffff8124ac65>] ? kmem_cache_alloc_trace+0x355/0x380
+>>   [<ffffffff81867c37>] ? do_init_module+0x28/0x1e9
+>>   [<ffffffff81867c6f>] do_init_module+0x60/0x1e9
+>>   [<ffffffff81154167>] load_module+0x21f7/0x28d0
+>>   [<ffffffff8114f600>] ? m_show+0x1b0/0x1b0
+>>   [<ffffffff81026d79>] ? sched_clock+0x9/0x10
+>>   [<ffffffff810e6ddc>] ? local_clock+0x1c/0x20
+>>   [<ffffffff811549b8>] SyS_init_module+0x178/0x1c0
+>>   [<ffffffff8187282e>] entry_SYSCALL_64_fastpath+0x12/0x76
+>> ---[ end trace 31a9dd90d4f559f5 ]---
+>>
+>>
+>> Ref.
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1252167
+>> https://bugzilla.kernel.org/show_bug.cgi?id=102631
+>>
+>
+> You guys are really something.
+>
+> First of all, as is evident here, I am the original reporter, not Laura Abbott <labbott@redhat.com>.
+> -All- your comments including the final patch on this issue, are just plain wrong.[1]
+> This patch only hides the actual problem with this particular device - the dual tuner combination driven by dvb_usb_af9015 & mxl5007t, broken by design since day one.
+>
+> Read the entire https://bugzilla.redhat.com/show_bug.cgi?id=1252167
+> and stop this nonsense.
+>
+> NACK "module: Fix locking in symbol_put_addr()"
+>
+> [1] http://www.gossamer-threads.com/lists/linux/kernel/2241154
+>
+>
 
-This is basically a requirement if one embeds both device and a cdev
-into the same structure. Trying to do get/put in the driver is racy,
-you need to let framework know (by setting cdve's parent to the device
-structure).
+Sorry, I've been delayed with conferences and have been avoiding e-mails and bugzilla.
+I missed sending out the Tested-by tag.
+You are welcome to drop the reported-by if you don't think it is appropriate.
 
-Thanks.
-
--- 
-Dmitry
+Laura
