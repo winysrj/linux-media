@@ -1,69 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52340 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933122AbbHDLlT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 07:41:19 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: media-workshop@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH_RFC_v1 0/4] MC initial changes due to MC workshop
-Date: Tue,  4 Aug 2015 08:41:05 -0300
-Message-Id: <cover.1438687440.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54407 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751560AbbHVCva (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 22:51:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B462F2A0080
+	for <linux-media@vger.kernel.org>; Sat, 22 Aug 2015 04:50:46 +0200 (CEST)
+Date: Sat, 22 Aug 2015 04:50:46 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150822025046.B462F2A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an initial set of patches showing the approach I'm taking
-in order to fulfill all the MC needs that was discussed on the 3
-day MC summit in Helsinki.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-As suggested, I'll be sending incremental patches and avoiding to
-do a large set of changes into one changeset series.
+Results of the daily build of media_tree:
 
-So, this is the first 4 patches of the changes.
+date:		Sat Aug 22 04:00:16 CEST 2015
+git branch:	test
+git hash:	3a6b0605c73d1d695f6d4e49289deaa3fa3e73ee
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Along this patch series, I'll be calling "object" as anything "symbol"
-is part of the media graph. Currently: entity, link and pads.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-New object types will be needed to represent interfaces. I suspect
-we'll also need another type to represent group of objects, but this
-will be covered on future patches.
+Detailed results are available here:
 
-No userspace API changes here, just changes at the internal structs
-that contains the media graph objects and some new helper functions.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-The goal of this patchset is:
+Full logs are available here:
 
-1) to create a common struct that will be embedded on all internal
-   structs that represents the comon data that will be used by
-   all kinds of objects;
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-2) to have an unique object ID for each object in the graph. The
-   object ID will be needed by the userspace API in the future, as
-   discussed during the MC workshop;
+The Media Infrastructure API from this daily build is here:
 
-3) to be sure that no data used by an entity will be freed too
-   early. Latter patches will do similar changes to links and pads.
-
-With regards to (3), this patchset is not complete yet; it currently
-changes only the DVB core, as the changes are simpler there.
-I'll be working on a similar change for the V4L2 core. Yet, it would
-be nice to have a feedback earlier in order to avoid rework.
-
-Mauro Carvalho Chehab (4):
-  media: Add some fields to store graph objects
-  media: Add a common embeed struct for all media graph objects
-  media: add functions to create/remove entities
-  dvbdev: Use functions to create/remove media_entity struct
-
- drivers/media/dvb-core/dvbdev.c | 13 +++---
- drivers/media/media-device.c    |  4 ++
- drivers/media/media-entity.c    | 99 +++++++++++++++++++++++++++++++++++++++++
- include/media/media-device.h    |  4 ++
- include/media/media-entity.h    | 58 ++++++++++++++++++++++++
- 5 files changed, 172 insertions(+), 6 deletions(-)
-
--- 
-2.4.3
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
