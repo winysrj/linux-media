@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48442 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40482 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300AbbH3DHu (ORCPT
+	with ESMTP id S1753452AbbHVR2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:50 -0400
+	Sat, 22 Aug 2015 13:28:38 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v8 02/55] [media] staging: omap4iss: get entity ID using media_entity_id()
-Date: Sun, 30 Aug 2015 00:06:13 -0300
-Message-Id: <95dccc89e638c5cd60a6d13541efd29ca39766fb.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 07/39] [media] Docbook: fix comments at v4l2-flash-led-class.h
+Date: Sat, 22 Aug 2015 14:27:52 -0300
+Message-Id: <11b5f7876ae94a84cbfa97697621bbfc6df31fb6.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+Warning(.//include/media/v4l2-flash-led-class.h:51): bad line: 				unique in the system
+Warning(.//include/media/v4l2-flash-led-class.h:56): bad line: 				definitions are available in the header file
+Warning(.//include/media/v4l2-flash-led-class.h:57): bad line: 				<linux/led-class-flash.h>
+Warning(.//include/media/v4l2-flash-led-class.h:122): No description found for parameter 'ops'
+Warning(.//include/media/v4l2-flash-led-class.h:122): Excess function parameter 'flash_ops' description in 'v4l2_flash_init'
+Warning(.//include/media/v4l2-flash-led-class.h:130): No description found for parameter 'v4l2_flash'
+Warning(.//include/media/v4l2-flash-led-class.h:130): Excess function parameter 'flash' description in 'v4l2_flash_release'
 
-Assessing media_entity ID should now use media_entity_id() macro to
-obtain the entity ID, as a next patch will remove the .id field from
-struct media_entity .
-
-So, get rid of it, otherwise the omap4iss driver will fail to build.
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 9bfb725b9986..e54a7afd31de 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -607,7 +607,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
- 			 * crashed. Mark it as such, the ISS will be reset when
- 			 * applications will release it.
- 			 */
--			iss->crashed |= 1U << subdev->entity.id;
-+			iss->crashed |= 1U << media_entity_id(&subdev->entity);
- 			failure = -ETIMEDOUT;
- 		}
- 	}
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index bae67742706f..25e9e7a6b99d 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -784,7 +784,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	entity = &video->video.entity;
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph)))
--		pipe->entities |= 1 << entity->id;
-+		pipe->entities |= 1 << media_entity_id(entity);
+diff --git a/include/media/v4l2-flash-led-class.h b/include/media/v4l2-flash-led-class.h
+index 098236c083b8..3d184ab52274 100644
+--- a/include/media/v4l2-flash-led-class.h
++++ b/include/media/v4l2-flash-led-class.h
+@@ -48,13 +48,13 @@ struct v4l2_flash_ops {
+ /**
+  * struct v4l2_flash_config - V4L2 Flash sub-device initialization data
+  * @dev_name:			the name of the media entity,
+-				unique in the system
++ *				unique in the system
+  * @torch_intensity:		constraints for the LED in torch mode
+  * @indicator_intensity:	constraints for the indicator LED
+  * @flash_faults:		bitmask of flash faults that the LED flash class
+-				device can report; corresponding LED_FAULT* bit
+-				definitions are available in the header file
+-				<linux/led-class-flash.h>
++ *				device can report; corresponding LED_FAULT* bit
++ *				definitions are available in the header file
++ *				<linux/led-class-flash.h>
+  * @has_external_strobe:	external strobe capability
+  */
+ struct v4l2_flash_config {
+@@ -105,7 +105,7 @@ static inline struct v4l2_flash *v4l2_ctrl_to_v4l2_flash(struct v4l2_ctrl *c)
+  * @fled_cdev:	LED flash class device to wrap
+  * @iled_cdev:	LED flash class device representing indicator LED associated
+  *		with fled_cdev, may be NULL
+- * @flash_ops:	V4L2 Flash device ops
++ * @ops:	V4L2 Flash device ops
+  * @config:	initialization data for V4L2 Flash sub-device
+  *
+  * Create V4L2 Flash sub-device wrapping given LED subsystem device.
+@@ -123,7 +123,7 @@ struct v4l2_flash *v4l2_flash_init(
  
- 	/* Verify that the currently configured format matches the output of
- 	 * the connected subdev.
+ /**
+  * v4l2_flash_release - release V4L2 Flash sub-device
+- * @flash: the V4L2 Flash sub-device to release
++ * @v4l2_flash: the V4L2 Flash sub-device to release
+  *
+  * Release V4L2 Flash sub-device.
+  */
 -- 
 2.4.3
 
