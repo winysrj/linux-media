@@ -1,108 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:36188 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbbH1HBE (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40428 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753423AbbHVR2h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 03:01:04 -0400
-Received: by wicfv10 with SMTP id fv10so185407wic.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 00:01:03 -0700 (PDT)
-Date: Fri, 28 Aug 2015 08:01:00 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Peter Griffin <peter.griffin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT
- node.
-Message-ID: <20150828070100.GF4796@x1>
-References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
- <1440678575-21646-3-git-send-email-peter.griffin@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1440678575-21646-3-git-send-email-peter.griffin@linaro.org>
+	Sat, 22 Aug 2015 13:28:37 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 15/39] [media] v4l2-subdev: add remaining argument descriptions
+Date: Sat, 22 Aug 2015 14:28:00 -0300
+Message-Id: <48c6d9031a11bbe8d338c06e34482744cbe23f64.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 Aug 2015, Peter Griffin wrote:
+Warning(.//include/media/v4l2-subdev.h:203): No description found for parameter 'ioctl'
+Warning(.//include/media/v4l2-subdev.h:203): No description found for parameter 'compat_ioctl32'
+Warning(.//include/media/v4l2-subdev.h:203): No description found for parameter 'subscribe_event'
+Warning(.//include/media/v4l2-subdev.h:203): No description found for parameter 'unsubscribe_event'
+Warning(.//include/media/v4l2-subdev.h:273): No description found for parameter 's_stream'
+Warning(.//include/media/v4l2-subdev.h:407): No description found for parameter 's_stream'
+Warning(.//include/media/v4l2-subdev.h:623): No description found for parameter 'link_validate'
+Warning(.//include/media/v4l2-subdev.h:623): No description found for parameter 'set_frame_desc'
 
-> This patch adds in the required DT node for the c8sectpfe
-> Linux DVB demux driver which allows the tsin channels
-> to be used on an upstream kernel.
-> 
-> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> ---
->  arch/arm/boot/dts/stihxxx-b2120.dtsi | 34 ++++++++++++++++++++++++++++++++++
->  1 file changed, 34 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> index 62994ae..c014173 100644
-> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-> @@ -6,6 +6,9 @@
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
->   */
-> +
-> +#include <dt-bindings/clock/stih407-clks.h>
-> +#include <dt-bindings/media/c8sectpfe.h>
->  / {
->  	soc {
->  		sbc_serial0: serial@9530000 {
-> @@ -85,5 +88,36 @@
->  			status = "okay";
->  		};
->  
-> +		demux@08a20000 {
-> +			compatible	= "st,stih407-c8sectpfe";
-> +			status		= "okay";
-> +			reg		= <0x08a20000 0x10000>,
-> +					  <0x08a00000 0x4000>;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-These look like they're the wrong way round.
-
-> +			reg-names	= "c8sectpfe", "c8sectpfe-ram";
-> +			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
-> +					  <GIC_SPI 35 IRQ_TYPE_NONE>;
-> +			interrupt-names	= "c8sectpfe-error-irq",
-> +					  "c8sectpfe-idle-irq";
-> +			pinctrl-names	= "tsin0-serial",
-> +					  "tsin0-parallel",
-> +					  "tsin3-serial",
-> +					  "tsin4-serial",
-> +					  "tsin5-serial";
-> +			pinctrl-0	= <&pinctrl_tsin0_serial>;
-> +			pinctrl-1	= <&pinctrl_tsin0_parallel>;
-> +			pinctrl-2	= <&pinctrl_tsin3_serial>;
-> +			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
-> +			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
-> +			clock-names	= "c8sectpfe";
-> +			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
-
-Personal preferenc is that the *-names properties should come *after*
-the ones they reference.
-
-> +			/* tsin0 is TSA on NIMA */
-> +			tsin0: port@0 {
-> +				tsin-num	= <0>;
-> +				serial-not-parallel;
-> +				i2c-bus		= <&ssc2>;
-> +				rst-gpio	= <&pio15 4 0>;
-
-"reset-gpios"?
-
-Use the GPIO DEFINES.
-
-> +				dvb-card	= <STV0367_TDA18212_NIMA_1>;
-> +			};
-> +		};
->  	};
->  };
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index c6205c038b06..b273cf9ac047 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -157,6 +157,12 @@ struct v4l2_subdev_io_pin_config {
+  *
+  * @querymenu: callback for VIDIOC_QUERYMENU ioctl handler code.
+  *
++ * @ioctl: called at the end of ioctl() syscall handler at the V4L2 core.
++ *	   used to provide support for private ioctls used on the driver.
++ *
++ * @compat_ioctl32: called when a 32 bits application uses a 64 bits Kernel,
++ *		    in order to fix data passed from/to userspace.
++ *
+  * @g_register: callback for VIDIOC_G_REGISTER ioctl handler code.
+  *
+  * @s_register: callback for VIDIOC_G_REGISTER ioctl handler code.
+@@ -168,6 +174,11 @@ struct v4l2_subdev_io_pin_config {
+  *	handler, when an interrupt status has be raised due to this subdev,
+  *	so that this subdev can handle the details.  It may schedule work to be
+  *	performed later.  It must not sleep.  *Called from an IRQ context*.
++ *
++ * @subscribe_event: used by the drivers to request the control framework that
++ *		     for it to be warned when the value of a control changes.
++ *
++ * @unsubscribe_event: remove event subscription from the control framework.
+  */
+ struct v4l2_subdev_core_ops {
+ 	int (*log_status)(struct v4l2_subdev *sd);
+@@ -264,6 +275,9 @@ struct v4l2_subdev_tuner_ops {
+  *	board or platform it might be connected to something else entirely.
+  *	The calling driver is responsible for mapping a user-level input to
+  *	the right pins on the i2c device.
++ *
++ * @s_stream: used to notify the audio code that stream will start or has
++ *	stopped.
+  */
+ struct v4l2_subdev_audio_ops {
+ 	int (*s_clock_freq)(struct v4l2_subdev *sd, u32 freq);
+@@ -339,6 +353,9 @@ struct v4l2_mbus_frame_desc {
+  * @g_input_status: get input status. Same as the status field in the v4l2_input
+  *	struct.
+  *
++ * @s_stream: used to notify the driver that a video stream will start or has
++ *	stopped.
++ *
+  * @cropcap: callback for VIDIOC_CROPCAP ioctl handler code.
+  *
+  * @g_crop: callback for VIDIOC_G_CROP ioctl handler code.
+@@ -578,9 +595,12 @@ struct v4l2_subdev_pad_config {
+  * @enum_dv_timings: callback for VIDIOC_SUBDEV_ENUM_DV_TIMINGS ioctl handler
+  *		     code.
+  *
++ * @link_validate: used by the media controller code to check if the links
++ *		   that belongs to a pipeline can be used for stream.
++ *
+  * @get_frame_desc: get the current low level media bus frame parameters.
+  *
+- * @get_frame_desc: set the low level media bus frame parameters, @fd array
++ * @set_frame_desc: set the low level media bus frame parameters, @fd array
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+2.4.3
+
