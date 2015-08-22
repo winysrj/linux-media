@@ -1,109 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52339 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933170AbbHDLlT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 07:41:19 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: media-workshop@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH_RFC_v1 2/4] media: Add a common embeed struct for all media graph objects
-Date: Tue,  4 Aug 2015 08:41:07 -0300
-Message-Id: <3e0cf7e0a2feed17220b7580df2419d073fe8098.1438687440.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
-References: <cover.1438687440.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438687440.git.mchehab@osg.samsung.com>
-References: <cover.1438687440.git.mchehab@osg.samsung.com>
+Received: from mail-lb0-f193.google.com ([209.85.217.193]:35215 "EHLO
+	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753530AbbHVLiW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2015 07:38:22 -0400
+Received: by lbbpd10 with SMTP id pd10so4502563lbb.2
+        for <linux-media@vger.kernel.org>; Sat, 22 Aug 2015 04:38:20 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: product.file@voila.fr
+Date: Sat, 22 Aug 2015 11:38:20 +0000
+Message-ID: <CAJ9wv6uMLOeF8fDvkOK3oxaRDgeSfcQ914JLthOo-+gQ+SYgSw@mail.gmail.com>
+Subject: halo
+From: barr lewis <projectfiles003@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the MC API proposed changes, we'll need to:
-	- have an unique object ID for all graph objects;
-	- be able to dynamically create/remove objects;
-	- be able to group objects;
-	- keep the object in memory until we stop use it.
-
-Due to that, create a struct media_graph_obj and put there the
-common elements that all media objects will have in common.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0c003d817493..faead169fe32 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -27,11 +27,54 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/media.h>
-+#include <linux/kref.h>
-+
-+/* Enums used internally at the media controller to represent graphs */
-+
-+/**
-+ * enum media_graph_type - type of a graph element
-+ *
-+ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-+ * @MEDIA_GRAPH_PAD:		Identify a media PAD
-+ * @MEDIA_GRAPH_LINK:		Identify a media link
-+ */
-+enum media_graph_type {
-+	MEDIA_GRAPH_ENTITY,
-+	MEDIA_GRAPH_PAD,
-+	MEDIA_GRAPH_LINK,
-+};
-+
-+
-+/* Structs to represent the objects that belong to a media graph */
-+
-+/**
-+ * struct media_graph_obj - Define a graph object.
-+ *
-+ * @list:		List of media graph objects
-+ * @obj_id:		Non-zero object ID identifier. The ID should be unique
-+ *			inside a media_device
-+ * @type:		Type of the graph object
-+ * @mdev:		Media device that contains the object
-+ * @kref:		pointer to struct kref, used to avoid destroying the
-+ *			object before stopping using it
-+ *
-+ * All elements on the media graph should have this struct embedded
-+ */
-+struct media_graph_obj {
-+	struct list_head	list;
-+	struct list_head	group;
-+	u32			obj_id;
-+	enum media_graph_type	type;
-+	struct media_device	*mdev;
-+	struct kref		kref;
-+};
-+
- 
- struct media_pipeline {
- };
- 
- struct media_link {
-+	struct media_graph_obj			graph_obj;
- 	struct media_pad *source;	/* Source pad */
- 	struct media_pad *sink;		/* Sink pad  */
- 	struct media_link *reverse;	/* Link in the reverse direction */
-@@ -39,6 +82,7 @@ struct media_link {
- };
- 
- struct media_pad {
-+	struct media_graph_obj			graph_obj;
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-@@ -61,6 +105,7 @@ struct media_entity_operations {
- };
- 
- struct media_entity {
-+	struct media_graph_obj			graph_obj;
- 	struct list_head list;
- 	struct media_device *parent;	/* Media device this entity belongs to*/
- 	u32 id;				/* Entity ID, unique in the parent media
--- 
-2.4.3
-
+let us talk
