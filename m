@@ -1,80 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53320 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40410 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965308AbbHLHJz (ORCPT
+	with ESMTP id S1753364AbbHVR2g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:09:55 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 24/31] xtensa: handle page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:43 +0200
-Message-Id: <1439363150-8661-25-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+	Sat, 22 Aug 2015 13:28:36 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 37/39] [media] dvb-frontend.h: document struct dvb_frontend_ops
+Date: Sat, 22 Aug 2015 14:28:22 -0300
+Message-Id: <fbeb9ebf54c79e2deac3cd8c7c4977abba6ede74.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make all cache invalidation conditional on sg_has_page().
+This is one of the most important functions of the DVB
+frontend, containing the logic needed to set the parameters
+at the demux and to send commands via SEC.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/xtensa/include/asm/dma-mapping.h | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+Document it.
 
-diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
-index 1f5f6dc..262a1d1 100644
---- a/arch/xtensa/include/asm/dma-mapping.h
-+++ b/arch/xtensa/include/asm/dma-mapping.h
-@@ -61,10 +61,9 @@ dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	BUG_ON(direction == DMA_NONE);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index c6c85e6e9874..115995958da6 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -206,7 +206,10 @@ enum dvbfe_search {
+  *			resuming from suspend.
+  * @set_params:		callback function used to inform the tuner to tune
+  *			into a digital TV channel. The properties to be used
+- *			are stored at @dvb_frontend.dtv_property_cache;.
++ *			are stored at @dvb_frontend.dtv_property_cache;. The
++ *			tuner demod can change the parameters to reflect the
++ *			changes needed for the channel to be tuned, and
++ *			update statistics.
+  * @set_analog_params:	callback function used to tune into an analog TV
+  *			channel on hybrid tuners. It passes @analog_parameters;
+  *			to the driver.
+@@ -332,6 +335,86 @@ struct analog_demod_ops {
  
- 	for_each_sg(sglist, sg, nents, i) {
--		BUG_ON(!sg_page(sg));
--
- 		sg->dma_address = sg_phys(sg);
--		consistent_sync(sg_virt(sg), sg->length, direction);
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, direction);
- 	}
+ struct dtv_frontend_properties;
  
- 	return nents;
-@@ -131,8 +130,10 @@ dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
- 	int i;
- 	struct scatterlist *sg;
++
++/**
++ * struct dvb_frontend_ops
++ *
++ * @info:		embedded struct dvb_tuner_info with tuner properties
++ * @delsys:		Delivery systems supported by the frontend
++ * @release:		callback function called when frontend is dettached.
++ *			drivers should free any allocated memory.
++ * @release_sec:	callback function requesting that the Satelite Equipment
++ *			Control (SEC) driver to release and free any memory
++ *			allocated by the driver.
++ * @init:		callback function used to initialize the tuner device.
++ * @sleep:		callback function used to put the tuner to sleep.
++ * @write:		callback function used by some demod legacy drivers to
++ *			allow other drivers to write data into their registers.
++ *			Should not be used on new drivers.
++ * @tune:		callback function used by demod drivers that use
++ *			@DVBFE_ALGO_HW; to tune into a frequency.
++ * @get_frontend_algo:	returns the desired hardware algorithm.
++ * @set_frontend:	callback function used to inform the demod to set the
++ *			parameters for demodulating a digital TV channel.
++ *			The properties to be used are stored at
++ *			@dvb_frontend.dtv_property_cache;. The demod can change
++ *			the parameters to reflect the changes needed for the
++ *			channel to be decoded, and update statistics.
++ * @get_tune_settings:	callback function
++ * @get_frontend:	callback function used to inform the parameters
++ *			actuall in use. The properties to be used are stored at
++ *			@dvb_frontend.dtv_property_cache; and update
++ *			statistics. Please notice that it should not return
++ *			an error code if the statistics are not available
++ *			because the demog is not locked.
++ * @read_status:	returns the locking status of the frontend.
++ * @read_ber:		legacy callback function to return the bit error rate.
++ *			Newer drivers should provide such info via DVBv5 API,
++ *			e. g. @set_frontend;/@get_frontend;, implementing this
++ *			callback only if DVBv3 API compatibility is wanted.
++ * @read_signal_strength: legacy callback function to return the signal
++ *			strength. Newer drivers should provide such info via
++ *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
++ *			implementing this callback only if DVBv3 API
++ *			compatibility is wanted.
++ * @read_snr:		legacy callback function to return the Signal/Noise
++ * 			rate. Newer drivers should provide such info via
++ *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
++ *			implementing this callback only if DVBv3 API
++ *			compatibility is wanted.
++ * @read_ucblocks:	legacy callback function to return the Uncorrected Error
++ *			Blocks. Newer drivers should provide such info via
++ *			DVBv5 API, e. g. @set_frontend;/@get_frontend;,
++ *			implementing this callback only if DVBv3 API
++ *			compatibility is wanted.
++ * @diseqc_reset_overload: callback function to implement the
++ *			FE_DISEQC_RESET_OVERLOAD ioctl.
++ * @diseqc_send_master_cmd: callback function to implement the
++ *			FE_DISEQC_SEND_MASTER_CMD ioctl.
++ * @diseqc_recv_slave_reply: callback function to implement the
++ *			FE_DISEQC_RECV_SLAVE_REPLY ioctl.
++ * @diseqc_send_burst:	callback function to implement the
++ *			FE_DISEQC_SEND_BURST ioctl.
++ * @set_tone:		callback function to implement the
++ *			FE_SET_TONE ioctl.
++ * @set_voltage:	callback function to implement the
++ *			FE_SET_VOLTAGE ioctl.
++ * @enable_high_lnb_voltage: callback function to implement the
++ *			FE_ENABLE_HIGH_LNB_VOLTAGE ioctl.
++ * @dishnetwork_send_legacy_command: callback function to implement the
++ *			FE_DISHNETWORK_SEND_LEGACY_CMD ioctl.
++ * @i2c_gate_ctrl:	controls the I2C gate. Newer drivers should use I2C
++ *			mux support instead.
++ * @ts_bus_ctrl:	callback function used to take control of the TS bus.
++ * @set_lna:		callback function to power on/off/auto the LNA.
++ * @search:		callback function used on some custom algo search algos.
++ * @tuner_ops:		pointer to struct dvb_tuner_ops
++ * @analog_ops:		pointer to struct analog_demod_ops
++ * @set_property:	callback function to allow the frontend to validade
++ *			incoming properties. Should not be used on new drivers.
++ * @get_property:	callback function to allow the frontend to override
++ *			outcoming properties. Should not be used on new drivers.
++ */
+ struct dvb_frontend_ops {
  
--	for_each_sg(sglist, sg, nelems, i)
--		consistent_sync(sg_virt(sg), sg->length, dir);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, dir);
-+	}
- }
+ 	struct dvb_frontend_info info;
+@@ -352,6 +435,7 @@ struct dvb_frontend_ops {
+ 		    unsigned int mode_flags,
+ 		    unsigned int *delay,
+ 		    enum fe_status *status);
++
+ 	/* get frontend tuning algorithm from the module */
+ 	enum dvbfe_algo (*get_frontend_algo)(struct dvb_frontend *fe);
  
- static inline void
-@@ -142,8 +143,10 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
- 	int i;
- 	struct scatterlist *sg;
- 
--	for_each_sg(sglist, sg, nelems, i)
--		consistent_sync(sg_virt(sg), sg->length, dir);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, dir);
-+	}
- }
- static inline int
- dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
 -- 
-1.9.1
+2.4.3
 
