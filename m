@@ -1,224 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59735 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751937AbbHYKEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 06:04:44 -0400
-Date: Tue, 25 Aug 2015 07:04:39 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:40403 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358AbbHVR2g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Aug 2015 13:28:36 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v7 21/44] [media] dvbdev: add support for interfaces
-Message-ID: <20150825070439.3340611f@recife.lan>
-In-Reply-To: <55DC1E41.7080706@xs4all.nl>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<276e4618235b47251f512337560f68657b414e24.1440359643.git.mchehab@osg.samsung.com>
-	<55DC1E41.7080706@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Arnd Bergmann <arnd@arndb.de>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 35/39] [media] dvb_frontend.h: document struct analog_demod_ops
+Date: Sat, 22 Aug 2015 14:28:20 -0300
+Message-Id: <bbc9f5f80821c47a6cc3e73e52c9ec9aafd27dbe.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 09:50:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Add documentation for struct analog_demod_info and
+struct analog_demod_ops.
 
-> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> > Now that the infrastruct for that is set, add support for
-> > interfaces.
-> > 
-> > Please notice that we're missing two links:
-> > 	DVB FE intf    -> tuner
-> > 	DVB demux intf -> dvr
-> > 
-> > Those should be added latter, after having the entire graph
-> 
-> s/latter/later/
-> 
-> > set. With the current infrastructure, those should be added
-> > at dvb_create_media_graph(), but it would also require some
-> > extra core changes, to allow the function to enumerate the
-> > interfaces.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> > index 65f59f2124b4..747372ba4fe1 100644
-> > --- a/drivers/media/dvb-core/dvbdev.c
-> > +++ b/drivers/media/dvb-core/dvbdev.c
-> > @@ -180,14 +180,35 @@ skip:
-> >  	return -ENFILE;
-> >  }
-> >  
-> > -static void dvb_register_media_device(struct dvb_device *dvbdev,
-> > -				      int type, int minor)
-> > +static void dvb_create_media_entity(struct dvb_device *dvbdev,
-> > +				       int type, int minor)
-> >  {
-> >  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> >  	int ret = 0, npads;
-> >  
-> > -	if (!dvbdev->adapter->mdev)
-> > +	switch (type) {
-> > +	case DVB_DEVICE_FRONTEND:
-> > +		npads = 2;
-> > +		break;
-> > +	case DVB_DEVICE_DEMUX:
-> > +		npads = 2;
-> > +		break;
-> > +	case DVB_DEVICE_CA:
-> > +		npads = 2;
-> > +		break;
-> > +	case DVB_DEVICE_NET:
-> > +		/*
-> > +		 * We should be creating entities for the MPE/ULE
-> > +		 * decapsulation hardware (or software implementation).
-> > +		 *
-> > +		 * However, as the number of for the MPE/ULE may not be fixed,
-> > +		 * and we don't have yet dynamic support for PADs at the
-> > +		 * Media Controller.
-> 
-> However what? You probably want to add something like:
-> 
-> However, ... at the Media Controller, we don't make this entity yet.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-What about this:
-		 * However, the number of for the MPE/ULE decaps may not be
-		 * fixed. As we don't have yet dynamic support for PADs at
-		 * the Media Controller, let's not create those yet.
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 991a6e0265d2..c6c85e6e9874 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -282,10 +282,37 @@ struct dvb_tuner_ops {
+ 	int (*get_state)(struct dvb_frontend *fe, enum tuner_param param, struct tuner_state *state);
+ };
+ 
++/**
++ * struct analog_demod_info - Information struct for analog TV part of the demod
++ *
++ * @name:	Name of the analog TV demodulator
++ */
+ struct analog_demod_info {
+ 	char *name;
+ };
+ 
++/**
++ * struct analog_demod_ops  - Demodulation information and callbacks for
++ *			      analog TV and radio
++ *
++ * @info:		pointer to struct analog_demod_info
++ * @set_params:		callback function used to inform the demod to set the
++ *			demodulator parameters needed to decode an analog or
++ *			radio channel. The properties are passed via
++ *			struct @analog_params;.
++ * @has_signal:		returns 0xffff if has signal, or 0 if it doesn't.
++ * @get_afc:		Used only by analog TV core. Reports the frequency
++ *			drift due to AFC.
++ * @tuner_status:	callback function that returns tuner status bits, e. g.
++ *			TUNER_STATUS_LOCKED and TUNER_STATUS_STEREO.
++ * @standby:		set the tuner to standby mode.
++ * @release:		callback function called when frontend is dettached.
++ *			drivers should free any allocated memory.
++ * @i2c_gate_ctrl:	controls the I2C gate. Newer drivers should use I2C
++ *			mux support instead.
++ * @set_config:		callback function used to send some tuner-specific
++ *			parameters.
++ */
+ struct analog_demod_ops {
+ 
+ 	struct analog_demod_info info;
+-- 
+2.4.3
 
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +		 */
-> >  		return;
-> > +	default:
-> > +		return;
-> > +	}
-> >  
-> >  	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
-> >  	if (!dvbdev->entity)
-> > @@ -197,19 +218,6 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
-> >  	dvbdev->entity->info.dev.minor = minor;
-> >  	dvbdev->entity->name = dvbdev->name;
-> >  
-> > -	switch (type) {
-> > -	case DVB_DEVICE_CA:
-> > -	case DVB_DEVICE_DEMUX:
-> > -	case DVB_DEVICE_FRONTEND:
-> > -		npads = 2;
-> > -		break;
-> > -	case DVB_DEVICE_NET:
-> > -		npads = 0;
-> > -		break;
-> > -	default:
-> > -		npads = 1;
-> > -	}
-> > -
-> >  	if (npads) {
-> >  		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
-> >  				       GFP_KERNEL);
-> > @@ -230,18 +238,11 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
-> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-> >  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
-> >  		break;
-> > -	case DVB_DEVICE_DVR:
-> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
-> > -		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-> > -		break;
-> >  	case DVB_DEVICE_CA:
-> >  		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-> >  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
-> >  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
-> >  		break;
-> > -	case DVB_DEVICE_NET:
-> > -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
-> > -		break;
-> >  	default:
-> >  		kfree(dvbdev->entity);
-> >  		dvbdev->entity = NULL;
-> > @@ -263,11 +264,63 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
-> >  		return;
-> >  	}
-> >  
-> > -	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
-> > +	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
-> >  		__func__, dvbdev->entity->name);
-> >  #endif
-> >  }
-> >  
-> > +static void dvb_register_media_device(struct dvb_device *dvbdev,
-> > +				      int type, int minor)
-> > +{
-> > +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> > +	u32 intf_type;
-> > +
-> > +	if (!dvbdev->adapter->mdev)
-> > +		return;
-> > +
-> > +	dvb_create_media_entity(dvbdev, type, minor);
-> > +
-> > +	switch (type) {
-> > +	case DVB_DEVICE_FRONTEND:
-> > +		intf_type = MEDIA_INTF_T_DVB_FE;
-> > +		break;
-> > +	case DVB_DEVICE_DEMUX:
-> > +		intf_type = MEDIA_INTF_T_DVB_DEMUX;
-> > +		break;
-> > +	case DVB_DEVICE_DVR:
-> > +		intf_type = MEDIA_INTF_T_DVB_DVR;
-> > +		break;
-> > +	case DVB_DEVICE_CA:
-> > +		intf_type = MEDIA_INTF_T_DVB_CA;
-> > +		break;
-> > +	case DVB_DEVICE_NET:
-> > +		intf_type = MEDIA_INTF_T_DVB_NET;
-> > +		break;
-> > +	default:
-> > +		return;
-> > +	}
-> > +
-> > +	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
-> > +						 intf_type, 0,
-> > +						 DVB_MAJOR, minor,
-> > +						 GFP_KERNEL);
-> > +
-> > +	/*
-> > +	 * Create the "obvious" link, e. g. the ones that represent
-> > +	 * a direct association between an interface and an entity.
-> > +	 * Other links should be created elsewhere, like:
-> > +	 *		DVB FE intf    -> tuner
-> > +	 *		DVB demux intf -> dvr
-> > +	 */
-> > +
-> > +	if (!dvbdev->entity || !dvbdev->intf_devnode)
-> > +		return;
-> > +
-> > +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
-> > +
-> > +#endif
-> > +}
-> > +
-> >  int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
-> >  			const struct dvb_device *template, void *priv, int type)
-> >  {
-> > diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> > index 12629b8ecb0c..6670adee7afb 100644
-> > --- a/drivers/media/dvb-core/dvbdev.h
-> > +++ b/drivers/media/dvb-core/dvbdev.h
-> > @@ -103,6 +103,7 @@ struct dvb_device {
-> >  
-> >  	/* Allocated and filled inside dvbdev.c */
-> >  	struct media_entity *entity;
-> > +	struct media_intf_devnode *intf_devnode;
-> >  	struct media_pad *pads;
-> >  #endif
-> >  
-> > 
-> 
