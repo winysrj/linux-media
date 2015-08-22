@@ -1,90 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:36435 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbbHNRgP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40427 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753428AbbHVR2h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 13:36:15 -0400
-Received: by qgdd90 with SMTP id d90so55966304qgd.3
-        for <linux-media@vger.kernel.org>; Fri, 14 Aug 2015 10:36:14 -0700 (PDT)
-Date: Fri, 14 Aug 2015 14:36:11 -0300
-From: Nicolas Sugino <nsugino@3way.com.ar>
-To: awalls@md.metrocast.net, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: [PATCH v2] ivtv-alsa: Add index to specify device number
-Message-ID: <20150814173607.GA8003@debian>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Sat, 22 Aug 2015 13:28:37 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 12/39] [media] v4l2-subdev: reorder the v4l2_subdev_video_ops comments
+Date: Sat, 22 Aug 2015 14:27:57 -0300
+Message-Id: <02be051204e880a8277d80734e788ee645d1ef14.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using multiple capture cards, it migth be necessary to identify a specific device with an ALSA one. If not, the order of the ALSA devices might have no relation to the id of the radio or video device.
+The comments for struct v4l2_subdev_video_ops are out of the
+order as the parameter would appear at struct. This is not
+a problem for DocBook, but humans find harder to mentally
+reorder ;)
 
-Signed-off-by: Nicolas Sugino <nsugino@3way.com.ar>
+So, put them at the right order. That makes easier to check
+what's missing, and to put the comments in the right place.
 
----
-Changelog:
-v2:
-	Shortened line size
-	Fixed logging
----
- drivers/media/pci/ivtv/ivtv-alsa-main.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c b/drivers/media/pci/ivtv/ivtv-alsa-main.c
-index 41fa215..8a86b61 100644
---- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
-+++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
-@@ -41,6 +41,7 @@
- #include "ivtv-alsa-pcm.h"
- 
- int ivtv_alsa_debug;
-+static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;
- 
- #define IVTV_DEBUG_ALSA_INFO(fmt, arg...) \
- 	do { \
-@@ -54,6 +55,10 @@ MODULE_PARM_DESC(debug,
- 		 "\t\t\t  1/0x0001: warning\n"
- 		 "\t\t\t  2/0x0002: info\n");
- 
-+module_param_array(index, int, NULL, 0444);
-+MODULE_PARM_DESC(index,
-+		 "Index value for IVTV ALSA capture interface(s).\n");
-+
- MODULE_AUTHOR("Andy Walls");
- MODULE_DESCRIPTION("CX23415/CX23416 ALSA Interface");
- MODULE_SUPPORTED_DEVICE("CX23415/CX23416 MPEG2 encoder");
-@@ -137,7 +142,7 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
- 	struct ivtv *itv = to_ivtv(v4l2_dev);
- 	struct snd_card *sc = NULL;
- 	struct snd_ivtv_card *itvsc;
--	int ret;
-+	int ret, idx;
- 
- 	/* Numbrs steps from "Writing an ALSA Driver" by Takashi Iwai */
- 
-@@ -145,8 +150,10 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
- 	/* This is a no-op for us.  We'll use the itv->instance */
- 
- 	/* (2) Create a card instance */
-+	/* use first available id if not specified otherwise*/
-+	idx = index[itv->instance] == -1 ? SNDRV_DEFAULT_IDX1 : index[itv->instance];
- 	ret = snd_card_new(&itv->pdev->dev,
--			   SNDRV_DEFAULT_IDX1, /* use first available id */
-+			   idx,
- 			   SNDRV_DEFAULT_STR1, /* xid from end of shortname*/
- 			   THIS_MODULE, 0, &sc);
- 	if (ret) {
-@@ -196,6 +203,9 @@ static int snd_ivtv_init(struct v4l2_device *v4l2_dev)
- 		goto err_exit_free;
- 	}
- 
-+	IVTV_ALSA_INFO("%s: Instance %d registered as ALSA card %d\n",
-+			 __func__, itv->instance, sc->number);
-+
- 	return 0;
- 
- err_exit_free:
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d9315e5e8957..884a8d7c1368 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -309,6 +309,15 @@ struct v4l2_mbus_frame_desc {
+ /**
+  * struct v4l2_subdev_video_ops - Callbacks used when v4l device was opened
+  * 				  in video mode.
++ *
++ * @s_routing: see s_routing in audio_ops, except this version is for video
++ *	devices.
++ *
++ * @s_crystal_freq: sets the frequency of the crystal used to generate the
++ *	clocks in Hz. An extra flags field allows device specific configuration
++ *	regarding clock frequency dividers, etc. If not used, then set flags
++ *	to 0. If the frequency is not supported, then -EINVAL is returned.
++ *
+  * @s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
+  *	video input devices.
+  *
+@@ -321,22 +330,15 @@ struct v4l2_mbus_frame_desc {
+  * @g_tvnorms_output: get v4l2_std_id with all standards supported by the video
+  *	OUTPUT device. This is ignored by video capture devices.
+  *
+- * @s_crystal_freq: sets the frequency of the crystal used to generate the
+- *	clocks in Hz. An extra flags field allows device specific configuration
+- *	regarding clock frequency dividers, etc. If not used, then set flags
+- *	to 0. If the frequency is not supported, then -EINVAL is returned.
+- *
+  * @g_input_status: get input status. Same as the status field in the v4l2_input
+  *	struct.
+  *
+- * @s_routing: see s_routing in audio_ops, except this version is for video
+- *	devices.
+- *
+  * @s_dv_timings(): Set custom dv timings in the sub device. This is used
+  *	when sub device is capable of setting detailed timing information
+  *	in the hardware to generate/detect the video signal.
+  *
+  * @g_dv_timings(): Get custom dv timings in the sub device.
++ *
+  * @g_mbus_config: get supported mediabus configurations
+  *
+  * @s_mbus_config: set a certain mediabus configuration. This operation is added
 -- 
-2.1.4
+2.4.3
 
