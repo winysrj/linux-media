@@ -1,61 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:34420 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342AbbH0MaJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2015 08:30:09 -0400
-Received: by widdq5 with SMTP id dq5so76443144wid.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 05:30:08 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 0/5] [media] c8sectpfe: Various fixups
-Date: Thu, 27 Aug 2015 13:29:30 +0100
-Message-Id: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+Received: from cnc.isely.net ([75.149.91.89]:33445 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752136AbbHVCAT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Aug 2015 22:00:19 -0400
+Date: Fri, 21 Aug 2015 20:55:14 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely at pobox <isely@pobox.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH v2 07/10] media/usb/pvrusb2: Support for
+ V4L2_CTRL_WHICH_DEF_VAL
+In-Reply-To: <1440163169-18047-8-git-send-email-ricardo.ribalda@gmail.com>
+Message-ID: <alpine.DEB.2.02.1508212048050.26546@cnc.isely.net>
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com> <1440163169-18047-8-git-send-email-ricardo.ribalda@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-This series includes a couple of fixes for the c8sectpfe Linux dvb driver.
+The code you've added is carefully checking the return pointer from 
+pvr2_hdw_get_ctrl_v4l() yet the original code did not operate this way.  
+The result is that now there's this "unbalanced" effect where it appears 
+that the validity of the pvr2_ctrl instance is only checked on one side 
+of the if-statement.  I would recommend instead to elevate the call to 
+pvr2_hdw_get_ctrl_v4l() out of the if-statement - since in both cases 
+it's being called the same way both times.  Then do the validity check 
+in that one spot and that simplifies the if-statement all the way down 
+to choosing between pvr2_ctrl_get_value() vs pvr2_ctrl_get_def().
 
-One was caused by omitting a patch from the original c8sectpfe series which
-defined the ssc2 and ssc3 dt nodes, which was then used by the later DT patch.
+It's not a correctness comment; what you have should work fine.  So I'm 
+ack'ing this in any case:
 
-This patch is included, along with the original patch which you reverted.
+Acked-By: Mike Isely <isely@pobox.com>
 
-Also Valentin Rothberg spotted LIBELF32 Kconfig symbol I was selecting in the
-Kconfig, this isn't required upstream and is left over legacy so I've removed
-it.
+But you can do the above pretty easily & safely, and simplify it a bit 
+further.
 
-Sorry for the delay in sending these fixes, I've been on holiday for the last
-3 weeks.
+  -Mike
 
-Changes since v1:
- - Various formating patches to DT node
- - Update to reset-gpios
- - Use GPIO_ACTIVE_HIGH, GIC_SPI and IRQ_TYPE_NONE defines
 
-kind regards,
+On Fri, 21 Aug 2015, Ricardo Ribalda Delgado wrote:
 
-Peter.
-
-Peter Griffin (5):
-  ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
-  ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
-  [media] c8sectpfe: Remove select on undefined LIBELF_32
-  [media] c8sectpfe: Update binding to reset-gpios
-  [media] c8sectpfe: Update DT binding doc with some minor fixes
-
- .../bindings/media/stih407-c8sectpfe.txt           | 22 +++++------
- arch/arm/boot/dts/stihxxx-b2120.dtsi               | 44 +++++++++++++++++++++-
- drivers/media/platform/sti/c8sectpfe/Kconfig       |  1 -
- .../media/platform/sti/c8sectpfe/c8sectpfe-core.c  |  2 +-
- 4 files changed, 53 insertions(+), 16 deletions(-)
+> This driver does not use the control infrastructure.
+> Add support for the new field which on structure
+>  v4l2_ext_controls
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> index 1c5f85bf7ed4..43b2f2214798 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+> @@ -628,6 +628,7 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
+>  	struct pvr2_v4l2_fh *fh = file->private_data;
+>  	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+>  	struct v4l2_ext_control *ctrl;
+> +	struct pvr2_ctrl *cptr;
+>  	unsigned int idx;
+>  	int val;
+>  	int ret;
+> @@ -635,8 +636,18 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
+>  	ret = 0;
+>  	for (idx = 0; idx < ctls->count; idx++) {
+>  		ctrl = ctls->controls + idx;
+> -		ret = pvr2_ctrl_get_value(
+> +		if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+> +			cptr = pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id);
+> +			if (cptr)
+> +				pvr2_ctrl_get_def(cptr, &val);
+> +			else
+> +				ret = -EINVAL;
+> +
+> +
+> +		} else
+> +			ret = pvr2_ctrl_get_value(
+>  				pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id), &val);
+> +
+>  		if (ret) {
+>  			ctls->error_idx = idx;
+>  			return ret;
+> @@ -658,6 +669,10 @@ static int pvr2_s_ext_ctrls(struct file *file, void *priv,
+>  	unsigned int idx;
+>  	int ret;
+>  
+> +	/* Default value cannot be changed */
+> +	if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
+> +		return -EINVAL;
+> +
+>  	ret = 0;
+>  	for (idx = 0; idx < ctls->count; idx++) {
+>  		ctrl = ctls->controls + idx;
+> 
 
 -- 
-1.9.1
 
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
