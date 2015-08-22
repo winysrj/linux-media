@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43104 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184AbbHLHsF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40376 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753250AbbHVR2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:48:05 -0400
-Received: from avalon.localnet (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 5B1272000F
-	for <linux-media@vger.kernel.org>; Wed, 12 Aug 2015 09:46:43 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.3] OMAP3 ISP changes
-Date: Wed, 12 Aug 2015 10:48:59 +0300
-Message-ID: <1594454.XZmytAGbqn@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 22 Aug 2015 13:28:34 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 03/39] [media] Docbook: Fix description of struct media_devnode
+Date: Sat, 22 Aug 2015 14:27:48 -0300
+Message-Id: <6133502e023e5683ffcc7ab57d2ef752ea1b434f.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Warning(.//include/media/media-devnode.h:80): No description found for parameter 'fops'
+Warning(.//include/media/media-devnode.h:80): No description found for parameter 'dev'
+Warning(.//include/media/media-devnode.h:80): No description found for parameter 'cdev'
+Warning(.//include/media/media-devnode.h:80): No description found for parameter 'release'
 
-The following changes since commit 2696f495bdc046d84da6c909a1e7f535138a2a62:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-  [media] Staging: media: lirc: use USB API functions rather than constants 
-(2015-08-11 18:00:30 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to 32b7a848266fcf5c2c087106fd001abbac0405ee:
-
-  v4l: omap3isp: Drop platform data support (2015-08-12 10:39:46 +0300)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      v4l: omap3isp: Drop platform data support
-
- drivers/media/platform/Kconfig                          |   2 +-
- drivers/media/platform/omap3isp/isp.c                   | 133 ++++-----------
- drivers/media/platform/omap3isp/isp.h                   |   7 +-
- drivers/media/platform/omap3isp/ispcsiphy.h             |   2 +-
- drivers/media/platform/omap3isp/ispvideo.c              |   9 +-
- .../media/platform/omap3isp}/omap3isp.h                 |  42 ++------
- 6 files changed, 34 insertions(+), 161 deletions(-)
- rename {include/media => drivers/media/platform/omap3isp}/omap3isp.h (77%)
-
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index 0dc7060f9625..17ddae32060d 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -53,9 +53,13 @@ struct media_file_operations {
+ 
+ /**
+  * struct media_devnode - Media device node
++ * @fops:	pointer to struct media_file_operations with media device ops
++ * @dev:	struct device pointer for the media controller device
++ * @cdev:	struct cdev pointer character device
+  * @parent:	parent device
+  * @minor:	device node minor number
+  * @flags:	flags, combination of the MEDIA_FLAG_* constants
++ * @release:	release callback called at the end of media_devnode_release()
+  *
+  * This structure represents a media-related device node.
+  *
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
