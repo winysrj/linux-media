@@ -1,115 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:44204 "EHLO
-	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbbHLK3I convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40373 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753231AbbHVR2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 06:29:08 -0400
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-To: Christoph Hellwig <hch@lst.de>,
-	"torvalds@linux-foundation.org" <torvalds@linux-foundation.org>,
-	"axboe@kernel.dk" <axboe@kernel.dk>
-CC: "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"hskinnemoen@gmail.com" <hskinnemoen@gmail.com>,
-	"egtvedt@samfundet.no" <egtvedt@samfundet.no>,
-	"realmz6@gmail.com" <realmz6@gmail.com>,
-	"dhowells@redhat.com" <dhowells@redhat.com>,
-	"monstr@monstr.eu" <monstr@monstr.eu>,
-	"x86@kernel.org" <x86@kernel.org>,
-	"dwmw2@infradead.org" <dwmw2@infradead.org>,
-	"alex.williamson@redhat.com" <alex.williamson@redhat.com>,
-	"grundler@parisc-linux.org" <grundler@parisc-linux.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	"linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
-	"linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-	"linux-metag@vger.kernel.org" <linux-metag@vger.kernel.org>,
-	"linux-mips@linux-mips.org" <linux-mips@linux-mips.org>,
-	"linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-	"linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>,
-	"linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 19/31] arc: handle page-less SG entries
-Date: Wed, 12 Aug 2015 10:28:55 +0000
-Message-ID: <C2D7FE5348E1B147BCA15975FBA23075665B21F5@IN01WEMBXB.internal.synopsys.com>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
- <1439363150-8661-20-git-send-email-hch@lst.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 22 Aug 2015 13:28:34 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 05/39] [media] Docbook: Fix  comments at v4l2-async.h
+Date: Sat, 22 Aug 2015 14:27:50 -0300
+Message-Id: <4d7ec30bca40ba452fe38c13342c6b175489bf62.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 12 August 2015 12:39 PM, Christoph Hellwig wrote:
-> Make all cache invalidation conditional on sg_has_page() and use
-> sg_phys to get the physical address directly.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Warning(.//include/media/v4l2-async.h:62): No description found for parameter 'match_type'
+Warning(.//include/media/v4l2-async.h:62): Excess struct/union/enum/typedef member 'bus_type' description in 'v4l2_async_subdev'
+Warning(.//include/media/v4l2-async.h:76): cannot understand function prototype: 'struct v4l2_async_notifier '
 
-With a minor nit below.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
-
-> ---
->  arch/arc/include/asm/dma-mapping.h | 26 +++++++++++++++++++-------
->  1 file changed, 19 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
-> index 2d28ba9..42eb526 100644
-> --- a/arch/arc/include/asm/dma-mapping.h
-> +++ b/arch/arc/include/asm/dma-mapping.h
-> @@ -108,9 +108,13 @@ dma_map_sg(struct device *dev, struct scatterlist *sg,
->  	struct scatterlist *s;
->  	int i;
->  
-> -	for_each_sg(sg, s, nents, i)
-> -		s->dma_address = dma_map_page(dev, sg_page(s), s->offset,
-> -					       s->length, dir);
-> +	for_each_sg(sg, s, nents, i) {
-> +		if (sg_has_page(s)) {
-> +			_dma_cache_sync((unsigned long)sg_virt(s), s->length,
-> +					dir);
-> +		}
-> +		s->dma_address = sg_phys(s);
-> +	}
->  
->  	return nents;
->  }
-> @@ -163,8 +167,12 @@ dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
->  	int i;
->  	struct scatterlist *sg;
->  
-> -	for_each_sg(sglist, sg, nelems, i)
-> -		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
-> +	for_each_sg(sglist, sg, nelems, i) {
-> +		if (sg_has_page(sg)) {
-> +			_dma_cache_sync((unsigned int)sg_virt(sg), sg->length,
-> +					dir);
-> +		}
-> +	}
->  }
->  
->  static inline void
-> @@ -174,8 +182,12 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
->  	int i;
->  	struct scatterlist *sg;
->  
-> -	for_each_sg(sglist, sg, nelems, i)
-> -		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
-> +	for_each_sg(sglist, sg, nelems, i) {
-> +		if (sg_has_page(sg)) {
-> +			_dma_cache_sync((unsigned int)sg_virt(sg), sg->length,
-> +				dir);
-
-For consistency, could u please fix the left alignment of @dir above - another tab
-perhaps ?
-
-> +		}
-> +	}
->  }
->  
->  static inline int dma_supported(struct device *dev, u64 dma_mask)
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 768356917bea..1d6d7da4c45d 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -32,7 +32,8 @@ enum v4l2_async_match_type {
+ 
+ /**
+  * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+- * @bus_type:	subdevice bus type to select the appropriate matching method
++ *
++ * @match_type:	type of match that will be used
+  * @match:	union of per-bus type matching data sets
+  * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+  *		probed, to a notifier->waiting list
+@@ -62,8 +63,9 @@ struct v4l2_async_subdev {
+ };
+ 
+ /**
+- * v4l2_async_notifier - v4l2_device notifier data
+- * @num_subdevs:number of subdevices
++ * struct v4l2_async_notifier - v4l2_device notifier data
++ *
++ * @num_subdevs: number of subdevices
+  * @subdevs:	array of pointers to subdevice descriptors
+  * @v4l2_dev:	pointer to struct v4l2_device
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+-- 
+2.4.3
 
