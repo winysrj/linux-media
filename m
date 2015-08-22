@@ -1,79 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:46613 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616AbbHRIjH (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40384 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753092AbbHVR2f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 04:39:07 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org, linux@arm.linux.org.uk
-Subject: [PATCHv2 0/4] cec-ctl/compliance: new CEC utilities
-Date: Tue, 18 Aug 2015 10:36:34 +0200
-Message-Id: <cover.1439886496.git.hans.verkuil@cisco.com>
+	Sat, 22 Aug 2015 13:28:35 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: [PATCH 04/39] [media] DocBook/media/Makefile: Avoid make htmldocs to fail
+Date: Sat, 22 Aug 2015 14:27:49 -0300
+Message-Id: <33d74f5884897ce5a664cddf1f03c6d6851104d4.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds two new utilities to the v4l-utils git repository
-(http://git.linuxtv.org/cgit.cgi/v4l-utils.git/). It assumes that the new
-CEC framework available in the kernel:
+If make is called twice like that:
+	make V=1 DOCBOOKS=device-drivers.xml htmldocs
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg90085.html
+Make will fail with:
 
-The first patch adds the new cec headers to the 'sync-with-kernel' target,
-the second syncs with the kernel and adds the new cec headers to v4l-utils,
-the third adds the compliance utility and the last adds the cec-ctl utility.
+	make -f ./scripts/Makefile.build obj=scripts/basic
+	rm -f .tmp_quiet_recordmcount
+	make -f ./scripts/Makefile.build obj=scripts build_docproc
+	make -f ./scripts/Makefile.build obj=Documentation/DocBook htmldocs
+	rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.2.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/device-drivers.html >> Documentation/DocBook/index.html
+	cp ./Documentation/DocBook//bayer.png ./Documentation/DocBook//constraints.png ./Documentation/DocBook//crop.gif ./Documentation/DocBook//dvbstb.png ./Documentation/DocBook//fieldseq_bt.gif ./Documentation/DocBook//fieldseq_tb.gif ./Documentation/DocBook//nv12mt.gif ./Documentation/DocBook//nv12mt_example.gif ./Documentation/DocBook//pipeline.png ./Documentation/DocBook//selection.png ./Documentation/DocBook//vbi_525.gif ./Documentation/DocBook//vbi_625.gif ./Documentation/DocBook//vbi_hsync.gif ./Documentation/DocBook/media/*.svg ./Documentation/DocBook/media/v4l/*.svg ./Documentation/DocBook//media_api
+	cp: target './Documentation/DocBook//media_api' is not a directory
+	Documentation/DocBook/Makefile:53: recipe for target 'htmldocs' failed
 
-The cec-compliance utility is by no means 100% coverage, in particular the
-event API and non-blocking ioctls are untested. But it is a starting point,
-and a complex protocol like CEC really needs a compliance tool.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-The cec-ctl utility has almost full CEC message coverage: all generated from
-the cec headers, so this is easy to keep up to date.
-
-Regards,
-
-	Hans
-
-Changes since v1:
-
-- Added CEC message logging/monitoring to cec-ctl.
-- Add support to clear the logical addresses.
-
-Hans Verkuil (4):
-  Makefile.am: copy cec headers with make sync-with-kernel
-  sync-with-kernel
-  cec-compliance: add new CEC compliance utility
-  cec-ctl: CEC control utility
-
- Makefile.am                                   |    4 +
- configure.ac                                  |    2 +
- contrib/freebsd/include/linux/input.h         |   29 +
- contrib/freebsd/include/linux/v4l2-controls.h |    4 +
- include/linux/cec-funcs.h                     | 1771 +++++++++++++++++++++++++
- include/linux/cec.h                           |  781 +++++++++++
- include/linux/v4l2-controls.h                 |    4 +
- utils/Makefile.am                             |    2 +
- utils/cec-compliance/Makefile.am              |    3 +
- utils/cec-compliance/cec-compliance.cpp       |  926 +++++++++++++
- utils/cec-compliance/cec-compliance.h         |   87 ++
- utils/cec-ctl/Makefile.am                     |    8 +
- utils/cec-ctl/cec-ctl.cpp                     | 1296 ++++++++++++++++++
- utils/cec-ctl/msg2ctl.pl                      |  430 ++++++
- utils/keytable/parse.h                        |   18 +
- utils/keytable/rc_keymaps/lme2510             |  132 +-
- utils/keytable/rc_maps.cfg                    |    1 +
- 17 files changed, 5432 insertions(+), 66 deletions(-)
- create mode 100644 include/linux/cec-funcs.h
- create mode 100644 include/linux/cec.h
- create mode 100644 utils/cec-compliance/Makefile.am
- create mode 100644 utils/cec-compliance/cec-compliance.cpp
- create mode 100644 utils/cec-compliance/cec-compliance.h
- create mode 100644 utils/cec-ctl/Makefile.am
- create mode 100644 utils/cec-ctl/cec-ctl.cpp
- create mode 100644 utils/cec-ctl/msg2ctl.pl
-
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 23996f88cd58..08527e7ea4d0 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -199,7 +199,8 @@ DVB_DOCUMENTED = \
+ #
+ 
+ install_media_images = \
+-	$(Q)-cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
++	$(Q)-mkdir $(MEDIA_OBJ_DIR)/media_api; \
++	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
+ 
+ $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+ 	$(Q)base64 -d $< >$@
 -- 
-2.1.4
+2.4.3
 
