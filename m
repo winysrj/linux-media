@@ -1,94 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46877 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754024AbbHJI6M (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40508 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507AbbHVR2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 04:58:12 -0400
-Message-ID: <55C86789.60404@xs4all.nl>
-Date: Mon, 10 Aug 2015 10:57:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 03/13] DocBook: document tuner RF gain control
-References: <1438308650-2702-1-git-send-email-crope@iki.fi> <1438308650-2702-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1438308650-2702-4-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 22 Aug 2015 13:28:38 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 22/39] [media] v4l2-ctrls.h: Document a few missing arguments
+Date: Sat, 22 Aug 2015 14:28:07 -0300
+Message-Id: <757d005520590b29b5740f73ceb363f047d2ac78.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/31/2015 04:10 AM, Antti Palosaari wrote:
-> Add brief description for tuner RF gain control.
-> 
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Warning(.//include/media/v4l2-ctrls.h:217): No description found for parameter 'p_new'
+Warning(.//include/media/v4l2-ctrls.h:217): No description found for parameter 'p_cur'
+Warning(.//include/media/v4l2-ctrls.h:217): Excess struct/union/enum/typedef member 'val64' description in 'v4l2_ctrl'
+Warning(.//include/media/v4l2-ctrls.h:314): No description found for parameter 'qmenu_int'
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
->  Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
->  Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
->  3 files changed, 19 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index f56faf5..eb091c7 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
->  <constant>V4L2_TUNER_ADC</constant> is deprecated now.
->  	  </para>
->  	</listitem>
-> +	<listitem>
-> +	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
-> +RF Tuner control.</para>
-> +	</listitem>
->        </orderedlist>
->      </section>
->  
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 6e1667b..7cae933 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
->                <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
->              </row>
->              <row>
-> +              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
-> +              <entry>integer</entry>
-> +            </row>
-> +            <row>
-> +              <entry spanname="descr">The RF amplifier is the very first
-> +amplifier on the receiver signal path, just right after the antenna input.
-> +The difference between the LNA gain and the RF gain in this document is that
-> +the LNA gain is integrated in the tuner chip while the RF gain is a separate
-> +chip. There may be both RF and LNA gain controls in the same device.
-> +The range and step are driver-specific.</entry>
-> +            </row>
-> +            <row>
->                <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
->                <entry>integer</entry>
->              </row>
-> @@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
->                <entry spanname="descr">LNA (low noise amplifier) gain is first
->  gain stage on the RF tuner signal path. It is located very close to tuner
->  antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
-> +See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
-> +and LNA gain differs from the each others.
->  The range and step are driver-specific.</entry>
->              </row>
->              <row>
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index c9eedc1..ab9fca4 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -156,6 +156,7 @@ applications. -->
->  	<date>2015-05-26</date>
->  	<authorinitials>ap</authorinitials>
->  	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-> +Added V4L2_CID_RF_TUNER_RF_GAIN control.
->  	</revremark>
->        </revision>
->  
-> 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 946d5d3d6ff7..da6fe9802fee 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -159,12 +159,17 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
+  * @flags:	The control's flags.
+  * @cur:	The control's current value.
+  * @val:	The control's new s32 value.
+- * @val64:	The control's new s64 value.
+  * @priv:	The control's private pointer. For use by the driver. It is
+  *		untouched by the control framework. Note that this pointer is
+  *		not freed when the control is deleted. Should this be needed
+  *		then a new internal bitfield can be added to tell the framework
+  *		to free this pointer.
++ * @p_cur:	The control's current value represented via an union with
++ *		provides a standard way of accessing control types
++ *		through a pointer.
++ * @p_new:	The control's new value represented via an union with provides
++ *		a standard way of accessing control types
++ *		through a pointer.
+  */
+ struct v4l2_ctrl {
+ 	/* Administrative fields */
+@@ -291,6 +296,8 @@ struct v4l2_ctrl_handler {
+  *		empty strings ("") correspond to non-existing menu items (this
+  *		is in addition to the menu_skip_mask above). The last entry
+  *		must be NULL.
++ * @qmenu_int:	A const s64 integer array for all menu items of the type
++ * 		V4L2_CTRL_TYPE_INTEGER_MENU.
+  * @is_private: If set, then this control is private to its handler and it
+  *		will not be added to any other handlers.
+  */
+-- 
+2.4.3
 
