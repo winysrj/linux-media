@@ -1,121 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53061 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:40432 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbbHLUPM (ORCPT
+	with ESMTP id S1753430AbbHVR2h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:12 -0400
+	Sat, 22 Aug 2015 13:28:37 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH RFC v3 15/16] media: rename media_entity_remove_foo functions
-Date: Wed, 12 Aug 2015 17:14:59 -0300
-Message-Id: <80fd5ced9d58ce3c648e733f01dca3fbc25401bf.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 10/39] [media] v4l2-subdev: Add description for core ioctl handlers
+Date: Sat, 22 Aug 2015 14:27:55 -0300
+Message-Id: <d683353acee9cab09c592c52f712df13f0c5086d.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As entities will also have links to interfaces, we need to
-rename the existing functions that remove links, to avoid
-namespace collision and confusion.
-
-No functional changes.
-
-The rename was made by this script:
-	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_remove,media_remove_pad,g <$i >a && mv a $i; done
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'queryctrl'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'g_ctrl'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 's_ctrl'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'g_ext_ctrls'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 's_ext_ctrls'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'try_ext_ctrls'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'querymenu'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 'g_register'
+Warning(.//include/media/v4l2-subdev.h:183): No description found for parameter 's_register'
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index f43af2fda306..c3bc8a6f660b 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -490,7 +490,7 @@ static void __media_remove_link(struct media_link *link)
- 	kfree(link);
- }
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 7b15eccaceb3..78d2f0ac1848 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -119,7 +119,9 @@ struct v4l2_subdev_io_pin_config {
+ };
  
--static void __media_entity_remove_link(struct media_entity *entity,
-+static void __media_remove_pad_link(struct media_entity *entity,
- 				       struct media_link *link)
- {
- 	struct media_link *rlink, *tmp;
-@@ -548,7 +548,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- 				      &sink->pads[sink_pad].graph_obj,
- 				      flags, &sink->links);
- 	if (backlink == NULL) {
--		__media_entity_remove_link(source, link);
-+		__media_remove_pad_link(source, link);
- 		return -ENOMEM;
- 	}
- 
-@@ -561,29 +561,29 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- }
- EXPORT_SYMBOL_GPL(media_create_pad_link);
- 
--void __media_entity_remove_links(struct media_entity *entity)
-+void __media_remove_pad_links(struct media_entity *entity)
- {
- 	struct media_link *link, *tmp;
- 
- 	list_for_each_entry_safe(link, tmp, &entity->links, list)
--		__media_entity_remove_link(entity, link);
-+		__media_remove_pad_link(entity, link);
- 
- 	entity->num_links = 0;
- 	entity->num_backlinks = 0;
- }
--EXPORT_SYMBOL_GPL(__media_entity_remove_links);
-+EXPORT_SYMBOL_GPL(__media_remove_pad_links);
- 
--void media_entity_remove_links(struct media_entity *entity)
-+void media_remove_pad_links(struct media_entity *entity)
- {
- 	/* Do nothing if the entity is not registered. */
- 	if (entity->parent == NULL)
- 		return;
- 
- 	mutex_lock(&entity->parent->graph_mutex);
--	__media_entity_remove_links(entity);
-+	__media_remove_pad_links(entity);
- 	mutex_unlock(&entity->parent->graph_mutex);
- }
--EXPORT_SYMBOL_GPL(media_entity_remove_links);
-+EXPORT_SYMBOL_GPL(media_remove_pad_links);
- 
- static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
- {
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 5b0a30b9252b..bbec6d87f5f8 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -285,7 +285,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	if (v4l2_dev->mdev) {
--		media_entity_remove_links(&sd->entity);
-+		media_remove_pad_links(&sd->entity);
- 		media_device_unregister_entity(&sd->entity);
- 	}
- #endif
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8400c517ff1f..e63e402ca6d1 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -213,8 +213,8 @@ void media_entity_cleanup(struct media_entity *entity);
- 
- int media_create_pad_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
--void __media_entity_remove_links(struct media_entity *entity);
--void media_entity_remove_links(struct media_entity *entity);
-+void __media_remove_pad_links(struct media_entity *entity);
-+void media_remove_pad_links(struct media_entity *entity);
- 
- int __media_entity_setup_link(struct media_link *link, u32 flags);
- int media_entity_setup_link(struct media_link *link, u32 flags);
+ /**
+- * struct v4l2_subdev_core_ops - Define ops callbacks for subdevs
++ * struct v4l2_subdev_core_ops - Define core ops callbacks for subdevs
++ *
++ * @log_status: callback for VIDIOC_LOG_STATUS ioctl handler code.
+  *
+  * @s_io_pin_config: configure one or more chip I/O pins for chips that
+  *	multiplex different internal signal pads out to IO pins.  This function
+@@ -141,6 +143,24 @@ struct v4l2_subdev_io_pin_config {
+  * @s_gpio: set GPIO pins. Very simple right now, might need to be extended with
+  *	a direction argument if needed.
+  *
++ * @queryctrl: callback for VIDIOC_QUERYCTL ioctl handler code.
++ *
++ * @g_ctrl: callback for VIDIOC_G_CTRL ioctl handler code.
++ *
++ * @s_ctrl: callback for VIDIOC_S_CTRL ioctl handler code.
++ *
++ * @g_ext_ctrls: callback for VIDIOC_G_EXT_CTRLS ioctl handler code.
++ *
++ * @s_ext_ctrls: callback for VIDIOC_S_EXT_CTRLS ioctl handler code.
++ *
++ * @try_ext_ctrls: callback for VIDIOC_TRY_EXT_CTRLS ioctl handler code.
++ *
++ * @querymenu: callback for VIDIOC_QUERYMENU ioctl handler code.
++ *
++ * @g_register: callback for VIDIOC_G_REGISTER ioctl handler code.
++ *
++ * @s_register: callback for VIDIOC_G_REGISTER ioctl handler code.
++ *
+  * @s_power: puts subdevice in power saving mode (on == 0) or normal operation
+  *	mode (on == 1).
+  *
 -- 
 2.4.3
 
