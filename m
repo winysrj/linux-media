@@ -1,75 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60191 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854AbbHYTmh (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40514 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753509AbbHVR2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 15:42:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH] rcar_vin: propagate querystd() error upstream
-Date: Tue, 25 Aug 2015 22:42:34 +0300
-Message-ID: <1809035.RaYVlrkG2V@avalon>
-In-Reply-To: <55DB936F.2060008@cogentembedded.com>
-References: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com> <2204711.y8psPZeT2j@avalon> <55DB936F.2060008@cogentembedded.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 22 Aug 2015 13:28:38 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 08/39] [media] Docbook: Fix comments at v4l2-mem2mem.h
+Date: Sat, 22 Aug 2015 14:27:53 -0300
+Message-Id: <d3c44887dc46109609d8ee02beaa64362a65c63a.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
+References: <cover.1440264165.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+Warning(.//include/media/v4l2-mem2mem.h:50): No description found for parameter 'lock'
+Warning(.//include/media/v4l2-mem2mem.h:50): No description found for parameter 'unlock'
+Warning(.//include/media/v4l2-mem2mem.h:167): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:177): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:188): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:197): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:206): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:215): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:226): No description found for parameter 'm2m_ctx'
+Warning(.//include/media/v4l2-mem2mem.h:235): No description found for parameter 'm2m_ctx'
 
-On Tuesday 25 August 2015 00:58:07 Sergei Shtylyov wrote:
-> On 08/21/2015 12:51 AM, Laurent Pinchart wrote:
-> >> rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd()
-> >> method call fails (e.g. due to I2C error). This doesn't work very well
-> >> when a camera being used  outputs NTSC which has different order of
-> >> fields and resolution. Let us stop pretending and return the actual
-> >> error (which would prevent video capture on at least Renesas
-> >> Henninger/Porter board where I2C seems particularly buggy).
-> >> 
-> >> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> >> 
-> >> ---
-> >> The patch is against the 'media_tree.git' repo's 'fixes' branch.
-> >> 
-> >>   drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
-> >>   1 file changed, 1 insertion(+), 1 deletion(-)
-> >> 
-> >> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-> >> ===================================================================
-> >> --- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
-> >> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-> >> @@ -1592,7 +1592,7 @@ static int rcar_vin_set_fmt(struct soc_c
-> >> 
-> >>   		/* Query for standard if not explicitly mentioned _TB/_BT */
-> >>   		ret = v4l2_subdev_call(sd, video, querystd, &std);
-> >>   		if (ret < 0)
-> >> -			std = V4L2_STD_625_50;
-> >> +			return ret;
-> > 
-> > What if the subdev doesn't implement querystd ? That's the case of camera
-> > sensors for instance.
-> 
-> Indeed.
-> 
-> > In that case we should default to V4L2_FIELD_NONE.
-> 
-> Hmm, even if the set_fmt() method is called with V4L2_FIELD_INTERLACED
-> already, like in this case?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Yes. If the device doesn't support interlacing then the field passed to 
-set_fmt() should be set to V4L2_FIELD_NONE. The V4L2 API requires drivers to 
-fix unsupported parameters passed to the VIDIOC_S_FMT ioctl instead of 
-returning an error like commonly done in such situation.
-
-> >>   		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
-> >>   						V4L2_FIELD_INTERLACED_BT;
-
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 3bbd96da25c9..8849aaba6aa5 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -40,6 +40,10 @@
+  *		v4l2_m2m_job_finish() (as if the transaction ended normally).
+  *		This function does not have to (and will usually not) wait
+  *		until the device enters a state when it can be stopped.
++ * @lock:	optional. Define a driver's own lock callback, instead of using
++ *		m2m_ctx->q_lock.
++ * @unlock:	optional. Define a driver's own unlock callback, instead of
++ *		using m2m_ctx->q_lock.
+  */
+ struct v4l2_m2m_ops {
+ 	void (*device_run)(void *priv);
+@@ -161,6 +165,8 @@ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb);
+ /**
+  * v4l2_m2m_num_src_bufs_ready() - return the number of source buffers ready for
+  * use
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline
+ unsigned int v4l2_m2m_num_src_bufs_ready(struct v4l2_m2m_ctx *m2m_ctx)
+@@ -171,6 +177,8 @@ unsigned int v4l2_m2m_num_src_bufs_ready(struct v4l2_m2m_ctx *m2m_ctx)
+ /**
+  * v4l2_m2m_num_src_bufs_ready() - return the number of destination buffers
+  * ready for use
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline
+ unsigned int v4l2_m2m_num_dst_bufs_ready(struct v4l2_m2m_ctx *m2m_ctx)
+@@ -183,6 +191,8 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx);
+ /**
+  * v4l2_m2m_next_src_buf() - return next source buffer from the list of ready
+  * buffers
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline void *v4l2_m2m_next_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+@@ -192,6 +202,8 @@ static inline void *v4l2_m2m_next_src_buf(struct v4l2_m2m_ctx *m2m_ctx)
+ /**
+  * v4l2_m2m_next_dst_buf() - return next destination buffer from the list of
+  * ready buffers
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+@@ -200,6 +212,8 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
+ 
+ /**
+  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline
+ struct vb2_queue *v4l2_m2m_get_src_vq(struct v4l2_m2m_ctx *m2m_ctx)
+@@ -209,6 +223,8 @@ struct vb2_queue *v4l2_m2m_get_src_vq(struct v4l2_m2m_ctx *m2m_ctx)
+ 
+ /**
+  * v4l2_m2m_get_dst_vq() - return vb2_queue for destination buffers
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline
+ struct vb2_queue *v4l2_m2m_get_dst_vq(struct v4l2_m2m_ctx *m2m_ctx)
+@@ -221,6 +237,8 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx);
+ /**
+  * v4l2_m2m_src_buf_remove() - take off a source buffer from the list of ready
+  * buffers and return it
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline void *v4l2_m2m_src_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+@@ -230,6 +248,8 @@ static inline void *v4l2_m2m_src_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ /**
+  * v4l2_m2m_dst_buf_remove() - take off a destination buffer from the list of
+  * ready buffers and return it
++ *
++ * @m2m_ctx: pointer to struct v4l2_m2m_ctx
+  */
+ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
+ {
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
