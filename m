@@ -1,124 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59743 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763AbbHYKNB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 06:13:01 -0400
-Date: Tue, 25 Aug 2015 07:12:57 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:58897 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235AbbHWUSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:08 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 22/44] [media] media: add a linked list to track
- interfaces by mdev
-Message-ID: <20150825071257.1d7ca523@recife.lan>
-In-Reply-To: <55DC1F2D.1070903@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
+Date: Sun, 23 Aug 2015 17:17:30 -0300
+Message-Id: <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
 References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<cc0587807ee794a75a61b953d054bd782a06eb03.1440359643.git.mchehab@osg.samsung.com>
-	<55DC1F2D.1070903@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 09:54:21 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Declare the interface types that will be used by the new
+G_TOPOLOGY ioctl that will be defined latter on.
 
-> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> > We need to be able to navigate at the interfaces that
-> > belong to a given media device, in to indirect
-> > interface links.
-> 
-> The part after the comma is not clear. Did you perhaps mean 'into'?
-> Although that still doesn't really clarify the sentence.
+For now, we need those types, as they'll be used on the
+internal structs associated with the new media_interface
+graph object defined on the next patch.
 
-What about:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-It should be possible to navigate at the interface objects from the
-media controller. So, add a linked list there.
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4e816be3de39..21c96cd7a6ae 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -167,6 +167,35 @@ struct media_links_enum {
+ 	__u32 reserved[4];
+ };
+ 
++/* Interface type ranges */
++
++#define MEDIA_INTF_T_DVB_BASE	0x00000000
++#define MEDIA_INTF_T_V4L_BASE	0x00000100
++#define MEDIA_INTF_T_ALSA_BASE	0x00000200
++
++/* Interface types */
++
++#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
++#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
++#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
++#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
++#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
++
++#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
++#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
++#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
++#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
++#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
++
++#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
++#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
++#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
++#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
++#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
++#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
++
++/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
++
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+-- 
+2.4.3
 
-> 
-> > 
-> > So, add a linked list to track them.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 3e649cacfc07..659507bce63f 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
-> >  		return -EINVAL;
-> >  
-> >  	INIT_LIST_HEAD(&mdev->entities);
-> > +	INIT_LIST_HEAD(&mdev->interfaces);
-> >  	spin_lock_init(&mdev->lock);
-> >  	mutex_init(&mdev->graph_mutex);
-> >  
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 16d7d96abb9f..05976c891c17 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -875,6 +875,8 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
-> >  	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
-> >  		       &devnode->intf.graph_obj);
-> >  
-> > +	list_add_tail(&intf->list, &mdev->interfaces);
-> > +
-> >  	return devnode;
-> >  }
-> >  EXPORT_SYMBOL_GPL(media_devnode_create);
-> > @@ -882,6 +884,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
-> >  void media_devnode_remove(struct media_intf_devnode *devnode)
-> >  {
-> >  	media_gobj_remove(&devnode->intf.graph_obj);
-> > +	list_del(&devnode->intf.list);
-> >  	kfree(devnode);
-> >  }
-> >  EXPORT_SYMBOL_GPL(media_devnode_remove);
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > index 3b14394d5701..51807efa505b 100644
-> > --- a/include/media/media-device.h
-> > +++ b/include/media/media-device.h
-> > @@ -46,6 +46,7 @@ struct device;
-> >   * @link_id:	Unique ID used on the last link registered
-> >   * @intf_devnode_id: Unique ID used on the last interface devnode registered
-> >   * @entities:	List of registered entities
-> > + * @interfaces:	List of registered interfaces
-> >   * @lock:	Entities list lock
-> >   * @graph_mutex: Entities graph operation lock
-> >   * @link_notify: Link state change notification callback
-> > @@ -77,6 +78,7 @@ struct media_device {
-> >  	u32 intf_devnode_id;
-> >  
-> >  	struct list_head entities;
-> > +	struct list_head interfaces;
-> >  
-> >  	/* Protects the entities list */
-> >  	spinlock_t lock;
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index aeb390a9e0f3..35d97017dd19 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -156,6 +156,8 @@ struct media_entity {
-> >   * struct media_intf_devnode - Define a Kernel API interface
-> >   *
-> >   * @graph_obj:		embedded graph object
-> > + * @list:		Linked list used to find other interfaces that belong
-> > + *			to the same media controller
-> >   * @links:		List of links pointing to graph entities
-> >   * @type:		Type of the interface as defined at the
-> >   *			uapi/media/media.h header, e. g.
-> > @@ -164,6 +166,7 @@ struct media_entity {
-> >   */
-> >  struct media_interface {
-> >  	struct media_gobj		graph_obj;
-> > +	struct list_head		list;
-> >  	struct list_head		links;
-> >  	u32				type;
-> >  	u32				flags;
-> > 
-> 
-> Regards,
-> 
-> 	Hans
