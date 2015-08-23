@@ -1,85 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:3788 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416AbbHUAwX (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58991 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753602AbbHWUSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 20:52:23 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<treding@nvidia.com>, <wenjiaz@nvidia.com>, <davidw@nvidia.com>,
-	<gfitzer@nvidia.com>
-Subject: [PATCH 2/2] ARM64: add tegra-vi support in T210 device-tree
-Date: Thu, 20 Aug 2015 17:51:40 -0700
-Message-ID: <1440118300-32491-6-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1440118300-32491-1-git-send-email-pengw@nvidia.com>
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Sun, 23 Aug 2015 16:18:11 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v7 42/44] [media] media-device: add pads and links to media_device
+Date: Sun, 23 Aug 2015 17:17:59 -0300
+Message-Id: <cbdfe091da93c230af21f4064985fe790fc6df34.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following device tree support for Tegra VI now:
- - "vi" node which might have 6 ports/endpoints
- - in TPG mode, "vi" node don't need to define any ports/endpoints
- - ports/endpoints defines the link between VI and external sensors.
+The MC next gen API sends objects to userspace grouped by
+their types.
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
----
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts |  8 ++++++++
- arch/arm64/boot/dts/nvidia/tegra210.dtsi          | 13 +++++++++++++
- 2 files changed, 21 insertions(+)
+In the case of pads and links, in order to improve performance
+and have a simpler code, the best is to store them also on
+separate linked lists at MC.
 
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-index d4ee460..534ada52 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-+++ b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-@@ -7,6 +7,14 @@
- 	model = "NVIDIA Tegra210 P2571 reference board (E.1)";
- 	compatible = "nvidia,p2571-e01", "nvidia,tegra210";
+If we don't do that, we would need this kind of interaction
+to send data to userspace (code is in structured english):
+
+	for each entity:
+		for each pad:
+			store pads
+
+	for each entity:
+		for each link:
+			store link
+
+	for each interface:
+		for each link:
+			store link
+
+With would require one nexted loop for pads and two nested
+loops for links. By using  separate linked lists for them,
+just one loop would be enough.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 01cd014963d6..2de65a621b93 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -382,6 +382,8 @@ int __must_check __media_device_register(struct media_device *mdev,
  
-+	host1x@0,50000000 {
-+		vi@0,54080000 {
-+			status = "okay";
-+
-+			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
-+		};
-+	};
-+
- 	pinmux: pinmux@0,700008d4 {
- 		pinctrl-names = "boot";
- 		pinctrl-0 = <&state_boot>;
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210.dtsi b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-index 1168bcd..78bfaad 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-@@ -112,6 +112,19 @@
- 			reg = <0x0 0x54080000 0x0 0x00040000>;
- 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>,
-+				 <&tegra_car TEGRA210_CLK_CILAB>,
-+				 <&tegra_car TEGRA210_CLK_CILCD>,
-+				 <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "vi", "csi", "parent", "cilab", "cilcd", "cile";
-+			resets = <&tegra_car 20>;
-+			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
- 		};
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	INIT_LIST_HEAD(&mdev->interfaces);
++	INIT_LIST_HEAD(&mdev->pads);
++	INIT_LIST_HEAD(&mdev->links);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
  
- 		tsec@0,54100000 {
+@@ -474,7 +476,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	spin_lock(&mdev->lock);
+ 	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
+ 		media_gobj_remove(&link->graph_obj);
+-		list_del(&link->list);
+ 		kfree(link);
+ 	}
+ 	for (i = 0; i < entity->num_pads; i++)
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 17f2f7555d42..ef26c01a5a9a 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -172,9 +172,11 @@ void media_gobj_init(struct media_device *mdev,
+ 		break;
+ 	case MEDIA_GRAPH_PAD:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
++		list_add_tail(&gobj->list, &mdev->pads);
+ 		break;
+ 	case MEDIA_GRAPH_LINK:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
++		list_add_tail(&gobj->list, &mdev->links);
+ 		break;
+ 	case MEDIA_GRAPH_INTF_DEVNODE:
+ 		list_add_tail(&gobj->list, &mdev->interfaces);
+@@ -194,13 +196,7 @@ void media_gobj_init(struct media_device *mdev,
+ void media_gobj_remove(struct media_gobj *gobj)
+ {
+ 	/* Remove the object from mdev list */
+-	switch (media_type(gobj)) {
+-	case MEDIA_GRAPH_ENTITY:
+-	case MEDIA_GRAPH_INTF_DEVNODE:
+-		list_del(&gobj->list);
+-	default:
+-		break;
+-	}
++	list_del(&gobj->list);
+ 
+ 	dev_dbg_obj(__func__, gobj);
+ }
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 85fa302047bd..0d1b9c687454 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -47,6 +47,8 @@ struct device;
+  * @intf_devnode_id: Unique ID used on the last interface devnode registered
+  * @entities:	List of registered entities
+  * @interfaces:	List of registered interfaces
++ * @pads:	List of registered pads
++ * @links:	List of registered links
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+  * @link_notify: Link state change notification callback
+@@ -79,6 +81,8 @@ struct media_device {
+ 
+ 	struct list_head entities;
+ 	struct list_head interfaces;
++	struct list_head pads;
++	struct list_head links;
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
+@@ -117,6 +121,14 @@ struct media_device *media_device_find_devres(struct device *dev);
+ #define media_device_for_each_intf(intf, mdev)			\
+ 	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+ 
++/* Iterate over all pads. */
++#define media_device_for_each_pad(pad, mdev)			\
++	list_for_each_entry(pad, &(mdev)->pads, graph_obj.list)
++
++/* Iterate over all links. */
++#define media_device_for_each_link(link, mdev)			\
++	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
++
+ 
+ #else
+ static inline int media_device_register(struct media_device *mdev)
 -- 
-2.1.4
+2.4.3
 
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
