@@ -1,62 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:23013 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbbHCIgr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 04:36:47 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [PATCH] vivid: support cvt, gtf timings for video out
-Date: Mon,  3 Aug 2015 14:06:43 +0530
-Message-Id: <1438591003-4733-1-git-send-email-prladdha@cisco.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:58917 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463AbbHWUSK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v7 38/44] [media] media: report if a pad is sink or source at debug msg
+Date: Sun, 23 Aug 2015 17:17:55 -0300
+Message-Id: <fb5caac45339367ed0b0f51373ad080fcfc104d2.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The generation of cvt, gtf timings is already supported by v4l2-ctl.
-This patch adds support for setting cvt,gtf timings for video out.
-While enabling cvt,gtf in vivid capture, the vivid video out was
-missed out. Adding it now.
+Sometimes, it is important to see if the created pad is
+sink or source. Add info to track that.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/platform/vivid/vivid-vid-out.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 0862c1f..c404e27 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -1124,15 +1124,26 @@ int vivid_vid_out_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	return 0;
- }
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index ad0827bf0982..24fee38730f5 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -527,8 +527,8 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 	struct media_entity *entity, *tuner = NULL, *demod = NULL;
+ 	struct media_entity *demux = NULL, *ca = NULL;
+ 	struct media_interface *intf;
+-	unsigned demux_pad = 1;
+-	unsigned dvr_pad = 1;
++	unsigned demux_pad = 0;
++	unsigned dvr_pad = 0;
  
-+static bool valid_cvt_gtf_timings(struct v4l2_dv_timings *timings)
-+{
-+	struct v4l2_bt_timings *bt = &timings->bt;
-+
-+	if ((bt->standards & (V4L2_DV_BT_STD_CVT | V4L2_DV_BT_STD_GTF)) &&
-+	    v4l2_valid_dv_timings(timings, &vivid_dv_timings_cap, NULL, NULL))
-+		return true;
-+
-+	return false;
-+}
-+
- int vivid_vid_out_s_dv_timings(struct file *file, void *_fh,
- 				    struct v4l2_dv_timings *timings)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
--
- 	if (!vivid_is_hdmi_out(dev))
- 		return -ENODATA;
- 	if (!v4l2_find_dv_timings_cap(timings, &vivid_dv_timings_cap,
--				0, NULL, NULL))
-+				0, NULL, NULL) &&
-+	    !valid_cvt_gtf_timings(timings))
- 		return -EINVAL;
- 	if (v4l2_match_dv_timings(timings, &dev->dv_timings_out, 0))
- 		return 0;
+ 	if (!mdev)
+ 		return;
+@@ -560,15 +560,19 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 
+ 	/* Create demux links for each ringbuffer/pad */
+ 	if (demux) {
+-		if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
+-			if (!strncmp(entity->name, DVR_TSOUT,
+-				     sizeof(DVR_TSOUT)))
+-				media_create_pad_link(demux, ++dvr_pad,
+-						      entity, 0, 0);
+-			if (!strncmp(entity->name, DEMUX_TSOUT,
+-				     sizeof(DEMUX_TSOUT)))
+-				media_create_pad_link(demux, ++demux_pad,
+-						      entity, 0, 0);
++		media_device_for_each_entity(entity, mdev) {
++			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
++				if (!strncmp(entity->name, DVR_TSOUT,
++					strlen(DVR_TSOUT)))
++					media_create_pad_link(demux,
++							      ++dvr_pad,
++							entity, 0, 0);
++				if (!strncmp(entity->name, DEMUX_TSOUT,
++					strlen(DEMUX_TSOUT)))
++					media_create_pad_link(demux,
++							      ++demux_pad,
++							entity, 0, 0);
++			}
+ 		}
+ 	}
+ 
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 05976c891c17..d30650e3562e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 		struct media_pad *pad = gobj_to_pad(gobj);
+ 
+ 		dev_dbg(gobj->mdev->dev,
+-			"%s: id 0x%08x pad#%d: '%s':%d\n",
+-			event_name, gobj->id, media_localid(gobj),
++			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
++			event_name, gobj->id,
++			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
++			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
++			media_localid(gobj),
+ 			pad->entity->name, pad->index);
+ 		break;
+ 	}
 -- 
-1.9.1
+2.4.3
 
