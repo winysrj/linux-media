@@ -1,88 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57119 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933947AbbHKKVA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 06:21:00 -0400
-Date: Tue, 11 Aug 2015 07:20:55 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:58901 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364AbbHWUSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:08 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 09/12] tda10071: use jiffies when poll firmware status
-Message-ID: <20150811072055.55eeb0d4@recife.lan>
-In-Reply-To: <1436414792-9716-9-git-send-email-crope@iki.fi>
-References: <1436414792-9716-1-git-send-email-crope@iki.fi>
-	<1436414792-9716-9-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v7 18/44] [media] media: make media_link more generic to handle interace links
+Date: Sun, 23 Aug 2015 17:17:35 -0300
+Message-Id: <cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  9 Jul 2015 07:06:29 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+By adding an union at media_link, we get for free a way to
+represent interface->entity links.
 
-> Use jiffies to set timeout for firmware command status polling.
-> It is more elegant solution than poll X times with sleep.
-> 
-> Shorten timeout to 30ms as all commands seems to be executed under
-> 10ms.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb-frontends/tda10071.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-> index 6226b57..c1507cc 100644
-> --- a/drivers/media/dvb-frontends/tda10071.c
-> +++ b/drivers/media/dvb-frontends/tda10071.c
-> @@ -53,8 +53,9 @@ static int tda10071_cmd_execute(struct tda10071_dev *dev,
->  	struct tda10071_cmd *cmd)
->  {
->  	struct i2c_client *client = dev->client;
-> -	int ret, i;
-> +	int ret;
->  	unsigned int uitmp;
-> +	unsigned long timeout;
->  
->  	if (!dev->warm) {
->  		ret = -EFAULT;
-> @@ -72,17 +73,19 @@ static int tda10071_cmd_execute(struct tda10071_dev *dev,
->  		goto error;
->  
->  	/* wait cmd execution terminate */
-> -	for (i = 1000, uitmp = 1; i && uitmp; i--) {
-> +	#define CMD_EXECUTE_TIMEOUT 30
-> +	timeout = jiffies + msecs_to_jiffies(CMD_EXECUTE_TIMEOUT);
-> +	for (uitmp = 1; !time_after(jiffies, timeout) && uitmp;) {
->  		ret = regmap_read(dev->regmap, 0x1f, &uitmp);
->  		if (ret)
->  			goto error;
-> -
-> -		usleep_range(200, 5000);
+No need to change anything at the code, just at the internal
+header file.
 
-Hmm... removing the usleep() doesn't sound a good idea. You'll be
-flooding the I2C bus with read commands and spending CPU cycles
-for 30ms spending more power than the previous code. That doesn't
-sound more "elegant solution than poll X times with sleep" for me.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-So, I would keep the usleep_range() here and add a better
-comment on the patch description.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 17bb5cbbd67d..f6e8fa801cf9 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -75,14 +75,20 @@ struct media_pipeline {
+ struct media_link {
+ 	struct media_gobj graph_obj;
+ 	struct list_head list;
+-	struct media_pad *source;	/* Source pad */
+-	struct media_pad *sink;		/* Sink pad  */
++	union {
++		struct media_gobj *port0;
++		struct media_pad *source;
++	};
++	union {
++		struct media_gobj *port1;
++		struct media_pad *sink;
++	};
+ 	struct media_link *reverse;	/* Link in the reverse direction */
+ 	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+ };
+ 
+ struct media_pad {
+-	struct media_gobj graph_obj;
++	struct media_gobj graph_obj;	/* should be the first object */
+ 	struct media_entity *entity;	/* Entity this pad belongs to */
+ 	u16 index;			/* Pad index in the entity pads array */
+ 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+@@ -105,7 +111,7 @@ struct media_entity_operations {
+ };
+ 
+ struct media_entity {
+-	struct media_gobj graph_obj;
++	struct media_gobj graph_obj;	/* should be the first object */
+ 	struct list_head list;
+ 	const char *name;		/* Entity name */
+ 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+@@ -119,7 +125,7 @@ struct media_entity {
+ 	u16 num_backlinks;		/* Number of backlinks */
+ 
+ 	struct media_pad *pads;		/* Pads array (num_pads objects) */
+-	struct list_head links;		/* Links list */
++	struct list_head links;		/* Pad-to-pad links list */
+ 
+ 	const struct media_entity_operations *ops;	/* Entity operations */
+ 
+-- 
+2.4.3
 
-I'll skip this patch from the git pull request, as, from your description,
-this is just a cleanup patch. So, it shouldn't affect the other patches
-at the series.
-
-
->  	}
->  
-> -	dev_dbg(&client->dev, "loop=%d\n", i);
-> +	dev_dbg(&client->dev, "cmd execution took %u ms\n",
-> +		jiffies_to_msecs(jiffies) -
-> +		(jiffies_to_msecs(timeout) - CMD_EXECUTE_TIMEOUT));
->  
-> -	if (i == 0) {
-> +	if (uitmp) {
->  		ret = -ETIMEDOUT;
->  		goto error;
->  	}
