@@ -1,90 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55172 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753818AbbHaSfT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 14:35:19 -0400
-Subject: Re: [PATCH TRY 2] Support for EVOLVEO XtraTV stick
-To: CIJOML CIJOMLovic <cijoml@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-References: <CAB0z4NpRKDQ=yoSxzo5-9mV-5zTcYTan0JvGvugZVKHkH2xkdA@mail.gmail.com>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <55E49E64.7050400@iki.fi>
-Date: Mon, 31 Aug 2015 21:35:16 +0300
-MIME-Version: 1.0
-In-Reply-To: <CAB0z4NpRKDQ=yoSxzo5-9mV-5zTcYTan0JvGvugZVKHkH2xkdA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:58900 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345AbbHWUSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:08 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v7 17/44] [media] media: make add link more generic
+Date: Sun, 23 Aug 2015 17:17:34 -0300
+Message-Id: <e58ad96965fe86e026334f23365d468937bd2de2.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/31/2015 09:04 PM, CIJOML CIJOMLovic wrote:
-> Hello guys,
->
-> please find out down this email patch to support EVOLVEO XtraTV stick.
-> This tuner is for android phones with microusb connecter, however with
-> reduction it works perfectly with linux kernel:
-> The device identify itself at USB bus as Bus 002 Device 004: ID
-> 1f4d:a115 G-Tek Electronics Group
-> so I have created new vendor group but device named as its commercial name.
->
-> Thank you for merging this patch to upstream
+The media_entity_add_link() function takes an entity
+as an argument just to get the list head.
 
-VID for GTEK is already defined there.
+Make it more generic by changing the function argument
+to list_head.
 
-Could you remove also remote controller default keymap as I think there 
-is no remote controller at all.
+No functional changes.
 
-regards
-Antti
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
->
-> Best regards
->
-> Michal
->
->
-> diff -urN media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
-> media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
-> --- media_build/linux/drivers/media/dvb-core/dvb-usb-ids.h
-> 2015-05-11 13:20:08.000000000 +0200
-> +++ media_build.new/linux/drivers/media/dvb-core/dvb-usb-ids.h
-> 2015-06-16 22:26:01.917990493 +0200
-> @@ -70,6 +70,8 @@
->   #define USB_VID_EVOLUTEPC            0x1e59
->   #define USB_VID_AZUREWAVE            0x13d3
->   #define USB_VID_TECHNISAT            0x14f7
-> +#define USB_VID_GTEK                0x1f4d
-> +
->
->   /* Product IDs */
->   #define USB_PID_ADSTECH_USB2_COLD            0xa333
-> @@ -388,4 +390,5 @@
->   #define USB_PID_PCTV_2002E_SE                           0x025d
->   #define USB_PID_SVEON_STV27                             0xd3af
->   #define USB_PID_TURBOX_DTT_2000                         0xd3a4
-> +#define USB_PID_EVOLVEO_XTRATV_STICK            0xa115
->   #endif
-> diff -urN media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> --- media_build/linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> 2015-05-30 17:32:46.000000000 +0200
-> +++ media_build.new/linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> 2015-06-16 22:26:14.561990868 +0200
-> @@ -2075,6 +2075,8 @@
->           &af9035_props, "PCTV AndroiDTV (78e)", RC_MAP_IT913X_V1) },
->       { DVB_USB_DEVICE(USB_VID_PCTV, USB_PID_PCTV_79E,
->           &af9035_props, "PCTV microStick (79e)", RC_MAP_IT913X_V2) },
-> +    { DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_EVOLVEO_XTRATV_STICK,
-> +        &af9035_props, "EVOLVEO XtraTV stick", RC_MAP_IT913X_V2) },
->
->       /* IT930x devices */
->       { DVB_USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9303,
-> r
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 321f3cb4a568..9ec9c503caca 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -578,7 +578,7 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+  * Links management
+  */
+ 
+-static struct media_link *media_entity_add_link(struct media_entity *entity)
++static struct media_link *media_add_link(struct list_head *head)
+ {
+ 	struct media_link *link;
+ 
+@@ -586,7 +586,7 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 	if (link == NULL)
+ 		return NULL;
+ 
+-	list_add_tail(&link->list, &entity->links);
++	list_add_tail(&link->list, head);
+ 
+ 	return link;
+ }
+@@ -605,7 +605,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	BUG_ON(source_pad >= source->num_pads);
+ 	BUG_ON(sink_pad >= sink->num_pads);
+ 
+-	link = media_entity_add_link(source);
++	link = media_add_link(&source->links);
+ 	if (link == NULL)
+ 		return -ENOMEM;
+ 
+@@ -620,7 +620,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	/* Create the backlink. Backlinks are used to help graph traversal and
+ 	 * are not reported to userspace.
+ 	 */
+-	backlink = media_entity_add_link(sink);
++	backlink = media_add_link(&sink->links);
+ 	if (backlink == NULL) {
+ 		__media_entity_remove_link(source, link);
+ 		return -ENOMEM;
 -- 
-http://palosaari.fi/
+2.4.3
+
