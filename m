@@ -1,60 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36274 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317AbbH1Rw4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58989 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753584AbbHWUSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 13:52:56 -0400
-Received: by wicfv10 with SMTP id fv10so14042655wic.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:52:55 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
-Subject: [PATCH v3 1/6] ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
-Date: Fri, 28 Aug 2015 18:52:37 +0100
-Message-Id: <1440784362-31217-2-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
-References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+	Sun, 23 Aug 2015 16:18:11 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v7 22/44] [media] media: add a linked list to track interfaces by mdev
+Date: Sun, 23 Aug 2015 17:17:39 -0300
+Message-Id: <cc0587807ee794a75a61b953d054bd782a06eb03.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding these properties makes the I2C bus to the demodulators much
-more reliable, and we no longer suffer from I2C errors when tuning.
+We need to be able to navigate at the interfaces that
+belong to a given media device, in to indirect
+interface links.
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+So, add a linked list to track them.
 
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index f589fe4..62994ae 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -27,12 +27,18 @@
- 			};
- 		};
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3e649cacfc07..659507bce63f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return -EINVAL;
  
--		i2c@9842000 {
-+		ssc2: i2c@9842000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
+ 	INIT_LIST_HEAD(&mdev->entities);
++	INIT_LIST_HEAD(&mdev->interfaces);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
  
--		i2c@9843000 {
-+		ssc3: i2c@9843000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 16d7d96abb9f..05976c891c17 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -875,6 +875,8 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+ 	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
+ 		       &devnode->intf.graph_obj);
  
- 		i2c@9844000 {
++	list_add_tail(&intf->list, &mdev->interfaces);
++
+ 	return devnode;
+ }
+ EXPORT_SYMBOL_GPL(media_devnode_create);
+@@ -882,6 +884,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
+ void media_devnode_remove(struct media_intf_devnode *devnode)
+ {
+ 	media_gobj_remove(&devnode->intf.graph_obj);
++	list_del(&devnode->intf.list);
+ 	kfree(devnode);
+ }
+ EXPORT_SYMBOL_GPL(media_devnode_remove);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 3b14394d5701..51807efa505b 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -46,6 +46,7 @@ struct device;
+  * @link_id:	Unique ID used on the last link registered
+  * @intf_devnode_id: Unique ID used on the last interface devnode registered
+  * @entities:	List of registered entities
++ * @interfaces:	List of registered interfaces
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+  * @link_notify: Link state change notification callback
+@@ -77,6 +78,7 @@ struct media_device {
+ 	u32 intf_devnode_id;
+ 
+ 	struct list_head entities;
++	struct list_head interfaces;
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index aeb390a9e0f3..35d97017dd19 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -156,6 +156,8 @@ struct media_entity {
+  * struct media_intf_devnode - Define a Kernel API interface
+  *
+  * @graph_obj:		embedded graph object
++ * @list:		Linked list used to find other interfaces that belong
++ *			to the same media controller
+  * @links:		List of links pointing to graph entities
+  * @type:		Type of the interface as defined at the
+  *			uapi/media/media.h header, e. g.
+@@ -164,6 +166,7 @@ struct media_entity {
+  */
+ struct media_interface {
+ 	struct media_gobj		graph_obj;
++	struct list_head		list;
+ 	struct list_head		links;
+ 	u32				type;
+ 	u32				flags;
 -- 
-1.9.1
+2.4.3
 
