@@ -1,100 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57747 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754059AbbHNLIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Aug 2015 07:08:07 -0400
-Date: Fri, 14 Aug 2015 08:07:52 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:58992 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753610AbbHWUSL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:11 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Harry Wei <harryxiyou@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Mats Randgaard <matrandg@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Joe Perches <joe@perches.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Axel Lin <axel.lin@ingics.com>, Bryan Wu <cooloney@gmail.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	Haneen Mohammed <hamohammed.sa@gmail.com>,
-	anuvazhayil <anuv.1994@gmail.com>,
-	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
-	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	linux-doc@vger.kernel.org, linux-kernel@zh-kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH RFC v3 07/16] media: get rid of unused "extra_links"
- param on media_entity_init()
-Message-ID: <20150814080752.1e2d1311@recife.lan>
-In-Reply-To: <20150814103348.GC19840@valkosipuli.retiisi.org.uk>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-	<7b9f2654888f0fd54c290c50f50248a367768da7.1439410053.git.mchehab@osg.samsung.com>
-	<20150814103348.GC19840@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v7 21/44] [media] dvbdev: add support for interfaces
+Date: Sun, 23 Aug 2015 17:17:38 -0300
+Message-Id: <276e4618235b47251f512337560f68657b414e24.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 14 Aug 2015 13:33:48 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Now that the infrastruct for that is set, add support for
+interfaces.
 
-> Hi Mauro,
-> 
-> On Wed, Aug 12, 2015 at 05:14:51PM -0300, Mauro Carvalho Chehab wrote:
-> > Currently, media_entity_init() creates an array with the links,
-> > allocated at init time. It provides a parameter (extra_links)
-> > that would allocate more links than the current needs, but this
-> > is not used by any driver.
-> > 
-> > As we want to be able to do dynamic link allocation/removal,
-> > we'll need to change the implementation of the links. So,
-> > before doing that, let's first remove that extra unused
-> > parameter, in order to cleanup the interface first.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> ...
-> 
-> 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 738e1d5d25dc..be6885e7c8ed 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -177,7 +177,7 @@ void graph_obj_init(struct media_device *mdev,
-> >  void graph_obj_remove(struct media_graph_obj *gobj);
-> >  
-> >  int media_entity_init(struct media_entity *entity, u16 num_pads,
-> > -		struct media_pad *pads, u16 extra_links);
-> > +		struct media_pad *pads);
-> >  void media_entity_cleanup(struct media_entity *entity);
-> >  
-> >  int media_entity_create_link(struct media_entity *source, u16 source_pad,
-> 
-> How about putting this in front of the set? It has no dependencies to the
-> other patches, does it?
+Please notice that we're missing two links:
+	DVB FE intf    -> tuner
+	DVB demux intf -> dvr
 
-Yeah this patch can be the first one ;) It just cleans up something
-that we never used. It just needs to be before patch 8.
+Those should be added latter, after having the entire graph
+set. With the current infrastructure, those should be added
+at dvb_create_media_graph(), but it would also require some
+extra core changes, to allow the function to enumerate the
+interfaces.
 
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 65f59f2124b4..747372ba4fe1 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -180,14 +180,35 @@ skip:
+ 	return -ENFILE;
+ }
+ 
+-static void dvb_register_media_device(struct dvb_device *dvbdev,
+-				      int type, int minor)
++static void dvb_create_media_entity(struct dvb_device *dvbdev,
++				       int type, int minor)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	int ret = 0, npads;
+ 
+-	if (!dvbdev->adapter->mdev)
++	switch (type) {
++	case DVB_DEVICE_FRONTEND:
++		npads = 2;
++		break;
++	case DVB_DEVICE_DEMUX:
++		npads = 2;
++		break;
++	case DVB_DEVICE_CA:
++		npads = 2;
++		break;
++	case DVB_DEVICE_NET:
++		/*
++		 * We should be creating entities for the MPE/ULE
++		 * decapsulation hardware (or software implementation).
++		 *
++		 * However, as the number of for the MPE/ULE may not be fixed,
++		 * and we don't have yet dynamic support for PADs at the
++		 * Media Controller.
++		 */
+ 		return;
++	default:
++		return;
++	}
+ 
+ 	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
+ 	if (!dvbdev->entity)
+@@ -197,19 +218,6 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	dvbdev->entity->info.dev.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
+ 
+-	switch (type) {
+-	case DVB_DEVICE_CA:
+-	case DVB_DEVICE_DEMUX:
+-	case DVB_DEVICE_FRONTEND:
+-		npads = 2;
+-		break;
+-	case DVB_DEVICE_NET:
+-		npads = 0;
+-		break;
+-	default:
+-		npads = 1;
+-	}
+-
+ 	if (npads) {
+ 		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
+ 				       GFP_KERNEL);
+@@ -230,18 +238,11 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+-	case DVB_DEVICE_DVR:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
+-		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+-		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+-	case DVB_DEVICE_NET:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+-		break;
+ 	default:
+ 		kfree(dvbdev->entity);
+ 		dvbdev->entity = NULL;
+@@ -263,11 +264,63 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		return;
+ 	}
+ 
+-	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
++	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
+ 		__func__, dvbdev->entity->name);
+ #endif
+ }
+ 
++static void dvb_register_media_device(struct dvb_device *dvbdev,
++				      int type, int minor)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	u32 intf_type;
++
++	if (!dvbdev->adapter->mdev)
++		return;
++
++	dvb_create_media_entity(dvbdev, type, minor);
++
++	switch (type) {
++	case DVB_DEVICE_FRONTEND:
++		intf_type = MEDIA_INTF_T_DVB_FE;
++		break;
++	case DVB_DEVICE_DEMUX:
++		intf_type = MEDIA_INTF_T_DVB_DEMUX;
++		break;
++	case DVB_DEVICE_DVR:
++		intf_type = MEDIA_INTF_T_DVB_DVR;
++		break;
++	case DVB_DEVICE_CA:
++		intf_type = MEDIA_INTF_T_DVB_CA;
++		break;
++	case DVB_DEVICE_NET:
++		intf_type = MEDIA_INTF_T_DVB_NET;
++		break;
++	default:
++		return;
++	}
++
++	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
++						 intf_type, 0,
++						 DVB_MAJOR, minor,
++						 GFP_KERNEL);
++
++	/*
++	 * Create the "obvious" link, e. g. the ones that represent
++	 * a direct association between an interface and an entity.
++	 * Other links should be created elsewhere, like:
++	 *		DVB FE intf    -> tuner
++	 *		DVB demux intf -> dvr
++	 */
++
++	if (!dvbdev->entity || !dvbdev->intf_devnode)
++		return;
++
++	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
++
++#endif
++}
++
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template, void *priv, int type)
+ {
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 12629b8ecb0c..6670adee7afb 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -103,6 +103,7 @@ struct dvb_device {
+ 
+ 	/* Allocated and filled inside dvbdev.c */
+ 	struct media_entity *entity;
++	struct media_intf_devnode *intf_devnode;
+ 	struct media_pad *pads;
+ #endif
+ 
+-- 
+2.4.3
+
