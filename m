@@ -1,123 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49846 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416AbbHUCvc (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58920 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753439AbbHWUSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 22:51:32 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id ECECD2A0004
-	for <linux-media@vger.kernel.org>; Fri, 21 Aug 2015 04:50:50 +0200 (CEST)
-Date: Fri, 21 Aug 2015 04:50:50 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150821025050.ECECD2A0004@tschai.lan>
+	Sun, 23 Aug 2015 16:18:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v7 39/44] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY ioctl
+Date: Sun, 23 Aug 2015 17:17:56 -0300
+Message-Id: <31b28b78f6a37ca7ff4554207bb05cd1a1db788c.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add a new ioctl that will report the entire topology on
+one go.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-date:		Fri Aug 21 04:00:17 CEST 2015
-git branch:	test
-git hash:	3a6b0605c73d1d695f6d4e49289deaa3fa3e73ee
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 796e4a490af8..0111d9652b78 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -181,6 +181,8 @@ struct media_interface {
+  */
+ struct media_intf_devnode {
+ 	struct media_interface		intf;
++
++	/* Should match the fields at media_v2_intf_devnode */
+ 	u32				major;
+ 	u32				minor;
+ };
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ceea791dd6e9..7fcf7f477ae3 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -238,11 +238,94 @@ struct media_links_enum {
+ #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+ #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+ 
+-/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
++/*
++ * MC next gen API definitions
++ *
++ * NOTE: The declarations below are close to the MC RFC for the Media
++ *	 Controller, the next generation. Yet, there are a few adjustments
++ *	 to do, as we want to be able to have a functional API before
++ *	 the MC properties change. Those will be properly marked below.
++ *	 Please also notice that I removed "num_pads", "num_links",
++ *	 from the proposal, as a proper userspace application will likely
++ *	 use lists for pads/links, just as we intend todo in Kernelspace.
++ *	 The API definition should be freed from fields that are bound to
++ *	 some specific data structure.
++ *
++ * FIXME: Currently, I opted to name the new types as "media_v2", as this
++ *	  won't cause any conflict with the Kernelspace namespace, nor with
++ *	  the previous kAPI media_*_desc namespace. This can be changed
++ *	  latter, before the adding this API upstream.
++ */
++
++
++#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
++#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
++#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
++#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
++
++struct media_v2_entity {
++	__u32 id;
++	char name[64];		/* FIXME: move to a property? (RFC says so) */
++	__u16 reserved[14];
++};
++
++/* Should match the specific fields at media_intf_devnode */
++struct media_v2_intf_devnode {
++	__u32 major;
++	__u32 minor;
++};
++
++struct media_v2_interface {
++	__u32 id;
++	__u32 intf_type;
++	__u32 flags;
++	__u32 reserved[9];
++
++	union {
++		struct media_v2_intf_devnode devnode;
++		__u32 raw[16];
++	};
++};
++
++struct media_v2_pad {
++	__u32 id;
++	__u32 entity_id;
++	__u32 flags;
++	__u16 reserved[9];
++};
++
++struct media_v2_link {
++    __u32 id;
++    __u32 source_id;
++    __u32 sink_id;
++    __u32 flags;
++    __u32 reserved[5];
++};
++
++struct media_v2_topology {
++	__u32 topology_version;
++
++	__u32 num_entities;
++	struct media_v2_entity *entities;
++
++	__u32 num_interfaces;
++	struct media_v2_interface *interfaces;
++
++	__u32 num_pads;
++	struct media_v2_pad *pads;
++
++	__u32 num_links;
++	struct media_v2_link *links;
++
++	__u32 reserved[64];
++};
++
++/* ioctls */
+ 
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
++#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+ 
+ #endif /* __LINUX_MEDIA_H */
+-- 
+2.4.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
