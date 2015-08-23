@@ -1,97 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40752 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752174AbbHUNxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 09:53:40 -0400
-Subject: Re: WARNING: CPU: 1 PID: 813 at kernel/module.c:291
- module_assert_mutex_or_preempt+0x49/0x90()
-To: poma <pomidorabelisima@gmail.com>,
-	Linux Kernel list <linux-kernel@vger.kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Rusty Russell <rusty@rustcorp.com.au>
-References: <55C916F0.8010303@gmail.com> <55D6FBB0.5000709@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Laura Abbott <labbott@redhat.com>
-Message-ID: <55D72D60.2040500@redhat.com>
-Date: Fri, 21 Aug 2015 06:53:36 -0700
-MIME-Version: 1.0
-In-Reply-To: <55D6FBB0.5000709@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:58928 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484AbbHWUSK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Aug 2015 16:18:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v7 35/44] [media] media controller: get rid of entity subtype on Kernel
+Date: Sun, 23 Aug 2015 17:17:52 -0300
+Message-Id: <8958d8f7b45d41897646d63225dc53868a458eb9.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2015 03:21 AM, poma wrote:
-> On 10.08.2015 23:26, poma wrote:
->>
->> ------------[ cut here ]------------
->> WARNING: CPU: 1 PID: 813 at kernel/module.c:291 module_assert_mutex_or_preempt+0x49/0x90()
->> Modules linked in: mxl5007t af9013 ... dvb_usb_af9015(+) ... dvb_usb_v2 dvb_core rc_core ...
->> CPU: 1 PID: 813 Comm: systemd-udevd Not tainted 4.2.0-0.rc6.git0.1.fc24.x86_64+debug #1
->> ...
->> Call Trace:
->>   [<ffffffff81868d8e>] dump_stack+0x4c/0x65
->>   [<ffffffff810ab406>] warn_slowpath_common+0x86/0xc0
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffff810ab53a>] warn_slowpath_null+0x1a/0x20
->>   [<ffffffff81150529>] module_assert_mutex_or_preempt+0x49/0x90
->>   [<ffffffff81150822>] __module_address+0x32/0x150
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffff81150956>] __module_text_address+0x16/0x70
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffffa057d0b0>] ? af9013_read_ucblocks+0x20/0x20 [af9013]
->>   [<ffffffff81150f19>] symbol_put_addr+0x29/0x40
->>   [<ffffffffa04b77ad>] dvb_frontend_detach+0x7d/0x90 [dvb_core]
->>   [<ffffffffa04cdfd5>] dvb_usbv2_probe+0xc85/0x11a0 [dvb_usb_v2]
->>   [<ffffffffa05607c4>] af9015_probe+0x84/0xf0 [dvb_usb_af9015]
->>   [<ffffffff8161c03b>] usb_probe_interface+0x1bb/0x2e0
->>   [<ffffffff81579f26>] driver_probe_device+0x1f6/0x450
->>   [<ffffffff8157a214>] __driver_attach+0x94/0xa0
->>   [<ffffffff8157a180>] ? driver_probe_device+0x450/0x450
->>   [<ffffffff815778f3>] bus_for_each_dev+0x73/0xc0
->>   [<ffffffff815796fe>] driver_attach+0x1e/0x20
->>   [<ffffffff8157922e>] bus_add_driver+0x1ee/0x280
->>   [<ffffffff8157b0a0>] driver_register+0x60/0xe0
->>   [<ffffffff8161a87d>] usb_register_driver+0xad/0x160
->>   [<ffffffffa0567000>] ? 0xffffffffa0567000
->>   [<ffffffffa056701e>] af9015_usb_driver_init+0x1e/0x1000 [dvb_usb_af9015]
->>   [<ffffffff81002123>] do_one_initcall+0xb3/0x200
->>   [<ffffffff8124ac65>] ? kmem_cache_alloc_trace+0x355/0x380
->>   [<ffffffff81867c37>] ? do_init_module+0x28/0x1e9
->>   [<ffffffff81867c6f>] do_init_module+0x60/0x1e9
->>   [<ffffffff81154167>] load_module+0x21f7/0x28d0
->>   [<ffffffff8114f600>] ? m_show+0x1b0/0x1b0
->>   [<ffffffff81026d79>] ? sched_clock+0x9/0x10
->>   [<ffffffff810e6ddc>] ? local_clock+0x1c/0x20
->>   [<ffffffff811549b8>] SyS_init_module+0x178/0x1c0
->>   [<ffffffff8187282e>] entry_SYSCALL_64_fastpath+0x12/0x76
->> ---[ end trace 31a9dd90d4f559f5 ]---
->>
->>
->> Ref.
->> https://bugzilla.redhat.com/show_bug.cgi?id=1252167
->> https://bugzilla.kernel.org/show_bug.cgi?id=102631
->>
->
-> You guys are really something.
->
-> First of all, as is evident here, I am the original reporter, not Laura Abbott <labbott@redhat.com>.
-> -All- your comments including the final patch on this issue, are just plain wrong.[1]
-> This patch only hides the actual problem with this particular device - the dual tuner combination driven by dvb_usb_af9015 & mxl5007t, broken by design since day one.
->
-> Read the entire https://bugzilla.redhat.com/show_bug.cgi?id=1252167
-> and stop this nonsense.
->
-> NACK "module: Fix locking in symbol_put_addr()"
->
-> [1] http://www.gossamer-threads.com/lists/linux/kernel/2241154
->
->
+Don't use anymore the type/subtype entity data/macros
+inside the Kernel.
 
-Sorry, I've been delayed with conferences and have been avoiding e-mails and bugzilla.
-I missed sending out the Tested-by tag.
-You are welcome to drop the reported-by if you don't think it is appropriate.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Laura
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 952867571429..796e4a490af8 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -185,16 +185,6 @@ struct media_intf_devnode {
+ 	u32				minor;
+ };
+ 
+-static inline u32 media_entity_type(struct media_entity *entity)
+-{
+-	return entity->type & MEDIA_ENT_TYPE_MASK;
+-}
+-
+-static inline u32 media_entity_subtype(struct media_entity *entity)
+-{
+-	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
+-}
+-
+ static inline u32 media_entity_id(struct media_entity *entity)
+ {
+ 	return entity->graph_obj.id;
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index e9e7ad268a7e..ceea791dd6e9 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -42,10 +42,8 @@ struct media_device_info {
+ 
+ #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+ 
+-/* Used values for media_entity_desc::type */
+-
+ /*
+- * Initial value when an entity is created
++ * Initial value to be used when a new entity is created
+  * Drivers should change it to something useful
+  */
+ #define MEDIA_ENT_T_UNKNOWN	0x00000000
+@@ -96,6 +94,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 7)
+ #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 8)
+ 
++#ifndef __KERNEL__
+ /* Legacy symbols used to avoid userspace compilation breakages */
+ #define MEDIA_ENT_TYPE_SHIFT		16
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+@@ -109,6 +108,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+ #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
++#endif
+ 
+ /* Entity types */
+ 
+-- 
+2.4.3
+
