@@ -1,146 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46151 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753093AbbHSLNk (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58998 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752985AbbHWUSM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 07:13:40 -0400
-Message-ID: <55D46449.8020307@xs4all.nl>
-Date: Wed, 19 Aug 2015 13:11:05 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 5/8] [media] media: use media_gobj inside links
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <c023b34a71fb87d11ca5d87c4c6883fd06224693.1439981515.git.mchehab@osg.samsung.com>
-In-Reply-To: <c023b34a71fb87d11ca5d87c4c6883fd06224693.1439981515.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 23 Aug 2015 16:18:12 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v7 41/44] [media] media: move mdev list init to gobj
+Date: Sun, 23 Aug 2015 17:17:58 -0300
+Message-Id: <bc5eb0364214343677965f660fda7337b97ec318.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/15 13:01, Mauro Carvalho Chehab wrote:
-> Just like entities and pads, links also need to have unique
-> Object IDs along a given media controller.
-> 
-> So, let's add a media_gobj inside it and initialize
-> the object then a new link is created.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Let's control the topology changes inside the graph_object.
+So, move the removal of interfaces/entitis from the mdev
+lists to media_gobj_init() and media_gobj_remove().
 
-Hmm, my earlier Ack was lost. Here it is again:
+The main reason is that mdev should have lists for all
+object types, as the new MC api will require to store
+objects on separate places.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Regards,
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 659507bce63f..01cd014963d6 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
+ 
+-	list_for_each_entry_safe(entity, next, &mdev->entities, list)
++	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		media_device_unregister_entity(entity);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+@@ -443,7 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	spin_lock(&mdev->lock);
+ 	/* Initialize media_gobj embedded at the entity */
+ 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+-	list_add_tail(&entity->list, &mdev->entities);
+ 
+ 	/* Initialize objects at the pads */
+ 	for (i = 0; i < entity->num_pads; i++)
+@@ -473,7 +472,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 		return;
+ 
+ 	spin_lock(&mdev->lock);
+-	list_for_each_entry_safe(link, tmp, &entity->links, list) {
++	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
+ 		media_gobj_remove(&link->graph_obj);
+ 		list_del(&link->list);
+ 		kfree(link);
+@@ -481,7 +480,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	for (i = 0; i < entity->num_pads; i++)
+ 		media_gobj_remove(&entity->pads[i].graph_obj);
+ 	media_gobj_remove(&entity->graph_obj);
+-	list_del(&entity->list);
+ 	spin_unlock(&mdev->lock);
+ 	entity->graph_obj.mdev = NULL;
+ }
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d30650e3562e..17f2f7555d42 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -168,6 +168,7 @@ void media_gobj_init(struct media_device *mdev,
+ 	switch (type) {
+ 	case MEDIA_GRAPH_ENTITY:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
++		list_add_tail(&gobj->list, &mdev->entities);
+ 		break;
+ 	case MEDIA_GRAPH_PAD:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+@@ -176,6 +177,7 @@ void media_gobj_init(struct media_device *mdev,
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+ 		break;
+ 	case MEDIA_GRAPH_INTF_DEVNODE:
++		list_add_tail(&gobj->list, &mdev->interfaces);
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
+ 		break;
+ 	}
+@@ -191,6 +193,15 @@ void media_gobj_init(struct media_device *mdev,
+  */
+ void media_gobj_remove(struct media_gobj *gobj)
+ {
++	/* Remove the object from mdev list */
++	switch (media_type(gobj)) {
++	case MEDIA_GRAPH_ENTITY:
++	case MEDIA_GRAPH_INTF_DEVNODE:
++		list_del(&gobj->list);
++	default:
++		break;
++	}
++
+ 	dev_dbg_obj(__func__, gobj);
+ }
+ 
+@@ -878,8 +889,6 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+ 	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
+ 		       &devnode->intf.graph_obj);
+ 
+-	list_add_tail(&intf->list, &mdev->interfaces);
+-
+ 	return devnode;
+ }
+ EXPORT_SYMBOL_GPL(media_devnode_create);
+@@ -887,7 +896,6 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
+ void media_devnode_remove(struct media_intf_devnode *devnode)
+ {
+ 	media_gobj_remove(&devnode->intf.graph_obj);
+-	list_del(&devnode->intf.list);
+ 	kfree(devnode);
+ }
+ EXPORT_SYMBOL_GPL(media_devnode_remove);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index f23d686aaac6..85fa302047bd 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -111,11 +111,11 @@ struct media_device *media_device_find_devres(struct device *dev);
+ 
+ /* Iterate over all entities. */
+ #define media_device_for_each_entity(entity, mdev)			\
+-	list_for_each_entry(entity, &(mdev)->entities, list)
++	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
+ 
+ /* Iterate over all interfaces. */
+ #define media_device_for_each_intf(intf, mdev)			\
+-	list_for_each_entry(intf, &(mdev)->interfaces, list)
++	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+ 
+ 
+ #else
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0111d9652b78..d89ceaf7bcc4 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -66,6 +66,7 @@ enum media_gobj_type {
+ struct media_gobj {
+ 	struct media_device	*mdev;
+ 	u32			id;
++	struct list_head	list;
+ };
+ 
+ 
+@@ -114,7 +115,6 @@ struct media_entity_operations {
+ 
+ struct media_entity {
+ 	struct media_gobj graph_obj;	/* should be the first object */
+-	struct list_head list;
+ 	const char *name;		/* Entity name */
+ 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+ 	u32 revision;			/* Entity revision, driver specific */
+@@ -166,7 +166,6 @@ struct media_entity {
+  */
+ struct media_interface {
+ 	struct media_gobj		graph_obj;
+-	struct list_head		list;
+ 	struct list_head		links;
+ 	u32				type;
+ 	u32				flags;
+-- 
+2.4.3
 
-	Hans
-
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 3bdda16584fe..065f6f08da37 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -438,6 +438,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
->  	list_add_tail(&entity->list, &mdev->entities);
->  
-> +	/*
-> +	 * Initialize objects at the links
-> +	 * in the case where links got created before entity register
-> +	 */
-> +	for (i = 0; i < entity->num_links; i++)
-> +		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-> +				&entity->links[i].graph_obj);
->  	/* Initialize objects at the pads */
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> @@ -465,6 +472,8 @@ void media_device_unregister_entity(struct media_entity *entity)
->  		return;
->  
->  	spin_lock(&mdev->lock);
-> +	for (i = 0; i < entity->num_links; i++)
-> +		media_gobj_remove(&entity->links[i].graph_obj);
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_remove(&entity->pads[i].graph_obj);
->  	media_gobj_remove(&entity->graph_obj);
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 377c6655c5d0..36d725ec5f3d 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -51,6 +51,9 @@ void media_gobj_init(struct media_device *mdev,
->  	case MEDIA_GRAPH_PAD:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
->  		break;
-> +	case MEDIA_GRAPH_LINK:
-> +		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-> +		break;
->  	}
->  }
->  
-> @@ -491,6 +494,9 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
->  	link->sink = &sink->pads[sink_pad];
->  	link->flags = flags;
->  
-> +	/* Initialize graph object embedded at the new link */
-> +	media_gobj_init(source->parent, MEDIA_GRAPH_LINK, &link->graph_obj);
-> +
->  	/* Create the backlink. Backlinks are used to help graph traversal and
->  	 * are not reported to userspace.
->  	 */
-> @@ -504,6 +510,9 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
->  	backlink->sink = &sink->pads[sink_pad];
->  	backlink->flags = flags;
->  
-> +	/* Initialize graph object embedded at the new link */
-> +	media_gobj_init(sink->parent, MEDIA_GRAPH_LINK, &backlink->graph_obj);
-> +
->  	link->reverse = backlink;
->  	backlink->reverse = link;
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 9493721f630e..05414e351f8e 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -43,6 +43,7 @@ struct device;
->   * @driver_version: Device driver version
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
-> + * @link_id:	Unique ID used on the last link registered
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> @@ -71,6 +72,7 @@ struct media_device {
->  
->  	u32 entity_id;
->  	u32 pad_id;
-> +	u32 link_id;
->  
->  	struct list_head entities;
->  
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 39c9ca8f2e7a..749b46c91217 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -35,10 +35,12 @@
->   *
->   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
->   * @MEDIA_GRAPH_PAD:		Identify a media pad
-> + * @MEDIA_GRAPH_LINK:		Identify a media link
->   */
->  enum media_gobj_type {
->  	MEDIA_GRAPH_ENTITY,
->  	MEDIA_GRAPH_PAD,
-> +	MEDIA_GRAPH_LINK,
->  };
->  
->  #define MEDIA_BITS_PER_TYPE		8
-> @@ -67,6 +69,7 @@ struct media_pipeline {
->  };
->  
->  struct media_link {
-> +	struct media_gobj graph_obj;
->  	struct media_pad *source;	/* Source pad */
->  	struct media_pad *sink;		/* Sink pad  */
->  	struct media_link *reverse;	/* Link in the reverse direction */
-> 
