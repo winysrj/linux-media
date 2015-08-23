@@ -1,140 +1,579 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46718 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751763AbbHYHo4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58954 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753550AbbHWUSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 03:44:56 -0400
-Message-ID: <55DC1CC9.7000800@xs4all.nl>
-Date: Tue, 25 Aug 2015 09:44:09 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 20/44] [media] media: add support to link interfaces
- and entities
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <d3396b69db123fcd27c48e56deb3684da1aacd81.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <d3396b69db123fcd27c48e56deb3684da1aacd81.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 23 Aug 2015 16:18:10 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Akihiro Tsukada <tskd08@gmail.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: [PATCH v7 16/44] [media] media: convert links from array to list
+Date: Sun, 23 Aug 2015 17:17:33 -0300
+Message-Id: <e84fc5863b2f5dd5bc6e5dbdf8d8f77620955a68.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> Now that we have a new graph object called "interfaces", we
-> need to be able to link them to the entities.
-> 
-> Add a linked list to the interfaces to allow them to be
-> linked to the entities.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 5788297cd500..16d7d96abb9f 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -867,6 +867,7 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
->  
->  	intf->type = type;
->  	intf->flags = flags;
-> +	INIT_LIST_HEAD(&intf->links);
+The entire logic that represent graph links were developed on a
+time where there were no needs to dynamic remove links. So,
+although links are created/removed one by one via some
+functions, they're stored as an array inside the entity struct.
 
-See my comment in patch 14: this should be part of a media_interface_init helper
-function.
+As the array may grow, there's a logic inside the code that
+checks if the amount of space is not enough to store
+the needed links. If it isn't the core uses krealloc()
+to change the size of the link, with is bad, as it
+leaves the memory fragmented.
 
->  
->  	devnode->major = major;
->  	devnode->minor = minor;
-> @@ -885,3 +886,39 @@ void media_devnode_remove(struct media_intf_devnode *devnode)
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_remove);
->  
-> +struct media_link *media_create_intf_link(struct media_entity *entity,
-> +					    struct media_interface *intf,
-> +					    u32 flags)
-> +{
-> +	struct media_link *link;
-> +
-> +	link = media_add_link(&intf->links);
-> +	if (link == NULL)
-> +		return NULL;
-> +
-> +	link->intf = intf;
-> +	link->entity = entity;
-> +	link->flags = flags;
-> +
-> +	/* Initialize graph object embedded at the new link */
-> +	media_gobj_init(intf->graph_obj.mdev, MEDIA_GRAPH_LINK,
-> +			&link->graph_obj);
-> +
-> +	return link;
-> +}
-> +EXPORT_SYMBOL_GPL(media_create_intf_link);
-> +
-> +
-> +static void __media_remove_intf_link(struct media_link *link)
-> +{
-> +	list_del(&link->list);
-> +	kfree(link);
-> +}
-> +
-> +void media_remove_intf_link(struct media_link *link)
-> +{
-> +	mutex_lock(&link->graph_obj.mdev->graph_mutex);
-> +	__media_remove_intf_link(link);
-> +	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
-> +}
-> +EXPORT_SYMBOL_GPL(media_remove_intf_link);
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index f6e8fa801cf9..aeb390a9e0f3 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -78,10 +78,12 @@ struct media_link {
->  	union {
->  		struct media_gobj *port0;
->  		struct media_pad *source;
-> +		struct media_interface *intf;
->  	};
->  	union {
->  		struct media_gobj *port1;
->  		struct media_pad *sink;
-> +		struct media_entity *entity;
->  	};
->  	struct media_link *reverse;	/* Link in the reverse direction */
->  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
-> @@ -154,6 +156,7 @@ struct media_entity {
->   * struct media_intf_devnode - Define a Kernel API interface
->   *
->   * @graph_obj:		embedded graph object
-> + * @links:		List of links pointing to graph entities
+So, convert links into a list.
 
-Nitpick: s/graph/media/
+Also, currently,  both source and sink entities need the link
+at the graph traversal logic inside media_entity. So there's
+a logic duplicating all links. That makes it to spend
+twice the memory needed. This is not a big deal for today's
+usage, where the number of links are not big.
 
->   * @type:		Type of the interface as defined at the
->   *			uapi/media/media.h header, e. g.
->   *			MEDIA_INTF_T_*
-> @@ -161,6 +164,7 @@ struct media_entity {
->   */
->  struct media_interface {
->  	struct media_gobj		graph_obj;
-> +	struct list_head		links;
->  	u32				type;
->  	u32				flags;
->  };
-> @@ -283,6 +287,11 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
->  						u32 major, u32 minor,
->  						gfp_t gfp_flags);
->  void media_devnode_remove(struct media_intf_devnode *devnode);
-> +struct media_link *media_create_intf_link(struct media_entity *entity,
-> +					    struct media_interface *intf,
-> +					    u32 flags);
-> +void media_remove_intf_link(struct media_link *link);
-> +
->  #define media_entity_call(entity, operation, args...)			\
->  	(((entity)->ops && (entity)->ops->operation) ?			\
->  	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
-> 
+Yet, if during the MC workshop discussions, it was said that
+IIO graphs could have up to 4,000 entities. So, we may
+want to remove the duplication on some future. The problem
+is that it would require a separate linked list to store
+the backlinks inside the entity, or to use a more complex
+algorithm to do graph backlink traversal, with is something
+that the current graph traversal inside the core can't cope
+with. So, let's postpone a such change if/when it is actually
+needed.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-	Hans
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 842b9c8f80c6..83d8551a2be8 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -623,7 +623,7 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+ 	struct media_device *mdev = adapter->mdev;
+ 	struct media_entity  *entity, *source;
+ 	struct media_link *link, *found_link = NULL;
+-	int i, ret, n_links = 0, active_links = 0;
++	int ret, n_links = 0, active_links = 0;
+ 
+ 	fepriv->pipe_start_entity = NULL;
+ 
+@@ -633,8 +633,7 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+ 	entity = fepriv->dvbdev->entity;
+ 	fepriv->pipe_start_entity = entity;
+ 
+-	for (i = 0; i < entity->num_links; i++) {
+-		link = &entity->links[i];
++	list_for_each_entry(link, &entity->links, list) {
+ 		if (link->sink->entity == entity) {
+ 			found_link = link;
+ 			n_links++;
+@@ -660,13 +659,11 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+ 
+ 	source = found_link->source->entity;
+ 	fepriv->pipe_start_entity = source;
+-	for (i = 0; i < source->num_links; i++) {
++	list_for_each_entry(link, &source->links, list) {
+ 		struct media_entity *sink;
+ 		int flags = 0;
+ 
+-		link = &source->links[i];
+ 		sink = link->sink->entity;
+-
+ 		if (sink == entity)
+ 			flags = MEDIA_LNK_FL_ENABLED;
+ 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 0d85c6c28004..3e649cacfc07 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/media.h>
+ #include <linux/types.h>
++#include <linux/slab.h>
+ 
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+@@ -150,22 +151,21 @@ static long __media_device_enum_links(struct media_device *mdev,
+ 	}
+ 
+ 	if (links->links) {
+-		struct media_link_desc __user *ulink;
+-		unsigned int l;
++		struct media_link *ent_link;
++		struct media_link_desc __user *ulink = links->links;
+ 
+-		for (l = 0, ulink = links->links; l < entity->num_links; l++) {
++		list_for_each_entry(ent_link, &entity->links, list) {
+ 			struct media_link_desc link;
+ 
+ 			/* Ignore backlinks. */
+-			if (entity->links[l].source->entity != entity)
++			if (ent_link->source->entity != entity)
+ 				continue;
+-
+ 			memset(&link, 0, sizeof(link));
+-			media_device_kpad_to_upad(entity->links[l].source,
++			media_device_kpad_to_upad(ent_link->source,
+ 						  &link.source);
+-			media_device_kpad_to_upad(entity->links[l].sink,
++			media_device_kpad_to_upad(ent_link->sink,
+ 						  &link.sink);
+-			link.flags = entity->links[l].flags;
++			link.flags = ent_link->flags;
+ 			if (copy_to_user(ulink, &link, sizeof(*ulink)))
+ 				return -EFAULT;
+ 			ulink++;
+@@ -437,6 +437,7 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->graph_obj.mdev != NULL);
+ 	entity->graph_obj.mdev = mdev;
++	INIT_LIST_HEAD(&entity->links);
+ 
+ 	spin_lock(&mdev->lock);
+ 	/* Initialize media_gobj embedded at the entity */
+@@ -465,13 +466,17 @@ void media_device_unregister_entity(struct media_entity *entity)
+ {
+ 	int i;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
++	struct media_link *link, *tmp;
+ 
+ 	if (mdev == NULL)
+ 		return;
+ 
+ 	spin_lock(&mdev->lock);
+-	for (i = 0; i < entity->num_links; i++)
+-		media_gobj_remove(&entity->links[i].graph_obj);
++	list_for_each_entry_safe(link, tmp, &entity->links, list) {
++		media_gobj_remove(&link->graph_obj);
++		list_del(&link->list);
++		kfree(link);
++	}
+ 	for (i = 0; i < entity->num_pads; i++)
+ 		media_gobj_remove(&entity->pads[i].graph_obj);
+ 	media_gobj_remove(&entity->graph_obj);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d606e312786a..321f3cb4a568 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -219,21 +219,13 @@ int
+ media_entity_init(struct media_entity *entity, u16 num_pads,
+ 		  struct media_pad *pads)
+ {
+-	struct media_link *links;
+-	unsigned int max_links = num_pads;
+ 	unsigned int i;
+ 
+-	links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
+-	if (links == NULL)
+-		return -ENOMEM;
+-
+ 	entity->group_id = 0;
+-	entity->max_links = max_links;
+ 	entity->num_links = 0;
+ 	entity->num_backlinks = 0;
+ 	entity->num_pads = num_pads;
+ 	entity->pads = pads;
+-	entity->links = links;
+ 
+ 	for (i = 0; i < num_pads; i++) {
+ 		pads[i].entity = entity;
+@@ -247,7 +239,13 @@ EXPORT_SYMBOL_GPL(media_entity_init);
+ void
+ media_entity_cleanup(struct media_entity *entity)
+ {
+-	kfree(entity->links);
++	struct media_link *link, *tmp;
++
++	list_for_each_entry_safe(link, tmp, &entity->links, list) {
++		media_gobj_remove(&link->graph_obj);
++		list_del(&link->list);
++		kfree(link);
++	}
+ }
+ EXPORT_SYMBOL_GPL(media_entity_cleanup);
+ 
+@@ -273,7 +271,7 @@ static void stack_push(struct media_entity_graph *graph,
+ 		return;
+ 	}
+ 	graph->top++;
+-	graph->stack[graph->top].link = 0;
++	graph->stack[graph->top].link = entity->links;
+ 	graph->stack[graph->top].entity = entity;
+ }
+ 
+@@ -315,6 +313,7 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+ 
++
+ /**
+  * media_entity_graph_walk_next - Get the next entity in the graph
+  * @graph: Media graph structure
+@@ -338,14 +337,16 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 	 * top of the stack until no more entities on the level can be
+ 	 * found.
+ 	 */
+-	while (link_top(graph) < stack_top(graph)->num_links) {
++	while (list_is_last(&link_top(graph), &(stack_top(graph)->links))) {
+ 		struct media_entity *entity = stack_top(graph);
+-		struct media_link *link = &entity->links[link_top(graph)];
++		struct media_link *link;
+ 		struct media_entity *next;
+ 
++		link = list_last_entry(&link_top(graph), typeof(*link), list);
++
+ 		/* The link is not enabled so we do not follow. */
+ 		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+-			link_top(graph)++;
++			list_rotate_left(&link_top(graph));
+ 			continue;
+ 		}
+ 
+@@ -356,12 +357,12 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 
+ 		/* Has the entity already been visited? */
+ 		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
+-			link_top(graph)++;
++			list_rotate_left(&link_top(graph));
+ 			continue;
+ 		}
+ 
+ 		/* Push the new entity to stack and start over. */
+-		link_top(graph)++;
++		list_rotate_left(&link_top(graph));
+ 		stack_push(graph, next);
+ 	}
+ 
+@@ -393,6 +394,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity_err = entity;
++	struct media_link *link;
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+@@ -402,7 +404,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		DECLARE_BITMAP(active, entity->num_pads);
+ 		DECLARE_BITMAP(has_no_links, entity->num_pads);
+-		unsigned int i;
+ 
+ 		entity->stream_count++;
+ 		WARN_ON(entity->pipe && entity->pipe != pipe);
+@@ -418,8 +419,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 		bitmap_zero(active, entity->num_pads);
+ 		bitmap_fill(has_no_links, entity->num_pads);
+ 
+-		for (i = 0; i < entity->num_links; i++) {
+-			struct media_link *link = &entity->links[i];
++		list_for_each_entry(link, &entity->links, list) {
+ 			struct media_pad *pad = link->sink->entity == entity
+ 						? link->sink : link->source;
+ 
+@@ -580,25 +580,20 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+ 
+ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ {
+-	if (entity->num_links >= entity->max_links) {
+-		struct media_link *links = entity->links;
+-		unsigned int max_links = entity->max_links + 2;
+-		unsigned int i;
++	struct media_link *link;
+ 
+-		links = krealloc(links, max_links * sizeof(*links), GFP_KERNEL);
+-		if (links == NULL)
+-			return NULL;
++	link = kzalloc(sizeof(*link), GFP_KERNEL);
++	if (link == NULL)
++		return NULL;
+ 
+-		for (i = 0; i < entity->num_links; i++)
+-			links[i].reverse->reverse = &links[i];
++	list_add_tail(&link->list, &entity->links);
+ 
+-		entity->max_links = max_links;
+-		entity->links = links;
+-	}
+-
+-	return &entity->links[entity->num_links++];
++	return link;
+ }
+ 
++static void __media_entity_remove_link(struct media_entity *entity,
++				       struct media_link *link);
++
+ int
+ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 			 struct media_entity *sink, u16 sink_pad, u32 flags)
+@@ -627,7 +622,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	 */
+ 	backlink = media_entity_add_link(sink);
+ 	if (backlink == NULL) {
+-		source->num_links--;
++		__media_entity_remove_link(source, link);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -643,43 +638,51 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	backlink->reverse = link;
+ 
+ 	sink->num_backlinks++;
++	sink->num_links++;
++	source->num_links++;
+ 
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_create_pad_link);
+ 
+-void __media_entity_remove_links(struct media_entity *entity)
++static void __media_entity_remove_link(struct media_entity *entity,
++				       struct media_link *link)
+ {
+-	unsigned int i;
++	struct media_link *rlink, *tmp;
++	struct media_entity *remote;
++	unsigned int r = 0;
+ 
+-	for (i = 0; i < entity->num_links; i++) {
+-		struct media_link *link = &entity->links[i];
+-		struct media_entity *remote;
+-		unsigned int r = 0;
++	if (link->source->entity == entity)
++		remote = link->sink->entity;
++	else
++		remote = link->source->entity;
++
++	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
++		if (rlink != link->reverse) {
++			r++;
++			continue;
++		}
+ 
+ 		if (link->source->entity == entity)
+-			remote = link->sink->entity;
+-		else
+-			remote = link->source->entity;
++			remote->num_backlinks--;
+ 
+-		while (r < remote->num_links) {
+-			struct media_link *rlink = &remote->links[r];
++		if (--remote->num_links == 0)
++			break;
+ 
+-			if (rlink != link->reverse) {
+-				r++;
+-				continue;
+-			}
+-
+-			if (link->source->entity == entity)
+-				remote->num_backlinks--;
+-
+-			if (--remote->num_links == 0)
+-				break;
+-
+-			/* Insert last entry in place of the dropped link. */
+-			*rlink = remote->links[remote->num_links];
+-		}
++		/* Remove the remote link */
++		list_del(&rlink->list);
++		kfree(rlink);
+ 	}
++	list_del(&link->list);
++	kfree(link);
++}
++
++void __media_entity_remove_links(struct media_entity *entity)
++{
++	struct media_link *link, *tmp;
++
++	list_for_each_entry_safe(link, tmp, &entity->links, list)
++		__media_entity_remove_link(entity, link);
+ 
+ 	entity->num_links = 0;
+ 	entity->num_backlinks = 0;
+@@ -804,11 +807,8 @@ struct media_link *
+ media_entity_find_link(struct media_pad *source, struct media_pad *sink)
+ {
+ 	struct media_link *link;
+-	unsigned int i;
+-
+-	for (i = 0; i < source->entity->num_links; ++i) {
+-		link = &source->entity->links[i];
+ 
++	list_for_each_entry(link, &source->entity->links, list) {
+ 		if (link->source->entity == source->entity &&
+ 		    link->source->index == source->index &&
+ 		    link->sink->entity == sink->entity &&
+@@ -832,11 +832,9 @@ EXPORT_SYMBOL_GPL(media_entity_find_link);
+  */
+ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < pad->entity->num_links; i++) {
+-		struct media_link *link = &pad->entity->links[i];
++	struct media_link *link;
+ 
++	list_for_each_entry(link, &pad->entity->links, list) {
+ 		if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+ 			continue;
+ 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index a55eb524ea21..7f645bcb7463 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -261,13 +261,11 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+ 
+ 	if (tuner)
+ 		media_create_pad_link(tuner, 0, decoder, 0,
+-					 MEDIA_LNK_FL_ENABLED);
+-	if (dev->vdev.entity.links)
+-		media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
+-	if (dev->vbi_dev.entity.links)
+-		media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
++				      MEDIA_LNK_FL_ENABLED);
++	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
++			      MEDIA_LNK_FL_ENABLED);
++	media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
++			      MEDIA_LNK_FL_ENABLED);
+ #endif
+ }
+ 
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 2c040056d4eb..4511e2893282 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -643,7 +643,7 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *source;
+ 	struct media_link *link, *found_link = NULL;
+-	int i, ret, active_links = 0;
++	int ret, active_links = 0;
+ 
+ 	if (!mdev || !dev->decoder)
+ 		return 0;
+@@ -655,8 +655,7 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+ 	 * do DVB streaming while the DMA engine is being used for V4L2,
+ 	 * this should be enough for the actual needs.
+ 	 */
+-	for (i = 0; i < dev->decoder->num_links; i++) {
+-		link = &dev->decoder->links[i];
++	list_for_each_entry(link, &dev->decoder->links, list) {
+ 		if (link->sink->entity == dev->decoder) {
+ 			found_link = link;
+ 			if (link->flags & MEDIA_LNK_FL_ENABLED)
+@@ -669,11 +668,10 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+ 		return 0;
+ 
+ 	source = found_link->source->entity;
+-	for (i = 0; i < source->num_links; i++) {
++	list_for_each_entry(link, &source->links, list) {
+ 		struct media_entity *sink;
+ 		int flags = 0;
+ 
+-		link = &source->links[i];
+ 		sink = link->sink->entity;
+ 
+ 		if (sink == dev->decoder)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 8f04b125486f..e8baff4d6290 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -106,7 +106,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity  *entity, *decoder = NULL, *source;
+ 	struct media_link *link, *found_link = NULL;
+-	int i, ret, active_links = 0;
++	int ret, active_links = 0;
+ 
+ 	if (!mdev)
+ 		return 0;
+@@ -127,8 +127,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+ 	if (!decoder)
+ 		return 0;
+ 
+-	for (i = 0; i < decoder->num_links; i++) {
+-		link = &decoder->links[i];
++	list_for_each_entry(link, &decoder->links, list) {
+ 		if (link->sink->entity == decoder) {
+ 			found_link = link;
+ 			if (link->flags & MEDIA_LNK_FL_ENABLED)
+@@ -141,11 +140,10 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
+ 		return 0;
+ 
+ 	source = found_link->source->entity;
+-	for (i = 0; i < source->num_links; i++) {
++	list_for_each_entry(link, &source->links, list) {
+ 		struct media_entity *sink;
+ 		int flags = 0;
+ 
+-		link = &source->links[i];
+ 		sink = link->sink->entity;
+ 
+ 		if (sink == entity)
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index ddd8d610c357..17bb5cbbd67d 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -74,6 +74,7 @@ struct media_pipeline {
+ 
+ struct media_link {
+ 	struct media_gobj graph_obj;
++	struct list_head list;
+ 	struct media_pad *source;	/* Source pad */
+ 	struct media_pad *sink;		/* Sink pad  */
+ 	struct media_link *reverse;	/* Link in the reverse direction */
+@@ -116,10 +117,9 @@ struct media_entity {
+ 	u16 num_links;			/* Number of existing links, both
+ 					 * enabled and disabled */
+ 	u16 num_backlinks;		/* Number of backlinks */
+-	u16 max_links;			/* Maximum number of links */
+ 
+-	struct media_pad *pads;		/* Pads array (num_pads elements) */
+-	struct media_link *links;	/* Links array (max_links elements)*/
++	struct media_pad *pads;		/* Pads array (num_pads objects) */
++	struct list_head links;		/* Links list */
+ 
+ 	const struct media_entity_operations *ops;	/* Entity operations */
+ 
+@@ -213,7 +213,7 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+ struct media_entity_graph {
+ 	struct {
+ 		struct media_entity *entity;
+-		int link;
++		struct list_head link;
+ 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+ 
+ 	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+@@ -247,7 +247,7 @@ void media_gobj_init(struct media_device *mdev,
+ void media_gobj_remove(struct media_gobj *gobj);
+ 
+ int media_entity_init(struct media_entity *entity, u16 num_pads,
+-		struct media_pad *pads);
++		      struct media_pad *pads);
+ void media_entity_cleanup(struct media_entity *entity);
+ 
+ int media_create_pad_link(struct media_entity *source, u16 source_pad,
+-- 
+2.4.3
+
