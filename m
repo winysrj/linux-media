@@ -1,20 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38110 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:58874 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753640AbbHSLDo (ORCPT
+	with ESMTP id S1752985AbbHWUSI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 07:03:44 -0400
+	Sun, 23 Aug 2015 16:18:08 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v6 2/8] [media] media: add a common struct to be embed on media graph objects
-Date: Wed, 19 Aug 2015 08:01:49 -0300
-Message-Id: <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439981515.git.mchehab@osg.samsung.com>
-References: <cover.1439981515.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439981515.git.mchehab@osg.samsung.com>
-References: <cover.1439981515.git.mchehab@osg.samsung.com>
+Subject: [PATCH v7 04/44] [media] media: add a common struct to be embed on media graph objects
+Date: Sun, 23 Aug 2015 17:17:21 -0300
+Message-Id: <7ec9c268c9a0faa0f79cc3ce2c2fb04be05d3c0f.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -25,6 +25,8 @@ that will be common on all media graph objects.
 Right now, the only common object is the object ID, but other
 fields will be added later on.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
 diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
@@ -71,7 +73,7 @@ index cb0ac4e0dfa5..4834172bf6f8 100644
   *
   * @num_pads: Total number of sink and source pads.
 diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0a66fc225559..c1cd4fba051d 100644
+index 0a66fc225559..b1854239a476 100644
 --- a/include/media/media-entity.h
 +++ b/include/media/media-entity.h
 @@ -28,6 +28,39 @@
@@ -81,7 +83,7 @@ index 0a66fc225559..c1cd4fba051d 100644
 +/* Enums used internally at the media controller to represent graphs */
 +
 +/**
-+ * enum media_gobj_type - type of a graph element
++ * enum media_gobj_type - type of a graph object
 + *
 + */
 +enum media_gobj_type {
@@ -104,7 +106,7 @@ index 0a66fc225559..c1cd4fba051d 100644
 + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
 + *		(called as "local ID").
 + *
-+ * All elements on the media graph should have this struct embedded
++ * All objects on the media graph should have this struct embedded
 + */
 +struct media_gobj {
 +	u32			id;
