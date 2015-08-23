@@ -1,16 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58991 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:58946 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753602AbbHWUSL (ORCPT
+	with ESMTP id S1753515AbbHWUSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:11 -0400
+	Sun, 23 Aug 2015 16:18:10 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 42/44] [media] media-device: add pads and links to media_device
-Date: Sun, 23 Aug 2015 17:17:59 -0300
-Message-Id: <cbdfe091da93c230af21f4064985fe790fc6df34.1440359643.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v7 24/44] [media] uapi/media.h: Fix entity namespace
+Date: Sun, 23 Aug 2015 17:17:41 -0300
+Message-Id: <5cf25be2d0508e02f6ffe469509fa12c45ddcb8d.1440359643.git.mchehab@osg.samsung.com>
 In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
 References: <cover.1440359643.git.mchehab@osg.samsung.com>
 In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
@@ -18,123 +22,174 @@ References: <cover.1440359643.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MC next gen API sends objects to userspace grouped by
-their types.
+Now that interfaces got created, we need to fix the entity
+namespace.
 
-In the case of pads and links, in order to improve performance
-and have a simpler code, the best is to store them also on
-separate linked lists at MC.
-
-If we don't do that, we would need this kind of interaction
-to send data to userspace (code is in structured english):
-
-	for each entity:
-		for each pad:
-			store pads
-
-	for each entity:
-		for each link:
-			store link
-
-	for each interface:
-		for each link:
-			store link
-
-With would require one nexted loop for pads and two nested
-loops for links. By using  separate linked lists for them,
-just one loop would be enough.
+So, let's create a consistent new namespace and add backward
+compatibility macros to keep the old namespace preserved.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 01cd014963d6..2de65a621b93 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -382,6 +382,8 @@ int __must_check __media_device_register(struct media_device *mdev,
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 5a2bd03f5dc0..acada5ba9442 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -229,17 +229,17 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
  
- 	INIT_LIST_HEAD(&mdev->entities);
- 	INIT_LIST_HEAD(&mdev->interfaces);
-+	INIT_LIST_HEAD(&mdev->pads);
-+	INIT_LIST_HEAD(&mdev->links);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
- 
-@@ -474,7 +476,6 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	spin_lock(&mdev->lock);
- 	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
- 		media_gobj_remove(&link->graph_obj);
--		list_del(&link->list);
- 		kfree(link);
- 	}
- 	for (i = 0; i < entity->num_pads; i++)
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 17f2f7555d42..ef26c01a5a9a 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -172,9 +172,11 @@ void media_gobj_init(struct media_device *mdev,
+ 	switch (type) {
+ 	case DVB_DEVICE_FRONTEND:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
++		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMOD;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
  		break;
- 	case MEDIA_GRAPH_PAD:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-+		list_add_tail(&gobj->list, &mdev->pads);
+ 	case DVB_DEVICE_DEMUX:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
++		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMUX;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
  		break;
- 	case MEDIA_GRAPH_LINK:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-+		list_add_tail(&gobj->list, &mdev->links);
+ 	case DVB_DEVICE_CA:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
++		dvbdev->entity->type = MEDIA_ENT_T_DVB_CA;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
  		break;
- 	case MEDIA_GRAPH_INTF_DEVNODE:
- 		list_add_tail(&gobj->list, &mdev->interfaces);
-@@ -194,13 +196,7 @@ void media_gobj_init(struct media_device *mdev,
- void media_gobj_remove(struct media_gobj *gobj)
+@@ -438,7 +438,7 @@ EXPORT_SYMBOL(dvb_unregister_device);
+ void dvb_create_media_graph(struct dvb_adapter *adap)
  {
- 	/* Remove the object from mdev list */
--	switch (media_type(gobj)) {
--	case MEDIA_GRAPH_ENTITY:
--	case MEDIA_GRAPH_INTF_DEVNODE:
--		list_del(&gobj->list);
--	default:
--		break;
--	}
-+	list_del(&gobj->list);
+ 	struct media_device *mdev = adap->mdev;
+-	struct media_entity *entity, *tuner = NULL, *fe = NULL;
++	struct media_entity *entity, *tuner = NULL, *demod = NULL;
+ 	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
+ 	struct media_interface *intf;
  
- 	dev_dbg_obj(__func__, gobj);
- }
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 85fa302047bd..0d1b9c687454 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -47,6 +47,8 @@ struct device;
-  * @intf_devnode_id: Unique ID used on the last interface devnode registered
-  * @entities:	List of registered entities
-  * @interfaces:	List of registered interfaces
-+ * @pads:	List of registered pads
-+ * @links:	List of registered links
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-  * @link_notify: Link state change notification callback
-@@ -79,6 +81,8 @@ struct media_device {
+@@ -450,26 +450,26 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+ 			tuner = entity;
+ 			break;
+-		case MEDIA_ENT_T_DEVNODE_DVB_FE:
+-			fe = entity;
++		case MEDIA_ENT_T_DVB_DEMOD:
++			demod = entity;
+ 			break;
+-		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
++		case MEDIA_ENT_T_DVB_DEMUX:
+ 			demux = entity;
+ 			break;
+-		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
++		case MEDIA_ENT_T_DVB_TSOUT:
+ 			dvr = entity;
+ 			break;
+-		case MEDIA_ENT_T_DEVNODE_DVB_CA:
++		case MEDIA_ENT_T_DVB_CA:
+ 			ca = entity;
+ 			break;
+ 		}
+ 	}
  
- 	struct list_head entities;
- 	struct list_head interfaces;
-+	struct list_head pads;
-+	struct list_head links;
+-	if (tuner && fe)
+-		media_create_pad_link(tuner, 0, fe, 0, 0);
++	if (tuner && demod)
++		media_create_pad_link(tuner, 0, demod, 0, 0);
  
- 	/* Protects the entities list */
- 	spinlock_t lock;
-@@ -117,6 +121,14 @@ struct media_device *media_device_find_devres(struct device *dev);
- #define media_device_for_each_intf(intf, mdev)			\
- 	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+-	if (fe && demux)
+-		media_create_pad_link(fe, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
++	if (demod && demux)
++		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
  
-+/* Iterate over all pads. */
-+#define media_device_for_each_pad(pad, mdev)			\
-+	list_for_each_entry(pad, &(mdev)->pads, graph_obj.list)
+ 	if (demux && dvr)
+ 		media_create_pad_link(demux, 1, dvr, 0, MEDIA_LNK_FL_ENABLED);
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 21c96cd7a6ae..7306aeaff807 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -42,31 +42,67 @@ struct media_device_info {
+ 
+ #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+ 
++/*
++ * Base numbers for entity types
++ *
++ * Please notice that the huge gap of 16 bits for each base is overkill!
++ * 8 bits is more than enough to avoid starving entity types for each
++ * subsystem.
++ *
++ * However, It is kept this way just to avoid binary breakages with the
++ * namespace provided on legacy versions of this header.
++ */
++#define MEDIA_ENT_T_DVB_BASE		0x00000000
++#define MEDIA_ENT_T_V4L2_BASE		0x00010000
++#define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
 +
-+/* Iterate over all links. */
-+#define media_device_for_each_link(link, mdev)			\
-+	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
++/* V4L2 entities */
++#define MEDIA_ENT_T_V4L2_VIDEO		(MEDIA_ENT_T_V4L2_BASE + 1)
++	/*
++	 * Please notice that numbers between MEDIA_ENT_T_V4L2_BASE + 2 and
++	 * MEDIA_ENT_T_V4L2_BASE + 4 can't be used, as those values used
++	 * to be declared for FB, ALSA and DVB entities.
++	 * As those values were never atually used in practice, we're just
++	 * adding them as backward compatibily macros and keeping the
++	 * numberspace cleaned here. This way, we avoid breaking compilation,
++	 * in the case of having some userspace application using the old
++	 * symbols.
++	 */
++#define MEDIA_ENT_T_V4L2_VBI		(MEDIA_ENT_T_V4L2_BASE + 5)
++#define MEDIA_ENT_T_V4L2_RADIO		(MEDIA_ENT_T_V4L2_BASE + 6)
++#define MEDIA_ENT_T_V4L2_SWRADIO	(MEDIA_ENT_T_V4L2_BASE + 7)
 +
++/* V4L2 Sub-device entities */
++#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 1)
++#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 2)
++#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 3)
++	/* A converter of analogue video to its digital representation. */
++#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 4)
++	/* Tuner entity is actually both V4L2 and DVB subdev */
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 5)
++
++/* DVB entities */
++#define MEDIA_ENT_T_DVB_DEMOD		(MEDIA_ENT_T_DVB_BASE + 4)
++#define MEDIA_ENT_T_DVB_DEMUX		(MEDIA_ENT_T_DVB_BASE + 5)
++#define MEDIA_ENT_T_DVB_TSOUT		(MEDIA_ENT_T_DVB_BASE + 6)
++#define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 7)
++#define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 8)
++
++/* Legacy symbols used to avoid userspace compilation breakages */
+ #define MEDIA_ENT_TYPE_SHIFT		16
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+ #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
  
- #else
- static inline int media_device_register(struct media_device *mdev)
+-#define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
+-#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
++#define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_T_V4L2_BASE
++#define MEDIA_ENT_T_V4L2_SUBDEV		MEDIA_ENT_T_V4L2_SUBDEV_BASE
++
++#define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_T_V4L2_VIDEO
++
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+-#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
+-#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
+-#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
+-#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
+-#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
++#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+ 
+-/* Legacy symbol. Use it to avoid userspace compilation breakages */
+-#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
+-
+-#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
+-#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
+-/* A converter of analogue video to its digital representation. */
+-#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+-
+-#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
++/* Entity types */
+ 
+ #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+ 
 -- 
 2.4.3
 
