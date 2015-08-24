@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:36592 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753537AbbHFJzY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Aug 2015 05:55:24 -0400
-From: Shraddha Barke <shraddha.6596@gmail.com>
-To: Marek Belisko <marek.belisko@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
+Received: from mail-io0-f171.google.com ([209.85.223.171]:33623 "EHLO
+	mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754550AbbHXUPK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2015 16:15:10 -0400
+Received: by iods203 with SMTP id s203so162628680iod.0
+        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 13:15:10 -0700 (PDT)
+Message-ID: <55DB7B4C.4010804@kernel.dk>
+Date: Mon, 24 Aug 2015 14:15:08 -0600
+From: Jens Axboe <axboe@kernel.dk>
+MIME-Version: 1.0
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andrew Morton <akpm@linux-foundation.org>
+CC: linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Joe Perches <joe@perches.com>, Peter Karlsson <peter@zapto.se>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	Tina Johnson <tinajohnson.1234@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Shraddha Barke <shraddha.6596@gmail.com>
-Subject: [PATCH v3 2/2] Staging: media: lirc: use USB API functions rather than constants
-Date: Thu,  6 Aug 2015 15:24:22 +0530
-Message-Id: <1438854862-10213-2-git-send-email-shraddha.6596@gmail.com>
-In-Reply-To: <1438854862-10213-1-git-send-email-shraddha.6596@gmail.com>
-References: <1438854862-10213-1-git-send-email-shraddha.6596@gmail.com>
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] lib: scatterlist: add sg splitting function
+References: <1439023450-2689-1-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1439023450-2689-1-git-send-email-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces the use of the function usb_endpoint_type.
+On 08/08/2015 02:44 AM, Robert Jarzmik wrote:
+> Sometimes a scatter-gather has to be split into several chunks, or sub
+> scatter lists. This happens for example if a scatter list will be
+> handled by multiple DMA channels, each one filling a part of it.
+>
+> A concrete example comes with the media V4L2 API, where the scatter list
+> is allocated from userspace to hold an image, regardless of the
+> knowledge of how many DMAs will fill it :
+>   - in a simple RGB565 case, one DMA will pump data from the camera ISP
+>     to memory
+>   - in the trickier YUV422 case, 3 DMAs will pump data from the camera
+>     ISP pipes, one for pipe Y, one for pipe U and one for pipe V
+>
+> For these cases, it is necessary to split the original scatter list into
+> multiple scatter lists, which is the purpose of this patch.
+>
+> The guarantees that are required for this patch are :
+>   - the intersection of spans of any couple of resulting scatter lists is
+>     empty.
+>   - the union of spans of all resulting scatter lists is a subrange of
+>     the span of the original scatter list.
+>   - streaming DMA API operations (mapping, unmapping) should not happen
+>     both on both the resulting and the original scatter list. It's either
+>     the first or the later ones.
+>   - the caller is reponsible to call kfree() on the resulting
+>     scatterlists.
+>
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-The Coccinelle semantic patch that makes these changes is as follows:
+I think this looks fine. But do we really need the Kconfig option? It's 
+not a lot of code, and it seems silly to put the onus on the driver for 
+having to enable something that is a subset of the SG api.
 
-@@ struct usb_endpoint_descriptor *epd; @@
-
-- (epd->bmAttributes & \(USB_ENDPOINT_XFERTYPE_MASK\|3\))
-+ usb_endpoint_type(epd)
-
-Signed-off-by: Shraddha Barke <shraddha.6596@gmail.com>
----
-Changes in v3:
-  -No changes.
-
- drivers/staging/media/lirc/lirc_imon.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-index 62ec9f7..cbeec83 100644
---- a/drivers/staging/media/lirc/lirc_imon.c
-+++ b/drivers/staging/media/lirc/lirc_imon.c
-@@ -739,7 +739,7 @@ static int imon_probe(struct usb_interface *interface,
- 
- 		ep = &iface_desc->endpoint[i].desc;
- 		ep_dir = ep->bEndpointAddress & USB_ENDPOINT_DIR_MASK;
--		ep_type = ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
-+		ep_type = usb_endpoint_type(ep);
- 
- 		if (!ir_ep_found &&
- 			ep_dir == USB_DIR_IN &&
 -- 
-2.1.0
+Jens Axboe
 
