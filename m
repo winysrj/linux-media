@@ -1,62 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40508 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbbHVR2i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:38 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 22/39] [media] v4l2-ctrls.h: Document a few missing arguments
-Date: Sat, 22 Aug 2015 14:28:07 -0300
-Message-Id: <757d005520590b29b5740f73ceb363f047d2ac78.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59510 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751179AbbHXSeg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2015 14:34:36 -0400
+Subject: Re: [PATCH v7 03/44] [media] omap3isp: get entity ID using
+ media_entity_id()
+To: Shuah Khan <shuahkhan@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+ <0c7d9114cb585da8f24c6ac9861bed9cd7f5a794.1440359643.git.mchehab@osg.samsung.com>
+ <CAKocOOO37DPG520cpYrTFgXWyCrTRjRDCvdk13n1EC0PWPrpzQ@mail.gmail.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	shuahkh@osg.samsung.com
+Message-ID: <55DB63B8.4010105@osg.samsung.com>
+Date: Mon, 24 Aug 2015 20:34:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAKocOOO37DPG520cpYrTFgXWyCrTRjRDCvdk13n1EC0PWPrpzQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Warning(.//include/media/v4l2-ctrls.h:217): No description found for parameter 'p_new'
-Warning(.//include/media/v4l2-ctrls.h:217): No description found for parameter 'p_cur'
-Warning(.//include/media/v4l2-ctrls.h:217): Excess struct/union/enum/typedef member 'val64' description in 'v4l2_ctrl'
-Warning(.//include/media/v4l2-ctrls.h:314): No description found for parameter 'qmenu_int'
+Hello Shuah,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thanks for your feedback.
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 946d5d3d6ff7..da6fe9802fee 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -159,12 +159,17 @@ typedef void (*v4l2_ctrl_notify_fnc)(struct v4l2_ctrl *ctrl, void *priv);
-  * @flags:	The control's flags.
-  * @cur:	The control's current value.
-  * @val:	The control's new s32 value.
-- * @val64:	The control's new s64 value.
-  * @priv:	The control's private pointer. For use by the driver. It is
-  *		untouched by the control framework. Note that this pointer is
-  *		not freed when the control is deleted. Should this be needed
-  *		then a new internal bitfield can be added to tell the framework
-  *		to free this pointer.
-+ * @p_cur:	The control's current value represented via an union with
-+ *		provides a standard way of accessing control types
-+ *		through a pointer.
-+ * @p_new:	The control's new value represented via an union with provides
-+ *		a standard way of accessing control types
-+ *		through a pointer.
-  */
- struct v4l2_ctrl {
- 	/* Administrative fields */
-@@ -291,6 +296,8 @@ struct v4l2_ctrl_handler {
-  *		empty strings ("") correspond to non-existing menu items (this
-  *		is in addition to the menu_skip_mask above). The last entry
-  *		must be NULL.
-+ * @qmenu_int:	A const s64 integer array for all menu items of the type
-+ * 		V4L2_CTRL_TYPE_INTEGER_MENU.
-  * @is_private: If set, then this control is private to its handler and it
-  *		will not be added to any other handlers.
-  */
+On 08/24/2015 08:14 PM, Shuah Khan wrote:
+> On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+>> From: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> X-Patchwork-Delegate: laurent.pinchart@ideasonboard.com
+>> The struct media_entity does not have an .id field anymore since
+>> now the entity ID is stored in the embedded struct media_gobj.
+>>
+>> This caused the omap3isp driver fail to build. Fix by using the
+>> media_entity_id() macro to obtain the entity ID.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+>> index 56e683b19a73..e08183f9d0f7 100644
+>> --- a/drivers/media/platform/omap3isp/isp.c
+>> +++ b/drivers/media/platform/omap3isp/isp.c
+>> @@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+>>         struct v4l2_subdev *subdev;
+>>         int failure = 0;
+>>         int ret;
+>> +       u32 id;
+>>
+>>         /*
+>>          * We need to stop all the modules after CCDC first or they'll
+>> @@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+>>                 if (ret) {
+>>                         dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
+>>                         isp->stop_failure = true;
+>> -                       if (subdev == &isp->isp_prev.subdev)
+>> -                               isp->crashed |= 1U << subdev->entity.id;
+>> +                       if (subdev == &isp->isp_prev.subdev) {
+>> +                               id = media_entity_id(&subdev->entity);
+>> +                               isp->crashed |= 1U << id;
+> 
+> Is there a reason why you need id defined here, unlike the cases
+> below. Can you do
+> 
+> isp->crashed |= 1U << media_entity_id(&subdev->entity);
+> 
+>
+
+Yes I could but due the indentation levels, that line length would be
+way over the 80 columns convention. An alternative would had been to
+break down in two lines but that would make it even less readable IMHO.
+
+So I added that variable for readability and to make checkpatch.pl happy.
+
+> 
+> thanks,
+> -- Shuah
+> 
+
+Best regards,
 -- 
-2.4.3
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
