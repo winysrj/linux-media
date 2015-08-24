@@ -1,144 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:49855 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753052AbbH2PDR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 11:03:17 -0400
-Subject: Re: [PATCH] stv090x: use lookup tables for carrier/noise ratio
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <5238E030.8040203@gmx.de> <20141111082838.05369439@recife.lan>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Joerg Riechardt <J.Riechardt@gmx.de>
-Message-ID: <55E1C9A1.6040702@gmx.de>
-Date: Sat, 29 Aug 2015 17:02:57 +0200
+Received: from mail-io0-f176.google.com ([209.85.223.176]:34687 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060AbbHXWNL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Aug 2015 18:13:11 -0400
+Received: by iodb91 with SMTP id b91so165254353iod.1
+        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 15:13:10 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20141111082838.05369439@recife.lan>
-Content-Type: multipart/mixed;
- boundary="------------040806060509000808050105"
+In-Reply-To: <428d72ba195018f3371adbd3a56f474aad6659b7.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<428d72ba195018f3371adbd3a56f474aad6659b7.1440359643.git.mchehab@osg.samsung.com>
+Date: Mon, 24 Aug 2015 16:13:10 -0600
+Message-ID: <CAKocOOPhhs7DTW2aBh64WaCMTigWy2TcuSW4fPH8_Wb4m3hENw@mail.gmail.com>
+Subject: Re: [PATCH v7 05/44] [media] media: use media_gobj inside entities
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	shuahkh@osg.samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040806060509000808050105
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-
-Am 11.11.2014 um 11:28 schrieb Mauro Carvalho Chehab:
-> Em Wed, 18 Sep 2013 01:05:20 +0200
-> Joerg Riechardt <J.Riechardt@gmx.de> escreveu:
+On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> As entities are graph objects, let's embed media_gobj
+> on it. That ensures an unique ID for entities that can be
+> global along the entire media controller.
 >
->> The stv090x driver uses the lookup table for signal strength already,
->> with this patch we use the lookup tables for carrier/noise ratio as well.
->> This has the advantage, that values for DVB-S and DVB-S2 are now
->> corresponding, while before they were way off. The values are now
->> proportional to real carrier/noise ratio, while before they were
->> corresponding to register values. So now applications are able to give
->> the user real carrier/noise ratio.
->>
->> Because the output has to be within 0x0000...0xFFFF the three negative
->> values for DVB-S2 are omitted. This is no significant loss, because
->> reception is lost at 7.5 dB already (TT S2-1600, Cine S2), so the
->> negative values are not really important, and also for DVB-S they don´t
->> exist.
->>
->> Signed-off-by: Joerg Riechardt <j.riechardt@gmx.de>
->>
->> Regards,
->> Joerg
->>
->> --- stv090x.c.bak	2013-09-06 20:59:01.132365872 +0200
->> +++ stv090x.c	2013-09-10 03:21:48.884115191 +0200
->> @@ -173,9 +173,9 @@
->>
->>   /* DVBS2 C/N Lookup table */
->>   static const struct stv090x_tab stv090x_s2cn_tab[] = {
->> -	{ -30, 13348 }, /* -3.0dB */
->> -	{ -20, 12640 }, /* -2d.0B */
->> -	{ -10, 11883 }, /* -1.0dB */
->> +//	{ -30, 13348 }, /* -3.0dB */
->> +//	{ -20, 12640 }, /* -2d.0B */
->> +//	{ -10, 11883 }, /* -1.0dB */
->>   	{   0, 11101 }, /* -0.0dB */
->>   	{   5, 10718 }, /*  0.5dB */
->>   	{  10, 10339 }, /*  1.0dB */
+> For now, we'll keep the already existing entity ID. Such
+> field need to be dropped at some point, but for now, let's
+> not do this, to avoid needing to review all drivers and
+> the userspace apps.
 >
-> Instead of commenting, just truncate the value at the DVBv3 stats
-> function.
-
-Ok, done.
-Changed patch attached.
-
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 >
->> @@ -3697,9 +3697,10 @@
->>   			}
->>   			val /= 16;
->>   			last = ARRAY_SIZE(stv090x_s2cn_tab) - 1;
->> -			div = stv090x_s2cn_tab[0].read -
->> -			      stv090x_s2cn_tab[last].read;
->> -			*cnr = 0xFFFF - ((val * 0xFFFF) / div);
->> +			div = stv090x_s2cn_tab[last].real -
->> +			      stv090x_s2cn_tab[0].real;
->> +			val = stv090x_table_lookup(stv090x_s2cn_tab, last, val);
->> +			*cnr = val * 0xFFFF / div;
->>   		}
->>   		break;
->>
->> @@ -3719,9 +3720,10 @@
->>   			}
->>   			val /= 16;
->>   			last = ARRAY_SIZE(stv090x_s1cn_tab) - 1;
->> -			div = stv090x_s1cn_tab[0].read -
->> -			      stv090x_s1cn_tab[last].read;
->> -			*cnr = 0xFFFF - ((val * 0xFFFF) / div);
->> +			div = stv090x_s1cn_tab[last].real -
->> +			      stv090x_s1cn_tab[0].real;
->> +			val = stv090x_table_lookup(stv090x_s1cn_tab, last, val);
->> +			*cnr = val * 0xFFFF / div;
->>   		}
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index e429605ca2c3..81d6a130efef 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -379,7 +379,6 @@ int __must_check __media_device_register(struct media_device *mdev,
+>         if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+>                 return -EINVAL;
 >
-> As, with this patch, C/N will be a properly scaled value, the best
-> is to add support for DVBv5 stats. With DVBv5 stats, the scale can
-> be sent to userspace.
-
-Sorry, I have no plans to add DVBv5 stats, although I agree, it would be 
-nice, if someone did.
-
-Signed-off-by: Joerg Riechardt <j.riechardt@gmx.de>
-
-Regards,
-Joerg
-
-
+> -       mdev->entity_id = 1;
+>         INIT_LIST_HEAD(&mdev->entities);
+>         spin_lock_init(&mdev->lock);
+>         mutex_init(&mdev->graph_mutex);
+> @@ -433,10 +432,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>         entity->parent = mdev;
 >
->>   		break;
->>   	default:
+>         spin_lock(&mdev->lock);
+> -       if (entity->id == 0)
+> -               entity->id = mdev->entity_id++;
+> -       else
+> -               mdev->entity_id = max(entity->id + 1, mdev->entity_id);
+> +       /* Initialize media_gobj embedded at the entity */
+> +       media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+>         list_add_tail(&entity->list, &mdev->entities);
+>         spin_unlock(&mdev->lock);
 >
-> Regards,
-> Mauro
+> @@ -459,6 +456,7 @@ void media_device_unregister_entity(struct media_entity *entity)
+>                 return;
 >
+>         spin_lock(&mdev->lock);
+> +       media_gobj_remove(&entity->graph_obj);
+>         list_del(&entity->list);
+>         spin_unlock(&mdev->lock);
+>         entity->parent = NULL;
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 4834172bf6f8..888cb88e19bf 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -43,7 +43,12 @@ void media_gobj_init(struct media_device *mdev,
+>                            enum media_gobj_type type,
+>                            struct media_gobj *gobj)
+>  {
+> -       /* For now, nothing to do */
+> +       /* Create a per-type unique object ID */
+> +       switch (type) {
+> +       case MEDIA_GRAPH_ENTITY:
+> +               gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
+> +               break;
+> +       }
+>  }
 
---------------040806060509000808050105
-Content-Type: text/plain; charset=UTF-8;
- name="stv090x-use-lookup-tables-for-carrier-noise-ratio.v2.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename*0="stv090x-use-lookup-tables-for-carrier-noise-ratio.v2.patch"
+Unless there is a reason to split patches 4 and 5, it would make it lot
+easier to review if these two patches are combined. I had to go back to
+review media_gobj_gen_id(type, ++mdev->entity_id) for me to get a
+feel for what is done here.
 
-ZGlmZiAtTnJ1IEEvc3R2MDkweC5jIEIvc3R2MDkweC5jCi0tLSBBL3N0djA5MHguYwkyMDE1
-LTA2LTI1IDE0OjMzOjU4LjAwMDAwMDAwMCArMDIwMAorKysgQi9zdHYwOTB4LmMJMjAxNS0w
-OC0yOSAxNjowNzo0NC44ODk4NjEyMzAgKzAyMDAKQEAgLTM3MjYsOSArMzcyNiwxMiBAQAog
-CQkJfQogCQkJdmFsIC89IDE2OwogCQkJbGFzdCA9IEFSUkFZX1NJWkUoc3R2MDkweF9zMmNu
-X3RhYikgLSAxOwotCQkJZGl2ID0gc3R2MDkweF9zMmNuX3RhYlswXS5yZWFkIC0KLQkJCSAg
-ICAgIHN0djA5MHhfczJjbl90YWJbbGFzdF0ucmVhZDsKLQkJCSpjbnIgPSAweEZGRkYgLSAo
-KHZhbCAqIDB4RkZGRikgLyBkaXYpOworCQkJZGl2ID0gc3R2MDkweF9zMmNuX3RhYltsYXN0
-XS5yZWFsIC0KKwkJCSAgICAgIHN0djA5MHhfczJjbl90YWJbM10ucmVhbDsKKwkJCXZhbCA9
-IHN0djA5MHhfdGFibGVfbG9va3VwKHN0djA5MHhfczJjbl90YWIsIGxhc3QsIHZhbCk7CisJ
-CQlpZiAodmFsIDwgMCkKKwkJCQl2YWwgPSAwOworCQkJKmNuciA9IHZhbCAqIDB4RkZGRiAv
-IGRpdjsKIAkJfQogCQlicmVhazsKIApAQCAtMzc0OCw5ICszNzUxLDEwIEBACiAJCQl9CiAJ
-CQl2YWwgLz0gMTY7CiAJCQlsYXN0ID0gQVJSQVlfU0laRShzdHYwOTB4X3MxY25fdGFiKSAt
-IDE7Ci0JCQlkaXYgPSBzdHYwOTB4X3MxY25fdGFiWzBdLnJlYWQgLQotCQkJICAgICAgc3R2
-MDkweF9zMWNuX3RhYltsYXN0XS5yZWFkOwotCQkJKmNuciA9IDB4RkZGRiAtICgodmFsICog
-MHhGRkZGKSAvIGRpdik7CisJCQlkaXYgPSBzdHYwOTB4X3MxY25fdGFiW2xhc3RdLnJlYWwg
-LQorCQkJICAgICAgc3R2MDkweF9zMWNuX3RhYlswXS5yZWFsOworCQkJdmFsID0gc3R2MDkw
-eF90YWJsZV9sb29rdXAoc3R2MDkweF9zMWNuX3RhYiwgbGFzdCwgdmFsKTsKKwkJCSpjbnIg
-PSB2YWwgKiAweEZGRkYgLyBkaXY7CiAJCX0KIAkJYnJlYWs7CiAJZGVmYXVsdDoK
---------------040806060509000808050105--
+If combined, there is no need for skeleton media_gobj_init() and then
+followed by a second patch that fills it in. It will be easier to follow the
+new interface and its use.
+
+thanks,
+-- Shuah
