@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58877 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051AbbHWUSI (ORCPT
+Received: from vms173025pub.verizon.net ([206.46.173.25]:59329 "EHLO
+	vms173025pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540AbbHXX6n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 08/44] [media] media: add messages when media device gets (un)registered
-Date: Sun, 23 Aug 2015 17:17:25 -0300
-Message-Id: <613e76b7bb93117a7a7be553373db56e1f4bc83b.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Mon, 24 Aug 2015 19:58:43 -0400
+Received: from smtp.flippedperspective.com ([108.38.100.161])
+ by vms173025.mailsrvcs.net
+ (Oracle Communications Messaging Server 7.0.5.32.0 64bit (built Jul 16 2014))
+ with ESMTPA id <0NTL0072EZTFRQA0@vms173025.mailsrvcs.net> for
+ linux-media@vger.kernel.org; Mon, 24 Aug 2015 17:58:27 -0500 (CDT)
+From: Zvi Effron <viz+kernel@flippedperspective.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Zvi Effron <viz+kernel@flippedperspective.com>
+Subject: [PATCH] add interface protocol 1 for Surface Pro 3 cameras
+Date: Mon, 24 Aug 2015 15:57:42 -0700
+Message-id: <1440457062-2633-1-git-send-email-viz+kernel@flippedperspective.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We can only free the media device after being sure that no
-graph object is used.
+The cameras on the Surface Pro 3 report interface protocol of 1.
+The generic USB video class doesn't work for them.
+This adds entries for the front and rear camera.
 
-In order to help tracking it, let's add debug messages
-that will print when the media controller gets registered
-or unregistered.
+Signed-off-by: Zvi Effron <viz+kernel@flippedperspective.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 065f6f08da37..0f3844470147 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -359,6 +359,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
- 
- static void media_device_release(struct media_devnode *mdev)
- {
-+	dev_dbg(mdev->parent, "Media device released\n");
- }
- 
- /**
-@@ -397,6 +398,8 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return ret;
- 	}
- 
-+	dev_dbg(mdev->dev, "Media device registered\n");
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
-@@ -416,6 +419,8 @@ void media_device_unregister(struct media_device *mdev)
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	media_devnode_unregister(&mdev->devnode);
-+
-+	dev_dbg(mdev->dev, "Media device unregistered\n");
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 4b5b3e8..d2fdbc1 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2142,6 +2142,22 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
++	/* Microsoft Surface Pro 3 LifeCam Front */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x045e,
++	  .idProduct		= 0x07be,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 1 },
++	/* Microsoft Surface Pro 3 LifeCam Rear */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x045e,
++	  .idProduct		= 0x07bf,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 1 },
+ 	/* Logitech Quickcam Fusion */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
 -- 
 2.4.3
 
