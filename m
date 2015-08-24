@@ -1,147 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53578 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585AbbHTSaF (ORCPT
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:36819 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941AbbHXUHH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 14:30:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] media: atmel-isi: add sanity check for supported formats in set_fmt()
-Date: Thu, 20 Aug 2015 21:30:01 +0300
-Message-ID: <3666856.U1g2Q81eEo@avalon>
-In-Reply-To: <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
-References: <1438745190-21020-1-git-send-email-josh.wu@atmel.com> <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
+	Mon, 24 Aug 2015 16:07:07 -0400
+Received: by igcse8 with SMTP id se8so56730376igc.1
+        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 13:07:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <7ec9c268c9a0faa0f79cc3ce2c2fb04be05d3c0f.1440359643.git.mchehab@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<7ec9c268c9a0faa0f79cc3ce2c2fb04be05d3c0f.1440359643.git.mchehab@osg.samsung.com>
+Date: Mon, 24 Aug 2015 14:07:07 -0600
+Message-ID: <CAKocOOPNoMRWyx1KbDO-vh2Wh7fGtPBSN8uYw+34qzpCTaAHLw@mail.gmail.com>
+Subject: Re: [PATCH v7 04/44] [media] media: add a common struct to be embed
+ on media graph objects
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	shuahkh@osg.samsung.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
-
-Thank you for the patch.
-
-On Wednesday 05 August 2015 11:26:29 Josh Wu wrote:
-> After adding the format check in set_fmt(), we don't need any format check
-> in configure_geometry(). So make configure_geometry() as void type.
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
-> Changes in v2:
-> - new added patch
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 39 ++++++++++++++++++------
->  1 file changed, 31 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index cb46aec..d0df518
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -103,17 +103,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->  	return readl(isi->regs + reg);
->  }
-> 
-> -static int configure_geometry(struct atmel_isi *isi, u32 width,
-> +static void configure_geometry(struct atmel_isi *isi, u32 width,
->  			u32 height, u32 code)
->  {
->  	u32 cfg2;
-> 
->  	/* According to sensor's output format to set cfg2 */
->  	switch (code) {
-> -	/* YUV, including grey */
-> +	default:
-> +	/* Grey */
->  	case MEDIA_BUS_FMT_Y8_1X8:
->  		cfg2 = ISI_CFG2_GRAYSCALE;
->  		break;
-> +	/* YUV */
->  	case MEDIA_BUS_FMT_VYUY8_2X8:
->  		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
->  		break;
-> @@ -127,8 +129,6 @@ static int configure_geometry(struct atmel_isi *isi, u32
-> width, cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
->  		break;
->  	/* RGB, TODO */
-> -	default:
-> -		return -EINVAL;
->  	}
-> 
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> @@ -139,8 +139,29 @@ static int configure_geometry(struct atmel_isi *isi,
-> u32 width, cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
->  			& ISI_CFG2_IM_VSIZE_MASK;
->  	isi_writel(isi, ISI_CFG2, cfg2);
-> +}
-> 
-> -	return 0;
-> +static bool is_supported(struct soc_camera_device *icd,
-> +		const struct soc_camera_format_xlate *xlate)
+On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Due to the MC API proposed changes, we'll need to have an unique
+> object ID for all graph objects, and have some shared fields
+> that will be common on all media graph objects.
+>
+> Right now, the only common object is the object ID, but other
+> fields will be added later on.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index cb0ac4e0dfa5..4834172bf6f8 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -27,6 +27,38 @@
+>  #include <media/media-device.h>
+>
+>  /**
+> + *  media_gobj_init - Initialize a graph object
+> + *
+> + * @mdev:      Pointer to the media_device that contains the object
+> + * @type:      Type of the object
+> + * @gobj:      Pointer to the object
+> + *
+> + * This routine initializes the embedded struct media_gobj inside a
+> + * media graph object. It is called automatically if media_*_create()
+> + * calls are used. However, if the object (entity, link, pad, interface)
+> + * is embedded on some other object, this function should be called before
+> + * registering the object at the media controller.
+> + */
+> +void media_gobj_init(struct media_device *mdev,
+> +                          enum media_gobj_type type,
+> +                          struct media_gobj *gobj)
 > +{
-> +	bool ret = true;
+> +       /* For now, nothing to do */
+> +}
 > +
-> +	switch (xlate->code) {
-> +	/* YUV, including grey */
-> +	case MEDIA_BUS_FMT_Y8_1X8:
-> +	case MEDIA_BUS_FMT_VYUY8_2X8:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	case MEDIA_BUS_FMT_YVYU8_2X8:
-> +	case MEDIA_BUS_FMT_YUYV8_2X8:
 
-I would just return true here and false below, and remove the ret variable.
+This patch is mainly adding skeleton framework. Does this patch series
+implement the media_gobj_init() and media_gobj_remove()?
 
-> +		break;
-> +	/* RGB, TODO */
-> +	default:
-> +		dev_err(icd->parent, "not supported format: %d\n",
-> +					xlate->code);
+If so, would it make sense to combine the implementation and the stubs?
 
-If this can happen when userspace asks for an unsupported format I don't think 
-you should print an error message to the kernel log.
+thanks,
+-- Shuah
 
-> +		ret = false;
-> +	}
+> +/**
+> + *  media_gobj_remove - Stop using a graph object on a media device
+> + *
+> + * @graph_obj: Pointer to the object
+> + *
+> + * This should be called at media_device_unregister_*() routines
+> + */
+> +void media_gobj_remove(struct media_gobj *gobj)
+> +{
+> +       /* For now, nothing to do */
+> +}
 > +
-> +	return ret;
+> +/**
+>   * media_entity_init - Initialize a media entity
+>   *
+>   * @num_pads: Total number of sink and source pads.
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0a66fc225559..b1854239a476 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -28,6 +28,39 @@
+>  #include <linux/list.h>
+>  #include <linux/media.h>
+>
+> +/* Enums used internally at the media controller to represent graphs */
+> +
+> +/**
+> + * enum media_gobj_type - type of a graph object
+> + *
+> + */
+> +enum media_gobj_type {
+> +        /* FIXME: add the types here, as we embed media_gobj */
+> +       MEDIA_GRAPH_NONE
+> +};
+> +
+> +#define MEDIA_BITS_PER_TYPE            8
+> +#define MEDIA_BITS_PER_LOCAL_ID                (32 - MEDIA_BITS_PER_TYPE)
+> +#define MEDIA_LOCAL_ID_MASK             GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
+> +
+> +/* Structs to represent the objects that belong to a media graph */
+> +
+> +/**
+> + * struct media_gobj - Define a graph object.
+> + *
+> + * @id:                Non-zero object ID identifier. The ID should be unique
+> + *             inside a media_device, as it is composed by
+> + *             MEDIA_BITS_PER_TYPE to store the type plus
+> + *             MEDIA_BITS_PER_LOCAL_ID to store a per-type ID
+> + *             (called as "local ID").
+> + *
+> + * All objects on the media graph should have this struct embedded
+> + */
+> +struct media_gobj {
+> +       u32                     id;
+> +};
+> +
+> +
+>  struct media_pipeline {
+>  };
+>
+> @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity *entity)
+>         return entity->id;
 >  }
-> 
->  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-> @@ -391,10 +412,8 @@ static int start_streaming(struct vb2_queue *vq,
-> unsigned int count) /* Disable all interrupts */
->  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> 
-> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-> +	configure_geometry(isi, icd->user_width, icd->user_height,
->  				icd->current_fmt->code);
-> -	if (ret < 0)
-> -		return ret;
-> 
->  	spin_lock_irq(&isi->lock);
->  	/* Clear any pending interrupt */
-> @@ -515,6 +534,10 @@ static int isi_camera_set_fmt(struct soc_camera_device
-> *icd, if (mf->code != xlate->code)
->  		return -EINVAL;
-> 
-> +	/* check with atmel-isi support format */
-> +	if (!is_supported(icd, xlate))
-> +		return -EINVAL;
+>
+> +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
+> +{
+> +       return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
+> +}
 > +
-
-S_FMT is supposed to pick a suitable default format when the requested format 
-isn't supported. It shouldn't return an error.
-
->  	pix->width		= mf->width;
->  	pix->height		= mf->height;
->  	pix->field		= mf->field;
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> +static inline u32 media_localid(struct media_gobj *gobj)
+> +{
+> +       return gobj->id & MEDIA_LOCAL_ID_MASK;
+> +}
+> +
+> +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+> +{
+> +       u32 id;
+> +
+> +       id = type << MEDIA_BITS_PER_LOCAL_ID;
+> +       id |= local_id & MEDIA_LOCAL_ID_MASK;
+> +
+> +       return id;
+> +}
+> +
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH    16
+>  #define MEDIA_ENTITY_ENUM_MAX_ID       64
+>
+> @@ -131,6 +184,14 @@ struct media_entity_graph {
+>         int top;
+>  };
+>
+> +#define gobj_to_entity(gobj) \
+> +               container_of(gobj, struct media_entity, graph_obj)
+> +
+> +void media_gobj_init(struct media_device *mdev,
+> +                   enum media_gobj_type type,
+> +                   struct media_gobj *gobj);
+> +void media_gobj_remove(struct media_gobj *gobj);
+> +
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>                 struct media_pad *pads);
+>  void media_entity_cleanup(struct media_entity *entity);
+> --
+> 2.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
