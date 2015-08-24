@@ -1,110 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45388 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753175AbbHMUOh (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:24570 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751079AbbHXKbW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 16:14:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Helen Fornazier <helen.fornazier@gmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/7] [media] tpg: Export the tpg code from vivid as a module
-Date: Thu, 13 Aug 2015 23:15:34 +0300
-Message-ID: <7236024.9XNTnTKUZn@avalon>
-In-Reply-To: <c6b24212e7473fb6132ff2118a87fdb53e077457.1438891530.git.helen.fornazier@gmail.com>
-References: <cover.1438891530.git.helen.fornazier@gmail.com> <c6b24212e7473fb6132ff2118a87fdb53e077457.1438891530.git.helen.fornazier@gmail.com>
+	Mon, 24 Aug 2015 06:31:22 -0400
+Subject: Re: [PATCH v3 3/3] media: atmel-isi: add sanity check for supported
+ formats in try/set_fmt()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1440144494-11800-1-git-send-email-josh.wu@atmel.com>
+ <1440144494-11800-3-git-send-email-josh.wu@atmel.com>
+ <30646920.vM5hNRm83J@avalon>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <55DAF263.7070109@atmel.com>
+Date: Mon, 24 Aug 2015 18:30:59 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <30646920.vM5hNRm83J@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Hi, Laurent
 
-Thank you for the patch. I just have a couple of small comments.
+On 8/22/2015 2:22 AM, Laurent Pinchart wrote:
+> Hi Josh,
+>
+> Thank you for the patch.
+>
+> On Friday 21 August 2015 16:08:14 Josh Wu wrote:
+>> After adding the format check in try_fmt()/set_fmt(), we don't need any
+>> format check in configure_geometry(). So make configure_geometry() as
+>> void type.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>
+>> Changes in v3:
+>> - check the whether format is supported, if no then return a default
+>>    format.
+>> - misc changes according to Laurent's feedback.
+>>
+>> Changes in v2:
+>> - new added patch
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 37 ++++++++++++++++++------
+>>   1 file changed, 29 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>> b/drivers/media/platform/soc_camera/atmel-isi.c index fe9247a..84c91d3
+>> 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -102,17 +102,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>>   	return readl(isi->regs + reg);
+>>   }
+>>
+>> -static int configure_geometry(struct atmel_isi *isi, u32 width,
+>> +static void configure_geometry(struct atmel_isi *isi, u32 width,
+>>   			u32 height, u32 code)
+>>   {
+>>   	u32 cfg2;
+>>
+>>   	/* According to sensor's output format to set cfg2 */
+>>   	switch (code) {
+>> -	/* YUV, including grey */
+>> +	default:
+>> +	/* Grey */
+>>   	case MEDIA_BUS_FMT_Y8_1X8:
+>>   		cfg2 = ISI_CFG2_GRAYSCALE;
+>>   		break;
+>> +	/* YUV */
+>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>>   		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+>>   		break;
+>> @@ -126,8 +128,6 @@ static int configure_geometry(struct atmel_isi *isi, u32
+>> width, cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+>>   		break;
+>>   	/* RGB, TODO */
+>> -	default:
+>> -		return -EINVAL;
+>>   	}
+>>
+>>   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>> @@ -138,8 +138,23 @@ static int configure_geometry(struct atmel_isi *isi,
+>> u32 width, cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+>>   			& ISI_CFG2_IM_VSIZE_MASK;
+>>   	isi_writel(isi, ISI_CFG2, cfg2);
+>> +}
+>>
+>> -	return 0;
+>> +static bool is_supported(struct soc_camera_device *icd,
+>> +		const u32 pixformat)
+>> +{
+>> +	switch (pixformat) {
+>> +	/* YUV, including grey */
+>> +	case V4L2_PIX_FMT_GREY:
+>> +	case V4L2_PIX_FMT_YUYV:
+>> +	case V4L2_PIX_FMT_UYVY:
+>> +	case V4L2_PIX_FMT_YVYU:
+>> +	case V4L2_PIX_FMT_VYUY:
+>> +		return true;
+>> +	/* RGB, TODO */
+>> +	default:
+>> +		return false;
+>> +	}
+>>   }
+>>
+>>   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+>> @@ -390,10 +405,8 @@ static int start_streaming(struct vb2_queue *vq,
+>> unsigned int count) /* Disable all interrupts */
+>>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>>
+>> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
+>> +	configure_geometry(isi, icd->user_width, icd->user_height,
+>>   				icd->current_fmt->code);
+>> -	if (ret < 0)
+>> -		return ret;
+>>
+>>   	spin_lock_irq(&isi->lock);
+>>   	/* Clear any pending interrupt */
+>> @@ -491,6 +504,10 @@ static int isi_camera_set_fmt(struct soc_camera_device
+>> *icd, struct v4l2_mbus_framefmt *mf = &format.format;
+>>   	int ret;
+>>
+>> +	/* check with atmel-isi support format, if not support use UYVY */
+>> +	if (!is_supported(icd, pix->pixelformat))
+>> +		pix->pixelformat = V4L2_PIX_FMT_YUYV;
+> The comment mentions UYVY and the code uses YUYV.
 
-On Thursday 06 August 2015 17:26:08 Helen Fornazier wrote:
-> The test pattern generator will be used by other drivers as the virtual
-> media controller (vimc)
-> 
-> Signed-off-by: Helen Fornazier <helen.fornazier@gmail.com>
-> ---
->  drivers/media/platform/Kconfig                  |    2 +
->  drivers/media/platform/Makefile                 |    1 +
->  drivers/media/platform/tpg/Kconfig              |    5 +
->  drivers/media/platform/tpg/Makefile             |    3 +
->  drivers/media/platform/tpg/tpg-colors.c         | 1181 ++++++++++++
->  drivers/media/platform/tpg/tpg-core.c           | 2211 ++++++++++++++++++++
->  drivers/media/platform/vivid/Kconfig            |    1 +
->  drivers/media/platform/vivid/Makefile           |    2 +-
->  drivers/media/platform/vivid/vivid-core.h       |    2 +-
->  drivers/media/platform/vivid/vivid-tpg-colors.c | 1182 ------------
->  drivers/media/platform/vivid/vivid-tpg-colors.h |   68 -
->  drivers/media/platform/vivid/vivid-tpg.c        | 2191 --------------------
->  drivers/media/platform/vivid/vivid-tpg.h        |  596 ------
->  include/media/tpg-colors.h                      |   68 +
->  include/media/tpg.h                             |  595 ++++++
->  15 files changed, 4069 insertions(+), 4039 deletions(-)
->  create mode 100644 drivers/media/platform/tpg/Kconfig
->  create mode 100644 drivers/media/platform/tpg/Makefile
->  create mode 100644 drivers/media/platform/tpg/tpg-colors.c
->  create mode 100644 drivers/media/platform/tpg/tpg-core.c
->  delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
->  delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
->  delete mode 100644 drivers/media/platform/vivid/vivid-tpg.c
->  delete mode 100644 drivers/media/platform/vivid/vivid-tpg.h
->  create mode 100644 include/media/tpg-colors.h
->  create mode 100644 include/media/tpg.h
+Oops, forgotten to change the comments. I'll fix it.
+>
+>> +
+>>   	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+>>   	if (!xlate) {
+>>   		dev_warn(icd->parent, "Format %x not found\n",
+> Can this still happen ?
 
-[snip]
+I think this warning should not happen if user call set_fmt() with the 
+format that get from by get_formats().
+But it is a common pattern in soc_camera host code to handle this error.
 
-> drivers diff --git a/drivers/media/platform/tpg/Makefile
-> b/drivers/media/platform/tpg/Makefile new file mode 100644
-> index 0000000..01f2212
-> --- /dev/null
-> +++ b/drivers/media/platform/tpg/Makefile
-> @@ -0,0 +1,3 @@
-> +tpg-objs := tpg-core.o tpg-colors.o
-> +
-> +obj-$(CONFIG_VIDEO_TPG) += tpg.o
+>
+>> @@ -540,6 +557,10 @@ static int isi_camera_try_fmt(struct soc_camera_device
+>> *icd, u32 pixfmt = pix->pixelformat;
+>>   	int ret;
+>>
+>> +	/* check with atmel-isi support format, if not support use UYVY */
+>> +	if (!is_supported(icd, pix->pixelformat))
+>> +		pix->pixelformat = V4L2_PIX_FMT_YUYV;
+>> +
+>>   	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+>>   	if (pixfmt && !xlate) {
+>>   		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+> Same comment here.
+>
+> I wonder whether most of the content of isi_camera_set_fmt() and
+> isi_camera_try_fmt() could be factorized out into a shared function.
 
-I would call the module video-tpg, just tpg is a bit too generic.
+I agree. the current set_fmt() doesn't touch any hardware, so it's 
+almost same as try_fmt().
 
-[snip]
-
-> diff --git a/include/media/tpg.h b/include/media/tpg.h
-> new file mode 100644
-> index 0000000..6dc79fb
-> --- /dev/null
-> +++ b/include/media/tpg.h
-> @@ -0,0 +1,595 @@
-> +/*
-> + * tpg.h - Test Pattern Generator
-> + *
-> + * Copyright 2014 Cisco Systems, Inc. and/or its affiliates. All rights
-> reserved.
-> + *
-> + * This program is free software; you may redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; version 2 of the License.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> + * SOFTWARE.
-> + */
-> +
-> +#ifndef _TPG_H_
-> +#define _TPG_H_
-
-For the same reason I'd use _MEDIA_TPG_H_ here, and for consistency, 
-_MEDIA_TPG_COLORS_H_ for tpg-colors.h.
-
--- 
-Regards,
-
-Laurent Pinchart
+Best Regards,
+Josh Wu
+>
 
