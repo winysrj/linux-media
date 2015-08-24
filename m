@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:36003 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbbH1Og0 (ORCPT
+Received: from smtpout-fallback.aon.at ([195.3.96.119]:12357 "EHLO
+	smtpout-fallback.aon.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752361AbbHXP0a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 10:36:26 -0400
-Received: by ioej130 with SMTP id j130so12710714ioe.3
-        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 07:36:25 -0700 (PDT)
+	Mon, 24 Aug 2015 11:26:30 -0400
+Received: from unknown (HELO smtpout.aon.at) ([172.18.1.205])
+          (envelope-sender <klammerj@a1.net>)
+          by fallback44.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 24 Aug 2015 15:19:48 -0000
+Message-ID: <55DB3608.5010906@a1.net>
+Date: Mon, 24 Aug 2015 17:19:36 +0200
+From: Johann Klammer <klammerj@a1.net>
 MIME-Version: 1.0
-In-Reply-To: <55E060DF.3030202@xs4all.nl>
-References: <55D730F4.80100@xs4all.nl>
-	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>
-	<55D85325.80607@xs4all.nl>
-	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>
-	<55D86F3C.6090004@xs4all.nl>
-	<CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>
-	<55DDBB73.5010902@xs4all.nl>
-	<CALzAhNVxrWOsU72jin4_ygwazX2cnqBaMoPGZ_Kv77xgGx7KmA@mail.gmail.com>
-	<55E014E6.5000801@xs4all.nl>
-	<CALzAhNUMN6BhNZQgGE57-ujoi2O1-baVW_AWFYep7Xd0b4Okrg@mail.gmail.com>
-	<55E060DF.3030202@xs4all.nl>
-Date: Fri, 28 Aug 2015 10:36:25 -0400
-Message-ID: <CALzAhNX6WhY4HO=V=72Atp6o67HJQh2AAhbq4C0HpnG0dScu1Q@mail.gmail.com>
-Subject: Re: [PATCH] saa7164: convert to the control framework
-From: Steven Toth <stoth@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+CC: hverkuil@xs4all.nl
+Subject: [BUG] STV0299 has bogus CAN_INVERSION_AUTO flag
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>> but the default firmware with size 4919072 fails to work (image corrupt), instead
->>> I need to use the firmware with size 4038864 (v4l-saa7164-1.0.3-3.fw).
->>>
->>> For that I have to patch the driver.
->>
->> Take a look at your board, on the main large PCIe IC, its probably
->> marked as either a REV2 or a REV3, or a -02 or -03, what do you have?
->>
->> I suspect you have a rev-02 chip. Not many of them go out into
->> production. (A few thousand, compared to significantly more -03
->> chips).
->
-> The text on the chip is:
->
-> SAA7164E/2
-> P60962.00       10
-> ESG07271Y
->
-> I suspect the /2 means REV2.
+from gdb dump:
+[...]
+info = {
+      name = "ST STV0299 DVB-S", '\000' <repeats 111 times>, type = FE_QPSK, 
+      frequency_min = 950000, frequency_max = 2150000, 
+      frequency_stepsize = 125, frequency_tolerance = 0, 
+      symbol_rate_min = 1000000, symbol_rate_max = 45000000, 
+      symbol_rate_tolerance = 500, notifier_delay = 0, 
+      caps = (FE_CAN_INVERSION_AUTO | FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO | FE_CAN_QPSK)}, 
+[...]
 
-Correct, thanks for confirming. I'll look into this.
+when tuning:
+[...]
+[331012.238617] stv0299 does not support auto-inversion
+[331012.538760] stv0299 does not support auto-inversion
+[331012.838898] stv0299 does not support auto-inversion
+[331014.192121] stv0299 does not support auto-inversion
+[331014.492257] stv0299 does not support auto-inversion
+[331014.792391] stv0299 does not support auto-inversion
+[331015.092571] stv0299 does not support auto-inversion
+[331015.392692] stv0299 does not support auto-inversion
+[331015.692825] stv0299 does not support auto-inversion
+[331015.992964] stv0299 does not support auto-inversion
+[331016.293106] stv0299 does not support auto-inversion
+[331019.306883] stv0299 does not support auto-inversion
+[331019.607024] stv0299 does not support auto-inversion
+[331019.907166] stv0299 does not support auto-inversion
+[331020.207352] stv0299 does not support auto-inversion
+[331020.507480] stv0299 does not support auto-inversion
+[331020.807610] stv0299 does not support auto-inversion
+[331021.107747] stv0299 does not support auto-inversion
+[...]
+(but how the heck should I know?)
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+kernel:
+[...]
+uname -a
+Linux tivi 4.1.0-1-586 #1 Debian 4.1.3-1 (2015-08-03) i686 GNU/Linux
+[...]
+
+hardware[boot msg]:
+[...]
+[   12.785499] saa7146: register extension 'budget_av'
+[   12.786359] saa7146: found saa7146 @ mem cf83e000 (revision 1, irq 10) (0x153b,0x1154)
+[   12.786472] saa7146 (0): dma buffer size 192512
+[   12.786533] DVB: registering new adapter (TerraTec Cinergy 1200 DVB-S)
+[   12.828641] adapter failed MAC signature check
+[   12.828721] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+[   13.096516] budget_av: KNC1-0: MAC addr = 00:0a:ac:01:8d:a1
+[   13.604381] budget_av 0000:00:14.0: DVB: registering adapter 0 frontend 0 (ST STV0299 DVB-S)...
+[   13.621283] budget_av: ci interface initialised
+[...]
+
