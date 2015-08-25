@@ -1,257 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40425 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753418AbbHVR2h (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56975 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755183AbbHYPXX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:28:37 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tue, 25 Aug 2015 11:23:23 -0400
+Message-ID: <55DC883A.4010103@xs4all.nl>
+Date: Tue, 25 Aug 2015 17:22:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Jonathan Corbet <corbet@lwn.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 19/39] [media] DocBook: add dvb_ringbuffer.h to documentation
-Date: Sat, 22 Aug 2015 14:28:04 -0300
-Message-Id: <6850525e4406648e6475ec444b955d1fef784093.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?windows-1252?Q?S=F6ren_Brink?= =?windows-1252?Q?mann?=
+	<soren.brinkmann@xilinx.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v7 25/44] [media] replace all occurrences of MEDIA_ENT_T_DEVNODE_V4L
+References: <cover.1440359643.git.mchehab@osg.samsung.com>	<23e2f9440a259e1162e15dba7e6261dbc4c521c6.1440359643.git.mchehab@osg.samsung.com>	<55DC340C.8030503@xs4all.nl>	<20150825083236.37659d22@recife.lan>	<55DC7381.9090600@xs4all.nl> <20150825121229.77ddcb60@recife.lan>
+In-Reply-To: <20150825121229.77ddcb60@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are already some comments at dvb_ringbuffer.h that are ready
-for DocBook, although not properly formatted.
+On 08/25/2015 05:12 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 25 Aug 2015 15:54:09 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 08/25/15 13:32, Mauro Carvalho Chehab wrote:
+>>> Em Tue, 25 Aug 2015 11:23:24 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
+>>>>> Now that interfaces and entities are distinct, it makes no sense
+>>>>> of keeping something named as MEDIA_ENT_T_DEVNODE.
+>>>>>
+>>>>> This change was done with this script:
+>>>>>
+>>>>> 	for i in $(git grep -l MEDIA_ENT_T|grep -v uapi/linux/media.h); do sed s,MEDIA_ENT_T_DEVNODE_V4L,MEDIA_ENT_T_V4L2_VIDEO, <$i >a && mv a $i; done
+>>>>>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>>
+>>>>> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+>>>>> index 5872f8bbf774..910243d4edb8 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+>>>>> @@ -183,7 +183,7 @@
+>>>>>  	    <entry>Unknown device node</entry>
+>>>>>  	  </row>
+>>>>>  	  <row>
+>>>>> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
+>>>>> +	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+>>>>>  	    <entry>V4L video, radio or vbi device node</entry>
+>>>>>  	  </row>
+>>>>
+>>>> OK, this makes no sense and that ties in with my confusion of the previous patch.
+>>>>
+>>>> These are not device nodes, in the new scheme these are DMA entities (I know,
+>>>> naming TDB) that have an associated interface.
+>>>
+>>> Yes. Well, DMA is a bad name. It won't cover USB devices, where the DMA
+>>> engine is outside the V4L2 drivers, nor it would work for RDS radio data,
+>>> with may not need any DMA at all on no-USB devices, as the data flows via
+>>> the I2C bus.
+>>>
+>>>> I think a much better approach would be to add entity type(s) for such DMA
+>>>> engines in patch 24, then use that new name in existing drivers and split
+>>>> up the existing DEVNODE_V4L media_entity into a media_entity and a
+>>>> media_intf_devnode:
+>>>
+>>> Sorry, but I didn't get. That's precisely what I did ;)
+>>>
+>>>> The current media_entity defined in struct video_device has to be replaced
+>>>> by media_intf_devnode, and the DMA entity has to be added as a new entity
+>>>> to these drivers.
+>>>
+>>> If I do this way, it would break bisectability. I need first to replace
+>>> the names, but keep them as entities, and then add the interfaces.
+>>>
+>>>>
+>>>> This reflects these two action items from our meeting:
+>>>>
+>>>> Migration: add v4l-subdev media_interface: Laurent
+>>>> Migration: add explicit DMA Engine entity: Laurent
+>>>>
+>>>> Unless Laurent says differently I think this is something you'll have to
+>>>> do given Laurent's workload.
+>>>
+>>> Yes. The above action items are covered on this series.
+>>>
+>>> What patch 24 does is to define the new namespace, moving the legacy
+>>> symbols kept due to backward compatibility on a separate part of the
+>>> header.
+>>>
+>>> Then, patches 25-38 replace the occurrences of the deprecated names
+>>> by the new ones.
+>>>
+>>> Nothing is touched at the interfaces yet, to avoid breaking bisectability.
+>>
+>> I don't follow why that would break bisect.
+> 
+> It won't break compilation, but it will break runtime.
+> 
+> I mean: if we replace the current occurrences of the
+> "video output data entities" [1] any userspace app that would be used to test 
+> somethingwill stop working.
+> 
+> Ok, that means that it would break bisectability for us ;)
+> Still, better to avoid.
+> 
+> [1] I don't like the "DMA" entities term, as it is too broken.
+> I prefer to refer to them with some other name, like I/O entities. 
+> However, even this name is not perfect. Those are, in reality, a
+> "data interface", while what we call interface is actually a 
+> "control interface", but calling like that would be confusing, I think.
+> So, I'll simply call it as "video/vbi/... output data entities".
+> 
+>>
+>>> Then, the next patches add interfaces support at the V4L side.
+>>
+>> So this is not yet included in this patch series? That would explain
+>> my confusion. If it is, then I need to take another look on Friday.
+> 
+> It is on the 3 patches I sent yesterday, after this patch series:
+> 	https://patchwork.linuxtv.org/patch/31081/
+> 	https://patchwork.linuxtv.org/patch/31082/
+> 	https://patchwork.linuxtv.org/patch/31083/
+> 
 
-Convert them, fix some issues and add this file to
-the device-drivers DocBook.
+Ah, OK. These are not part of this patch series, so that explains
+it. I hadn't gotten around to reviewing these 3.
 
-While here, put multi-line comments on the right format.
+I'll plan reviewing these on Friday and I'll revisit the patches
+I skipped in the 44 part-series with this in mind.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Regards,
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 21fc7684d706..030b3803cc68 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -230,6 +230,7 @@ X!Isound/sound_firmware.c
- !Idrivers/media/dvb-core/dvb_ca_en50221.h
- !Idrivers/media/dvb-core/dvb_frontend.h
- !Idrivers/media/dvb-core/dvb_math.h
-+!Idrivers/media/dvb-core/dvb_ringbuffer.h
- <!-- FIXME: Removed for now due to document generation inconsistency
- X!Iinclude/media/v4l2-ctrls.h
- X!Iinclude/media/v4l2-dv-timings.h
-@@ -241,7 +242,6 @@ X!Iinclude/media/lirc.h
- X!Edrivers/media/dvb-core/dvb_demux.c
- X!Idrivers/media/dvb-core/dvbdev.h
- X!Edrivers/media/dvb-core/dvb_net.c
--X!Idrivers/media/dvb-core/dvb_ringbuffer.h
- -->
- 
-   </chapter>
-diff --git a/drivers/media/dvb-core/dvb_ringbuffer.h b/drivers/media/dvb-core/dvb_ringbuffer.h
-index 9e1e11b7c39c..3ebc2d34b4a2 100644
---- a/drivers/media/dvb-core/dvb_ringbuffer.h
-+++ b/drivers/media/dvb-core/dvb_ringbuffer.h
-@@ -45,33 +45,33 @@ struct dvb_ringbuffer {
- 
- 
- /*
--** Notes:
--** ------
--** (1) For performance reasons read and write routines don't check buffer sizes
--**     and/or number of bytes free/available. This has to be done before these
--**     routines are called. For example:
--**
--**     *** write <buflen> bytes ***
--**     free = dvb_ringbuffer_free(rbuf);
--**     if (free >= buflen)
--**         count = dvb_ringbuffer_write(rbuf, buffer, buflen);
--**     else
--**         ...
--**
--**     *** read min. 1000, max. <bufsize> bytes ***
--**     avail = dvb_ringbuffer_avail(rbuf);
--**     if (avail >= 1000)
--**         count = dvb_ringbuffer_read(rbuf, buffer, min(avail, bufsize));
--**     else
--**         ...
--**
--** (2) If there is exactly one reader and one writer, there is no need
--**     to lock read or write operations.
--**     Two or more readers must be locked against each other.
--**     Flushing the buffer counts as a read operation.
--**     Resetting the buffer counts as a read and write operation.
--**     Two or more writers must be locked against each other.
--*/
-+ * Notes:
-+ * ------
-+ * (1) For performance reasons read and write routines don't check buffer sizes
-+ *     and/or number of bytes free/available. This has to be done before these
-+ *     routines are called. For example:
-+ *
-+ *     *** write @buflen: bytes ***
-+ *     free = dvb_ringbuffer_free(rbuf);
-+ *     if (free >= buflen)
-+ *         count = dvb_ringbuffer_write(rbuf, buffer, buflen);
-+ *     else
-+ *         ...
-+ *
-+ *     *** read min. 1000, max. @bufsize: bytes ***
-+ *     avail = dvb_ringbuffer_avail(rbuf);
-+ *     if (avail >= 1000)
-+ *         count = dvb_ringbuffer_read(rbuf, buffer, min(avail, bufsize));
-+ *     else
-+ *         ...
-+ *
-+ * (2) If there is exactly one reader and one writer, there is no need
-+ *     to lock read or write operations.
-+ *     Two or more readers must be locked against each other.
-+ *     Flushing the buffer counts as a read operation.
-+ *     Resetting the buffer counts as a read and write operation.
-+ *     Two or more writers must be locked against each other.
-+ */
- 
- /* initialize ring buffer, lock and queue */
- extern void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len);
-@@ -87,9 +87,9 @@ extern ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf);
- 
- 
- /*
--** Reset the read and write pointers to zero and flush the buffer
--** This counts as a read and write operation
--*/
-+ * Reset the read and write pointers to zero and flush the buffer
-+ * This counts as a read and write operation
-+ */
- extern void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf);
- 
- 
-@@ -101,19 +101,19 @@ extern void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf);
- /* flush buffer protected by spinlock and wake-up waiting task(s) */
- extern void dvb_ringbuffer_flush_spinlock_wakeup(struct dvb_ringbuffer *rbuf);
- 
--/* peek at byte <offs> in the buffer */
-+/* peek at byte @offs: in the buffer */
- #define DVB_RINGBUFFER_PEEK(rbuf,offs)	\
- 			(rbuf)->data[((rbuf)->pread+(offs))%(rbuf)->size]
- 
--/* advance read ptr by <num> bytes */
-+/* advance read ptr by @num: bytes */
- #define DVB_RINGBUFFER_SKIP(rbuf,num)	\
- 			(rbuf)->pread=((rbuf)->pread+(num))%(rbuf)->size
- 
- /*
--** read <len> bytes from ring buffer into <buf>
--** <usermem> specifies whether <buf> resides in user space
--** returns number of bytes transferred or -EFAULT
--*/
-+ * read @len: bytes from ring buffer into @buf:
-+ * @usermem: specifies whether @buf: resides in user space
-+ * returns number of bytes transferred or -EFAULT
-+ */
- extern ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf,
- 				   u8 __user *buf, size_t len);
- extern void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf,
-@@ -127,9 +127,9 @@ extern void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf,
- 			{ (rbuf)->data[(rbuf)->pwrite]=(byte); \
- 			(rbuf)->pwrite=((rbuf)->pwrite+1)%(rbuf)->size; }
- /*
--** write <len> bytes to ring buffer
--** <usermem> specifies whether <buf> resides in user space
--** returns number of bytes transferred or -EFAULT
-+ * write @len: bytes to ring buffer
-+ * @usermem: specifies whether @buf: resides in user space
-+ * returns number of bytes transferred or -EFAULT
- */
- extern ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf,
- 				    size_t len);
-@@ -138,48 +138,63 @@ extern ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
- 
- 
- /**
-- * Write a packet into the ringbuffer.
-+ * dvb_ringbuffer_pkt_write - Write a packet into the ringbuffer.
-  *
-- * <rbuf> Ringbuffer to write to.
-- * <buf> Buffer to write.
-- * <len> Length of buffer (currently limited to 65535 bytes max).
-+ * @rbuf: Ringbuffer to write to.
-+ * @buf: Buffer to write.
-+ * @len: Length of buffer (currently limited to 65535 bytes max).
-  * returns Number of bytes written, or -EFAULT, -ENOMEM, -EVINAL.
-  */
- extern ssize_t dvb_ringbuffer_pkt_write(struct dvb_ringbuffer *rbuf, u8* buf,
- 					size_t len);
- 
- /**
-- * Read from a packet in the ringbuffer. Note: unlike dvb_ringbuffer_read(), this
-- * does NOT update the read pointer in the ringbuffer. You must use
-- * dvb_ringbuffer_pkt_dispose() to mark a packet as no longer required.
-+ * dvb_ringbuffer_pkt_read_user - Read from a packet in the ringbuffer.
-+ * Note: unlike dvb_ringbuffer_read(), this does NOT update the read pointer
-+ * in the ringbuffer. You must use dvb_ringbuffer_pkt_dispose() to mark a
-+ * packet as no longer required.
-+ *
-+ * @rbuf: Ringbuffer concerned.
-+ * @idx: Packet index as returned by dvb_ringbuffer_pkt_next().
-+ * @offset: Offset into packet to read from.
-+ * @buf: Destination buffer for data.
-+ * @len: Size of destination buffer.
-  *
-- * <rbuf> Ringbuffer concerned.
-- * <idx> Packet index as returned by dvb_ringbuffer_pkt_next().
-- * <offset> Offset into packet to read from.
-- * <buf> Destination buffer for data.
-- * <len> Size of destination buffer.
-- * <usermem> Set to 1 if <buf> is in userspace.
-  * returns Number of bytes read, or -EFAULT.
-  */
- extern ssize_t dvb_ringbuffer_pkt_read_user(struct dvb_ringbuffer *rbuf, size_t idx,
- 				       int offset, u8 __user *buf, size_t len);
-+
-+/**
-+ * dvb_ringbuffer_pkt_read - Read from a packet in the ringbuffer.
-+ * Note: unlike dvb_ringbuffer_read_user(), this DOES update the read pointer
-+ * in the ringbuffer.
-+ *
-+ * @rbuf: Ringbuffer concerned.
-+ * @idx: Packet index as returned by dvb_ringbuffer_pkt_next().
-+ * @offset: Offset into packet to read from.
-+ * @buf: Destination buffer for data.
-+ * @len: Size of destination buffer.
-+ *
-+ * returns Number of bytes read, or -EFAULT.
-+ */
- extern ssize_t dvb_ringbuffer_pkt_read(struct dvb_ringbuffer *rbuf, size_t idx,
- 				       int offset, u8 *buf, size_t len);
- 
- /**
-- * Dispose of a packet in the ring buffer.
-+ * dvb_ringbuffer_pkt_dispose - Dispose of a packet in the ring buffer.
-  *
-- * <rbuf> Ring buffer concerned.
-- * <idx> Packet index as returned by dvb_ringbuffer_pkt_next().
-+ * @rbuf: Ring buffer concerned.
-+ * @idx: Packet index as returned by dvb_ringbuffer_pkt_next().
-  */
- extern void dvb_ringbuffer_pkt_dispose(struct dvb_ringbuffer *rbuf, size_t idx);
- 
- /**
-- * Get the index of the next packet in a ringbuffer.
-+ * dvb_ringbuffer_pkt_next - Get the index of the next packet in a ringbuffer.
-  *
-- * <rbuf> Ringbuffer concerned.
-- * <idx> Previous packet index, or -1 to return the first packet index.
-- * <pktlen> On success, will be updated to contain the length of the packet in bytes.
-+ * @rbuf: Ringbuffer concerned.
-+ * @idx: Previous packet index, or -1 to return the first packet index.
-+ * @pktlen: On success, will be updated to contain the length of the packet in bytes.
-  * returns Packet index (if >=0), or -1 if no packets available.
-  */
- extern ssize_t dvb_ringbuffer_pkt_next(struct dvb_ringbuffer *rbuf, size_t idx, size_t* pktlen);
--- 
-2.4.3
+	Hans
+
+
+> Please notice that the above patch series is not complete, as
+> there's something non-trivial to be addressed on non-subdev
+> V4L2 interfaces: how to create the indirect links.
+> 
+> By indirect links, I meant to refer to the interface links that
+> don't control an entity directly, but via the internal hardware
+> control/I2C bus(es).
+> 
+> So, a video interface, on a PC customer's hardware controls not only
+> the video output data entity, but it also indirectly controls the
+> tuner and the analog demod. Or, on a webcam hardware, it will also
+> controls the sensor.
+> 
+> However, on platform drivers, it controls just the
+> "video output data entity" that is directly associated with it via 
+> its device node.
+> 
+> We need to add some support to automatically create those links,
+> once available, but only if the device is a PC customer's hardware.
+> 
+> Btw, that's another reason to postpone it: creating the interfaces
+> offer this additional challenge, while creating the entities are
+> easy, as nothing changes there.
+> 
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
