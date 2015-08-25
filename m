@@ -1,65 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:8638 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751661AbbHEDbF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 23:31:05 -0400
-Message-ID: <55C18374.4030707@atmel.com>
-Date: Wed, 5 Aug 2015 11:31:00 +0800
-From: Josh Wu <josh.wu@atmel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58017 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752059AbbHYO2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 10:28:24 -0400
+Message-ID: <55DC7AE2.6010103@xs4all.nl>
+Date: Tue, 25 Aug 2015 16:25:38 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/4] atmel-isi: Remove platform data support
-References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com> <55BED85D.4090905@atmel.com> <11161489.E6W8tYM4a4@avalon>
-In-Reply-To: <11161489.E6W8tYM4a4@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+CC: linux-sh@vger.kernel.org
+Subject: Re: [PATCH] rcar_vin: propagate querystd() error upstream
+References: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com>
+In-Reply-To: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+On 08/19/15 23:02, Sergei Shtylyov wrote:
+> rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method call
+> fails (e.g. due to I2C error).  This doesn't work very well when a camera being
+> used  outputs NTSC which has different order of fields and resolution.  Let  us
+> stop  pretending and return the actual error (which would prevent video capture
+> on at least Renesas Henninger/Porter board where I2C seems particularly buggy).
+> 
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> The patch is against the 'media_tree.git' repo's 'fixes' branch.
+> 
+>  drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -1592,7 +1592,7 @@ static int rcar_vin_set_fmt(struct soc_c
+>  		/* Query for standard if not explicitly mentioned _TB/_BT */
+>  		ret = v4l2_subdev_call(sd, video, querystd, &std);
 
-On 8/5/2015 6:08 AM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> On Monday 03 August 2015 10:56:29 Josh Wu wrote:
->> On 8/1/2015 5:22 PM, Laurent Pinchart wrote:
->>> Hello,
->>>
->>> While reviewing patches for the atmel-isi I noticed a couple of small
->>> issues with the driver. Here's a patch series to fix them, the main
->>> change being the removal of platform data support now that all users have
->>> migrated to DT.
->> Thanks for the patches. It's perfectly make sense.
->>
->>> The patches have been compile-tested only. Josh, would you be able to test
->>> them on hardware ?
->> For the whole series, here is my:
->>
->> Acked-by: Josh Wu <josh.wu@atmel.com>
->> Tested-by: Josh Wu <josh.wu@atmel.com>
-> Thank you.
->
-> Do you plan to take those four patches in your tree and include them in your
-> next pull request ?
+Ouch, this should never be done like this.
 
-yes, I plan to take them with my other patches for atmel-isi (about the 
-configure_geometry(), already sent for review).
-And I will sent a pull request to Gueannadi.
+Instead the decision should be made using the last set std, never by querying.
+So querystd should be replaced by g_std in the v4l2_subdev_call above.
 
-Best Regards,
-Josh Wu
+The only place querystd can be called is in the QUERYSTD ioctl, all other
+ioctls should use the last set standard.
 
->>> Laurent Pinchart (4):
->>>     v4l: atmel-isi: Simplify error handling during DT parsing
->>>     v4l: atmel-isi: Remove unused variable
->>>     v4l: atmel-isi: Remove support for platform data
->>>     v4l: atmel-isi: Remove unused platform data fields
->>>    
->>>    drivers/media/platform/soc_camera/atmel-isi.c |  40 ++------
->>>    drivers/media/platform/soc_camera/atmel-isi.h | 126 ++++++++++++++++++++
->>>    include/media/atmel-isi.h                     | 131 --------------------
->>>    3 files changed, 136 insertions(+), 161 deletions(-)
->>>    create mode 100644 drivers/media/platform/soc_camera/atmel-isi.h
->>>    delete mode 100644 include/media/atmel-isi.h
+Regards,
 
+	Hans
+
+>  		if (ret < 0)
+> -			std = V4L2_STD_625_50;
+> +			return ret;
+>  
+>  		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
+>  						V4L2_FIELD_INTERLACED_BT;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
