@@ -1,48 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60702 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946068AbbHHPnB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Aug 2015 11:43:01 -0400
-Date: Sat, 8 Aug 2015 08:42:59 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Junsu Shin <jjunes0@gmail.com>, devel@driverdev.osuosl.org,
-	boris.brezillon@free-electrons.com, mchehab@osg.samsung.com,
-	linux-kernel@vger.kernel.org, prabhakar.csengg@gmail.com,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] Staging: media: davinci_vpfe: fix over 80 characters
- coding style issue.
-Message-ID: <20150808154259.GD11851@kroah.com>
-References: <1438916154-5840-1-git-send-email-jjunes0@gmail.com>
- <20150807044505.GB3537@sudip-pc>
- <55C5A7C6.9080006@gmail.com>
- <20150808101218.GA1301@sudip-pc>
+Received: from lists.s-osg.org ([54.187.51.154]:59703 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753839AbbHYJlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 05:41:51 -0400
+Date: Tue, 25 Aug 2015 06:41:47 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v7 18/44] [media] media: make media_link more generic to
+ handle interace links
+Message-ID: <20150825064147.7f8671fa@recife.lan>
+In-Reply-To: <55DC1937.80606@xs4all.nl>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
+	<55DC1937.80606@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20150808101218.GA1301@sudip-pc>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 08, 2015 at 03:42:18PM +0530, Sudip Mukherjee wrote:
-> On Sat, Aug 08, 2015 at 01:55:02AM -0500, Junsu Shin wrote:
+Em Tue, 25 Aug 2015 09:28:55 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> > By adding an union at media_link, we get for free a way to
+> > represent interface->entity links.
 > > 
-> > On 08/06/2015 11:45 PM, Sudip Mukherjee wrote:
-> > > On Thu, Aug 06, 2015 at 09:55:54PM -0500, Junsu Shin wrote:
-> > > 
-> <snip>
+> > No need to change anything at the code, just at the internal
+> > header file.
 > > 
-> > Thanks for pointing it out.
-> > Again, this is a patch to the dm365_ipipe.c that fixes over 80 characters warning detected by the script.
-> > This time I fixed up the indentation issue claimed in the previous one.
-> > Signed-off-by: Junsu Shin <jjunes0@gmail.com>
-> > ---
-> Greg will not accept patches like this way. please send it as v2.
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 17bb5cbbd67d..f6e8fa801cf9 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -75,14 +75,20 @@ struct media_pipeline {
+> >  struct media_link {
+> >  	struct media_gobj graph_obj;
+> >  	struct list_head list;
+> > -	struct media_pad *source;	/* Source pad */
+> > -	struct media_pad *sink;		/* Sink pad  */
+> > +	union {
+> > +		struct media_gobj *port0;
+> > +		struct media_pad *source;
+> > +	};
+> > +	union {
+> > +		struct media_gobj *port1;
+> > +		struct media_pad *sink;
+> > +	};
+> >  	struct media_link *reverse;	/* Link in the reverse direction */
+> >  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+> >  };
+> >  
+> >  struct media_pad {
+> > -	struct media_gobj graph_obj;
+> > +	struct media_gobj graph_obj;	/* should be the first object */
+> >  	struct media_entity *entity;	/* Entity this pad belongs to */
+> >  	u16 index;			/* Pad index in the entity pads array */
+> >  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+> > @@ -105,7 +111,7 @@ struct media_entity_operations {
+> >  };
+> >  
+> >  struct media_entity {
+> > -	struct media_gobj graph_obj;
+> > +	struct media_gobj graph_obj;	/* should be the first object */
+> 
+> Does adding these "/* should be the first object */" comments in media_entity
+> and media_pad belong to this patch? It doesn't seem to be related to the union
+> change.
 
-Greg does not accept drivers/staging/media/* patches, but anyway, no one
-will accept a patch in this format, as you say.
+It is related. See:
 
-thanks,
+	union {
+		struct media_gobj *port0;
+		struct media_pad *source;
+	};
 
-greg k-h
+If we keep the graph_obj as the first part of media_pad, the pad
+object can be accessed as either:
+
+	link->port0
+or
+	link->source->graph_obj.
+
+In practice, it means that, if one wants to know the type of the
+object, it could do:
+
+	type = media_type(link->port0)
+
+Technically, we don't need yet to put the comment at the media_entity,
+as the patch that will create interface->entity links is patch 20.
+But I opted to do the comments change altogether.
+
+> 
+> I would also suggest that "/* must be first field in struct */" is a better
+> phrase.
+
+OK.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >  	struct list_head list;
+> >  	const char *name;		/* Entity name */
+> >  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+> > @@ -119,7 +125,7 @@ struct media_entity {
+> >  	u16 num_backlinks;		/* Number of backlinks */
+> >  
+> >  	struct media_pad *pads;		/* Pads array (num_pads objects) */
+> > -	struct list_head links;		/* Links list */
+> > +	struct list_head links;		/* Pad-to-pad links list */
+> >  
+> >  	const struct media_entity_operations *ops;	/* Entity operations */
+> >  
+> > 
+> 
