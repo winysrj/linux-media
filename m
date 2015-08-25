@@ -1,66 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate14.nvidia.com ([216.228.121.143]:15380 "EHLO
-	hqemgate14.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbbHUAwX (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56659 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751087AbbHYHjp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 20:52:23 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<treding@nvidia.com>, <wenjiaz@nvidia.com>, <davidw@nvidia.com>,
-	<gfitzer@nvidia.com>
-Subject: [PATCH RFC 0/2] NVIDIA Tegra VI V4L2 driver 
-Date: Thu, 20 Aug 2015 17:51:38 -0700
-Message-ID: <1440118300-32491-4-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1440118300-32491-1-git-send-email-pengw@nvidia.com>
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com>
+	Tue, 25 Aug 2015 03:39:45 -0400
+Message-ID: <55DC1B91.70302@xs4all.nl>
+Date: Tue, 25 Aug 2015 09:38:57 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v7 18/44] [media] media: make media_link more generic
+ to handle interace links
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NVIDIA Tegra SoC includes a Video Input controller, which can talk
-with external camera sensors.
+On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> By adding an union at media_link, we get for free a way to
+> represent interface->entity links.
+> 
+> No need to change anything at the code, just at the internal
+> header file.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 17bb5cbbd67d..f6e8fa801cf9 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -75,14 +75,20 @@ struct media_pipeline {
+>  struct media_link {
+>  	struct media_gobj graph_obj;
+>  	struct list_head list;
+> -	struct media_pad *source;	/* Source pad */
+> -	struct media_pad *sink;		/* Sink pad  */
+> +	union {
+> +		struct media_gobj *port0;
+> +		struct media_pad *source;
+> +	};
+> +	union {
+> +		struct media_gobj *port1;
 
-This patch set is still under development, since it's based on some
-out of tree Tegra patches. And media controller part still needs some
-rework after upstream finalize the MC redesign work.
+Why add port0 and port1 here instead of intf and entity (now added in patch 20)?
+port0/port1 isn't used, so I'd postpone adding that until it is needed.
 
-Currently it's tested with Tegra X1 built-in test pattern generator.
+Part of the reason is also that I am not convinced about the 'port' name, so
+let's not add this yet.
 
-Bryan Wu (2):
-  [media] v4l: tegra: Add NVIDIA Tegra VI driver
-  ARM64: add tegra-vi support in T210 device-tree
+Regards,
 
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts |    8 +
- arch/arm64/boot/dts/nvidia/tegra210.dtsi          |   13 +
- drivers/media/platform/Kconfig                    |    1 +
- drivers/media/platform/Makefile                   |    2 +
- drivers/media/platform/tegra/Kconfig              |    9 +
- drivers/media/platform/tegra/Makefile             |    3 +
- drivers/media/platform/tegra/tegra-channel.c      | 1074 +++++++++++++++++++++
- drivers/media/platform/tegra/tegra-core.c         |  295 ++++++
- drivers/media/platform/tegra/tegra-core.h         |  134 +++
- drivers/media/platform/tegra/tegra-vi.c           |  585 +++++++++++
- drivers/media/platform/tegra/tegra-vi.h           |  224 +++++
- include/dt-bindings/media/tegra-vi.h              |   35 +
- 12 files changed, 2383 insertions(+)
- create mode 100644 drivers/media/platform/tegra/Kconfig
- create mode 100644 drivers/media/platform/tegra/Makefile
- create mode 100644 drivers/media/platform/tegra/tegra-channel.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.h
- create mode 100644 drivers/media/platform/tegra/tegra-vi.c
- create mode 100644 drivers/media/platform/tegra/tegra-vi.h
- create mode 100644 include/dt-bindings/media/tegra-vi.h
+	Hans
 
--- 
-2.1.4
+> +		struct media_pad *sink;
+> +	};
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+>  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+>  };
+>  
+>  struct media_pad {
+> -	struct media_gobj graph_obj;
+> +	struct media_gobj graph_obj;	/* should be the first object */
+>  	struct media_entity *entity;	/* Entity this pad belongs to */
+>  	u16 index;			/* Pad index in the entity pads array */
+>  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+> @@ -105,7 +111,7 @@ struct media_entity_operations {
+>  };
+>  
+>  struct media_entity {
+> -	struct media_gobj graph_obj;
+> +	struct media_gobj graph_obj;	/* should be the first object */
+>  	struct list_head list;
+>  	const char *name;		/* Entity name */
+>  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+> @@ -119,7 +125,7 @@ struct media_entity {
+>  	u16 num_backlinks;		/* Number of backlinks */
+>  
+>  	struct media_pad *pads;		/* Pads array (num_pads objects) */
+> -	struct list_head links;		/* Links list */
+> +	struct list_head links;		/* Pad-to-pad links list */
+>  
+>  	const struct media_entity_operations *ops;	/* Entity operations */
+>  
+> 
 
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
