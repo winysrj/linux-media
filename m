@@ -1,99 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56974 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401AbbHKM24 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56439 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932332AbbHYHvO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 08:28:56 -0400
-Message-ID: <55C9E9FA.1080701@xs4all.nl>
-Date: Tue, 11 Aug 2015 14:26:34 +0200
+	Tue, 25 Aug 2015 03:51:14 -0400
+Message-ID: <55DC1E41.7080706@xs4all.nl>
+Date: Tue, 25 Aug 2015 09:50:25 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v2 16/16] media: add functions to allow creating interfaces
-References: <cover.1438954897.git.mchehab@osg.samsung.com>	<d34a30c10ed3c6a0e2e850e2cd0ce123f4546e35.1438954897.git.mchehab@osg.samsung.com>	<55C9D921.6010808@xs4all.nl> <20150811092444.484f2640@recife.lan>
-In-Reply-To: <20150811092444.484f2640@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v7 21/44] [media] dvbdev: add support for interfaces
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <276e4618235b47251f512337560f68657b414e24.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <276e4618235b47251f512337560f68657b414e24.1440359643.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/11/15 14:24, Mauro Carvalho Chehab wrote:
-> Em Tue, 11 Aug 2015 13:14:41 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> Now that the infrastruct for that is set, add support for
+> interfaces.
 > 
->> On 08/07/15 16:20, Mauro Carvalho Chehab wrote:
->>> Interfaces are different than entities: they represent a
->>> Kernel<->userspace interaction, while entities represent a
->>> piece of hardware/firmware/software that executes a function.
->>>
->>> Let's distinguish them by creating a separate structure to
->>> store the interfaces.
->>>
->>> Latter patches should change the existing drivers and logic
->>> to split the current interface embedded inside the entity
->>> structure (device nodes) into a separate object of the graph.
->>
->> So, to be clear, the plan is to replace the embedded media_entity
->> struct in struct video_device by a struct media_intf_devnode pointer
->> that is allocated with media_devnode_create()?
+> Please notice that we're missing two links:
+> 	DVB FE intf    -> tuner
+> 	DVB demux intf -> dvr
 > 
-> Yes.
-> 
->>
->> Can we keep struct media_intf_devnode embedded in struct video_device?
->> Or is that impossible since all media_graph_obj structs are expected
->> to be allocated?
->>
->> I do have a preference for keeping structs embedded, unless there is a
->> good reason not to. I just want to make sure there is a good reason.
-> 
-> My plan is to always allocate the structs, as we'll very likely need to
-> have kref for all those structs, in order to be sure that they'll be
-> freed only after having all their usages stopped.
-> 
-> The thing is that it is really complex when we have lots of objects
-> linked to know when an object is not used anymore.
-> 
-> Let's assume, for example, this simple graph:
-> 	entity 0
-> 		pad 0
-> 	entity 1
-> 		pad 0
-> 		pad 1
-> 	entity 2
-> 		pad 0
-> 	link 0
-> 		entity 0:pad 0 -> entity 1: pad 0
-> 	link 1
-> 		entity 1:pad 1 -> entity 2: pad 0
-> 
-> 
-> If we need to keep back references for the links, we'll end by
-> having both links 0 and 1 used twice.
-> 
-> We can't free neither the entities or the pads while link 0
-> is not freed, but it is used twice: as a link and as a backlink.
-> 
-> Assuming that we want to free all those objects from the memory,
-> It can be really tricky to find the right order to free them, as
-> we need first to go into the 3 entities and free the links there,
-> then we can free the pads and entities.
-> 
-> If, on the other hand, we use kref, we can simply do a for on
-> all objects and call kref_put(). The object memory will be
-> freed in an order that will be safe, e. g. when all kref counts
-> are zero for that specific object.
-> 
-> I actually postponed the usage of kref because it is a little hard to
-> de-embed the entities on subdevices, but IMHO, using kref is the best
-> and safest way to be sure that the Kernel won't be accessing a freed
-> memory as the graph dynamically changes. 
+> Those should be added latter, after having the entire graph
 
-OK, I agree. I just wanted to make sure I understood the reason for
-this change.
+s/latter/later/
+
+> set. With the current infrastructure, those should be added
+> at dvb_create_media_graph(), but it would also require some
+> extra core changes, to allow the function to enumerate the
+> interfaces.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index 65f59f2124b4..747372ba4fe1 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -180,14 +180,35 @@ skip:
+>  	return -ENFILE;
+>  }
+>  
+> -static void dvb_register_media_device(struct dvb_device *dvbdev,
+> -				      int type, int minor)
+> +static void dvb_create_media_entity(struct dvb_device *dvbdev,
+> +				       int type, int minor)
+>  {
+>  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+>  	int ret = 0, npads;
+>  
+> -	if (!dvbdev->adapter->mdev)
+> +	switch (type) {
+> +	case DVB_DEVICE_FRONTEND:
+> +		npads = 2;
+> +		break;
+> +	case DVB_DEVICE_DEMUX:
+> +		npads = 2;
+> +		break;
+> +	case DVB_DEVICE_CA:
+> +		npads = 2;
+> +		break;
+> +	case DVB_DEVICE_NET:
+> +		/*
+> +		 * We should be creating entities for the MPE/ULE
+> +		 * decapsulation hardware (or software implementation).
+> +		 *
+> +		 * However, as the number of for the MPE/ULE may not be fixed,
+> +		 * and we don't have yet dynamic support for PADs at the
+> +		 * Media Controller.
+
+However what? You probably want to add something like:
+
+However, ... at the Media Controller, we don't make this entity yet.
 
 Regards,
 
 	Hans
+
+> +		 */
+>  		return;
+> +	default:
+> +		return;
+> +	}
+>  
+>  	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
+>  	if (!dvbdev->entity)
+> @@ -197,19 +218,6 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+>  	dvbdev->entity->info.dev.minor = minor;
+>  	dvbdev->entity->name = dvbdev->name;
+>  
+> -	switch (type) {
+> -	case DVB_DEVICE_CA:
+> -	case DVB_DEVICE_DEMUX:
+> -	case DVB_DEVICE_FRONTEND:
+> -		npads = 2;
+> -		break;
+> -	case DVB_DEVICE_NET:
+> -		npads = 0;
+> -		break;
+> -	default:
+> -		npads = 1;
+> -	}
+> -
+>  	if (npads) {
+>  		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
+>  				       GFP_KERNEL);
+> @@ -230,18 +238,11 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+>  		break;
+> -	case DVB_DEVICE_DVR:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
+> -		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+> -		break;
+>  	case DVB_DEVICE_CA:
+>  		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
+>  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+>  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+>  		break;
+> -	case DVB_DEVICE_NET:
+> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+> -		break;
+>  	default:
+>  		kfree(dvbdev->entity);
+>  		dvbdev->entity = NULL;
+> @@ -263,11 +264,63 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+>  		return;
+>  	}
+>  
+> -	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
+> +	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
+>  		__func__, dvbdev->entity->name);
+>  #endif
+>  }
+>  
+> +static void dvb_register_media_device(struct dvb_device *dvbdev,
+> +				      int type, int minor)
+> +{
+> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+> +	u32 intf_type;
+> +
+> +	if (!dvbdev->adapter->mdev)
+> +		return;
+> +
+> +	dvb_create_media_entity(dvbdev, type, minor);
+> +
+> +	switch (type) {
+> +	case DVB_DEVICE_FRONTEND:
+> +		intf_type = MEDIA_INTF_T_DVB_FE;
+> +		break;
+> +	case DVB_DEVICE_DEMUX:
+> +		intf_type = MEDIA_INTF_T_DVB_DEMUX;
+> +		break;
+> +	case DVB_DEVICE_DVR:
+> +		intf_type = MEDIA_INTF_T_DVB_DVR;
+> +		break;
+> +	case DVB_DEVICE_CA:
+> +		intf_type = MEDIA_INTF_T_DVB_CA;
+> +		break;
+> +	case DVB_DEVICE_NET:
+> +		intf_type = MEDIA_INTF_T_DVB_NET;
+> +		break;
+> +	default:
+> +		return;
+> +	}
+> +
+> +	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
+> +						 intf_type, 0,
+> +						 DVB_MAJOR, minor,
+> +						 GFP_KERNEL);
+> +
+> +	/*
+> +	 * Create the "obvious" link, e. g. the ones that represent
+> +	 * a direct association between an interface and an entity.
+> +	 * Other links should be created elsewhere, like:
+> +	 *		DVB FE intf    -> tuner
+> +	 *		DVB demux intf -> dvr
+> +	 */
+> +
+> +	if (!dvbdev->entity || !dvbdev->intf_devnode)
+> +		return;
+> +
+> +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
+> +
+> +#endif
+> +}
+> +
+>  int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+>  			const struct dvb_device *template, void *priv, int type)
+>  {
+> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+> index 12629b8ecb0c..6670adee7afb 100644
+> --- a/drivers/media/dvb-core/dvbdev.h
+> +++ b/drivers/media/dvb-core/dvbdev.h
+> @@ -103,6 +103,7 @@ struct dvb_device {
+>  
+>  	/* Allocated and filled inside dvbdev.c */
+>  	struct media_entity *entity;
+> +	struct media_intf_devnode *intf_devnode;
+>  	struct media_pad *pads;
+>  #endif
+>  
+> 
+
