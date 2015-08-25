@@ -1,158 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55072 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751751AbbHUSWs (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35699 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755402AbbHYJgS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 14:22:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 3/3] media: atmel-isi: add sanity check for supported formats in try/set_fmt()
-Date: Fri, 21 Aug 2015 21:22:43 +0300
-Message-ID: <30646920.vM5hNRm83J@avalon>
-In-Reply-To: <1440144494-11800-3-git-send-email-josh.wu@atmel.com>
-References: <1440144494-11800-1-git-send-email-josh.wu@atmel.com> <1440144494-11800-3-git-send-email-josh.wu@atmel.com>
+	Tue, 25 Aug 2015 05:36:18 -0400
+Message-ID: <55DC366C.5050509@xs4all.nl>
+Date: Tue, 25 Aug 2015 11:33:32 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v7 39/44] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <31b28b78f6a37ca7ff4554207bb05cd1a1db788c.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <31b28b78f6a37ca7ff4554207bb05cd1a1db788c.1440359643.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
-
-Thank you for the patch.
-
-On Friday 21 August 2015 16:08:14 Josh Wu wrote:
-> After adding the format check in try_fmt()/set_fmt(), we don't need any
-> format check in configure_geometry(). So make configure_geometry() as
-> void type.
+On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
+> Add a new ioctl that will report the entire topology on
+> one go.
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Changes in v3:
-> - check the whether format is supported, if no then return a default
->   format.
-> - misc changes according to Laurent's feedback.
-> 
-> Changes in v2:
-> - new added patch
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 37 ++++++++++++++++++------
->  1 file changed, 29 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> b/drivers/media/platform/soc_camera/atmel-isi.c index fe9247a..84c91d3
-> 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -102,17 +102,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->  	return readl(isi->regs + reg);
->  }
-> 
-> -static int configure_geometry(struct atmel_isi *isi, u32 width,
-> +static void configure_geometry(struct atmel_isi *isi, u32 width,
->  			u32 height, u32 code)
->  {
->  	u32 cfg2;
-> 
->  	/* According to sensor's output format to set cfg2 */
->  	switch (code) {
-> -	/* YUV, including grey */
-> +	default:
-> +	/* Grey */
->  	case MEDIA_BUS_FMT_Y8_1X8:
->  		cfg2 = ISI_CFG2_GRAYSCALE;
->  		break;
-> +	/* YUV */
->  	case MEDIA_BUS_FMT_VYUY8_2X8:
->  		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
->  		break;
-> @@ -126,8 +128,6 @@ static int configure_geometry(struct atmel_isi *isi, u32
-> width, cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
->  		break;
->  	/* RGB, TODO */
-> -	default:
-> -		return -EINVAL;
->  	}
-> 
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> @@ -138,8 +138,23 @@ static int configure_geometry(struct atmel_isi *isi,
-> u32 width, cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
->  			& ISI_CFG2_IM_VSIZE_MASK;
->  	isi_writel(isi, ISI_CFG2, cfg2);
-> +}
-> 
-> -	return 0;
-> +static bool is_supported(struct soc_camera_device *icd,
-> +		const u32 pixformat)
-> +{
-> +	switch (pixformat) {
-> +	/* YUV, including grey */
-> +	case V4L2_PIX_FMT_GREY:
-> +	case V4L2_PIX_FMT_YUYV:
-> +	case V4L2_PIX_FMT_UYVY:
-> +	case V4L2_PIX_FMT_YVYU:
-> +	case V4L2_PIX_FMT_VYUY:
-> +		return true;
-> +	/* RGB, TODO */
-> +	default:
-> +		return false;
-> +	}
->  }
-> 
->  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-> @@ -390,10 +405,8 @@ static int start_streaming(struct vb2_queue *vq,
-> unsigned int count) /* Disable all interrupts */
->  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> 
-> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-> +	configure_geometry(isi, icd->user_width, icd->user_height,
->  				icd->current_fmt->code);
-> -	if (ret < 0)
-> -		return ret;
-> 
->  	spin_lock_irq(&isi->lock);
->  	/* Clear any pending interrupt */
-> @@ -491,6 +504,10 @@ static int isi_camera_set_fmt(struct soc_camera_device
-> *icd, struct v4l2_mbus_framefmt *mf = &format.format;
->  	int ret;
-> 
-> +	/* check with atmel-isi support format, if not support use UYVY */
-> +	if (!is_supported(icd, pix->pixelformat))
-> +		pix->pixelformat = V4L2_PIX_FMT_YUYV;
-
-The comment mentions UYVY and the code uses YUYV.
-
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 796e4a490af8..0111d9652b78 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -181,6 +181,8 @@ struct media_interface {
+>   */
+>  struct media_intf_devnode {
+>  	struct media_interface		intf;
 > +
->  	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
->  	if (!xlate) {
->  		dev_warn(icd->parent, "Format %x not found\n",
-
-Can this still happen ?
-
-> @@ -540,6 +557,10 @@ static int isi_camera_try_fmt(struct soc_camera_device
-> *icd, u32 pixfmt = pix->pixelformat;
->  	int ret;
-> 
-> +	/* check with atmel-isi support format, if not support use UYVY */
-> +	if (!is_supported(icd, pix->pixelformat))
-> +		pix->pixelformat = V4L2_PIX_FMT_YUYV;
+> +	/* Should match the fields at media_v2_intf_devnode */
+>  	u32				major;
+>  	u32				minor;
+>  };
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index ceea791dd6e9..7fcf7f477ae3 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -238,11 +238,94 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+>  #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+>  
+> -/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
+> +/*
+> + * MC next gen API definitions
+> + *
+> + * NOTE: The declarations below are close to the MC RFC for the Media
+> + *	 Controller, the next generation. Yet, there are a few adjustments
+> + *	 to do, as we want to be able to have a functional API before
+> + *	 the MC properties change. Those will be properly marked below.
+> + *	 Please also notice that I removed "num_pads", "num_links",
+> + *	 from the proposal, as a proper userspace application will likely
+> + *	 use lists for pads/links, just as we intend todo in Kernelspace.
+> + *	 The API definition should be freed from fields that are bound to
+> + *	 some specific data structure.
+> + *
+> + * FIXME: Currently, I opted to name the new types as "media_v2", as this
+> + *	  won't cause any conflict with the Kernelspace namespace, nor with
+> + *	  the previous kAPI media_*_desc namespace. This can be changed
+> + *	  latter, before the adding this API upstream.
+> + */
 > +
->  	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
->  	if (pixfmt && !xlate) {
->  		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+> +
+> +#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
+> +#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
+> +#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
+> +#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
+> +
+> +struct media_v2_entity {
+> +	__u32 id;
+> +	char name[64];		/* FIXME: move to a property? (RFC says so) */
+> +	__u16 reserved[14];
+> +};
+> +
+> +/* Should match the specific fields at media_intf_devnode */
+> +struct media_v2_intf_devnode {
+> +	__u32 major;
+> +	__u32 minor;
+> +};
+> +
+> +struct media_v2_interface {
+> +	__u32 id;
+> +	__u32 intf_type;
+> +	__u32 flags;
+> +	__u32 reserved[9];
+> +
+> +	union {
+> +		struct media_v2_intf_devnode devnode;
+> +		__u32 raw[16];
+> +	};
+> +};
+> +
+> +struct media_v2_pad {
+> +	__u32 id;
+> +	__u32 entity_id;
+> +	__u32 flags;
+> +	__u16 reserved[9];
+> +};
+> +
+> +struct media_v2_link {
+> +    __u32 id;
+> +    __u32 source_id;
+> +    __u32 sink_id;
+> +    __u32 flags;
+> +    __u32 reserved[5];
+> +};
+> +
+> +struct media_v2_topology {
+> +	__u32 topology_version;
+> +
+> +	__u32 num_entities;
+> +	struct media_v2_entity *entities;
+> +
+> +	__u32 num_interfaces;
+> +	struct media_v2_interface *interfaces;
+> +
+> +	__u32 num_pads;
+> +	struct media_v2_pad *pads;
+> +
+> +	__u32 num_links;
+> +	struct media_v2_link *links;
+> +
+> +	__u32 reserved[64];
 
-Same comment here.
+As I suggested elsewhere, replace this by:
 
-I wonder whether most of the content of isi_camera_set_fmt() and 
-isi_camera_try_fmt() could be factorized out into a shared function.
+	struct {
+		__u32 num_reserved;
+		void *ptr_reserved;
+	} reserved_ptrs[8];
 
--- 
+This will keep the number of reserved num/pointer pairs identical
+between 32 and 64 bit architectures. Without that doing compat32
+handling will be very difficult indeed.
+
+We might want a separate __u32 reserved[] array so we're able to add
+non-pointer fields in the future.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> +};
+> +
+> +/* ioctls */
+>  
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+> +#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+>  
+>  #endif /* __LINUX_MEDIA_H */
+> 
