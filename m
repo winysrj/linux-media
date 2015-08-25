@@ -1,66 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48511 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753306AbbH3DHv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:51 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:59715 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751087AbbHYJsv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 05:48:51 -0400
+Date: Tue, 25 Aug 2015 06:48:46 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH v8 13/55] [media] uapi/media.h: Declare interface types for V4L2 and DVB
-Date: Sun, 30 Aug 2015 00:06:24 -0300
-Message-Id: <4bf60081a6756f559407052aa92e343456697a08.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v7 19/44] [media] media: make link debug printk more
+ generic
+Message-ID: <20150825064846.4b81cf90@recife.lan>
+In-Reply-To: <55DC1A3B.2010204@xs4all.nl>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<e5b7afddd3087eda9267245fcbfc1d24d059b3a9.1440359643.git.mchehab@osg.samsung.com>
+	<55DC1A3B.2010204@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare the interface types that will be used by the new
-G_TOPOLOGY ioctl that will be defined latter on.
+Em Tue, 25 Aug 2015 09:33:15 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-For now, we need those types, as they'll be used on the
-internal structs associated with the new media_interface
-graph object defined on the next patch.
+> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> > Remove entity name from the link as this exists only if the object
+> > type is PAD on both link ends.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> I am wondering whether it should detect if this is a pad-to-pad link
+> or an interface-to-entity link and log this accordingly.
+> 
+> But I think that is better done as a follow-up patch if we think this
+> is useful. So for this patch:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index 9ec9c503caca..5788297cd500 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -106,14 +106,12 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+> >  		struct media_link *link = gobj_to_link(gobj);
+> >  
+> >  		dev_dbg(gobj->mdev->dev,
+> > -			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
+> > +			"%s: id 0x%08x link#%d: %s#%d ==> %s#%d\n",
+> >  			event_name, gobj->id, media_localid(gobj),
+> >  
+> > -			link->source->entity->name,
+> >  			gobj_type(media_type(&link->source->graph_obj)),
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Actually, here it should be, instead:
+		&link->port0;
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4e816be3de39..3ad3d6be293f 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -167,6 +167,27 @@ struct media_links_enum {
- 	__u32 reserved[4];
- };
- 
-+/* Interface type ranges */
-+
-+#define MEDIA_INTF_T_DVB_BASE	0x00000100
-+#define MEDIA_INTF_T_V4L_BASE	0x00000200
-+
-+/* Interface types */
-+
-+#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
-+#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
-+#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
-+#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
-+#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
-+
-+#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
-+#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
-+#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
-+#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
-+#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
-+
-+/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-+
- #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
--- 
-2.4.3
+> >  			media_localid(&link->source->graph_obj),
+> >  
+> > -			link->sink->entity->name,
+> >  			gobj_type(media_type(&link->sink->graph_obj)),
 
+And here it should be, instead:
+		&link->port1;
+
+> >  			media_localid(&link->sink->graph_obj));
+> >  		break;
+> > 
+> 
