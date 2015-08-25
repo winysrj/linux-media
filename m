@@ -1,80 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60066 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756403AbbHZO7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Aug 2015 10:59:46 -0400
-Date: Wed, 26 Aug 2015 11:59:42 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkhan@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, shuahkh@osg.samsung.com
-Subject: Re: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
-Message-ID: <20150826115942.7c4a20c9@recife.lan>
-In-Reply-To: <CAKocOOPMBmUKkR=Zz2yxX3e9sLr3ST-cVM0BO7qVFMLN07ktGQ@mail.gmail.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-	<CAKocOOPMBmUKkR=Zz2yxX3e9sLr3ST-cVM0BO7qVFMLN07ktGQ@mail.gmail.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52481 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751763AbbHYJcc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 05:32:32 -0400
+Message-ID: <55DC358B.2090907@xs4all.nl>
+Date: Tue, 25 Aug 2015 11:29:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v7 42/44] [media] media-device: add pads and links to
+ media_device
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <cbdfe091da93c230af21f4064985fe790fc6df34.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <cbdfe091da93c230af21f4064985fe790fc6df34.1440359643.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 14:34:46 -0600
-Shuah Khan <shuahkhan@gmail.com> escreveu:
-
-> On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > Declare the interface types that will be used by the new
-> > G_TOPOLOGY ioctl that will be defined latter on.
-> >
-> > For now, we need those types, as they'll be used on the
-> > internal structs associated with the new media_interface
-> > graph object defined on the next patch.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index 4e816be3de39..21c96cd7a6ae 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -167,6 +167,35 @@ struct media_links_enum {
-> >         __u32 reserved[4];
-> >  };
-> >
-> > +/* Interface type ranges */
-> > +
-> > +#define MEDIA_INTF_T_DVB_BASE  0x00000000
-> > +#define MEDIA_INTF_T_V4L_BASE  0x00000100
-> > +#define MEDIA_INTF_T_ALSA_BASE 0x00000200
-> > +
-> > +/* Interface types */
-> > +
-> > +#define MEDIA_INTF_T_DVB_FE            (MEDIA_INTF_T_DVB_BASE)
-> > +#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
-> > +#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
-> > +#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
-> > +#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
-> > +
-> > +#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
-> > +#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
-> > +#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
-> > +#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
-> > +#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
-> > +
-> > +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-> > +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-> > +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-> > +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-> > +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-> > +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
+> The MC next gen API sends objects to userspace grouped by
+> their types.
 > 
-> Is it necessary to add ALSA types at this time without ALSA media
-> controller work?
-> Can these be added later when ALSA work is done.
-
-Sure. I'll remove those on the next spin.
+> In the case of pads and links, in order to improve performance
+> and have a simpler code, the best is to store them also on
+> separate linked lists at MC.
 > 
-> thanks,
-> -- Shuah
+> If we don't do that, we would need this kind of interaction
+> to send data to userspace (code is in structured english):
+> 
+> 	for each entity:
+> 		for each pad:
+> 			store pads
+> 
+> 	for each entity:
+> 		for each link:
+> 			store link
+> 
+> 	for each interface:
+> 		for each link:
+> 			store link
+> 
+> With would require one nexted loop for pads and two nested
+> loops for links. By using  separate linked lists for them,
+> just one loop would be enough.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 01cd014963d6..2de65a621b93 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -382,6 +382,8 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  
+>  	INIT_LIST_HEAD(&mdev->entities);
+>  	INIT_LIST_HEAD(&mdev->interfaces);
+> +	INIT_LIST_HEAD(&mdev->pads);
+> +	INIT_LIST_HEAD(&mdev->links);
+>  	spin_lock_init(&mdev->lock);
+>  	mutex_init(&mdev->graph_mutex);
+>  
+> @@ -474,7 +476,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  	spin_lock(&mdev->lock);
+>  	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
+>  		media_gobj_remove(&link->graph_obj);
+> -		list_del(&link->list);
+>  		kfree(link);
+>  	}
+>  	for (i = 0; i < entity->num_pads; i++)
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 17f2f7555d42..ef26c01a5a9a 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -172,9 +172,11 @@ void media_gobj_init(struct media_device *mdev,
+>  		break;
+>  	case MEDIA_GRAPH_PAD:
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+> +		list_add_tail(&gobj->list, &mdev->pads);
+>  		break;
+>  	case MEDIA_GRAPH_LINK:
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+> +		list_add_tail(&gobj->list, &mdev->links);
+>  		break;
+>  	case MEDIA_GRAPH_INTF_DEVNODE:
+>  		list_add_tail(&gobj->list, &mdev->interfaces);
+> @@ -194,13 +196,7 @@ void media_gobj_init(struct media_device *mdev,
+>  void media_gobj_remove(struct media_gobj *gobj)
+>  {
+>  	/* Remove the object from mdev list */
+> -	switch (media_type(gobj)) {
+> -	case MEDIA_GRAPH_ENTITY:
+> -	case MEDIA_GRAPH_INTF_DEVNODE:
+> -		list_del(&gobj->list);
+> -	default:
+> -		break;
+> -	}
+> +	list_del(&gobj->list);
+>  
+>  	dev_dbg_obj(__func__, gobj);
+>  }
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 85fa302047bd..0d1b9c687454 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -47,6 +47,8 @@ struct device;
+>   * @intf_devnode_id: Unique ID used on the last interface devnode registered
+>   * @entities:	List of registered entities
+>   * @interfaces:	List of registered interfaces
+> + * @pads:	List of registered pads
+> + * @links:	List of registered links
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+>   * @link_notify: Link state change notification callback
+> @@ -79,6 +81,8 @@ struct media_device {
+>  
+>  	struct list_head entities;
+>  	struct list_head interfaces;
+> +	struct list_head pads;
+> +	struct list_head links;
+>  
+>  	/* Protects the entities list */
+>  	spinlock_t lock;
+> @@ -117,6 +121,14 @@ struct media_device *media_device_find_devres(struct device *dev);
+>  #define media_device_for_each_intf(intf, mdev)			\
+>  	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+>  
+> +/* Iterate over all pads. */
+> +#define media_device_for_each_pad(pad, mdev)			\
+> +	list_for_each_entry(pad, &(mdev)->pads, graph_obj.list)
+> +
+> +/* Iterate over all links. */
+> +#define media_device_for_each_link(link, mdev)			\
+> +	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
+> +
+>  
+>  #else
+>  static inline int media_device_register(struct media_device *mdev)
+> 
