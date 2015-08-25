@@ -1,97 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:40867 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820AbbHMNtv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 09:49:51 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NT000ES6X2ZBZ40@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Aug 2015 14:49:47 +0100 (BST)
-Subject: Re: [PATCH v2] media: videobuf2-dc: set properly dma_max_segment_size
-To: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org
-References: <1439373533-23299-1-git-send-email-m.szyprowski@samsung.com>
- <55CC904E.4040907@metafoo.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <55CCA07A.2090904@samsung.com>
-Date: Thu, 13 Aug 2015 15:49:46 +0200
-MIME-version: 1.0
-In-reply-to: <55CC904E.4040907@metafoo.de>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:59769 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751691AbbHYLcn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 07:32:43 -0400
+Date: Tue, 25 Aug 2015 08:32:36 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v7 25/44] [media] replace all occurrences of
+ MEDIA_ENT_T_DEVNODE_V4L
+Message-ID: <20150825083236.37659d22@recife.lan>
+In-Reply-To: <55DC340C.8030503@xs4all.nl>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<23e2f9440a259e1162e15dba7e6261dbc4c521c6.1440359643.git.mchehab@osg.samsung.com>
+	<55DC340C.8030503@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Tue, 25 Aug 2015 11:23:24 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 2015-08-13 14:40, Lars-Peter Clausen wrote:
-> On 08/12/2015 11:58 AM, Marek Szyprowski wrote:
->> If device has no DMA max_seg_size set, we assume that there is no limit
->> and it is safe to force it to use DMA_BIT_MASK(32) as max_seg_size to
->> let DMA-mapping API always create contiguous mappings in DMA address
->> space. This is essential for all devices, which use dma-contig
->> videobuf2 memory allocator.
->>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->> Changelog:
->> v2:
->> - set max segment size only if a new dma params structure has been
->>    allocated, as suggested by Laurent Pinchart
->> ---
->>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
->>   1 file changed, 15 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> index 94c1e64..455e925 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -862,6 +862,21 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
->>   void *vb2_dma_contig_init_ctx(struct device *dev)
->>   {
->>   	struct vb2_dc_conf *conf;
->> +	int err;
->> +
->> +	/*
->> +	 * if device has no max_seg_size set, we assume that there is no limit
->> +	 * and force it to DMA_BIT_MASK(32) to always use contiguous mappings
->> +	 * in DMA address space
->> +	 */
->> +	if (!dev->dma_parms) {
->> +		dev->dma_parms = kzalloc(sizeof(*dev->dma_parms), GFP_KERNEL);
->> +		if (!dev->dma_parms)
->> +			return ERR_PTR(-ENOMEM);
->> +		err = dma_set_max_seg_size(dev, DMA_BIT_MASK(32));
->> +		if (err)
->> +			return ERR_PTR(err);
->> +	}
-> I'm not sure if this is such a good idea. The DMA provider is responsible
-> for setting this up. We shouldn't be overwriting this here on the DMA
-> consumer side. This will just mask the bug that the provider didn't setup
-> this correctly and might cause bugs on its own if it is not correct. It will
-> lead to conflicts with DMA providers that have multiple consumers (e.g.
-> shared DMA core). And also the current assumption is that if a driver
-> doesn't set this up explicitly the maximum segement size is 65536.
+> On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
+> > Now that interfaces and entities are distinct, it makes no sense
+> > of keeping something named as MEDIA_ENT_T_DEVNODE.
+> > 
+> > This change was done with this script:
+> > 
+> > 	for i in $(git grep -l MEDIA_ENT_T|grep -v uapi/linux/media.h); do sed s,MEDIA_ENT_T_DEVNODE_V4L,MEDIA_ENT_T_V4L2_VIDEO, <$i >a && mv a $i; done
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > index 5872f8bbf774..910243d4edb8 100644
+> > --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> > @@ -183,7 +183,7 @@
+> >  	    <entry>Unknown device node</entry>
+> >  	  </row>
+> >  	  <row>
+> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
+> > +	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+> >  	    <entry>V4L video, radio or vbi device node</entry>
+> >  	  </row>
+> 
+> OK, this makes no sense and that ties in with my confusion of the previous patch.
+> 
+> These are not device nodes, in the new scheme these are DMA entities (I know,
+> naming TDB) that have an associated interface.
 
-The problem is that there is no good place for changing this extremely 
-low default
-value. V4L2 media devices, which use videobuf2-dc expects to get buffers 
-mapped
-contiguous in the DMA/IO address space. Initially I wanted to have a 
-code for
-setting dma max segment size directly in the dma-mapping subsystem. This 
-however
-causeed problems in the other places, as mentioned in the following mail:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
+Yes. Well, DMA is a bad name. It won't cover USB devices, where the DMA
+engine is outside the V4L2 drivers, nor it would work for RDS radio data,
+with may not need any DMA at all on no-USB devices, as the data flows via
+the I2C bus.
 
-It looks that there are drivers or subsystems which rely on this strange 
-64k value,
-rending the whole concept rather useless.
+> I think a much better approach would be to add entity type(s) for such DMA
+> engines in patch 24, then use that new name in existing drivers and split
+> up the existing DEVNODE_V4L media_entity into a media_entity and a
+> media_intf_devnode:
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+Sorry, but I didn't get. That's precisely what I did ;)
 
+> The current media_entity defined in struct video_device has to be replaced
+> by media_intf_devnode, and the DMA entity has to be added as a new entity
+> to these drivers.
+
+If I do this way, it would break bisectability. I need first to replace
+the names, but keep them as entities, and then add the interfaces.
+
+> 
+> This reflects these two action items from our meeting:
+> 
+> Migration: add v4l-subdev media_interface: Laurent
+> Migration: add explicit DMA Engine entity: Laurent
+> 
+> Unless Laurent says differently I think this is something you'll have to
+> do given Laurent's workload.
+
+Yes. The above action items are covered on this series.
+
+What patch 24 does is to define the new namespace, moving the legacy
+symbols kept due to backward compatibility on a separate part of the
+header.
+
+Then, patches 25-38 replace the occurrences of the deprecated names
+by the new ones.
+
+Nothing is touched at the interfaces yet, to avoid breaking bisectability.
+
+Then, the next patches add interfaces support at the V4L side.
+
+> I think doing this at this stage of the patch series is crucial, otherwise
+> the remaining patches really make no sense.
+> 
+> I'll skip reviewing patches 26-38 for now.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >  	  <row>
+> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> > index 92e8116dc28f..88cd789cdaf7 100644
+> > --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> > @@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> >  		struct xvip_dma *dma;
+> >  
+> > -		if (entity->type != MEDIA_ENT_T_DEVNODE_V4L)
+> > +		if (entity->type != MEDIA_ENT_T_V4L2_VIDEO)
+> >  			continue;
+> >  
+> >  		dma = to_xvip_dma(media_entity_to_video_device(entity));
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> > index 71a1b93b0790..44b330589787 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -912,7 +912,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+> >  	/* Part 5: Register the entity. */
+> >  	if (vdev->v4l2_dev->mdev &&
+> >  	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+> > -		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
+> > +		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
+> >  		vdev->entity.name = vdev->name;
+> >  		vdev->entity.info.dev.major = VIDEO_MAJOR;
+> >  		vdev->entity.info.dev.minor = vdev->minor;
+> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> > index 83615b8fb46a..e6e1115d8215 100644
+> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > @@ -535,7 +535,7 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> >  		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+> >  	}
+> >  
+> > -	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
+> > +	WARN(pad->entity->type != MEDIA_ENT_T_V4L2_VIDEO,
+> >  	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
+> >  	     pad->entity->type, pad->entity->name);
+> >  
+> > 
