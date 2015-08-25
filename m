@@ -1,122 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59703 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753839AbbHYJlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:41:51 -0400
-Date: Tue, 25 Aug 2015 06:41:47 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 18/44] [media] media: make media_link more generic to
- handle interace links
-Message-ID: <20150825064147.7f8671fa@recife.lan>
-In-Reply-To: <55DC1937.80606@xs4all.nl>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>
-	<55DC1937.80606@xs4all.nl>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57157 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753279AbbHYGrR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 02:47:17 -0400
+Message-ID: <55DC0F45.7010108@xs4all.nl>
+Date: Tue, 25 Aug 2015 08:46:29 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 09:28:55 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> > By adding an union at media_link, we get for free a way to
-> > represent interface->entity links.
-> > 
-> > No need to change anything at the code, just at the internal
-> > header file.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 17bb5cbbd67d..f6e8fa801cf9 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -75,14 +75,20 @@ struct media_pipeline {
-> >  struct media_link {
-> >  	struct media_gobj graph_obj;
-> >  	struct list_head list;
-> > -	struct media_pad *source;	/* Source pad */
-> > -	struct media_pad *sink;		/* Sink pad  */
-> > +	union {
-> > +		struct media_gobj *port0;
-> > +		struct media_pad *source;
-> > +	};
-> > +	union {
-> > +		struct media_gobj *port1;
-> > +		struct media_pad *sink;
-> > +	};
-> >  	struct media_link *reverse;	/* Link in the reverse direction */
-> >  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
-> >  };
-> >  
-> >  struct media_pad {
-> > -	struct media_gobj graph_obj;
-> > +	struct media_gobj graph_obj;	/* should be the first object */
-> >  	struct media_entity *entity;	/* Entity this pad belongs to */
-> >  	u16 index;			/* Pad index in the entity pads array */
-> >  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-> > @@ -105,7 +111,7 @@ struct media_entity_operations {
-> >  };
-> >  
-> >  struct media_entity {
-> > -	struct media_gobj graph_obj;
-> > +	struct media_gobj graph_obj;	/* should be the first object */
+On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> Declare the interface types that will be used by the new
+> G_TOPOLOGY ioctl that will be defined latter on.
 > 
-> Does adding these "/* should be the first object */" comments in media_entity
-> and media_pad belong to this patch? It doesn't seem to be related to the union
-> change.
-
-It is related. See:
-
-	union {
-		struct media_gobj *port0;
-		struct media_pad *source;
-	};
-
-If we keep the graph_obj as the first part of media_pad, the pad
-object can be accessed as either:
-
-	link->port0
-or
-	link->source->graph_obj.
-
-In practice, it means that, if one wants to know the type of the
-object, it could do:
-
-	type = media_type(link->port0)
-
-Technically, we don't need yet to put the comment at the media_entity,
-as the patch that will create interface->entity links is patch 20.
-But I opted to do the comments change altogether.
-
+> For now, we need those types, as they'll be used on the
+> internal structs associated with the new media_interface
+> graph object defined on the next patch.
 > 
-> I would also suggest that "/* must be first field in struct */" is a better
-> phrase.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 4e816be3de39..21c96cd7a6ae 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -167,6 +167,35 @@ struct media_links_enum {
+>  	__u32 reserved[4];
+>  };
+>  
+> +/* Interface type ranges */
+> +
+> +#define MEDIA_INTF_T_DVB_BASE	0x00000000
+> +#define MEDIA_INTF_T_V4L_BASE	0x00000100
+> +#define MEDIA_INTF_T_ALSA_BASE	0x00000200
 
-OK.
+I would avoid BASE 0 and start with 0x100 for DVB (so ALSA gets 0x300).
 
+This ensures that type is never 0 which is often useful since it catches
+cases where userspace just memsets to 0 and never fills in the type. Or
+it can be used in the future as an ERROR or UNKNOWN type or something.
+
+Since there is nothing that requires type to be 0 I would avoid it
+altogether.
+
+After making this small change:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> +
+> +/* Interface types */
+> +
+> +#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
+> +#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
+> +#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
+> +#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
+> +#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
+> +
+> +#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
+> +#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
+> +#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
+> +#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+> +#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+> +
+> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+> +
+> +/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
+> +
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
 > 
-> Regards,
-> 
-> 	Hans
-> 
-> >  	struct list_head list;
-> >  	const char *name;		/* Entity name */
-> >  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
-> > @@ -119,7 +125,7 @@ struct media_entity {
-> >  	u16 num_backlinks;		/* Number of backlinks */
-> >  
-> >  	struct media_pad *pads;		/* Pads array (num_pads objects) */
-> > -	struct list_head links;		/* Links list */
-> > +	struct list_head links;		/* Pad-to-pad links list */
-> >  
-> >  	const struct media_entity_operations *ops;	/* Entity operations */
-> >  
-> > 
-> 
+
