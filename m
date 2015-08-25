@@ -1,183 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:36819 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941AbbHXUHH (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46718 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751763AbbHYHo4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 16:07:07 -0400
-Received: by igcse8 with SMTP id se8so56730376igc.1
-        for <linux-media@vger.kernel.org>; Mon, 24 Aug 2015 13:07:07 -0700 (PDT)
+	Tue, 25 Aug 2015 03:44:56 -0400
+Message-ID: <55DC1CC9.7000800@xs4all.nl>
+Date: Tue, 25 Aug 2015 09:44:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <7ec9c268c9a0faa0f79cc3ce2c2fb04be05d3c0f.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<7ec9c268c9a0faa0f79cc3ce2c2fb04be05d3c0f.1440359643.git.mchehab@osg.samsung.com>
-Date: Mon, 24 Aug 2015 14:07:07 -0600
-Message-ID: <CAKocOOPNoMRWyx1KbDO-vh2Wh7fGtPBSN8uYw+34qzpCTaAHLw@mail.gmail.com>
-Subject: Re: [PATCH v7 04/44] [media] media: add a common struct to be embed
- on media graph objects
-From: Shuah Khan <shuahkhan@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	shuahkh@osg.samsung.com
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v7 20/44] [media] media: add support to link interfaces
+ and entities
+References: <cover.1440359643.git.mchehab@osg.samsung.com> <d3396b69db123fcd27c48e56deb3684da1aacd81.1440359643.git.mchehab@osg.samsung.com>
+In-Reply-To: <d3396b69db123fcd27c48e56deb3684da1aacd81.1440359643.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Due to the MC API proposed changes, we'll need to have an unique
-> object ID for all graph objects, and have some shared fields
-> that will be common on all media graph objects.
->
-> Right now, the only common object is the object ID, but other
-> fields will be added later on.
->
+On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
+> Now that we have a new graph object called "interfaces", we
+> need to be able to link them to the entities.
+> 
+> Add a linked list to the interfaces to allow them to be
+> linked to the entities.
+> 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
+> 
 > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index cb0ac4e0dfa5..4834172bf6f8 100644
+> index 5788297cd500..16d7d96abb9f 100644
 > --- a/drivers/media/media-entity.c
 > +++ b/drivers/media/media-entity.c
-> @@ -27,6 +27,38 @@
->  #include <media/media-device.h>
->
->  /**
-> + *  media_gobj_init - Initialize a graph object
-> + *
-> + * @mdev:      Pointer to the media_device that contains the object
-> + * @type:      Type of the object
-> + * @gobj:      Pointer to the object
-> + *
-> + * This routine initializes the embedded struct media_gobj inside a
-> + * media graph object. It is called automatically if media_*_create()
-> + * calls are used. However, if the object (entity, link, pad, interface)
-> + * is embedded on some other object, this function should be called before
-> + * registering the object at the media controller.
-> + */
-> +void media_gobj_init(struct media_device *mdev,
-> +                          enum media_gobj_type type,
-> +                          struct media_gobj *gobj)
+> @@ -867,6 +867,7 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+>  
+>  	intf->type = type;
+>  	intf->flags = flags;
+> +	INIT_LIST_HEAD(&intf->links);
+
+See my comment in patch 14: this should be part of a media_interface_init helper
+function.
+
+>  
+>  	devnode->major = major;
+>  	devnode->minor = minor;
+> @@ -885,3 +886,39 @@ void media_devnode_remove(struct media_intf_devnode *devnode)
+>  }
+>  EXPORT_SYMBOL_GPL(media_devnode_remove);
+>  
+> +struct media_link *media_create_intf_link(struct media_entity *entity,
+> +					    struct media_interface *intf,
+> +					    u32 flags)
 > +{
-> +       /* For now, nothing to do */
+> +	struct media_link *link;
+> +
+> +	link = media_add_link(&intf->links);
+> +	if (link == NULL)
+> +		return NULL;
+> +
+> +	link->intf = intf;
+> +	link->entity = entity;
+> +	link->flags = flags;
+> +
+> +	/* Initialize graph object embedded at the new link */
+> +	media_gobj_init(intf->graph_obj.mdev, MEDIA_GRAPH_LINK,
+> +			&link->graph_obj);
+> +
+> +	return link;
+> +}
+> +EXPORT_SYMBOL_GPL(media_create_intf_link);
+> +
+> +
+> +static void __media_remove_intf_link(struct media_link *link)
+> +{
+> +	list_del(&link->list);
+> +	kfree(link);
 > +}
 > +
-
-This patch is mainly adding skeleton framework. Does this patch series
-implement the media_gobj_init() and media_gobj_remove()?
-
-If so, would it make sense to combine the implementation and the stubs?
-
-thanks,
--- Shuah
-
-> +/**
-> + *  media_gobj_remove - Stop using a graph object on a media device
-> + *
-> + * @graph_obj: Pointer to the object
-> + *
-> + * This should be called at media_device_unregister_*() routines
-> + */
-> +void media_gobj_remove(struct media_gobj *gobj)
+> +void media_remove_intf_link(struct media_link *link)
 > +{
-> +       /* For now, nothing to do */
+> +	mutex_lock(&link->graph_obj.mdev->graph_mutex);
+> +	__media_remove_intf_link(link);
+> +	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
 > +}
-> +
-> +/**
->   * media_entity_init - Initialize a media entity
->   *
->   * @num_pads: Total number of sink and source pads.
+> +EXPORT_SYMBOL_GPL(media_remove_intf_link);
 > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0a66fc225559..b1854239a476 100644
+> index f6e8fa801cf9..aeb390a9e0f3 100644
 > --- a/include/media/media-entity.h
 > +++ b/include/media/media-entity.h
-> @@ -28,6 +28,39 @@
->  #include <linux/list.h>
->  #include <linux/media.h>
->
-> +/* Enums used internally at the media controller to represent graphs */
-> +
-> +/**
-> + * enum media_gobj_type - type of a graph object
-> + *
-> + */
-> +enum media_gobj_type {
-> +        /* FIXME: add the types here, as we embed media_gobj */
-> +       MEDIA_GRAPH_NONE
-> +};
-> +
-> +#define MEDIA_BITS_PER_TYPE            8
-> +#define MEDIA_BITS_PER_LOCAL_ID                (32 - MEDIA_BITS_PER_TYPE)
-> +#define MEDIA_LOCAL_ID_MASK             GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
-> +
-> +/* Structs to represent the objects that belong to a media graph */
-> +
-> +/**
-> + * struct media_gobj - Define a graph object.
-> + *
-> + * @id:                Non-zero object ID identifier. The ID should be unique
-> + *             inside a media_device, as it is composed by
-> + *             MEDIA_BITS_PER_TYPE to store the type plus
-> + *             MEDIA_BITS_PER_LOCAL_ID to store a per-type ID
-> + *             (called as "local ID").
-> + *
-> + * All objects on the media graph should have this struct embedded
-> + */
-> +struct media_gobj {
-> +       u32                     id;
-> +};
-> +
-> +
->  struct media_pipeline {
+> @@ -78,10 +78,12 @@ struct media_link {
+>  	union {
+>  		struct media_gobj *port0;
+>  		struct media_pad *source;
+> +		struct media_interface *intf;
+>  	};
+>  	union {
+>  		struct media_gobj *port1;
+>  		struct media_pad *sink;
+> +		struct media_entity *entity;
+>  	};
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+>  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+> @@ -154,6 +156,7 @@ struct media_entity {
+>   * struct media_intf_devnode - Define a Kernel API interface
+>   *
+>   * @graph_obj:		embedded graph object
+> + * @links:		List of links pointing to graph entities
+
+Nitpick: s/graph/media/
+
+>   * @type:		Type of the interface as defined at the
+>   *			uapi/media/media.h header, e. g.
+>   *			MEDIA_INTF_T_*
+> @@ -161,6 +164,7 @@ struct media_entity {
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> +	struct list_head		links;
+>  	u32				type;
+>  	u32				flags;
 >  };
->
-> @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity *entity)
->         return entity->id;
->  }
->
-> +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
-> +{
-> +       return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
-> +}
+> @@ -283,6 +287,11 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+>  						u32 major, u32 minor,
+>  						gfp_t gfp_flags);
+>  void media_devnode_remove(struct media_intf_devnode *devnode);
+> +struct media_link *media_create_intf_link(struct media_entity *entity,
+> +					    struct media_interface *intf,
+> +					    u32 flags);
+> +void media_remove_intf_link(struct media_link *link);
 > +
-> +static inline u32 media_localid(struct media_gobj *gobj)
-> +{
-> +       return gobj->id & MEDIA_LOCAL_ID_MASK;
-> +}
-> +
-> +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
-> +{
-> +       u32 id;
-> +
-> +       id = type << MEDIA_BITS_PER_LOCAL_ID;
-> +       id |= local_id & MEDIA_LOCAL_ID_MASK;
-> +
-> +       return id;
-> +}
-> +
->  #define MEDIA_ENTITY_ENUM_MAX_DEPTH    16
->  #define MEDIA_ENTITY_ENUM_MAX_ID       64
->
-> @@ -131,6 +184,14 @@ struct media_entity_graph {
->         int top;
->  };
->
-> +#define gobj_to_entity(gobj) \
-> +               container_of(gobj, struct media_entity, graph_obj)
-> +
-> +void media_gobj_init(struct media_device *mdev,
-> +                   enum media_gobj_type type,
-> +                   struct media_gobj *gobj);
-> +void media_gobj_remove(struct media_gobj *gobj);
-> +
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->                 struct media_pad *pads);
->  void media_entity_cleanup(struct media_entity *entity);
-> --
-> 2.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  #define media_entity_call(entity, operation, args...)			\
+>  	(((entity)->ops && (entity)->ops->operation) ?			\
+>  	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+> 
+
+Regards,
+
+	Hans
