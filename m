@@ -1,198 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59010 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753672AbbHUKT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 06:19:26 -0400
-Date: Fri, 21 Aug 2015 07:19:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 7/8] [media] media: add a debug message to warn about
- gobj creation/removal
-Message-ID: <20150821071921.1f76b70d@recife.lan>
-In-Reply-To: <1485912.HaZnsqcIqp@avalon>
-References: <cover.1439981515.git.mchehab@osg.samsung.com>
-	<7424c6b03ca0bcb8d5af55a6bda6f4c3414d3083.1439981515.git.mchehab@osg.samsung.com>
-	<1485912.HaZnsqcIqp@avalon>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:35007 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753715AbbHYKxD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 06:53:03 -0400
+Received: by obbwr7 with SMTP id wr7so138527975obb.2
+        for <linux-media@vger.kernel.org>; Tue, 25 Aug 2015 03:53:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2258601.NCY3XxYnn9@avalon>
+References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
+ <1479402.af4JO5SPSd@avalon> <20150820001343.39b5f9cc@recife.lan> <2258601.NCY3XxYnn9@avalon>
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Tue, 25 Aug 2015 07:52:42 -0300
+Message-ID: <CAPW4XYY9utKvxhouFPpKYTRNkzGNYxBKwYoRnkF7gdcckznGQA@mail.gmail.com>
+Subject: Re: VIMC: API proposal, configuring the topology through user space
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Aug 2015 04:32:51 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi
 
+On Thu, Aug 20, 2015 at 8:41 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>
 > Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 19 August 2015 08:01:54 Mauro Carvalho Chehab wrote:
-> > It helps to check if the media controller is doing the
-> > right thing with the object creation and removal.
-> > 
-> > No extra code/data will be produced if DEBUG or
-> > CONFIG_DYNAMIC_DEBUG is not enabled.
-> 
-> CONFIG_DYNAMIC_DEBUG is often enabled.
+>
+> On Thursday 20 August 2015 00:13:43 Mauro Carvalho Chehab wrote:
+> > Em Thu, 20 Aug 2015 02:33:15 +0300 Laurent Pinchart escreveu:
+> > > On Tuesday 18 August 2015 07:06:36 Mauro Carvalho Chehab wrote:
+> > >> Em Tue, 18 Aug 2015 09:35:14 +0300 Laurent Pinchart escreveu:
+> > >>> On Friday 14 August 2015 12:54:44 Hans Verkuil wrote:
+> > >
+> > > [snip]
+> > >
+> > >>> I think this is becoming too complex. How about considering "deploy"
+> > >>> as a commit instead ? There would then be no need to undeploy, any
+> > >>> modification will start a new transaction that will be applied in one
+> > >>> go when committed. This includes removal of entities by removing the
+> > >>> corresponding directories.
+> > >>
+> > >> Agreed. I would implement just a /configfs/vimc/commit file, instead of
+> > >> /configfs/vimc/vimc1/build_topology.
+> > >>
+> > >> any write to the "commit" configfs file will make all changes to all
+> > >> vimc instances to be applied, or return an error if committing is not
+> > >> possible.
+> > >
+> > > Wouldn't it be better to have a commit file inside each vimc[0-9]+
+> > > directory ? vimc device instances are completely independent, I'd prefer
+> > > having the configuration API operate per-instance as well.
+> >
+> > I have no strong preference... but see below.
+> >
+> > >> A read to it would return a message saying if the changes were committed
+> > >> or not.
+> > >>
+> > >> This way, an entire vimc instance could be removed with just:
+> > >>    rm -rf /configfs/vimc/vimc1
+> > >>
+> > >> As we won't have unremoved files there anymore.
+> > >
+> > > Some files will be automatically created by the kernel, such as the flags
+> > > file in link directories, or the name file in entity directories. rm -rf
+> > > might thus not work. That's a technical detail though, I haven't checked
+> > > how configfs operates.
+> >
+> > I'm not an expert on configfs either. I guess if we can put those "extra"
+> > files outside, then the interface will be better, as we can just use
+> > rm -rf to remove a vimc instance.
+> >
+> > The only big advantage I see on having a global "commit" is if we
+> > can make rm -rf work. Still, it would be possible to have, instead,
+> > commit_vimc0, commit_vimc1, ... in such case.
+>
+> I believe having the commit file inside the vimc[0-9]+ directory won't prevent
+> an rmdir, but it might get in the way of rm -rf. Let's check what configfs
+> allows before deciding.
 
-True, but once a driver/core is properly debugged, images without DEBUG
-could be used in production, if the amount of memory constraints are
-too tight.
+rm -rf doesn't work, configfs expects rmdir. The best we can do to
+remove recursively is rmdir -p vim0/entity1/pad_0, but this won't work
+if there are others pads or entities folders.
 
-> You're more or less adding function call tracing in this patch, isn't that 
-> something that ftrace is supposed to do ?
+A global commit file would be better to remove an instance, we could
+have a script to run rmdir recursively in vimc/vimc0/ and then commit
+the changes.
+Otherwise, some kind of destroy command would be easier.
 
-Ftrace is a great infrastructure and helps a lot when we need to
-identify bottlenecks and other performance related stuff, but it
-doesn't replace debug functions.
+>
+> By the way, the USB gadget framework uses symlinks to functions to implement
+> something similar to our commit. Maybe that would be a better fit for
+> configfs.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-There are some fundamental differences on what you could do with ftrace
-and what you can't.
+I liked the solution of having a /configfs/vimc/vimc0/links/, it seems
+cleaner to me.
+Inside this folder I would add a file called flags to specify the link's flags.
 
-At least on this stage, what I need is something that will provide
-output via serial console when the driver gets loaded, and that provides
-a synchronous output with the other Kernel messages.
-
-This is the only way to debug certain OOPSes that are happening during
-the development of the patches.
-
-This is something you cannot do with ftrace, but dynamic DEBUG works
-like a charm.
-
-> 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 36d725ec5f3d..6d515e149d7f 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -27,6 +27,69 @@
-> >  #include <media/media-device.h>
-> > 
-> >  /**
-> > + *  dev_dbg_obj - Prints in debug mode a change on some object
-> > + *
-> > + * @event_name:	Name of the event to report. Could be __func__
-> > + * @gobj:	Pointer to the object
-> > + *
-> > + * Enabled only if DEBUG or CONFIG_DYNAMIC_DEBUG. Otherwise, it
-> > + * won't produce any code.
-> > + */
-> > +static inline const char *gobj_type(enum media_gobj_type type)
-> > +{
-> > +	switch (type) {
-> > +	case MEDIA_GRAPH_ENTITY:
-> > +		return "entity";
-> > +	case MEDIA_GRAPH_PAD:
-> > +		return "pad";
-> > +	case MEDIA_GRAPH_LINK:
-> > +		return "link";
-> > +	default:
-> > +		return "unknown";
-> > +	}
-> > +}
-> > +
-> > +static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
-> > +{
-> > +#if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
-> > +	switch (media_type(gobj)) {
-> > +	case MEDIA_GRAPH_ENTITY:
-> > +		dev_dbg(gobj->mdev->dev,
-> > +			"%s: id 0x%08x entity#%d: '%s'\n",
-> > +			event_name, gobj->id, media_localid(gobj),
-> > +			gobj_to_entity(gobj)->name);
-> > +		break;
-> > +	case MEDIA_GRAPH_LINK:
-> > +	{
-> > +		struct media_link *link = gobj_to_link(gobj);
-> > +
-> > +		dev_dbg(gobj->mdev->dev,
-> > +			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
-> > +			event_name, gobj->id, media_localid(gobj),
-> > +
-> > +			link->source->entity->name,
-> > +			gobj_type(media_type(&link->source->graph_obj)),
-> > +			media_localid(&link->source->graph_obj),
-> > +
-> > +			link->sink->entity->name,
-> > +			gobj_type(media_type(&link->sink->graph_obj)),
-> > +			media_localid(&link->sink->graph_obj));
-> > +		break;
-> > +	}
-> > +	case MEDIA_GRAPH_PAD:
-> > +	{
-> > +		struct media_pad *pad = gobj_to_pad(gobj);
-> > +
-> > +		dev_dbg(gobj->mdev->dev,
-> > +			"%s: id 0x%08x pad#%d: '%s':%d\n",
-> > +			event_name, gobj->id, media_localid(gobj),
-> > +			pad->entity->name, pad->index);
-> > +	}
-> > +	}
-> > +#endif
-> > +}
-> > +
-> > +/**
-> >   *  media_gobj_init - Initialize a graph object
-> >   *
-> >   * @mdev:	Pointer to the media_device that contains the object
-> > @@ -43,6 +106,8 @@ void media_gobj_init(struct media_device *mdev,
-> >  			   enum media_gobj_type type,
-> >  			   struct media_gobj *gobj)
-> >  {
-> > +	gobj->mdev = mdev;
-> > +
-> >  	/* Create a per-type unique object ID */
-> >  	switch (type) {
-> >  	case MEDIA_GRAPH_ENTITY:
-> > @@ -55,6 +120,7 @@ void media_gobj_init(struct media_device *mdev,
-> >  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-> >  		break;
-> >  	}
-> > +	dev_dbg_obj(__func__, gobj);
-> >  }
-> > 
-> >  /**
-> > @@ -66,7 +132,7 @@ void media_gobj_init(struct media_device *mdev,
-> >   */
-> >  void media_gobj_remove(struct media_gobj *gobj)
-> >  {
-> > -	/* For now, nothing to do */
-> > +	dev_dbg_obj(__func__, gobj);
-> >  }
-> > 
-> >  /**
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 749b46c91217..bdd5e565ae76 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -61,6 +61,7 @@ enum media_gobj_type {
-> >   * All elements on the media graph should have this struct embedded
-> >   */
-> >  struct media_gobj {
-> > +	struct media_device	*mdev;
-> 
-> I'd move this to the patch that introduces media_gobj.
-> 
-> >  	u32			id;
-> >  };
-> > 
-> > @@ -192,6 +193,12 @@ struct media_entity_graph {
-> >  #define gobj_to_entity(gobj) \
-> >  		container_of(gobj, struct media_entity, graph_obj)
-> > 
-> > +#define gobj_to_pad(gobj) \
-> > +		container_of(gobj, struct media_pad, graph_obj)
-> > +
-> > +#define gobj_to_link(gobj) \
-> > +		container_of(gobj, struct media_link, graph_obj)
-> > +
-> 
-> And I'd call these media_gobj_* as commented on patch 2/8.
-> 
-> >  void media_gobj_init(struct media_device *mdev,
-> >  		    enum media_gobj_type type,
-> >  		    struct media_gobj *gobj);
-> 
+-- 
+Helen Fornazier
