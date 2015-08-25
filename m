@@ -1,203 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54064 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707AbbHUBDC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 21:03:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59815 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751859AbbHYPMi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Aug 2015 11:12:38 -0400
+Date: Tue, 25 Aug 2015 12:12:29 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 2/8] [media] media: add a common struct to be embed on media graph objects
-Date: Fri, 21 Aug 2015 04:02:57 +0300
-Message-ID: <1667127.681LBiMjnq@avalon>
-In-Reply-To: <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <0622f35fe1287a61f7703ba3f99fd78e4f992806.1439981515.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v7 25/44] [media] replace all occurrences of
+ MEDIA_ENT_T_DEVNODE_V4L
+Message-ID: <20150825121229.77ddcb60@recife.lan>
+In-Reply-To: <55DC7381.9090600@xs4all.nl>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<23e2f9440a259e1162e15dba7e6261dbc4c521c6.1440359643.git.mchehab@osg.samsung.com>
+	<55DC340C.8030503@xs4all.nl>
+	<20150825083236.37659d22@recife.lan>
+	<55DC7381.9090600@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Tue, 25 Aug 2015 15:54:09 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you for the patch.
-
-On Wednesday 19 August 2015 08:01:49 Mauro Carvalho Chehab wrote:
-> Due to the MC API proposed changes, we'll need to have an unique
-> object ID for all graph objects, and have some shared fields
-> that will be common on all media graph objects.
+> On 08/25/15 13:32, Mauro Carvalho Chehab wrote:
+> > Em Tue, 25 Aug 2015 11:23:24 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
+> >>> Now that interfaces and entities are distinct, it makes no sense
+> >>> of keeping something named as MEDIA_ENT_T_DEVNODE.
+> >>>
+> >>> This change was done with this script:
+> >>>
+> >>> 	for i in $(git grep -l MEDIA_ENT_T|grep -v uapi/linux/media.h); do sed s,MEDIA_ENT_T_DEVNODE_V4L,MEDIA_ENT_T_V4L2_VIDEO, <$i >a && mv a $i; done
+> >>>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>
+> >>> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> >>> index 5872f8bbf774..910243d4edb8 100644
+> >>> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> >>> @@ -183,7 +183,7 @@
+> >>>  	    <entry>Unknown device node</entry>
+> >>>  	  </row>
+> >>>  	  <row>
+> >>> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
+> >>> +	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+> >>>  	    <entry>V4L video, radio or vbi device node</entry>
+> >>>  	  </row>
+> >>
+> >> OK, this makes no sense and that ties in with my confusion of the previous patch.
+> >>
+> >> These are not device nodes, in the new scheme these are DMA entities (I know,
+> >> naming TDB) that have an associated interface.
+> > 
+> > Yes. Well, DMA is a bad name. It won't cover USB devices, where the DMA
+> > engine is outside the V4L2 drivers, nor it would work for RDS radio data,
+> > with may not need any DMA at all on no-USB devices, as the data flows via
+> > the I2C bus.
+> > 
+> >> I think a much better approach would be to add entity type(s) for such DMA
+> >> engines in patch 24, then use that new name in existing drivers and split
+> >> up the existing DEVNODE_V4L media_entity into a media_entity and a
+> >> media_intf_devnode:
+> > 
+> > Sorry, but I didn't get. That's precisely what I did ;)
+> > 
+> >> The current media_entity defined in struct video_device has to be replaced
+> >> by media_intf_devnode, and the DMA entity has to be added as a new entity
+> >> to these drivers.
+> > 
+> > If I do this way, it would break bisectability. I need first to replace
+> > the names, but keep them as entities, and then add the interfaces.
+> > 
+> >>
+> >> This reflects these two action items from our meeting:
+> >>
+> >> Migration: add v4l-subdev media_interface: Laurent
+> >> Migration: add explicit DMA Engine entity: Laurent
+> >>
+> >> Unless Laurent says differently I think this is something you'll have to
+> >> do given Laurent's workload.
+> > 
+> > Yes. The above action items are covered on this series.
+> > 
+> > What patch 24 does is to define the new namespace, moving the legacy
+> > symbols kept due to backward compatibility on a separate part of the
+> > header.
+> > 
+> > Then, patches 25-38 replace the occurrences of the deprecated names
+> > by the new ones.
+> > 
+> > Nothing is touched at the interfaces yet, to avoid breaking bisectability.
 > 
-> Right now, the only common object is the object ID, but other
-> fields will be added later on.
+> I don't follow why that would break bisect.
+
+It won't break compilation, but it will break runtime.
+
+I mean: if we replace the current occurrences of the
+"video output data entities" [1] any userspace app that would be used to test 
+somethingwill stop working.
+
+Ok, that means that it would break bisectability for us ;)
+Still, better to avoid.
+
+[1] I don't like the "DMA" entities term, as it is too broken.
+I prefer to refer to them with some other name, like I/O entities. 
+However, even this name is not perfect. Those are, in reality, a
+"data interface", while what we call interface is actually a 
+"control interface", but calling like that would be confusing, I think.
+So, I'll simply call it as "video/vbi/... output data entities".
+
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > Then, the next patches add interfaces support at the V4L side.
 > 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index cb0ac4e0dfa5..4834172bf6f8 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -27,6 +27,38 @@
->  #include <media/media-device.h>
-> 
->  /**
-> + *  media_gobj_init - Initialize a graph object
-> + *
-> + * @mdev:	Pointer to the media_device that contains the object
-> + * @type:	Type of the object
-> + * @gobj:	Pointer to the object
-> + *
-> + * This routine initializes the embedded struct media_gobj inside a
-> + * media graph object. It is called automatically if media_*_create()
-> + * calls are used. However, if the object (entity, link, pad, interface)
-> + * is embedded on some other object, this function should be called before
-> + * registering the object at the media controller.
+> So this is not yet included in this patch series? That would explain
+> my confusion. If it is, then I need to take another look on Friday.
 
-Allowing both dynamic allocation and embedding will create a more complex API 
-with more opportunities for drivers to get it wrong. I'd like to try and 
-standardize the expected behaviour.
+It is on the 3 patches I sent yesterday, after this patch series:
+	https://patchwork.linuxtv.org/patch/31081/
+	https://patchwork.linuxtv.org/patch/31082/
+	https://patchwork.linuxtv.org/patch/31083/
 
-> + */
-> +void media_gobj_init(struct media_device *mdev,
-> +			   enum media_gobj_type type,
-> +			   struct media_gobj *gobj)
-> +{
-> +	/* For now, nothing to do */
-> +}
-> +
-> +/**
-> + *  media_gobj_remove - Stop using a graph object on a media device
+Please notice that the above patch series is not complete, as
+there's something non-trivial to be addressed on non-subdev
+V4L2 interfaces: how to create the indirect links.
 
-Is this function supposed to be the counterpart of media_gobj_init ? If so it 
-should be called media_gobj_cleanup instead.
+By indirect links, I meant to refer to the interface links that
+don't control an entity directly, but via the internal hardware
+control/I2C bus(es).
 
-> + *
-> + * @graph_obj:	Pointer to the object
+So, a video interface, on a PC customer's hardware controls not only
+the video output data entity, but it also indirectly controls the
+tuner and the analog demod. Or, on a webcam hardware, it will also
+controls the sensor.
 
-The parameter is called gobj. Could you compile the kerneldoc to ensure that 
-such typos get caught ?
+However, on platform drivers, it controls just the
+"video output data entity" that is directly associated with it via 
+its device node.
 
-> + *
-> + * This should be called at media_device_unregister_*() routines
-> + */
-> +void media_gobj_remove(struct media_gobj *gobj)
-> +{
-> +	/* For now, nothing to do */
-> +}
-> +
-> +/**
->   * media_entity_init - Initialize a media entity
->   *
->   * @num_pads: Total number of sink and source pads.
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0a66fc225559..c1cd4fba051d 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -28,6 +28,39 @@
->  #include <linux/list.h>
->  #include <linux/media.h>
-> 
-> +/* Enums used internally at the media controller to represent graphs */
-> +
-> +/**
-> + * enum media_gobj_type - type of a graph element
+We need to add some support to automatically create those links,
+once available, but only if the device is a PC customer's hardware.
 
-Let's try to standardize the vocabulary, should it be called graph object or 
-graph element ? In the first case let's document it as graph object. In the 
-second case it would be more consistent to refer to it as enum 
-media_gelem_type (and struct media_gelem below).
+Btw, that's another reason to postpone it: creating the interfaces
+offer this additional challenge, while creating the entities are
+easy, as nothing changes there.
 
-> + *
-> + */
-> +enum media_gobj_type {
-> +	 /* FIXME: add the types here, as we embed media_gobj */
-> +	MEDIA_GRAPH_NONE
-> +};
-> +
-> +#define MEDIA_BITS_PER_TYPE		8
-> +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
-> +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
-> +
-> +/* Structs to represent the objects that belong to a media graph */
-> +
-> +/**
-> + * struct media_gobj - Define a graph object.
-> + *
-> + * @id:		Non-zero object ID identifier. The ID should be unique
-> + *		inside a media_device, as it is composed by
-> + *		MEDIA_BITS_PER_TYPE to store the type plus
-> + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
-> + *		(called as "local ID").
-
-I'd very much prefer using a single ID range and adding a type field. Abusing 
-bits of the ID field to store the type will just makes IDs impractical to use. 
-Let's do it properly.
-
-> + * All elements on the media graph should have this struct embedded
-
-All elements (objects) or only the ones that need an ID ? Or maybe we'll 
-define graph element (object) as an element (object) that has an ID, making 
-some "elements" not elements.
-
-> + */
-> +struct media_gobj {
-> +	u32			id;
-> +};
-> +
-> +
->  struct media_pipeline {
->  };
-> 
-> @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity
-> *entity) return entity->id;
->  }
-> 
-> +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
-> +{
-> +	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
-> +}
-> +
-> +static inline u32 media_localid(struct media_gobj *gobj)
-> +{
-> +	return gobj->id & MEDIA_LOCAL_ID_MASK;
-> +}
-> +
-> +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32
-> local_id)
-> +{
-> +	u32 id;
-> +
-> +	id = type << MEDIA_BITS_PER_LOCAL_ID;
-> +	id |= local_id & MEDIA_LOCAL_ID_MASK;
-> +
-> +	return id;
-> +}
-> +
->  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
->  #define MEDIA_ENTITY_ENUM_MAX_ID	64
-> 
-> @@ -131,6 +184,14 @@ struct media_entity_graph {
->  	int top;
->  };
-> 
-> +#define gobj_to_entity(gobj) \
-> +		container_of(gobj, struct media_entity, graph_obj)
-
-For consistency reason would this be called media_gobj_to_entity ? I would 
-also turn it into an inline function to ensure type checking.
-
-> +
-> +void media_gobj_init(struct media_device *mdev,
-> +		    enum media_gobj_type type,
-> +		    struct media_gobj *gobj);
-> +void media_gobj_remove(struct media_gobj *gobj);
-> +
->  int media_entity_init(struct media_entity *entity, u16 num_pads,
->  		struct media_pad *pads);
->  void media_entity_cleanup(struct media_entity *entity);
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
