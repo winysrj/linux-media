@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58733 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752631AbbHTHIP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 03:08:15 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 08/18] [media] s5c73m3: Export OF module alias information
-Date: Thu, 20 Aug 2015 09:07:21 +0200
-Message-Id: <1440054451-1223-9-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
-References: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44567 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752134AbbHZNNe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2015 09:13:34 -0400
+Message-ID: <55DDBB73.5010902@xs4all.nl>
+Date: Wed, 26 Aug 2015 15:13:23 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] saa7164: convert to the control framework
+References: <55D730F4.80100@xs4all.nl>	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>	<55D85325.80607@xs4all.nl>	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>	<55D86F3C.6090004@xs4all.nl> <CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>
+In-Reply-To: <CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SPI core always reports the MODALIAS uevent as "spi:<modalias>"
-regardless of the mechanism that was used to register the device
-(i.e: OF or board code) and the table that is used later to match
-the driver with the device (i.e: SPI id table or OF match table).
+On 08/26/15 15:08, Steven Toth wrote:
+> On Sat, Aug 22, 2015 at 8:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 08/22/2015 02:06 PM, Steven Toth wrote:
+>>> On Sat, Aug 22, 2015 at 6:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 08/22/2015 09:24 AM, Ricardo Ribalda Delgado wrote:
+>>>>> Hello Hans
+>>>>>
+>>>>> With this patch I guess two of my previous patches are not needed.
+>>>>> Shall i resend the patchset or you just cherry pick the appropriate
+>>>>> ones?
+>>>>
+>>>> Let's see how long it takes before I get an Ack (or not) from Steve. If that's
+>>>> quick, then you can incorporate my patch in your patch series, if it takes
+>>>> longer (I know he's busy), then we can proceed with your patch series and I'll
+>>>> rebase on top of that later.
+>>>
+>>> Hans, thanks for the work here.
+>>>
+>>> I've skimmed the patch buts its too much to eyeball to give a direct ack.
+>>>
+>>> Has anyone tested the patch and validated each of the controls continue to work?
+>>
+>> As I said: my saa7146 card is no longer recognized (not sure why), so I was hoping
+>> you could test it.
+> 
+> OK, will do. I probably won't get to this until the weekend, but I'll
+> put this on my todo list.
 
-So drivers needs to export the SPI id table and this be built into
-the module or udev won't have the necessary information to autoload
-the needed driver module when the device is added.
+That's OK, there is no hurry. I tried to put my saa7164 in a different PC as well,
+but it seems to be really broken as nothing appears in lspci :-(
 
-But this means that OF-only drivers needs to have both OF and SPI id
-tables that have to be kept in sync and also the dev node compatible
-manufacturer prefix is stripped when reporting the MODALIAS. Which can
-lead to issues if two vendors use the same SPI device name for example.
+Regards,
 
-To avoid the above, the SPI core behavior may be changed in the future
-to not require an SPI device table for OF-only drivers and report the
-OF module alias. So, it's better to also export the OF table even when
-is unused now to prevent breaking module loading when the core changes.
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-index fa4a5ebda6b2..9983635ec253 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-@@ -31,6 +31,7 @@ static const struct of_device_id s5c73m3_spi_ids[] = {
- 	{ .compatible = "samsung,s5c73m3" },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(of, s5c73m3_spi_ids;);
- 
- enum spi_direction {
- 	SPI_DIR_RX,
--- 
-2.4.3
-
+	Hans
