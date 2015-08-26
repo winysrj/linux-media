@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58932 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490AbbHWUSK (ORCPT
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:35726 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755913AbbHZNIs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:10 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org
-Subject: [PATCH v7 33/44] [media] omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
-Date: Sun, 23 Aug 2015 17:17:50 -0300
-Message-Id: <23cdcffbd906f073ca96332f2a84205d9f49861e.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Wed, 26 Aug 2015 09:08:48 -0400
+Received: by igbjg10 with SMTP id jg10so39216872igb.0
+        for <linux-media@vger.kernel.org>; Wed, 26 Aug 2015 06:08:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <55D86F3C.6090004@xs4all.nl>
+References: <55D730F4.80100@xs4all.nl>
+	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>
+	<55D85325.80607@xs4all.nl>
+	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>
+	<55D86F3C.6090004@xs4all.nl>
+Date: Wed, 26 Aug 2015 09:08:47 -0400
+Message-ID: <CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>
+Subject: Re: [PATCH] saa7164: convert to the control framework
+From: Steven Toth <stoth@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, as it uses a
-hack to check if the remote entity is a subdev. Get rid of it.
+On Sat, Aug 22, 2015 at 8:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 08/22/2015 02:06 PM, Steven Toth wrote:
+>> On Sat, Aug 22, 2015 at 6:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 08/22/2015 09:24 AM, Ricardo Ribalda Delgado wrote:
+>>>> Hello Hans
+>>>>
+>>>> With this patch I guess two of my previous patches are not needed.
+>>>> Shall i resend the patchset or you just cherry pick the appropriate
+>>>> ones?
+>>>
+>>> Let's see how long it takes before I get an Ack (or not) from Steve. If that's
+>>> quick, then you can incorporate my patch in your patch series, if it takes
+>>> longer (I know he's busy), then we can proceed with your patch series and I'll
+>>> rebase on top of that later.
+>>
+>> Hans, thanks for the work here.
+>>
+>> I've skimmed the patch buts its too much to eyeball to give a direct ack.
+>>
+>> Has anyone tested the patch and validated each of the controls continue to work?
+>
+> As I said: my saa7146 card is no longer recognized (not sure why), so I was hoping
+> you could test it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+OK, will do. I probably won't get to this until the weekend, but I'll
+put this on my todo list.
 
-diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c b/drivers/staging/media/omap4iss/iss_ipipe.c
-index e1a7b7ba7362..4ae354fe1723 100644
---- a/drivers/staging/media/omap4iss/iss_ipipe.c
-+++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-@@ -447,8 +447,11 @@ static int ipipe_link_setup(struct media_entity *entity,
- 	struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
- 	struct iss_device *iss = to_iss_device(ipipe);
- 
-+	if (!is_media_entity_v4l2_subdev(remote->entity))
-+		return -EINVAL;
-+
- 	switch (local->index | media_entity_type(remote->entity)) {
--	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
-+	case IPIPE_PAD_SINK:
- 		/* Read from IPIPEIF. */
- 		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
- 			ipipe->input = IPIPE_INPUT_NONE;
-@@ -463,7 +466,7 @@ static int ipipe_link_setup(struct media_entity *entity,
- 
- 		break;
- 
--	case IPIPE_PAD_SOURCE_VP | MEDIA_ENT_T_V4L2_SUBDEV:
-+	case IPIPE_PAD_SOURCE_VP:
- 		/* Send to RESIZER */
- 		if (flags & MEDIA_LNK_FL_ENABLED) {
- 			if (ipipe->output & ~IPIPE_OUTPUT_VP)
+Thx.
+
 -- 
-2.4.3
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
