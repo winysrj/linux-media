@@ -1,102 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54959 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402AbbHUR1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 13:27:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:60043 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753078AbbHZOyQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2015 10:54:16 -0400
+Date: Wed, 26 Aug 2015 11:54:03 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v6 1/8] [media] media: create a macro to get entity ID
-Date: Fri, 21 Aug 2015 20:27:19 +0300
-Message-ID: <1504949.EhTF6JoeCK@avalon>
-In-Reply-To: <20150821054229.4d0d3bcf@recife.lan>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <2334695.Oz27NUDV2a@avalon> <20150821054229.4d0d3bcf@recife.lan>
+	Jonathan Corbet <corbet@lwn.net>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>, Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
+	anuvazhayil <anuv.1994@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Jiayi Ye <yejiayily@gmail.com>,
+	Heena Sirwani <heenasirwani@gmail.com>,
+	Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v7 10/44] [media] media: rename the function that create
+ pad links
+Message-ID: <20150826115403.7a794597@recife.lan>
+In-Reply-To: <55DCBA2D.9090901@osg.samsung.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<f095b87884d435e296a455ab07a9951a74c0c3a6.1440359643.git.mchehab@osg.samsung.com>
+	<55DCBA2D.9090901@osg.samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Tue, 25 Aug 2015 12:55:41 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On Friday 21 August 2015 05:42:29 Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Aug 2015 03:40:48 +0300 Laurent Pinchart escreveu:
-> > On Wednesday 19 August 2015 08:01:48 Mauro Carvalho Chehab wrote:
-> > > Instead of accessing directly entity.id, let's create a macro,
-> > > as this field will be moved into a common struct later on.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-[snip]
-
-> > > diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> > > b/drivers/media/platform/vsp1/vsp1_video.c index
-> > > 17f08973f835..debe4e539df6
-> > > 100644
-> > > --- a/drivers/media/platform/vsp1/vsp1_video.c
-> > > +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> > > @@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct
-> > > vsp1_pipeline *pipe,
-> > > 			break;
-> > > 
-> > >  		/* Ensure the branch has no loop. */
-> > > -		if (entities & (1 << entity->subdev.entity.id))
-> > > +		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
-> > >  			return -EPIPE;
-> > > 
-> > > -		entities |= 1 << entity->subdev.entity.id;
-> > > +		entities |= 1 << media_entity_id(&entity->subdev.entity);
-> > > 
-> > >  		/* UDS can't be chained. */
-> > >  		if (entity->type == VSP1_ENTITY_UDS) {
-> > 
-> > I would move the modification of the vsp1 driver to Javier's patch that
-> > modifies the OMAP3 and OMAP4 drivers. Alternatively you could squash them
-> > into this patch, but I believe having a first patch that adds the inline
-> > function and a second patch that modifies all drivers to use it would be
-> > better.
->
-> Squashing will lose Javier's authorship. I guess the better is have a
-> first patch with the inline, then my paches and Javier's ones, and
-> latter on the patch removing entity->id.
-
-What I meant is
-
-1. This patch without the VSP1 chunk, with your authorship
-2. Javier's patches for OMAP3 and OMAP4 + the VSP1 chunk squashed in a single 
-patch, with Javier's authorship
-3. Javier's patch removing entity->id, with Javier's authorship
-
-I don't see a need to split usage of media_entity_id() into per-driver 
-patches.
-
-> I'll do that on the next patch series.
+> On 08/23/2015 02:17 PM, Mauro Carvalho Chehab wrote:
+> > Now that a link can be either between two different graph
+> > objects, we'll need to add more functions to create links.
 > 
-> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > > index 8b21a4d920d9..0a66fc225559 100644
-> > > --- a/include/media/media-entity.h
-> > > +++ b/include/media/media-entity.h
-> > > @@ -113,6 +113,11 @@ static inline u32 media_entity_subtype(struct
-> > > media_entity *entity) return entity->type & MEDIA_ENT_SUBTYPE_MASK;
-> > > 
-> > >  }
-> > > 
-> > > +static inline u32 media_entity_id(struct media_entity *entity)
-> > > +{
-> > > +	return entity->id;
-> > > +}
-> > > +
-> > > 
-> > >  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> > >  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+> Is this an incomplete sentence. Should it read: "either between
+> two different graph objects or two pads" ?
 
--- 
-Regards,
+That would be redundant, as pad is a graph object ;)
 
-Laurent Pinchart
+> 
+> > So, rename the existing one that create links only between
+> > two pads as media_create_pad_link().
+> 
+> > 
+> > No functional changes.
+> > 
+> > This patch was created via this shell script:
+> > 	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
+> > 
+> 
+> Didn't want to experiment with Coccinelle?? :)
 
+I use Coccinelle, but only when I need more complex changes, as
+Coccinelle may mangle with comments.
+
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> 
+> Changes look good to me. After fixing the commit log:
+> 
+> Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+> 
+> thanks,
+> -- Shuah
+> 
+> 
