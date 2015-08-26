@@ -1,81 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48367 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238AbbH3DHq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:46 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:60066 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756403AbbHZO7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2015 10:59:46 -0400
+Date: Wed, 26 Aug 2015 11:59:42 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 50/55] [media] media-entity: unregister entity links
-Date: Sun, 30 Aug 2015 00:07:01 -0300
-Message-Id: <a8a7c85fad0ca6f9661fb9dd4e30623428959b35.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkhan@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org, shuahkh@osg.samsung.com
+Subject: Re: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
+Message-ID: <20150826115942.7c4a20c9@recife.lan>
+In-Reply-To: <CAKocOOPMBmUKkR=Zz2yxX3e9sLr3ST-cVM0BO7qVFMLN07ktGQ@mail.gmail.com>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
+	<CAKocOOPMBmUKkR=Zz2yxX3e9sLr3ST-cVM0BO7qVFMLN07ktGQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add functions to explicitly unregister all entity links.
-This function is called automatically when an entity
-link is destroyed.
+Em Tue, 25 Aug 2015 14:34:46 -0600
+Shuah Khan <shuahkhan@gmail.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Declare the interface types that will be used by the new
+> > G_TOPOLOGY ioctl that will be defined latter on.
+> >
+> > For now, we need those types, as they'll be used on the
+> > internal structs associated with the new media_interface
+> > graph object defined on the next patch.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index 4e816be3de39..21c96cd7a6ae 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -167,6 +167,35 @@ struct media_links_enum {
+> >         __u32 reserved[4];
+> >  };
+> >
+> > +/* Interface type ranges */
+> > +
+> > +#define MEDIA_INTF_T_DVB_BASE  0x00000000
+> > +#define MEDIA_INTF_T_V4L_BASE  0x00000100
+> > +#define MEDIA_INTF_T_ALSA_BASE 0x00000200
+> > +
+> > +/* Interface types */
+> > +
+> > +#define MEDIA_INTF_T_DVB_FE            (MEDIA_INTF_T_DVB_BASE)
+> > +#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
+> > +#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
+> > +#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
+> > +#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
+> > +
+> > +#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
+> > +#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
+> > +#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
+> > +#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+> > +#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+> > +
+> > +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+> > +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+> > +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+> > +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+> > +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+> > +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+> 
+> Is it necessary to add ALSA types at this time without ALSA media
+> controller work?
+> Can these be added later when ALSA work is done.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c18f4af52771..96303a0ade59 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -903,6 +903,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
- 
- void media_devnode_remove(struct media_intf_devnode *devnode)
- {
-+	media_remove_intf_links(&devnode->intf);
- 	media_gobj_remove(&devnode->intf.graph_obj);
- 	kfree(devnode);
- }
-@@ -944,3 +945,25 @@ void media_remove_intf_link(struct media_link *link)
- 	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
- }
- EXPORT_SYMBOL_GPL(media_remove_intf_link);
-+
-+void __media_remove_intf_links(struct media_interface *intf)
-+{
-+	struct media_link *link, *tmp;
-+
-+	list_for_each_entry_safe(link, tmp, &intf->links, list)
-+		__media_remove_intf_link(link);
-+
-+}
-+EXPORT_SYMBOL_GPL(__media_remove_intf_links);
-+
-+void media_remove_intf_links(struct media_interface *intf)
-+{
-+	/* Do nothing if the intf is not registered. */
-+	if (intf->graph_obj.mdev == NULL)
-+		return;
-+
-+	mutex_lock(&intf->graph_obj.mdev->graph_mutex);
-+	__media_remove_intf_links(intf);
-+	mutex_unlock(&intf->graph_obj.mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_remove_intf_links);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8c344a07636c..0e7e193a6736 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -318,6 +318,9 @@ struct media_link *media_create_intf_link(struct media_entity *entity,
- 					    struct media_interface *intf,
- 					    u32 flags);
- void media_remove_intf_link(struct media_link *link);
-+void __media_remove_intf_links(struct media_interface *intf);
-+void media_remove_intf_links(struct media_interface *intf);
-+
- 
- #define media_entity_call(entity, operation, args...)			\
- 	(((entity)->ops && (entity)->ops->operation) ?			\
--- 
-2.4.3
-
+Sure. I'll remove those on the next spin.
+> 
+> thanks,
+> -- Shuah
