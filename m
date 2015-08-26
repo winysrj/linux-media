@@ -1,112 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:33445 "EHLO cnc.isely.net"
+Received: from lists.s-osg.org ([54.187.51.154]:60097 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752136AbbHVCAT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 22:00:19 -0400
-Date: Fri, 21 Aug 2015 20:55:14 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely at pobox <isely@pobox.com>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
+	id S1752860AbbHZPZo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2015 11:25:44 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH v2 07/10] media/usb/pvrusb2: Support for
- V4L2_CTRL_WHICH_DEF_VAL
-In-Reply-To: <1440163169-18047-8-git-send-email-ricardo.ribalda@gmail.com>
-Message-ID: <alpine.DEB.2.02.1508212048050.26546@cnc.isely.net>
-References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com> <1440163169-18047-8-git-send-email-ricardo.ribalda@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 0/2] Patches to test MC next gen patches in OMAP3 ISP
+Date: Wed, 26 Aug 2015 17:25:17 +0200
+Message-Id: <1440602719-12500-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-The code you've added is carefully checking the return pointer from 
-pvr2_hdw_get_ctrl_v4l() yet the original code did not operate this way.  
-The result is that now there's this "unbalanced" effect where it appears 
-that the validity of the pvr2_ctrl instance is only checked on one side 
-of the if-statement.  I would recommend instead to elevate the call to 
-pvr2_hdw_get_ctrl_v4l() out of the if-statement - since in both cases 
-it's being called the same way both times.  Then do the validity check 
-in that one spot and that simplifies the if-statement all the way down 
-to choosing between pvr2_ctrl_get_value() vs pvr2_ctrl_get_def().
+This series contains two patches that are needed to test the
+"[PATCH v7 00/44] MC next generation patches" [0] in a OMAP3
+board by using the omap3isp driver.
 
-It's not a correctness comment; what you have should work fine.  So I'm 
-ack'ing this in any case:
+I found two issues during testing, the first one is that the
+media_entity_cleanup() function tries to empty the pad links
+list but the list is initialized when a entity is registered
+causing a NULL pointer deference error.
 
-Acked-By: Mike Isely <isely@pobox.com>
+The second issue is that the omap3isp driver creates links
+when the entities are initialized but before the media device
+is registered causing a NULL pointer deference as well.
 
-But you can do the above pretty easily & safely, and simplify it a bit 
-further.
+Patch 1/1 fixes the first issue by removing the links list
+empty logic from media_entity_cleanup() since that is made
+in media_device_unregister_entity() and 2/2 fixes the second
+issue by separating the entities initialization from the pads
+links creation after the entities have been registered.
 
-  -Mike
+Patch 1/1 was posted before [1] but forgot to add the [media]
+prefix in the subject line so I'm including in this set again.
+Sorry about that.
+
+The testing was made on an OMAP3 DM3735 IGEPv2 board and test
+that the media-ctl -p prints out the topology. More extensive
+testing will be made but I wanted to share these patches in
+order to make easier for other people that were looking at it.
+
+[0]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg91528.html
+[1]: https://lkml.org/lkml/2015/8/24/649
+
+Best regards,
+Javier
 
 
-On Fri, 21 Aug 2015, Ricardo Ribalda Delgado wrote:
+Javier Martinez Canillas (2):
+  [media] media: don't try to empty links list in media_entity_cleanup()
+  [media] omap3isp: separate links creation from entities init
 
-> This driver does not use the control infrastructure.
-> Add support for the new field which on structure
->  v4l2_ext_controls
-> 
-> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> ---
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> index 1c5f85bf7ed4..43b2f2214798 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-> @@ -628,6 +628,7 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
->  	struct pvr2_v4l2_fh *fh = file->private_data;
->  	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
->  	struct v4l2_ext_control *ctrl;
-> +	struct pvr2_ctrl *cptr;
->  	unsigned int idx;
->  	int val;
->  	int ret;
-> @@ -635,8 +636,18 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
->  	ret = 0;
->  	for (idx = 0; idx < ctls->count; idx++) {
->  		ctrl = ctls->controls + idx;
-> -		ret = pvr2_ctrl_get_value(
-> +		if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL) {
-> +			cptr = pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id);
-> +			if (cptr)
-> +				pvr2_ctrl_get_def(cptr, &val);
-> +			else
-> +				ret = -EINVAL;
-> +
-> +
-> +		} else
-> +			ret = pvr2_ctrl_get_value(
->  				pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id), &val);
-> +
->  		if (ret) {
->  			ctls->error_idx = idx;
->  			return ret;
-> @@ -658,6 +669,10 @@ static int pvr2_s_ext_ctrls(struct file *file, void *priv,
->  	unsigned int idx;
->  	int ret;
->  
-> +	/* Default value cannot be changed */
-> +	if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
-> +		return -EINVAL;
-> +
->  	ret = 0;
->  	for (idx = 0; idx < ctls->count; idx++) {
->  		ctrl = ctls->controls + idx;
-> 
+ drivers/media/media-entity.c                 |   7 --
+ drivers/media/platform/omap3isp/isp.c        | 152 +++++++++++++++++----------
+ drivers/media/platform/omap3isp/ispccdc.c    |  22 ++--
+ drivers/media/platform/omap3isp/ispccdc.h    |   1 +
+ drivers/media/platform/omap3isp/ispccp2.c    |  22 ++--
+ drivers/media/platform/omap3isp/ispccp2.h    |   1 +
+ drivers/media/platform/omap3isp/ispcsi2.c    |  22 ++--
+ drivers/media/platform/omap3isp/ispcsi2.h    |   1 +
+ drivers/media/platform/omap3isp/isppreview.c |  33 +++---
+ drivers/media/platform/omap3isp/isppreview.h |   1 +
+ drivers/media/platform/omap3isp/ispresizer.c |  33 +++---
+ drivers/media/platform/omap3isp/ispresizer.h |   1 +
+ 12 files changed, 185 insertions(+), 111 deletions(-)
 
 -- 
+2.4.3
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
