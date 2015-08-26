@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:35956 "EHLO
-	mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbbHEFPv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Aug 2015 01:15:51 -0400
-Received: by oigu206 with SMTP id u206so3811300oig.3
-        for <linux-media@vger.kernel.org>; Tue, 04 Aug 2015 22:15:50 -0700 (PDT)
-From: Pradheep Shrinivasan <pradheep.sh@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
+Received: from smtprelay0209.hostedemail.com ([216.40.44.209]:44283 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752714AbbHZS43 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Aug 2015 14:56:29 -0400
+Message-ID: <1440615385.2780.42.camel@perches.com>
+Subject: Re: [PATCH] media/pci/cobalt: Use %*ph to print small buffers
+From: Joe Perches <joe@perches.com>
+To: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	pradheep <pradheep.sh@gmail.com>
-Subject: [PATCH 1/2] Remove the extra braces in if statement of lirc_imon
-Date: Wed,  5 Aug 2015 00:14:57 -0500
-Message-Id: <1438751698-8254-3-git-send-email-pradheep.sh@gmail.com>
-In-Reply-To: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
-References: <1438751698-8254-1-git-send-email-pradheep.sh@gmail.com>
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Wed, 26 Aug 2015 11:56:25 -0700
+In-Reply-To: <1440615110-11575-1-git-send-email-kuleshovmail@gmail.com>
+References: <1440615110-11575-1-git-send-email-kuleshovmail@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: pradheep <pradheep.sh@gmail.com>
+On Thu, 2015-08-27 at 00:51 +0600, Alexander Kuleshov wrote:
+> printk() supports %*ph format specifier for printing a small buffers,
+> let's use it intead of %02x %02x...
 
-This patche removes the extra braces found in
-drivers/staging/media/lirc/lirc_imon.c to fix the warning thrown by
-checkpatch.pl
+Having just suffered this myself...
 
-Signed-off-by: Pradheep Shrinivasan<pradheep.sh@gmail.com>
----
- drivers/staging/media/lirc/lirc_imon.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> diff --git a/drivers/media/pci/cobalt/cobalt-cpld.c b/drivers/media/pci/cobalt/cobalt-cpld.c
+[]
+> @@ -330,9 +330,7 @@ bool cobalt_cpld_set_freq(struct cobalt *cobalt, unsigned f_out)
+>  
+>  		if (!memcmp(read_regs, regs, sizeof(read_regs)))
+>  			break;
+> -		cobalt_dbg(1, "retry: %02x %02x %02x %02x %02x %02x\n",
+> -			read_regs[0], read_regs[1], read_regs[2],
+> -			read_regs[3], read_regs[4], read_regs[5]);
+> +		cobalt_dbg(1, "retry: %6ph\n");
 
-diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-index 62ec9f7..05d47dc 100644
---- a/drivers/staging/media/lirc/lirc_imon.c
-+++ b/drivers/staging/media/lirc/lirc_imon.c
-@@ -785,13 +785,13 @@ static int imon_probe(struct usb_interface *interface,
- 	}
- 
- 	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
--	if (!driver) {
-+	if (!driver)
- 		goto free_context;
--	}
-+
- 	rbuf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
--	if (!rbuf) {
-+	if (!rbuf)
- 		goto free_driver;
--	}
-+
- 	if (lirc_buffer_init(rbuf, BUF_CHUNK_SIZE, BUF_SIZE)) {
- 		dev_err(dev, "%s: lirc_buffer_init failed\n", __func__);
- 		goto free_rbuf;
--- 
-1.9.1
+Aren't you missing something like compile testing?
+
 
