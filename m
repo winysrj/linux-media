@@ -1,135 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:11157 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbbHTJNx (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:33414 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932147AbbH0WTZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 05:13:53 -0400
-Message-ID: <55D59A34.70300@atmel.com>
-Date: Thu, 20 Aug 2015 17:13:24 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 3/3] media: atmel-isi: add sanity check for supported
- formats in set_fmt()
-References: <1438745190-21020-1-git-send-email-josh.wu@atmel.com> <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1438745190-21020-3-git-send-email-josh.wu@atmel.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 27 Aug 2015 18:19:25 -0400
+Received: by lbbsx3 with SMTP id sx3so20091869lbb.0
+        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 15:19:23 -0700 (PDT)
+From: Darek Zielski <dz1125tor@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Darek Zielski <dz1125tor@gmail.com>
+Subject: [PATCH] saa7134: add Leadtek Winfast TV2100 FM card support
+Date: Fri, 28 Aug 2015 00:18:54 +0200
+Message-Id: <1440713934-13062-1-git-send-email-dz1125tor@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+Add Leadtek Winfast TV2100 FM card to saa7134 driver. It is a card bearing
+SAA7130HL chip.
 
-Could you have time to review this patch? so that I can send a pull 
-request with your reviewed-by tags.
+Signed-off-by: Darek Zielski <dz1125tor@gmail.com>
+---
+ Documentation/video4linux/CARDLIST.saa7134 |  1 +
+ drivers/media/pci/saa7134/saa7134-cards.c  | 43 ++++++++++++++++++++++++++++++
+ drivers/media/pci/saa7134/saa7134-input.c  |  7 +++++
+ drivers/media/pci/saa7134/saa7134.h        |  1 +
+ 4 files changed, 52 insertions(+)
 
-Best Regards,
-Josh Wu
-
-On 8/5/2015 11:26 AM, Josh Wu wrote:
-> After adding the format check in set_fmt(), we don't need any format check
-> in configure_geometry(). So make configure_geometry() as void type.
->
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->
-> Changes in v2:
-> - new added patch
->
->   drivers/media/platform/soc_camera/atmel-isi.c | 39 +++++++++++++++++++++------
->   1 file changed, 31 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index cb46aec..d0df518 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -103,17 +103,19 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->   	return readl(isi->regs + reg);
->   }
->   
-> -static int configure_geometry(struct atmel_isi *isi, u32 width,
-> +static void configure_geometry(struct atmel_isi *isi, u32 width,
->   			u32 height, u32 code)
->   {
->   	u32 cfg2;
->   
->   	/* According to sensor's output format to set cfg2 */
->   	switch (code) {
-> -	/* YUV, including grey */
-> +	default:
-> +	/* Grey */
->   	case MEDIA_BUS_FMT_Y8_1X8:
->   		cfg2 = ISI_CFG2_GRAYSCALE;
->   		break;
-> +	/* YUV */
->   	case MEDIA_BUS_FMT_VYUY8_2X8:
->   		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
->   		break;
-> @@ -127,8 +129,6 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
->   		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
->   		break;
->   	/* RGB, TODO */
-> -	default:
-> -		return -EINVAL;
->   	}
->   
->   	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> @@ -139,8 +139,29 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
->   	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
->   			& ISI_CFG2_IM_VSIZE_MASK;
->   	isi_writel(isi, ISI_CFG2, cfg2);
-> +}
->   
-> -	return 0;
-> +static bool is_supported(struct soc_camera_device *icd,
-> +		const struct soc_camera_format_xlate *xlate)
-> +{
-> +	bool ret = true;
-> +
-> +	switch (xlate->code) {
-> +	/* YUV, including grey */
-> +	case MEDIA_BUS_FMT_Y8_1X8:
-> +	case MEDIA_BUS_FMT_VYUY8_2X8:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	case MEDIA_BUS_FMT_YVYU8_2X8:
-> +	case MEDIA_BUS_FMT_YUYV8_2X8:
-> +		break;
-> +	/* RGB, TODO */
-> +	default:
-> +		dev_err(icd->parent, "not supported format: %d\n",
-> +					xlate->code);
-> +		ret = false;
-> +	}
-> +
-> +	return ret;
->   }
->   
->   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-> @@ -391,10 +412,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->   	/* Disable all interrupts */
->   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
->   
-> -	ret = configure_geometry(isi, icd->user_width, icd->user_height,
-> +	configure_geometry(isi, icd->user_width, icd->user_height,
->   				icd->current_fmt->code);
-> -	if (ret < 0)
-> -		return ret;
->   
->   	spin_lock_irq(&isi->lock);
->   	/* Clear any pending interrupt */
-> @@ -515,6 +534,10 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
->   	if (mf->code != xlate->code)
->   		return -EINVAL;
->   
-> +	/* check with atmel-isi support format */
-> +	if (!is_supported(icd, xlate))
-> +		return -EINVAL;
-> +
->   	pix->width		= mf->width;
->   	pix->height		= mf->height;
->   	pix->field		= mf->field;
+diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
+index f4b395b..2821020 100644
+--- a/Documentation/video4linux/CARDLIST.saa7134
++++ b/Documentation/video4linux/CARDLIST.saa7134
+@@ -193,3 +193,4 @@
+ 192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
+ 193 -> WIS Voyager or compatible                [1905:7007]
+ 194 -> AverMedia AverTV/505                     [1461:a10a]
++195 -> Leadtek Winfast TV2100 FM                [107d:6f3a]
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index c740576..29d2094 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -5884,6 +5884,42 @@ struct saa7134_board saa7134_boards[] = {
+ 			.amux = LINE1,
+ 		},
+ 	},
++	[SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM] = {
++		.name           = "Leadtek Winfast TV2100 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_TNF_5335MF,
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.gpiomask       = 0x0d,
++		.inputs         = {{
++			.name = name_tv_mono,
++			.vmux = 1,
++			.amux = LINE1,
++			.gpio = 0x00,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE2,
++			.gpio = 0x08,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE2,
++			.gpio = 0x08,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE1,
++			.gpio = 0x04,
++		},
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++			.gpio = 0x08,
++		},
++	},
+ 
+ };
+ 
+@@ -7149,6 +7185,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 		.subdevice    = 0xa10a,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_505,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = 0x107d,
++		.subdevice    = 0x6f3a,
++		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -7545,6 +7587,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
+ 	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+ 	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
++	case SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+ 		break;
+ 	case SAA7134_BOARD_FLYDVBS_LR300:
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 11a1720..69d32d3 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -835,6 +835,13 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 		mask_keycode = 0xffff;
+ 		raw_decode   = true;
+ 		break;
++	case SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM:
++		ir_codes     = RC_MAP_LEADTEK_Y04G0051;
++		mask_keydown = 0x0040000;	/* Enable GPIO18 line on both edges */
++		mask_keyup   = 0x0040000;
++		mask_keycode = 0xffff;
++		raw_decode   = true;
++		break;
+ 	}
+ 	if (NULL == ir_codes) {
+ 		pr_err("Oops: IR config error [card=%d]\n", dev->board);
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 6b5f6f4..14c2b4e 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -342,6 +342,7 @@ struct saa7134_card_ir {
+ #define SAA7134_BOARD_AVERMEDIA_A706		192
+ #define SAA7134_BOARD_WIS_VOYAGER           193
+ #define SAA7134_BOARD_AVERMEDIA_505         194
++#define SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM 195
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+-- 
+2.5.0
 
