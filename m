@@ -1,97 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:35091 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694AbbHUNTu (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56321 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751413AbbH0CxU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 09:19:50 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Isely <isely@pobox.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 10/10] Docbook: media: Document changes on struct v4l2_ext_controls
-Date: Fri, 21 Aug 2015 15:19:29 +0200
-Message-Id: <1440163169-18047-11-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
+	Wed, 26 Aug 2015 22:53:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A0F022A0097
+	for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 04:52:29 +0200 (CEST)
+Date: Thu, 27 Aug 2015 04:52:29 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150827025229.A0F022A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vidioc-g-ext-ctrls can now be used to get the default value of the
-controls.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- Documentation/DocBook/media/v4l/v4l2.xml           |  9 +++++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 22 ++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e98caa1c39bd..be52bd2fb335 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -153,6 +153,15 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>4.4</revnumber>
-+	<date>2015-08-20</date>
-+	<authorinitials>rr</authorinitials>
-+	<revremark>Extend vidioc-g-ext-ctrls;. Replace ctrl_class with a new
-+union with ctrl_class and which. Which is used to select the current value of
-+the control or the default value.
-+	</revremark>
-+      </revision>
-+      <revision>
- 	<revnumber>3.21</revnumber>
- 	<date>2015-02-13</date>
- 	<authorinitials>mcc</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index 8f4eb395665d..3b7bf68a8250 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -216,7 +216,12 @@ Valid if <constant>V4L2_CTRL_FLAG_HAS_PAYLOAD</constant> is set for this control
-       <tgroup cols="3">
- 	&cs-str;
- 	<tbody valign="top">
-+	 <row>
-+	    <entry>union</entry>
-+	    <entry>(anonymous)</entry>
-+	  </row>
- 	  <row>
-+	    <entry></entry>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>ctrl_class</structfield></entry>
- 	    <entry>The control class to which all controls belong, see
-@@ -228,6 +233,23 @@ with a <structfield>count</structfield> of 0. If that succeeds, then the driver
- supports this feature.</entry>
- 	  </row>
- 	  <row>
-+	    <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry><para>Which value of the control to get/set/try. <constant>V4L2_CTRL_WHICH_CUR_VAL</constant>
-+will return the current value of the control and <constant>V4L2_CTRL_WHICH_DEF_VAL</constant> will
-+return the default value of the control. Please note that you can only get the default value of the
-+control, you cannot set or try it.</para>
-+<para>For backwards compatibility you can also use a control class here (see
-+<xref linkend="ctrl-class" />). In that case all controls have to belong to that
-+control class. This usage is deprecated, instead just use <constant>V4L2_CTRL_WHICH_CUR_VAL</constant>.
-+There are some very old drivers that do not yet support <constant>V4L2_CTRL_WHICH_CUR_VAL</constant>
-+and that require a control class here. You can test for such drivers by setting ctrl_class to
-+<constant>V4L2_CTRL_WHICH_CUR_VAL</constant> and calling VIDIOC_TRY_EXT_CTRLS with a count of 0.
-+If that fails, then the driver does not support <constant>V4L2_CTRL_WHICH_CUR_VAL</constant>.</para>
-+</entry>
-+	  </row>
-+	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>count</structfield></entry>
- 	    <entry>The number of controls in the controls array. May
--- 
-2.5.0
+date:		Thu Aug 27 04:00:14 CEST 2015
+git branch:	test
+git hash:	d071c833a0d30e7aae0ea565d92ef83c79106d6f
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
