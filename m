@@ -1,121 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34614 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439AbbHJLpT (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36348 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987AbbH0MaX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 07:45:19 -0400
-Message-ID: <55C88EAF.8030100@xs4all.nl>
-Date: Mon, 10 Aug 2015 13:44:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com, inki.dae@samsung.com,
-	sw0312.kim@samsung.com, nenggun.kim@samsung.com,
-	sangbae90.lee@samsung.com, rany.kwon@samsung.com
-Subject: Re: [RFC PATCH v2 0/5] Refactoring Videobuf2 for common use
-References: <1438332277-6542-1-git-send-email-jh1009.sung@samsung.com>	<55C86147.4090307@xs4all.nl>	<20150810063255.2f087b24@recife.lan>	<55C878DB.5080404@xs4all.nl> <20150810074911.0b6e9ff0@recife.lan>
-In-Reply-To: <20150810074911.0b6e9ff0@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 27 Aug 2015 08:30:23 -0400
+Received: by wicgk12 with SMTP id gk12so7095078wic.1
+        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 05:30:22 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 2/5] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
+Date: Thu, 27 Aug 2015 13:29:32 +0100
+Message-Id: <1440678575-21646-3-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/2015 12:49 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 10 Aug 2015 12:11:39 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 08/10/2015 11:32 AM, Mauro Carvalho Chehab wrote:
->>> Em Mon, 10 Aug 2015 10:31:03 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>
->>>> Hi Jungsak,
->>>>
->>>> On 07/31/2015 10:44 AM, Junghak Sung wrote:
->>>>> Hello everybody,
->>>>>
->>>>> This is the 2nd round for refactoring Videobuf2(a.k.a VB2).
->>>>> The purpose of this patch series is to separate existing VB2 framework
->>>>> into core part and V4L2 specific part. So that not only V4L2 but also other
->>>>> frameworks can use them to manage buffer and utilize queue.
->>>>>
->>>>> Why do we try to make the VB2 framework to be common?
->>>>>
->>>>> As you may know, current DVB framework uses ringbuffer mechanism to demux
->>>>> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
->>>>> extra memory copy because DVB framework provides only read() system call for
->>>>> application - read() system call copies the kernel data to user-space buffer.
->>>>> So if we can use VB2 framework which supports streaming I/O and buffer
->>>>> sharing mechanism, then we could enhance existing DVB framework by removing
->>>>> the extra memory copy - with VB2 framework, application can access the kernel
->>>>> data directly through mmap system call.
->>>>>
->>>>> We have a plan for this work as follows:
->>>>> 1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
->>>>>    Of course, this change will not affect other v4l2-based
->>>>>    device drivers. This patch series corresponds to this step.
->>>>>
->>>>> 2. Add and implement new APIs for DVB streaming I/O.
->>>>>    We can remove unnecessary memory copy between kernel-space and user-space
->>>>>    by using these new APIs. However, we leaves legacy interfaces as-is
->>>>>    for backward compatibility.
->>>>>
->>>>> This patch series is the first step for it.
->>>>> The previous version of this patch series can be found at [1].
->>>>>
->>>>> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
->>>>
->>>> This v2 looks much better, but, as per my comment to patch 1/5, it needs a bit
->>>> more work before I can do a really good review. I think things will be much
->>>> clearer once patch 3 shows the code moving from core.c/h to v4l2.c/h instead
->>>> of the other way around. That shouldn't be too difficult.
->>>
->>> Hans,
->>>
->>> I suggested Junkhak to do that. On his previous patchset, he did what
->>> you're suggestiong, e. g moving things from vb2-core into vb2-v4l2, and
->>> that resulted on patches big enough to not be catched by vger.
->>
->> Actually, that wasn't the reason why the patches became so big. I just
->> reorganized the patch series as I suggested above (pretty easy to do) and
->> the size of patch 3 went down.
-> 
-> Ah, ok.
-> 
->>> Also, IMHO, it is cleared this way, as we can see what parts of VB2 will
->>> actually be shared, as there are lots of things that won't be shared:
->>> overlay, userptr, multiplanar.
->>
->> That's why I prefer to see what moves *out* from the core.
->>
->> To be honest, it depends on what your preference is.
-> 
-> Yeah. I actually prefer to see what will be shared, because the
-> non-shared code won't have changes (except for minor kABI things),
-> while the shared code will be more affected :)
-> 
->> Junghak, just leave the patch as-is. However, for v3 you should run
->> checkpatch.pl over the diff since it complained about various things.
-> 
-> There are two things here:
-> 
-> 1) on patches that just move things around, we should not
-> run checkpatch, as otherwise it would be a nightmare for
-> review. Ok, as we're doing a remanufacturing, it is a good
-> idea to run checkpatch at the end and see what should be fixed
-> (or do it before), but this is out of the scope of the manufacturing.
-> I can do that myself when applying the series.
+This patch adds in the required DT node for the c8sectpfe
+Linux DVB demux driver which allows the tsin channels
+to be used on an upstream kernel.
 
-It was actually complaining about new code.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ arch/arm/boot/dts/stihxxx-b2120.dtsi | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-	Hans
-
-> 
-> 2) For all other patches that are adding/changing the code, then
-> Junghak should run checkpatch and fix (most) stuff complained there.
-> 
-> Regards,
-> Mauro
-> 
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index 62994ae..c014173 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -6,6 +6,9 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++
++#include <dt-bindings/clock/stih407-clks.h>
++#include <dt-bindings/media/c8sectpfe.h>
+ / {
+ 	soc {
+ 		sbc_serial0: serial@9530000 {
+@@ -85,5 +88,36 @@
+ 			status = "okay";
+ 		};
+ 
++		demux@08a20000 {
++			compatible	= "st,stih407-c8sectpfe";
++			status		= "okay";
++			reg		= <0x08a20000 0x10000>,
++					  <0x08a00000 0x4000>;
++			reg-names	= "c8sectpfe", "c8sectpfe-ram";
++			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
++					  <GIC_SPI 35 IRQ_TYPE_NONE>;
++			interrupt-names	= "c8sectpfe-error-irq",
++					  "c8sectpfe-idle-irq";
++			pinctrl-names	= "tsin0-serial",
++					  "tsin0-parallel",
++					  "tsin3-serial",
++					  "tsin4-serial",
++					  "tsin5-serial";
++			pinctrl-0	= <&pinctrl_tsin0_serial>;
++			pinctrl-1	= <&pinctrl_tsin0_parallel>;
++			pinctrl-2	= <&pinctrl_tsin3_serial>;
++			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
++			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
++			clock-names	= "c8sectpfe";
++			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
++			/* tsin0 is TSA on NIMA */
++			tsin0: port@0 {
++				tsin-num	= <0>;
++				serial-not-parallel;
++				i2c-bus		= <&ssc2>;
++				rst-gpio	= <&pio15 4 0>;
++				dvb-card	= <STV0367_TDA18212_NIMA_1>;
++			};
++		};
+ 	};
+ };
+-- 
+1.9.1
 
