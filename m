@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59905 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751816AbbHYUCe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 16:02:34 -0400
-Date: Tue, 25 Aug 2015 17:02:28 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkhan@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	shuahkh@osg.samsung.com
-Subject: Re: [PATCH v7 00/44] MC next generation patches
-Message-ID: <20150825170228.1baaa1cb@recife.lan>
-In-Reply-To: <CAKocOOOjJ3iuWTJv2qNt4=3m01YVVN444COtZ_e4ETXH=_XEbg@mail.gmail.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-	<CAKocOOOjJ3iuWTJv2qNt4=3m01YVVN444COtZ_e4ETXH=_XEbg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:37659 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753115AbbH0MaO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Aug 2015 08:30:14 -0400
+Received: by widdq5 with SMTP id dq5so43597069wid.0
+        for <linux-media@vger.kernel.org>; Thu, 27 Aug 2015 05:30:12 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 1/5] ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
+Date: Thu, 27 Aug 2015 13:29:31 +0100
+Message-Id: <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 25 Aug 2015 13:11:06 -0600
-Shuah Khan <shuahkhan@gmail.com> escreveu:
+Adding these properties makes the I2C bus to the demodulators much
+more reliable, and we no longer suffer from I2C errors when tuning.
 
-> On Sun, Aug 23, 2015 at 2:17 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > The latest version of this patch series is at:
-> >         http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=mc_next_gen
-> >
-> > The latest version of the userspace tool to test it is at:
-> >         http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/log/?h=mc-next-gen
-> >
-> > The initial patches of this series are the same as the ones at the
-> >         "[PATCH v6 0/8] MC preparation patches"
-> > plus Javier patch series:
-> >         "[PATCH 0/4] [media] Media entity cleanups and build fixes"
-> > Addressing some of the concerns from Laurent:
-> >         Javier media_entity_id() patches got reordered;
-> >         all "elements" occurrences were replaced by "objects"
-> >
-> 
-> Do you have new media-ctl graphs that are based on these changes you
-> can share with us?
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-No, I don't. I do have the output from my tree. The problem is that
-media-ctl is not being able of creating the dot graph. I didn't
-have any time yet to check why, but
-> It would be nice to see before and after graphs from media-ctl.
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index f589fe4..62994ae 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -27,12 +27,18 @@
+ 			};
+ 		};
+ 
+-		i2c@9842000 {
++		ssc2: i2c@9842000 {
+ 			status = "okay";
++			clock-frequency = <100000>;
++			st,i2c-min-scl-pulse-width-us = <0>;
++			st,i2c-min-sda-pulse-width-us = <5>;
+ 		};
+ 
+-		i2c@9843000 {
++		ssc3: i2c@9843000 {
+ 			status = "okay";
++			clock-frequency = <100000>;
++			st,i2c-min-scl-pulse-width-us = <0>;
++			st,i2c-min-sda-pulse-width-us = <5>;
+ 		};
+ 
+ 		i2c@9844000 {
+-- 
+1.9.1
 
-Now that we're starting to represent properly the DVB entities, the
-number of graph elements are too high. The au0828 demux has 256
-ports. On each port, there are two outputs (one via demux interface
-and another one via the DVB interface). All those entities are
-connected to the demux interface, and all DVR ts output entities
-linked to the dvr interface.
-
-A dot graph with the number of entities and interfaces would be 
-useless, except if one would print it on an A0 paper, and change
-the graph type to neato.
-
-Regards,
-Mauro
