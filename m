@@ -1,73 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58897 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753235AbbHWUSI (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:34191 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753375AbbH1RxD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH v7 13/44] [media] uapi/media.h: Declare interface types
-Date: Sun, 23 Aug 2015 17:17:30 -0300
-Message-Id: <55df3b23389e68b19354011babf0da1d26d0a91a.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Fri, 28 Aug 2015 13:53:03 -0400
+Received: by wiyy7 with SMTP id y7so6252329wiy.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:53:02 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v3 5/6] [media] c8sectpfe: Update DT binding doc with some minor fixes
+Date: Fri, 28 Aug 2015 18:52:41 +0100
+Message-Id: <1440784362-31217-6-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare the interface types that will be used by the new
-G_TOPOLOGY ioctl that will be defined latter on.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ .../devicetree/bindings/media/stih407-c8sectpfe.txt        | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-For now, we need those types, as they'll be used on the
-internal structs associated with the new media_interface
-graph object defined on the next patch.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4e816be3de39..21c96cd7a6ae 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -167,6 +167,35 @@ struct media_links_enum {
- 	__u32 reserved[4];
- };
+diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+index e70d840..cc51b1f 100644
+--- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
++++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+@@ -55,20 +55,20 @@ Example:
+ 		status = "okay";
+ 		reg = <0x08a20000 0x10000>, <0x08a00000 0x4000>;
+ 		reg-names = "stfe", "stfe-ram";
+-		interrupts = <0 34 0>, <0 35 0>;
++		interrupts = <GIC_SPI 34 IRQ_TYPE_NONE>, <GIC_SPI 35 IRQ_TYPE_NONE>;
+ 		interrupt-names = "stfe-error-irq", "stfe-idle-irq";
+-
+-		pinctrl-names	= "tsin0-serial", "tsin0-parallel", "tsin3-serial",
+-				"tsin4-serial", "tsin5-serial";
+-
+ 		pinctrl-0	= <&pinctrl_tsin0_serial>;
+ 		pinctrl-1	= <&pinctrl_tsin0_parallel>;
+ 		pinctrl-2	= <&pinctrl_tsin3_serial>;
+ 		pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
+ 		pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
+-
++		pinctrl-names	= "tsin0-serial",
++				  "tsin0-parallel",
++				  "tsin3-serial",
++				  "tsin4-serial",
++				  "tsin5-serial";
+ 		clocks = <&clk_s_c0_flexgen CLK_PROC_STFE>;
+-		clock-names = "stfe";
++		clock-names = "c8sectpfe";
  
-+/* Interface type ranges */
-+
-+#define MEDIA_INTF_T_DVB_BASE	0x00000000
-+#define MEDIA_INTF_T_V4L_BASE	0x00000100
-+#define MEDIA_INTF_T_ALSA_BASE	0x00000200
-+
-+/* Interface types */
-+
-+#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
-+#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
-+#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
-+#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
-+#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
-+
-+#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
-+#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
-+#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
-+#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
-+#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
-+
-+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-+#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-+#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-+#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-+#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-+
-+/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-+
- #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+ 		/* tsin0 is TSA on NIMA */
+ 		tsin0: port@0 {
 -- 
-2.4.3
+1.9.1
 
