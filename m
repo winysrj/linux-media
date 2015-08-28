@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:2971 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751487AbbHDGWV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Aug 2015 02:22:21 -0400
-Message-ID: <55C059F9.6070906@atmel.com>
-Date: Tue, 4 Aug 2015 14:21:45 +0800
-From: Josh Wu <josh.wu@atmel.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH] media: atmel-isi: parse the DT parameters for vsync/hsync
- polarity
-References: <1438338812-22329-1-git-send-email-josh.wu@atmel.com> <1896672.nsMcFlgNH5@avalon>
-In-Reply-To: <1896672.nsMcFlgNH5@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54380 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751653AbbH1Lt1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2015 07:49:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, ricardo.ribalda@gmail.com
+Subject: [PATCHv2 0/8] saa7164: v4l2-compliance fixes
+Date: Fri, 28 Aug 2015 13:48:25 +0200
+Message-Id: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 8/1/2015 5:11 PM, Laurent Pinchart wrote:
-> Hi Josh,
->
-> Thank you for the patch.
->
-> On Friday 31 July 2015 18:33:32 Josh Wu wrote:
->> This patch will get the DT parameters of vsync/hsync polarity, and pass to
->> the platform data.
->>
->> Also add a debug information for test purpose.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c | 10 ++++++++++
->>   1 file changed, 10 insertions(+)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->> b/drivers/media/platform/soc_camera/atmel-isi.c index fe9247a..a7de55c
->> 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -811,6 +811,11 @@ static int isi_camera_set_bus_param(struct
->> soc_camera_device *icd) if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
->>   		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
->>
->> +	dev_dbg(icd->parent, "vsync is active %s, hsyc is active %s, pix clock is
->> sampling %s\n",
-> s/hsyc/hsync/
->
-> I'd write it as "vsync active %s, hsync active %s, sampling on pix clock %s
-> edge\n" with "falling" and "rising" instead of "fall" and "rise".
+This patch series fixes many v4l2-compliance issues in the saa7164 driver.
 
-Thanks, I'll correct it.
+As part of that it converts this driver to the control framework which
+simplifies Ricardo's "Support getting default values from any control"
+patch series.
 
->
->> +		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" : "high",
->> +		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
->> +		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "fall" : "rise");
->> +
->>   	if (isi->pdata.has_emb_sync)
->>   		cfg1 |= ISI_CFG1_EMB_SYNC;
->>   	if (isi->pdata.full_mode)
->> @@ -898,6 +903,11 @@ static int atmel_isi_probe_dt(struct atmel_isi *isi,
->>   		goto err_probe_dt;
->>   	}
->>
->> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
->> +		isi->pdata.hsync_act_low = true;
->> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
->> +		isi->pdata.vsync_act_low = true;
-> While you're at it, how about setting has_emb_sync based on ep.bus_type and
-> pclk_act_falling from flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ?
+Everything has been tested with my HVR-2200 board.
 
-I will add the pclk_act_falling handling code as well. And rebase this 
-patch on top of your dt modifications.
+v4l2-compliance now no longer returns any failures for the video and vbi
+devices.
 
-Best Regards
-Josh Wu
->
->>   err_probe_dt:
->>   	of_node_put(np);
+Regards,
+
+	Hans
+
+Hans Verkuil (8):
+  saa7164: convert to the control framework
+  saa7164: add v4l2_fh support
+  saa7164: fix poll bugs
+  saa7164: add support for control events
+  saa7164: fix format ioctls
+  saa7164: remove unused videobuf references
+  saa7164: fix input and tuner compliance problems
+  saa7164: video and vbi ports share the same input/tuner/std
+
+ drivers/media/pci/saa7164/Kconfig           |   1 -
+ drivers/media/pci/saa7164/saa7164-encoder.c | 653 ++++++++--------------------
+ drivers/media/pci/saa7164/saa7164-vbi.c     | 629 +--------------------------
+ drivers/media/pci/saa7164/saa7164.h         |  26 +-
+ 4 files changed, 217 insertions(+), 1092 deletions(-)
+
+-- 
+2.1.4
 
