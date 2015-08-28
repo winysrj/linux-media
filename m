@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50676 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755383AbbHYHeD (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36309 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753378AbbH1RxA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 03:34:03 -0400
-Message-ID: <55DC1A3B.2010204@xs4all.nl>
-Date: Tue, 25 Aug 2015 09:33:15 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 19/44] [media] media: make link debug printk more generic
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <e5b7afddd3087eda9267245fcbfc1d24d059b3a9.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <e5b7afddd3087eda9267245fcbfc1d24d059b3a9.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 28 Aug 2015 13:53:00 -0400
+Received: by wicfv10 with SMTP id fv10so14043643wic.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:52:59 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v3 3/6] [media] c8sectpfe: Remove select on undefined LIBELF_32
+Date: Fri, 28 Aug 2015 18:52:39 +0100
+Message-Id: <1440784362-31217-4-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> Remove entity name from the link as this exists only if the object
-> type is PAD on both link ends.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+LIBELF_32 is not defined in Kconfig, and is left over legacy
+which is not required in the upstream driver, so remove it.
 
-I am wondering whether it should detect if this is a pad-to-pad link
-or an interface-to-entity link and log this accordingly.
+Suggested-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ drivers/media/platform/sti/c8sectpfe/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-But I think that is better done as a follow-up patch if we think this
-is useful. So for this patch:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 9ec9c503caca..5788297cd500 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -106,14 +106,12 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
->  		struct media_link *link = gobj_to_link(gobj);
->  
->  		dev_dbg(gobj->mdev->dev,
-> -			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
-> +			"%s: id 0x%08x link#%d: %s#%d ==> %s#%d\n",
->  			event_name, gobj->id, media_localid(gobj),
->  
-> -			link->source->entity->name,
->  			gobj_type(media_type(&link->source->graph_obj)),
->  			media_localid(&link->source->graph_obj),
->  
-> -			link->sink->entity->name,
->  			gobj_type(media_type(&link->sink->graph_obj)),
->  			media_localid(&link->sink->graph_obj));
->  		break;
-> 
+diff --git a/drivers/media/platform/sti/c8sectpfe/Kconfig b/drivers/media/platform/sti/c8sectpfe/Kconfig
+index d1bfd4c..b9ec667 100644
+--- a/drivers/media/platform/sti/c8sectpfe/Kconfig
++++ b/drivers/media/platform/sti/c8sectpfe/Kconfig
+@@ -1,7 +1,6 @@
+ config DVB_C8SECTPFE
+ 	tristate "STMicroelectronics C8SECTPFE DVB support"
+ 	depends on DVB_CORE && I2C && (ARCH_STI || ARCH_MULTIPLATFORM)
+-	select LIBELF_32
+ 	select FW_LOADER
+ 	select FW_LOADER_USER_HELPER_FALLBACK
+ 	select DEBUG_FS
+-- 
+1.9.1
 
