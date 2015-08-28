@@ -1,161 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48545 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325AbbH3DHx (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46671 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750733AbbH1IA1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:53 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 46/55] [media] media: move mdev list init to gobj
-Date: Sun, 30 Aug 2015 00:06:57 -0300
-Message-Id: <276ac52f3f54de70fdd033454c142404fe0c0d3e.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Fri, 28 Aug 2015 04:00:27 -0400
+Message-ID: <55E014E6.5000801@xs4all.nl>
+Date: Fri, 28 Aug 2015 09:59:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] saa7164: convert to the control framework
+References: <55D730F4.80100@xs4all.nl>	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>	<55D85325.80607@xs4all.nl>	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>	<55D86F3C.6090004@xs4all.nl>	<CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>	<55DDBB73.5010902@xs4all.nl> <CALzAhNVxrWOsU72jin4_ygwazX2cnqBaMoPGZ_Kv77xgGx7KmA@mail.gmail.com>
+In-Reply-To: <CALzAhNVxrWOsU72jin4_ygwazX2cnqBaMoPGZ_Kv77xgGx7KmA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's control the topology changes inside the graph_object.
-So, move the removal of interfaces/entities from the mdev
-lists to media_gobj_init() and media_gobj_remove().
+On 08/26/2015 03:23 PM, Steven Toth wrote:
+>>>>> Has anyone tested the patch and validated each of the controls continue to work?
+>>>>
+>>>> As I said: my saa7146 card is no longer recognized (not sure why), so I was hoping
+>>>> you could test it.
+>>>
+>>> OK, will do. I probably won't get to this until the weekend, but I'll
+>>> put this on my todo list.
+>>
+>> That's OK, there is no hurry. I tried to put my saa7164 in a different PC as well,
+>> but it seems to be really broken as nothing appears in lspci :-(
+> 
+> Send me your shipping address _privately_, I talk to Hauppauge about a
+> replacement.
+> 
 
-The main reason is that mdev should have lists for all
-object types, as the new MC api will require to store
-objects in separate places.
+No need, I managed to get it working if I use a PCI-to-PCIe adapter card. Very
+strange, it won't work in the PCIe slot of my motherboard, but using the PCI slot
+and that adapter it works fine.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+It's good that it was tested since the menu control creation code was wrong.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 134fe7510195..ec98595b8a7a 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
- 	struct media_entity *entity;
- 	struct media_entity *next;
- 
--	list_for_each_entry_safe(entity, next, &mdev->entities, list)
-+	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
- 		media_device_unregister_entity(entity);
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-@@ -449,7 +449,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	spin_lock(&mdev->lock);
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
--	list_add_tail(&entity->list, &mdev->entities);
- 
- 	/* Initialize objects at the pads */
- 	for (i = 0; i < entity->num_pads; i++)
-@@ -487,7 +486,6 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_remove(&entity->pads[i].graph_obj);
- 	media_gobj_remove(&entity->graph_obj);
--	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->graph_obj.mdev = NULL;
- }
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d62a6ffbc929..192af193a394 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -170,6 +170,7 @@ void media_gobj_init(struct media_device *mdev,
- 	switch (type) {
- 	case MEDIA_GRAPH_ENTITY:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
-+		list_add_tail(&gobj->list, &mdev->entities);
- 		break;
- 	case MEDIA_GRAPH_PAD:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-@@ -178,6 +179,7 @@ void media_gobj_init(struct media_device *mdev,
- 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
- 		break;
- 	case MEDIA_GRAPH_INTF_DEVNODE:
-+		list_add_tail(&gobj->list, &mdev->interfaces);
- 		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
- 		break;
- 	}
-@@ -193,6 +195,15 @@ void media_gobj_init(struct media_device *mdev,
-  */
- void media_gobj_remove(struct media_gobj *gobj)
- {
-+	/* Remove the object from mdev list */
-+	switch (media_type(gobj)) {
-+	case MEDIA_GRAPH_ENTITY:
-+	case MEDIA_GRAPH_INTF_DEVNODE:
-+		list_del(&gobj->list);
-+	default:
-+		break;
-+	}
-+
- 	dev_dbg_obj(__func__, gobj);
- }
- 
-@@ -864,8 +875,6 @@ static void media_interface_init(struct media_device *mdev,
- 	INIT_LIST_HEAD(&intf->links);
- 
- 	media_gobj_init(mdev, gobj_type, &intf->graph_obj);
--
--	list_add_tail(&intf->list, &mdev->interfaces);
- }
- 
- /* Functions related to the media interface via device nodes */
-@@ -894,7 +903,6 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
- void media_devnode_remove(struct media_intf_devnode *devnode)
- {
- 	media_gobj_remove(&devnode->intf.graph_obj);
--	list_del(&devnode->intf.list);
- 	kfree(devnode);
- }
- EXPORT_SYMBOL_GPL(media_devnode_remove);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index f23d686aaac6..85fa302047bd 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -111,11 +111,11 @@ struct media_device *media_device_find_devres(struct device *dev);
- 
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
--	list_for_each_entry(entity, &(mdev)->entities, list)
-+	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
- 
- /* Iterate over all interfaces. */
- #define media_device_for_each_intf(intf, mdev)			\
--	list_for_each_entry(intf, &(mdev)->interfaces, list)
-+	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
- 
- 
- #else
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 358a0c6b1f86..8c344a07636c 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -66,6 +66,7 @@ enum media_gobj_type {
- struct media_gobj {
- 	struct media_device	*mdev;
- 	u32			id;
-+	struct list_head	list;
- };
- 
- 
-@@ -114,7 +115,6 @@ struct media_entity_operations {
- 
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
--	struct list_head list;
- 	const char *name;		/* Entity name */
- 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
- 	u32 revision;			/* Entity revision, driver specific */
-@@ -166,7 +166,6 @@ struct media_entity {
-  */
- struct media_interface {
- 	struct media_gobj		graph_obj;
--	struct list_head		list;
- 	struct list_head		links;
- 	u32				type;
- 	u32				flags;
--- 
-2.4.3
+One thing that is very confusing to me: I have this board:
 
+[ 1878.280918] CORE saa7164[0]: subsystem: 0070:8900, board: Hauppauge WinTV-HVR2200 [card=5,autodetected]
+[ 1878.280928] saa7164[0]/0: found at 0000:09:00.0, rev: 129, irq: 18, latency: 0, mmio: 0xfb800000
+[ 1878.327399] tveeprom 14-0000: Hauppauge model 89519, rev B2F2, serial# 4029789519
+[ 1878.327405] tveeprom 14-0000: MAC address is 00:0d:fe:31:b5:4f
+[ 1878.327409] tveeprom 14-0000: tuner model is NXP 18271C2_716x (idx 152, type 4)
+[ 1878.327413] tveeprom 14-0000: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+[ 1878.327416] tveeprom 14-0000: audio processor is SAA7164 (idx 43)
+[ 1878.327418] tveeprom 14-0000: decoder processor is CX23887A (idx 39)
+[ 1878.327420] tveeprom 14-0000: has radio
+[ 1878.327423] saa7164[0]: Hauppauge eeprom: model=89519
+
+but the default firmware with size 4919072 fails to work (image corrupt), instead
+I need to use the firmware with size 4038864 (v4l-saa7164-1.0.3-3.fw).
+
+For that I have to patch the driver.
+
+Do you have an overview of which firmware is for which board?
+
+There are a bunch of firmwares here:
+
+http://www.steventoth.net/linux/hvr22xx/firmwares
+
+but there are no instructions or an overview of which should be used.
+
+I faintly remember asking you this before, but that's been a long time ago
+and I can't find it in my mail archive.
+
+I'm willing to do some driver cleanup and fix v4l2-compliance issues, but
+I'd really like to fix this firmware issue first.
+
+Regards,
+
+	Hans
