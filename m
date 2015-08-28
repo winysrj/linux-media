@@ -1,129 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58871 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752957AbbHWUSI (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51803 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751794AbbH1NcH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-sh@vger.kernel.org
-Subject: [PATCH v7 01/44] [media] media: create a macro to get entity ID
-Date: Sun, 23 Aug 2015 17:17:18 -0300
-Message-Id: <06dfd1776c9dea1b0574a743953344ab8d316b0f.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Fri, 28 Aug 2015 09:32:07 -0400
+Message-ID: <55E062A1.2010900@xs4all.nl>
+Date: Fri, 28 Aug 2015 15:31:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v3 2/5] media: videobuf2: Restructure vb2_buffer
+References: <1440590372-2377-1-git-send-email-jh1009.sung@samsung.com> <1440590372-2377-3-git-send-email-jh1009.sung@samsung.com>
+In-Reply-To: <1440590372-2377-3-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of accessing directly entity.id, let's create a macro,
-as this field will be moved into a common struct later on.
+Hi Junghak,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Thanks for this patch, it looks much better. I do have a number of comments, though...
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c55ab5029323..e429605ca2c3 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -77,8 +77,8 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
- 	spin_lock(&mdev->lock);
- 
- 	media_device_for_each_entity(entity, mdev) {
--		if ((entity->id == id && !next) ||
--		    (entity->id > id && next)) {
-+		if (((media_entity_id(entity) == id) && !next) ||
-+		    ((media_entity_id(entity) > id) && next)) {
- 			spin_unlock(&mdev->lock);
- 			return entity;
- 		}
-@@ -104,7 +104,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- 	if (ent == NULL)
- 		return -EINVAL;
- 
--	u_ent.id = ent->id;
-+	u_ent.id = media_entity_id(ent);
- 	if (ent->name)
- 		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
- 	u_ent.type = ent->type;
-@@ -122,7 +122,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- static void media_device_kpad_to_upad(const struct media_pad *kpad,
- 				      struct media_pad_desc *upad)
- {
--	upad->entity = kpad->entity->id;
-+	upad->entity = media_entity_id(kpad->entity);
- 	upad->index = kpad->index;
- 	upad->flags = kpad->flags;
- }
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 949e5f92cbdc..cb0ac4e0dfa5 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -140,10 +140,10 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 	graph->stack[graph->top].entity = NULL;
- 	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
- 
--	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
- 		return;
- 
--	__set_bit(entity->id, graph->entities);
-+	__set_bit(media_entity_id(entity), graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -184,11 +184,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
- 			return NULL;
- 
- 		/* Has the entity already been visited? */
--		if (__test_and_set_bit(next->id, graph->entities)) {
-+		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
- 			link_top(graph)++;
- 			continue;
- 		}
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 17f08973f835..debe4e539df6 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 			break;
- 
- 		/* Ensure the branch has no loop. */
--		if (entities & (1 << entity->subdev.entity.id))
-+		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
- 			return -EPIPE;
- 
--		entities |= 1 << entity->subdev.entity.id;
-+		entities |= 1 << media_entity_id(&entity->subdev.entity);
- 
- 		/* UDS can't be chained. */
- 		if (entity->type == VSP1_ENTITY_UDS) {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8b21a4d920d9..0a66fc225559 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -113,6 +113,11 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- 	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
- }
- 
-+static inline u32 media_entity_id(struct media_entity *entity)
-+{
-+	return entity->id;
-+}
-+
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
- #define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
--- 
-2.4.3
+On 08/26/2015 01:59 PM, Junghak Sung wrote:
+> Remove v4l2-specific stuff from struct vb2_buffer and add member variables
+> related with buffer management.
+> 
+> struct vb2_plane {
+>         <snip>
+>         /* plane information */
+>         unsigned int            bytesused;
+>         unsigned int            length;
+>         union {
+>                 unsigned int    offset;
+>                 unsigned long   userptr;
+>                 int             fd;
+>         } m;
+>         unsigned int            data_offset;
+> }
+> 
+> struct vb2_buffer {
+>         <snip>
+>         /* buffer information */
+>         unsigned int            num_planes;
+>         unsigned int            index;
+>         unsigned int            type;
+>         unsigned int            memory;
+> 
+>         struct vb2_plane        planes[VIDEO_MAX_PLANES];
+>         <snip>
+> };
+> 
+> And create struct vb2_v4l2_buffer as container buffer for v4l2 use.
+> 
+> struct vb2_v4l2_buffer {
+>         struct vb2_buffer       vb2_buf;
+> 
+>         __u32                   flags;
+>         __u32                   field;
+>         struct timeval          timestamp;
+>         struct v4l2_timecode    timecode;
+>         __u32                   sequence;
+> };
+> 
+> This patch includes only changes inside of videobuf2. So, it is required to
+> modify all device drivers which use videobuf2.
+> 
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |  324 +++++++++++++++++-------------
+>  include/media/videobuf2-core.h           |   50 ++---
+>  include/media/videobuf2-v4l2.h           |   26 +++
+>  3 files changed, 236 insertions(+), 164 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index ab00ea0..9266d50 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -35,10 +35,10 @@
+>  static int debug;
+>  module_param(debug, int, 0644);
+>  
+> -#define dprintk(level, fmt, arg...)					      \
+> -	do {								      \
+> -		if (debug >= level)					      \
+> -			pr_info("vb2: %s: " fmt, __func__, ## arg); \
+> +#define dprintk(level, fmt, arg...)					\
+> +	do {								\
+> +		if (debug >= level)					\
+> +			pr_info("vb2: %s: " fmt, __func__, ## arg);	\
 
+These are just whitespace changes, and that is something it see *a lot* in this
+patch. And usually for no clear reason.
+
+Please remove those whitespace changes, it makes a difficult patch even harder
+to read than it already is.
+
+>  	} while (0)
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+
+<snip>
+
+> @@ -656,12 +652,21 @@ static bool __buffers_in_use(struct vb2_queue *q)
+>   */
+>  static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>  {
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  	struct vb2_queue *q = vb->vb2_queue;
+> +	unsigned int plane;
+>  
+>  	/* Copy back data such as timestamp, flags, etc. */
+> -	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+> -	b->reserved2 = vb->v4l2_buf.reserved2;
+> -	b->reserved = vb->v4l2_buf.reserved;
+
+Hmm, I'm not sure why these reserved fields were copied here. I think it was
+for compatibility reasons for some old drivers that abused the reserved field.
+However, in the new code these reserved fields should probably be explicitly
+initialized to 0.
+
+> +	b->index = vb->index;
+> +	b->type = vb->type;
+> +	b->memory = vb->memory;
+> +	b->bytesused = 0;
+> +
+> +	b->flags = vbuf->flags;
+> +	b->field = vbuf->field;
+> +	b->timestamp = vbuf->timestamp;
+> +	b->timecode = vbuf->timecode;
+> +	b->sequence = vbuf->sequence;
+>  
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+>  		/*
+> @@ -669,21 +674,33 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>  		 * for it. The caller has already verified memory and size.
+>  		 */
+>  		b->length = vb->num_planes;
+> -		memcpy(b->m.planes, vb->v4l2_planes,
+> -			b->length * sizeof(struct v4l2_plane));
+
+A similar problem occurs here: the memcpy would have copied the reserved
+field in v4l2_plane as well, but that no longer happens, so you need to
+do an explicit memset for the reserved field in the new code.
+
+> +		for (plane = 0; plane < vb->num_planes; ++plane) {
+> +			struct v4l2_plane *pdst = &b->m.planes[plane];
+> +			struct vb2_plane *psrc = &vb->planes[plane];
+> +
+> +			pdst->bytesused = psrc->bytesused;
+> +			pdst->length = psrc->length;
+> +			if (q->memory == V4L2_MEMORY_MMAP)
+> +				pdst->m.mem_offset = psrc->m.offset;
+> +			else if (q->memory == V4L2_MEMORY_USERPTR)
+> +				pdst->m.userptr = psrc->m.userptr;
+> +			else if (q->memory == V4L2_MEMORY_DMABUF)
+> +				pdst->m.fd = psrc->m.fd;
+> +			pdst->data_offset = psrc->data_offset;
+> +		}
+>  	} else {
+>  		/*
+>  		 * We use length and offset in v4l2_planes array even for
+>  		 * single-planar buffers, but userspace does not.
+>  		 */
+> -		b->length = vb->v4l2_planes[0].length;
+> -		b->bytesused = vb->v4l2_planes[0].bytesused;
+> +		b->length = vb->planes[0].length;
+> +		b->bytesused = vb->planes[0].bytesused;
+>  		if (q->memory == V4L2_MEMORY_MMAP)
+> -			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+> +			b->m.offset = vb->planes[0].m.offset;
+>  		else if (q->memory == V4L2_MEMORY_USERPTR)
+> -			b->m.userptr = vb->v4l2_planes[0].m.userptr;
+> +			b->m.userptr = vb->planes[0].m.userptr;
+>  		else if (q->memory == V4L2_MEMORY_DMABUF)
+> -			b->m.fd = vb->v4l2_planes[0].m.fd;
+> +			b->m.fd = vb->planes[0].m.fd;
+>  	}
+>  
+>  	/*
+> @@ -692,7 +709,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>  	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+>  	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+>  	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+> -	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
+> +			V4L2_BUF_FLAG_TIMESTAMP_COPY) {
+>  		/*
+>  		 * For non-COPY timestamps, drop timestamp source bits
+>  		 * and obtain the timestamp source from the queue.
+> @@ -767,7 +784,7 @@ EXPORT_SYMBOL(vb2_querybuf);
+>  static int __verify_userptr_ops(struct vb2_queue *q)
+>  {
+>  	if (!(q->io_modes & VB2_USERPTR) || !q->mem_ops->get_userptr ||
+> -	    !q->mem_ops->put_userptr)
+> +			!q->mem_ops->put_userptr)
+>  		return -EINVAL;
+>  
+>  	return 0;
+> @@ -780,7 +797,7 @@ static int __verify_userptr_ops(struct vb2_queue *q)
+>  static int __verify_mmap_ops(struct vb2_queue *q)
+>  {
+>  	if (!(q->io_modes & VB2_MMAP) || !q->mem_ops->alloc ||
+> -	    !q->mem_ops->put || !q->mem_ops->mmap)
+> +			!q->mem_ops->put || !q->mem_ops->mmap)
+>  		return -EINVAL;
+>  
+>  	return 0;
+> @@ -793,8 +810,8 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+>  static int __verify_dmabuf_ops(struct vb2_queue *q)
+>  {
+>  	if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf ||
+> -	    !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
+> -	    !q->mem_ops->unmap_dmabuf)
+> +		!q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
+> +		!q->mem_ops->unmap_dmabuf)
+>  		return -EINVAL;
+>  
+>  	return 0;
+> @@ -808,7 +825,7 @@ static int __verify_memory_type(struct vb2_queue *q,
+>  		enum v4l2_memory memory, enum v4l2_buf_type type)
+>  {
+>  	if (memory != V4L2_MEMORY_MMAP && memory != V4L2_MEMORY_USERPTR &&
+> -	    memory != V4L2_MEMORY_DMABUF) {
+> +			memory != V4L2_MEMORY_DMABUF) {
+>  		dprintk(1, "unsupported memory type\n");
+>  		return -EINVAL;
+>  	}
+> @@ -927,7 +944,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+>  	 * Driver also sets the size and allocator context for each plane.
+>  	 */
+>  	ret = call_qop(q, queue_setup, q, NULL, &num_buffers, &num_planes,
+> -		       q->plane_sizes, q->alloc_ctx);
+> +			q->plane_sizes, q->alloc_ctx);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -952,7 +969,7 @@ static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+>  		num_buffers = allocated_buffers;
+>  
+>  		ret = call_qop(q, queue_setup, q, NULL, &num_buffers,
+> -			       &num_planes, q->plane_sizes, q->alloc_ctx);
+> +				&num_planes, q->plane_sizes, q->alloc_ctx);
+>  
+>  		if (!ret && allocated_buffers < num_buffers)
+>  			ret = -ENOMEM;
+> @@ -1040,7 +1057,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+>  	 * buffer and their sizes are acceptable
+>  	 */
+>  	ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
+> -		       &num_planes, q->plane_sizes, q->alloc_ctx);
+> +			&num_planes, q->plane_sizes, q->alloc_ctx);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -1063,7 +1080,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+>  		 * queue driver has set up
+>  		 */
+>  		ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
+> -			       &num_planes, q->plane_sizes, q->alloc_ctx);
+> +				&num_planes, q->plane_sizes, q->alloc_ctx);
+>  
+>  		if (!ret && allocated_buffers < num_buffers)
+>  			ret = -ENOMEM;
+> @@ -1183,8 +1200,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  		return;
+>  
+>  	if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+> -		    state != VB2_BUF_STATE_ERROR &&
+> -		    state != VB2_BUF_STATE_QUEUED))
+> +		state != VB2_BUF_STATE_ERROR &&
+> +		state != VB2_BUF_STATE_QUEUED))
+>  		state = VB2_BUF_STATE_ERROR;
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+
+All the chunks above are all spurious whitespace changes. As mentioned in the beginning,
+please remove all those pointless whitespace changes!
+
+There are a lot more of these, but I won't comment on them anymore.
+
+Basically this patch looks good to me, so once I have the next version without all the
+whitespace confusion and with the reserved field issues solved I'll do a final review.
+
+BTW, did you test this with 'v4l2-compliance -s' and with the vivid driver? Just to
+make sure you didn't break anything.
+
+Regards,
+
+	Hans
