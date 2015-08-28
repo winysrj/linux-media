@@ -1,181 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34677 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755517AbbHYJbP (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49651 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751963AbbH1OZt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:31:15 -0400
-Message-ID: <55DC353D.8000807@xs4all.nl>
-Date: Tue, 25 Aug 2015 11:28:29 +0200
+	Fri, 28 Aug 2015 10:25:49 -0400
+Message-ID: <55E06F38.1070109@xs4all.nl>
+Date: Fri, 28 Aug 2015 16:24:56 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 41/44] [media] media: move mdev list init to gobj
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <bc5eb0364214343677965f660fda7337b97ec318.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <bc5eb0364214343677965f660fda7337b97ec318.1440359643.git.mchehab@osg.samsung.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH] [media] v4l2-core: create MC interfaces for devnodes
+References: <747fad94e8f62c1519ff2f033471cec63e3d49b3.1440421343.git.mchehab@osg.samsung.com>
+In-Reply-To: <747fad94e8f62c1519ff2f033471cec63e3d49b3.1440421343.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Let's control the topology changes inside the graph_object.
-> So, move the removal of interfaces/entitis from the mdev
-
-s/entitis/entities/
-
-> lists to media_gobj_init() and media_gobj_remove().
+On 08/24/2015 03:19 PM, Mauro Carvalho Chehab wrote:
+> All V4L2 device nodes should create an interface, if the
+> Media Controller support is enabled.
 > 
-> The main reason is that mdev should have lists for all
-> object types, as the new MC api will require to store
-> objects on separate places.
-
-s/on/in/
-
+> Please notice that radio devices should not create an
+> entity, as radio input/output is either via wires or
+> via ALSA.
 > 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 659507bce63f..01cd014963d6 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
->  	struct media_entity *entity;
->  	struct media_entity *next;
->  
-> -	list_for_each_entry_safe(entity, next, &mdev->entities, list)
-> +	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
->  		media_device_unregister_entity(entity);
->  
->  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-> @@ -443,7 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  	spin_lock(&mdev->lock);
->  	/* Initialize media_gobj embedded at the entity */
->  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-> -	list_add_tail(&entity->list, &mdev->entities);
->  
->  	/* Initialize objects at the pads */
->  	for (i = 0; i < entity->num_pads; i++)
-> @@ -473,7 +472,7 @@ void media_device_unregister_entity(struct media_entity *entity)
->  		return;
->  
->  	spin_lock(&mdev->lock);
-> -	list_for_each_entry_safe(link, tmp, &entity->links, list) {
-> +	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
->  		media_gobj_remove(&link->graph_obj);
->  		list_del(&link->list);
->  		kfree(link);
-> @@ -481,7 +480,6 @@ void media_device_unregister_entity(struct media_entity *entity)
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_remove(&entity->pads[i].graph_obj);
->  	media_gobj_remove(&entity->graph_obj);
-> -	list_del(&entity->list);
->  	spin_unlock(&mdev->lock);
->  	entity->graph_obj.mdev = NULL;
+> ---
+> 
+> With this patch, V4L is now creating interfaces for all device nodes,
+> using the proper types:
+> 
+> $ ./mc_nextgen_test |grep -e dev -e entity#[1-5]\\b -e entity#262\\b
+> entity entity#1: au8522 19-0047, num pads = 3
+> entity entity#2: Xceive XC5000, num pads = 1
+> entity entity#3: au0828a video, num pads = 1
+> entity entity#4: au0828a vbi, num pads = 1
+> entity entity#5: Auvitek AU8522 QAM/8VSB Frontend, num pads = 2
+> entity entity#262: dvb-demux, num pads = 257
+> interface intf_devnode#1: video (81,0)
+> interface intf_devnode#2: vbi (81,1)
+> interface intf_devnode#3: v4l2_subdev (81,2)
+> interface intf_devnode#4: frontend (212,0)
+> interface intf_devnode#5: demux (212,1)
+> interface intf_devnode#6: DVR (212,2)
+> interface intf_devnode#7: dvbnet (212,3)
+> link link#1: intf_devnode#1 and entity#3
+> link link#2: intf_devnode#2 and entity#4
+> link link#3: intf_devnode#3 and entity#2
+> link link#4: intf_devnode#4 and entity#5
+> link link#5: intf_devnode#5 and entity#262
+> link link#1034: intf_devnode#4 and entity#2
+> link link#1035: intf_devnode#6 and entity#262
+> 
+> However, it should be noticed that there are missing links there, as the
+> interfaces intf_devnode#1: and intf_devnode#2: should also be linked to
+> the analog entities (e. g. entity#1 to entity#5).
+> 
+> It is hard to implememt that, however, as some platform drivers don't
+> have such connections. There are two issues to be solved here:
+> 
+> 1) how the V4L2 core will identify that it could automatically create
+>    links to the other analog interfaces;
+> 
+> 2) Where to place such code.
+> 
+> Let's do it on separate patches.
+
+Agreed.
+
+I would add that we shouldn't attempt to be 100% perfect in automatically
+creating links. If we can do 80-90% of the drivers that way, then that would
+be great. The remaining drivers will then need to be modified manually.
+
+> 
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 44b330589787..472117f32c05 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -713,6 +713,78 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>  			BASE_VIDIOC_PRIVATE);
 >  }
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index d30650e3562e..17f2f7555d42 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -168,6 +168,7 @@ void media_gobj_init(struct media_device *mdev,
->  	switch (type) {
->  	case MEDIA_GRAPH_ENTITY:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
-> +		list_add_tail(&gobj->list, &mdev->entities);
->  		break;
->  	case MEDIA_GRAPH_PAD:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-> @@ -176,6 +177,7 @@ void media_gobj_init(struct media_device *mdev,
->  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
->  		break;
->  	case MEDIA_GRAPH_INTF_DEVNODE:
-> +		list_add_tail(&gobj->list, &mdev->interfaces);
->  		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
->  		break;
->  	}
-> @@ -191,6 +193,15 @@ void media_gobj_init(struct media_device *mdev,
->   */
->  void media_gobj_remove(struct media_gobj *gobj)
->  {
-> +	/* Remove the object from mdev list */
-> +	switch (media_type(gobj)) {
-> +	case MEDIA_GRAPH_ENTITY:
-> +	case MEDIA_GRAPH_INTF_DEVNODE:
-> +		list_del(&gobj->list);
-
-Missing break!
-
-> +	default:
+>  
+> +
+> +static int video_register_media_controller(struct video_device *vdev, int type)
+> +{
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	u32 entity_type, intf_type;
+> +	int ret;
+> +	bool create_entity = true;
+> +
+> +	if (!vdev->v4l2_dev->mdev)
+> +		return 0;
+> +
+> +	switch (type) {
+> +	case VFL_TYPE_GRABBER:
+> +		intf_type = MEDIA_INTF_T_V4L_VIDEO;
+> +		entity_type = MEDIA_ENT_T_V4L2_VIDEO;
 > +		break;
+> +	case VFL_TYPE_VBI:
+> +		intf_type = MEDIA_INTF_T_V4L_VBI;
+> +		entity_type = MEDIA_ENT_T_V4L2_VBI;
+> +		break;
+> +	case VFL_TYPE_SDR:
+> +		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
+> +		entity_type = MEDIA_ENT_T_V4L2_SWRADIO;
+> +		break;
+> +	case VFL_TYPE_RADIO:
+> +		intf_type = MEDIA_INTF_T_V4L_RADIO;
+> +		/*
+> +		 * Radio doesn't have an entity at the V4L2 side to represent
+> +		 * radio input or output. Instead, the audio input/output goes
+> +		 * via either physical wires or ALSA.
+> +		 */
+> +		create_entity = false;
+> +		break;
+> +	default: /* Only type left is subdevs */
+> +		/* Subdevs are created via v4l2_device_register_subdev_nodes */
+
+As mentioned in the other patch: why can't you create the interface for subdevs
+as well?
+
+> +		return 0;
 > +	}
 > +
->  	dev_dbg_obj(__func__, gobj);
->  }
+> +	if (create_entity) {
+> +		vdev->entity.type = entity_type;
+> +		vdev->entity.name = vdev->name;
+> +		vdev->entity.info.dev.major = VIDEO_MAJOR;
+> +		vdev->entity.info.dev.minor = vdev->minor;
+> +
+> +		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+> +						   &vdev->entity);
+> +		if (ret < 0) {
+> +			printk(KERN_WARNING
+> +				"%s: media_device_register_entity failed\n",
+> +				__func__);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	vdev->intf_devnode = media_devnode_create(vdev->v4l2_dev->mdev,
+> +						  intf_type,
+> +						  0, VIDEO_MAJOR,
+> +						  vdev->minor,
+> +						  GFP_KERNEL);
+> +	if (!vdev->intf_devnode)
+> +		return -ENOMEM;
+> +
+> +	if (create_entity)
+> +		media_create_intf_link(&vdev->entity,
+> +				       &vdev->intf_devnode->intf, 0);
+> +
+> +	/* FIXME: how to create the other interface links? */
+> +
+> +#endif
+> +	return 0;
+> +}
+> +
+>  /**
+>   *	__video_register_device - register video4linux devices
+>   *	@vdev: video device structure we want to register
+> @@ -908,22 +980,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>  	/* Increase v4l2_device refcount */
+>  	v4l2_device_get(vdev->v4l2_dev);
 >  
-> @@ -878,8 +889,6 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
->  	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
->  		       &devnode->intf.graph_obj);
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+>  	/* Part 5: Register the entity. */
+> -	if (vdev->v4l2_dev->mdev &&
+> -	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+> -		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
+> -		vdev->entity.name = vdev->name;
+> -		vdev->entity.info.dev.major = VIDEO_MAJOR;
+> -		vdev->entity.info.dev.minor = vdev->minor;
+> -		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+> -			&vdev->entity);
+> -		if (ret < 0)
+> -			printk(KERN_WARNING
+> -			       "%s: media_device_register_entity failed\n",
+> -			       __func__);
+> -	}
+> -#endif
+> +	ret = video_register_media_controller(vdev, type);
+> +
+>  	/* Part 6: Activate this minor. The char device can now be used. */
+>  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
 >  
-> -	list_add_tail(&intf->list, &mdev->interfaces);
-> -
->  	return devnode;
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_create);
-> @@ -887,7 +896,6 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
->  void media_devnode_remove(struct media_intf_devnode *devnode)
+
+I'm missing changes to v4l2_device_release() to clean up the interface and
+entity.
+
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> index 1e5176c558bf..2124a0e793f3 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -251,18 +251,18 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+>  		sd->entity.info.dev.major = VIDEO_MAJOR;
+>  		sd->entity.info.dev.minor = vdev->minor;
+>  
+> -		sd->intf_devnode = media_devnode_create(sd->entity.graph_obj.mdev,
+> +		vdev->intf_devnode = media_devnode_create(sd->entity.graph_obj.mdev,
+>  							MEDIA_INTF_T_V4L_SUBDEV,
+>  							0, VIDEO_MAJOR,
+>  							vdev->minor,
+>  							GFP_KERNEL);
+> -		if (!sd->intf_devnode) {
+> +		if (!vdev->intf_devnode) {
+>  			err = -ENOMEM;
+>  			kfree(vdev);
+>  			goto clean_up;
+>  		}
+>  
+> -		media_create_intf_link(&sd->entity, &sd->intf_devnode->intf, 0);
+> +		media_create_intf_link(&sd->entity, &vdev->intf_devnode->intf, 0);
+>  #endif
+>  		sd->devnode = vdev;
+>  	}
+> @@ -282,6 +282,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+>  void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
 >  {
->  	media_gobj_remove(&devnode->intf.graph_obj);
-> -	list_del(&devnode->intf.list);
->  	kfree(devnode);
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_remove);
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index f23d686aaac6..85fa302047bd 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -111,11 +111,11 @@ struct media_device *media_device_find_devres(struct device *dev);
+>  	struct v4l2_device *v4l2_dev;
+> +	struct video_device *vdev = sd->devnode;
 >  
->  /* Iterate over all entities. */
->  #define media_device_for_each_entity(entity, mdev)			\
-> -	list_for_each_entry(entity, &(mdev)->entities, list)
-> +	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
->  
->  /* Iterate over all interfaces. */
->  #define media_device_for_each_intf(intf, mdev)			\
-> -	list_for_each_entry(intf, &(mdev)->interfaces, list)
-> +	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
->  
->  
->  #else
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0111d9652b78..d89ceaf7bcc4 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -66,6 +66,7 @@ enum media_gobj_type {
->  struct media_gobj {
->  	struct media_device	*mdev;
->  	u32			id;
-> +	struct list_head	list;
->  };
->  
->  
-> @@ -114,7 +115,6 @@ struct media_entity_operations {
->  
->  struct media_entity {
->  	struct media_gobj graph_obj;	/* should be the first object */
-> -	struct list_head list;
->  	const char *name;		/* Entity name */
->  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
->  	u32 revision;			/* Entity revision, driver specific */
-> @@ -166,7 +166,6 @@ struct media_entity {
->   */
->  struct media_interface {
->  	struct media_gobj		graph_obj;
-> -	struct list_head		list;
->  	struct list_head		links;
->  	u32				type;
->  	u32				flags;
+>  	/* return if it isn't registered */
+>  	if (sd == NULL || sd->v4l2_dev == NULL)
+> @@ -300,7 +301,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	if (v4l2_dev->mdev) {
+>  		media_entity_remove_links(&sd->entity);
+> -		media_devnode_remove(sd->intf_devnode);
+> +		media_devnode_remove(vdev->intf_devnode);
+>  		media_device_unregister_entity(&sd->entity);
+>  	}
+>  #endif
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index acbcd2f5fe7f..eeabf20e87a6 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -86,6 +86,7 @@ struct video_device
+>  {
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	struct media_entity entity;
+> +	struct media_intf_devnode *intf_devnode;
+>  #endif
+>  	/* device ops */
+>  	const struct v4l2_file_operations *fops;
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1aa44f11eeb5..370fc38c34f1 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -584,7 +584,6 @@ struct v4l2_subdev_platform_data {
+>  struct v4l2_subdev {
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	struct media_entity entity;
+> -	struct media_intf_devnode *intf_devnode;
+>  #endif
+>  	struct list_head list;
+>  	struct module *owner;
 > 
 
 Regards,
