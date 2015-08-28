@@ -1,79 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50712 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755067AbbHYGfI (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51539 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751113AbbH1CxG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 02:35:08 -0400
-Message-ID: <55DC0C68.2040501@xs4all.nl>
-Date: Tue, 25 Aug 2015 08:34:16 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v7 02/44] [media] staging: omap4iss: get entity ID using
- media_entity_id()
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <89b52db55e6ab0ad54e2ed0e760ba0ca3f54dec8.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <89b52db55e6ab0ad54e2ed0e760ba0ca3f54dec8.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 27 Aug 2015 22:53:06 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C6D072A00AF
+	for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 04:52:13 +0200 (CEST)
+Date: Fri, 28 Aug 2015 04:52:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20150828025213.C6D072A00AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> The struct media_entity does not have an .id field anymore since
-> now the entity ID is stored in the embedded struct media_gobj.
-> 
-> This caused the omap4iss driver fail to build. Fix by using the
-> media_entity_id() macro to obtain the entity ID.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This commit log is now a bit misleading since with the new position in this
-patch series this change is here to *prevent* a build failure once the id
-field is removed, and not to fix a build failure.
+Results of the daily build of media_tree:
 
-After fixing this:
+date:		Fri Aug 28 04:00:17 CEST 2015
+git branch:	test
+git hash:	d071c833a0d30e7aae0ea565d92ef83c79106d6f
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Regards,
+Detailed results are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> index 9bfb725b9986..e54a7afd31de 100644
-> --- a/drivers/staging/media/omap4iss/iss.c
-> +++ b/drivers/staging/media/omap4iss/iss.c
-> @@ -607,7 +607,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
->  			 * crashed. Mark it as such, the ISS will be reset when
->  			 * applications will release it.
->  			 */
-> -			iss->crashed |= 1U << subdev->entity.id;
-> +			iss->crashed |= 1U << media_entity_id(&subdev->entity);
->  			failure = -ETIMEDOUT;
->  		}
->  	}
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> index bae67742706f..25e9e7a6b99d 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -784,7 +784,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	entity = &video->video.entity;
->  	media_entity_graph_walk_start(&graph, entity);
->  	while ((entity = media_entity_graph_walk_next(&graph)))
-> -		pipe->entities |= 1 << entity->id;
-> +		pipe->entities |= 1 << media_entity_id(entity);
->  
->  	/* Verify that the currently configured format matches the output of
->  	 * the connected subdev.
-> 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
