@@ -1,36 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:50528 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933267AbbHLGOo convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:34616 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290AbbH1HB2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 02:14:44 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: TW686x
-References: <CAAEAJfDUPVPu_QnRieOuZtpFWazVVXQw+CvgpETWBhdoYQgsHg@mail.gmail.com>
-	<m3615uixvp.fsf@t19.piap.pl>
-	<CAAEAJfAFVjy126RELFOaBz1xnaAk4=PtOR8xpbWqJCqtmotj=g@mail.gmail.com>
-Date: Wed, 12 Aug 2015 08:05:49 +0200
-In-Reply-To: <CAAEAJfAFVjy126RELFOaBz1xnaAk4=PtOR8xpbWqJCqtmotj=g@mail.gmail.com>
-	(Ezequiel Garcia's message of "Sat, 11 Jul 2015 10:56:54 -0300")
-Message-ID: <m31tf9ujlu.fsf_-_@t19.piap.pl>
+	Fri, 28 Aug 2015 03:01:28 -0400
+Received: by wibcx1 with SMTP id cx1so3907050wib.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 00:01:27 -0700 (PDT)
+Date: Fri, 28 Aug 2015 08:01:24 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] ARM: DT: STi: stihxxx-b2120: Add pulse-width
+ properties to ssc2 & ssc3
+Message-ID: <20150828070124.GG4796@x1>
+References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+ <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1440678575-21646-2-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+On Thu, 27 Aug 2015, Peter Griffin wrote:
 
-OTOH I don't see any reason preventing you from sending a pull request
-for the inclusion of the TW686x driver, Mauro could merge this stuff
-then (assuming it's ready).
+> Adding these properties makes the I2C bus to the demodulators much
+> more reliable, and we no longer suffer from I2C errors when tuning.
+> 
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> ---
+>  arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
 
-You don't have to wait for me and a driver doesn't need to be a single
-patch from a single person.
+Acked-by: Lee Jones <lee.jones@linaro.org>
+
+> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> index f589fe4..62994ae 100644
+> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> @@ -27,12 +27,18 @@
+>  			};
+>  		};
+>  
+> -		i2c@9842000 {
+> +		ssc2: i2c@9842000 {
+>  			status = "okay";
+> +			clock-frequency = <100000>;
+> +			st,i2c-min-scl-pulse-width-us = <0>;
+> +			st,i2c-min-sda-pulse-width-us = <5>;
+>  		};
+>  
+> -		i2c@9843000 {
+> +		ssc3: i2c@9843000 {
+>  			status = "okay";
+> +			clock-frequency = <100000>;
+> +			st,i2c-min-scl-pulse-width-us = <0>;
+> +			st,i2c-min-sda-pulse-width-us = <5>;
+>  		};
+>  
+>  		i2c@9844000 {
+
 -- 
-Krzysztof Hałasa
-
-Przemysłowy Instytut Automatyki i Pomiarów PIAP
-Al. Jerozolimskie 202, 02-486 Warszawa
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
