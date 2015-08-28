@@ -1,46 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:33536 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756AbbHCIA7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Aug 2015 04:00:59 -0400
-Received: by obdeg2 with SMTP id eg2so93414085obd.0
-        for <linux-media@vger.kernel.org>; Mon, 03 Aug 2015 01:00:58 -0700 (PDT)
-From: Pradheep Shrinivasan <pradheep.sh@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:56015 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbbH1NIQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2015 09:08:16 -0400
+Date: Fri, 28 Aug 2015 10:08:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>, Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
 	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Pradheep Shrinivasan <pradheep.sh@gmail.com>
-Subject: [PATCH 2/2] staging:media:lirc This fix changes the spaces to tab in lirc_sasem.c
-Date: Mon,  3 Aug 2015 02:56:32 -0500
-Message-Id: <1438588592-3289-2-git-send-email-pradheep.sh@gmail.com>
-In-Reply-To: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
-References: <1438588592-3289-1-git-send-email-pradheep.sh@gmail.com>
+	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
+	anuvazhayil <anuv.1994@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Jiayi Ye <yejiayily@gmail.com>,
+	Heena Sirwani <heenasirwani@gmail.com>,
+	Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v7 10/44] [media] media: rename the function that create
+ pad links
+Message-ID: <20150828100802.6e626e4c@recife.lan>
+In-Reply-To: <20150826115403.7a794597@recife.lan>
+References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	<f095b87884d435e296a455ab07a9951a74c0c3a6.1440359643.git.mchehab@osg.samsung.com>
+	<55DCBA2D.9090901@osg.samsung.com>
+	<20150826115403.7a794597@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fix changes the space in the code to tab to fix the ERROR
-"ERROR: code indent should use tabs where possible"
+Em Wed, 26 Aug 2015 11:54:03 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Pradheep Shrinivasan <pradheep.sh@gmail.com>
----
- drivers/staging/media/lirc/lirc_sasem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Em Tue, 25 Aug 2015 12:55:41 -0600
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+> > On 08/23/2015 02:17 PM, Mauro Carvalho Chehab wrote:
+> > > Now that a link can be either between two different graph
+> > > objects, we'll need to add more functions to create links.
+> > 
+> > Is this an incomplete sentence. Should it read: "either between
+> > two different graph objects or two pads" ?
+> 
+> That would be redundant, as pad is a graph object ;)
 
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index 8ebee96..c14ca7e 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -185,7 +185,7 @@ static void deregister_from_lirc(struct sasem_context *context)
- 		       __func__, retval);
- 	else
- 		dev_info(&context->dev->dev,
--		         "Deregistered Sasem driver (minor:%d)\n", minor);
-+			 "Deregistered Sasem driver (minor:%d)\n", minor);
- 
- }
- 
--- 
-1.9.1
+Renamed the patch description to:
 
+	With the new API, a link can be either between two PADs or between an interface
+	and an entity. So, we need to use a better name for the function that create
+	links between two pads.
+
+	So, rename the such function to media_create_pad_link().
+
+	No functional changes.
+
+	This patch was created via this shell script:
+		for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
+
+	Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+Mauro
+
+> 
+> > 
+> > > So, rename the existing one that create links only between
+> > > two pads as media_create_pad_link().
+> > 
+> > > 
+> > > No functional changes.
+> > > 
+> > > This patch was created via this shell script:
+> > > 	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
+> > > 
+> > 
+> > Didn't want to experiment with Coccinelle?? :)
+> 
+> I use Coccinelle, but only when I need more complex changes, as
+> Coccinelle may mangle with comments.
+> 
+> > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > 
+> > 
+> > Changes look good to me. After fixing the commit log:
+> > 
+> > Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > 
+> > thanks,
+> > -- Shuah
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
