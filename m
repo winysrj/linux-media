@@ -1,66 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:52096 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbbHRNcE (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:36188 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888AbbH1HBE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 09:32:04 -0400
-Message-id: <55D333CF.9000504@samsung.com>
-Date: Tue, 18 Aug 2015 15:31:59 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Seung-Woo Kim <sw0312.kim@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	k.debski@samsung.com, mchehab@osg.samsung.com
-Cc: m.szyprowski@samsung.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH] s5p-mfc: fix state check from encoder queue_setup
-References: <1431501925-16905-1-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1431501925-16905-1-git-send-email-sw0312.kim@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Fri, 28 Aug 2015 03:01:04 -0400
+Received: by wicfv10 with SMTP id fv10so185407wic.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 00:01:03 -0700 (PDT)
+Date: Fri, 28 Aug 2015 08:01:00 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	maxime.coquelin@st.com, srinivas.kandagatla@gmail.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT
+ node.
+Message-ID: <20150828070100.GF4796@x1>
+References: <1440678575-21646-1-git-send-email-peter.griffin@linaro.org>
+ <1440678575-21646-3-git-send-email-peter.griffin@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1440678575-21646-3-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/13/2015 09:25 AM, Seung-Woo Kim wrote:
-> MFCINST_GOT_INST state is set to encoder context with set_format
-> only for catpure buffer. In queue_setup of encoder called during
-> reqbufs, it is checked MFCINST_GOT_INST state for both capture
-> and output buffer. So this patch fixes to encoder to check
-> MFCINST_GOT_INST state only for capture buffer from queue_setup.
+On Thu, 27 Aug 2015, Peter Griffin wrote:
+
+> This patch adds in the required DT node for the c8sectpfe
+> Linux DVB demux driver which allows the tsin channels
+> to be used on an upstream kernel.
 > 
-> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-
-Looks OK.
-
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-
-Regards
-Andrzej
-
-
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 > ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
+>  arch/arm/boot/dts/stihxxx-b2120.dtsi | 34 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 34 insertions(+)
 > 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index e65993f..2e57e9f 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -1819,11 +1819,12 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
->  	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  
-> -	if (ctx->state != MFCINST_GOT_INST) {
-> -		mfc_err("inavlid state: %d\n", ctx->state);
-> -		return -EINVAL;
-> -	}
->  	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		if (ctx->state != MFCINST_GOT_INST) {
-> +			mfc_err("inavlid state: %d\n", ctx->state);
-> +			return -EINVAL;
-> +		}
+> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> index 62994ae..c014173 100644
+> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> @@ -6,6 +6,9 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
 > +
->  		if (ctx->dst_fmt)
->  			*plane_count = ctx->dst_fmt->num_planes;
->  		else
-> 
+> +#include <dt-bindings/clock/stih407-clks.h>
+> +#include <dt-bindings/media/c8sectpfe.h>
+>  / {
+>  	soc {
+>  		sbc_serial0: serial@9530000 {
+> @@ -85,5 +88,36 @@
+>  			status = "okay";
+>  		};
+>  
+> +		demux@08a20000 {
+> +			compatible	= "st,stih407-c8sectpfe";
+> +			status		= "okay";
+> +			reg		= <0x08a20000 0x10000>,
+> +					  <0x08a00000 0x4000>;
 
+These look like they're the wrong way round.
+
+> +			reg-names	= "c8sectpfe", "c8sectpfe-ram";
+> +			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
+> +					  <GIC_SPI 35 IRQ_TYPE_NONE>;
+> +			interrupt-names	= "c8sectpfe-error-irq",
+> +					  "c8sectpfe-idle-irq";
+> +			pinctrl-names	= "tsin0-serial",
+> +					  "tsin0-parallel",
+> +					  "tsin3-serial",
+> +					  "tsin4-serial",
+> +					  "tsin5-serial";
+> +			pinctrl-0	= <&pinctrl_tsin0_serial>;
+> +			pinctrl-1	= <&pinctrl_tsin0_parallel>;
+> +			pinctrl-2	= <&pinctrl_tsin3_serial>;
+> +			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
+> +			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
+> +			clock-names	= "c8sectpfe";
+> +			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
+
+Personal preferenc is that the *-names properties should come *after*
+the ones they reference.
+
+> +			/* tsin0 is TSA on NIMA */
+> +			tsin0: port@0 {
+> +				tsin-num	= <0>;
+> +				serial-not-parallel;
+> +				i2c-bus		= <&ssc2>;
+> +				rst-gpio	= <&pio15 4 0>;
+
+"reset-gpios"?
+
+Use the GPIO DEFINES.
+
+> +				dvb-card	= <STV0367_TDA18212_NIMA_1>;
+> +			};
+> +		};
+>  	};
+>  };
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
