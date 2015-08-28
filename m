@@ -1,114 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51990 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755321AbbHYHzJ (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33316 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383AbbH1RxB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 03:55:09 -0400
-Message-ID: <55DC1F2D.1070903@xs4all.nl>
-Date: Tue, 25 Aug 2015 09:54:21 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 22/44] [media] media: add a linked list to track interfaces
- by mdev
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <cc0587807ee794a75a61b953d054bd782a06eb03.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cc0587807ee794a75a61b953d054bd782a06eb03.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 28 Aug 2015 13:53:01 -0400
+Received: by wiae7 with SMTP id e7so3853060wia.0
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:53:00 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
+Date: Fri, 28 Aug 2015 18:52:40 +0100
+Message-Id: <1440784362-31217-5-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
-> We need to be able to navigate at the interfaces that
-> belong to a given media device, in to indirect
-> interface links.
+gpio.txt documents that GPIO properties should be named
+"[<name>-]gpios", with <name> being the purpose of this
+GPIO for the device.
 
-The part after the comma is not clear. Did you perhaps mean 'into'?
-Although that still doesn't really clarify the sentence.
+This change has been done as one atomic commit.
 
-> 
-> So, add a linked list to track them.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 3e649cacfc07..659507bce63f 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
->  		return -EINVAL;
->  
->  	INIT_LIST_HEAD(&mdev->entities);
-> +	INIT_LIST_HEAD(&mdev->interfaces);
->  	spin_lock_init(&mdev->lock);
->  	mutex_init(&mdev->graph_mutex);
->  
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 16d7d96abb9f..05976c891c17 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -875,6 +875,8 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
->  	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
->  		       &devnode->intf.graph_obj);
->  
-> +	list_add_tail(&intf->list, &mdev->interfaces);
-> +
->  	return devnode;
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_create);
-> @@ -882,6 +884,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
->  void media_devnode_remove(struct media_intf_devnode *devnode)
->  {
->  	media_gobj_remove(&devnode->intf.graph_obj);
-> +	list_del(&devnode->intf.list);
->  	kfree(devnode);
->  }
->  EXPORT_SYMBOL_GPL(media_devnode_remove);
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 3b14394d5701..51807efa505b 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -46,6 +46,7 @@ struct device;
->   * @link_id:	Unique ID used on the last link registered
->   * @intf_devnode_id: Unique ID used on the last interface devnode registered
->   * @entities:	List of registered entities
-> + * @interfaces:	List of registered interfaces
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
->   * @link_notify: Link state change notification callback
-> @@ -77,6 +78,7 @@ struct media_device {
->  	u32 intf_devnode_id;
->  
->  	struct list_head entities;
-> +	struct list_head interfaces;
->  
->  	/* Protects the entities list */
->  	spinlock_t lock;
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index aeb390a9e0f3..35d97017dd19 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -156,6 +156,8 @@ struct media_entity {
->   * struct media_intf_devnode - Define a Kernel API interface
->   *
->   * @graph_obj:		embedded graph object
-> + * @list:		Linked list used to find other interfaces that belong
-> + *			to the same media controller
->   * @links:		List of links pointing to graph entities
->   * @type:		Type of the interface as defined at the
->   *			uapi/media/media.h header, e. g.
-> @@ -164,6 +166,7 @@ struct media_entity {
->   */
->  struct media_interface {
->  	struct media_gobj		graph_obj;
-> +	struct list_head		list;
->  	struct list_head		links;
->  	u32				type;
->  	u32				flags;
-> 
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
+ arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-Regards,
+diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+index d4def76..e70d840 100644
+--- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
++++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+@@ -35,7 +35,7 @@ Required properties (tsin (child) node):
+ 
+ - tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
+ - i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
+-- rst-gpio	: reset gpio for this tsin channel.
++- reset-gpios	: reset gpio for this tsin channel.
+ 
+ Optional properties (tsin (child) node):
+ 
+@@ -75,7 +75,7 @@ Example:
+ 			tsin-num		= <0>;
+ 			serial-not-parallel;
+ 			i2c-bus			= <&ssc2>;
+-			rst-gpio		= <&pio15 4 0>;
++			reset-gpios		= <&pio15 4 GPIO_ACTIVE_HIGH>;
+ 			dvb-card		= <STV0367_TDA18212_NIMA_1>;
+ 		};
+ 
+@@ -83,7 +83,7 @@ Example:
+ 			tsin-num		= <3>;
+ 			serial-not-parallel;
+ 			i2c-bus			= <&ssc3>;
+-			rst-gpio		= <&pio15 7 0>;
++			reset-gpios		= <&pio15 7 GPIO_ACTIVE_HIGH>;
+ 			dvb-card		= <STV0367_TDA18212_NIMB_1>;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index f9fca10..0b7592e 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -6,8 +6,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-
+ #include <dt-bindings/clock/stih407-clks.h>
++#include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/media/c8sectpfe.h>
+ / {
+ 	soc {
+@@ -116,7 +116,7 @@
+ 				tsin-num	= <0>;
+ 				serial-not-parallel;
+ 				i2c-bus		= <&ssc2>;
+-				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
++				reset-gpios	= <&pio15 4 GPIO_ACTIVE_HIGH>;
+ 				dvb-card	= <STV0367_TDA18212_NIMA_1>;
+ 			};
+ 		};
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index 3a91093..c691e13 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+ 		}
+ 		of_node_put(i2c_bus);
+ 
+-		tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
++		tsin->rst_gpio = of_get_named_gpio(child, "reset-gpios", 0);
+ 
+ 		ret = gpio_is_valid(tsin->rst_gpio);
+ 		if (!ret) {
+-- 
+1.9.1
 
-	Hans
