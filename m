@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59887 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751210AbbHYSzq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 14:55:46 -0400
-Subject: Re: [PATCH v7 10/44] [media] media: rename the function that create
- pad links
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
- <f095b87884d435e296a455ab07a9951a74c0c3a6.1440359643.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Haneen Mohammed <hamohammed.sa@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
-	anuvazhayil <anuv.1994@gmail.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Jiayi Ye <yejiayily@gmail.com>,
-	Heena Sirwani <heenasirwani@gmail.com>,
-	Wolfram Sang <wsa@the-dreams.de>, linux-doc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <55DCBA2D.9090901@osg.samsung.com>
-Date: Tue, 25 Aug 2015 12:55:41 -0600
-MIME-Version: 1.0
-In-Reply-To: <f095b87884d435e296a455ab07a9951a74c0c3a6.1440359643.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:33367 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753421AbbH1RxF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2015 13:53:05 -0400
+Received: by wiae7 with SMTP id e7so3854495wia.0
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:53:04 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v3 6/6] [media] c8sectpfe: Simplify for loop in load_slim_core_fw
+Date: Fri, 28 Aug 2015 18:52:42 +0100
+Message-Id: <1440784362-31217-7-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/2015 02:17 PM, Mauro Carvalho Chehab wrote:
-> Now that a link can be either between two different graph
-> objects, we'll need to add more functions to create links.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Is this an incomplete sentence. Should it read: "either between
-two different graph objects or two pads" ?
-
-> So, rename the existing one that create links only between
-> two pads as media_create_pad_link().
-
-> 
-> No functional changes.
-> 
-> This patch was created via this shell script:
-> 	for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
-> 
-
-Didn't want to experiment with Coccinelle?? :)
-
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-
-Changes look good to me. After fixing the commit log:
-
-Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
-
-thanks,
--- Shuah
-
-
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index c691e13..ce72ffb 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -1096,7 +1096,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 	Elf32_Ehdr *ehdr;
+ 	Elf32_Phdr *phdr;
+ 	u8 __iomem *dst;
+-	int err, i;
++	int err = 0, i;
+ 
+ 	if (!fw || !context)
+ 		return -EINVAL;
+@@ -1105,7 +1105,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 	phdr = (Elf32_Phdr *)(fw->data + ehdr->e_phoff);
+ 
+ 	/* go through the available ELF segments */
+-	for (i = 0; i < ehdr->e_phnum && !err; i++, phdr++) {
++	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
+ 
+ 		/* Only consider LOAD segments */
+ 		if (phdr->p_type != PT_LOAD)
+@@ -1118,7 +1118,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 			dev_err(fei->dev,
+ 				"Segment %d is outside of firmware file\n", i);
+ 			err = -EINVAL;
+-			break;
++			goto err;
+ 		}
+ 
+ 		/*
+@@ -1146,6 +1146,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 		}
+ 	}
+ 
++err:
+ 	release_firmware(fw);
+ 	return err;
+ }
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.9.1
+
