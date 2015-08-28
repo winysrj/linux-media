@@ -1,125 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37483 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751534AbbHYNdZ (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54380 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751737AbbH1Lte (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 09:33:25 -0400
-Message-ID: <55DC6DFF.1000204@xs4all.nl>
-Date: Tue, 25 Aug 2015 15:30:39 +0200
+	Fri, 28 Aug 2015 07:49:34 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v7 18/44] [media] media: make media_link more generic
- to handle interace links
-References: <cover.1440359643.git.mchehab@osg.samsung.com>	<cec7a29d26c1abc95bd0df9ca6a92910ec1561ad.1440359643.git.mchehab@osg.samsung.com>	<55DC1B91.70302@xs4all.nl> <20150825065343.5829158d@recife.lan>
-In-Reply-To: <20150825065343.5829158d@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, ricardo.ribalda@gmail.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/8] saa7164: fix poll bugs
+Date: Fri, 28 Aug 2015 13:48:28 +0200
+Message-Id: <1440762513-30457-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
+References: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/15 11:53, Mauro Carvalho Chehab wrote:
-> Em Tue, 25 Aug 2015 09:38:57 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 08/23/2015 10:17 PM, Mauro Carvalho Chehab wrote:
->>> By adding an union at media_link, we get for free a way to
->>> represent interface->entity links.
->>>
->>> No need to change anything at the code, just at the internal
->>> header file.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
->>> index 17bb5cbbd67d..f6e8fa801cf9 100644
->>> --- a/include/media/media-entity.h
->>> +++ b/include/media/media-entity.h
->>> @@ -75,14 +75,20 @@ struct media_pipeline {
->>>  struct media_link {
->>>  	struct media_gobj graph_obj;
->>>  	struct list_head list;
->>> -	struct media_pad *source;	/* Source pad */
->>> -	struct media_pad *sink;		/* Sink pad  */
->>> +	union {
->>> +		struct media_gobj *port0;
->>> +		struct media_pad *source;
->>> +	};
->>> +	union {
->>> +		struct media_gobj *port1;
->>
->> Why add port0 and port1 here instead of intf and entity (now added in patch 20)?
->> port0/port1 isn't used, so I'd postpone adding that until it is needed.
-> 
-> Because we need to use it to be able to identify the object type.
-> This is used (actually, it should be used - see my comments for 19/44)
-> on the next patch.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ah, right. It makes much more sense when the debug function uses it. The
-fact that it didn't confused me.
+- poll doesn't return negative values, so you can't return -EINVAL.
+  Instead return POLLERR.
+- poll can't be called if !video_is_registered(), so this test can
+  be dropped.
+- poll can never do a blocking wait, so remove that check.
+- poll shouldn't attempt to start streaming if the caller isn't interested
+  in read events.
 
-> 
->> Part of the reason is also that I am not convinced about the 'port' name, so
->> let's not add this yet.
-> 
-> I'm not bound to "port" name. If you have a better suggestion, this could
-> easily be fixed.
-> 
-> However, we can't use here source/sink, as this means something
-> directional, but the interface<->entity link is bidirectional.
-> 
-> I chose "port" because it is the ITU-T name for the graph element that
-> represents the connection points at the entities.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7164/saa7164-encoder.c | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-Since it is a media_gobj pointer, I would think 'gobj0/1' would be more
-sensible since that doesn't introduce a new name ('port').
+diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
+index 96dd1e4..fd32fa0 100644
+--- a/drivers/media/pci/saa7164/saa7164-encoder.c
++++ b/drivers/media/pci/saa7164/saa7164-encoder.c
+@@ -915,6 +915,7 @@ err:
+ 
+ static unsigned int fops_poll(struct file *file, poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct saa7164_encoder_fh *fh =
+ 		(struct saa7164_encoder_fh *)file->private_data;
+ 	struct saa7164_port *port = fh->port;
+@@ -928,26 +929,18 @@ static unsigned int fops_poll(struct file *file, poll_table *wait)
+ 	saa7164_histogram_update(&port->poll_interval,
+ 		port->last_poll_msecs_diff);
+ 
+-	if (!video_is_registered(port->v4l_device))
+-		return -EIO;
++	if (!(req_events & (POLLIN | POLLRDNORM)))
++		return mask;
+ 
+ 	if (atomic_cmpxchg(&fh->v4l_reading, 0, 1) == 0) {
+ 		if (atomic_inc_return(&port->v4l_reader_count) == 1) {
+ 			if (saa7164_encoder_initialize(port) < 0)
+-				return -EINVAL;
++				return POLLERR;
+ 			saa7164_encoder_start_streaming(port);
+ 			msleep(200);
+ 		}
+ 	}
+ 
+-	/* blocking wait for buffer */
+-	if ((file->f_flags & O_NONBLOCK) == 0) {
+-		if (wait_event_interruptible(port->wait_read,
+-			saa7164_enc_next_buf(port))) {
+-				return -ERESTARTSYS;
+-		}
+-	}
+-
+ 	/* Pull the first buffer from the used list */
+ 	if (!list_empty(&port->list_buf_used.list))
+ 		mask |= POLLIN | POLLRDNORM;
+-- 
+2.1.4
 
-Regards,
-
-	Hans
-
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->>> +		struct media_pad *sink;
->>> +	};
->>>  	struct media_link *reverse;	/* Link in the reverse direction */
->>>  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
->>>  };
->>>  
->>>  struct media_pad {
->>> -	struct media_gobj graph_obj;
->>> +	struct media_gobj graph_obj;	/* should be the first object */
->>>  	struct media_entity *entity;	/* Entity this pad belongs to */
->>>  	u16 index;			/* Pad index in the entity pads array */
->>>  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
->>> @@ -105,7 +111,7 @@ struct media_entity_operations {
->>>  };
->>>  
->>>  struct media_entity {
->>> -	struct media_gobj graph_obj;
->>> +	struct media_gobj graph_obj;	/* should be the first object */
->>>  	struct list_head list;
->>>  	const char *name;		/* Entity name */
->>>  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
->>> @@ -119,7 +125,7 @@ struct media_entity {
->>>  	u16 num_backlinks;		/* Number of backlinks */
->>>  
->>>  	struct media_pad *pads;		/* Pads array (num_pads objects) */
->>> -	struct list_head links;		/* Links list */
->>> +	struct list_head links;		/* Pad-to-pad links list */
->>>  
->>>  	const struct media_entity_operations *ops;	/* Entity operations */
->>>  
->>>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
