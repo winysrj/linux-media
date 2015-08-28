@@ -1,27 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from uucp2.avis.ne.jp ([202.247.192.40]:53049 "EHLO uucp2.avis.ne.jp"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912AbbHMHoI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Aug 2015 03:44:08 -0400
-Received: from vill.hakuba.lg.jp (unknown [172.20.59.231])
-	by uucp.vill.hakuba.nagano.jp (Postfix) with ESMTP id 04E7C214529
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2015 13:36:26 +0900 (JST)
-Received: from vill.hakuba.lg.jp ([172.27.59.4])
-	by  vill.hakuba.lg.jp (8.14.4/8.14.4) with ESMTP id t7D7fR3E025045
-	for <linux-media@vger.kernel.org>; Thu, 13 Aug 2015 16:41:27 +0900
-Date: Thu, 13 Aug 2015 16:41:03 +0900
-Message-Id: <11508131641.AA84740678@vill.hakuba.lg.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-From: "Postmaster" <postmaster@vill.hakuba.lg.jp>
-To: <linux-media@vger.kernel.org>
-Subject: Undeliverable Mail
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59899 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751794AbbH1NYg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Aug 2015 09:24:36 -0400
+Message-ID: <55E060DF.3030202@xs4all.nl>
+Date: Fri, 28 Aug 2015 15:23:43 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] saa7164: convert to the control framework
+References: <55D730F4.80100@xs4all.nl>	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>	<55D85325.80607@xs4all.nl>	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>	<55D86F3C.6090004@xs4all.nl>	<CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>	<55DDBB73.5010902@xs4all.nl>	<CALzAhNVxrWOsU72jin4_ygwazX2cnqBaMoPGZ_Kv77xgGx7KmA@mail.gmail.com>	<55E014E6.5000801@xs4all.nl> <CALzAhNUMN6BhNZQgGE57-ujoi2O1-baVW_AWFYep7Xd0b4Okrg@mail.gmail.com>
+In-Reply-To: <CALzAhNUMN6BhNZQgGE57-ujoi2O1-baVW_AWFYep7Xd0b4Okrg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No message body: minami@vill.hakuba.lg.jp
+On 08/28/2015 02:44 PM, Steven Toth wrote:
+>>> Send me your shipping address _privately_, I talk to Hauppauge about a
+>>> replacement.
+>>>
+>>
+>> No need, I managed to get it working if I use a PCI-to-PCIe adapter card. Very
+>> strange, it won't work in the PCIe slot of my motherboard, but using the PCI slot
+>> and that adapter it works fine.
+> 
+> Excellent.
+> 
+>>
+>> It's good that it was tested since the menu control creation code was wrong.
+> 
+> Ahh.
+> 
+>>
+>> One thing that is very confusing to me: I have this board:
+>>
+>> [ 1878.280918] CORE saa7164[0]: subsystem: 0070:8900, board: Hauppauge WinTV-HVR2200 [card=5,autodetected]
+>> [ 1878.280928] saa7164[0]/0: found at 0000:09:00.0, rev: 129, irq: 18, latency: 0, mmio: 0xfb800000
+>> [ 1878.327399] tveeprom 14-0000: Hauppauge model 89519, rev B2F2, serial# 4029789519
+>> [ 1878.327405] tveeprom 14-0000: MAC address is 00:0d:fe:31:b5:4f
+>> [ 1878.327409] tveeprom 14-0000: tuner model is NXP 18271C2_716x (idx 152, type 4)
+>> [ 1878.327413] tveeprom 14-0000: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+>> [ 1878.327416] tveeprom 14-0000: audio processor is SAA7164 (idx 43)
+>> [ 1878.327418] tveeprom 14-0000: decoder processor is CX23887A (idx 39)
+>> [ 1878.327420] tveeprom 14-0000: has radio
+>> [ 1878.327423] saa7164[0]: Hauppauge eeprom: model=89519
+>>
+>> but the default firmware with size 4919072 fails to work (image corrupt), instead
+>> I need to use the firmware with size 4038864 (v4l-saa7164-1.0.3-3.fw).
+>>
+>> For that I have to patch the driver.
+> 
+> Take a look at your board, on the main large PCIe IC, its probably
+> marked as either a REV2 or a REV3, or a -02 or -03, what do you have?
+> 
+> I suspect you have a rev-02 chip. Not many of them go out into
+> production. (A few thousand, compared to significantly more -03
+> chips).
 
+The text on the chip is:
 
-Original message follows.
+SAA7164E/2
+P60962.00	10
+ESG07271Y
 
+I suspect the /2 means REV2.
 
+Regards,
+
+	Hans
