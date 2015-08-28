@@ -1,158 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58886 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753151AbbHWUSI (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:36292 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753031AbbH1Rw6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 09/44] [media] media: add a debug message to warn about gobj creation/removal
-Date: Sun, 23 Aug 2015 17:17:26 -0300
-Message-Id: <1f0cabf7f3606b7ade2548820a2e03904d32f727.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Fri, 28 Aug 2015 13:52:58 -0400
+Received: by wicfv10 with SMTP id fv10so14043183wic.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:52:57 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v3 2/6] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
+Date: Fri, 28 Aug 2015 18:52:38 +0100
+Message-Id: <1440784362-31217-3-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It helps to check if the media controller is doing the
-right thing with the object creation and removal.
+This patch adds in the required DT node for the c8sectpfe
+Linux DVB demux driver which allows the tsin channels
+to be used on an upstream kernel.
 
-No extra code/data will be produced if DEBUG or
-CONFIG_DYNAMIC_DEBUG is not enabled.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+---
+ arch/arm/boot/dts/stihxxx-b2120.dtsi | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 36d725ec5f3d..6d515e149d7f 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -27,6 +27,69 @@
- #include <media/media-device.h>
- 
- /**
-+ *  dev_dbg_obj - Prints in debug mode a change on some object
-+ *
-+ * @event_name:	Name of the event to report. Could be __func__
-+ * @gobj:	Pointer to the object
-+ *
-+ * Enabled only if DEBUG or CONFIG_DYNAMIC_DEBUG. Otherwise, it
-+ * won't produce any code.
-+ */
-+static inline const char *gobj_type(enum media_gobj_type type)
-+{
-+	switch (type) {
-+	case MEDIA_GRAPH_ENTITY:
-+		return "entity";
-+	case MEDIA_GRAPH_PAD:
-+		return "pad";
-+	case MEDIA_GRAPH_LINK:
-+		return "link";
-+	default:
-+		return "unknown";
-+	}
-+}
-+
-+static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
-+{
-+#if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
-+	switch (media_type(gobj)) {
-+	case MEDIA_GRAPH_ENTITY:
-+		dev_dbg(gobj->mdev->dev,
-+			"%s: id 0x%08x entity#%d: '%s'\n",
-+			event_name, gobj->id, media_localid(gobj),
-+			gobj_to_entity(gobj)->name);
-+		break;
-+	case MEDIA_GRAPH_LINK:
-+	{
-+		struct media_link *link = gobj_to_link(gobj);
-+
-+		dev_dbg(gobj->mdev->dev,
-+			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
-+			event_name, gobj->id, media_localid(gobj),
-+
-+			link->source->entity->name,
-+			gobj_type(media_type(&link->source->graph_obj)),
-+			media_localid(&link->source->graph_obj),
-+
-+			link->sink->entity->name,
-+			gobj_type(media_type(&link->sink->graph_obj)),
-+			media_localid(&link->sink->graph_obj));
-+		break;
-+	}
-+	case MEDIA_GRAPH_PAD:
-+	{
-+		struct media_pad *pad = gobj_to_pad(gobj);
-+
-+		dev_dbg(gobj->mdev->dev,
-+			"%s: id 0x%08x pad#%d: '%s':%d\n",
-+			event_name, gobj->id, media_localid(gobj),
-+			pad->entity->name, pad->index);
-+	}
-+	}
-+#endif
-+}
-+
-+/**
-  *  media_gobj_init - Initialize a graph object
-  *
-  * @mdev:	Pointer to the media_device that contains the object
-@@ -43,6 +106,8 @@ void media_gobj_init(struct media_device *mdev,
- 			   enum media_gobj_type type,
- 			   struct media_gobj *gobj)
- {
-+	gobj->mdev = mdev;
-+
- 	/* Create a per-type unique object ID */
- 	switch (type) {
- 	case MEDIA_GRAPH_ENTITY:
-@@ -55,6 +120,7 @@ void media_gobj_init(struct media_device *mdev,
- 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
- 		break;
- 	}
-+	dev_dbg_obj(__func__, gobj);
- }
- 
- /**
-@@ -66,7 +132,7 @@ void media_gobj_init(struct media_device *mdev,
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index 62994ae..f9fca10 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -6,6 +6,9 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
   */
- void media_gobj_remove(struct media_gobj *gobj)
- {
--	/* For now, nothing to do */
-+	dev_dbg_obj(__func__, gobj);
- }
++
++#include <dt-bindings/clock/stih407-clks.h>
++#include <dt-bindings/media/c8sectpfe.h>
+ / {
+ 	soc {
+ 		sbc_serial0: serial@9530000 {
+@@ -85,5 +88,37 @@
+ 			status = "okay";
+ 		};
  
- /**
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index cd08a96bfbaa..af6646ddf6db 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -61,6 +61,7 @@ enum media_gobj_type {
-  * All objects on the media graph should have this struct embedded
-  */
- struct media_gobj {
-+	struct media_device	*mdev;
- 	u32			id;
++		demux@08a20000 {
++			compatible	= "st,stih407-c8sectpfe";
++			status		= "okay";
++			reg		= <0x08a20000 0x10000>,
++					  <0x08a00000 0x4000>;
++			reg-names	= "c8sectpfe", "c8sectpfe-ram";
++			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
++					  <GIC_SPI 35 IRQ_TYPE_NONE>;
++			interrupt-names	= "c8sectpfe-error-irq",
++					  "c8sectpfe-idle-irq";
++			pinctrl-0	= <&pinctrl_tsin0_serial>;
++			pinctrl-1	= <&pinctrl_tsin0_parallel>;
++			pinctrl-2	= <&pinctrl_tsin3_serial>;
++			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
++			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
++			pinctrl-names	= "tsin0-serial",
++					  "tsin0-parallel",
++					  "tsin3-serial",
++					  "tsin4-serial",
++					  "tsin5-serial";
++			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
++			clock-names	= "c8sectpfe";
++
++			/* tsin0 is TSA on NIMA */
++			tsin0: port@0 {
++				tsin-num	= <0>;
++				serial-not-parallel;
++				i2c-bus		= <&ssc2>;
++				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
++				dvb-card	= <STV0367_TDA18212_NIMA_1>;
++			};
++		};
+ 	};
  };
- 
-@@ -192,6 +193,12 @@ struct media_entity_graph {
- #define gobj_to_entity(gobj) \
- 		container_of(gobj, struct media_entity, graph_obj)
- 
-+#define gobj_to_pad(gobj) \
-+		container_of(gobj, struct media_pad, graph_obj)
-+
-+#define gobj_to_link(gobj) \
-+		container_of(gobj, struct media_link, graph_obj)
-+
- void media_gobj_init(struct media_device *mdev,
- 		    enum media_gobj_type type,
- 		    struct media_gobj *gobj);
 -- 
-2.4.3
+1.9.1
 
