@@ -1,98 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:37225 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751904AbbGOAe0 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48433 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753286AbbH3DHu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2015 20:34:26 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, tiwai@suse.de, perex@perex.cz,
-	crope@iki.fi, sakari.ailus@linux.intel.com, arnd@arndb.de,
-	stefanr@s5r6.in-berlin.de, ruchandani.tina@gmail.com,
-	chehabrafael@gmail.com, dan.carpenter@oracle.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com,
-	agoode@google.com, pierre-louis.bossart@linux.intel.com,
-	gtmkramer@xs4all.nl, clemens@ladisch.de, daniel@zonque.org,
-	vladcatoi@gmail.com, misterpib@gmail.com, damien@zamaudio.com,
-	pmatilai@laiskiainen.org, takamichiho@gmail.com,
-	normalperson@yhbt.net, bugzilla.frnkcg@spamgourmet.com,
-	joe@oampo.co.uk, calcprogrammer1@gmail.com, jussi@sonarnerd.net
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 1/7] Revert "[media] media: media controller entity framework enhancements for ALSA"
-Date: Tue, 14 Jul 2015 18:34:00 -0600
-Message-Id: <49da931303fc040178a22dc46c161eeaf0d7a350.1436917513.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
-References: <cover.1436917513.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1436917513.git.shuahkh@osg.samsung.com>
-References: <cover.1436917513.git.shuahkh@osg.samsung.com>
+	Sat, 29 Aug 2015 23:07:50 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v8 53/55] [media] v4l2-core: create MC interfaces for devnodes
+Date: Sun, 30 Aug 2015 00:07:04 -0300
+Message-Id: <51ba7f932951fb758e42c9cd93467b71668a8533.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit ed64cf1e182fb30fe67652386c0880fcf3302f97.
-This patch is no longer necessary as the entity register
-callback is implemented at media_device level.
+V4L2 device (and subdevice) nodes should create an
+interface, if the Media Controller support is enabled.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/media-device.c | 7 -------
- include/media/media-entity.h | 4 ----
- 2 files changed, 11 deletions(-)
+Please notice that radio devices should not create an
+entity, as radio input/output is either via wires or
+via ALSA.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 76590ba..c55ab50 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -428,8 +428,6 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
- {
--	struct media_entity *eptr;
--
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->parent != NULL);
- 	entity->parent = mdev;
-@@ -442,11 +440,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	list_add_tail(&entity->list, &mdev->entities);
- 	spin_unlock(&mdev->lock);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 44b330589787..427a5a32b3de 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -194,9 +194,12 @@ static void v4l2_device_release(struct device *cd)
+ 	mutex_unlock(&videodev_lock);
  
--	media_device_for_each_entity(eptr, mdev) {
--		if (eptr != entity)
--			media_entity_call(eptr, register_notify);
--	}
--
- 	return 0;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (v4l2_dev->mdev &&
+-	    vdev->vfl_type != VFL_TYPE_SUBDEV)
+-		media_device_unregister_entity(&vdev->entity);
++	if (v4l2_dev->mdev) {
++		/* Remove interfaces and interface links */
++		media_devnode_remove(vdev->intf_devnode);
++		if (vdev->vfl_type != VFL_TYPE_SUBDEV)
++			media_device_unregister_entity(&vdev->entity);
++	}
+ #endif
+ 
+ 	/* Do not call v4l2_device_put if there is no release callback set.
+@@ -713,6 +716,85 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			BASE_VIDIOC_PRIVATE);
  }
- EXPORT_SYMBOL_GPL(media_device_register_entity);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0bc4c2f..0c003d8 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -46,7 +46,6 @@ struct media_pad {
  
++
++static int video_register_media_controller(struct video_device *vdev, int type)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	u32 entity_type = MEDIA_ENT_T_UNKNOWN;
++	u32 intf_type;
++	int ret;
++	bool create_entity = true;
++
++	if (!vdev->v4l2_dev->mdev)
++		return 0;
++
++	switch (type) {
++	case VFL_TYPE_GRABBER:
++		intf_type = MEDIA_INTF_T_V4L_VIDEO;
++		entity_type = MEDIA_ENT_T_V4L2_VIDEO;
++		break;
++	case VFL_TYPE_VBI:
++		intf_type = MEDIA_INTF_T_V4L_VBI;
++		entity_type = MEDIA_ENT_T_V4L2_VBI;
++		break;
++	case VFL_TYPE_SDR:
++		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
++		entity_type = MEDIA_ENT_T_V4L2_SWRADIO;
++		break;
++	case VFL_TYPE_RADIO:
++		intf_type = MEDIA_INTF_T_V4L_RADIO;
++		/*
++		 * Radio doesn't have an entity at the V4L2 side to represent
++		 * radio input or output. Instead, the audio input/output goes
++		 * via either physical wires or ALSA.
++		 */
++		create_entity = false;
++		break;
++	case VFL_TYPE_SUBDEV:
++		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
++		/* Entity will be created via v4l2_device_register_subdev() */
++		create_entity = false;
++		break;
++	default:
++		return 0;
++	}
++
++	if (create_entity) {
++		vdev->entity.type = entity_type;
++		vdev->entity.name = vdev->name;
++
++		/* Needed just for backward compatibility with legacy MC API */
++		vdev->entity.info.dev.major = VIDEO_MAJOR;
++		vdev->entity.info.dev.minor = vdev->minor;
++
++		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
++						   &vdev->entity);
++		if (ret < 0) {
++			printk(KERN_WARNING
++				"%s: media_device_register_entity failed\n",
++				__func__);
++			return ret;
++		}
++	}
++
++	vdev->intf_devnode = media_devnode_create(vdev->v4l2_dev->mdev,
++						  intf_type,
++						  0, VIDEO_MAJOR,
++						  vdev->minor,
++						  GFP_KERNEL);
++	if (!vdev->intf_devnode)
++		return -ENOMEM;
++
++	if (create_entity)
++		media_create_intf_link(&vdev->entity,
++				       &vdev->intf_devnode->intf, 0);
++
++	/* FIXME: how to create the other interface links? */
++
++#endif
++	return 0;
++}
++
  /**
-  * struct media_entity_operations - Media entity operations
-- * @register_notify	Notify entity of newly registered entity
-  * @link_setup:		Notify the entity of link changes. The operation can
-  *			return an error, in which case link setup will be
-  *			cancelled. Optional.
-@@ -55,7 +54,6 @@ struct media_pad {
-  *			validates all links by calling this operation. Optional.
-  */
- struct media_entity_operations {
--	int (*register_notify)(struct media_entity *entity);
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
-@@ -103,8 +101,6 @@ struct media_entity {
- 		/* Sub-device specifications */
- 		/* Nothing needed yet */
- 	} info;
--
--	void *private;			/* private data for the entity */
- };
+  *	__video_register_device - register video4linux devices
+  *	@vdev: video device structure we want to register
+@@ -908,22 +990,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	/* Increase v4l2_device refcount */
+ 	v4l2_device_get(vdev->v4l2_dev);
  
- static inline u32 media_entity_type(struct media_entity *entity)
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+ 	/* Part 5: Register the entity. */
+-	if (vdev->v4l2_dev->mdev &&
+-	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+-		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
+-		vdev->entity.name = vdev->name;
+-		vdev->entity.info.dev.major = VIDEO_MAJOR;
+-		vdev->entity.info.dev.minor = vdev->minor;
+-		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
+-			&vdev->entity);
+-		if (ret < 0)
+-			printk(KERN_WARNING
+-			       "%s: media_device_register_entity failed\n",
+-			       __func__);
+-	}
+-#endif
++	ret = video_register_media_controller(vdev, type);
++
+ 	/* Part 6: Activate this minor. The char device can now be used. */
+ 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 5b0a30b9252b..17ec73b1796e 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -249,6 +249,11 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 		sd->entity.info.dev.major = VIDEO_MAJOR;
+ 		sd->entity.info.dev.minor = vdev->minor;
++
++		/* Interface is created by __video_register_device() */
++		if (vdev->v4l2_dev->mdev)
++			media_create_intf_link(&sd->entity,
++					       &vdev->intf_devnode->intf, 0);
+ #endif
+ 		sd->devnode = vdev;
+ 	}
+@@ -285,7 +290,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (v4l2_dev->mdev) {
+-		media_entity_remove_links(&sd->entity);
++		/*
++		 * No need to explicitly remove links, as both pads and
++		 * links are removed by the function below, at the right order
++		 */
+ 		media_device_unregister_entity(&sd->entity);
+ 	}
+ #endif
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index acbcd2f5fe7f..eeabf20e87a6 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -86,6 +86,7 @@ struct video_device
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_entity entity;
++	struct media_intf_devnode *intf_devnode;
+ #endif
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
 -- 
-2.1.4
+2.4.3
 
