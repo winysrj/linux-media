@@ -1,39 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:13247 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953AbbHWOJZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48346 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203AbbH3DHo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 10:09:25 -0400
-Received: from pla-VB.cisco.com ([10.65.39.227])
-	by bgl-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id t7NE9BxV006919
-	for <linux-media@vger.kernel.org>; Sun, 23 Aug 2015 14:09:15 GMT
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/2] vivid: reduced fps support
-Date: Sun, 23 Aug 2015 19:39:09 +0530
-Message-Id: <1440338951-23748-1-git-send-email-prladdha@cisco.com>
+	Sat, 29 Aug 2015 23:07:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 26/55] [media] media: add a linked list to track interfaces by mdev
+Date: Sun, 30 Aug 2015 00:06:37 -0300
+Message-Id: <6a5d75004723fe0a822ef389247ae9656d681ca1.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The media device should list the interface objects, so add a linked list
+for those interfaces in struct media_device.
 
-Following patches add reduced fps support in vivid video transmit
-and capture. Please review and share your comments.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Regards,
-Prashant
-
-Prashant Laddha (2):
-  vivid: add support for reduced fps in video out.
-  vivid: add support for reduced fps in video capture
-
- drivers/media/platform/vivid/vivid-core.h    |  1 +
- drivers/media/platform/vivid/vivid-ctrls.c   | 15 ++++++++++++++
- drivers/media/platform/vivid/vivid-vid-cap.c |  7 ++++++-
- drivers/media/platform/vivid/vivid-vid-out.c | 30 +++++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-dv-timings.c    |  5 +++++
- 5 files changed, 56 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3e649cacfc07..659507bce63f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return -EINVAL;
+ 
+ 	INIT_LIST_HEAD(&mdev->entities);
++	INIT_LIST_HEAD(&mdev->interfaces);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 417673a32c21..15bc92d3a648 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -861,6 +861,8 @@ static void media_interface_init(struct media_device *mdev,
+ 	INIT_LIST_HEAD(&intf->links);
+ 
+ 	media_gobj_init(mdev, gobj_type, &intf->graph_obj);
++
++	list_add_tail(&intf->list, &mdev->interfaces);
+ }
+ 
+ /* Functions related to the media interface via device nodes */
+@@ -889,6 +891,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
+ void media_devnode_remove(struct media_intf_devnode *devnode)
+ {
+ 	media_gobj_remove(&devnode->intf.graph_obj);
++	list_del(&devnode->intf.list);
+ 	kfree(devnode);
+ }
+ EXPORT_SYMBOL_GPL(media_devnode_remove);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 3b14394d5701..51807efa505b 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -46,6 +46,7 @@ struct device;
+  * @link_id:	Unique ID used on the last link registered
+  * @intf_devnode_id: Unique ID used on the last interface devnode registered
+  * @entities:	List of registered entities
++ * @interfaces:	List of registered interfaces
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+  * @link_notify: Link state change notification callback
+@@ -77,6 +78,7 @@ struct media_device {
+ 	u32 intf_devnode_id;
+ 
+ 	struct list_head entities;
++	struct list_head interfaces;
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 423ff804e686..e7b20bdc735d 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -156,6 +156,8 @@ struct media_entity {
+  * struct media_intf_devnode - Define a Kernel API interface
+  *
+  * @graph_obj:		embedded graph object
++ * @list:		Linked list used to find other interfaces that belong
++ *			to the same media controller
+  * @links:		List of links pointing to graph entities
+  * @type:		Type of the interface as defined at the
+  *			uapi/media/media.h header, e. g.
+@@ -164,6 +166,7 @@ struct media_entity {
+  */
+ struct media_interface {
+ 	struct media_gobj		graph_obj;
++	struct list_head		list;
+ 	struct list_head		links;
+ 	u32				type;
+ 	u32				flags;
 -- 
-1.9.1
+2.4.3
 
