@@ -1,118 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:49760 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751594AbbHXBSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 21:18:01 -0400
-From: Rusty Russell <rusty@rustcorp.com.au>
-To: poma <pomidorabelisima@gmail.com>,
-	Linux Kernel list <linux-kernel@vger.kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Laura Abbott <labbott@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: WARNING: CPU: 1 PID: 813 at kernel/module.c:291 module_assert_mutex_or_preempt+0x49/0x90()
-In-Reply-To: <55D6FBB0.5000709@gmail.com>
-References: <55C916F0.8010303@gmail.com> <55D6FBB0.5000709@gmail.com>
-Date: Mon, 24 Aug 2015 10:47:46 +0930
-Message-ID: <87h9npjxhh.fsf@rustcorp.com.au>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:48500 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbbH3DHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:51 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 23/55] [media] media: add support to link interfaces and entities
+Date: Sun, 30 Aug 2015 00:06:34 -0300
+Message-Id: <cf99e5eca15f107a14b02dad55fb812525345627.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-poma <pomidorabelisima@gmail.com> writes:
->> Ref.
->> https://bugzilla.redhat.com/show_bug.cgi?id=1252167
->> https://bugzilla.kernel.org/show_bug.cgi?id=102631
->> 
->
-> You guys are really something.
+Now that we have a new graph object called "interfaces", we
+need to be able to link them to the entities.
 
-Hi Poma,
+Add a linked list to the interfaces to allow them to be
+linked to the entities.
 
-        I understand your frustration!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I got involved via the other thread which didn't mention your bug report
-anywhere.  I'm sure Laura was trying to be helpful by creating a minimal
-report, but the resulting patch erred in not crediting you.
-
-> First of all, as is evident here, I am the original reporter, not Laura Abbott <labbott@redhat.com>.
-
-Thanks for clarifying that.  I have fixed the commit message to credit
-you.  See below.
-
-> -All- your comments including the final patch on this issue, are just plain wrong.[1]
-> 
-> This patch only hides the actual problem with this particular device - the dual tuner combination driven by dvb_usb_af9015 & mxl5007t, broken by design since day one.
-
-Oh, there's definitely a real issue in the driver; this one is cosmetic.
-
-> Read the entire https://bugzilla.redhat.com/show_bug.cgi?id=1252167
-> and stop this nonsense.
->
-> NACK "module: Fix locking in symbol_put_addr()"
-
-Yeah, I've had days like this, too :(
-
-Anyway, thanks for finding this bug: if the driver init hadn't been
-screwed it wouldn't have taken that path and found this for us.
-
-Good luck with the other issue!
-Rusty.
-
->From 275d7d44d802ef271a42dc87ac091a495ba72fc5 Mon Sep 17 00:00:00 2001
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 20 Aug 2015 10:34:59 +0930
-Subject: [PATCH] module: Fix locking in symbol_put_addr()
-
-Poma (on the way to another bug) reported an assertion triggering:
-
-  [<ffffffff81150529>] module_assert_mutex_or_preempt+0x49/0x90
-  [<ffffffff81150822>] __module_address+0x32/0x150
-  [<ffffffff81150956>] __module_text_address+0x16/0x70
-  [<ffffffff81150f19>] symbol_put_addr+0x29/0x40
-  [<ffffffffa04b77ad>] dvb_frontend_detach+0x7d/0x90 [dvb_core]
-
-Laura Abbott <labbott@redhat.com> produced a patch which lead us to
-inspect symbol_put_addr(). This function has a comment claiming it
-doesn't need to disable preemption around the module lookup
-because it holds a reference to the module it wants to find, which
-therefore cannot go away.
-
-This is wrong (and a false optimization too, preempt_disable() is really
-rather cheap, and I doubt any of this is on uber critical paths,
-otherwise it would've retained a pointer to the actual module anyway and
-avoided the second lookup).
-
-While its true that the module cannot go away while we hold a reference
-on it, the data structure we do the lookup in very much _CAN_ change
-while we do the lookup. Therefore fix the comment and add the
-required preempt_disable().
-
-Reported-by: poma <pomidorabelisima@gmail.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Fixes: a6e6abd575fc ("module: remove module_text_address()")
-Cc: stable@kernel.org
-
-diff --git a/kernel/module.c b/kernel/module.c
-index b86b7bf1be38..8f051a106676 100644
---- a/kernel/module.c
-+++ b/kernel/module.c
-@@ -1063,11 +1063,15 @@ void symbol_put_addr(void *addr)
- 	if (core_kernel_text(a))
- 		return;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 973d1be427c5..08239128fbc4 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -869,6 +869,7 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
  
--	/* module_text_address is safe here: we're supposed to have reference
--	 * to module from symbol_get, so it can't go away. */
-+	/*
-+	 * Even though we hold a reference on the module; we still need to
-+	 * disable preemption in order to safely traverse the data structure.
-+	 */
-+	preempt_disable();
- 	modaddr = __module_text_address(a);
- 	BUG_ON(!modaddr);
- 	module_put(modaddr);
-+	preempt_enable();
+ 	intf->type = type;
+ 	intf->flags = flags;
++	INIT_LIST_HEAD(&intf->links);
+ 
+ 	devnode->major = major;
+ 	devnode->minor = minor;
+@@ -886,3 +887,40 @@ void media_devnode_remove(struct media_intf_devnode *devnode)
+ 	kfree(devnode);
  }
- EXPORT_SYMBOL_GPL(symbol_put_addr);
- 
+ EXPORT_SYMBOL_GPL(media_devnode_remove);
++
++struct media_link *media_create_intf_link(struct media_entity *entity,
++					    struct media_interface *intf,
++					    u32 flags)
++{
++	struct media_link *link;
++
++	link = media_add_link(&intf->links);
++	if (link == NULL)
++		return NULL;
++
++	link->intf = intf;
++	link->entity = entity;
++	link->flags = flags;
++
++	/* Initialize graph object embedded at the new link */
++	media_gobj_init(intf->graph_obj.mdev, MEDIA_GRAPH_LINK,
++			&link->graph_obj);
++
++	return link;
++}
++EXPORT_SYMBOL_GPL(media_create_intf_link);
++
++
++static void __media_remove_intf_link(struct media_link *link)
++{
++	media_gobj_remove(&link->graph_obj);
++	kfree(link);
++}
++
++void media_remove_intf_link(struct media_link *link)
++{
++	mutex_lock(&link->graph_obj.mdev->graph_mutex);
++	__media_remove_intf_link(link);
++	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_remove_intf_link);
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index b4923a24efd5..423ff804e686 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -78,10 +78,12 @@ struct media_link {
+ 	union {
+ 		struct media_gobj *gobj0;
+ 		struct media_pad *source;
++		struct media_interface *intf;
+ 	};
+ 	union {
+ 		struct media_gobj *gobj1;
+ 		struct media_pad *sink;
++		struct media_entity *entity;
+ 	};
+ 	struct media_link *reverse;	/* Link in the reverse direction */
+ 	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+@@ -154,6 +156,7 @@ struct media_entity {
+  * struct media_intf_devnode - Define a Kernel API interface
+  *
+  * @graph_obj:		embedded graph object
++ * @links:		List of links pointing to graph entities
+  * @type:		Type of the interface as defined at the
+  *			uapi/media/media.h header, e. g.
+  *			MEDIA_INTF_T_*
+@@ -161,6 +164,7 @@ struct media_entity {
+  */
+ struct media_interface {
+ 	struct media_gobj		graph_obj;
++	struct list_head		links;
+ 	u32				type;
+ 	u32				flags;
+ };
+@@ -283,6 +287,11 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+ 						u32 major, u32 minor,
+ 						gfp_t gfp_flags);
+ void media_devnode_remove(struct media_intf_devnode *devnode);
++struct media_link *media_create_intf_link(struct media_entity *entity,
++					    struct media_interface *intf,
++					    u32 flags);
++void media_remove_intf_link(struct media_link *link);
++
+ #define media_entity_call(entity, operation, args...)			\
+ 	(((entity)->ops && (entity)->ops->operation) ?			\
+ 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+-- 
+2.4.3
+
