@@ -1,54 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:38224 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbbHaJOd (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48556 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753334AbbH3DHx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 05:14:33 -0400
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Malcolm Priestley <tvboxspy@gmail.com>, klammerj@a1.net,
-	<stable@vger.kernel.org>
-Subject: [PATCH] media: dvb-core: Don't force CAN_INVERSION_AUTO in oneshot mode.
-Date: Mon, 31 Aug 2015 10:13:45 +0100
-Message-Id: <1441012425-25050-1-git-send-email-tvboxspy@gmail.com>
+	Sat, 29 Aug 2015 23:07:53 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v8 18/55] [media] omap3isp: create links after all subdevs have been bound
+Date: Sun, 30 Aug 2015 00:06:29 -0300
+Message-Id: <6e78f34ad454da44d68720a114f0f8e872560e8e.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When in FE_TUNE_MODE_ONESHOT the frontend must report
-the actual capabilities so user can take appropriate
-action.
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-With frontends that can't do auto inversion this is done
-by dvb-core automatically so CAN_INVERSION_AUTO is valid.
+The omap3isp driver parses the graph endpoints to know how many subdevices
+needs to be registered async and register notifiers callbacks for to know
+when these are bound and when the async registrations are completed.
 
-However, when in FE_TUNE_MODE_ONESHOT this is not true.
+Currently the entities pad are linked with the correct ISP input interface
+when the subdevs are bound but it happens before entitities are registered
+with the media device so that won't work now that the entity links list is
+initialized on device registration.
 
-So only set FE_CAN_INVERSION_AUTO in modes other than
-FE_TUNE_MODE_ONESHOT
+So instead creating the pad links when the subdevice is bound, create them
+on the complete callback once all the subdevices have been bound but only
+try to create for the ones that have a bus configuration set during bound.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: <stable@vger.kernel.org>
----
- drivers/media/dvb-core/dvb_frontend.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index c38ef1a..e2a3833 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2313,9 +2313,9 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		dev_dbg(fe->dvb->device, "%s: current delivery system on cache: %d, V3 type: %d\n",
- 				 __func__, c->delivery_system, fe->ops.info.type);
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index b8f6f81d2db2..69e7733d36cd 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2321,26 +2321,33 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+ 				     struct v4l2_subdev *subdev,
+ 				     struct v4l2_async_subdev *asd)
+ {
+-	struct isp_device *isp = container_of(async, struct isp_device,
+-					      notifier);
+ 	struct isp_async_subdev *isd =
+ 		container_of(asd, struct isp_async_subdev, asd);
+-	int ret;
+-
+-	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
+-	if (ret < 0)
+-		return ret;
  
--		/* Force the CAN_INVERSION_AUTO bit on. If the frontend doesn't
--		 * do it, it is done for it. */
--		info->caps |= FE_CAN_INVERSION_AUTO;
-+		/* Set CAN_INVERSION_AUTO bit on in other than oneshot mode */
-+		if (!(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT))
-+			info->caps |= FE_CAN_INVERSION_AUTO;
- 		err = 0;
- 		break;
- 	}
+ 	isd->sd = subdev;
+ 	isd->sd->host_priv = &isd->bus;
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ {
+ 	struct isp_device *isp = container_of(async, struct isp_device,
+ 					      notifier);
++	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
++	struct v4l2_subdev *sd;
++	struct isp_bus_cfg *bus;
++	int ret;
++
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		/* Only try to link entities whose interface was set on bound */
++		if (sd->host_priv) {
++			bus = (struct isp_bus_cfg *)sd->host_priv;
++			ret = isp_link_entity(isp, &sd->entity, bus->interface);
++			if (ret < 0)
++				return ret;
++		}
++	}
+ 
+ 	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+ }
 -- 
-2.5.0
+2.4.3
 
