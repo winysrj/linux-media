@@ -1,49 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53444 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48365 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965423AbbHLHKM (ORCPT
+	with ESMTP id S1753229AbbH3DHq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:10:12 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: [PATCH 30/31] intel-iommu: handle page-less SG entries
-Date: Wed, 12 Aug 2015 09:05:49 +0200
-Message-Id: <1439363150-8661-31-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
+	Sat, 29 Aug 2015 23:07:46 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY ioctl
+Date: Sun, 30 Aug 2015 00:06:55 -0300
+Message-Id: <ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just remove a BUG_ON, the code handles them just fine as-is.
+Add a new ioctl that will report the entire topology on
+one go.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/iommu/intel-iommu.c | 1 -
- 1 file changed, 1 deletion(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index 3541d65..ae10573 100644
---- a/drivers/iommu/intel-iommu.c
-+++ b/drivers/iommu/intel-iommu.c
-@@ -3622,7 +3622,6 @@ static int intel_nontranslate_map_sg(struct device *hddev,
- 	struct scatterlist *sg;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 756e1960fd7f..358a0c6b1f86 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -181,6 +181,8 @@ struct media_interface {
+  */
+ struct media_intf_devnode {
+ 	struct media_interface		intf;
++
++	/* Should match the fields at media_v2_intf_devnode */
+ 	u32				major;
+ 	u32				minor;
+ };
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4186891e5e81..fa0b68e670b0 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -251,11 +251,94 @@ struct media_links_enum {
+ #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+ #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
  
- 	for_each_sg(sglist, sg, nelems, i) {
--		BUG_ON(!sg_page(sg));
- 		sg->dma_address = sg_phys(sg);
- 		sg->dma_length = sg->length;
- 	}
+-/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
++/*
++ * MC next gen API definitions
++ *
++ * NOTE: The declarations below are close to the MC RFC for the Media
++ *	 Controller, the next generation. Yet, there are a few adjustments
++ *	 to do, as we want to be able to have a functional API before
++ *	 the MC properties change. Those will be properly marked below.
++ *	 Please also notice that I removed "num_pads", "num_links",
++ *	 from the proposal, as a proper userspace application will likely
++ *	 use lists for pads/links, just as we intend todo in Kernelspace.
++ *	 The API definition should be freed from fields that are bound to
++ *	 some specific data structure.
++ *
++ * FIXME: Currently, I opted to name the new types as "media_v2", as this
++ *	  won't cause any conflict with the Kernelspace namespace, nor with
++ *	  the previous kAPI media_*_desc namespace. This can be changed
++ *	  latter, before the adding this API upstream.
++ */
++
++
++#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
++#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
++#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
++#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
++
++struct media_v2_entity {
++	__u32 id;
++	char name[64];		/* FIXME: move to a property? (RFC says so) */
++	__u16 reserved[14];
++};
++
++/* Should match the specific fields at media_intf_devnode */
++struct media_v2_intf_devnode {
++	__u32 major;
++	__u32 minor;
++};
++
++struct media_v2_interface {
++	__u32 id;
++	__u32 intf_type;
++	__u32 flags;
++	__u32 reserved[9];
++
++	union {
++		struct media_v2_intf_devnode devnode;
++		__u32 raw[16];
++	};
++};
++
++struct media_v2_pad {
++	__u32 id;
++	__u32 entity_id;
++	__u32 flags;
++	__u16 reserved[9];
++};
++
++struct media_v2_link {
++    __u32 id;
++    __u32 source_id;
++    __u32 sink_id;
++    __u32 flags;
++    __u32 reserved[5];
++};
++
++struct media_v2_topology {
++	__u32 topology_version;
++
++	__u32 num_entities;
++	struct media_v2_entity *entities;
++
++	__u32 num_interfaces;
++	struct media_v2_interface *interfaces;
++
++	__u32 num_pads;
++	struct media_v2_pad *pads;
++
++	__u32 num_links;
++	struct media_v2_link *links;
++
++	__u32 reserved[64];
++};
++
++/* ioctls */
+ 
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
++#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+ 
+ #endif /* __LINUX_MEDIA_H */
 -- 
-1.9.1
+2.4.3
 
