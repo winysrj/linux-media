@@ -1,75 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58958 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48356 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558AbbHWUSK (ORCPT
+	with ESMTP id S1753207AbbH3DHo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:10 -0400
+	Sat, 29 Aug 2015 23:07:44 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 43/44] [media] media_device: add a topology version field
-Date: Sun, 23 Aug 2015 17:18:00 -0300
-Message-Id: <bc15cafca85403057358c929e0574285c3e07f0a.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v8 27/55] [media] dvbdev: add support for indirect interface links
+Date: Sun, 30 Aug 2015 00:06:38 -0300
+Message-Id: <2e77a279dd0e4cb7721766fafed79ed19a38cb7c.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Every time a graph object is added or removed, the version
-of the topology changes. That's a requirement for the new
-MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
-that the topology has changed after a previous call to it.
+Some interfaces indirectly control multiple entities.
+Add support for those.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ef26c01a5a9a..fc6bb48027ab 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -183,6 +183,9 @@ void media_gobj_init(struct media_device *mdev,
- 		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
- 		break;
- 	}
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 6bf61d42c017..14d32cdcdd47 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -441,6 +441,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 	struct media_device *mdev = adap->mdev;
+ 	struct media_entity *entity, *tuner = NULL, *fe = NULL;
+ 	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
++	struct media_interface *intf;
+ 
+ 	if (!mdev)
+ 		return;
+@@ -476,6 +477,18 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 
+ 	if (demux && ca)
+ 		media_create_pad_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
 +
-+	mdev->topology_version++;
++	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
++	list_for_each_entry(intf, &mdev->interfaces, list) {
++		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
++			media_create_intf_link(ca, intf, 0);
++		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
++			media_create_intf_link(tuner, intf, 0);
++		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
++			media_create_intf_link(demux, intf, 0);
++	}
 +
- 	dev_dbg_obj(__func__, gobj);
++
  }
- 
-@@ -198,6 +201,8 @@ void media_gobj_remove(struct media_gobj *gobj)
- 	/* Remove the object from mdev list */
- 	list_del(&gobj->list);
- 
-+	gobj->mdev->topology_version++;
-+
- 	dev_dbg_obj(__func__, gobj);
- }
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 0d1b9c687454..1b12774a9ab4 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -41,6 +41,8 @@ struct device;
-  * @bus_info:	Unique and stable device location identifier
-  * @hw_revision: Hardware device revision
-  * @driver_version: Device driver version
-+ * @topology_version: Monotonic counter for storing the version of the graph
-+ *		topology. Should be incremented each time the topology changes.
-  * @entity_id:	Unique ID used on the last entity registered
-  * @pad_id:	Unique ID used on the last pad registered
-  * @link_id:	Unique ID used on the last link registered
-@@ -74,6 +76,8 @@ struct media_device {
- 	u32 hw_revision;
- 	u32 driver_version;
- 
-+	u32 topology_version;
-+
- 	u32 entity_id;
- 	u32 pad_id;
- 	u32 link_id;
+ EXPORT_SYMBOL_GPL(dvb_create_media_graph);
+ #endif
 -- 
 2.4.3
 
