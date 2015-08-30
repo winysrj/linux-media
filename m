@@ -1,77 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52956 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932119AbbHKSnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 14:43:37 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sergey Kozlov <serjk@netup.ru>,
+Received: from mout.gmx.net ([212.227.15.18]:64591 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752246AbbH3KRD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2015 06:17:03 -0400
+Date: Sun, 30 Aug 2015 12:16:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/3] [media] ascot2e: don't use variable length arrays
-Date: Tue, 11 Aug 2015 15:41:58 -0300
-Message-Id: <1439318518-27746-3-git-send-email-mchehab@osg.samsung.com>
-In-Reply-To: <1439318518-27746-1-git-send-email-mchehab@osg.samsung.com>
-References: <1439318518-27746-1-git-send-email-mchehab@osg.samsung.com>
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: atmel-isi: move configure_geometry() to
+ start_streaming()
+In-Reply-To: <Pine.LNX.4.64.1508301114130.29683@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1508301216040.29683@axis700.grange>
+References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+ <1434537579-23417-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1508301114130.29683@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Linux stack is short; we need to be able to count the number
-of bytes used at stack on each function. So, we don't like to
-use variable-length arrays, as complained by smatch:
-        drivers/media/dvb-frontends/horus3a.c:57:19: warning: Variable length array is used.
+Yep, I see the thread and updates to this patch now, please, ignore this 
+mail, sorry.
 
-The max usecase of the driver seems to be 10 bytes + 1 for the
-register.
+Thanks
+Guennadi
 
-So, let's be safe and allocate 11 bytes for the write buffer.
-This should be enough to cover all cases. If not, let's print
-an error message.
+On Sun, 30 Aug 2015, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-frontends/ascot2e.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
-index ae7e463c2f9b..f770f6a2c987 100644
---- a/drivers/media/dvb-frontends/ascot2e.c
-+++ b/drivers/media/dvb-frontends/ascot2e.c
-@@ -26,6 +26,8 @@
- #include "ascot2e.h"
- #include "dvb_frontend.h"
- 
-+#define MAX_WRITE_REGSIZE 10
-+
- enum ascot2e_state {
- 	STATE_UNKNOWN,
- 	STATE_SLEEP,
-@@ -120,16 +122,22 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
- 			      u8 reg, const u8 *data, u32 len)
- {
- 	int ret;
--	u8 buf[len+1];
-+	u8 buf[MAX_WRITE_REGSIZE + 1];
- 	struct i2c_msg msg[1] = {
- 		{
- 			.addr = priv->i2c_address,
- 			.flags = 0,
--			.len = sizeof(buf),
-+			.len = len + 1,
- 			.buf = buf,
- 		}
- 	};
- 
-+	if (len + 1 >= sizeof(buf)) {
-+		dev_warn(&priv->i2c->dev,"wr reg=%04x: len=%d is too big!\n",
-+			 reg, len + 1);
-+		return -E2BIG;
-+	}
-+
- 	ascot2e_i2c_debug(priv, reg, 1, data, len);
- 	buf[0] = reg;
- 	memcpy(&buf[1], data, len);
--- 
-2.4.3
-
+> Hi Josh,
+> 
+> On Wed, 17 Jun 2015, Josh Wu wrote:
+> 
+> > As in set_fmt() function we only need to know which format is been set,
+> > we don't need to access the ISI hardware in this moment.
+> > 
+> > So move the configure_geometry(), which access the ISI hardware, to
+> > start_streaming() will make code more consistent and simpler.
+> > 
+> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > ---
+> > 
+> >  drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
+> >  1 file changed, 5 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> > index 8bc40ca..b01086d 100644
+> > --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> > @@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> >  	/* Disable all interrupts */
+> >  	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+> >  
+> > +	ret = configure_geometry(isi, icd->user_width, icd->user_height,
+> > +				icd->current_fmt->code);
+> > +	if (ret < 0)
+> > +		return ret;
+> 
+> No. Firstly, you'd have to pm_runtime_put() here if you fail. Secondly I 
+> think it's better to fail earlier - at S_FMT, than here. Not accessing the 
+> hardware in S_FMT is a good idea, but I'd at least do all the checking 
+> there. So, maybe add a "u32 cfg2_cr" field to struct atmel_isi, calculate 
+> it in S_FMT but only write to the hardware in start_streaming()?
+> 
+> Thanks
+> Guennadi
+> 
+> > +
+> >  	spin_lock_irq(&isi->lock);
+> >  	/* Clear any pending interrupt */
+> >  	isi_readl(isi, ISI_STATUS);
+> > @@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+> >  static int isi_camera_set_fmt(struct soc_camera_device *icd,
+> >  			      struct v4l2_format *f)
+> >  {
+> > -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> > -	struct atmel_isi *isi = ici->priv;
+> >  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> >  	const struct soc_camera_format_xlate *xlate;
+> >  	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > @@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+> >  	if (mf->code != xlate->code)
+> >  		return -EINVAL;
+> >  
+> > -	/* Enable PM and peripheral clock before operate isi registers */
+> > -	pm_runtime_get_sync(ici->v4l2_dev.dev);
+> > -
+> > -	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
+> > -
+> > -	pm_runtime_put(ici->v4l2_dev.dev);
+> > -
+> > -	if (ret < 0)
+> > -		return ret;
+> > -
+> >  	pix->width		= mf->width;
+> >  	pix->height		= mf->height;
+> >  	pix->field		= mf->field;
+> > -- 
+> > 1.9.1
+> > 
+> 
