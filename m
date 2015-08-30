@@ -1,112 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:17092 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753890AbbHYL1C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 07:27:02 -0400
-Date: Tue, 25 Aug 2015 13:25:38 +0200
-From: Thierry Reding <treding@nvidia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Bryan Wu <pengw@nvidia.com>, <hansverk@cisco.com>,
-	<linux-media@vger.kernel.org>, <ebrower@nvidia.com>,
-	<jbang@nvidia.com>, <swarren@nvidia.com>, <wenjiaz@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>,
-	"linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] v4l: tegra: Add NVIDIA Tegra VI driver
-Message-ID: <20150825112537.GG14034@ulmo.nvidia.com>
-References: <1440118300-32491-1-git-send-email-pengw@nvidia.com>
- <1440118300-32491-5-git-send-email-pengw@nvidia.com>
- <20150821130339.GB22118@ulmo.nvidia.com>
- <55DBB62C.4020606@nvidia.com>
- <55DC0B91.2000204@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:32866 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753447AbbH3O21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2015 10:28:27 -0400
+Date: Sun, 30 Aug 2015 11:27:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v8 00/55] MC next generation patches
+Message-ID: <20150830112753.65858fdd@recife.lan>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <55DC0B91.2000204@xs4all.nl>
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="V32M1hWVjliPHW+c"
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---V32M1hWVjliPHW+c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Em Sun, 30 Aug 2015 00:06:11 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-On Tue, Aug 25, 2015 at 08:30:41AM +0200, Hans Verkuil wrote:
-> A quick follow-up to Thierry's excellent review:
->=20
-> On 08/25/2015 02:26 AM, Bryan Wu wrote:
-> > On 08/21/2015 06:03 AM, Thierry Reding wrote:
-> >> On Thu, Aug 20, 2015 at 05:51:39PM -0700, Bryan Wu wrote:
->=20
-> <snip>
->=20
-> >>> +static void
-> >>> +__tegra_channel_try_format(struct tegra_channel *chan, struct v4l2_p=
-ix_format *pix,
-> >>> +		      const struct tegra_video_format **fmtinfo)
-> >>> +{
-> >>> +	const struct tegra_video_format *info;
-> >>> +	unsigned int min_width;
-> >>> +	unsigned int max_width;
-> >>> +	unsigned int min_bpl;
-> >>> +	unsigned int max_bpl;
-> >>> +	unsigned int width;
-> >>> +	unsigned int align;
-> >>> +	unsigned int bpl;
-> >>> +
-> >>> +	/* Retrieve format information and select the default format if the
-> >>> +	 * requested format isn't supported.
-> >>> +	 */
-> >>> +	info =3D tegra_core_get_format_by_fourcc(pix->pixelformat);
-> >>> +	if (!info)
-> >>> +		info =3D tegra_core_get_format_by_fourcc(TEGRA_VF_DEF_FOURCC);
-> >> Should this not be an error? As far as I can tell this is silently
-> >> substituting the default format for the requested one if the requested
-> >> one isn't supported. Isn't the whole point of this to find out if some
-> >> format is supported?
-> >>
-> > I think it should return some error and escape following code. I will=
-=20
-> > fix that.
->=20
-> Actually, this code is according to the V4L2 spec: if the given format is
-> not supported, then VIDIOC_TRY_FMT should replace it with a valid default
-> format.
->=20
-> The reality is a bit more complex: in many drivers this was never reviewed
-> correctly and we ended up with some drivers that return an error for this
-> case and some drivers that follow the spec. Historically TV capture drive=
-rs
-> return an error, webcam drivers don't. Most unfortunate.
->=20
-> Since this driver is much more likely to be used with sensors I would
-> follow the spec here and substitute an invalid format with a default
-> format.
+> That's the 8th version of the MC next generation patches.
+> 
+> Differences from version 7:
+> 
+> - Patches reworked to make the reviewers happy;
+> - Bug fixes;
+> - ALSA changes got their own separate patches;
+> - Javier patches got integrated into this series;
+> - media-entity.h structs are now properly documented;
+> - Tested on both au0828 and omap3isp.
+> 
+> Due to the complexity of this change, other platform drivers may
+> require some fixes. 
+> 
+> As the patch series sent before, this is not meant to be sent
+> upstream yet. Its goal is to merge it for Kernel 4.4, in order to
+> give people enough time to review and fix pending issues.
 
-Okay, sounds good to me.
+As on the previous series, the patches are available on my experimental
+tree:
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=mc_next_gen
 
-Thierry
+There's one additional patch there that removes the backlinks from G_TOPOLOGY
+ioctl. I'll be posting it in separate at the ML.
 
---V32M1hWVjliPHW+c
-Content-Type: application/pgp-signature; name="signature.asc"
+I also added a new branch:
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental.git/log/?h=mc_next_gen_test
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Based on the first one. It contains a hack for au0828 that exposes the tuner
+also via subdev devnode, and reduces the number of output pads of the DVB
+demux to just 5, as the default is too high to produce a .dot file that
+would be useful. Of course, this patch should never leave my experimental
+tree ;) 
 
-iQIcBAABCAAGBQJV3FCuAAoJEN0jrNd/PrOhJ/0P/0Q/3GoPsZsAHK6qsf7Zf0V8
-NLTS4P971367HJwxi0rr3G9rOh7za/n0T1ySpUbJABbjt1AGH3m4OaxAi9klKrvJ
-T7jhUEYFFCl8EDwBLi2O4eezfBVUO6h6Ye1vwDDpU5CWlSgLk5CTp+cnjlzGt5eQ
-Eh3P34n63m6TsWUgFIWSmP+5ghAmhxEtbKYUy+P5+GqQc7f96eXT0pplBJaWufTY
-B5S5ozuxf6eSV1r3YEcgC2bhiunHp1MrG+Kq9SMaaz71KsqHvw9w/kmvUdJ7LoOc
-LXEghWyimxjbJsABvfE9+alV2SfSnXROTqsYGkgAuDV2jr7L1p3sXGTk6ZpOLCNX
-/x1fvk6OViXS7qRdzYV+nlGrLSxHVI9qcwoQWdeKaavC169j90VDwMTDms1xuIng
-UiAuPbSbOBHAJouXZwdrlY/p4peIBKV8UVdHgP5OHDn+jZKxJYX7kGe8P84tTEzb
-fyrRBLSJ5H8Y7LC7JOsClHVMAjLpZlQSaR+0UlQAmOgfrIjT75jRmw6QSWApY8sc
-5bRsQt9PIbqr9dA7VspZXfw8OvJDOMJ97aRzbrswisUfc6cuOtwsr4DFf5hxLvc9
-rC1ALGKF+Z3UORiwa7mD0Ng0VNgX8tRbBt6HWNMla6MoSoW/JiqN3QiVLhyLwsNa
-FglQNyO71EI6AwiB9lJZ
-=/BBB
------END PGP SIGNATURE-----
+There are a few other from Javier there meant to allow testing the omap3isp
+on my Beaglebone (that doesn't have any sensor on it) and on his omap3
+devices.
 
---V32M1hWVjliPHW+c--
+I added support at the mc_nextgen_test tool to produce Graphviz .dot
+files. It is still experimental, but it is good enough to already produce
+some useful graphs. The newest version is at:
+
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/log/?h=mc-next-gen
+
+I added some graphs produced by it at:
+	https://mchehab.fedorapeople.org/mc-next-gen/
+
+Regards,
+Mauro
