@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn1bon0110.outbound.protection.outlook.com ([157.56.111.110]:45865
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754522AbbHJRL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 13:11:58 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <mchehab@osg.samsung.com>
-CC: <jan@kloetzke.net>, <linux-media@vger.kernel.org>,
-	<zy900702@163.com>, Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] mantis: Fix error handling in mantis_dma_init()
-Date: Mon, 10 Aug 2015 14:11:41 -0300
-Message-ID: <1439226701-5896-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:48558 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbbH3DHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:53 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 20/55] [media] media: make add link more generic
+Date: Sun, 30 Aug 2015 00:06:31 -0300
+Message-Id: <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current code assigns 0 to variable 'err', which makes mantis_dma_init()
-to return success even if mantis_alloc_buffers() fails.
+The media_entity_add_link() function takes an entity
+as an argument just to get the list head.
 
-Fix it by checking the return value from mantis_alloc_buffers() and
-propagating it in the case of error. 
+Make it more generic by changing the function argument
+to list_head.
 
-Reported-by: RUC_Soft_Sec <zy900702@163.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/pci/mantis/mantis_dma.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+No functional changes.
 
-diff --git a/drivers/media/pci/mantis/mantis_dma.c b/drivers/media/pci/mantis/mantis_dma.c
-index 1d59c7e..87990ec 100644
---- a/drivers/media/pci/mantis/mantis_dma.c
-+++ b/drivers/media/pci/mantis/mantis_dma.c
-@@ -130,10 +130,11 @@ err:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index ff63201443d7..6d06be6c9ef3 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -580,7 +580,7 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+  * Links management
+  */
  
- int mantis_dma_init(struct mantis_pci *mantis)
+-static struct media_link *media_entity_add_link(struct media_entity *entity)
++static struct media_link *media_add_link(struct list_head *head)
  {
--	int err = 0;
-+	int err;
+ 	struct media_link *link;
  
- 	dprintk(MANTIS_DEBUG, 1, "Mantis DMA init");
--	if (mantis_alloc_buffers(mantis) < 0) {
-+	err = mantis_alloc_buffers(mantis);
-+	if (err < 0) {
- 		dprintk(MANTIS_ERROR, 1, "Error allocating DMA buffer");
+@@ -588,7 +588,7 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 	if (link == NULL)
+ 		return NULL;
  
- 		/* Stop RISC Engine */
+-	list_add_tail(&link->list, &entity->links);
++	list_add_tail(&link->list, head);
+ 
+ 	return link;
+ }
+@@ -607,7 +607,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	BUG_ON(source_pad >= source->num_pads);
+ 	BUG_ON(sink_pad >= sink->num_pads);
+ 
+-	link = media_entity_add_link(source);
++	link = media_add_link(&source->links);
+ 	if (link == NULL)
+ 		return -ENOMEM;
+ 
+@@ -622,7 +622,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	/* Create the backlink. Backlinks are used to help graph traversal and
+ 	 * are not reported to userspace.
+ 	 */
+-	backlink = media_entity_add_link(sink);
++	backlink = media_add_link(&sink->links);
+ 	if (backlink == NULL) {
+ 		__media_entity_remove_link(source, link);
+ 		return -ENOMEM;
 -- 
-1.9.1
+2.4.3
 
