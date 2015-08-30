@@ -1,60 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3on0112.outbound.protection.outlook.com ([157.55.234.112]:12595
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750767AbbHLL2m convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48426 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276AbbH3DHt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 07:28:42 -0400
-From: "Shah, Yash (Y.)" <yshah1@visteon.com>
-To: "mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-	"pali.rohar@gmail.com" <pali.rohar@gmail.com>,
-	"prabhakar.csengg@gmail.com" <prabhakar.csengg@gmail.com>,
-	"hamohammed.sa@gmail.com" <hamohammed.sa@gmail.com>,
-	"luis@debethencourt.com" <luis@debethencourt.com>,
-	"wsa@the-dreams.de" <wsa@the-dreams.de>,
-	"elfring@users.sourceforge.net" <elfring@users.sourceforge.net>,
-	"carlos@cgarcia.org" <carlos@cgarcia.org>,
-	"vthakkar1994@gmail.com" <vthakkar1994@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Babu, Viswanathan (V.)" <vbabu3@visteon.com>
-Subject: [PATCH] Staging: media/bcm2048: Fix line over 80 characters warning
- as  detected by checkpatch.pl
-Date: Wed, 12 Aug 2015 11:12:49 +0000
-Message-ID: <20150812111245.GA24492@ubuntu>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <60E1354AEDF80D4B875FB81109936A69@eurprd06.prod.outlook.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 29 Aug 2015 23:07:49 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH v8 25/55] [media] dvbdev: add support for interfaces
+Date: Sun, 30 Aug 2015 00:06:36 -0300
+Message-Id: <b43ac3b0574f7ca0e88867cd39f12fb6c30c97db.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yash Shah <yshah1@visteon.com>
+Now that the infrastruct for that is set, add support for
+interfaces.
 
-Fix line over 80 characters warning as detected by checkpatch.pl
+Please notice that we're missing two links:
+	DVB FE intf    -> tuner
+	DVB demux intf -> dvr
 
-Signed-off-by: Yash Shah <yshah1@visteon.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Those should be added latter, after having the entire graph
+set. With the current infrastructure, those should be added
+at dvb_create_media_graph(), but it would also require some
+extra core changes, to allow the function to enumerate the
+interfaces.
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 8bc68e2..d36350e 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -2243,7 +2243,8 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 65f59f2124b4..6bf61d42c017 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -180,14 +180,36 @@ skip:
+ 	return -ENFILE;
+ }
  
- 		tmpbuf[i] = bdev->rds_info.radio_text[bdev->rd_index+i+2];
- 		tmpbuf[i+1] = bdev->rds_info.radio_text[bdev->rd_index+i+1];
--		tmpbuf[i+2] = (bdev->rds_info.radio_text[bdev->rd_index + i] & 0xf0) >> 4;
-+		tmpbuf[i+2] = (bdev->rds_info.radio_text[bdev->rd_index + i]
-+				 & 0xf0) >> 4;
- 		if ((bdev->rds_info.radio_text[bdev->rd_index+i] &
- 			BCM2048_RDS_CRC_MASK) == BCM2048_RDS_CRC_UNRECOVARABLE)
- 			tmpbuf[i+2] |= 0x80;
+-static void dvb_register_media_device(struct dvb_device *dvbdev,
+-				      int type, int minor)
++static void dvb_create_media_entity(struct dvb_device *dvbdev,
++				       int type, int minor)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	int ret = 0, npads;
+ 
+-	if (!dvbdev->adapter->mdev)
++	switch (type) {
++	case DVB_DEVICE_FRONTEND:
++		npads = 2;
++		break;
++	case DVB_DEVICE_DEMUX:
++		npads = 2;
++		break;
++	case DVB_DEVICE_CA:
++		npads = 2;
++		break;
++	case DVB_DEVICE_NET:
++		/*
++		 * We should be creating entities for the MPE/ULE
++		 * decapsulation hardware (or software implementation).
++		 *
++		 * However, the number of for the MPE/ULE decaps may not be
++		 * fixed. As we don't have yet dynamic support for PADs at
++		 * the Media Controller, let's not create the decap
++		 * entities yet.
++		 */
+ 		return;
++	default:
++		return;
++	}
+ 
+ 	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
+ 	if (!dvbdev->entity)
+@@ -197,19 +219,6 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	dvbdev->entity->info.dev.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
+ 
+-	switch (type) {
+-	case DVB_DEVICE_CA:
+-	case DVB_DEVICE_DEMUX:
+-	case DVB_DEVICE_FRONTEND:
+-		npads = 2;
+-		break;
+-	case DVB_DEVICE_NET:
+-		npads = 0;
+-		break;
+-	default:
+-		npads = 1;
+-	}
+-
+ 	if (npads) {
+ 		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
+ 				       GFP_KERNEL);
+@@ -230,18 +239,11 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+-	case DVB_DEVICE_DVR:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DVR;
+-		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+-		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+ 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+-	case DVB_DEVICE_NET:
+-		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_NET;
+-		break;
+ 	default:
+ 		kfree(dvbdev->entity);
+ 		dvbdev->entity = NULL;
+@@ -263,11 +265,63 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 		return;
+ 	}
+ 
+-	printk(KERN_DEBUG "%s: media device '%s' registered.\n",
++	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
+ 		__func__, dvbdev->entity->name);
+ #endif
+ }
+ 
++static void dvb_register_media_device(struct dvb_device *dvbdev,
++				      int type, int minor)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	u32 intf_type;
++
++	if (!dvbdev->adapter->mdev)
++		return;
++
++	dvb_create_media_entity(dvbdev, type, minor);
++
++	switch (type) {
++	case DVB_DEVICE_FRONTEND:
++		intf_type = MEDIA_INTF_T_DVB_FE;
++		break;
++	case DVB_DEVICE_DEMUX:
++		intf_type = MEDIA_INTF_T_DVB_DEMUX;
++		break;
++	case DVB_DEVICE_DVR:
++		intf_type = MEDIA_INTF_T_DVB_DVR;
++		break;
++	case DVB_DEVICE_CA:
++		intf_type = MEDIA_INTF_T_DVB_CA;
++		break;
++	case DVB_DEVICE_NET:
++		intf_type = MEDIA_INTF_T_DVB_NET;
++		break;
++	default:
++		return;
++	}
++
++	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
++						 intf_type, 0,
++						 DVB_MAJOR, minor,
++						 GFP_KERNEL);
++
++	/*
++	 * Create the "obvious" link, e. g. the ones that represent
++	 * a direct association between an interface and an entity.
++	 * Other links should be created elsewhere, like:
++	 *		DVB FE intf    -> tuner
++	 *		DVB demux intf -> dvr
++	 */
++
++	if (!dvbdev->entity || !dvbdev->intf_devnode)
++		return;
++
++	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
++
++#endif
++}
++
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template, void *priv, int type)
+ {
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index c61a4f03a66f..5f37b4dd1e69 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -149,6 +149,7 @@ struct dvb_device {
+ 
+ 	/* Allocated and filled inside dvbdev.c */
+ 	struct media_entity *entity;
++	struct media_intf_devnode *intf_devnode;
+ 	struct media_pad *pads;
+ #endif
+ 
 -- 
-1.9.1
+2.4.3
+
