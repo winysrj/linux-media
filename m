@@ -1,305 +1,482 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp02.smtpout.orange.fr ([80.12.242.124]:21339 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbbHANVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Aug 2015 09:21:08 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Jens Axboe <axboe@kernel.dk>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [RFC PATCH v2] lib: scatterlist: add sg splitting function
-Date: Sat,  1 Aug 2015 15:17:13 +0200
-Message-Id: <1438435033-7636-1-git-send-email-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.9]:48512 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307AbbH3DHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:51 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Changbing Xiong <cb.xiong@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Akihiro Tsukada <tskd08@gmail.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Antti Palosaari <crope@iki.fi>, Joe Perches <joe@perches.com>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Vaishali Thakkar <vthakkar1994@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Takeshi Yoshimura <yos@sslab.ics.keio.ac.jp>,
+	linux1394-devel@lists.sourceforge.net
+Subject: [PATCH v8 42/55] [media] dvb: modify core to implement interfaces/entities at MC new gen
+Date: Sun, 30 Aug 2015 00:06:53 -0300
+Message-Id: <13388f87683ec54554a57235d8ecc2713c740087.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes a scatter-gather has to be split into several chunks, or sub scatter
-lists. This happens for example if a scatter list will be handled by multiple
-DMA channels, each one filling a part of it.
+The Media Controller New Generation redefines the types for both
+interfaces and entities to be used on DVB. Make the needed
+changes at the DVB core for all interfaces, entities and
+data and interface links to appear in the graph.
 
-A concrete example comes with the media V4L2 API, where the scatter list is
-allocated from userspace to hold an image, regardless of the knowledge of how
-many DMAs will fill it :
- - in a simple RGB565 case, one DMA will pump data from the camera ISP to memory
- - in the trickier YUV422 case, 3 DMAs will pump data from the camera ISP pipes,
-   one for pipe Y, one for pipe U and one for pipe V
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-For these cases, it is necessary to split the original scatter list into
-multiple scatter lists, which is the purpose of this patch.
-
-The guarantees that are required for this patch are :
- - the intersection of spans of any couple of resulting scatter lists is empty
- - the union of spans of all resulting scatter lists is a subrange of the span
-   of the original scatter list
- - if streaming DMA API operations (mapping, unmapping) should not happen both
-   on both the resulting and the original scatter list. It's either the first or
-   the later ones.
- - the caller is reponsible to call kfree() on the resulting scatterlists
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-
----
-Since v1: Russell's review
- - address both the sg_phys case and sg_dma_address case (aka mapped
-   case)
-   => this should take care of IOMMU coalescing
- - add a way to return the new mapped lengths of resulting scatterlists
- - add bound checks (EINVAL) for corner cases :
-     - skip > sum(sgi->length) or
-       skip > sum(sg_dma_len(sgi))
-     - sum(sizei) > skip + sum(sgi->length) or
-       sum(sizei) > skip + sum(sg_dma_len(sgi))
- - fixed algorithm for single sgi split into multiple sg entries
-   (case where very small sizes, ie. size0+size1+size2 < sg0_length)
-
-Russell, this new attempt still aims at having both unmapped and mapped
-cases covered. As my understanding of coalescing might still be
-partial, please point me out the defects.
-
-And I'm not sure I have properly addressed this comment of yours :
-    "I'm not sure that there's any requirement for dma_map_sg() to mark
-    the new end of the scatterlist as that'd result in information loss
-    when subsequently unmapping.".
-I think marking the last sg entry (ie. the one for physical addresses,
-not the last of the mapped ones) is correct in the v2 patch, but I might
-oversee something, just for confirmation it is addressed.
-
-One last point is that if this attempt is correct enough, I still need
-some automation testing passed on it, as there are a lot of
-possibilities between input parameters (skip, sizes[], in) which would
-need some proper testing.
-
-Memo of people to ask:
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Jens Axboe <axboe@kernel.dk>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Andrew Morton <akpm@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-
-squash! lib: scatterlist: add sg splitting function
----
- include/linux/scatterlist.h |   5 ++
- lib/scatterlist.c           | 189 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 194 insertions(+)
-
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index 9b1ef0c820a7..5fa4ab1a4605 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -251,6 +251,11 @@ struct scatterlist *sg_next(struct scatterlist *);
- struct scatterlist *sg_last(struct scatterlist *s, unsigned int);
- void sg_init_table(struct scatterlist *, unsigned int);
- void sg_init_one(struct scatterlist *, const void *, unsigned int);
-+int sg_split(struct scatterlist *in, const int in_mapped_nents,
-+	     const off_t skip, const int nb_splits,
-+	     const size_t *split_sizes,
-+	     struct scatterlist **out, int *out_mapped_nents,
-+	     gfp_t gfp_mask);
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index d0e3f9d85f34..baaed28ee975 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -1242,9 +1242,9 @@ int dvb_dmxdev_init(struct dmxdev *dmxdev, struct dvb_adapter *dvb_adapter)
+ 	}
  
- typedef struct scatterlist *(sg_alloc_fn)(unsigned int, gfp_t);
- typedef void (sg_free_fn)(struct scatterlist *, unsigned int);
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index d105a9f56878..325f831bda47 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -759,3 +759,192 @@ size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 	return sg_copy_buffer(sgl, nents, buf, buflen, skip, true);
+ 	dvb_register_device(dvb_adapter, &dmxdev->dvbdev, &dvbdev_demux, dmxdev,
+-			    DVB_DEVICE_DEMUX);
++			    DVB_DEVICE_DEMUX, dmxdev->filternum);
+ 	dvb_register_device(dvb_adapter, &dmxdev->dvr_dvbdev, &dvbdev_dvr,
+-			    dmxdev, DVB_DEVICE_DVR);
++			    dmxdev, DVB_DEVICE_DVR, dmxdev->filternum);
+ 
+ 	dvb_ringbuffer_init(&dmxdev->dvr_buffer, NULL, 8192);
+ 
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index fb66184dc9b6..f82cd1ff4f3a 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1695,7 +1695,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 	pubca->private = ca;
+ 
+ 	/* register the DVB device */
+-	ret = dvb_register_device(dvb_adapter, &ca->dvbdev, &dvbdev_ca, ca, DVB_DEVICE_CA);
++	ret = dvb_register_device(dvb_adapter, &ca->dvbdev, &dvbdev_ca, ca, DVB_DEVICE_CA, 0);
+ 	if (ret)
+ 		goto free_slot_info;
+ 
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 2d06bcff0946..58601bfe0b8d 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2754,7 +2754,7 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+ 			fe->dvb->num, fe->id, fe->ops.info.name);
+ 
+ 	dvb_register_device (fe->dvb, &fepriv->dvbdev, &dvbdev_template,
+-			     fe, DVB_DEVICE_FRONTEND);
++			     fe, DVB_DEVICE_FRONTEND, 0);
+ 
+ 	/*
+ 	 * Initialize the cache to the proper values according with the
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index b81e026edab3..14f51b68f4fe 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -1503,6 +1503,6 @@ int dvb_net_init (struct dvb_adapter *adap, struct dvb_net *dvbnet,
+ 		dvbnet->state[i] = 0;
+ 
+ 	return dvb_register_device(adap, &dvbnet->dvbdev, &dvbdev_net,
+-			     dvbnet, DVB_DEVICE_NET);
++			     dvbnet, DVB_DEVICE_NET, 0);
  }
- EXPORT_SYMBOL(sg_pcopy_to_buffer);
-+
-+struct sg_splitter {
-+	struct scatterlist *in_sg0;
-+	int nents;
-+	off_t skip_sg0;
-+	unsigned int length_last_sg;
-+
-+	struct scatterlist *out_sg;
-+};
-+
-+static int sg_calculate_split(struct scatterlist *in, int nents, int nb_splits,
-+			      off_t skip, const size_t *sizes,
-+			      struct sg_splitter *splitters, bool mapped)
+ EXPORT_SYMBOL(dvb_net_init);
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 88013d1a2c39..f638c67defbe 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -180,18 +180,86 @@ skip:
+ 	return -ENFILE;
+ }
+ 
++static void dvb_create_tsout_entity(struct dvb_device *dvbdev,
++				    const char *name, int npads)
 +{
-+	int i, rjk = nb_splits;
-+	unsigned int sglen;
-+	size_t size = sizes[0], len;
-+	struct sg_splitter *curr = splitters;
-+	struct scatterlist *sg;
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
++	int i, ret = 0;
 +
-+	for (i = 0; i < nb_splits; i++) {
-+		splitters[i].in_sg0 = NULL;
-+		splitters[i].nents = 0;
++	dvbdev->tsout_pads = kcalloc(npads, sizeof(*dvbdev->tsout_pads),
++				     GFP_KERNEL);
++	if (!dvbdev->tsout_pads)
++		return;
++	dvbdev->tsout_entity = kcalloc(npads, sizeof(*dvbdev->tsout_entity),
++				       GFP_KERNEL);
++	if (!dvbdev->tsout_entity) {
++		kfree(dvbdev->tsout_pads);
++		dvbdev->tsout_pads = NULL;
++		return;
 +	}
++	for (i = 0; i < npads; i++) {
++		struct media_pad *pads = &dvbdev->tsout_pads[i];
++		struct media_entity *entity = &dvbdev->tsout_entity[i];
 +
-+	for_each_sg(in, sg, nents, i) {
-+		sglen = mapped ? sg_dma_len(sg) : sg->length;
-+		if (skip > sglen) {
-+			skip -= sglen;
-+			continue;
++		entity->name = kasprintf(GFP_KERNEL, "%s #%d", name, i);
++		if (!entity->name) {
++			ret = -ENOMEM;
++			break;
 +		}
 +
-+		len = min_t(size_t, size, sglen - skip);
-+		if (!curr->in_sg0) {
-+			curr->in_sg0 = sg;
-+			curr->skip_sg0 = skip;
-+		}
-+		size -= len;
-+		curr->nents++;
-+		curr->length_last_sg = len;
++		entity->type = MEDIA_ENT_T_DVB_TSOUT;
++		pads->flags = MEDIA_PAD_FL_SINK;
 +
-+		while (!size && (skip + len < sglen) && (--nb_splits > 0)) {
-+			curr++;
-+			size = *(++sizes);
-+			skip += len;
-+			len = min_t(size_t, size, sglen - skip);
++		ret = media_entity_init(entity, 1, pads);
++		if (ret < 0)
++			break;
 +
-+			curr->in_sg0 = sg;
-+			curr->skip_sg0 = skip;
-+			curr->nents = 1;
-+			curr->length_last_sg = len;
-+			size -= len;
-+		}
-+		skip = 0;
-+
-+		if (!size && --nb_splits) {
-+			curr++;
-+			size = *(++sizes);
-+		}
-+
-+		if (!nb_splits)
++		ret = media_device_register_entity(dvbdev->adapter->mdev,
++						   entity);
++		if (ret < 0)
 +			break;
 +	}
 +
-+	return (size || !splitters[0].in_sg0) ? -EINVAL : 0;
++	if (!ret) {
++		dvbdev->tsout_num_entities = npads;
++		return;
++	}
++
++	for (i--; i >= 0; i--) {
++		media_device_unregister_entity(&dvbdev->tsout_entity[i]);
++		kfree(dvbdev->tsout_entity[i].name);
++	}
++
++	printk(KERN_ERR
++		"%s: media_device_register_entity failed for %s\n",
++		__func__, name);
++
++	kfree(dvbdev->tsout_entity);
++	kfree(dvbdev->tsout_pads);
++	dvbdev->tsout_entity = NULL;
++	dvbdev->tsout_pads = NULL;
++#endif
 +}
 +
-+static void sg_split_phys(struct sg_splitter *splitters, const int nb_splits)
-+{
-+	int i, j;
-+	struct scatterlist *in_sg, *out_sg;
-+	struct sg_splitter *split;
++#define DEMUX_TSOUT	"demux_tsout"
++#define DVR_TSOUT	"dvr_tsout"
 +
-+	for (i = 0, split = splitters; i < nb_splits; i++, split++) {
-+		in_sg = split->in_sg0;
-+		out_sg = split->out_sg;
-+		for (j = 0; j < split->nents; j++, out_sg++) {
-+			*out_sg = *in_sg;
-+			if (!j) {
-+				out_sg->offset += split->skip_sg0;
-+				out_sg->length -= split->skip_sg0;
-+			} else {
-+				out_sg->offset = 0;
-+			}
-+			in_sg = sg_next(in_sg);
+ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+-				       int type, int minor)
++				    int type, int demux_sink_pads)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+-	int ret = 0, npads;
++	int i, ret = 0, npads;
+ 
+ 	switch (type) {
+ 	case DVB_DEVICE_FRONTEND:
+ 		npads = 2;
+ 		break;
++	case DVB_DEVICE_DVR:
++		dvb_create_tsout_entity(dvbdev, DVR_TSOUT, demux_sink_pads);
++		return;
+ 	case DVB_DEVICE_DEMUX:
+-		npads = 2;
++		npads = 1 + demux_sink_pads;
++		dvb_create_tsout_entity(dvbdev, DEMUX_TSOUT, demux_sink_pads);
+ 		break;
+ 	case DVB_DEVICE_CA:
+ 		npads = 2;
+@@ -215,8 +283,6 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+ 	if (!dvbdev->entity)
+ 		return;
+ 
+-	dvbdev->entity->info.dev.major = DVB_MAJOR;
+-	dvbdev->entity->info.dev.minor = minor;
+ 	dvbdev->entity->name = dvbdev->name;
+ 
+ 	if (npads) {
+@@ -237,7 +303,8 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+ 	case DVB_DEVICE_DEMUX:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMUX;
+ 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
+-		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
++		for (i = 1; i < npads; i++)
++			dvbdev->pads[i].flags = MEDIA_PAD_FL_SOURCE;
+ 		break;
+ 	case DVB_DEVICE_CA:
+ 		dvbdev->entity->type = MEDIA_ENT_T_DVB_CA;
+@@ -259,8 +326,16 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+ 		printk(KERN_ERR
+ 			"%s: media_device_register_entity failed for %s\n",
+ 			__func__, dvbdev->entity->name);
++
++		media_device_unregister_entity(dvbdev->entity);
++		for (i = 0; i < dvbdev->tsout_num_entities; i++) {
++			media_device_unregister_entity(&dvbdev->tsout_entity[i]);
++			kfree(dvbdev->tsout_entity[i].name);
 +		}
-+		out_sg[-1].length = split->length_last_sg;
-+		sg_mark_end(out_sg);
-+	}
-+}
+ 		kfree(dvbdev->pads);
+ 		kfree(dvbdev->entity);
++		kfree(dvbdev->tsout_pads);
++		kfree(dvbdev->tsout_entity);
+ 		dvbdev->entity = NULL;
+ 		return;
+ 	}
+@@ -271,7 +346,8 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+ }
+ 
+ static void dvb_register_media_device(struct dvb_device *dvbdev,
+-				      int type, int minor)
++				      int type, int minor,
++				      unsigned demux_sink_pads)
+ {
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	u32 intf_type;
+@@ -279,7 +355,7 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	if (!dvbdev->adapter->mdev)
+ 		return;
+ 
+-	dvb_create_media_entity(dvbdev, type, minor);
++	dvb_create_media_entity(dvbdev, type, demux_sink_pads);
+ 
+ 	switch (type) {
+ 	case DVB_DEVICE_FRONTEND:
+@@ -323,7 +399,8 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ }
+ 
+ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+-			const struct dvb_device *template, void *priv, int type)
++			const struct dvb_device *template, void *priv, int type,
++			int demux_sink_pads)
+ {
+ 	struct dvb_device *dvbdev;
+ 	struct file_operations *dvbdevfops;
+@@ -402,7 +479,7 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
+ 		adap->num, dnames[type], id, minor, minor);
+ 
+-	dvb_register_media_device(dvbdev, type, minor);
++	dvb_register_media_device(dvbdev, type, minor, demux_sink_pads);
+ 
+ 	return 0;
+ }
+@@ -422,9 +499,18 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	if (dvbdev->entity) {
++		int i;
 +
-+static void sg_split_mapped(struct sg_splitter *splitters, const int nb_splits)
-+{
-+	int i, j;
-+	struct scatterlist *in_sg, *out_sg;
-+	struct sg_splitter *split;
-+
-+	for (i = 0, split = splitters; i < nb_splits; i++, split++) {
-+		in_sg = split->in_sg0;
-+		out_sg = split->out_sg;
-+		for (j = 0; j < split->nents; j++, out_sg++) {
-+			sg_dma_address(out_sg) = sg_dma_address(in_sg);
-+			sg_dma_len(out_sg) = sg_dma_len(in_sg);
-+			if (!j) {
-+				sg_dma_address(out_sg) += split->skip_sg0;
-+				sg_dma_len(out_sg) -= split->skip_sg0;
-+			}
-+			in_sg = sg_next(in_sg);
+ 		media_device_unregister_entity(dvbdev->entity);
++		for (i = 0; i < dvbdev->tsout_num_entities; i++) {
++			media_device_unregister_entity(&dvbdev->tsout_entity[i]);
++			kfree(dvbdev->tsout_entity[i].name);
 +		}
-+		sg_dma_len(--out_sg) = split->length_last_sg;
-+	}
-+}
 +
-+/**
-+ * sg_split - split a scatterlist into several scatterlists
-+ * @in: the input sg list
-+ * @in_mapped_nents: the result of a dma_map_sg(in, ...), or 0 if not mapped.
-+ * @skip: the number of bytes to skip in the input sg list
-+ * @nb_splits: the number of desired sg outputs
-+ * @split_sizes: the respective size of each output sg list in bytes
-+ * @out: an array where to store the allocated output sg lists
-+ * @out_mapped_nents: the resulting sg lists mapped number of sg entries. Might
-+ *                    be NULL if sglist not already mapped (in_mapped_nents = 0)
-+ * @gfp_mask: the allocation flag
-+ *
-+ * This function splits the input sg list into nb_splits sg lists, which are
-+ * allocated and stored into out.
-+ * The @in is split into :
-+ *  - @out[0], which covers bytes [@skip .. @skip + @split_sizes[0] - 1] of @in
-+ *  - @out[1], which covers bytes [@skip + split_sizes[0] ..
-+ *                                 @skip + @split_sizes[0] + @split_sizes[1] -1]
-+ * etc ...
-+ * It will be the caller's duty to kfree() out array members.
-+ *
-+ * Returns 0 upon success, or error code
-+ */
-+int sg_split(struct scatterlist *in, const int in_mapped_nents,
-+	     const off_t skip, const int nb_splits,
-+	     const size_t *split_sizes,
-+	     struct scatterlist **out, int *out_mapped_nents,
-+	     gfp_t gfp_mask)
-+{
-+	int i, ret;
-+	struct sg_splitter *splitters;
-+
-+	splitters = kcalloc(nb_splits, sizeof(*splitters), gfp_mask);
-+	if (!splitters)
-+		return -ENOMEM;
-+
-+	ret = sg_calculate_split(in, sg_nents(in), nb_splits, skip, split_sizes,
-+			   splitters, false);
-+	if (ret < 0)
-+		goto err;
-+
-+	ret = -ENOMEM;
-+	for (i = 0; i < nb_splits; i++) {
-+		splitters[i].out_sg = kmalloc_array(splitters[i].nents,
-+						    sizeof(struct scatterlist),
-+						    gfp_mask);
-+		if (!splitters[i].out_sg)
-+			goto err;
-+	}
-+
-+	/*
-+	 * The order of these 3 calls is important and should be kept.
-+	 */
-+	sg_split_phys(splitters, nb_splits);
-+	ret = sg_calculate_split(in, in_mapped_nents, nb_splits, skip,
-+				 split_sizes, splitters, true);
-+	if (ret < 0)
-+		goto err;
-+	sg_split_mapped(splitters, nb_splits);
-+
-+	for (i = 0; i < nb_splits; i++) {
-+		out[i] = splitters[i].out_sg;
-+		if (out_mapped_nents)
-+			out_mapped_nents[i] = splitters[i].nents;
+ 		kfree(dvbdev->entity);
+ 		kfree(dvbdev->pads);
++		kfree(dvbdev->tsout_entity);
++		kfree(dvbdev->tsout_pads);
+ 	}
+ #endif
+ 
+@@ -440,8 +526,10 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ {
+ 	struct media_device *mdev = adap->mdev;
+ 	struct media_entity *entity, *tuner = NULL, *demod = NULL;
+-	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
++	struct media_entity *demux = NULL, *ca = NULL;
+ 	struct media_interface *intf;
++	unsigned demux_pad = 1;
++	unsigned dvr_pad = 1;
+ 
+ 	if (!mdev)
+ 		return;
+@@ -457,9 +545,6 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 		case MEDIA_ENT_T_DVB_DEMUX:
+ 			demux = entity;
+ 			break;
+-		case MEDIA_ENT_T_DVB_TSOUT:
+-			dvr = entity;
+-			break;
+ 		case MEDIA_ENT_T_DVB_CA:
+ 			ca = entity;
+ 			break;
+@@ -471,24 +556,43 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 
+ 	if (demod && demux)
+ 		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
+-
+-	if (demux && dvr)
+-		media_create_pad_link(demux, 1, dvr, 0, MEDIA_LNK_FL_ENABLED);
+-
+ 	if (demux && ca)
+ 		media_create_pad_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
+ 
++	/* Create demux links for each ringbuffer/pad */
++	if (demux) {
++		if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
++			if (!strncmp(entity->name, DVR_TSOUT,
++				     sizeof(DVR_TSOUT)))
++				media_create_pad_link(demux, ++dvr_pad,
++						      entity, 0, 0);
++			if (!strncmp(entity->name, DEMUX_TSOUT,
++				     sizeof(DEMUX_TSOUT)))
++				media_create_pad_link(demux, ++demux_pad,
++						      entity, 0, 0);
++		}
 +	}
 +
-+	kfree(splitters);
-+	return 0;
+ 	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
+ 	list_for_each_entry(intf, &mdev->interfaces, list) {
+ 		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
+ 			media_create_intf_link(ca, intf, 0);
+ 		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
+ 			media_create_intf_link(tuner, intf, 0);
 +
-+err:
-+	for (i = 0; i < nb_splits; i++)
-+		kfree(splitters[i].out_sg);
-+	kfree(splitters);
-+	return ret;
-+}
-+EXPORT_SYMBOL(sg_split);
+ 		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
+ 			media_create_intf_link(demux, intf, 0);
++
++		media_device_for_each_entity(entity, mdev) {
++			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
++				if (!strcmp(entity->name, DVR_TSOUT))
++					media_create_intf_link(entity, intf, 0);
++				if (!strcmp(entity->name, DEMUX_TSOUT))
++					media_create_intf_link(entity, intf, 0);
++				break;
++			}
++		}
+ 	}
+-
+-
+ }
+ EXPORT_SYMBOL_GPL(dvb_create_media_graph);
+ #endif
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 5f37b4dd1e69..0b140e8595de 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -148,9 +148,11 @@ struct dvb_device {
+ 	const char *name;
+ 
+ 	/* Allocated and filled inside dvbdev.c */
+-	struct media_entity *entity;
+ 	struct media_intf_devnode *intf_devnode;
+-	struct media_pad *pads;
++
++	unsigned tsout_num_entities;
++	struct media_entity *entity, *tsout_entity;
++	struct media_pad *pads, *tsout_pads;
+ #endif
+ 
+ 	void *priv;
+@@ -197,7 +199,8 @@ int dvb_register_device(struct dvb_adapter *adap,
+ 			struct dvb_device **pdvbdev,
+ 			const struct dvb_device *template,
+ 			void *priv,
+-			int type);
++			int type,
++			int demux_sink_pads);
+ 
+ /**
+  * dvb_unregister_device - Unregisters a DVB device
+diff --git a/drivers/media/firewire/firedtv-ci.c b/drivers/media/firewire/firedtv-ci.c
+index e63f582378bf..edbb30fdd9d9 100644
+--- a/drivers/media/firewire/firedtv-ci.c
++++ b/drivers/media/firewire/firedtv-ci.c
+@@ -241,7 +241,7 @@ int fdtv_ca_register(struct firedtv *fdtv)
+ 		return -EFAULT;
+ 
+ 	err = dvb_register_device(&fdtv->adapter, &fdtv->cadev,
+-				  &fdtv_ca, fdtv, DVB_DEVICE_CA);
++				  &fdtv_ca, fdtv, DVB_DEVICE_CA, 0);
+ 
+ 	if (stat.ca_application_info == 0)
+ 		dev_err(fdtv->device, "CaApplicationInfo is not set\n");
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index c5cc14ef8347..0149a9ed6e58 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -705,7 +705,8 @@ struct dvb_device *dst_ca_attach(struct dst_state *dst, struct dvb_adapter *dvb_
+ 	struct dvb_device *dvbdev;
+ 
+ 	dprintk(verbose, DST_CA_ERROR, 1, "registering DST-CA device");
+-	if (dvb_register_device(dvb_adapter, &dvbdev, &dvbdev_ca, dst, DVB_DEVICE_CA) == 0) {
++	if (dvb_register_device(dvb_adapter, &dvbdev, &dvbdev_ca, dst,
++			        DVB_DEVICE_CA, 0) == 0) {
+ 		dst->dst_ca = dvbdev;
+ 		return dst->dst_ca;
+ 	}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 0ac2dd35fe50..4caca5df2931 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1065,7 +1065,7 @@ static int ddb_ci_attach(struct ddb_port *port)
+ 			    port->en, 0, 1);
+ 	ret = dvb_register_device(&port->output->adap, &port->output->dev,
+ 				  &dvbdev_ci, (void *) port->output,
+-				  DVB_DEVICE_SEC);
++				  DVB_DEVICE_SEC, 0);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
+index 1b92d836a564..4e924e2d1638 100644
+--- a/drivers/media/pci/ngene/ngene-core.c
++++ b/drivers/media/pci/ngene/ngene-core.c
+@@ -1513,7 +1513,7 @@ static int init_channel(struct ngene_channel *chan)
+ 		set_transfer(&chan->dev->channel[2], 1);
+ 		dvb_register_device(adapter, &chan->ci_dev,
+ 				    &ngene_dvbdev_ci, (void *) chan,
+-				    DVB_DEVICE_SEC);
++				    DVB_DEVICE_SEC, 0);
+ 		if (!chan->ci_dev)
+ 			goto err;
+ 	}
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index 3f24fce74fc1..63f1d56bdfb2 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -1361,7 +1361,7 @@ static int av7110_register(struct av7110 *av7110)
+ 
+ #ifdef CONFIG_DVB_AV7110_OSD
+ 	dvb_register_device(&av7110->dvb_adapter, &av7110->osd_dev,
+-			    &dvbdev_osd, av7110, DVB_DEVICE_OSD);
++			    &dvbdev_osd, av7110, DVB_DEVICE_OSD, 0);
+ #endif
+ 
+ 	dvb_net_init(&av7110->dvb_adapter, &av7110->dvb_net, &dvbdemux->dmx);
+diff --git a/drivers/media/pci/ttpci/av7110_av.c b/drivers/media/pci/ttpci/av7110_av.c
+index 9544cfc06601..da11501fe5d2 100644
+--- a/drivers/media/pci/ttpci/av7110_av.c
++++ b/drivers/media/pci/ttpci/av7110_av.c
+@@ -1589,10 +1589,10 @@ int av7110_av_register(struct av7110 *av7110)
+ 	memset(&av7110->video_size, 0, sizeof (video_size_t));
+ 
+ 	dvb_register_device(&av7110->dvb_adapter, &av7110->video_dev,
+-			    &dvbdev_video, av7110, DVB_DEVICE_VIDEO);
++			    &dvbdev_video, av7110, DVB_DEVICE_VIDEO, 0);
+ 
+ 	dvb_register_device(&av7110->dvb_adapter, &av7110->audio_dev,
+-			    &dvbdev_audio, av7110, DVB_DEVICE_AUDIO);
++			    &dvbdev_audio, av7110, DVB_DEVICE_AUDIO, 0);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/ttpci/av7110_ca.c b/drivers/media/pci/ttpci/av7110_ca.c
+index a6079b90252a..235f0202dc7e 100644
+--- a/drivers/media/pci/ttpci/av7110_ca.c
++++ b/drivers/media/pci/ttpci/av7110_ca.c
+@@ -378,7 +378,7 @@ static struct dvb_device dvbdev_ca = {
+ int av7110_ca_register(struct av7110 *av7110)
+ {
+ 	return dvb_register_device(&av7110->dvb_adapter, &av7110->ca_dev,
+-				   &dvbdev_ca, av7110, DVB_DEVICE_CA);
++				   &dvbdev_ca, av7110, DVB_DEVICE_CA, 0);
+ }
+ 
+ void av7110_ca_unregister(struct av7110 *av7110)
 -- 
-2.1.4
+2.4.3
 
