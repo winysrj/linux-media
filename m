@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54993 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbbHURyc (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48341 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbbH3DHo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 13:54:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sat, 29 Aug 2015 23:07:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 7/8] [media] media: add a debug message to warn about gobj creation/removal
-Date: Fri, 21 Aug 2015 20:54:29 +0300
-Message-ID: <2758453.qxSJXS9IU1@avalon>
-In-Reply-To: <20150821071921.1f76b70d@recife.lan>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <1485912.HaZnsqcIqp@avalon> <20150821071921.1f76b70d@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: [PATCH v8 16/55] [media] media: Don't accept early-created links
+Date: Sun, 30 Aug 2015 00:06:27 -0300
+Message-Id: <31329e1be748d26ce5a90fe050ba15b8d1e5aff1.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Links are graph objects that represent the links of two already
+existing objects in the graph.
 
-On Friday 21 August 2015 07:19:21 Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Aug 2015 04:32:51 +0300 Laurent Pinchart escreveu:
-> > On Wednesday 19 August 2015 08:01:54 Mauro Carvalho Chehab wrote:
-> > > It helps to check if the media controller is doing the
-> > > right thing with the object creation and removal.
-> > > 
-> > > No extra code/data will be produced if DEBUG or
-> > > CONFIG_DYNAMIC_DEBUG is not enabled.
-> > 
-> > CONFIG_DYNAMIC_DEBUG is often enabled.
-> 
-> True, but once a driver/core is properly debugged, images without DEBUG
-> could be used in production, if the amount of memory constraints are
-> too tight.
-> 
-> > You're more or less adding function call tracing in this patch, isn't that
-> > something that ftrace is supposed to do ?
-> 
-> Ftrace is a great infrastructure and helps a lot when we need to
-> identify bottlenecks and other performance related stuff, but it
-> doesn't replace debug functions.
-> 
-> There are some fundamental differences on what you could do with ftrace
-> and what you can't.
-> 
-> At least on this stage, what I need is something that will provide
-> output via serial console when the driver gets loaded, and that provides
-> a synchronous output with the other Kernel messages.
-> 
-> This is the only way to debug certain OOPSes that are happening during
-> the development of the patches.
-> 
-> This is something you cannot do with ftrace, but dynamic DEBUG works
-> like a charm.
+While with the current implementation, it is possible to create
+the links earlier, It doesn't make any sense to allow linking
+two objects when they are not both created.
 
-I understand the need for debug messages during development of a patch series, 
-but I don't think this level of debugging belongs to mainline. Debug messages 
-for function call tracing, even more in patch 6/8 and 7/8, is frowned upon in 
-the kernel.
+So, remove the code that would be handling those early-created
+links and add a BUG_ON() to ensure that.
 
-Or maybe I got it wrong and patches 6/8 and 7/8 are only for development and 
-you don't plan to get them in mainline ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 138b18416460..0d85c6c28004 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -443,13 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ 	list_add_tail(&entity->list, &mdev->entities);
+ 
+-	/*
+-	 * Initialize objects at the links
+-	 * in the case where links got created before entity register
+-	 */
+-	for (i = 0; i < entity->num_links; i++)
+-		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
+-				&entity->links[i].graph_obj);
+ 	/* Initialize objects at the pads */
+ 	for (i = 0; i < entity->num_pads; i++)
+ 		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 01946baa32d5..9f8e0145db7a 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -161,6 +161,8 @@ void media_gobj_init(struct media_device *mdev,
+ 			   enum media_gobj_type type,
+ 			   struct media_gobj *gobj)
+ {
++	BUG_ON(!mdev);
++
+ 	gobj->mdev = mdev;
+ 
+ 	/* Create a per-type unique object ID */
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
