@@ -1,77 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54096 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbbHUBfH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 21:35:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 6/8] [media] media: add messages when media device gets (un)registered
-Date: Fri, 21 Aug 2015 04:35:04 +0300
-Message-ID: <4280106.agOBtx2TYA@avalon>
-In-Reply-To: <f07fdec54485863d0db5710845d680f34709686b.1439981515.git.mchehab@osg.samsung.com>
-References: <cover.1439981515.git.mchehab@osg.samsung.com> <f07fdec54485863d0db5710845d680f34709686b.1439981515.git.mchehab@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.17.20]:55641 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753153AbbH3OGa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2015 10:06:30 -0400
+Date: Sun, 30 Aug 2015 16:06:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: soc-camera: increase the length of clk_name on
+ soc_of_bind()
+In-Reply-To: <1438685469-12230-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1508301604030.29683@axis700.grange>
+References: <1438685469-12230-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Josh,
 
-Thank you for the patch.
+Sorry, I missed the 4.3 merge cycle, but isn't this patch a fix? Isn't it 
+fixing soc-camera / atmel-isi on a specific platform, where the clock name 
+is longer, than currently supported? Is this platform in the mainline and 
+its current camera support is broken because of this? In such a case we 
+could still push it in for 4.3
 
-On Wednesday 19 August 2015 08:01:53 Mauro Carvalho Chehab wrote:
-> We can only free the media device after being sure that no
-> graph object is used.
+Thanks
+Guennadi
 
-media_device_release() is currently broken as it should call back to the 
-driver that has allocated the media_device() structure. I think we should fix 
-that before adding more code on top of the problem.
+On Tue, 4 Aug 2015, Josh Wu wrote:
 
-> In order to help tracking it, let's add debug messages
-> that will print when the media controller gets registered
-> or unregistered.
+> Since in soc_of_bind() it may use the of node's full name as the clk_name,
+> and this full name may be longer than 32 characters, take at91 i2c sensor
+> as an example, length is 34 bytes:
+>    /ahb/apb/i2c@f8028000/camera@0x30
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> So this patch increase the clk_name[] array size to 64. It seems big
+> enough so far.
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 065f6f08da37..0f3844470147 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -359,6 +359,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
 > 
->  static void media_device_release(struct media_devnode *mdev)
->  {
-> +	dev_dbg(mdev->parent, "Media device released\n");
-
-As commented on patch 7/8, ftrace is a better candidate for function tracing.
-
->  }
+>  drivers/media/platform/soc_camera/soc_camera.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
->  /**
-> @@ -397,6 +398,8 @@ int __must_check __media_device_register(struct
-> media_device *mdev, return ret;
->  	}
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index d708df4..fcf3e97 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1621,7 +1621,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+>  	struct soc_camera_async_client *sasc;
+>  	struct soc_of_info *info;
+>  	struct i2c_client *client;
+> -	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+> +	char clk_name[V4L2_SUBDEV_NAME_SIZE + 32];
+>  	int ret;
+>  
+>  	/* allocate a new subdev and add match info to it */
+> -- 
+> 1.9.1
 > 
-> +	dev_dbg(mdev->dev, "Media device registered\n");
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(__media_device_register);
-> @@ -416,6 +419,8 @@ void media_device_unregister(struct media_device *mdev)
-> 
->  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
->  	media_devnode_unregister(&mdev->devnode);
-> +
-> +	dev_dbg(mdev->dev, "Media device unregistered\n");
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister);
-
--- 
-Regards,
-
-Laurent Pinchart
-
