@@ -1,123 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58223 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751942AbbH2Cw7 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48436 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292AbbH3DHu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 22:52:59 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 01E492A008F
-	for <linux-media@vger.kernel.org>; Sat, 29 Aug 2015 04:52:07 +0200 (CEST)
-Date: Sat, 29 Aug 2015 04:52:06 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20150829025207.01E492A008F@tschai.lan>
+	Sat, 29 Aug 2015 23:07:50 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Prabhakar Lad" <prabhakar.csengg@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v8 29/55] [media] replace all occurrences of MEDIA_ENT_T_DEVNODE_V4L
+Date: Sun, 30 Aug 2015 00:06:40 -0300
+Message-Id: <553c4e697dee72bbdf3d73a4d428118e10e18720.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Now that interfaces and entities are distinct, it makes no sense
+of keeping something named as MEDIA_ENT_T_DEVNODE.
 
-Results of the daily build of media_tree:
+This change was done with this script:
 
-date:		Sat Aug 29 04:00:15 CEST 2015
-git branch:	test
-git hash:	d071c833a0d30e7aae0ea565d92ef83c79106d6f
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+	for i in $(git grep -l MEDIA_ENT_T|grep -v uapi/linux/media.h); do sed s,MEDIA_ENT_T_DEVNODE_V4L,MEDIA_ENT_T_V4L2_VIDEO, <$i >a && mv a $i; done
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Detailed results are available here:
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index 5872f8bbf774..910243d4edb8 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -183,7 +183,7 @@
+ 	    <entry>Unknown device node</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry><constant>MEDIA_ENT_T_DEVNODE_V4L</constant></entry>
++	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+ 	    <entry>V4L video, radio or vbi device node</entry>
+ 	  </row>
+ 	  <row>
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 92e8116dc28f..88cd789cdaf7 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -193,7 +193,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		struct xvip_dma *dma;
+ 
+-		if (entity->type != MEDIA_ENT_T_DEVNODE_V4L)
++		if (entity->type != MEDIA_ENT_T_V4L2_VIDEO)
+ 			continue;
+ 
+ 		dma = to_xvip_dma(media_entity_to_video_device(entity));
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 71a1b93b0790..44b330589787 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -912,7 +912,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	/* Part 5: Register the entity. */
+ 	if (vdev->v4l2_dev->mdev &&
+ 	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
+-		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
++		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
+ 		vdev->entity.name = vdev->name;
+ 		vdev->entity.info.dev.major = VIDEO_MAJOR;
+ 		vdev->entity.info.dev.minor = vdev->minor;
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 83615b8fb46a..e6e1115d8215 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -535,7 +535,7 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+ 		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+ 	}
+ 
+-	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
++	WARN(pad->entity->type != MEDIA_ENT_T_V4L2_VIDEO,
+ 	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
+ 	     pad->entity->type, pad->entity->name);
+ 
+-- 
+2.4.3
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
