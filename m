@@ -1,61 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vms173025pub.verizon.net ([206.46.173.25]:59329 "EHLO
-	vms173025pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbbHXX6n (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48391 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbbH3DHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Aug 2015 19:58:43 -0400
-Received: from smtp.flippedperspective.com ([108.38.100.161])
- by vms173025.mailsrvcs.net
- (Oracle Communications Messaging Server 7.0.5.32.0 64bit (built Jul 16 2014))
- with ESMTPA id <0NTL0072EZTFRQA0@vms173025.mailsrvcs.net> for
- linux-media@vger.kernel.org; Mon, 24 Aug 2015 17:58:27 -0500 (CDT)
-From: Zvi Effron <viz+kernel@flippedperspective.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Zvi Effron <viz+kernel@flippedperspective.com>
-Subject: [PATCH] add interface protocol 1 for Surface Pro 3 cameras
-Date: Mon, 24 Aug 2015 15:57:42 -0700
-Message-id: <1440457062-2633-1-git-send-email-viz+kernel@flippedperspective.com>
+	Sat, 29 Aug 2015 23:07:47 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-doc@vger.kernel.org
+Subject: [PATCH v8 41/55] [media] DocBook: update descriptions for the media controller entities
+Date: Sun, 30 Aug 2015 00:06:52 -0300
+Message-Id: <08890f5bbebb0ddaaacda3c95142fa545ab15306.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cameras on the Surface Pro 3 report interface protocol of 1.
-The generic USB video class doesn't work for them.
-This adds entries for the front and rear camera.
+Cleanup the media controller entities description:
+- remove MEDIA_ENT_T_DEVNODE and MEDIA_ENT_T_V4L2_SUBDEV entity
+  types, as they don't mean anything;
+- add MEDIA_ENT_T_UNKNOWN with a proper description;
+- remove ALSA and FB entity types. Those should not be used, as
+  the types are deprecated. We'll soon be adidng ALSA, but with
+  a different entity namespace;
+- improve the description of some entities.
 
-Signed-off-by: Zvi Effron <viz+kernel@flippedperspective.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 4b5b3e8..d2fdbc1 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2142,6 +2142,22 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-+	/* Microsoft Surface Pro 3 LifeCam Front */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x045e,
-+	  .idProduct		= 0x07be,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 1 },
-+	/* Microsoft Surface Pro 3 LifeCam Rear */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x045e,
-+	  .idProduct		= 0x07bf,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 1 },
- 	/* Logitech Quickcam Fusion */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+index 32a783635649..bd90dde54416 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+@@ -179,70 +179,59 @@
+         <colspec colname="c2"/>
+ 	<tbody valign="top">
+ 	  <row>
+-	    <entry><constant>MEDIA_ENT_T_DEVNODE</constant></entry>
+-	    <entry>Unknown device node</entry>
++	    <entry><constant>MEDIA_ENT_T_UNKNOWN</constant> and <constant>MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN</constant></entry>
++	    <entry>Unknown entity. That generally indicates that
++	    a driver didn't initialize properly the entity, with is a Kernel bug</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+-	    <entry>V4L video, radio or vbi device node</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>MEDIA_ENT_T_DEVNODE_FB</constant></entry>
+-	    <entry>Frame buffer device node</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>MEDIA_ENT_T_DEVNODE_ALSA</constant></entry>
+-	    <entry>ALSA card</entry>
++	    <entry>V4L video streaming input or output entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD</constant></entry>
+-	    <entry>DVB frontend devnode</entry>
++	    <entry>DVB demodulator entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_DVB_DEMUX</constant></entry>
+-	    <entry>DVB demux devnode</entry>
++	    <entry>DVB demux entity. Could be implemented on hardware or in Kernelspace</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_DVB_TSOUT</constant></entry>
+-	    <entry>DVB DVR devnode</entry>
++	    <entry>DVB Transport Stream output entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_DVB_CA</constant></entry>
+-	    <entry>DVB CAM devnode</entry>
++	    <entry>DVB Conditional Access module (CAM) entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD_NET_DECAP</constant></entry>
+-	    <entry>DVB network devnode</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV</constant></entry>
+-	    <entry>Unknown V4L sub-device</entry>
++	    <entry>DVB network ULE/MLE desencapsulation entity. Could be implemented on hardware or in Kernelspace</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_SENSOR</constant></entry>
+-	    <entry>Video sensor</entry>
++	    <entry>Camera video sensor entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_FLASH</constant></entry>
+-	    <entry>Flash controller</entry>
++	    <entry>Flash controller entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_LENS</constant></entry>
+-	    <entry>Lens controller</entry>
++	    <entry>Lens controller entity</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
+-	    <entry>Video decoder, the basic function of the video decoder is to
+-	    accept analogue video from a wide variety of sources such as
++	    <entry>Analog video decoder, the basic function of the video decoder
++	    is to accept analogue video from a wide variety of sources such as
+ 	    broadcast, DVD players, cameras and video cassette recorders, in
+-	    either NTSC, PAL or HD format and still occasionally SECAM, separate
+-	    it into its component parts, luminance and chrominance, and output
++	    either NTSC, PAL, SECAM or HD format, separating the stream
++	    into its component parts, luminance and chrominance, and output
+ 	    it in some digital video standard, with appropriate embedded timing
+ 	    signals.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
+-	    <entry>TV and/or radio tuner</entry>
++	    <entry>Digital TV, analog TV, radio and/or software radio tuner</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
 -- 
 2.4.3
 
