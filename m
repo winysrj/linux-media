@@ -1,49 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:55197 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964954AbbHKOuI (ORCPT
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:30850 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798AbbH3TMo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 10:50:08 -0400
-Date: Tue, 11 Aug 2015 15:50:03 +0100 (BST)
-From: William Towle <william.towle@codethink.co.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	William Towle <william.towle@codethink.co.uk>
-Subject: Re: [GIT PULL FOR v4.3] Various fixes
-In-Reply-To: <55C9F611.3000902@xs4all.nl>
-Message-ID: <alpine.DEB.2.02.1508111526170.4890@xk120.dyn.ducie.codethink.co.uk>
-References: <55B749C7.4070005@xs4all.nl> <20150811100804.4cbb0ab7@recife.lan> <55C9F611.3000902@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Sun, 30 Aug 2015 15:12:44 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@intel.com>
+Subject: [PATCH v4 2/4] media: pxa_camera: move interrupt to tasklet
+Date: Sun, 30 Aug 2015 21:07:59 +0200
+Message-Id: <1440961681-17279-3-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1440961681-17279-1-git-send-email-robert.jarzmik@free.fr>
+References: <1440961681-17279-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Robert Jarzmik <robert.jarzmik@intel.com>
 
-On Tue, 11 Aug 2015, Hans Verkuil wrote:
->> 0015-v4l-subdev-Add-pad-config-allocator-and-init.patch
->> 0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
->> 0017-media-soc_camera-pad-aware-driver-initialisation.patch
->> 0018-media-rcar_vin-Use-correct-pad-number-in-try_fmt.patch
->> 0019-media-soc_camera-soc_scale_crop-Use-correct-pad-numb.patch
->> 0020-media-rcar_vin-fill-in-bus_info-field.patch
->> 0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
->
-> William, can you take a look at this? Just let me know which patches
-> are independent to patch 0015.
+In preparation for dmaengine conversion, move the camera interrupt
+handling into a tasklet. This won't change the global flow, as this
+interrupt is only used to detect the end of frame and activate DMA fifos
+handling.
 
-   Of those, the patches that *do* call the allocator function directly
-or are otherwise co-dependent are numbers 17-19 inclusive.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@intel.com>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 44 +++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index aa304950bb98..39c7e7519b3c 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -223,6 +223,7 @@ struct pxa_camera_dev {
+ 
+ 	struct pxa_buffer	*active;
+ 	struct pxa_dma_desc	*sg_tail[3];
++	struct tasklet_struct	task_eof;
+ 
+ 	u32			save_cicr[5];
+ };
+@@ -605,6 +606,7 @@ static void pxa_camera_start_capture(struct pxa_camera_dev *pcdev)
+ 	unsigned long cicr0;
+ 
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "%s\n", __func__);
++	__raw_writel(__raw_readl(pcdev->base + CISR), pcdev->base + CISR);
+ 	/* Enable End-Of-Frame Interrupt */
+ 	cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_ENB;
+ 	cicr0 &= ~CICR0_EOFM;
+@@ -922,13 +924,35 @@ static void pxa_camera_deactivate(struct pxa_camera_dev *pcdev)
+ 	clk_disable_unprepare(pcdev->clk);
+ }
+ 
+-static irqreturn_t pxa_camera_irq(int irq, void *data)
++static void pxa_camera_eof(unsigned long arg)
+ {
+-	struct pxa_camera_dev *pcdev = data;
+-	unsigned long status, cifr, cicr0;
++	struct pxa_camera_dev *pcdev = (struct pxa_camera_dev *)arg;
++	unsigned long cifr;
+ 	struct pxa_buffer *buf;
+ 	struct videobuf_buffer *vb;
+ 
++	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
++		"Camera interrupt status 0x%x\n",
++		__raw_readl(pcdev->base + CISR));
++
++	/* Reset the FIFOs */
++	cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
++	__raw_writel(cifr, pcdev->base + CIFR);
++
++	pcdev->active = list_first_entry(&pcdev->capture,
++					 struct pxa_buffer, vb.queue);
++	vb = &pcdev->active->vb;
++	buf = container_of(vb, struct pxa_buffer, vb);
++	pxa_videobuf_set_actdma(pcdev, buf);
++
++	pxa_dma_start_channels(pcdev);
++}
++
++static irqreturn_t pxa_camera_irq(int irq, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++	unsigned long status, cicr0;
++
+ 	status = __raw_readl(pcdev->base + CISR);
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
+ 		"Camera interrupt status 0x%lx\n", status);
+@@ -939,20 +963,9 @@ static irqreturn_t pxa_camera_irq(int irq, void *data)
+ 	__raw_writel(status, pcdev->base + CISR);
+ 
+ 	if (status & CISR_EOF) {
+-		/* Reset the FIFOs */
+-		cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
+-		__raw_writel(cifr, pcdev->base + CIFR);
+-
+-		pcdev->active = list_first_entry(&pcdev->capture,
+-					   struct pxa_buffer, vb.queue);
+-		vb = &pcdev->active->vb;
+-		buf = container_of(vb, struct pxa_buffer, vb);
+-		pxa_videobuf_set_actdma(pcdev, buf);
+-
+-		pxa_dma_start_channels(pcdev);
+-
+ 		cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_EOFM;
+ 		__raw_writel(cicr0, pcdev->base + CICR0);
++		tasklet_schedule(&pcdev->task_eof);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -1847,6 +1860,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->soc_host.priv		= pcdev;
+ 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+ 	pcdev->soc_host.nr		= pdev->id;
++	tasklet_init(&pcdev->task_eof, pxa_camera_eof, (unsigned long)pcdev);
+ 
+ 	err = soc_camera_host_register(&pcdev->soc_host);
+ 	if (err)
+-- 
+2.1.4
 
-   The independent patches in that list are therefore:
-
-[prerequisite work by Laurent Pinchart (1x)...]
- 	0016-media-soc_camera-rcar_vin-Add-BT.709-24-bit-RGB888-i.patch
-[general rcar_vin enhancements by Rob Taylor (2x)...]
- 	0020-media-rcar_vin-fill-in-bus_info-field.patch
- 	0021-media-rcar_vin-Reject-videobufs-that-are-too-small-f.patch
-
-Cheers,
-   Wills.
