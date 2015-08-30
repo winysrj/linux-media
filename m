@@ -1,148 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:36212 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753838AbbHGUZo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 16:25:44 -0400
-MIME-Version: 1.0
-In-Reply-To: <1438901893.3109.72.camel@hp.com>
-References: <CAB=NE6UgtdSoBsA=8+ueYRAZHDnWUSmQAoHhAaefqudBrSY7Zw@mail.gmail.com>
- <1434064996.11808.64.camel@misato.fc.hp.com> <557AAD910200007800084014@mail.emea.novell.com>
- <1434128306.11808.97.camel@misato.fc.hp.com> <CAB=NE6W3=SFTqabeD6gq7JCqFZ7+SBZh7Xa=RteO_8-3P7fbdw@mail.gmail.com>
- <1438901893.3109.72.camel@hp.com>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Fri, 7 Aug 2015 13:25:23 -0700
-Message-ID: <CAB=NE6VnspTPfrn5+ZFSdgKb3uh_4g7LsuZVwe2FET=noijr5Q@mail.gmail.com>
-Subject: Re: [Xen-devel] RIP MTRR - status update for upcoming v4.2
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Jan Beulich <JBeulich@suse.com>,
-	Andy Lutomirski <luto@amacapital.net>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jej B <James.Bottomley@hansenpartnership.com>,
-	X86 ML <x86@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-	Julia Lawall <julia.lawall@lip6.fr>,
-	xen-devel@lists.xenproject.org, Dave Airlie <airlied@redhat.com>,
-	=?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>,
-	Juergen Gross <JGross@suse.com>, Borislav Petkov <bp@suse.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:48352 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753196AbbH3DHo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 14/55] [media] media: add functions to allow creating interfaces
+Date: Sun, 30 Aug 2015 00:06:25 -0300
+Message-Id: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 6, 2015 at 3:58 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Thu, 2015-08-06 at 12:53 -0700, Luis R. Rodriguez wrote:
->> On Fri, Jun 12, 2015 at 9:58 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> > On Fri, 2015-06-12 at 08:59 +0100, Jan Beulich wrote:
->> > > > > > On 12.06.15 at 01:23, <toshi.kani@hp.com> wrote:
->> > > > There are two usages on MTRRs:
->> > > >  1) MTRR entries set by firmware
->> > > >  2) MTRR entries set by OS drivers
->> > > >
->> > > > We can obsolete 2), but we have no control over 1).  As UEFI
->> > > > firmwares
->> > > > also set this up, this usage will continue to stay.  So, we should
->> > > > not
->> > > > get rid of the MTRR code that looks up the MTRR entries, while we
->> > > > have
->> > > > no need to modify them.
->> > > >
->> > > > Such MTRR entries provide safe guard to /dev/mem, which allows
->> > > > privileged user to access a range that may require UC mapping while
->> > > > the /dev/mem driver blindly maps it with WB.  MTRRs converts WB to
->> > > > UC in
->> > > > such a case.
->> > >
->> > > But it wouldn't be impossible to simply read the MTRRs upon boot,
->> > > store the information, disable MTRRs, and correctly use PAT to
->> > > achieve the same effect (i.e. the "blindly maps" part of course
->> > > would need fixing).
->> >
->> > It could be done, but I do not see much benefit of doing it.  One of the
->> > reasons platform vendors set MTRRs is so that a system won't hit a
->> > machine check when an OS bug leads an access with a wrong cache type.
->> >
->> > A machine check is hard to analyze and can be seen as a hardware issue
->> > by customers.  Emulating MTRRs with PAT won't protect from such a bug.
->>
->> That's seems like a fair and valid concern. This could only happen if
->> the OS would have code that would use MTRR, in the case of Linux we'll
->> soon be able to vet that this cannot happen.
->
-> No, there is no OS support necessary to use MTRR.  After firmware sets it
-> up, CPUs continue to use it without any OS support.  I think the Linux
-> change you are referring is to obsolete legacy interfaces that modify the
-> MTRR setup.  I agree that Linux should not modify MTRR.
+Interfaces are different than entities: they represent a
+Kernel<->userspace interaction, while entities represent a
+piece of hardware/firmware/software that executes a function.
 
-Its a bit more than that though. Since you agree that the OS can live
-without MTRR code I was hoping to then see if we can fold out PAT
-Linux code from under the MTRR dependency on Linux and make PAT a
-first class citizen, maybe at least for x86-64. Right now you can only
-get PAT support on Linux if you have MTRR code, but I'd like to see if
-instead we can rip MTRR code out completely under its own Kconfig and
-let it start rotting away.
+Let's distinguish them by creating a separate structure to
+store the interfaces.
 
-Code-wise the only issue I saw was that PAT code also relies on
-mtrr_type_lookup(), see pat_x_mtrr_type(), but other than this I found
-no other obvious issues.
+Latter patches should change the existing drivers and logic
+to split the current interface embedded inside the entity
+structure (device nodes) into a separate object of the graph.
 
-Platform firmware and SMIs seems to be the only other possible issue.
-More on this below.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
->> For those type of OSes...
->> could it be possible to negotiate or hint to the platform through an
->> attribute somehow that the OS has such capability to not use MTRR?
->
-> The OS can disable MTRR.  However, this can also cause a problem in
-> firmware, which may rely on MTRR.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index a23c93369a04..583666e2cc25 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -44,11 +44,41 @@ static inline const char *gobj_type(enum media_gobj_type type)
+ 		return "pad";
+ 	case MEDIA_GRAPH_LINK:
+ 		return "link";
++	case MEDIA_GRAPH_INTF_DEVNODE:
++		return "intf_devnode";
+ 	default:
+ 		return "unknown";
+ 	}
+ }
+ 
++static inline const char *intf_type(struct media_interface *intf)
++{
++	switch (intf->type) {
++	case MEDIA_INTF_T_DVB_FE:
++		return "frontend";
++	case MEDIA_INTF_T_DVB_DEMUX:
++		return "demux";
++	case MEDIA_INTF_T_DVB_DVR:
++		return "DVR";
++	case MEDIA_INTF_T_DVB_CA:
++		return  "CA";
++	case MEDIA_INTF_T_DVB_NET:
++		return "dvbnet";
++	case MEDIA_INTF_T_V4L_VIDEO:
++		return "video";
++	case MEDIA_INTF_T_V4L_VBI:
++		return "vbi";
++	case MEDIA_INTF_T_V4L_RADIO:
++		return "radio";
++	case MEDIA_INTF_T_V4L_SUBDEV:
++		return "v4l2-subdev";
++	case MEDIA_INTF_T_V4L_SWRADIO:
++		return "swradio";
++	default:
++		return "unknown-intf";
++	}
++};
++
+ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ {
+ #if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
+@@ -84,6 +114,19 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 			"%s: id 0x%08x pad#%d: '%s':%d\n",
+ 			event_name, gobj->id, media_localid(gobj),
+ 			pad->entity->name, pad->index);
++		break;
++	}
++	case MEDIA_GRAPH_INTF_DEVNODE:
++	{
++		struct media_interface *intf = gobj_to_intf(gobj);
++		struct media_intf_devnode *devnode = intf_to_devnode(intf);
++
++		dev_dbg(gobj->mdev->dev,
++			"%s: id 0x%08x intf_devnode#%d: %s - major: %d, minor: %d\n",
++			event_name, gobj->id, media_localid(gobj),
++			intf_type(intf),
++			devnode->major, devnode->minor);
++		break;
+ 	}
+ 	}
+ #endif
+@@ -119,6 +162,9 @@ void media_gobj_init(struct media_device *mdev,
+ 	case MEDIA_GRAPH_LINK:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+ 		break;
++	case MEDIA_GRAPH_INTF_DEVNODE:
++		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
++		break;
+ 	}
+ 	dev_dbg_obj(__func__, gobj);
+ }
+@@ -793,3 +839,40 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+ 
+ }
+ EXPORT_SYMBOL_GPL(media_entity_remote_pad);
++
++
++/* Functions related to the media interface via device nodes */
++
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 type, u32 flags,
++						u32 major, u32 minor,
++						gfp_t gfp_flags)
++{
++	struct media_intf_devnode *devnode;
++	struct media_interface *intf;
++
++	devnode = kzalloc(sizeof(*devnode), gfp_flags);
++	if (!devnode)
++		return NULL;
++
++	intf = &devnode->intf;
++
++	intf->type = type;
++	intf->flags = flags;
++
++	devnode->major = major;
++	devnode->minor = minor;
++
++	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
++		       &devnode->intf.graph_obj);
++
++	return devnode;
++}
++EXPORT_SYMBOL_GPL(media_devnode_create);
++
++void media_devnode_remove(struct media_intf_devnode *devnode)
++{
++	media_gobj_remove(&devnode->intf.graph_obj);
++	kfree(devnode);
++}
++EXPORT_SYMBOL_GPL(media_devnode_remove);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 05414e351f8e..3b14394d5701 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -44,6 +44,7 @@ struct device;
+  * @entity_id:	Unique ID used on the last entity registered
+  * @pad_id:	Unique ID used on the last pad registered
+  * @link_id:	Unique ID used on the last link registered
++ * @intf_devnode_id: Unique ID used on the last interface devnode registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+@@ -73,6 +74,7 @@ struct media_device {
+ 	u32 entity_id;
+ 	u32 pad_id;
+ 	u32 link_id;
++	u32 intf_devnode_id;
+ 
+ 	struct list_head entities;
+ 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 239c4ec30ef6..7df8836f4eef 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -36,11 +36,14 @@
+  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  * @MEDIA_GRAPH_PAD:		Identify a media pad
+  * @MEDIA_GRAPH_LINK:		Identify a media link
++ * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
++ *				a device node
+  */
+ enum media_gobj_type {
+ 	MEDIA_GRAPH_ENTITY,
+ 	MEDIA_GRAPH_PAD,
+ 	MEDIA_GRAPH_LINK,
++	MEDIA_GRAPH_INTF_DEVNODE,
+ };
+ 
+ #define MEDIA_BITS_PER_TYPE		8
+@@ -141,6 +144,34 @@ struct media_entity {
+ 	} info;
+ };
+ 
++/**
++ * struct media_intf_devnode - Define a Kernel API interface
++ *
++ * @graph_obj:		embedded graph object
++ * @type:		Type of the interface as defined at the
++ *			uapi/media/media.h header, e. g.
++ *			MEDIA_INTF_T_*
++ * @flags:		Interface flags as defined at uapi/media/media.h
++ */
++struct media_interface {
++	struct media_gobj		graph_obj;
++	u32				type;
++	u32				flags;
++};
++
++/**
++ * struct media_intf_devnode - Define a Kernel API interface via a device node
++ *
++ * @intf:	embedded interface object
++ * @major:	Major number of a device node
++ * @minor:	Minor number of a device node
++ */
++struct media_intf_devnode {
++	struct media_interface		intf;
++	u32				major;
++	u32				minor;
++};
++
+ static inline u32 media_entity_type(struct media_entity *entity)
+ {
+ 	return entity->type & MEDIA_ENT_TYPE_MASK;
+@@ -198,6 +229,18 @@ struct media_entity_graph {
+ #define gobj_to_link(gobj) \
+ 		container_of(gobj, struct media_link, graph_obj)
+ 
++#define gobj_to_link(gobj) \
++		container_of(gobj, struct media_link, graph_obj)
++
++#define gobj_to_pad(gobj) \
++		container_of(gobj, struct media_pad, graph_obj)
++
++#define gobj_to_intf(gobj) \
++		container_of(gobj, struct media_interface, graph_obj)
++
++#define intf_to_devnode(intf) \
++		container_of(intf, struct media_intf_devnode, intf)
++
+ void media_gobj_init(struct media_device *mdev,
+ 		    enum media_gobj_type type,
+ 		    struct media_gobj *gobj);
+@@ -229,6 +272,11 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 					     struct media_pipeline *pipe);
+ void media_entity_pipeline_stop(struct media_entity *entity);
+ 
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 type, u32 flags,
++						u32 major, u32 minor,
++						gfp_t gfp_flags);
++void media_devnode_remove(struct media_intf_devnode *devnode);
+ #define media_entity_call(entity, operation, args...)			\
+ 	(((entity)->ops && (entity)->ops->operation) ?			\
+ 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+-- 
+2.4.3
 
-Can you describe what type of issues we could expect ? I tend to care
-more about this for 64-bit systems so if 32-bit platforms would be
-more of the ones which could cause an issue would restricting
-disabling MTRR only for 64-bit help?
-
->> Then, only if this bit is set, the platform could then avoid such MTRR
->> settings, and if we have issues you can throw rocks at us.
->
->> And if that's not possible how about a new platform setting that would
->> need to be set at the platform level to enable disabling this junk?
->> Then only folks who know what they are doing would enable it, and if
->> the customer set it, the issue would not be on the platform.
->
->> Could this also be used to prevent SMIs with MTRRs?
->
-> ACPI _OSI could be used for firmware to implement some OS-specific features,
-> but it may be too late for firmware to make major changes and is generally
-> useless unless OS requirements are described in a spec backed by logo
-> certification.
-
-I see.. So there are no guarantees that platform firmware would not
-expect OS MTRR support.
-
->  SMIs are also used for platform management, such as fan
-> speed control.
-
-And its conceivable that some devices, or the platform itself, may
-trigger SMIs to have the platform firmware poke with MTRRs?
-
-> Is there any issue for Linux to use MTRR set by firmware?
-
-Even though we don't have the Kconfig option right now to disable MTRR
-cod explicitly I'll note that there are a few other cases that could
-flip Linux to note use MTRR:
-
-  a) Some BIOSes could let MTRR get disabled
-  b) As of Xen 4.4, the hypervisor disables X86_FEATURE_MTRR which
-disables MTRR on Linux
-
-If these environments can exist it'd be good to understand possible
-issues that could creep up as a result of the OS not having MTRR
-enabled. If this is a reasonable thing for x86-64 I was hoping we
-could just let users opt-in to a similar build configuration through
-the OS by letting PAT not depend on MTRR.
-
- Luis
