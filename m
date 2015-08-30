@@ -1,104 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40099 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48442 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753621AbbHGOUV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Aug 2015 10:20:21 -0400
+	with ESMTP id S1753300AbbH3DHu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:50 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v2 02/16] media: Add a common embeed struct for all media graph objects
-Date: Fri,  7 Aug 2015 11:20:00 -0300
-Message-Id: <10ca5f9841d48380defba6ada5f6390b42d73aa6.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1438954897.git.mchehab@osg.samsung.com>
-References: <cover.1438954897.git.mchehab@osg.samsung.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v8 02/55] [media] staging: omap4iss: get entity ID using media_entity_id()
+Date: Sun, 30 Aug 2015 00:06:13 -0300
+Message-Id: <95dccc89e638c5cd60a6d13541efd29ca39766fb.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the MC API proposed changes, we'll need to:
-	- have an unique object ID for all graph objects;
-	- be able to dynamically create/remove objects;
-	- be able to group objects;
-	- keep the object in memory until we stop use it.
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Due to that, create a struct media_graph_obj and put there the
-common elements that all media objects will have in common.
+Assessing media_entity ID should now use media_entity_id() macro to
+obtain the entity ID, as a next patch will remove the .id field from
+struct media_entity .
 
+So, get rid of it, otherwise the omap4iss driver will fail to build.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0c003d817493..051aa3f8bbfe 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -28,10 +28,50 @@
- #include <linux/list.h>
- #include <linux/media.h>
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 9bfb725b9986..e54a7afd31de 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -607,7 +607,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+ 			 * crashed. Mark it as such, the ISS will be reset when
+ 			 * applications will release it.
+ 			 */
+-			iss->crashed |= 1U << subdev->entity.id;
++			iss->crashed |= 1U << media_entity_id(&subdev->entity);
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index bae67742706f..25e9e7a6b99d 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -784,7 +784,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	entity = &video->video.entity;
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph)))
+-		pipe->entities |= 1 << entity->id;
++		pipe->entities |= 1 << media_entity_id(entity);
  
-+/* Enums used internally at the media controller to represent graphs */
-+
-+/**
-+ * enum media_graph_type - type of a graph element
-+ *
-+ * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-+ * @MEDIA_GRAPH_PAD:		Identify a media PAD
-+ * @MEDIA_GRAPH_LINK:		Identify a media link
-+ */
-+enum media_graph_type {
-+	MEDIA_GRAPH_ENTITY,
-+	MEDIA_GRAPH_PAD,
-+	MEDIA_GRAPH_LINK,
-+};
-+
-+
-+/* Structs to represent the objects that belong to a media graph */
-+
-+/**
-+ * struct media_graph_obj - Define a graph object.
-+ *
-+ * @list:		List of media graph objects
-+ * @obj_id:		Non-zero object ID identifier. The ID should be unique
-+ *			inside a media_device
-+ * @type:		Type of the graph object
-+ * @mdev:		Media device that contains the object
-+ *			object before stopping using it
-+ *
-+ * All elements on the media graph should have this struct embedded
-+ */
-+struct media_graph_obj {
-+	struct list_head	list;
-+	struct list_head	group;
-+	u32			obj_id;
-+	enum media_graph_type	type;
-+	struct media_device	*mdev;
-+};
-+
-+
- struct media_pipeline {
- };
- 
- struct media_link {
-+	struct media_graph_obj			graph_obj;
- 	struct media_pad *source;	/* Source pad */
- 	struct media_pad *sink;		/* Sink pad  */
- 	struct media_link *reverse;	/* Link in the reverse direction */
-@@ -39,6 +79,7 @@ struct media_link {
- };
- 
- struct media_pad {
-+	struct media_graph_obj			graph_obj;
- 	struct media_entity *entity;	/* Entity this pad belongs to */
- 	u16 index;			/* Pad index in the entity pads array */
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-@@ -61,6 +102,7 @@ struct media_entity_operations {
- };
- 
- struct media_entity {
-+	struct media_graph_obj			graph_obj;
- 	struct list_head list;
- 	struct media_device *parent;	/* Media device this entity belongs to*/
- 	u32 id;				/* Entity ID, unique in the parent media
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
 -- 
 2.4.3
 
