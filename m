@@ -1,131 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54408 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48430 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbbHRUE2 (ORCPT
+	with ESMTP id S1753280AbbH3DHt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 16:04:28 -0400
+	Sat, 29 Aug 2015 23:07:49 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v5 5/8] [media] media: use media_gobj inside links
-Date: Tue, 18 Aug 2015 17:04:18 -0300
-Message-Id: <86e21f1449e1c83b62e0b9c795d86bdae3e8de28.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439927113.git.mchehab@osg.samsung.com>
-References: <cover.1439927113.git.mchehab@osg.samsung.com>
+Subject: [PATCH v8 55/55] [media] media-entity.h: document all the structs
+Date: Sun, 30 Aug 2015 00:07:06 -0300
+Message-Id: <5ae53d5d273d4b7f532f14dce9fdf096b5c0275f.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just like entities and pads, links also need to have unique
-Object IDs along a given media controller.
+Only a few structs are documented on kernel-doc-nano format
+(the ones added by the MC next gen patches).
 
-So, let's add a media_gobj inside it and initialize
-the object then a new link is created.
+Add a documentation for all structs, and ensure that they'll
+be producing the documentation at the Kernel's device driver
+DocBook.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 24551d4ddfb8..7f512223249b 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -436,6 +436,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
- 	list_add_tail(&entity->list, &mdev->entities);
- 
-+	/*
-+	 * Initialize objects at the links
-+	 * in the case where links got created before entity register
-+	 */
-+	for (i = 0; i < entity->num_links; i++)
-+		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-+				&entity->links[i].graph_obj);
- 	/* Initialize objects at the pads */
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-@@ -463,6 +470,8 @@ void media_device_unregister_entity(struct media_entity *entity)
- 		return;
- 
- 	spin_lock(&mdev->lock);
-+	for (i = 0; i < entity->num_links; i++)
-+		media_gobj_remove(&entity->links[i].graph_obj);
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_remove(&entity->pads[i].graph_obj);
- 	media_gobj_remove(&entity->graph_obj);
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 377c6655c5d0..a6be50e04736 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -51,6 +51,9 @@ void media_gobj_init(struct media_device *mdev,
- 	case MEDIA_GRAPH_PAD:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
- 		break;
-+	case MEDIA_GRAPH_LINK:
-+		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
-+		break;
- 	}
- }
- 
-@@ -469,6 +472,13 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
- 		entity->links = links;
- 	}
- 
-+	/* Initialize graph object embedded at the new link */
-+	if (entity->parent)
-+		media_gobj_init(entity->parent, MEDIA_GRAPH_LINK,
-+				&entity->links[entity->num_links].graph_obj);
-+	else
-+		pr_warn("Link created before entity register!\n");
-+
- 	return &entity->links[entity->num_links++];
- }
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 4b5d1ee2b67e..e0f63c0da2dd 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -43,6 +43,7 @@ struct device;
-  * @driver_version: Device driver version
-  * @entity_id:	Unique ID used on the last entity registered
-  * @pad_id:	Unique ID used on the last pad registered
-+ * @link_id:	Unique ID used on the last link registered
-  * @entities:	List of registered entities
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-@@ -71,6 +72,7 @@ struct media_device {
- 
- 	u32 entity_id;
- 	u32 pad_id;
-+	u32 link_id;
- 
- 	struct list_head entities;
- 
 diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 01ae1e320e36..2ffe015629fa 100644
+index 7fd6265f0bcb..c42d191fa5a8 100644
 --- a/include/media/media-entity.h
 +++ b/include/media/media-entity.h
-@@ -35,10 +35,12 @@
+@@ -55,11 +55,13 @@ enum media_gobj_type {
+ /**
+  * struct media_gobj - Define a graph object.
   *
-  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-  * @MEDIA_GRAPH_PAD:		Identify a media pad
-+ * @MEDIA_GRAPH_LINK:		Identify a media link
++ * @mdev:	Pointer to the struct media_device that owns the object
+  * @id:		Non-zero object ID identifier. The ID should be unique
+  *		inside a media_device, as it is composed by
+  *		MEDIA_BITS_PER_TYPE to store the type plus
+  *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+  *		(called as "local ID").
++ * @list:	Linked list associated to one of the per-type mdev object lists
+  *
+  * All objects on the media graph should have this struct embedded
   */
- enum media_gobj_type {
- 	MEDIA_GRAPH_ENTITY,
- 	MEDIA_GRAPH_PAD,
-+	MEDIA_GRAPH_LINK,
+@@ -73,6 +75,28 @@ struct media_gobj {
+ struct media_pipeline {
  };
  
- #define BITS_PER_TYPE		8
-@@ -65,6 +67,7 @@ struct media_pipeline {
- };
- 
++/**
++ * struct media_link - Define a media link graph object.
++ *
++ * @graph_obj:	Embedded structure containing the media object common data
++ * @list:	Linked list associated with an entity or an interface that
++ *		owns the link.
++ * @gobj0:	Part of an union. Used to get the pointer for the first
++ *		graph_object of the link.
++ * @source:	Part of an union. Used only if the first object (gobj0) is
++ *		a pad. On such case, it represents the source pad.
++ * @intf:	Part of an union. Used only if the first object (gobj0) is
++ *		an interface.
++ * @gobj1:	Part of an union. Used to get the pointer for the second
++ *		graph_object of the link.
++ * @source:	Part of an union. Used only if the second object (gobj0) is
++ *		a pad. On such case, it represents the sink pad.
++ * @entity:	Part of an union. Used only if the second object (gobj0) is
++ *		an entity.
++ * @reverse:	Pointer to the link for the reverse direction of a pad to pad
++ *		link.
++ * @flags:	Link flags, as defined at uapi/media.h (MEDIA_LNK_FL_*)
++ */
  struct media_link {
-+	struct media_gobj graph_obj;
- 	struct media_pad *source;	/* Source pad */
- 	struct media_pad *sink;		/* Sink pad  */
- 	struct media_link *reverse;	/* Link in the reverse direction */
+ 	struct media_gobj graph_obj;
+ 	struct list_head list;
+@@ -86,15 +110,23 @@ struct media_link {
+ 		struct media_pad *sink;
+ 		struct media_entity *entity;
+ 	};
+-	struct media_link *reverse;	/* Link in the reverse direction */
+-	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
++	struct media_link *reverse;
++	unsigned long flags;
+ };
+ 
++/**
++ * struct media_pad - Define a media pad graph object.
++ *
++ * @graph_obj:	Embedded structure containing the media object common data
++ * @entity:	Entity where this object belongs
++ * @index:	Pad index in the entity pads array, numbered from 0 to n
++ * @flags:	Pad flags, as defined at uapi/media.h (MEDIA_PAD_FL_*)
++ */
+ struct media_pad {
+ 	struct media_gobj graph_obj;	/* must be first field in struct */
+-	struct media_entity *entity;	/* Entity this pad belongs to */
+-	u16 index;			/* Pad index in the entity pads array */
+-	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
++	struct media_entity *entity;
++	u16 index;
++	unsigned long flags;
+ };
+ 
+ /**
+@@ -113,51 +145,73 @@ struct media_entity_operations {
+ 	int (*link_validate)(struct media_link *link);
+ };
+ 
++/**
++ * struct media_entity - Define a media entity graph object.
++ *
++ * @graph_obj:	Embedded structure containing the media object common data.
++ * @name:	Entity name.
++ * @type:	Entity type, as defined at uapi/media.h (MEDIA_ENT_T_*)
++ * @revision:	Entity revision - OBSOLETE - should be removed soon.
++ * @flags:	Entity flags, as defined at uapi/media.h (MEDIA_ENT_FL_*)
++ * @group_id:	Entity group ID - OBSOLETE - should be removed soon.
++ * @num_pads:	Number of sink and source pads.
++ * @num_links:	Number of existing links, both enabled and disabled.
++ * @num_backlinks: Number of backlinks
++ * @pads:	Pads array with the size defined by @num_pads.
++ * @links:	Linked list for the data links.
++ * @ops:	Entity operations.
++ * @stream_count: Stream count for the entity.
++ * @use_count:	Use count for the entity.
++ * @pipe:	Pipeline this entity belongs to.
++ * @info:	Union with devnode information.  Kept just for backward
++ * 		compatibility.
++ * @major:	Devnode major number (zero if not applicable). Kept just
++ * 		for backward compatibility.
++ * @minor:	Devnode minor number (zero if not applicable). Kept just
++ * 		for backward compatibility.
++ *
++ * NOTE: @stream_count and @use_count reference counts must never be
++ * negative, but are signed integers on purpose: a simple WARN_ON(<0) check
++ * can be used to detect reference count bugs that would make them negative.
++ */
+ struct media_entity {
+ 	struct media_gobj graph_obj;	/* must be first field in struct */
+-	const char *name;		/* Entity name */
+-	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+-	u32 revision;			/* Entity revision, driver specific */
+-	unsigned long flags;		/* Entity flags (MEDIA_ENT_FL_*) */
+-	u32 group_id;			/* Entity group ID */
++	const char *name;
++	u32 type;
++	u32 revision;
++	unsigned long flags;
++	u32 group_id;
+ 
+-	u16 num_pads;			/* Number of sink and source pads */
+-	u16 num_links;			/* Number of existing links, both
+-					 * enabled and disabled */
+-	u16 num_backlinks;		/* Number of backlinks */
++	u16 num_pads;
++	u16 num_links;
++	u16 num_backlinks;
+ 
+-	struct media_pad *pads;		/* Pads array (num_pads objects) */
+-	struct list_head links;		/* Pad-to-pad links list */
++	struct media_pad *pads;
++	struct list_head links;
+ 
+-	const struct media_entity_operations *ops;	/* Entity operations */
++	const struct media_entity_operations *ops;
+ 
+ 	/* Reference counts must never be negative, but are signed integers on
+ 	 * purpose: a simple WARN_ON(<0) check can be used to detect reference
+ 	 * count bugs that would make them negative.
+ 	 */
+-	int stream_count;		/* Stream count for the entity. */
+-	int use_count;			/* Use count for the entity. */
++	int stream_count;
++	int use_count;
+ 
+-	struct media_pipeline *pipe;	/* Pipeline this entity belongs to. */
++	struct media_pipeline *pipe;
+ 
+ 	union {
+-		/* Node specifications */
+ 		struct {
+ 			u32 major;
+ 			u32 minor;
+ 		} dev;
+-
+-		/* Sub-device specifications */
+-		/* Nothing needed yet */
+ 	} info;
+ };
+ 
+ /**
+- * struct media_interface - Define a Kernel API interface
++ * struct media_interface - Define a media interface graph object
+  *
+  * @graph_obj:		embedded graph object
+- * @list:		Linked list used to find other interfaces that belong
+- *			to the same media controller
+  * @links:		List of links pointing to graph entities
+  * @type:		Type of the interface as defined at the
+  *			uapi/media/media.h header, e. g.
+@@ -177,7 +231,7 @@ struct media_interface {
+ };
+ 
+ /**
+- * struct media_intf_devnode - Define a Kernel API interface via a device node
++ * struct media_intf_devnode - Define a media interface via a device node
+  *
+  * @intf:	embedded interface object
+  * @major:	Major number of a device node
 -- 
 2.4.3
 
