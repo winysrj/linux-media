@@ -1,170 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58998 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbbHWUSM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:12 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v7 41/44] [media] media: move mdev list init to gobj
-Date: Sun, 23 Aug 2015 17:17:58 -0300
-Message-Id: <bc5eb0364214343677965f660fda7337b97ec318.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:59633 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751611AbbH3ItH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Aug 2015 04:49:07 -0400
+Date: Sun, 30 Aug 2015 10:48:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: atmel-isi: setup the ISI_CFG2 register directly
+In-Reply-To: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1508301019340.29683@axis700.grange>
+References: <1434537579-23417-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's control the topology changes inside the graph_object.
-So, move the removal of interfaces/entitis from the mdev
-lists to media_gobj_init() and media_gobj_remove().
+Hi Josh,
 
-The main reason is that mdev should have lists for all
-object types, as the new MC api will require to store
-objects on separate places.
+On Wed, 17 Jun 2015, Josh Wu wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> In the function configure_geometry(), we will setup the ISI CFG2
+> according to the sensor output format.
+> 
+> It make no sense to just read back the CFG2 register and just set part
+> of it.
+> 
+> So just set up this register directly makes things simpler.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 659507bce63f..01cd014963d6 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
- 	struct media_entity *entity;
- 	struct media_entity *next;
- 
--	list_for_each_entry_safe(entity, next, &mdev->entities, list)
-+	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
- 		media_device_unregister_entity(entity);
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-@@ -443,7 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	spin_lock(&mdev->lock);
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
--	list_add_tail(&entity->list, &mdev->entities);
- 
- 	/* Initialize objects at the pads */
- 	for (i = 0; i < entity->num_pads; i++)
-@@ -473,7 +472,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- 		return;
- 
- 	spin_lock(&mdev->lock);
--	list_for_each_entry_safe(link, tmp, &entity->links, list) {
-+	list_for_each_entry_safe(link, tmp, &entity->links, graph_obj.list) {
- 		media_gobj_remove(&link->graph_obj);
- 		list_del(&link->list);
- 		kfree(link);
-@@ -481,7 +480,6 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_remove(&entity->pads[i].graph_obj);
- 	media_gobj_remove(&entity->graph_obj);
--	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->graph_obj.mdev = NULL;
- }
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d30650e3562e..17f2f7555d42 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -168,6 +168,7 @@ void media_gobj_init(struct media_device *mdev,
- 	switch (type) {
- 	case MEDIA_GRAPH_ENTITY:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
-+		list_add_tail(&gobj->list, &mdev->entities);
- 		break;
- 	case MEDIA_GRAPH_PAD:
- 		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-@@ -176,6 +177,7 @@ void media_gobj_init(struct media_device *mdev,
- 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
- 		break;
- 	case MEDIA_GRAPH_INTF_DEVNODE:
-+		list_add_tail(&gobj->list, &mdev->interfaces);
- 		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
- 		break;
- 	}
-@@ -191,6 +193,15 @@ void media_gobj_init(struct media_device *mdev,
-  */
- void media_gobj_remove(struct media_gobj *gobj)
- {
-+	/* Remove the object from mdev list */
-+	switch (media_type(gobj)) {
-+	case MEDIA_GRAPH_ENTITY:
-+	case MEDIA_GRAPH_INTF_DEVNODE:
-+		list_del(&gobj->list);
-+	default:
-+		break;
-+	}
-+
- 	dev_dbg_obj(__func__, gobj);
- }
- 
-@@ -878,8 +889,6 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
- 	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
- 		       &devnode->intf.graph_obj);
- 
--	list_add_tail(&intf->list, &mdev->interfaces);
--
- 	return devnode;
- }
- EXPORT_SYMBOL_GPL(media_devnode_create);
-@@ -887,7 +896,6 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
- void media_devnode_remove(struct media_intf_devnode *devnode)
- {
- 	media_gobj_remove(&devnode->intf.graph_obj);
--	list_del(&devnode->intf.list);
- 	kfree(devnode);
- }
- EXPORT_SYMBOL_GPL(media_devnode_remove);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index f23d686aaac6..85fa302047bd 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -111,11 +111,11 @@ struct media_device *media_device_find_devres(struct device *dev);
- 
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
--	list_for_each_entry(entity, &(mdev)->entities, list)
-+	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
- 
- /* Iterate over all interfaces. */
- #define media_device_for_each_intf(intf, mdev)			\
--	list_for_each_entry(intf, &(mdev)->interfaces, list)
-+	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
- 
- 
- #else
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0111d9652b78..d89ceaf7bcc4 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -66,6 +66,7 @@ enum media_gobj_type {
- struct media_gobj {
- 	struct media_device	*mdev;
- 	u32			id;
-+	struct list_head	list;
- };
- 
- 
-@@ -114,7 +115,6 @@ struct media_entity_operations {
- 
- struct media_entity {
- 	struct media_gobj graph_obj;	/* should be the first object */
--	struct list_head list;
- 	const char *name;		/* Entity name */
- 	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
- 	u32 revision;			/* Entity revision, driver specific */
-@@ -166,7 +166,6 @@ struct media_entity {
-  */
- struct media_interface {
- 	struct media_gobj		graph_obj;
--	struct list_head		list;
- 	struct list_head		links;
- 	u32				type;
- 	u32				flags;
--- 
-2.4.3
+Simpler doesn't necessarily mean better or more correct:) There are other 
+fields in that register and currently the driver preserves them, with this 
+patch you overwrite them with 0. 0 happens to be the reset value of that 
+register. So, you should at least mention that in this patch description, 
+just saying "simpler" doesn't convince me. So, at least I'd modify that, I 
+can do that myself. But in general I'm not even sure why this patch is 
+needed. Yes, currently those fields of that register are unused, so, we 
+can assume they stay at their reset values. But firstly the hardware can 
+change and at some point the reset value can change, or those other fields 
+will get set indirectly by something. Or the driver will change at some 
+point to support more fields of that register and then this code will have 
+to be changed again. So, I'd ask you again - do you really want this 
+patch? If you insist - I'll take it, but I'd add the "reset value" 
+reasoning. Otherwise maybe just drop it?
 
+Thanks
+Guennadi
+
+> Currently only support YUV format from camera sensor.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
+>  1 file changed, 7 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index 9070172..8bc40ca 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>  static int configure_geometry(struct atmel_isi *isi, u32 width,
+>  			u32 height, u32 code)
+>  {
+> -	u32 cfg2, cr;
+> +	u32 cfg2;
+>  
+> +	/* According to sensor's output format to set cfg2 */
+>  	switch (code) {
+>  	/* YUV, including grey */
+>  	case MEDIA_BUS_FMT_Y8_1X8:
+> -		cr = ISI_CFG2_GRAYSCALE;
+> +		cfg2 = ISI_CFG2_GRAYSCALE;
+>  		break;
+>  	case MEDIA_BUS_FMT_VYUY8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_3;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3;
+>  		break;
+>  	case MEDIA_BUS_FMT_UYVY8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_2;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2;
+>  		break;
+>  	case MEDIA_BUS_FMT_YVYU8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_MODE_1;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1;
+>  		break;
+>  	case MEDIA_BUS_FMT_YUYV8_2X8:
+> -		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
+> +		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT;
+>  		break;
+>  	/* RGB, TODO */
+>  	default:
+> @@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
+>  	}
+>  
+>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+> -
+> -	cfg2 = isi_readl(isi, ISI_CFG2);
+> -	/* Set YCC swap mode */
+> -	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
+> -	cfg2 |= cr;
+>  	/* Set width */
+> -	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
+>  	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
+>  			ISI_CFG2_IM_HSIZE_MASK;
+>  	/* Set height */
+> -	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
+>  	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
+>  			& ISI_CFG2_IM_VSIZE_MASK;
+>  	isi_writel(isi, ISI_CFG2, cfg2);
+> -- 
+> 1.9.1
+> 
