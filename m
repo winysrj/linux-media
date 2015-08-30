@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59284 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753092AbbHVRwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Aug 2015 13:52:35 -0400
-Date: Sat, 22 Aug 2015 14:52:29 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:48498 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753301AbbH3DHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Aug 2015 23:07:51 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 33/39] fixup: dvb_tuner_info
-Message-ID: <20150822145229.703af950@recife.lan>
-In-Reply-To: <d4222ac1aba318967aef10bce248252efd040bf7.1440264165.git.mchehab@osg.samsung.com>
-References: <cover.1440264165.git.mchehab@osg.samsung.com>
-	<d4222ac1aba318967aef10bce248252efd040bf7.1440264165.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 22/55] [media] media: make link debug printk more generic
+Date: Sun, 30 Aug 2015 00:06:33 -0300
+Message-Id: <33ebce0d6df107c0cc0f8e68fe84f83fae199d93.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 22 Aug 2015 14:28:18 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Remove entity name from the link as this exists only if the object
+type is PAD on both link ends.
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-> index afcd02932a92..8fc8d3a98382 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb-core/dvb_frontend.h
-> @@ -76,7 +76,8 @@ struct dvb_frontend;
->   * @bandwidth_max:	maximum frontend bandwidth supported
->   * @bandwidth_step:	frontend bandwidth step
->   *
-> - * NOTE: step_size is in Hz, for terrestrial/cable or kHz for satellite
-> + * NOTE: frequency parameters are in Hz, for terrestrial/cable or kHz for
-> + * satellite.
->   */
->  struct dvb_tuner_info {
->  	char name[128];
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Obviously this patch should be merged with patch 30/39. Forgot to
-do it before sending this mailbomb.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 6d06be6c9ef3..973d1be427c5 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -106,16 +106,14 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 		struct media_link *link = gobj_to_link(gobj);
+ 
+ 		dev_dbg(gobj->mdev->dev,
+-			"%s: id 0x%08x link#%d: '%s' %s#%d ==> '%s' %s#%d\n",
++			"%s: id 0x%08x link#%d: %s#%d ==> %s#%d\n",
+ 			event_name, gobj->id, media_localid(gobj),
+ 
+-			link->source->entity->name,
+-			gobj_type(media_type(&link->source->graph_obj)),
+-			media_localid(&link->source->graph_obj),
++			gobj_type(media_type(link->gobj0)),
++			media_localid(link->gobj0),
+ 
+-			link->sink->entity->name,
+-			gobj_type(media_type(&link->sink->graph_obj)),
+-			media_localid(&link->sink->graph_obj));
++			gobj_type(media_type(link->gobj1)),
++			media_localid(link->gobj1));
+ 		break;
+ 	}
+ 	case MEDIA_GRAPH_PAD:
+-- 
+2.4.3
 
-Regards,
-Mauro
