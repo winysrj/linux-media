@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52911 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48394 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934045AbbHLHIz (ORCPT
+	with ESMTP id S1753256AbbH3DHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 03:08:55 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com,
-	hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com,
-	dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org,
-	dwmw2@infradead.org, alex.williamson@redhat.com,
-	grundler@parisc-linux.org, linux-kernel@vger.kernel.org,
-	linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-	linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-parisc@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
-Subject: RFC: prepare for struct scatterlist entries without page backing
-Date: Wed, 12 Aug 2015 09:05:19 +0200
-Message-Id: <1439363150-8661-1-git-send-email-hch@lst.de>
+	Sat, 29 Aug 2015 23:07:47 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH v8 35/55] [media] s5k5baf: fix subdev type
+Date: Sun, 30 Aug 2015 00:06:46 -0300
+Message-Id: <7ed3721139e459f5dd4cdd05bd1e58f248fc0781.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dan Williams started to look into addressing I/O to and from
-Persistent Memory in his series from June:
+X-Patchwork-Delegate: m.chehab@samsung.com
+This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
+some subdevs with a non-existing type.
 
-	http://thread.gmane.org/gmane.linux.kernel.cross-arch/27944
+As this is a sensor driver, the proper type is likely
+MEDIA_ENT_T_V4L2_SUBDEV_SENSOR.
 
-I've started looking into DMA mapping of these SGLs specifically instead
-of the map_pfn method in there.  In addition to supporting NVDIMM backed
-I/O I also suspect this would be highly useful for media drivers that
-go through nasty hoops to be able to DMA from/to their ioremapped regions,
-with vb2_dc_get_userptr in drivers/media/v4l2-core/videobuf2-dma-contig.c
-being a prime example for the unsafe hacks currently used.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-It turns out most DMA mapping implementation can handle SGLs without
-page structures with some fairly simple mechanical work.  Most of it
-is just about consistently using sg_phys.  For implementations that
-need to flush caches we need a new helper that skips these cache
-flushes if a entry doesn't have a kernel virtual address.
-
-However the ccio (parisc) and sba_iommu (parisc & ia64) IOMMUs seem
-to be operate mostly on virtual addresses.  It's a fairly odd concept
-that I don't fully grasp, so I'll need some help with those if we want
-to bring this forward.
-
-Additional this series skips ARM entirely for now.  The reason is
-that most arm implementations of the .map_sg operation just iterate
-over all entries and call ->map_page for it, which means we'd need
-to convert those to a ->map_pfn similar to Dan's previous approach.
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index d3bff30bcb6f..0513196bd48c 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
+ 
+ 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+ 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
+ 
+ 	if (!ret)
+-- 
+2.4.3
 
