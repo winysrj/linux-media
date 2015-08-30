@@ -1,103 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f174.google.com ([209.85.223.174]:33183 "EHLO
-	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965175AbbHKPXB (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48396 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753261AbbH3DHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 11:23:01 -0400
-Received: by iods203 with SMTP id s203so8662926iod.0
-        for <linux-media@vger.kernel.org>; Tue, 11 Aug 2015 08:23:01 -0700 (PDT)
-From: Abhilash Jindal <klock.android@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Abhilash Jindal <klock.android@gmail.com>
-Subject: [PATCH] [media] bt8xxx: Use monotonic time
-Date: Tue, 11 Aug 2015 11:22:57 -0400
-Message-Id: <1439306577-3281-1-git-send-email-klock.android@gmail.com>
+	Sat, 29 Aug 2015 23:07:48 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY ioctl
+Date: Sun, 30 Aug 2015 00:07:00 -0300
+Message-Id: <8e914e59660fc35b074b72e39dc1b1200d52617b.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Wall time obtained from do_gettimeofday is susceptible to sudden jumps due to
-user setting the time or due to NTP.
+Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
+with the RFC for the MC next generation.
 
-Monotonic time is constantly increasing time better suited for comparing two
-timestamps.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Abhilash Jindal <klock.android@gmail.com>
----
- drivers/media/pci/bt8xx/bttv-input.c |   23 +++++++++--------------
- drivers/media/pci/bt8xx/bttvp.h      |    2 +-
- 2 files changed, 10 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
-index 67c8d6b..0f21771 100644
---- a/drivers/media/pci/bt8xx/bttv-input.c
-+++ b/drivers/media/pci/bt8xx/bttv-input.c
-@@ -194,21 +194,18 @@ static u32 bttv_rc5_decode(unsigned int code)
- static void bttv_rc5_timer_end(unsigned long data)
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 5b2c9f7fcd45..a91e1ec076a6 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -232,6 +232,136 @@ static long media_device_setup_link(struct media_device *mdev,
+ 	return ret;
+ }
+ 
++static long __media_device_get_topology(struct media_device *mdev,
++				      struct media_v2_topology *topo)
++{
++	struct media_entity *entity;
++	struct media_interface *intf;
++	struct media_pad *pad;
++	struct media_link *link;
++	struct media_v2_entity uentity;
++	struct media_v2_interface uintf;
++	struct media_v2_pad upad;
++	struct media_v2_link ulink;
++	int ret = 0, i;
++
++	topo->topology_version = mdev->topology_version;
++
++	/* Get entities and number of entities */
++	i = 0;
++	media_device_for_each_entity(entity, mdev) {
++		i++;
++
++		if (ret || !topo->entities)
++			continue;
++
++		/* Copy fields to userspace struct if not error */
++		memset(&uentity, 0, sizeof(uentity));
++		uentity.id = entity->graph_obj.id;
++		strncpy(uentity.name, entity->name,
++			sizeof(uentity.name));
++
++		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
++			ret = -EFAULT;
++	}
++	topo->num_entities = i;
++
++	/* Get interfaces and number of interfaces */
++	i = 0;
++	media_device_for_each_intf(intf, mdev) {
++		i++;
++
++		if (ret || !topo->interfaces)
++			continue;
++
++		memset(&uintf, 0, sizeof(uintf));
++
++		/* Copy intf fields to userspace struct */
++		uintf.id = intf->graph_obj.id;
++		uintf.intf_type = intf->type;
++		uintf.flags = intf->flags;
++
++		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
++			struct media_intf_devnode *devnode;
++
++			devnode = intf_to_devnode(intf);
++
++			uintf.devnode.major = devnode->major;
++			uintf.devnode.minor = devnode->minor;
++		}
++
++		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
++			ret = -EFAULT;
++	}
++	topo->num_interfaces = i;
++
++	/* Get pads and number of pads */
++	i = 0;
++	media_device_for_each_pad(pad, mdev) {
++		i++;
++
++		if (ret || !topo->pads)
++			continue;
++
++		memset(&upad, 0, sizeof(upad));
++
++		/* Copy pad fields to userspace struct */
++		upad.id = pad->graph_obj.id;
++		upad.entity_id = pad->entity->graph_obj.id;
++		upad.flags = pad->flags;
++
++		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
++			ret = -EFAULT;
++	}
++	topo->num_pads = i;
++
++	/* Get links and number of links */
++	i = 0;
++	media_device_for_each_link(link, mdev) {
++		i++;
++
++		if (ret || !topo->links)
++			continue;
++
++		memset(&ulink, 0, sizeof(ulink));
++
++		/* Copy link fields to userspace struct */
++		ulink.id = link->graph_obj.id;
++		ulink.source_id = link->gobj0->id;
++		ulink.sink_id = link->gobj1->id;
++		ulink.flags = link->flags;
++
++		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
++			ulink.flags |= MEDIA_NEW_LNK_FL_INTERFACE_LINK;
++
++		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
++			ret = -EFAULT;
++	}
++	topo->num_links = i;
++
++	return ret;
++}
++
++static long media_device_get_topology(struct media_device *mdev,
++				      struct media_v2_topology __user *utopo)
++{
++	struct media_v2_topology ktopo;
++	int ret;
++
++	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
++
++	if (ret < 0)
++		return ret;
++
++	ret = __media_device_get_topology(mdev, &ktopo);
++	if (ret < 0)
++		return ret;
++
++	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
++
++	return ret;
++}
++
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
  {
- 	struct bttv_ir *ir = (struct bttv_ir *)data;
--	struct timeval tv;
-+	ktime_t tv;
- 	u32 gap, rc5, scancode;
- 	u8 toggle, command, system;
+@@ -264,6 +394,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
  
- 	/* get time */
--	do_gettimeofday(&tv);
-+	tv = ktime_get();
- 
-+	gap = ktime_to_us(ktime_sub(tv, ir->base_time));
- 	/* avoid overflow with gap >1s */
--	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
-+	if (gap > USEC_PER_SEC) {
- 		gap = 200000;
--	} else {
--		gap = 1000000 * (tv.tv_sec - ir->base_time.tv_sec) +
--		    tv.tv_usec - ir->base_time.tv_usec;
--	}
--
-+	} 
- 	/* signal we're ready to start a new code */
- 	ir->active = false;
- 
-@@ -249,7 +246,7 @@ static void bttv_rc5_timer_end(unsigned long data)
- static int bttv_rc5_irq(struct bttv *btv)
- {
- 	struct bttv_ir *ir = btv->remote;
--	struct timeval tv;
-+	ktime_t tv;
- 	u32 gpio;
- 	u32 gap;
- 	unsigned long current_jiffies;
-@@ -259,14 +256,12 @@ static int bttv_rc5_irq(struct bttv *btv)
- 
- 	/* get time of bit */
- 	current_jiffies = jiffies;
--	do_gettimeofday(&tv);
-+	tv = ktime_get();
- 
-+	gap = ktime_to_us(ktime_sub(tv, ir->base_time));
- 	/* avoid overflow with gap >1s */
--	if (tv.tv_sec - ir->base_time.tv_sec > 1) {
-+	if (gap > USEC_PER_SEC) {
- 		gap = 200000;
--	} else {
--		gap = 1000000 * (tv.tv_sec - ir->base_time.tv_sec) +
--		    tv.tv_usec - ir->base_time.tv_usec;
++	case MEDIA_IOC_G_TOPOLOGY:
++		mutex_lock(&dev->graph_mutex);
++		ret = media_device_get_topology(dev,
++				(struct media_v2_topology __user *)arg);
++		mutex_unlock(&dev->graph_mutex);
++		break;
++
+ 	default:
+ 		ret = -ENOIOCTLCMD;
  	}
+@@ -312,6 +449,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 	case MEDIA_IOC_DEVICE_INFO:
+ 	case MEDIA_IOC_ENUM_ENTITIES:
+ 	case MEDIA_IOC_SETUP_LINK:
++	case MEDIA_IOC_G_TOPOLOGY:
+ 		return media_device_ioctl(filp, cmd, arg);
  
- 	dprintk("RC5 IRQ: gap %d us for %s\n",
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index a444cfb..31bf79d 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -140,7 +140,7 @@ struct bttv_ir {
- 	bool			rc5_gpio;   /* Is RC5 legacy GPIO enabled? */
- 	u32                     last_bit;   /* last raw bit seen */
- 	u32                     code;       /* raw code under construction */
--	struct timeval          base_time;  /* time of last seen code */
-+	ktime_t          				base_time;  /* time of last seen code */
- 	bool                    active;     /* building raw code */
- };
- 
+ 	case MEDIA_IOC_ENUM_LINKS32:
 -- 
-1.7.9.5
+2.4.3
 
