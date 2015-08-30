@@ -1,58 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50393 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751811AbbHJMoS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48363 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220AbbH3DHq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 08:44:18 -0400
-Message-ID: <55C89C86.2070707@xs4all.nl>
-Date: Mon, 10 Aug 2015 14:43:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	media-workshop@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [RFC] Media graph flow for an hybrid device as discussed at the
- media workshop
-References: <20150808083330.7daf111f@recife.lan>
-In-Reply-To: <20150808083330.7daf111f@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 29 Aug 2015 23:07:46 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH v8 40/55] [media] media.h: don't use legacy entity macros at Kernel
+Date: Sun, 30 Aug 2015 00:06:51 -0300
+Message-Id: <720b750e2738f8c70535b01c9c3a3dddf044db69.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Put the legacy MEDIA_ENT_* macros under a #ifndef __KERNEL__,
+in order to be sure that none of those old symbols are used
+inside the Kernel.
 
-On 08/08/2015 01:33 PM, Mauro Carvalho Chehab wrote:
-> During the discussions at the Media Workshop, we came with some dot files that
-> would describe a hybrid PC-consumer TV stick with radio, analog video, analog
-> TV and digital TV on it.
-> 
-> I consolidated all the dot files we've worked there, and added the
-> connectors for RF, S-Video and Composite.
-> 
-> The dot file and the corresponding picture is at:
-> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.dot
-> 	http://linuxtv.org/downloads/presentations/mc_ws_2015/dvb-pipeline-v2.png
-> 
-> As my plan is to start working on some real driver to produce such graph,
-> please validate if the entities, interfaces, data links and interface links
-> are correct, and if the namespace nomenclature is ok, or if I miss something.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This looks OK to me, except for one small detail: I wouldn't use the name
-"Source entities" for connectors. Instead use "Connector entities" since
-such entities correspond to actual real connectors on a backplane. A proper
-source entity would be a sensor or test pattern generator. Which actually
-can occur with the em28xx since it's used in webcams as well.
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index cd486fc25f1e..4186891e5e81 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -107,6 +107,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 3)
+ #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 4)
+ 
++#ifndef __KERNEL__
+ /* Legacy symbols used to avoid userspace compilation breakages */
+ #define MEDIA_ENT_TYPE_SHIFT		16
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+@@ -120,6 +121,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+ #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+ #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
++#endif
+ 
+ /* Entity types */
+ 
+-- 
+2.4.3
 
-And a really, really small detail: in the legend the 'interface link' is an
-arrow, but it should be a line, since there is no direction. The graph itself
-is fine.
-
-As you mentioned on irc, the v4l-subdevX nodes won't be created for this device
-since all the configuration happens via the standard interfaces.
-
-But if they were to be created, then they would appear where they are in this
-example.
-
-Regards,
-
-	Hans
