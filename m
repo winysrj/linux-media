@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54020 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741AbbHUAPb (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:35152 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751706AbbH3Jxt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 20:15:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] [media] staging: omap4iss: get entity ID using media_entity_id()
-Date: Fri, 21 Aug 2015 03:15:27 +0300
-Message-ID: <1723673.4H9JUSKm09@avalon>
-In-Reply-To: <55D66D4D.2030307@osg.samsung.com>
-References: <1439998526-12832-1-git-send-email-javier@osg.samsung.com> <3021244.b1huftRsSL@avalon> <55D66D4D.2030307@osg.samsung.com>
+	Sun, 30 Aug 2015 05:53:49 -0400
+Received: by wicne3 with SMTP id ne3so50262700wic.0
+        for <linux-media@vger.kernel.org>; Sun, 30 Aug 2015 02:53:48 -0700 (PDT)
+Subject: Re: [BUG] STV0299 has bogus CAN_INVERSION_AUTO flag
+To: Johann Klammer <klammerj@a1.net>, linux-media@vger.kernel.org
+References: <55DB3608.5010906@a1.net>
+Cc: hverkuil@xs4all.nl
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Message-ID: <55E2D2A8.5010607@gmail.com>
+Date: Sun, 30 Aug 2015 10:53:44 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <55DB3608.5010906@a1.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-On Friday 21 August 2015 02:14:05 Javier Martinez Canillas wrote:
-> On 08/20/2015 08:37 PM, Laurent Pinchart wrote:
-> > On Wednesday 19 August 2015 17:35:19 Javier Martinez Canillas wrote:
-> >> The struct media_entity does not have an .id field anymore since
-> >> now the entity ID is stored in the embedded struct media_gobj.
-> >> 
-> >> This caused the omap4iss driver fail to build. Fix by using the
-> >> media_entity_id() macro to obtain the entity ID.
-> >> 
-> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> > 
-> > This looks fine to me. The patch needs to be moved between Mauro's 1/8 and
-> > 2/8 patches to avoid breaking bisection with patch 3/8. I'd squash this
-> > patch and 2/4 into a single "media: Use media_entity_id() in drivers"
-> > patch.
+On 24/08/15 16:19, Johann Klammer wrote:
+> from gdb dump:
+> [...]
+> info = {
+>        name = "ST STV0299 DVB-S", '\000' <repeats 111 times>, type = FE_QPSK,
+>        frequency_min = 950000, frequency_max = 2150000,
+>        frequency_stepsize = 125, frequency_tolerance = 0,
+>        symbol_rate_min = 1000000, symbol_rate_max = 45000000,
+>        symbol_rate_tolerance = 500, notifier_delay = 0,
+>        caps = (FE_CAN_INVERSION_AUTO | FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 | FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO | FE_CAN_QPSK)},
+> [...]
 >
-> Yes, Hans and Mauro already mentioned it and I completely agree that
-> should be squashed with Mauro's patch to maintain git bisect-ability.
+> when tuning:
+> [...]
+Hi
+..
+> [331020.207352] stv0299 does not support auto-inversion
+> [331020.507480] stv0299 does not support auto-inversion
+> [331020.807610] stv0299 does not support auto-inversion
+> [331021.107747] stv0299 does not support auto-inversion
+> [...]
+> (but how the heck should I know?)
 
-I wouldn't squash patches 1/4 and 2/4 into Mauro's 3/8 patch as Hans proposed, 
-but instead squashing them together into a single patch and move the result as 
-1.5/8 in Mauro's series.
+I am using the stv0299 with no problems at all, the code hasn't changed 
+much in years. I am using linux 4.2-rc6
 
--- 
-Regards,
+You shouldn't be getting that message as dvb core does the auto 
+inversion for the driver.
 
-Laurent Pinchart
+I looked through the code and can't find any fault.
+
+
+Regards
+
+
+Malcolm
+
+
+
+
+
 
