@@ -1,56 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52944 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48623 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995AbbHLUPJ (ORCPT
+	with ESMTP id S1753357AbbH3DH7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 16:15:09 -0400
+	Sat, 29 Aug 2015 23:07:59 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC v3 04/16] media: ensure that entities will have an object ID
-Date: Wed, 12 Aug 2015 17:14:48 -0300
-Message-Id: <c65da4024cbf92a2a87be387b86a456688ed7380.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1439410053.git.mchehab@osg.samsung.com>
-References: <cover.1439410053.git.mchehab@osg.samsung.com>
+Subject: [PATCH v8 08/55] [media] media: add messages when media device gets (un)registered
+Date: Sun, 30 Aug 2015 00:06:19 -0300
+Message-Id: <2e64a28d41d8f02ae207ef44fbf454da09872ad4.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All objects need an object ID. However, as v4l2 subdevs embeed
-entities internally, the code needs to manually check if the
-entity objects were not properly initialized and do it at
-entity register time.
+We can only free the media device after being sure that no
+graph object is used.
+
+In order to help tracking it, let's add debug messages
+that will print when the media controller gets registered
+or unregistered.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index e627b0b905ad..960a4e30c68d 100644
+index 065f6f08da37..0f3844470147 100644
 --- a/drivers/media/media-device.c
 +++ b/drivers/media/media-device.c
-@@ -435,6 +435,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	entity->parent = mdev;
+@@ -359,6 +359,7 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
  
- 	spin_lock(&mdev->lock);
-+	/* Initialize media_graph_obj embedded at the entity */
-+	graph_obj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ static void media_device_release(struct media_devnode *mdev)
+ {
++	dev_dbg(mdev->parent, "Media device released\n");
+ }
+ 
+ /**
+@@ -397,6 +398,8 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return ret;
+ 	}
+ 
++	dev_dbg(mdev->dev, "Media device registered\n");
 +
-+	/*
-+	 * FIXME: should it use the unique object ID or would it
-+	 * break support on the legacy MC API?
-+	 */
- 	if (entity->id == 0)
- 		entity->id = mdev->entity_id++;
- 	else
-@@ -461,6 +468,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- 		return;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+@@ -416,6 +419,8 @@ void media_device_unregister(struct media_device *mdev)
  
- 	spin_lock(&mdev->lock);
-+	graph_obj_remove(&entity->graph_obj);
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->parent = NULL;
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	media_devnode_unregister(&mdev->devnode);
++
++	dev_dbg(mdev->dev, "Media device unregistered\n");
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
 -- 
 2.4.3
 
