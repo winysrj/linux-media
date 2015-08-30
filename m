@@ -1,87 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55380 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbbHUWcO (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48354 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753205AbbH3DHo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 18:32:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: [PATCH] v4l: omap3isp: Enable driver compilation with COMPILE_TEST
-Date: Sat, 22 Aug 2015 01:32:10 +0300
-Message-ID: <14726163.UmoqPsfLVT@avalon>
-In-Reply-To: <20150821174515.360b87e9@recife.lan>
-References: <1440180557-28180-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150821174515.360b87e9@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 29 Aug 2015 23:07:44 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v8 03/55] [media] omap3isp: get entity ID using media_entity_id()
+Date: Sun, 30 Aug 2015 00:06:14 -0300
+Message-Id: <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 
-On Friday 21 August 2015 17:45:15 Mauro Carvalho Chehab wrote:
-> Em Fri, 21 Aug 2015 21:09:17 +0300 Laurent Pinchart escreveu:
-> > The omap3isp driver can't be compiled on non-ARM platforms but has no
-> > compile-time dependency on OMAP. Drop the OMAP dependency when
-> > COMPILE_TEST is set.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/Kconfig | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/Kconfig
-> > b/drivers/media/platform/Kconfig index 484038185ae3..95f0f6e6bbc8 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -85,7 +85,9 @@ config VIDEO_M32R_AR_M64278
-> > 
-> >  config VIDEO_OMAP3
-> >  	tristate "OMAP 3 Camera support"
-> > -	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-> > +	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-> > +	depends on ARCH_OMAP3 || COMPILE_TEST
-> > +	depends on ARM
-> >  	depends on HAS_DMA && OF
-> >  	depends on OMAP_IOMMU
-> >  	select ARM_DMA_USE_IOMMU
-> 
-> Sorry, but this doesn't make sense.
-> 
-> We can only add COMPILE_TEST after getting rid of those
-> 	depends on OMAP_IOMMU
->   	select ARM_DMA_USE_IOMMU
-> 
-> The COMPILE_TEST flag was added to support building drivers with
-> allyesconfig/allmodconfig for all archs. Selecting a sub-arch
-> specific configuration doesn't help at all (or make any difference,
-> as if such subarch is already selected, a make allmodconfig/allyesconfig
-> will build the driver anyway).
+Assessing media_entity ID should now use media_entity_id() macro to
+obtain the entity ID, as a next patch will remove the .id field from
+struct media_entity .
 
-As explained in the commit message, the driver currently explicitly depends on 
-the OMAP IOMMU API (as well as the ARM DMA mapping API). That's something that 
-will be removed at some point in the future (it "only" requires finding time 
-to clean the code). COMPILE_TEST will then be useful and will need to be 
-enabled by a patch similar to this one. I thus don't see a big reason not to 
-enable COMPILE_TEST support now.
+So, get rid of it, otherwise the omap3isp driver will fail to build.
 
-> One of the main reasons why this is interesting is to support the
-> Coverity Scan community license, used by the Kernel janitors. This
-> tool runs only on x86.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Not all drivers can be compiled on x86, some dependencies on ARM APIs can be 
-valid. COMPILE_TEST with a dependency on ARM is already useful as it gives a 
-much wider compile coverage than depending on a particular ARM platform. I 
-would even not be surprised if the Linux kernel was compiled for ARM more 
-often that x86 nowadays.
-
-As for coverity, how does running on x86 doesn't preclude analyzing source 
-code written for ARM platforms ?
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 56e683b19a73..e08183f9d0f7 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+ 	struct v4l2_subdev *subdev;
+ 	int failure = 0;
+ 	int ret;
++	u32 id;
+ 
+ 	/*
+ 	 * We need to stop all the modules after CCDC first or they'll
+@@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+ 		if (ret) {
+ 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
+ 			isp->stop_failure = true;
+-			if (subdev == &isp->isp_prev.subdev)
+-				isp->crashed |= 1U << subdev->entity.id;
++			if (subdev == &isp->isp_prev.subdev) {
++				id = media_entity_id(&subdev->entity);
++				isp->crashed |= 1U << id;
++			}
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 3b10304b580b..d96e3be5e252 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+ 	/* Wait for the CCDC to become idle. */
+ 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
+ 		dev_info(isp->dev, "CCDC won't become idle!\n");
+-		isp->crashed |= 1U << ccdc->subdev.entity.id;
++		isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
+ 		omap3isp_pipeline_cancel_stream(pipe);
+ 		return 0;
+ 	}
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3094572f8897..6c89dc40df85 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -235,7 +235,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		struct isp_video *__video;
+ 
+-		pipe->entities |= 1 << entity->id;
++		pipe->entities |= 1 << media_entity_id(entity);
+ 
+ 		if (far_end != NULL)
+ 			continue;
+@@ -891,6 +891,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 	struct v4l2_ext_control ctrl;
+ 	unsigned int i;
+ 	int ret;
++	u32 id;
+ 
+ 	/* Memory-to-memory pipelines have no external subdev. */
+ 	if (pipe->input != NULL)
+@@ -898,7 +899,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ents); i++) {
+ 		/* Is the entity part of the pipeline? */
+-		if (!(pipe->entities & (1 << ents[i]->id)))
++		if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
+ 			continue;
+ 
+ 		/* ISP entities have always sink pad == 0. Find source. */
+@@ -950,7 +951,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+ 
+ 	pipe->external_rate = ctrl.value64;
+ 
+-	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
++	id = media_entity_id(&isp->isp_ccdc.subdev.entity);
++	if (pipe->entities & (1 << id)) {
+ 		unsigned int rate = UINT_MAX;
+ 		/*
+ 		 * Check that maximum allowed CCDC pixel rate isn't
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
