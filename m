@@ -1,90 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41745 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbbHaMaZ (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:34072 "EHLO
+	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753007AbbHaPZn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Aug 2015 08:30:25 -0400
-Message-ID: <55E448A8.6060004@xs4all.nl>
-Date: Mon, 31 Aug 2015 14:29:28 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 31 Aug 2015 11:25:43 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version
- field
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <e8cb8de5ad8f2da3c32418d67340fe4bb663ce5c.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <e8cb8de5ad8f2da3c32418d67340fe4bb663ce5c.1440902901.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1440784362-31217-5-git-send-email-peter.griffin@linaro.org>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org> <1440784362-31217-5-git-send-email-peter.griffin@linaro.org>
+From: Rob Herring <robherring2@gmail.com>
+Date: Mon, 31 Aug 2015 10:25:22 -0500
+Message-ID: <CAL_JsqLYes5L2Bg0R45ui24yYWgHzFSLgBPajieSLgLz09=1aw@mail.gmail.com>
+Subject: Re: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	hugues.fruchet@st.com,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Lee Jones <lee.jones@linaro.org>, valentinrothberg@gmail.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
-> Every time a graph object is added or removed, the version
-> of the topology changes. That's a requirement for the new
-> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
-> that the topology has changed after a previous call to it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Fri, Aug 28, 2015 at 12:52 PM, Peter Griffin
+<peter.griffin@linaro.org> wrote:
+> gpio.txt documents that GPIO properties should be named
+> "[<name>-]gpios", with <name> being the purpose of this
+> GPIO for the device.
+>
+> This change has been done as one atomic commit.
 
-I think this should be postponed until we actually have dynamic reconfigurable
-graphs.
+dtb and kernel updates are not necessarily atomic, so you are breaking
+compatibility with older dtbs. You should certainly highlight that in
+the commit message. I only point this out. I'll leave it to platform
+maintainers whether or not this breakage is acceptable.
 
-I would also like to reserve version 0: if 0 is returned, then the graph is
-static.
+Rob
 
-In G_TOPOLOGY we'd return always 0 for now.
-
-Regards,
-
-	Hans
-
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index c89f51bc688d..c18f4af52771 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -185,6 +185,9 @@ void media_gobj_init(struct media_device *mdev,
->  		list_add_tail(&gobj->list, &mdev->interfaces);
->  		break;
->  	}
-> +
-> +	mdev->topology_version++;
-> +
->  	dev_dbg_obj(__func__, gobj);
->  }
->  
-> @@ -199,6 +202,8 @@ void media_gobj_remove(struct media_gobj *gobj)
->  {
->  	dev_dbg_obj(__func__, gobj);
->  
-> +	gobj->mdev->topology_version++;
-> +
->  	/* Remove the object from mdev list */
->  	list_del(&gobj->list);
->  }
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 0d1b9c687454..1b12774a9ab4 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -41,6 +41,8 @@ struct device;
->   * @bus_info:	Unique and stable device location identifier
->   * @hw_revision: Hardware device revision
->   * @driver_version: Device driver version
-> + * @topology_version: Monotonic counter for storing the version of the graph
-> + *		topology. Should be incremented each time the topology changes.
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
->   * @link_id:	Unique ID used on the last link registered
-> @@ -74,6 +76,8 @@ struct media_device {
->  	u32 hw_revision;
->  	u32 driver_version;
->  
-> +	u32 topology_version;
-> +
->  	u32 entity_id;
->  	u32 pad_id;
->  	u32 link_id;
-> 
-
+>
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> Acked-by: Lee Jones <lee.jones@linaro.org>
+> ---
+>  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
+>  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
+>  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
+>  3 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+> index d4def76..e70d840 100644
+> --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+> +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+> @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
+>
+>  - tsin-num     : tsin id of the InputBlock (must be between 0 to 6)
+>  - i2c-bus      : phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
+> -- rst-gpio     : reset gpio for this tsin channel.
+> +- reset-gpios  : reset gpio for this tsin channel.
+>
+>  Optional properties (tsin (child) node):
+>
+> @@ -75,7 +75,7 @@ Example:
+>                         tsin-num                = <0>;
+>                         serial-not-parallel;
+>                         i2c-bus                 = <&ssc2>;
+> -                       rst-gpio                = <&pio15 4 0>;
+> +                       reset-gpios             = <&pio15 4 GPIO_ACTIVE_HIGH>;
+>                         dvb-card                = <STV0367_TDA18212_NIMA_1>;
+>                 };
+>
+> @@ -83,7 +83,7 @@ Example:
+>                         tsin-num                = <3>;
+>                         serial-not-parallel;
+>                         i2c-bus                 = <&ssc3>;
+> -                       rst-gpio                = <&pio15 7 0>;
+> +                       reset-gpios             = <&pio15 7 GPIO_ACTIVE_HIGH>;
+>                         dvb-card                = <STV0367_TDA18212_NIMB_1>;
+>                 };
+>         };
+> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> index f9fca10..0b7592e 100644
+> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> @@ -6,8 +6,8 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> -
+>  #include <dt-bindings/clock/stih407-clks.h>
+> +#include <dt-bindings/gpio/gpio.h>
+>  #include <dt-bindings/media/c8sectpfe.h>
+>  / {
+>         soc {
+> @@ -116,7 +116,7 @@
+>                                 tsin-num        = <0>;
+>                                 serial-not-parallel;
+>                                 i2c-bus         = <&ssc2>;
+> -                               rst-gpio        = <&pio15 4 GPIO_ACTIVE_HIGH>;
+> +                               reset-gpios     = <&pio15 4 GPIO_ACTIVE_HIGH>;
+>                                 dvb-card        = <STV0367_TDA18212_NIMA_1>;
+>                         };
+>                 };
+> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> index 3a91093..c691e13 100644
+> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> @@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+>                 }
+>                 of_node_put(i2c_bus);
+>
+> -               tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
+> +               tsin->rst_gpio = of_get_named_gpio(child, "reset-gpios", 0);
+>
+>                 ret = gpio_is_valid(tsin->rst_gpio);
+>                 if (!ret) {
+> --
+> 1.9.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
