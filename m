@@ -1,221 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44597 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751691AbbHYJBH (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49300 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751372AbbHaKpG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Aug 2015 05:01:07 -0400
-Message-ID: <55DC2E2D.4090000@xs4all.nl>
-Date: Tue, 25 Aug 2015 10:58:21 +0200
+	Mon, 31 Aug 2015 06:45:06 -0400
+Message-ID: <55E42FF9.7020505@xs4all.nl>
+Date: Mon, 31 Aug 2015 12:44:09 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v7 24/44] [media] uapi/media.h: Fix entity namespace
-References: <cover.1440359643.git.mchehab@osg.samsung.com> <5cf25be2d0508e02f6ffe469509fa12c45ddcb8d.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <5cf25be2d0508e02f6ffe469509fa12c45ddcb8d.1440359643.git.mchehab@osg.samsung.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 20/55] [media] media: make add link more generic
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/23/15 22:17, Mauro Carvalho Chehab wrote:
-> Now that interfaces got created, we need to fix the entity
-> namespace.
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> The media_entity_add_link() function takes an entity
+> as an argument just to get the list head.
 > 
-> So, let's create a consistent new namespace and add backward
-> compatibility macros to keep the old namespace preserved.
+> Make it more generic by changing the function argument
+> to list_head.
+> 
+> No functional changes.
 > 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 > 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 5a2bd03f5dc0..acada5ba9442 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -229,17 +229,17 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index ff63201443d7..6d06be6c9ef3 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -580,7 +580,7 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+>   * Links management
+>   */
 >  
->  	switch (type) {
->  	case DVB_DEVICE_FRONTEND:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMOD;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
->  	case DVB_DEVICE_DEMUX:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMUX;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
->  	case DVB_DEVICE_CA:
-> -		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-> +		dvbdev->entity->type = MEDIA_ENT_T_DVB_CA;
->  		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
->  		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
->  		break;
-> @@ -438,7 +438,7 @@ EXPORT_SYMBOL(dvb_unregister_device);
->  void dvb_create_media_graph(struct dvb_adapter *adap)
+> -static struct media_link *media_entity_add_link(struct media_entity *entity)
+> +static struct media_link *media_add_link(struct list_head *head)
 >  {
->  	struct media_device *mdev = adap->mdev;
-> -	struct media_entity *entity, *tuner = NULL, *fe = NULL;
-> +	struct media_entity *entity, *tuner = NULL, *demod = NULL;
->  	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
->  	struct media_interface *intf;
+>  	struct media_link *link;
 >  
-> @@ -450,26 +450,26 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
->  			tuner = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_FE:
-> -			fe = entity;
-> +		case MEDIA_ENT_T_DVB_DEMOD:
-> +			demod = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
-> +		case MEDIA_ENT_T_DVB_DEMUX:
->  			demux = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
-> +		case MEDIA_ENT_T_DVB_TSOUT:
->  			dvr = entity;
->  			break;
-> -		case MEDIA_ENT_T_DEVNODE_DVB_CA:
-> +		case MEDIA_ENT_T_DVB_CA:
->  			ca = entity;
->  			break;
->  		}
->  	}
+> @@ -588,7 +588,7 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+>  	if (link == NULL)
+>  		return NULL;
 >  
-> -	if (tuner && fe)
-> -		media_create_pad_link(tuner, 0, fe, 0, 0);
-> +	if (tuner && demod)
-> +		media_create_pad_link(tuner, 0, demod, 0, 0);
+> -	list_add_tail(&link->list, &entity->links);
+> +	list_add_tail(&link->list, head);
 >  
-> -	if (fe && demux)
-> -		media_create_pad_link(fe, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
-> +	if (demod && demux)
-> +		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
+>  	return link;
+>  }
+> @@ -607,7 +607,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+>  	BUG_ON(source_pad >= source->num_pads);
+>  	BUG_ON(sink_pad >= sink->num_pads);
 >  
->  	if (demux && dvr)
->  		media_create_pad_link(demux, 1, dvr, 0, MEDIA_LNK_FL_ENABLED);
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 21c96cd7a6ae..7306aeaff807 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -42,31 +42,67 @@ struct media_device_info {
+> -	link = media_entity_add_link(source);
+> +	link = media_add_link(&source->links);
+>  	if (link == NULL)
+>  		return -ENOMEM;
 >  
->  #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
->  
-> +/*
-> + * Base numbers for entity types
-> + *
-> + * Please notice that the huge gap of 16 bits for each base is overkill!
-> + * 8 bits is more than enough to avoid starving entity types for each
-> + * subsystem.
-> + *
-> + * However, It is kept this way just to avoid binary breakages with the
-> + * namespace provided on legacy versions of this header.
-> + */
-> +#define MEDIA_ENT_T_DVB_BASE		0x00000000
-> +#define MEDIA_ENT_T_V4L2_BASE		0x00010000
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
-> +
-> +/* V4L2 entities */
-> +#define MEDIA_ENT_T_V4L2_VIDEO		(MEDIA_ENT_T_V4L2_BASE + 1)
-> +	/*
-> +	 * Please notice that numbers between MEDIA_ENT_T_V4L2_BASE + 2 and
-> +	 * MEDIA_ENT_T_V4L2_BASE + 4 can't be used, as those values used
-> +	 * to be declared for FB, ALSA and DVB entities.
-> +	 * As those values were never atually used in practice, we're just
-
-s/atually/actually/
-
-> +	 * adding them as backward compatibily macros and keeping the
-
-s/compatibily/compatibility/
-
-> +	 * numberspace cleaned here. This way, we avoid breaking compilation,
-
-s/cleaned/clean/
-
-> +	 * in the case of having some userspace application using the old
-> +	 * symbols.
-> +	 */
-> +#define MEDIA_ENT_T_V4L2_VBI		(MEDIA_ENT_T_V4L2_BASE + 5)
-> +#define MEDIA_ENT_T_V4L2_RADIO		(MEDIA_ENT_T_V4L2_BASE + 6)
-> +#define MEDIA_ENT_T_V4L2_SWRADIO	(MEDIA_ENT_T_V4L2_BASE + 7)
-
-Why are these entities? Aren't these interface types?
-
-> +
-> +/* V4L2 Sub-device entities */
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 1)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 2)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 3)
-> +	/* A converter of analogue video to its digital representation. */
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 4)
-> +	/* Tuner entity is actually both V4L2 and DVB subdev */
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 5)
-> +
-> +/* DVB entities */
-> +#define MEDIA_ENT_T_DVB_DEMOD		(MEDIA_ENT_T_DVB_BASE + 4)
-> +#define MEDIA_ENT_T_DVB_DEMUX		(MEDIA_ENT_T_DVB_BASE + 5)
-> +#define MEDIA_ENT_T_DVB_TSOUT		(MEDIA_ENT_T_DVB_BASE + 6)
-> +#define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 7)
-> +#define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 8)
-> +
-> +/* Legacy symbols used to avoid userspace compilation breakages */
->  #define MEDIA_ENT_TYPE_SHIFT		16
->  #define MEDIA_ENT_TYPE_MASK		0x00ff0000
->  #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
->  
-> -#define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
-> -#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
-> +#define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_T_V4L2_BASE
-> +#define MEDIA_ENT_T_V4L2_SUBDEV		MEDIA_ENT_T_V4L2_SUBDEV_BASE
-> +
-> +#define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_T_V4L2_VIDEO
-> +
->  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
->  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
-> -#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
-> +#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
->  
-> -/* Legacy symbol. Use it to avoid userspace compilation breakages */
-> -#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
-> -
-> -#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
-> -/* A converter of analogue video to its digital representation. */
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
-> -
-> -#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-> +/* Entity types */
->  
->  #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
->  
+> @@ -622,7 +622,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+>  	/* Create the backlink. Backlinks are used to help graph traversal and
+>  	 * are not reported to userspace.
+>  	 */
+> -	backlink = media_entity_add_link(sink);
+> +	backlink = media_add_link(&sink->links);
+>  	if (backlink == NULL) {
+>  		__media_entity_remove_link(source, link);
+>  		return -ENOMEM;
 > 
 
-Hmm, I'm postponing further review. It might become clearer after reviewing
-more of this patch series.
-
-One reason why this is a bit difficult to review is that it is not immediately
-obvious which defines are here for backwards compat (and shouldn't be used in
-the kernel anymore) and which defines are new.
-
-May I suggest that either in this or in a later patch the defines that shouldn't
-be used in the kernel should be placed under #ifndef __KERNEL__?
-
-Regards,
-
-	Hans
