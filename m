@@ -1,70 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42486 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965225AbbHKPUO (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35223 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbbHaL5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Aug 2015 11:20:14 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 4/4] sr030pc30: don't read a new pointer
-Date: Tue, 11 Aug 2015 12:18:33 -0300
-Message-Id: <0a22e79af6be3c0aa69ba055dde1559741dec05b.1439306295.git.mchehab@osg.samsung.com>
-In-Reply-To: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
-References: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
-In-Reply-To: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
-References: <9d8c095a232ee176d14947bbe1330e1e3fbbde4c.1439306295.git.mchehab@osg.samsung.com>
+	Mon, 31 Aug 2015 07:57:34 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NTY00FKH3VW9860@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 31 Aug 2015 12:57:32 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, b.zolnierkie@samsung.com,
+	m.szyprowski@samsung.com, Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH] v4l2-compat-ioctl32: fix alignment for ARM64
+Date: Mon, 31 Aug 2015 13:56:15 +0200
+Message-id: <1441022175-19725-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sr030pc30_get_fmt() can only succeed if both info->curr_win and
-info->curr_fmt are not NULL.
+Alignment/padding rules on AMD64 and ARM64 differs. To allow properly match
+compatible ioctls on ARM64 kernels without breaking AMD64 some fields
+should be aligned using compat_s64 type and in one case struct should be
+unpacked.
 
-If one of those vars are null, the curent code would call:
-	ret = sr030pc30_set_params(sd);
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+Hi Hans,
 
-If the curr_win is null, it will return -EINVAL, as it would be
-expected. However, if curr_fmt is NULL, the function won't
-set it.
+I have tested following structures:
+struct v4l2_format32
+struct v4l2_buffer32
+struct v4l2_framebuffer32
+struct v4l2_standard32
+struct v4l2_input32
+struct v4l2_edid32
+struct v4l2_ext_controls32
+struct v4l2_ext_control32
+struct v4l2_event32
+struct v4l2_create_buffers32
 
-The code will then try to read from it:
+Following structures should be fixed:
+v4l2_standard32 - .id alignment
+v4l2_input32 - whole struct padding
+v4l2_event32 - .data alignment
 
-        mf->code        = info->curr_fmt->code;
-        mf->colorspace  = info->curr_fmt->colorspace;
+I hope this patch does it correctly.
 
-with obviouly won't work.
+Regards
+Andrzej
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-This got reported by smatch:
-	drivers/media/i2c/sr030pc30.c:505 sr030pc30_get_fmt() error: we previously assumed 'info->curr_win' could be null (see line 499)
-	drivers/media/i2c/sr030pc30.c:507 sr030pc30_get_fmt() error: we previously assumed 'info->curr_fmt' could be null (see line 499)
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/i2c/sr030pc30.c b/drivers/media/i2c/sr030pc30.c
-index 229dc76c44a5..47ebe27cb00e 100644
---- a/drivers/media/i2c/sr030pc30.c
-+++ b/drivers/media/i2c/sr030pc30.c
-@@ -496,11 +496,8 @@ static int sr030pc30_get_fmt(struct v4l2_subdev *sd,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index af63543..d309d270 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -266,7 +266,7 @@ static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_
  
- 	mf = &format->format;
+ struct v4l2_standard32 {
+ 	__u32		     index;
+-	__u32		     id[2]; /* __u64 would get the alignment wrong */
++	compat_u64	     id;
+ 	__u8		     name[24];
+ 	struct v4l2_fract    frameperiod; /* Frames, not fields */
+ 	__u32		     framelines;
+@@ -286,7 +286,7 @@ static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
+ {
+ 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
+ 		put_user(kp->index, &up->index) ||
+-		copy_to_user(up->id, &kp->id, sizeof(__u64)) ||
++		put_user(kp->id, &up->id) ||
+ 		copy_to_user(up->name, kp->name, 24) ||
+ 		copy_to_user(&up->frameperiod, &kp->frameperiod, sizeof(kp->frameperiod)) ||
+ 		put_user(kp->framelines, &up->framelines) ||
+@@ -587,10 +587,10 @@ struct v4l2_input32 {
+ 	__u32	     type;		/*  Type of input */
+ 	__u32	     audioset;		/*  Associated audios (bitfield) */
+ 	__u32        tuner;             /*  Associated tuner */
+-	v4l2_std_id  std;
++	compat_s64   std;
+ 	__u32	     status;
+ 	__u32	     reserved[4];
+-} __attribute__ ((packed));
++};
  
--	if (!info->curr_win || !info->curr_fmt) {
--		ret = sr030pc30_set_params(sd);
--		if (ret)
--			return ret;
--	}
-+	if (!info->curr_win || !info->curr_fmt)
-+		return -EINVAL;
- 
- 	mf->width	= info->curr_win->width;
- 	mf->height	= info->curr_win->height;
+ /* The 64-bit v4l2_input struct has extra padding at the end of the struct.
+    Otherwise it is identical to the 32-bit version. */
+@@ -738,6 +738,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ struct v4l2_event32 {
+ 	__u32				type;
+ 	union {
++		compat_s64		value64;
+ 		__u8			data[64];
+ 	} u;
+ 	__u32				pending;
 -- 
-2.4.3
+1.9.1
 
