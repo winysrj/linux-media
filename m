@@ -1,169 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34948 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753663AbbHJNMB (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56640 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753223AbbHaN0g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Aug 2015 09:12:01 -0400
-Message-ID: <55C8A305.9010509@xs4all.nl>
-Date: Mon, 10 Aug 2015 15:11:33 +0200
+	Mon, 31 Aug 2015 09:26:36 -0400
+Message-ID: <55E455D3.2000001@xs4all.nl>
+Date: Mon, 31 Aug 2015 15:25:39 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Helen Fornazier <helen.fornazier@gmail.com>,
-	linux-media@vger.kernel.org
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	mchehab@osg.samsung.com
-Subject: Re: VIMC: API proposal, configuring the topology through user space
-References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
-In-Reply-To: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?windows-1252?Q?Rafae?=
+	 =?windows-1252?Q?l_Louren=E7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH v8 54/55] [media] au0828: unregister MC at the end
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <14e1926c1fdb883abc4d200913cd02371be694f4.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <14e1926c1fdb883abc4d200913cd02371be694f4.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen!
-
-On 08/08/2015 03:55 AM, Helen Fornazier wrote:
-> Hi!
+On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
+> au0828_analog_unregister() calls video_unregister_device(),
+> with, in turn, calls media_devnode_remove() in order to drop
+> the media interfaces.
 > 
-> I've made a first sketch about the API of the vimc driver (virtual
-> media controller) to configure the topology through user space.
-> As first suggested by Laurent Pinchart, it is based on configfs.
-> 
-> I would like to know you opinion about it, if you have any suggestion
-> to improve it, otherwise I'll start its implementation as soon as
-> possible.
-> This API may change with the MC changes and I may see other possible
-> configurations as I implementing it but here is the first idea of how
-> the API will look like.
-> 
-> vimc project link: https://github.com/helen-fornazier/opw-staging/
-> For more information: http://kernelnewbies.org/LaurentPinchart
-> 
-> /***********************
-> The API:
-> ************************/
-> 
-> In short, a topology like this one: http://goo.gl/Y7eUfu
-> Would look like this filesystem tree: https://goo.gl/tCZPTg
-> Txt version of the filesystem tree: https://goo.gl/42KX8Y
-> 
-> * The /configfs/vimc subsystem
+> We can't release the media controller before that, or an
+> OOPS will occur:
 
-I haven't checked the latest vimc driver, but doesn't it support
-multiple instances, just like vivid? I would certainly recommend that.
-
-And if there are multiple instances, then each instance gets its own
-entry in configfs: /configs/vimc0, /configs/vimc1, etc.
-
-> The vimc driver registers a subsystem in the configfs with the
-> following contents:
->         > ls /configfs/vimc
->         build_topology status
-> The build_topology attribute file will be used to tell the driver the
-> configuration is done and it can build the topology internally
->         > echo -n "anything here" > /configfs/vimc/build_topology
-> Reading from the status attribute can have 3 different classes of outputs
-> 1) deployed: the current configured tree is built
-> 2) undeployed: no errors, the user has modified the configfs tree thus
-> the topology was undeployed
-> 3) error error_message: the topology configuration is wrong
-
-I don't see the status file in the filesystem tree links above.
-
-I actually wonder if we can't use build_topology for that: reading it
-will just return the status.
-
-What happens if it is deployed and you want to 'undeploy' it? Instead of
-writing anything to build_topology it might be useful to write a real
-command to it. E.g. 'deploy', 'destroy'.
-
-What happens when you make changes while a topology is deployed? Should
-such changes be rejected until the usecount of the driver goes to 0, or
-will it only be rejected when you try to deploy the new configuration?
-
-> * Creating an entity:
-> Use mkdir in the /configfs/vimc to create an entity representation, e.g.:
->         > mkdir /configfs/vimc/sensor_a
-> The attribute files will be created by the driver through configfs:
->         > ls /configfs/vimc/sensor_a
->         name role
-> Configure the name that will appear to the /dev/media0 and what this
-> node do (debayer, scaler, capture, input, generic)
->         > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
->         > echo -n "sensor" > /configfs/vimc/sensor_a/role
-> 
-> * Creating a pad:
-> Use mkdir inside an entity's folder, the attribute called "direction"
-> will be automatically created in the process, for example:
->         > mkdir /configfs/vimc/sensor_a/pad_0
->         > ls /configfs/vimc/sensor_a/pad_0
->         direction
->         > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
-> The direction attribute can be "source" or "sink"
-
-Hmm. Aren't the pads+direction dictated by the entity role? E.g. a sensor
-will only have one pad which is always a source. I think setting the role
-is what creates the pad directories + direction files.
-
-> 
-> * Creating a link between pads in two steps:
-> Step 1)
-> Create a folder inside the source pad folder, the attribute called
-> "flag" will be automatically created in the process, for example:
->         > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
->         > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
->         flags
->         > echo -n "enabled,immutable" >
-> /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
-> In the flags attribute we can have all the links attributes (enabled,
-> immutable and dynamic) separated by comma
-> 
-> Step 2)
-> Add a symlink between the previous folder we just created in the
-> source pad and the sink pad folder we want to connect. Lets say we
-> want to connect with the pad on the raw_capture_0 entity pad 0
->         > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> /configfs/vimc/raw_capture_0/pad_0/
-
-Can't this be created automatically? Or possibly not at all, since it is
-implicit in step 1.
-
-BTW, the direction is the wrong way around for pads 0 and 1 of the debayer
-and scaler entities: pad_0 is a sink since it gets its data from a sensor
-or debayer source pad.
-
-> 
-> * Build the topology.
-> After configuring it, tell the driver we finished:
->         > echo -n "anything here" > /configfs/vimc/build_topology
->         > cat /configfs/vimc/status
-> 
-> NOTE 1: The entity's numbering, as read from /dev/media0, will be the
-> order of the creation, same about the pads. Pad 0 will be the first
-> pad created in an entity's folder.
-> 
-> NOTE 2: Most of the errors will be captured while configuring the
-> topology, e.g., the user won't be able to setup a link if the pad
-> which contains the /configfs/ent/pad/link/ folder does not have the
-> direction attribute set to source and the use can't change the
-> direction of a pad to sink if it already has a symlink going out of
-> the current pad.
-> 
-> NOTE 3: The user won't be able to modify the configfs tree if any
-> streaming is on.
-
-Ah. But I would make this more strict: the user won't be able to modify
-the configfs tree if any filehandles associated with the device are in
-use.
+So this patch should be moved to a place earlier in the patch series,
+right? To prevent bisects that hit this bug.
 
 Regards,
 
 	Hans
 
 > 
+> [  176.938752] usb 1-4.4: Media device released
+> [  176.938753] usb 1-4.4: Media device unregistered
+> [  177.091235] general protection fault: 0000 [#1] SMP
+> [  177.091253] Modules linked in: ir_lirc_codec ir_xmp_decoder lirc_dev ir_mce_kbd_decoder ir_sharp_decoder ir_sanyo_decoder ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_nec_decoder ir_rc5_decoder au8522_dig xc5000 tuner au8522_decoder au8522_common au0828(-) videobuf2_vmalloc videobuf2_memops tveeprom videobuf2_core dvb_core rc_core v4l2_common videodev media cpufreq_powersave cpufreq_conservative cpufreq_userspace cpufreq_stats parport_pc ppdev lp parport snd_hda_codec_hdmi i915 x86_pkg_temp_thermal intel_powerclamp intel_rapl iosf_mbi coretemp kvm_intel kvm btusb crct10dif_pclmul snd_hda_codec_realtek crc32_pclmul btrtl crc32c_intel btbcm snd_hda_codec_generic ghash_clmulni_intel btintel i2c_algo_bit drm_kms_helper bluetooth iTCO_wdt snd_usb_audio snd_hda_intel iTCO_vendor_support jitterentropy_rng
+> [  177.091455]  snd_hda_codec evdev sha256_ssse3 drm sha256_generic hmac snd_usbmidi_lib snd_hwdep snd_hda_core snd_rawmidi drbg snd_seq_device snd_pcm aesni_intel aes_x86_64 lrw gf128mul mei_me glue_helper snd_timer ablk_helper cryptd mei rfkill snd psmouse sg shpchp soundcore lpc_ich serio_raw i2c_i801 pcspkr mfd_core tpm_tis tpm battery dw_dmac video i2c_designware_platform dw_dmac_core i2c_designware_core acpi_pad processor button ext4 crc16 mbcache jbd2 dm_mod sd_mod ahci libahci libata e1000e scsi_mod ptp pps_core ehci_pci xhci_pci ehci_hcd xhci_hcd thermal fan thermal_sys sdhci_acpi sdhci mmc_core i2c_hid hid [last unloaded: rc_core]
+> [  177.091632] CPU: 1 PID: 18040 Comm: rmmod Tainted: G        W       4.2.0-rc2+ #9
+> [  177.091648] Hardware name: \xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff \xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff\xffffffff/NUC5i7RYB, BIOS RYBDWi35.86A.0246.2015.0309.1355 03/09/2015
+> [  177.091677] task: ffff88040811b080 ti: ffff880036b88000 task.ti: ffff880036b88000
+> [  177.091693] RIP: 0010:[<ffffffff810aecc3>]  [<ffffffff810aecc3>] native_queued_spin_lock_slowpath+0x103/0x180
+> [  177.091718] RSP: 0018:ffff880036b8bcd8  EFLAGS: 00010202
+> [  177.091730] RAX: 0000000000003ffe RBX: ffff880407e11b70 RCX: ffff88041ec962c0
+> [  177.091745] RDX: 7463656a62506357 RSI: 0000000000080000 RDI: ffff880407e11b74
+> [  177.091760] RBP: ffff880407e11b74 R08: 0000000000000001 R09: ffffffff812bf4e0
+> [  177.091776] R10: 0000000000000000 R11: 0000000000000000 R12: ffff88040811b080
+> [  177.091791] R13: ffff88003601cec8 R14: ffff8804084b8890 R15: ffff8804084b8800
+> [  177.091807] FS:  00007f2f9bab1700(0000) GS:ffff88041ec80000(0000) knlGS:0000000000000000
+> [  177.091824] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  177.091837] CR2: 00007fe8c0f900e0 CR3: 0000000035c47000 CR4: 00000000003407e0
+> [  177.091852] Stack:
+> [  177.091857]  ffffffff81562e3d ffffffff815613b3 0000000000000000 0000000000000000
+> [  177.091876]  ffff88040b6d3240 ffff8804084b8890 ffff880407e11b70 ffff88003601cd30
+> [  177.091895]  ffff88003601ce28 ffff88003601cec8 ffff8804084b8890 ffffffff8156148b
+> [  177.091914] Call Trace:
+> [  177.091923]  [<ffffffff81562e3d>] ? _raw_spin_lock+0x1d/0x20
+> [  177.091936]  [<ffffffff815613b3>] ? __mutex_lock_slowpath+0x43/0x100
+> [  177.091951]  [<ffffffff8156148b>] ? mutex_lock+0x1b/0x30
+> [  177.091965]  [<ffffffffa028480d>] ? media_remove_intf_links+0x1d/0x40 [media]
+> [  177.091981]  [<ffffffffa028483e>] ? media_devnode_remove+0xe/0x20 [media]
+> [  177.091997]  [<ffffffffa063d875>] ? v4l2_device_release+0x95/0x100 [videodev]
+> [  177.092014]  [<ffffffff813ca19d>] ? device_release+0x2d/0x90
+> [  177.092028]  [<ffffffff812be5e9>] ? kobject_release+0x79/0x1b0
+> [  177.092042]  [<ffffffffa07b19ea>] ? au0828_analog_unregister+0x2a/0x60 [au0828]
+> [  177.092059]  [<ffffffffa07ac10e>] ? au0828_usb_disconnect+0x9e/0xd0 [au0828]
+> [  177.092075]  [<ffffffff8140e609>] ? usb_unbind_interface+0x79/0x270
+> [  177.092090]  [<ffffffff813cf285>] ? __device_release_driver+0x95/0x130
+> [  177.092105]  [<ffffffff813cf41b>] ? driver_detach+0xab/0xb0
+> [  177.092120]  [<ffffffff813ce4c5>] ? bus_remove_driver+0x55/0xd0
+> [  177.092134]  [<ffffffff8140d951>] ? usb_deregister+0x71/0xc0
+> [  177.092148]  [<ffffffff810e438a>] ? SyS_delete_module+0x1aa/0x250
+> [  177.092163]  [<ffffffff81088ee9>] ? task_work_run+0x89/0xc0
+> [  177.092176]  [<ffffffff815631f2>] ? entry_SYSCALL_64_fastpath+0x16/0x75
+> [  177.092191] Code: 87 47 02 c1 e0 10 85 c0 74 38 48 89 c2 c1 e8 12 48 c1 ea 0c 83 e8 01 83 e2 30 48 98 48 81 c2 c0 62 01 00 48 03 14 c5 c0 62 90 81 <48> 89 0a 8b 41 08 85 c0 75 0d f3 90 8b 41 08 85 c0 74 f7 eb 02
+> [  177.092281] RIP  [<ffffffff810aecc3>] native_queued_spin_lock_slowpath+0x103/0x180
+> [  177.092299]  RSP <ffff880036b8bcd8>
+> [  177.097721] ---[ end trace b12d5a66f4c6f1c1 ]---
+> [  177.243899] lirc_dev: module unloaded
 > 
-> That's it, I hope it is clear.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Regards
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 7f645bcb7463..e28cabe65934 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -175,8 +175,6 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+>  	*/
+>  	dev->dev_state = DEV_DISCONNECTED;
+>  
+> -	au0828_unregister_media_device(dev);
+> -
+>  	au0828_rc_unregister(dev);
+>  	/* Digital TV */
+>  	au0828_dvb_unregister(dev);
+> @@ -193,6 +191,8 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+>  		return;
+>  	}
+>  #endif
+> +	au0828_unregister_media_device(dev);
+> +
+>  	au0828_usb_release(dev);
+>  }
+>  
 > 
 
