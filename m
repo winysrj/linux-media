@@ -1,73 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48558 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbbH3DHx (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:43841 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752683AbbHaKpj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:53 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v8 20/55] [media] media: make add link more generic
-Date: Sun, 30 Aug 2015 00:06:31 -0300
-Message-Id: <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Mon, 31 Aug 2015 06:45:39 -0400
+Message-ID: <55E4301A.4060505@xs4all.nl>
+Date: Mon, 31 Aug 2015 12:44:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 21/55] [media] media: make media_link more generic
+ to handle interace links
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <da1031f67533817988046d22a240b405fd30aebe.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <da1031f67533817988046d22a240b405fd30aebe.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media_entity_add_link() function takes an entity
-as an argument just to get the list head.
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> By adding an union at media_link, we get for free a way to
+> represent interface->entity links.
+> 
+> No need to change anything at the code, just at the internal
+> header file.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Make it more generic by changing the function argument
-to list_head.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-No functional changes.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ff63201443d7..6d06be6c9ef3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -580,7 +580,7 @@ EXPORT_SYMBOL_GPL(media_entity_put);
-  * Links management
-  */
- 
--static struct media_link *media_entity_add_link(struct media_entity *entity)
-+static struct media_link *media_add_link(struct list_head *head)
- {
- 	struct media_link *link;
- 
-@@ -588,7 +588,7 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
- 	if (link == NULL)
- 		return NULL;
- 
--	list_add_tail(&link->list, &entity->links);
-+	list_add_tail(&link->list, head);
- 
- 	return link;
- }
-@@ -607,7 +607,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- 	BUG_ON(source_pad >= source->num_pads);
- 	BUG_ON(sink_pad >= sink->num_pads);
- 
--	link = media_entity_add_link(source);
-+	link = media_add_link(&source->links);
- 	if (link == NULL)
- 		return -ENOMEM;
- 
-@@ -622,7 +622,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- 	/* Create the backlink. Backlinks are used to help graph traversal and
- 	 * are not reported to userspace.
- 	 */
--	backlink = media_entity_add_link(sink);
-+	backlink = media_add_link(&sink->links);
- 	if (backlink == NULL) {
- 		__media_entity_remove_link(source, link);
- 		return -ENOMEM;
--- 
-2.4.3
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index bb89cedb0c40..b4923a24efd5 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -75,14 +75,20 @@ struct media_pipeline {
+>  struct media_link {
+>  	struct media_gobj graph_obj;
+>  	struct list_head list;
+> -	struct media_pad *source;	/* Source pad */
+> -	struct media_pad *sink;		/* Sink pad  */
+> +	union {
+> +		struct media_gobj *gobj0;
+> +		struct media_pad *source;
+> +	};
+> +	union {
+> +		struct media_gobj *gobj1;
+> +		struct media_pad *sink;
+> +	};
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+>  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+>  };
+>  
+>  struct media_pad {
+> -	struct media_gobj graph_obj;
+> +	struct media_gobj graph_obj;	/* must be first field in struct */
+>  	struct media_entity *entity;	/* Entity this pad belongs to */
+>  	u16 index;			/* Pad index in the entity pads array */
+>  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+> @@ -105,7 +111,7 @@ struct media_entity_operations {
+>  };
+>  
+>  struct media_entity {
+> -	struct media_gobj graph_obj;
+> +	struct media_gobj graph_obj;	/* must be first field in struct */
+>  	struct list_head list;
+>  	const char *name;		/* Entity name */
+>  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+> @@ -119,7 +125,7 @@ struct media_entity {
+>  	u16 num_backlinks;		/* Number of backlinks */
+>  
+>  	struct media_pad *pads;		/* Pads array (num_pads objects) */
+> -	struct list_head links;		/* Links list */
+> +	struct list_head links;		/* Pad-to-pad links list */
+>  
+>  	const struct media_entity_operations *ops;	/* Entity operations */
+>  
+> 
 
