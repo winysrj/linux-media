@@ -1,87 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:36292 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031AbbH1Rw6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 13:52:58 -0400
-Received: by wicfv10 with SMTP id fv10so14043183wic.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Aug 2015 10:52:57 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
-Subject: [PATCH v3 2/6] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
-Date: Fri, 28 Aug 2015 18:52:38 +0100
-Message-Id: <1440784362-31217-3-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
-References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+Received: from lists.s-osg.org ([54.187.51.154]:33103 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373AbbHaNmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2015 09:42:53 -0400
+Date: Mon, 31 Aug 2015 10:42:48 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 51/55] [media] remove interface links at
+ media_entity_unregister()
+Message-ID: <20150831104248.113615fb@recife.lan>
+In-Reply-To: <55E44E59.5030300@xs4all.nl>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<36ec2d60b61f769115982c5060d550d35e3ca602.1440902901.git.mchehab@osg.samsung.com>
+	<55E44E59.5030300@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds in the required DT node for the c8sectpfe
-Linux DVB demux driver which allows the tsin channels
-to be used on an upstream kernel.
+Em Mon, 31 Aug 2015 14:53:45 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- arch/arm/boot/dts/stihxxx-b2120.dtsi | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+> On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
+> > Interface links connected to an entity should be removed
+> > before being able of removing the entity.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index a91e1ec076a6..638c682b79c4 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -618,14 +618,30 @@ void media_device_unregister_entity(struct media_entity *entity)
+> >  		return;
+> >  
+> >  	spin_lock(&mdev->lock);
+> > +
+> > +	/* Remove interface links with this entity on it */
+> > +	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
+> > +		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
+> > +		    && link->entity == entity) {
+> 
+> I don't think you need the == MEDIA_GRAPH_ENTITY check here. That should always be
+> true if link->entity == entity.
 
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index 62994ae..f9fca10 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -6,6 +6,9 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+
-+#include <dt-bindings/clock/stih407-clks.h>
-+#include <dt-bindings/media/c8sectpfe.h>
- / {
- 	soc {
- 		sbc_serial0: serial@9530000 {
-@@ -85,5 +88,37 @@
- 			status = "okay";
- 		};
- 
-+		demux@08a20000 {
-+			compatible	= "st,stih407-c8sectpfe";
-+			status		= "okay";
-+			reg		= <0x08a20000 0x10000>,
-+					  <0x08a00000 0x4000>;
-+			reg-names	= "c8sectpfe", "c8sectpfe-ram";
-+			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
-+					  <GIC_SPI 35 IRQ_TYPE_NONE>;
-+			interrupt-names	= "c8sectpfe-error-irq",
-+					  "c8sectpfe-idle-irq";
-+			pinctrl-0	= <&pinctrl_tsin0_serial>;
-+			pinctrl-1	= <&pinctrl_tsin0_parallel>;
-+			pinctrl-2	= <&pinctrl_tsin3_serial>;
-+			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
-+			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
-+			pinctrl-names	= "tsin0-serial",
-+					  "tsin0-parallel",
-+					  "tsin3-serial",
-+					  "tsin4-serial",
-+					  "tsin5-serial";
-+			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
-+			clock-names	= "c8sectpfe";
-+
-+			/* tsin0 is TSA on NIMA */
-+			tsin0: port@0 {
-+				tsin-num	= <0>;
-+				serial-not-parallel;
-+				i2c-bus		= <&ssc2>;
-+				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
-+				dvb-card	= <STV0367_TDA18212_NIMA_1>;
-+			};
-+		};
- 	};
- };
--- 
-1.9.1
+Yes, I know. Actually, I coded it as just  if (link->entity == entity).
+Latter, when reviewing my own patch, I decided to add the extra
+check, as it sounded me a little better.
 
+Not sure really what would be the better.
+
+> 
+> > +			media_gobj_remove(&link->graph_obj);
+> > +			kfree(link);
+> > +		}
+> > +	}
+> > +
+> > +	/* Remove all data links that belong to this entity */
+> >  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+> >  		media_gobj_remove(&link->graph_obj);
+> >  		list_del(&link->list);
+> >  		kfree(link);
+> >  	}
+> > +
+> > +	/* Remove all pads that belong to this entity */
+> >  	for (i = 0; i < entity->num_pads; i++)
+> >  		media_gobj_remove(&entity->pads[i].graph_obj);
+> > +
+> > +	/* Remove the entity */
+> >  	media_gobj_remove(&entity->graph_obj);
+> > +
+> >  	spin_unlock(&mdev->lock);
+> >  	entity->graph_obj.mdev = NULL;
+> >  }
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
