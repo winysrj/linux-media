@@ -1,50 +1,387 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0010.hostedemail.com ([216.40.44.10]:38043 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751982AbbHHRGl (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:48239 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981AbbHaH4i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Aug 2015 13:06:41 -0400
-Message-ID: <1439053595.2322.60.camel@perches.com>
-Subject: Re: [PATCH 1/1] Staging: media: davinci_vpfe: fix over 80
- characters coding style issue.
-From: Joe Perches <joe@perches.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Junsu Shin <jjunes0@gmail.com>, devel@driverdev.osuosl.org,
-	boris.brezillon@free-electrons.com, mchehab@osg.samsung.com,
-	linux-kernel@vger.kernel.org, prabhakar.csengg@gmail.com,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, linux-media@vger.kernel.org
-Date: Sat, 08 Aug 2015 10:06:35 -0700
-In-Reply-To: <20150808154259.GD11851@kroah.com>
-References: <1438916154-5840-1-git-send-email-jjunes0@gmail.com>
-	 <20150807044505.GB3537@sudip-pc> <55C5A7C6.9080006@gmail.com>
-	 <20150808101218.GA1301@sudip-pc> <20150808154259.GD11851@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 31 Aug 2015 03:56:38 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NTX013ORSQAR7B0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 31 Aug 2015 16:56:34 +0900 (KST)
+Message-id: <55E408B2.7000502@samsung.com>
+Date: Mon, 31 Aug 2015 16:56:34 +0900
+From: Junghak Sung <jh1009.sung@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v3 2/5] media: videobuf2: Restructure vb2_buffer
+References: <1440590372-2377-1-git-send-email-jh1009.sung@samsung.com>
+ <1440590372-2377-3-git-send-email-jh1009.sung@samsung.com>
+ <55E062A1.2010900@xs4all.nl> <55E3B58B.3040808@samsung.com>
+In-reply-to: <55E3B58B.3040808@samsung.com>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2015-08-08 at 08:42 -0700, Greg KH wrote:
-> Greg does not accept drivers/staging/media/* patches,
-
-You could change
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 111a6b2..089c458 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9742,6 +9742,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
- L:	devel@driverdev.osuosl.org
- S:	Supported
- F:	drivers/staging/
-+X:	drivers/staging/media/
- 
- STAGING - COMEDI
- M:	Ian Abbott <abbotti@mev.co.uk>
 
 
+On 08/31/2015 11:01 AM, Junghak Sung wrote:
+> Hello Hans,
+>
+> Thank you for your review.
+> I leave some comments in the body for reply.
+>
+> Regards,
+> Junghak
+>
+>
+>
+> On 08/28/2015 10:31 PM, Hans Verkuil wrote:
+>> Hi Junghak,
+>>
+>> Thanks for this patch, it looks much better. I do have a number of
+>> comments, though...
+>>
+>> On 08/26/2015 01:59 PM, Junghak Sung wrote:
+>>> Remove v4l2-specific stuff from struct vb2_buffer and add member
+>>> variables
+>>> related with buffer management.
+>>>
+>>> struct vb2_plane {
+>>>          <snip>
+>>>          /* plane information */
+>>>          unsigned int            bytesused;
+>>>          unsigned int            length;
+>>>          union {
+>>>                  unsigned int    offset;
+>>>                  unsigned long   userptr;
+>>>                  int             fd;
+>>>          } m;
+>>>          unsigned int            data_offset;
+>>> }
+>>>
+>>> struct vb2_buffer {
+>>>          <snip>
+>>>          /* buffer information */
+>>>          unsigned int            num_planes;
+>>>          unsigned int            index;
+>>>          unsigned int            type;
+>>>          unsigned int            memory;
+>>>
+>>>          struct vb2_plane        planes[VIDEO_MAX_PLANES];
+>>>          <snip>
+>>> };
+>>>
+>>> And create struct vb2_v4l2_buffer as container buffer for v4l2 use.
+>>>
+>>> struct vb2_v4l2_buffer {
+>>>          struct vb2_buffer       vb2_buf;
+>>>
+>>>          __u32                   flags;
+>>>          __u32                   field;
+>>>          struct timeval          timestamp;
+>>>          struct v4l2_timecode    timecode;
+>>>          __u32                   sequence;
+>>> };
+>>>
+>>> This patch includes only changes inside of videobuf2. So, it is
+>>> required to
+>>> modify all device drivers which use videobuf2.
+>>>
+>>> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+>>> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+>>> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+>>> Acked-by: Inki Dae <inki.dae@samsung.com>
+>>> ---
+>>>   drivers/media/v4l2-core/videobuf2-core.c |  324
+>>> +++++++++++++++++-------------
+>>>   include/media/videobuf2-core.h           |   50 ++---
+>>>   include/media/videobuf2-v4l2.h           |   26 +++
+>>>   3 files changed, 236 insertions(+), 164 deletions(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>>> b/drivers/media/v4l2-core/videobuf2-core.c
+>>> index ab00ea0..9266d50 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -35,10 +35,10 @@
+>>>   static int debug;
+>>>   module_param(debug, int, 0644);
+>>>
+>>> -#define dprintk(level, fmt, arg...)                          \
+>>> -    do {                                      \
+>>> -        if (debug >= level)                          \
+>>> -            pr_info("vb2: %s: " fmt, __func__, ## arg); \
+>>> +#define dprintk(level, fmt, arg...)                    \
+>>> +    do {                                \
+>>> +        if (debug >= level)                    \
+>>> +            pr_info("vb2: %s: " fmt, __func__, ## arg);    \
+>>
+>> These are just whitespace changes, and that is something it see *a
+>> lot* in this
+>> patch. And usually for no clear reason.
+>>
+>> Please remove those whitespace changes, it makes a difficult patch
+>> even harder
+>> to read than it already is.
+>>
+>
+> I just wanted to remove unnecessary white spaces or adjust alignment.
+> OK, I will revert those whitespace changes for better review.
+>
+>>>       } while (0)
+>>>
+>>>   #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>
+>> <snip>
+>>
+>>> @@ -656,12 +652,21 @@ static bool __buffers_in_use(struct vb2_queue *q)
+>>>    */
+>>>   static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct
+>>> v4l2_buffer *b)
+>>>   {
+>>> +    struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>>>       struct vb2_queue *q = vb->vb2_queue;
+>>> +    unsigned int plane;
+>>>
+>>>       /* Copy back data such as timestamp, flags, etc. */
+>>> -    memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+>>> -    b->reserved2 = vb->v4l2_buf.reserved2;
+>>> -    b->reserved = vb->v4l2_buf.reserved;
+>>
+>> Hmm, I'm not sure why these reserved fields were copied here. I think
+>> it was
+>> for compatibility reasons for some old drivers that abused the
+>> reserved field.
+>> However, in the new code these reserved fields should probably be
+>> explicitly
+>> initialized to 0.
+>>
+>>> +    b->index = vb->index;
+>>> +    b->type = vb->type;
+>>> +    b->memory = vb->memory;
+>>> +    b->bytesused = 0;
+>>> +
+>>> +    b->flags = vbuf->flags;
+>>> +    b->field = vbuf->field;
+>>> +    b->timestamp = vbuf->timestamp;
+>>> +    b->timecode = vbuf->timecode;
+>>> +    b->sequence = vbuf->sequence;
+>>>
+>>>       if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+>>>           /*
+>>> @@ -669,21 +674,33 @@ static void __fill_v4l2_buffer(struct
+>>> vb2_buffer *vb, struct v4l2_buffer *b)
+>>>            * for it. The caller has already verified memory and size.
+>>>            */
+>>>           b->length = vb->num_planes;
+>>> -        memcpy(b->m.planes, vb->v4l2_planes,
+>>> -            b->length * sizeof(struct v4l2_plane));
+>>
+>> A similar problem occurs here: the memcpy would have copied the reserved
+>> field in v4l2_plane as well, but that no longer happens, so you need to
+>> do an explicit memset for the reserved field in the new code.
+>>
+>
+> It means that I'd better add reserved fields to struct vb2_buffer and
+> struct vb2_plane in order to keep the information in struct v4l2_buffer
+> and struct v4l2_plane???
+>
+
+Oh, I've mistaken your point.
+Now I got your point.
+In __fill_v4l2_buffer(), just initialize explicitly the reserved
+field like :
+	memset(pdst->reserved, 0 sizeof(pdst->reserved));
+Right?
+
+
+>
+>>> +        for (plane = 0; plane < vb->num_planes; ++plane) {
+>>> +            struct v4l2_plane *pdst = &b->m.planes[plane];
+>>> +            struct vb2_plane *psrc = &vb->planes[plane];
+>>> +
+>>> +            pdst->bytesused = psrc->bytesused;
+>>> +            pdst->length = psrc->length;
+>>> +            if (q->memory == V4L2_MEMORY_MMAP)
+>>> +                pdst->m.mem_offset = psrc->m.offset;
+>>> +            else if (q->memory == V4L2_MEMORY_USERPTR)
+>>> +                pdst->m.userptr = psrc->m.userptr;
+>>> +            else if (q->memory == V4L2_MEMORY_DMABUF)
+>>> +                pdst->m.fd = psrc->m.fd;
+>>> +            pdst->data_offset = psrc->data_offset;
+>>> +        }
+>>>       } else {
+>>>           /*
+>>>            * We use length and offset in v4l2_planes array even for
+>>>            * single-planar buffers, but userspace does not.
+>>>            */
+>>> -        b->length = vb->v4l2_planes[0].length;
+>>> -        b->bytesused = vb->v4l2_planes[0].bytesused;
+>>> +        b->length = vb->planes[0].length;
+>>> +        b->bytesused = vb->planes[0].bytesused;
+>>>           if (q->memory == V4L2_MEMORY_MMAP)
+>>> -            b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+>>> +            b->m.offset = vb->planes[0].m.offset;
+>>>           else if (q->memory == V4L2_MEMORY_USERPTR)
+>>> -            b->m.userptr = vb->v4l2_planes[0].m.userptr;
+>>> +            b->m.userptr = vb->planes[0].m.userptr;
+>>>           else if (q->memory == V4L2_MEMORY_DMABUF)
+>>> -            b->m.fd = vb->v4l2_planes[0].m.fd;
+>>> +            b->m.fd = vb->planes[0].m.fd;
+>>>       }
+>>>
+>>>       /*
+>>> @@ -692,7 +709,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer
+>>> *vb, struct v4l2_buffer *b)
+>>>       b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+>>>       b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+>>>       if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+>>> -        V4L2_BUF_FLAG_TIMESTAMP_COPY) {
+>>> +            V4L2_BUF_FLAG_TIMESTAMP_COPY) {
+>>>           /*
+>>>            * For non-COPY timestamps, drop timestamp source bits
+>>>            * and obtain the timestamp source from the queue.
+>>> @@ -767,7 +784,7 @@ EXPORT_SYMBOL(vb2_querybuf);
+>>>   static int __verify_userptr_ops(struct vb2_queue *q)
+>>>   {
+>>>       if (!(q->io_modes & VB2_USERPTR) || !q->mem_ops->get_userptr ||
+>>> -        !q->mem_ops->put_userptr)
+>>> +            !q->mem_ops->put_userptr)
+>>>           return -EINVAL;
+>>>
+>>>       return 0;
+>>> @@ -780,7 +797,7 @@ static int __verify_userptr_ops(struct vb2_queue *q)
+>>>   static int __verify_mmap_ops(struct vb2_queue *q)
+>>>   {
+>>>       if (!(q->io_modes & VB2_MMAP) || !q->mem_ops->alloc ||
+>>> -        !q->mem_ops->put || !q->mem_ops->mmap)
+>>> +            !q->mem_ops->put || !q->mem_ops->mmap)
+>>>           return -EINVAL;
+>>>
+>>>       return 0;
+>>> @@ -793,8 +810,8 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+>>>   static int __verify_dmabuf_ops(struct vb2_queue *q)
+>>>   {
+>>>       if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf ||
+>>> -        !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
+>>> -        !q->mem_ops->unmap_dmabuf)
+>>> +        !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
+>>> +        !q->mem_ops->unmap_dmabuf)
+>>>           return -EINVAL;
+>>>
+>>>       return 0;
+>>> @@ -808,7 +825,7 @@ static int __verify_memory_type(struct vb2_queue *q,
+>>>           enum v4l2_memory memory, enum v4l2_buf_type type)
+>>>   {
+>>>       if (memory != V4L2_MEMORY_MMAP && memory != V4L2_MEMORY_USERPTR &&
+>>> -        memory != V4L2_MEMORY_DMABUF) {
+>>> +            memory != V4L2_MEMORY_DMABUF) {
+>>>           dprintk(1, "unsupported memory type\n");
+>>>           return -EINVAL;
+>>>       }
+>>> @@ -927,7 +944,7 @@ static int __reqbufs(struct vb2_queue *q, struct
+>>> v4l2_requestbuffers *req)
+>>>        * Driver also sets the size and allocator context for each plane.
+>>>        */
+>>>       ret = call_qop(q, queue_setup, q, NULL, &num_buffers, &num_planes,
+>>> -               q->plane_sizes, q->alloc_ctx);
+>>> +            q->plane_sizes, q->alloc_ctx);
+>>>       if (ret)
+>>>           return ret;
+>>>
+>>> @@ -952,7 +969,7 @@ static int __reqbufs(struct vb2_queue *q, struct
+>>> v4l2_requestbuffers *req)
+>>>           num_buffers = allocated_buffers;
+>>>
+>>>           ret = call_qop(q, queue_setup, q, NULL, &num_buffers,
+>>> -                   &num_planes, q->plane_sizes, q->alloc_ctx);
+>>> +                &num_planes, q->plane_sizes, q->alloc_ctx);
+>>>
+>>>           if (!ret && allocated_buffers < num_buffers)
+>>>               ret = -ENOMEM;
+>>> @@ -1040,7 +1057,7 @@ static int __create_bufs(struct vb2_queue *q,
+>>> struct v4l2_create_buffers *create
+>>>        * buffer and their sizes are acceptable
+>>>        */
+>>>       ret = call_qop(q, queue_setup, q, &create->format, &num_buffers,
+>>> -               &num_planes, q->plane_sizes, q->alloc_ctx);
+>>> +            &num_planes, q->plane_sizes, q->alloc_ctx);
+>>>       if (ret)
+>>>           return ret;
+>>>
+>>> @@ -1063,7 +1080,7 @@ static int __create_bufs(struct vb2_queue *q,
+>>> struct v4l2_create_buffers *create
+>>>            * queue driver has set up
+>>>            */
+>>>           ret = call_qop(q, queue_setup, q, &create->format,
+>>> &num_buffers,
+>>> -                   &num_planes, q->plane_sizes, q->alloc_ctx);
+>>> +                &num_planes, q->plane_sizes, q->alloc_ctx);
+>>>
+>>>           if (!ret && allocated_buffers < num_buffers)
+>>>               ret = -ENOMEM;
+>>> @@ -1183,8 +1200,8 @@ void vb2_buffer_done(struct vb2_buffer *vb,
+>>> enum vb2_buffer_state state)
+>>>           return;
+>>>
+>>>       if (WARN_ON(state != VB2_BUF_STATE_DONE &&
+>>> -            state != VB2_BUF_STATE_ERROR &&
+>>> -            state != VB2_BUF_STATE_QUEUED))
+>>> +        state != VB2_BUF_STATE_ERROR &&
+>>> +        state != VB2_BUF_STATE_QUEUED))
+>>>           state = VB2_BUF_STATE_ERROR;
+>>>
+>>>   #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>
+>> All the chunks above are all spurious whitespace changes. As mentioned
+>> in the beginning,
+>> please remove all those pointless whitespace changes!
+>>
+>> There are a lot more of these, but I won't comment on them anymore.
+>>
+>> Basically this patch looks good to me, so once I have the next version
+>> without all the
+>> whitespace confusion and with the reserved field issues solved I'll do
+>> a final review.
+>>
+>> BTW, did you test this with 'v4l2-compliance -s' and with the vivid
+>> driver? Just to
+>> make sure you didn't break anything.
+>>
+>
+> Actually, I've tested with v4l2-compliance for just one v4l2 drivers -
+> au0828.
+> I'll try to test with vivid driver at next round.
+>
+
+I tried to use vivid for test. But, I have failed to install the
+module (vivid.ko).
+I mainly referred to documentation/video4linux/vivid.txt. But, it
+not enough to test.
+Could you give me a guide?
+
+Best Regards,
+Junghak
+
+>
+>> Regards,
+>>
+>>     Hans
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
