@@ -1,86 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52624 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357AbbHSWSe (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34476 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751322AbbHaKtn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Aug 2015 18:18:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC v3 02/19] media/v4l2-core: add new ioctl VIDIOC_G_DEF_EXT_CTRLS
-Date: Thu, 20 Aug 2015 01:19:38 +0300
-Message-ID: <1822611.kBQQQkHzQk@avalon>
-In-Reply-To: <55AD063A.1030705@xs4all.nl>
-References: <1434127598-11719-1-git-send-email-ricardo.ribalda@gmail.com> <CAPybu_2a+z6ZVY=-ZXE6Usmoe0nsLjUzw3AE5=K9vQ6OCDgKaw@mail.gmail.com> <55AD063A.1030705@xs4all.nl>
+	Mon, 31 Aug 2015 06:49:43 -0400
+Message-ID: <55E4310E.4070106@xs4all.nl>
+Date: Mon, 31 Aug 2015 12:48:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 23/55] [media] media: add support to link interfaces
+ and entities
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <cf99e5eca15f107a14b02dad55fb812525345627.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <cf99e5eca15f107a14b02dad55fb812525345627.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-I like your proposal, and especially how it would integrate with the requests 
-API. Should we give the requests API a try to make sure your proposal works 
-fine with it ?
-
-As a side note, I'll need to requests API for Renesas. The current schedule is 
-to have a first RFC implementation by the end of October.
-
-On Monday 20 July 2015 16:31:22 Hans Verkuil wrote:
-> On 07/20/2015 03:52 PM, Ricardo Ribalda Delgado wrote:
-> > Hello
-> > 
-> > I have no preference over the two implementations, but I see an issue
-> > with this suggestion.
-> > 
-> > What happens to out out tree drivers, or drivers that don't support
-> > this functionality?
-> > 
-> > With the ioctl, the user receives a -ENOTTY. So he knows there is
-> > something wrong with the driver.
-> > 
-> > With this class, the driver might interpret this a simple G_VAL and
-> > return he current value with no way for the user to know what is going
-> > on.
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> Now that we have a new graph object called "interfaces", we
+> need to be able to link them to the entities.
 > 
-> Drivers that implement the current API correctly will return an error
-> if V4L2_CTRL_WHICH_DEF_VAL was specified. Such drivers will interpret
-> the value as a control class, and no control classes in that range exist.
-> See also class_check() in v4l2-ctrls.c.
+> Add a linked list to the interfaces to allow them to be
+> linked to the entities.
 > 
-> The exception here is uvc which doesn't have this class check and it will
-> just return the current value :-(
-> 
-> I don't see a way around this, unfortunately.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-The rationale for implementing VIDIOC_G_DEF_EXT_CTRLS was to get the default 
-value of controls that don't fit in 32 bits. uvcvideo doesn't have any such 
-control, so I don't think we really need to care. Of course newer versions of 
-the uvcvideo driver should implement the new API.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Out-of-tree drivers that use the control framework are fine, and I don't
-> really care about drivers (out-of-tree or otherwise) that do not use the
-> control framework.
 > 
-> > Regarding the new implementation.... I can make some code next week,
-> > this week I am 120% busy :)
-> 
-> Wait until there is a decision first :-)
-> 
-> It's not a lot of work, I think.
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 973d1be427c5..08239128fbc4 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -869,6 +869,7 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+>  
+>  	intf->type = type;
+>  	intf->flags = flags;
+> +	INIT_LIST_HEAD(&intf->links);
+>  
+>  	devnode->major = major;
+>  	devnode->minor = minor;
+> @@ -886,3 +887,40 @@ void media_devnode_remove(struct media_intf_devnode *devnode)
+>  	kfree(devnode);
+>  }
+>  EXPORT_SYMBOL_GPL(media_devnode_remove);
+> +
+> +struct media_link *media_create_intf_link(struct media_entity *entity,
+> +					    struct media_interface *intf,
+> +					    u32 flags)
+> +{
+> +	struct media_link *link;
+> +
+> +	link = media_add_link(&intf->links);
+> +	if (link == NULL)
+> +		return NULL;
+> +
+> +	link->intf = intf;
+> +	link->entity = entity;
+> +	link->flags = flags;
+> +
+> +	/* Initialize graph object embedded at the new link */
+> +	media_gobj_init(intf->graph_obj.mdev, MEDIA_GRAPH_LINK,
+> +			&link->graph_obj);
+> +
+> +	return link;
+> +}
+> +EXPORT_SYMBOL_GPL(media_create_intf_link);
+> +
+> +
+> +static void __media_remove_intf_link(struct media_link *link)
+> +{
+> +	media_gobj_remove(&link->graph_obj);
+> +	kfree(link);
+> +}
+> +
+> +void media_remove_intf_link(struct media_link *link)
+> +{
+> +	mutex_lock(&link->graph_obj.mdev->graph_mutex);
+> +	__media_remove_intf_link(link);
+> +	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
 
-I think I like your proposal better than VIDIOC_G_DEF_EXT_CTRLS, so seeing an 
-implementation would be nice.
+link was just freed, so you can't dereference link anymore.
 
--- 
+Instead use a temp 'mdev' pointer to access the mutex.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> +}
+> +EXPORT_SYMBOL_GPL(media_remove_intf_link);
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index b4923a24efd5..423ff804e686 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -78,10 +78,12 @@ struct media_link {
+>  	union {
+>  		struct media_gobj *gobj0;
+>  		struct media_pad *source;
+> +		struct media_interface *intf;
+>  	};
+>  	union {
+>  		struct media_gobj *gobj1;
+>  		struct media_pad *sink;
+> +		struct media_entity *entity;
+>  	};
+>  	struct media_link *reverse;	/* Link in the reverse direction */
+>  	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+> @@ -154,6 +156,7 @@ struct media_entity {
+>   * struct media_intf_devnode - Define a Kernel API interface
+>   *
+>   * @graph_obj:		embedded graph object
+> + * @links:		List of links pointing to graph entities
+>   * @type:		Type of the interface as defined at the
+>   *			uapi/media/media.h header, e. g.
+>   *			MEDIA_INTF_T_*
+> @@ -161,6 +164,7 @@ struct media_entity {
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> +	struct list_head		links;
+>  	u32				type;
+>  	u32				flags;
+>  };
+> @@ -283,6 +287,11 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+>  						u32 major, u32 minor,
+>  						gfp_t gfp_flags);
+>  void media_devnode_remove(struct media_intf_devnode *devnode);
+> +struct media_link *media_create_intf_link(struct media_entity *entity,
+> +					    struct media_interface *intf,
+> +					    u32 flags);
+> +void media_remove_intf_link(struct media_link *link);
+> +
+>  #define media_entity_call(entity, operation, args...)			\
+>  	(((entity)->ops && (entity)->ops->operation) ?			\
+>  	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+> 
 
