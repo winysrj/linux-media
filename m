@@ -1,517 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43934 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752023AbbH1Ltk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 07:49:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, ricardo.ribalda@gmail.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 8/8] saa7164: video and vbi ports share the same input/tuner/std
-Date: Fri, 28 Aug 2015 13:48:33 +0200
-Message-Id: <1440762513-30457-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
-References: <1440762513-30457-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:33096 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751841AbbHaNfX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2015 09:35:23 -0400
+Date: Mon, 31 Aug 2015 10:35:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
+ ioctl
+Message-ID: <20150831103518.218ecca1@recife.lan>
+In-Reply-To: <55E441EA.4020206@xs4all.nl>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
+	<55E441EA.4020206@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 31 Aug 2015 14:00:42 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-The vbi port should pass any tuner/input/standard information on
-to the video port since in the input and tuner are shared between
-the two.
+> On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> > Add a new ioctl that will report the entire topology on
+> > one go.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 756e1960fd7f..358a0c6b1f86 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -181,6 +181,8 @@ struct media_interface {
+> >   */
+> >  struct media_intf_devnode {
+> >  	struct media_interface		intf;
+> > +
+> > +	/* Should match the fields at media_v2_intf_devnode */
+> >  	u32				major;
+> >  	u32				minor;
+> >  };
+> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> > index 4186891e5e81..fa0b68e670b0 100644
+> > --- a/include/uapi/linux/media.h
+> > +++ b/include/uapi/linux/media.h
+> > @@ -251,11 +251,94 @@ struct media_links_enum {
+> >  #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+> >  #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+> >  
+> > -/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
+> > +/*
+> > + * MC next gen API definitions
+> > + *
+> > + * NOTE: The declarations below are close to the MC RFC for the Media
+> > + *	 Controller, the next generation. Yet, there are a few adjustments
+> > + *	 to do, as we want to be able to have a functional API before
+> > + *	 the MC properties change. Those will be properly marked below.
+> > + *	 Please also notice that I removed "num_pads", "num_links",
+> > + *	 from the proposal, as a proper userspace application will likely
+> > + *	 use lists for pads/links, just as we intend todo in Kernelspace.
+> 
+> s/todo/to do/
+> 
+> > + *	 The API definition should be freed from fields that are bound to
+> > + *	 some specific data structure.
+> > + *
+> > + * FIXME: Currently, I opted to name the new types as "media_v2", as this
+> > + *	  won't cause any conflict with the Kernelspace namespace, nor with
+> > + *	  the previous kAPI media_*_desc namespace. This can be changed
+> > + *	  latter, before the adding this API upstream.
+> 
+> s/latter/later/ :-)
+> 
+> I think this comment belongs to the commit log and not in this header.
 
-There is no reason to duplicate this code, just pass the ioctls on
-to the video encoder port.
+True, but I opted to keep it here for now to produce some discussions ;)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7164/saa7164-encoder.c |  85 ++++++++-----
- drivers/media/pci/saa7164/saa7164-vbi.c     | 190 +++-------------------------
- drivers/media/pci/saa7164/saa7164.h         |  11 ++
- 3 files changed, 82 insertions(+), 204 deletions(-)
+I'm actually in doubt if we should rename the flags as proposed below,
+and use the newer flags only at G_TOPOLOGY or if we should keep the same
+namespace for them and accept newer flags with legacy ioctls.
 
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index ca936e2..1b184c3 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -205,10 +205,8 @@ static int saa7164_encoder_initialize(struct saa7164_port *port)
- }
- 
- /* -- V4L2 --------------------------------------------------------- */
--static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
-+int saa7164_s_std(struct saa7164_port *port, v4l2_std_id id)
- {
--	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
- 	struct saa7164_dev *dev = port->dev;
- 	unsigned int i;
- 
-@@ -234,17 +232,27 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	return 0;
- }
- 
--static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
-+static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- {
- 	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
- 
-+	return saa7164_s_std(fh->port, id);
-+}
-+
-+int saa7164_g_std(struct saa7164_port *port, v4l2_std_id *id)
-+{
- 	*id = port->std;
- 	return 0;
- }
- 
--static int vidioc_enum_input(struct file *file, void *priv,
--	struct v4l2_input *i)
-+static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
-+{
-+	struct saa7164_encoder_fh *fh = file->private_data;
-+
-+	return saa7164_g_std(fh->port, id);
-+}
-+
-+int saa7164_enum_input(struct file *file, void *priv, struct v4l2_input *i)
- {
- 	static const char * const inputs[] = {
- 		"tuner", "composite", "svideo", "aux",
-@@ -268,10 +276,8 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-+int saa7164_g_input(struct saa7164_port *port, unsigned int *i)
- {
--	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
- 	struct saa7164_dev *dev = port->dev;
- 
- 	if (saa7164_api_get_videomux(port) != SAA_OK)
-@@ -284,10 +290,15 @@ static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- 	return 0;
- }
- 
--static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
-+static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- {
- 	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
-+
-+	return saa7164_g_input(fh->port, i);
-+}
-+
-+int saa7164_s_input(struct saa7164_port *port, unsigned int i)
-+{
- 	struct saa7164_dev *dev = port->dev;
- 
- 	dprintk(DBGLVL_ENC, "%s() input=%d\n", __func__, i);
-@@ -303,8 +314,14 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--static int vidioc_g_tuner(struct file *file, void *priv,
--	struct v4l2_tuner *t)
-+static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
-+{
-+	struct saa7164_encoder_fh *fh = file->private_data;
-+
-+	return saa7164_s_input(fh->port, i);
-+}
-+
-+int saa7164_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct saa7164_encoder_fh *fh = file->private_data;
- 	struct saa7164_port *port = fh->port;
-@@ -323,8 +340,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_s_tuner(struct file *file, void *priv,
--	const struct v4l2_tuner *t)
-+int saa7164_s_tuner(struct file *file, void *priv,
-+			   const struct v4l2_tuner *t)
- {
- 	if (0 != t->index)
- 		return -EINVAL;
-@@ -333,25 +350,26 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_g_frequency(struct file *file, void *priv,
--	struct v4l2_frequency *f)
-+int saa7164_g_frequency(struct saa7164_port *port, struct v4l2_frequency *f)
- {
--	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--
- 	if (f->tuner)
- 		return -EINVAL;
- 
- 	f->frequency = port->freq;
--
- 	return 0;
- }
- 
--static int vidioc_s_frequency(struct file *file, void *priv,
--	const struct v4l2_frequency *f)
-+static int vidioc_g_frequency(struct file *file, void *priv,
-+	struct v4l2_frequency *f)
- {
- 	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
-+
-+	return saa7164_g_frequency(fh->port, f);
-+}
-+
-+int saa7164_s_frequency(struct saa7164_port *port,
-+			const struct v4l2_frequency *f)
-+{
- 	struct saa7164_dev *dev = port->dev;
- 	struct saa7164_port *tsport;
- 	struct dvb_frontend *fe;
-@@ -377,8 +395,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	/* Update the hardware */
- 	if (port->nr == SAA7164_PORT_ENC1)
- 		tsport = &dev->ports[SAA7164_PORT_TS1];
--	else
--	if (port->nr == SAA7164_PORT_ENC2)
-+	else if (port->nr == SAA7164_PORT_ENC2)
- 		tsport = &dev->ports[SAA7164_PORT_TS2];
- 	else
- 		BUG();
-@@ -395,6 +412,14 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int vidioc_s_frequency(struct file *file, void *priv,
-+			      const struct v4l2_frequency *f)
-+{
-+	struct saa7164_encoder_fh *fh = file->private_data;
-+
-+	return saa7164_s_frequency(fh->port, f);
-+}
-+
- static int saa7164_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct saa7164_port *port =
-@@ -940,11 +965,11 @@ static const struct v4l2_file_operations mpeg_fops = {
- static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
- 	.vidioc_g_std		 = vidioc_g_std,
--	.vidioc_enum_input	 = vidioc_enum_input,
-+	.vidioc_enum_input	 = saa7164_enum_input,
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
--	.vidioc_g_tuner		 = vidioc_g_tuner,
--	.vidioc_s_tuner		 = vidioc_s_tuner,
-+	.vidioc_g_tuner		 = saa7164_g_tuner,
-+	.vidioc_s_tuner		 = saa7164_s_tuner,
- 	.vidioc_g_frequency	 = vidioc_g_frequency,
- 	.vidioc_s_frequency	 = vidioc_s_frequency,
- 	.vidioc_querycap	 = vidioc_querycap,
-diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
-index 0d8052d..ee54491 100644
---- a/drivers/media/pci/saa7164/saa7164-vbi.c
-+++ b/drivers/media/pci/saa7164/saa7164-vbi.c
-@@ -21,16 +21,6 @@
- 
- #include "saa7164.h"
- 
--static struct saa7164_tvnorm saa7164_tvnorms[] = {
--	{
--		.name      = "NTSC-M",
--		.id        = V4L2_STD_NTSC_M,
--	}, {
--		.name      = "NTSC-JP",
--		.id        = V4L2_STD_NTSC_M_JP,
--	}
--};
--
- /* Take the encoder configuration from the port struct and
-  * flush it to the hardware.
-  */
-@@ -39,23 +29,13 @@ static void saa7164_vbi_configure(struct saa7164_port *port)
- 	struct saa7164_dev *dev = port->dev;
- 	dprintk(DBGLVL_VBI, "%s()\n", __func__);
- 
--	port->vbi_params.width = port->width;
--	port->vbi_params.height = port->height;
-+	port->vbi_params.width = port->enc_port->width;
-+	port->vbi_params.height = port->enc_port->height;
- 	port->vbi_params.is_50hz =
--		(port->encodernorm.id & V4L2_STD_625_50) != 0;
-+		(port->enc_port->encodernorm.id & V4L2_STD_625_50) != 0;
- 
- 	/* Set up the DIF (enable it) for analog mode by default */
- 	saa7164_api_initialize_dif(port);
--
--	/* Configure the correct video standard */
--#if 0
--	saa7164_api_configure_dif(port, port->encodernorm.id);
--#endif
--
--#if 0
--	/* Ensure the audio decoder is correct configured */
--	saa7164_api_set_audio_std(port);
--#endif
- 	dprintk(DBGLVL_VBI, "%s() ends\n", __func__);
- }
- 
-@@ -182,186 +162,48 @@ static int saa7164_vbi_initialize(struct saa7164_port *port)
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- {
- 	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--	struct saa7164_dev *dev = port->dev;
--	unsigned int i;
--
--	dprintk(DBGLVL_VBI, "%s(id=0x%x)\n", __func__, (u32)id);
--
--	for (i = 0; i < ARRAY_SIZE(saa7164_tvnorms); i++) {
--		if (id & saa7164_tvnorms[i].id)
--			break;
--	}
--	if (i == ARRAY_SIZE(saa7164_tvnorms))
--		return -EINVAL;
--
--	port->encodernorm = saa7164_tvnorms[i];
--	port->std = id;
--
--	/* Update the audio decoder while is not running in
--	 * auto detect mode.
--	 */
--	saa7164_api_set_audio_std(port);
--
--	dprintk(DBGLVL_VBI, "%s(id=0x%x) OK\n", __func__, (u32)id);
- 
--	return 0;
-+	return saa7164_s_std(fh->port->enc_port, id);
- }
- 
- static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
- {
- 	struct saa7164_encoder_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--
--	*id = port->std;
--	return 0;
--}
--
--static int vidioc_enum_input(struct file *file, void *priv,
--	struct v4l2_input *i)
--{
--	int n;
--
--	char *inputs[] = { "tuner", "composite", "svideo", "aux",
--		"composite 2", "svideo 2", "aux 2" };
--
--	if (i->index >= 7)
--		return -EINVAL;
- 
--	strcpy(i->name, inputs[i->index]);
--
--	if (i->index == 0)
--		i->type = V4L2_INPUT_TYPE_TUNER;
--	else
--		i->type  = V4L2_INPUT_TYPE_CAMERA;
--
--	for (n = 0; n < ARRAY_SIZE(saa7164_tvnorms); n++)
--		i->std |= saa7164_tvnorms[n].id;
--
--	return 0;
-+	return saa7164_g_std(fh->port->enc_port, id);
- }
- 
- static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- {
- 	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--	struct saa7164_dev *dev = port->dev;
--
--	if (saa7164_api_get_videomux(port) != SAA_OK)
--		return -EIO;
--
--	*i = (port->mux_input - 1);
- 
--	dprintk(DBGLVL_VBI, "%s() input=%d\n", __func__, *i);
--
--	return 0;
-+	return saa7164_g_input(fh->port->enc_port, i);
- }
- 
- static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--	struct saa7164_dev *dev = port->dev;
--
--	dprintk(DBGLVL_VBI, "%s() input=%d\n", __func__, i);
--
--	if (i >= 7)
--		return -EINVAL;
--
--	port->mux_input = i + 1;
--
--	if (saa7164_api_set_videomux(port) != SAA_OK)
--		return -EIO;
--
--	return 0;
--}
--
--static int vidioc_g_tuner(struct file *file, void *priv,
--	struct v4l2_tuner *t)
--{
--	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--	struct saa7164_dev *dev = port->dev;
--
--	if (0 != t->index)
--		return -EINVAL;
- 
--	strcpy(t->name, "tuner");
--	t->type = V4L2_TUNER_ANALOG_TV;
--	t->capability = V4L2_TUNER_CAP_NORM | V4L2_TUNER_CAP_STEREO;
--
--	dprintk(DBGLVL_VBI, "VIDIOC_G_TUNER: tuner type %d\n", t->type);
--
--	return 0;
--}
--
--static int vidioc_s_tuner(struct file *file, void *priv,
--	const struct v4l2_tuner *t)
--{
--	/* Update the A/V core */
--	return 0;
-+	return saa7164_s_input(fh->port->enc_port, i);
- }
- 
- static int vidioc_g_frequency(struct file *file, void *priv,
- 	struct v4l2_frequency *f)
- {
- 	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--
--	f->type = V4L2_TUNER_ANALOG_TV;
--	f->frequency = port->freq;
- 
--	return 0;
-+	return saa7164_g_frequency(fh->port->enc_port, f);
- }
- 
- static int vidioc_s_frequency(struct file *file, void *priv,
- 	const struct v4l2_frequency *f)
- {
- 	struct saa7164_vbi_fh *fh = file->private_data;
--	struct saa7164_port *port = fh->port;
--	struct saa7164_dev *dev = port->dev;
--	struct saa7164_port *tsport;
--	struct dvb_frontend *fe;
--
--	/* TODO: Pull this for the std */
--	struct analog_parameters params = {
--		.mode      = V4L2_TUNER_ANALOG_TV,
--		.audmode   = V4L2_TUNER_MODE_STEREO,
--		.std       = port->encodernorm.id,
--		.frequency = f->frequency
--	};
--
--	/* Stop the encoder */
--	dprintk(DBGLVL_VBI, "%s() frequency=%d tuner=%d\n", __func__,
--		f->frequency, f->tuner);
--
--	if (f->tuner != 0)
--		return -EINVAL;
--
--	if (f->type != V4L2_TUNER_ANALOG_TV)
--		return -EINVAL;
--
--	port->freq = f->frequency;
--
--	/* Update the hardware */
--	if (port->nr == SAA7164_PORT_VBI1)
--		tsport = &dev->ports[SAA7164_PORT_TS1];
--	else
--	if (port->nr == SAA7164_PORT_VBI2)
--		tsport = &dev->ports[SAA7164_PORT_TS2];
--	else
--		BUG();
--
--	fe = tsport->dvb.frontend;
-+	int ret = saa7164_s_frequency(fh->port->enc_port, f);
- 
--	if (fe && fe->ops.tuner_ops.set_analog_params)
--		fe->ops.tuner_ops.set_analog_params(fe, &params);
--	else
--		printk(KERN_ERR "%s() No analog tuner, aborting\n", __func__);
--
--	saa7164_vbi_initialize(port);
--
--	return 0;
-+	if (ret == 0)
-+		saa7164_vbi_initialize(fh->port);
-+	return ret;
- }
- 
- static int vidioc_querycap(struct file *file, void  *priv,
-@@ -829,11 +671,11 @@ static const struct v4l2_file_operations vbi_fops = {
- static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
- 	.vidioc_g_std		 = vidioc_g_std,
--	.vidioc_enum_input	 = vidioc_enum_input,
-+	.vidioc_enum_input	 = saa7164_enum_input,
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
--	.vidioc_g_tuner		 = vidioc_g_tuner,
--	.vidioc_s_tuner		 = vidioc_s_tuner,
-+	.vidioc_g_tuner		 = saa7164_g_tuner,
-+	.vidioc_s_tuner		 = saa7164_s_tuner,
- 	.vidioc_g_frequency	 = vidioc_g_frequency,
- 	.vidioc_s_frequency	 = vidioc_s_frequency,
- 	.vidioc_querycap	 = vidioc_querycap,
-@@ -906,7 +748,7 @@ int saa7164_vbi_register(struct saa7164_port *port)
- 		goto failed;
- 	}
- 
--	port->std = V4L2_STD_NTSC_M;
-+	port->enc_port = &dev->ports[port->nr - 2];
- 	video_set_drvdata(port->v4l_device, port);
- 	result = video_register_device(port->v4l_device,
- 		VFL_TYPE_VBI, -1);
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 9e3256c..8337524 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -424,6 +424,7 @@ struct saa7164_port {
- 	/* V4L VBI */
- 	struct tmComResVBIFormatDescrHeader vbi_fmt_ntsc;
- 	struct saa7164_vbi_params vbi_params;
-+	struct saa7164_port *enc_port;
- 
- 	/* Debug */
- 	u32 sync_errors;
-@@ -599,6 +600,16 @@ extern int saa7164_buffer_zero_offsets(struct saa7164_port *port, int i);
- 
- /* ----------------------------------------------------------- */
- /* saa7164-encoder.c                                            */
-+int saa7164_s_std(struct saa7164_port *port, v4l2_std_id id);
-+int saa7164_g_std(struct saa7164_port *port, v4l2_std_id *id);
-+int saa7164_enum_input(struct file *file, void *priv, struct v4l2_input *i);
-+int saa7164_g_input(struct saa7164_port *port, unsigned int *i);
-+int saa7164_s_input(struct saa7164_port *port, unsigned int i);
-+int saa7164_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t);
-+int saa7164_s_tuner(struct file *file, void *priv, const struct v4l2_tuner *t);
-+int saa7164_g_frequency(struct saa7164_port *port, struct v4l2_frequency *f);
-+int saa7164_s_frequency(struct saa7164_port *port,
-+			const struct v4l2_frequency *f);
- int saa7164_encoder_register(struct saa7164_port *port);
- void saa7164_encoder_unregister(struct saa7164_port *port);
- 
--- 
-2.1.4
+> 
+> > + */
+> > +
+> > +
+> > +#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
+> > +#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
+> > +#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
+> > +#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
+> 
+> Shouldn't this be MEDIA_V2_ instead of MEDIA_NEW_?
+> 
+> Do we need the INTERFACE_LINK flag? You can deduce it by checking the
+> ID type.
 
+Yes, this can be deduced from the type of the objects inside the link.
+
+I guess I added it because of some comment from your media.h RFC
+proposal.
+
+Right now, I'm using it at the application to better represent the graph
+elements:
+
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/tree/contrib/test/mc_nextgen_test.c?h=mc-next-gen&id=fdc16ece9732c94cfa76eee86978158c5976c00a#n438 
+	http://git.linuxtv.org/cgit.cgi/mchehab/experimental-v4l-utils.git/tree/contrib/test/mc_nextgen_test.c?h=mc-next-gen&id=fdc16ece9732c94cfa76eee86978158c5976c00a#n444
+
+But it could, instead, be doing something like:
+
+	if media_type(link->gobj1.id == MEDIA_GRAPH_PAD)
+		link_is_pad = true;
+	else
+		link_is_pad = false;
+
+
+Btw, I'm using the same type for both data and interface links, as
+I don't see any reason why to differentiate internally: they all share
+the same linked list at mdev and the same object ID range.
+
+> 
+> I don't have a clear preference one way or another, just wondering about the
+> reason for adding it.
+> 
+> > +
+> > +struct media_v2_entity {
+> > +	__u32 id;
+> > +	char name[64];		/* FIXME: move to a property? (RFC says so) */
+> > +	__u16 reserved[14];
+> > +};
+> > +
+> > +/* Should match the specific fields at media_intf_devnode */
+> > +struct media_v2_intf_devnode {
+> > +	__u32 major;
+> > +	__u32 minor;
+> > +};
+> > +
+> > +struct media_v2_interface {
+> > +	__u32 id;
+> > +	__u32 intf_type;
+> > +	__u32 flags;
+> > +	__u32 reserved[9];
+> > +
+> > +	union {
+> > +		struct media_v2_intf_devnode devnode;
+> > +		__u32 raw[16];
+> > +	};
+> > +};
+> > +
+> > +struct media_v2_pad {
+> > +	__u32 id;
+> > +	__u32 entity_id;
+> > +	__u32 flags;
+> > +	__u16 reserved[9];
+> > +};
+> > +
+> > +struct media_v2_link {
+> > +    __u32 id;
+> > +    __u32 source_id;
+> > +    __u32 sink_id;
+> 
+> Like in media_link I would use a union here as well to be able to refer to
+> source/sink_id and entity/interface_id.
+
+That would be overkill, and won't help.
+
+Unions make the code harder to read and kernel-doc-nano doesn't like unions
+very much.
+
+Ok, there are some cases where it helps, but there's no good reason
+for doing it here.
+
+If you don't like the name, let's just rename it to something else.
+
+> 
+> > +    __u32 flags;
+> > +    __u32 reserved[5];
+> > +};
+> > +
+> > +struct media_v2_topology {
+> > +	__u32 topology_version;
+> > +
+> > +	__u32 num_entities;
+> > +	struct media_v2_entity *entities;
+> > +
+> > +	__u32 num_interfaces;
+> > +	struct media_v2_interface *interfaces;
+> > +
+> > +	__u32 num_pads;
+> > +	struct media_v2_pad *pads;
+> > +
+> > +	__u32 num_links;
+> > +	struct media_v2_link *links;
+> > +
+> > +	__u32 reserved[64];
+> 
+> As mentioned before: use this instead to prevent horrible 32/64 bit arch
+> compat code:
+> 
+> 	struct {
+> 		__u32 reserved_num;
+> 		void *reserved_ptr;
+> 	} reserved_types[16];
+> 	__u32 reserved[8];
+> 
+> Sizes for these arrays are TBD.
+
+OK. Sorry, I forgot to do this change.
+
+> 
+> > +};
+> > +
+> > +/* ioctls */
+> >  
+> >  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+> >  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+> >  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+> >  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+> > +#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+> >  
+> >  #endif /* __LINUX_MEDIA_H */
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
