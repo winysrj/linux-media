@@ -1,72 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:36078 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552AbbHLQBD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Aug 2015 12:01:03 -0400
+Received: from smtpout.aon.at ([195.3.96.113]:64467 "EHLO smtpout.aon.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753779AbbHaREB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2015 13:04:01 -0400
+Message-ID: <55E488FF.3040608@a1.net>
+Date: Mon, 31 Aug 2015 19:03:59 +0200
+From: Johann Klammer <klammerj@a1.net>
 MIME-Version: 1.0
-In-Reply-To: <1439363150-8661-30-git-send-email-hch@lst.de>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-	<1439363150-8661-30-git-send-email-hch@lst.de>
-Date: Wed, 12 Aug 2015 09:01:02 -0700
-Message-ID: <CA+55aFxsH9Lde7wqZi555vqfH2uxeQqC9cjeca9L6Wr=XpyzXA@mail.gmail.com>
-Subject: Re: [PATCH 29/31] parisc: handle page-less SG entries
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vineet Gupta <vgupta@synopsys.com>,
-	=?UTF-8?Q?H=C3=A5vard_Skinnemoen?= <hskinnemoen@gmail.com>,
-	Hans-Christian Egtvedt <egtvedt@samfundet.no>,
-	Miao Steven <realmz6@gmail.com>,
-	David Howells <dhowells@redhat.com>,
-	Michal Simek <monstr@monstr.eu>,
-	"the arch/x86 maintainers" <x86@kernel.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	grundler@parisc-linux.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	linux-alpha@vger.kernel.org,
-	"linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-	linux-metag@vger.kernel.org,
-	linux-mips <linux-mips@linux-mips.org>,
-	Parisc List <linux-parisc@vger.kernel.org>,
-	ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-	"linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Malcolm Priestley <tvboxspy@gmail.com>, linux-media@vger.kernel.org
+CC: stable@vger.kernel.org
+Subject: Re: [PATCH] media: dvb-core: Don't force CAN_INVERSION_AUTO in oneshot
+ mode.
+References: <1441012425-25050-1-git-send-email-tvboxspy@gmail.com>
+In-Reply-To: <1441012425-25050-1-git-send-email-tvboxspy@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 12, 2015 at 12:05 AM, Christoph Hellwig <hch@lst.de> wrote:
-> Make all cache invalidation conditional on sg_has_page() and use
-> sg_phys to get the physical address directly.
 
-So this worries me a bit (I'm just reacting to one random patch in the series).
+Why not just remove the line?
+	info->caps |= FE_CAN_INVERSION_AUTO;
 
-The reason?
+The capabilities call interacting with the oneshot setting is rather weird and maybe unexpected.
 
-I think this wants a big honking comment somewhere saying "non-sg_page
-accesses are not necessarily cache coherent").
 
-Now, I don't think that's _wrong_, but it's an important distinction:
-if you look up pages in the page tables directly, there's a very
-subtle difference between then saving just the pfn and saving the
-"struct page" of the result.
-
-On sane architectures, this whole cache flushing thing doesn't matter.
-Which just means that it's going to be even more subtle on the odd
-broken ones..
-
-I'm assuming that anybody who wants to use the page-less
-scatter-gather lists always does so on memory that isn't actually
-virtually mapped at all, or only does so on sane architectures that
-are cache coherent at a physical level, but I'd like that assumption
-*documented* somewhere.
-
-(And maybe it is, and I just didn't get to that patch yet)
-
-                   Linus
