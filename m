@@ -1,74 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59899 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751794AbbH1NYg (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52518 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752085AbbHaM6w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Aug 2015 09:24:36 -0400
-Message-ID: <55E060DF.3030202@xs4all.nl>
-Date: Fri, 28 Aug 2015 15:23:43 +0200
+	Mon, 31 Aug 2015 08:58:52 -0400
+Message-ID: <55E44F54.4020609@xs4all.nl>
+Date: Mon, 31 Aug 2015 14:57:56 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] saa7164: convert to the control framework
-References: <55D730F4.80100@xs4all.nl>	<CAPybu_2hn8LuKy-n74cpQ1UOFvxgTv8SmXka6PwPY+U1XnZeDg@mail.gmail.com>	<55D85325.80607@xs4all.nl>	<CALzAhNVSY=yDWFk1fZnibOuThGW3J_s0sTQNhGGN8z1_U_regw@mail.gmail.com>	<55D86F3C.6090004@xs4all.nl>	<CALzAhNWhu-w+3x6S-_0ToAUAzELZSuQqo7q5NmpxXfCdciY0hw@mail.gmail.com>	<55DDBB73.5010902@xs4all.nl>	<CALzAhNVxrWOsU72jin4_ygwazX2cnqBaMoPGZ_Kv77xgGx7KmA@mail.gmail.com>	<55E014E6.5000801@xs4all.nl> <CALzAhNUMN6BhNZQgGE57-ujoi2O1-baVW_AWFYep7Xd0b4Okrg@mail.gmail.com>
-In-Reply-To: <CALzAhNUMN6BhNZQgGE57-ujoi2O1-baVW_AWFYep7Xd0b4Okrg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 52/55] [media] media-device: remove interfaces and
+ interface links
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/28/2015 02:44 PM, Steven Toth wrote:
->>> Send me your shipping address _privately_, I talk to Hauppauge about a
->>> replacement.
->>>
->>
->> No need, I managed to get it working if I use a PCI-to-PCIe adapter card. Very
->> strange, it won't work in the PCIe slot of my motherboard, but using the PCI slot
->> and that adapter it works fine.
-> 
-> Excellent.
-> 
->>
->> It's good that it was tested since the menu control creation code was wrong.
-> 
-> Ahh.
-> 
->>
->> One thing that is very confusing to me: I have this board:
->>
->> [ 1878.280918] CORE saa7164[0]: subsystem: 0070:8900, board: Hauppauge WinTV-HVR2200 [card=5,autodetected]
->> [ 1878.280928] saa7164[0]/0: found at 0000:09:00.0, rev: 129, irq: 18, latency: 0, mmio: 0xfb800000
->> [ 1878.327399] tveeprom 14-0000: Hauppauge model 89519, rev B2F2, serial# 4029789519
->> [ 1878.327405] tveeprom 14-0000: MAC address is 00:0d:fe:31:b5:4f
->> [ 1878.327409] tveeprom 14-0000: tuner model is NXP 18271C2_716x (idx 152, type 4)
->> [ 1878.327413] tveeprom 14-0000: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
->> [ 1878.327416] tveeprom 14-0000: audio processor is SAA7164 (idx 43)
->> [ 1878.327418] tveeprom 14-0000: decoder processor is CX23887A (idx 39)
->> [ 1878.327420] tveeprom 14-0000: has radio
->> [ 1878.327423] saa7164[0]: Hauppauge eeprom: model=89519
->>
->> but the default firmware with size 4919072 fails to work (image corrupt), instead
->> I need to use the firmware with size 4038864 (v4l-saa7164-1.0.3-3.fw).
->>
->> For that I have to patch the driver.
-> 
-> Take a look at your board, on the main large PCIe IC, its probably
-> marked as either a REV2 or a REV3, or a -02 or -03, what do you have?
-> 
-> I suspect you have a rev-02 chip. Not many of them go out into
-> production. (A few thousand, compared to significantly more -03
-> chips).
+On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
+> Just like what's done with entities, when the media controller is
+> unregistered, release and interface and interface links that
 
-The text on the chip is:
+s/release and/release any/
 
-SAA7164E/2
-P60962.00	10
-ESG07271Y
+> might still be there.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 638c682b79c4..2c16a46ea530 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -554,6 +554,22 @@ void media_device_unregister(struct media_device *mdev)
+>  {
+>  	struct media_entity *entity;
+>  	struct media_entity *next;
+> +	struct media_link *link, *tmp_link;
+> +	struct media_interface *intf, *tmp_intf;
+> +
+> +	/* Remove interface links from the media device */
+> +	list_for_each_entry_safe(link, tmp_link, &mdev->links,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&link->graph_obj);
+> +		kfree(link);
+> +	}
+> +
+> +	/* Remove all interfaces from the media device */
+> +	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&intf->graph_obj);
+> +		kfree(intf);
+> +	}
+>  
+>  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+>  		media_device_unregister_entity(entity);
+> @@ -631,7 +647,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  	/* Remove all data links that belong to this entity */
+>  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+>  		media_gobj_remove(&link->graph_obj);
+> -		list_del(&link->list);
+>  		kfree(link);
+>  	}
+>  
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 96303a0ade59..1cdda9cb0512 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -206,6 +206,10 @@ void media_gobj_remove(struct media_gobj *gobj)
+>  
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+> +
+> +	/* Links have their own list - we need to drop them there too */
+> +	if (media_type(gobj) == MEDIA_GRAPH_LINK)
+> +		list_del(&gobj_to_link(gobj)->list);
+>  }
+>  
+>  /**
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0e7e193a6736..7fd6265f0bcb 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -153,7 +153,7 @@ struct media_entity {
+>  };
+>  
+>  /**
+> - * struct media_intf_devnode - Define a Kernel API interface
+> + * struct media_interface - Define a Kernel API interface
+>   *
+>   * @graph_obj:		embedded graph object
+>   * @list:		Linked list used to find other interfaces that belong
+> @@ -163,6 +163,11 @@ struct media_entity {
+>   *			uapi/media/media.h header, e. g.
+>   *			MEDIA_INTF_T_*
+>   * @flags:		Interface flags as defined at uapi/media/media.h
+> + *
+> + * NOTE: As media_device_unregister() will free the address of the
+> + *	 media_interface, this structure should be embedded as the first
+> + *	 element of the derivated functions, in order for the address to be
 
-I suspect the /2 means REV2.
+s/derivated/derived/
 
-Regards,
+> + *	 the same.
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> @@ -179,11 +184,11 @@ struct media_interface {
+>   * @minor:	Minor number of a device node
+>   */
+>  struct media_intf_devnode {
+> -	struct media_interface		intf;
+> +	struct media_interface	intf; /* must be first field in struct */
+>  
+>  	/* Should match the fields at media_v2_intf_devnode */
+> -	u32				major;
+> -	u32				minor;
+> +	u32			major;
+> +	u32			minor;
+>  };
+>  
+>  static inline u32 media_entity_id(struct media_entity *entity)
+> 
 
-	Hans
