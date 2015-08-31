@@ -1,93 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48371 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239AbbH3DHq (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52651 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753032AbbHaNtX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Aug 2015 23:07:46 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v8 43/55] [media] media: report if a pad is sink or source at debug msg
-Date: Sun, 30 Aug 2015 00:06:54 -0300
-Message-Id: <e1e261997cc156eb6f6839944431fb6dba0c814a.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	Mon, 31 Aug 2015 09:49:23 -0400
+Message-ID: <55E45B2B.8010404@xs4all.nl>
+Date: Mon, 31 Aug 2015 15:48:27 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <cover.1440902901.git.mchehab@osg.samsung.com>	<8e914e59660fc35b074b72e39dc1b1200d52617b.1440902901.git.mchehab@osg.samsung.com>	<55E44CC7.2020801@xs4all.nl> <20150831104045.58119a87@recife.lan>
+In-Reply-To: <20150831104045.58119a87@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes, it is important to see if the created pad is
-sink or source. Add info to track that.
+On 08/31/2015 03:40 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Aug 2015 14:47:03 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
+>>> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
+>>> with the RFC for the MC next generation.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>
+>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>>> index 5b2c9f7fcd45..a91e1ec076a6 100644
+>>> --- a/drivers/media/media-device.c
+>>> +++ b/drivers/media/media-device.c
+>>> @@ -232,6 +232,136 @@ static long media_device_setup_link(struct media_device *mdev,
+>>>  	return ret;
+>>>  }
+>>>  
+>>> +static long __media_device_get_topology(struct media_device *mdev,
+>>> +				      struct media_v2_topology *topo)
+>>> +{
+>>> +	struct media_entity *entity;
+>>> +	struct media_interface *intf;
+>>> +	struct media_pad *pad;
+>>> +	struct media_link *link;
+>>> +	struct media_v2_entity uentity;
+>>> +	struct media_v2_interface uintf;
+>>> +	struct media_v2_pad upad;
+>>> +	struct media_v2_link ulink;
+>>> +	int ret = 0, i;
+>>> +
+>>> +	topo->topology_version = mdev->topology_version;
+>>> +
+>>> +	/* Get entities and number of entities */
+>>> +	i = 0;
+>>> +	media_device_for_each_entity(entity, mdev) {
+>>> +		i++;
+>>> +
+>>> +		if (ret || !topo->entities)
+>>> +			continue;
+>>
+>> I would add:
+>>
+>> 		if (i > topo->num_entities)
+>> 			continue;
+>>
+>> The copy_to_user can succeed, even if i > num_entities depending on how the
+>> memory was allocated. So I would always check num_entities and refuse to go
+>> beyond it.
+> 
+> I think that the best is:
+> 
+> 	if (i > topo->num_entities) {
+> 		ret = -ENOSPC;
+> 		continue;
+> 	}
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Agreed.
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index f638c67defbe..610d2bab1368 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -528,8 +528,8 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
- 	struct media_entity *entity, *tuner = NULL, *demod = NULL;
- 	struct media_entity *demux = NULL, *ca = NULL;
- 	struct media_interface *intf;
--	unsigned demux_pad = 1;
--	unsigned dvr_pad = 1;
-+	unsigned demux_pad = 0;
-+	unsigned dvr_pad = 0;
- 
- 	if (!mdev)
- 		return;
-@@ -561,15 +561,19 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
- 
- 	/* Create demux links for each ringbuffer/pad */
- 	if (demux) {
--		if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
--			if (!strncmp(entity->name, DVR_TSOUT,
--				     sizeof(DVR_TSOUT)))
--				media_create_pad_link(demux, ++dvr_pad,
--						      entity, 0, 0);
--			if (!strncmp(entity->name, DEMUX_TSOUT,
--				     sizeof(DEMUX_TSOUT)))
--				media_create_pad_link(demux, ++demux_pad,
--						      entity, 0, 0);
-+		media_device_for_each_entity(entity, mdev) {
-+			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
-+				if (!strncmp(entity->name, DVR_TSOUT,
-+					strlen(DVR_TSOUT)))
-+					media_create_pad_link(demux,
-+							      ++dvr_pad,
-+							entity, 0, 0);
-+				if (!strncmp(entity->name, DEMUX_TSOUT,
-+					strlen(DEMUX_TSOUT)))
-+					media_create_pad_link(demux,
-+							      ++demux_pad,
-+							entity, 0, 0);
-+			}
- 		}
- 	}
- 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 15bc92d3a648..d62a6ffbc929 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
- 		struct media_pad *pad = gobj_to_pad(gobj);
- 
- 		dev_dbg(gobj->mdev->dev,
--			"%s: id 0x%08x pad#%d: '%s':%d\n",
--			event_name, gobj->id, media_localid(gobj),
-+			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
-+			event_name, gobj->id,
-+			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
-+			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
-+			media_localid(gobj),
- 			pad->entity->name, pad->index);
- 		break;
- 	}
--- 
-2.4.3
+Regards,
+
+	Hans
 
