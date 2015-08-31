@@ -1,38 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3hn0252.outbound.protection.outlook.com ([157.55.234.252]:2431
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750945AbbH0Scw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Aug 2015 14:32:52 -0400
-Reply-To: <ben.cook5511@yahoo.co.nz>
-From: Ben cook <spam@practicenet.co.uk>
-Subject: Best regards, TO NEXT OF KIN.........
-Date: Thu, 27 Aug 2015 20:32:46 +0200
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:50192 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752708AbbHaMBi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2015 08:01:38 -0400
+Message-ID: <55E441EA.4020206@xs4all.nl>
+Date: Mon, 31 Aug 2015 14:00:42 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="Windows-1251"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Message-ID: <DEXSERV1e2Qw4hVJbrz00000bac@dexam.co.uk>
-Content-Class: urn:content-classes:message
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Barrister Ben Cook
-La Sagrada Familia Calle Mallorca,
-601 08713 Seville Spain.
-Mobil: +34 631 093 714
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> Add a new ioctl that will report the entire topology on
+> one go.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 756e1960fd7f..358a0c6b1f86 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -181,6 +181,8 @@ struct media_interface {
+>   */
+>  struct media_intf_devnode {
+>  	struct media_interface		intf;
+> +
+> +	/* Should match the fields at media_v2_intf_devnode */
+>  	u32				major;
+>  	u32				minor;
+>  };
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 4186891e5e81..fa0b68e670b0 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -251,11 +251,94 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+>  #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+>  
+> -/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
+> +/*
+> + * MC next gen API definitions
+> + *
+> + * NOTE: The declarations below are close to the MC RFC for the Media
+> + *	 Controller, the next generation. Yet, there are a few adjustments
+> + *	 to do, as we want to be able to have a functional API before
+> + *	 the MC properties change. Those will be properly marked below.
+> + *	 Please also notice that I removed "num_pads", "num_links",
+> + *	 from the proposal, as a proper userspace application will likely
+> + *	 use lists for pads/links, just as we intend todo in Kernelspace.
 
-> Attn: Dear Friend,
->
-I am Barrister Ben Cook a solicitor at law. I am the personal attorney to late Mr. Robert a national of your country, who was an official contractor (category D) with REPSOL YPF, SPAIN (RY) an oil firm in Spain. Here in after shall be referred to as my client. On the 11th of March 2010, my client, his wife and their two only sons were involved in a car accident on holiday trip along Las Palmas express way. All occupants of the vehicle unfortunately lost their lives. Since then I have made several enquiries and presentations to locate any of my client's extended relatives, this has also proved abortive. It is after these several unsuccessful attempts to locate any member of his family failed that I decided to contact you since coincidentally you have your last name believing that you can invariably be of help in this situation to stands as the next of kin to this my client. I am contacting you to assist in repatriating the money and property left behind by my client before th!
-!ey get confiscated or declared uns
->
-Already, the finance company where the deceased had an account valued at about 1 Million Euros has issued me a notice/ultimatum to provide the next of kin or have the account confiscated within the next one Month. Since It has been unsuccessful in locating the relatives for over 2 years now, I seek your consent to present you as the next of kin of the deceased, so that the proceeds of this account valued at 1 Million Euros can be paid to your account and there after we can share the fund (money) in the ratio of 7:3. That is, I will have 70% of the proceed while you have 30% for your assistance. I have all necessary legal documents that can be used to back up any claim we may make. All I require is your honest co-operation to enable us see this transaction through .I guarantee that this will be executed under a legitimate arrangement that will protect you from any breach of the law.
+s/todo/to do/
 
-Please get in touch with me by my email and send to me your telephone and fax numbers to enable us discuss further about this transaction.
->
-Best regards,
-Barrister Ben Cook
+> + *	 The API definition should be freed from fields that are bound to
+> + *	 some specific data structure.
+> + *
+> + * FIXME: Currently, I opted to name the new types as "media_v2", as this
+> + *	  won't cause any conflict with the Kernelspace namespace, nor with
+> + *	  the previous kAPI media_*_desc namespace. This can be changed
+> + *	  latter, before the adding this API upstream.
 
+s/latter/later/ :-)
 
-=============MAX============= 
+I think this comment belongs to the commit log and not in this header.
+
+> + */
+> +
+> +
+> +#define MEDIA_NEW_LNK_FL_ENABLED		MEDIA_LNK_FL_ENABLED
+> +#define MEDIA_NEW_LNK_FL_IMMUTABLE		MEDIA_LNK_FL_IMMUTABLE
+> +#define MEDIA_NEW_LNK_FL_DYNAMIC		MEDIA_NEW_FL_DYNAMIC
+> +#define MEDIA_NEW_LNK_FL_INTERFACE_LINK		(1 << 3)
+
+Shouldn't this be MEDIA_V2_ instead of MEDIA_NEW_?
+
+Do we need the INTERFACE_LINK flag? You can deduce it by checking the
+ID type.
+
+I don't have a clear preference one way or another, just wondering about the
+reason for adding it.
+
+> +
+> +struct media_v2_entity {
+> +	__u32 id;
+> +	char name[64];		/* FIXME: move to a property? (RFC says so) */
+> +	__u16 reserved[14];
+> +};
+> +
+> +/* Should match the specific fields at media_intf_devnode */
+> +struct media_v2_intf_devnode {
+> +	__u32 major;
+> +	__u32 minor;
+> +};
+> +
+> +struct media_v2_interface {
+> +	__u32 id;
+> +	__u32 intf_type;
+> +	__u32 flags;
+> +	__u32 reserved[9];
+> +
+> +	union {
+> +		struct media_v2_intf_devnode devnode;
+> +		__u32 raw[16];
+> +	};
+> +};
+> +
+> +struct media_v2_pad {
+> +	__u32 id;
+> +	__u32 entity_id;
+> +	__u32 flags;
+> +	__u16 reserved[9];
+> +};
+> +
+> +struct media_v2_link {
+> +    __u32 id;
+> +    __u32 source_id;
+> +    __u32 sink_id;
+
+Like in media_link I would use a union here as well to be able to refer to
+source/sink_id and entity/interface_id.
+
+> +    __u32 flags;
+> +    __u32 reserved[5];
+> +};
+> +
+> +struct media_v2_topology {
+> +	__u32 topology_version;
+> +
+> +	__u32 num_entities;
+> +	struct media_v2_entity *entities;
+> +
+> +	__u32 num_interfaces;
+> +	struct media_v2_interface *interfaces;
+> +
+> +	__u32 num_pads;
+> +	struct media_v2_pad *pads;
+> +
+> +	__u32 num_links;
+> +	struct media_v2_link *links;
+> +
+> +	__u32 reserved[64];
+
+As mentioned before: use this instead to prevent horrible 32/64 bit arch
+compat code:
+
+	struct {
+		__u32 reserved_num;
+		void *reserved_ptr;
+	} reserved_types[16];
+	__u32 reserved[8];
+
+Sizes for these arrays are TBD.
+
+> +};
+> +
+> +/* ioctls */
+>  
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+> +#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+>  
+>  #endif /* __LINUX_MEDIA_H */
+> 
+
+Regards,
+
+	Hans
