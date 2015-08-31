@@ -1,149 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53905 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752123AbbHWRux (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 13:50:53 -0400
-Message-ID: <1440352250.13381.3.camel@xs4all.nl>
-Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: linux-media@vger.kernel.org
-Date: Sun, 23 Aug 2015 19:50:50 +0200
-In-Reply-To: <1436697509.2446.14.camel@xs4all.nl>
-References: <1436697509.2446.14.camel@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from lists.s-osg.org ([54.187.51.154]:33095 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751322AbbHaNIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Aug 2015 09:08:24 -0400
+Date: Mon, 31 Aug 2015 10:08:19 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev
+ or V4L2 DMA
+Message-ID: <20150831100819.27456e98@recife.lan>
+In-Reply-To: <55E43B14.9050506@xs4all.nl>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
+	<55E43B14.9050506@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 31 Aug 2015 13:31:32 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Sun, 2015-07-12 at 12:38 +0200, Jurgen Kramer wrote:
-> I have been running a couple of DVBSky T980C's with CIs with success
-> using an older kernel (3.17.8) with media-build and some added patches
-> from the mailing list.
+> On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> > As we'll be removing entity subtypes from the Kernel, we need
+> > to provide a way for drivers and core to check if a given
+> > entity is represented by a V4L2 subdev or if it is an V4L2
+> > I/O entity (typically with DMA).
 > 
-> I thought lets try a current 4.0 kernel to see if I no longer need to be
-> running a custom kernel. Everything works just fine except the CAM
-> module. I am seeing these:
+> This needs more discussion. The plan (as I understand it) is to have properties
+> that describe the entity's functionalities.
 > 
-> [  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
-> [  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
-> [  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
+> The existing entity subtypes will exist only as backwards compat types, but in
+> the future properties should be used to describe the functionalities.
 > 
-> The normal 'CAM detected and initialised' messages to do show up with
-> 4.0.8
+> This raises the question if we shouldn't use MEDIA_ENT_T_V4L2_SUBDEV to tell
+> userspace that this is a subdev-controlled entity, and let userspace look at
+> the properties to figure out what it is exactly?
 > 
-> I am not sure what changed in the recent kernels, what is needed to
-> debug this?
-> 
-> Jurgen
-Retest. I've isolated one T980C on another PC with kernel 4.1.5, still the same 'Invalid PC card inserted :(' message.
-Even after installed today's media_build from git no improvement.
+> It could be that this is a transitional patch, and this will be fixed later.
+> If so, this should be mentioned in the commit message.
 
-Any hints where to start looking would be appreciated!
+There are several different issues here:
 
-cimax2.c|h do not seem to have changed. There are changes to
-dvb_ca_en50221.c
+1) drivers should not rely on type/subtype at MEDIA_ENT_T_*, as we need
+   to get rid of it, as this got deprecated;
 
-Jurgen
+2) Keep backward compatibility.
 
+3) the addition of properties;
 
-> Relevant kernel messages:
+The next patch on this series addresses (1) and (2), and this change is
+needed for them.
+
+We can't tell if this is a transitional patch or not, as we don't have
+yet any idea about how (3) will be added. Maybe it will preserve
+entity->type. Maybe it will convert it into an array. Maybe it would
+do something different.
+
+In any case, whatever the property patches will be doing, after this
+patch, it will need to touch only at the implementation of the two
+macros, not needing to touch at the drivers again.
+
+What I can do is to tell at the description that this patch is in
+preparation for the removal of media type/subtype concept that will 
+happen on the next patches, but this is what's described there already
+at:
+	"As we'll be removing entity subtypes from the Kernel,"
+
+Perhaps I should let it clearer there.
+
+Regards,
+Mauro
+
 > 
-> [   14.899827] cx25840 9-0044: loaded v4l-cx23885-avcore-01.fw firmware
-> (16382 bytes)
-> [   14.915384] cx23885_dvb_register() allocating 1 frontend(s)
-> [   14.915386] cx23885[0]: cx23885 based dvb card
-> [   15.326745] i2c i2c-8: Added multiplexed i2c bus 10
-> [   15.326747] si2168 8-0064: Silicon Labs Si2168 successfully attached
-> [   15.390538] si2157 10-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   15.390542] DVB: registering new adapter (cx23885[0])
-> [   15.390544] cx23885 0000:02:00.0: DVB: registering adapter 0 frontend
-> 0 (Silicon Labs Si2168)...
-> [   15.758330] sp2 8-0040: CIMaX SP2 successfully attached
-> [   15.785785] DVBSky T980C MAC address: 00:17:42:54:09:88
-> [   15.785789] cx23885_dev_checkrevision() Hardware revision = 0xa5
-> [   15.785792] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
-> latency: 0, mmio: 0xf7c00000
-> [   15.785883] CORE cx23885[1]: subsystem: 4254:980c, board: DVBSky
-> T980C [card=46,autodetected]
-> [   15.996981] EXT4-fs (sda2): mounted filesystem with ordered data
-> mode. Opts: (null)
-> [   16.015395] cx25840 13-0044: cx23885 A/V decoder found @ 0x88
-> (cx23885[1])
-> [   16.642705] cx25840 13-0044: loaded v4l-cx23885-avcore-01.fw firmware
-> (16382 bytes)
-> [   16.658240] cx23885_dvb_register() allocating 1 frontend(s)
-> [   16.658242] cx23885[1]: cx23885 based dvb card
-> [   16.659004] i2c i2c-12: Added multiplexed i2c bus 14
-> [   16.659006] si2168 12-0064: Silicon Labs Si2168 successfully attached
-> [   16.660689] si2157 14-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   16.660692] DVB: registering new adapter (cx23885[1])
-> [   16.660693] cx23885 0000:03:00.0: DVB: registering adapter 1 frontend
-> 0 (Silicon Labs Si2168)...
-> [   16.667337] sp2 12-0040: CIMaX SP2 successfully attached
-> [   16.694845] DVBSky T980C MAC address: 00:17:42:54:09:88
-> [   16.694848] cx23885_dev_checkrevision() Hardware revision = 0xa5
-> [   16.694852] cx23885[1]/0: found at 0000:03:00.0, rev: 4, irq: 17,
-> latency: 0, mmio: 0xf7a00000
-> [   16.694986] CORE cx23885[2]: subsystem: 4254:980c, board: DVBSky
-> T980C [card=46,autodetected]
-> [   16.924320] cx25840 17-0044: cx23885 A/V decoder found @ 0x88
-> (cx23885[2])
-> [   17.551377] cx25840 17-0044: loaded v4l-cx23885-avcore-01.fw firmware
-> (16382 bytes)
-> [   17.566994] cx23885_dvb_register() allocating 1 frontend(s)
-> [   17.566996] cx23885[2]: cx23885 based dvb card
-> [   17.567898] i2c i2c-16: Added multiplexed i2c bus 18
-> [   17.567900] si2168 16-0064: Silicon Labs Si2168 successfully attached
-> [   17.569710] si2157 18-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [   17.569714] DVB: registering new adapter (cx23885[2])
-> [   17.569715] cx23885 0000:05:00.0: DVB: registering adapter 2 frontend
-> 0 (Silicon Labs Si2168)...
-> [   17.576684] sp2 16-0040: CIMaX SP2 successfully attached
-> [   17.604168] DVBSky T980C MAC address: 00:17:42:54:09:88
-> [   17.604171] cx23885_dev_checkrevision() Hardware revision = 0xa5
-> [   17.604174] cx23885[2]/0: found at 0000:05:00.0, rev: 4, irq: 19,
-> latency: 0, mmio: 0xf7800000
+> Regards,
 > 
-> [  220.616002] si2168 8-0064: found a 'Silicon Labs Si2168-A30'
-> [  220.635026] si2168 8-0064: downloading firmware from file
-> 'dvb-demod-si2168-a30-01.fw'
-> [  223.744845] si2168 8-0064: firmware version: 3.0.16
-> [  223.753441] si2157 10-0060: found a 'Silicon Labs Si2158-A20'
-> [  223.777443] si2157 10-0060: downloading firmware from file
-> 'dvb-tuner-si2158-a20-01.fw'
-> [  224.577779] si2157 10-0060: firmware version: 2.1.6
-> [  224.683600] si2168 12-0064: found a 'Silicon Labs Si2168-A30'
-> [  224.683633] si2168 12-0064: downloading firmware from file
-> 'dvb-demod-si2168-a30-01.fw'
-> [  227.797635] si2168 12-0064: firmware version: 3.0.16
-> [  227.806235] si2157 14-0060: found a 'Silicon Labs Si2158-A20'
-> [  227.806249] si2157 14-0060: downloading firmware from file
-> 'dvb-tuner-si2158-a20-01.fw'
-> [  228.606280] si2157 14-0060: firmware version: 2.1.6
-> [  228.644496] si2168 16-0064: found a 'Silicon Labs Si2168-A30'
-> [  228.644521] si2168 16-0064: downloading firmware from file
-> 'dvb-demod-si2168-a30-01.fw'
-> [  231.763081] si2168 16-0064: firmware version: 3.0.16
-> [  231.771685] si2157 18-0060: found a 'Silicon Labs Si2158-A20'
-> [  231.771711] si2157 18-0060: downloading firmware from file
-> 'dvb-tuner-si2158-a20-01.fw'
-> [  232.571684] si2157 18-0060: firmware version: 2.1.6
-> [  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
-> [  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
-> [  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
-> [  481.638979] dvb_ca adapter 0: Invalid PC card inserted :(
+> 	Hans
 > 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index e7b20bdc735d..b0cfbc0dffc7 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+> >  	return id;
+> >  }
+> >  
+> > +static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+> > +{
+> > +	if (!entity)
+> > +		return false;
+> > +
+> > +	switch (entity->type) {
+> > +	case MEDIA_ENT_T_V4L2_VIDEO:
+> > +	case MEDIA_ENT_T_V4L2_VBI:
+> > +	case MEDIA_ENT_T_V4L2_SWRADIO:
+> > +		return true;
+> > +	default:
+> > +		return false;
+> > +	}
+> > +}
+> > +
+> > +static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+> > +{
+> > +	if (!entity)
+> > +		return false;
+> > +
+> > +	switch (entity->type) {
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> > +		return true;
+> > +
+> > +	default:
+> > +		return false;
+> > +	}
+> > +}
+> > +
+> >  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+> >  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+> >  
+> > 
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
