@@ -1,115 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58880 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbbHWUSI (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41745 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751433AbbHaMaZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:08 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v7 03/44] [media] omap3isp: get entity ID using media_entity_id()
-Date: Sun, 23 Aug 2015 17:17:20 -0300
-Message-Id: <0c7d9114cb585da8f24c6ac9861bed9cd7f5a794.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Mon, 31 Aug 2015 08:30:25 -0400
+Message-ID: <55E448A8.6060004@xs4all.nl>
+Date: Mon, 31 Aug 2015 14:29:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version
+ field
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <e8cb8de5ad8f2da3c32418d67340fe4bb663ce5c.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <e8cb8de5ad8f2da3c32418d67340fe4bb663ce5c.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> Every time a graph object is added or removed, the version
+> of the topology changes. That's a requirement for the new
+> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
+> that the topology has changed after a previous call to it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-X-Patchwork-Delegate: laurent.pinchart@ideasonboard.com
-The struct media_entity does not have an .id field anymore since
-now the entity ID is stored in the embedded struct media_gobj.
+I think this should be postponed until we actually have dynamic reconfigurable
+graphs.
 
-This caused the omap3isp driver fail to build. Fix by using the
-media_entity_id() macro to obtain the entity ID.
+I would also like to reserve version 0: if 0 is returned, then the graph is
+static.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+In G_TOPOLOGY we'd return always 0 for now.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 56e683b19a73..e08183f9d0f7 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
- 	struct v4l2_subdev *subdev;
- 	int failure = 0;
- 	int ret;
-+	u32 id;
- 
- 	/*
- 	 * We need to stop all the modules after CCDC first or they'll
-@@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
- 		if (ret) {
- 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
- 			isp->stop_failure = true;
--			if (subdev == &isp->isp_prev.subdev)
--				isp->crashed |= 1U << subdev->entity.id;
-+			if (subdev == &isp->isp_prev.subdev) {
-+				id = media_entity_id(&subdev->entity);
-+				isp->crashed |= 1U << id;
-+			}
- 			failure = -ETIMEDOUT;
- 		}
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 3b10304b580b..d96e3be5e252 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
- 	/* Wait for the CCDC to become idle. */
- 	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
- 		dev_info(isp->dev, "CCDC won't become idle!\n");
--		isp->crashed |= 1U << ccdc->subdev.entity.id;
-+		isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
- 		omap3isp_pipeline_cancel_stream(pipe);
- 		return 0;
- 	}
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 3094572f8897..6c89dc40df85 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -235,7 +235,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		struct isp_video *__video;
- 
--		pipe->entities |= 1 << entity->id;
-+		pipe->entities |= 1 << media_entity_id(entity);
- 
- 		if (far_end != NULL)
- 			continue;
-@@ -891,6 +891,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 	struct v4l2_ext_control ctrl;
- 	unsigned int i;
- 	int ret;
-+	u32 id;
- 
- 	/* Memory-to-memory pipelines have no external subdev. */
- 	if (pipe->input != NULL)
-@@ -898,7 +899,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 
- 	for (i = 0; i < ARRAY_SIZE(ents); i++) {
- 		/* Is the entity part of the pipeline? */
--		if (!(pipe->entities & (1 << ents[i]->id)))
-+		if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
- 			continue;
- 
- 		/* ISP entities have always sink pad == 0. Find source. */
-@@ -950,7 +951,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
- 
- 	pipe->external_rate = ctrl.value64;
- 
--	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
-+	id = media_entity_id(&isp->isp_ccdc.subdev.entity);
-+	if (pipe->entities & (1 << id)) {
- 		unsigned int rate = UINT_MAX;
- 		/*
- 		 * Check that maximum allowed CCDC pixel rate isn't
--- 
-2.4.3
+Regards,
+
+	Hans
+
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index c89f51bc688d..c18f4af52771 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -185,6 +185,9 @@ void media_gobj_init(struct media_device *mdev,
+>  		list_add_tail(&gobj->list, &mdev->interfaces);
+>  		break;
+>  	}
+> +
+> +	mdev->topology_version++;
+> +
+>  	dev_dbg_obj(__func__, gobj);
+>  }
+>  
+> @@ -199,6 +202,8 @@ void media_gobj_remove(struct media_gobj *gobj)
+>  {
+>  	dev_dbg_obj(__func__, gobj);
+>  
+> +	gobj->mdev->topology_version++;
+> +
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+>  }
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 0d1b9c687454..1b12774a9ab4 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -41,6 +41,8 @@ struct device;
+>   * @bus_info:	Unique and stable device location identifier
+>   * @hw_revision: Hardware device revision
+>   * @driver_version: Device driver version
+> + * @topology_version: Monotonic counter for storing the version of the graph
+> + *		topology. Should be incremented each time the topology changes.
+>   * @entity_id:	Unique ID used on the last entity registered
+>   * @pad_id:	Unique ID used on the last pad registered
+>   * @link_id:	Unique ID used on the last link registered
+> @@ -74,6 +76,8 @@ struct media_device {
+>  	u32 hw_revision;
+>  	u32 driver_version;
+>  
+> +	u32 topology_version;
+> +
+>  	u32 entity_id;
+>  	u32 pad_id;
+>  	u32 link_id;
+> 
 
