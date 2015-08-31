@@ -1,431 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50787 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbbHRGeN (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49945 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752971AbbHaMsA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Aug 2015 02:34:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Helen Fornazier <helen.fornazier@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: VIMC: API proposal, configuring the topology through user space
-Date: Tue, 18 Aug 2015 09:35:14 +0300
-Message-ID: <2082947.pCFORmYODL@avalon>
-In-Reply-To: <55CDC8F4.6010807@xs4all.nl>
-References: <CAPW4XYagLAmCXpnFyzmfRjUHeTL0Q1mfcKiOCssh5o-NMZqR2w@mail.gmail.com> <3882390.gpLl9TToUt@avalon> <55CDC8F4.6010807@xs4all.nl>
+	Mon, 31 Aug 2015 08:48:00 -0400
+Message-ID: <55E44CC7.2020801@xs4all.nl>
+Date: Mon, 31 Aug 2015 14:47:03 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <8e914e59660fc35b074b72e39dc1b1200d52617b.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <8e914e59660fc35b074b72e39dc1b1200d52617b.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 08/30/2015 05:07 AM, Mauro Carvalho Chehab wrote:
+> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
+> with the RFC for the MC next generation.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 5b2c9f7fcd45..a91e1ec076a6 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -232,6 +232,136 @@ static long media_device_setup_link(struct media_device *mdev,
+>  	return ret;
+>  }
+>  
+> +static long __media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology *topo)
+> +{
+> +	struct media_entity *entity;
+> +	struct media_interface *intf;
+> +	struct media_pad *pad;
+> +	struct media_link *link;
+> +	struct media_v2_entity uentity;
+> +	struct media_v2_interface uintf;
+> +	struct media_v2_pad upad;
+> +	struct media_v2_link ulink;
+> +	int ret = 0, i;
+> +
+> +	topo->topology_version = mdev->topology_version;
+> +
+> +	/* Get entities and number of entities */
+> +	i = 0;
+> +	media_device_for_each_entity(entity, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->entities)
+> +			continue;
 
-On Friday 14 August 2015 12:54:44 Hans Verkuil wrote:
-> On 08/13/2015 07:29 PM, Laurent Pinchart wrote:
-> > On Tuesday 11 August 2015 17:07:04 Helen Fornazier wrote:
-> >> On Tue, Aug 11, 2015 at 6:36 AM, Mauro Carvalho Chehab wrote:
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>> On 08/10/15 19:21, Helen Fornazier wrote:
-> >>>>> On Mon, Aug 10, 2015 at 10:11 AM, Hans Verkuil wrote:
-> >>>>>> On 08/08/2015 03:55 AM, Helen Fornazier wrote:
-> >>>>>>> Hi!
-> >>>>>>> 
-> >>>>>>> I've made a first sketch about the API of the vimc driver (virtual
-> >>>>>>> media controller) to configure the topology through user space.
-> >>>>>>> As first suggested by Laurent Pinchart, it is based on configfs.
-> >>>>>>> 
-> >>>>>>> I would like to know you opinion about it, if you have any
-> >>>>>>> suggestion to improve it, otherwise I'll start its implementation as
-> >>>>>>> soon as possible. This API may change with the MC changes and I may
-> >>>>>>> see other possible configurations as I implementing it but here is
-> >>>>>>> the first idea of how the API will look like.
-> >>>>>>> 
-> >>>>>>> vimc project link: https://github.com/helen-fornazier/opw-staging/
-> >>>>>>> For more information: http://kernelnewbies.org/LaurentPinchart
-> >>>>>>> 
-> >>>>>>> /***********************
-> >>>>>>> The API:
-> >>>>>>> ************************/
-> >>>>>>> 
-> >>>>>>> In short, a topology like this one: http://goo.gl/Y7eUfu
-> >>>>>>> Would look like this filesystem tree: https://goo.gl/tCZPTg
-> >>>>>>> Txt version of the filesystem tree: https://goo.gl/42KX8Y
-> >>>>>>> 
-> >>>>>>> * The /configfs/vimc subsystem
-> >>>>>> 
-> >>>>>> I haven't checked the latest vimc driver, but doesn't it support
-> >>>>>> multiple instances, just like vivid? I would certainly recommend
-> >>>>>> that.
-> >>>>> 
-> >>>>> Yes, it does support
-> >>>>> 
-> >>>>>> And if there are multiple instances, then each instance gets its own
-> >>>>>> entry in configfs: /configs/vimc0, /configs/vimc1, etc.
-> >>>>> 
-> >>>>> You are right, I'll add those
-> >>>>> 
-> >>>>>>> The vimc driver registers a subsystem in the configfs with the
-> >>>>>>> following contents:
-> >>>>>>>         > ls /configfs/vimc
-> >>>>>>>         build_topology status
-> >>>>>>> 
-> >>>>>>> The build_topology attribute file will be used to tell the driver
-> >>>>>>> the configuration is done and it can build the topology internally
-> >>>>>>> 
-> >>>>>>>         > echo -n "anything here" > /configfs/vimc/build_topology
-> >>>>>>> 
-> >>>>>>> Reading from the status attribute can have 3 different classes of
-> >>>>>>> outputs
-> >>>>>>> 1) deployed: the current configured tree is built
-> >>>>>>> 2) undeployed: no errors, the user has modified the configfs tree
-> >>>>>>> thus the topology was undeployed
-> >>>>>>> 3) error error_message: the topology configuration is wrong
-> >>>>>> 
-> >>>>>> I don't see the status file in the filesystem tree links above.
-> >>>>> 
-> >>>>> Sorry, I forgot to add
-> >>>>> 
-> >>>>>> I actually wonder if we can't use build_topology for that: reading it
-> >>>>>> will just return the status.
-> >>>>> 
-> >>>>> Yes we can, I was just wondering what should be the name of the file,
-> >>>>> as getting the status from reading the build_topology file doesn't
-> >>>>> seem much intuitive
-> >>>> 
-> >>>> I'm not opposed to a status file, but it would be good to know what
-> >>>> Laurent thinks.
-> >>>> 
-> >>>>>> What happens if it is deployed and you want to 'undeploy' it? Instead
-> >>>>>> of writing anything to build_topology it might be useful to write a
-> >>>>>> real command to it. E.g. 'deploy', 'destroy'.
-> >>>>>> 
-> >>>>>> What happens when you make changes while a topology is deployed?
-> >>>>>> Should such changes be rejected until the usecount of the driver goes
-> >>>>>> to 0, or will it only be rejected when you try to deploy the new
-> >>>>>> configuration?
-> >>>>> 
-> >>>>> I was thinking that if the user try changing the topology, or it will
-> >>>>> fail (because the device instance is in use) or it will undeploy the
-> >>>>> old topology (if the device is not in use). Then a 'destroy' command
-> >>>>> won't be useful, the user can just unload the driver when it won't be
-> >>>>> used anymore,
-> >>> 
-> >>> Well, we're planning to add support for dynamic addition/removal of
-> >>> entities, interfaces, pads and links. So, instead of undeploy the
-> >>> 
-> >>> old topology, one could just do:
-> >>>         rm -rf <part of the tree>
-> >> 
-> >> I think I misunderstood the word dynamic here. Do you mean that
-> >> entities/interfaces/pads/link could be created/removed while their
-> >> file handlers are opened? While an instance (lets say vimc2) is being
-> >> used?
-> > 
-> > Let's keep in mind that what can appear or disappear at runtime in an
-> > uncontrolled manner are hardware blocks. The associated media_entity
-> > instances will of course need to be created and destroyed, but we have
-> > control over that in the sense that the kernel controls the lifetime of
-> > those structures.
-> > 
-> > For the vimc driver hardware addition and removal is emulated using the
-> > userspace API. The API thus needs to support
-> > 
-> > - adding a complete device
-> > - removing a complete device
-> > - adding a hardware block
-> > - removing a hardware block
-> > 
-> > The last two operations can't be implemented before we add support for
-> > them in the MC core, but the API needs to be designed in a way to allow
-> > them.
->
-> Agreed.
-> 
-> >>>> If you have multiple vimc instances and you want to 'destroy' the
-> >>>> topology of only one instance, then you can't rmmod the module.
-> >>> 
-> >>> You can still use "rm" remove just one entire instance of the topology.
-> >> 
-> >> Just to be clear:
-> >> They way I was thinking was: the user do the mkdir/rmdir/echo/cat as
-> >> he likes, if some file handler is opened in some device then
-> >> rmdir/mkdir/echo would fail in the folder related to that device:
-> >> 
-> >> Lets say we have
-> >> /configfs/vimc/vimc0/ent/name
-> >> /configfs/vimc/vimc1/ent/name
-> >> /configfs/vimc/vimc1/ent_debayer/name
-> >> 
-> >> if some file related to vimc0 is opened, then "echo foo >
-> >> /configfs/vimc/vimc0/ent/name" would fail.
-> >> But "echo foo > /configfs/vimc/vimc1/ent/name" would work (assuming we
-> >> are not using the filehandlers of vimc1)
-> > 
-> > I don't think we should support modifying properties such as names or
-> > roles at runtime as they're supposed to be fixed.
-> 
-> Agreed.
-> 
-> >> If the user wants to remove vimc1 (as he is not using it anyway), then
-> >> just: $ rmdir -r /configfs/vimc/vimc1
-> > 
-> > 'rmdir -r' will recursively traverse the directories and remove all files
-> > from userspace, which will likely not work nicely. If configfs allows
-> > removing a non-empty directory then just rmdir should work, but might
-> > still not be the right solution.
-> 
-> First of all, you can't remove the vimc1 directory since this would remove
-> the vimc instance and you shouldn't be able to do that.
+I would add:
 
-Why not ? If we can create new instances dynamically at runtime it would make 
-sense to me to be able to delete them as well.
+		if (i > topo->num_entities)
+			continue;
 
-> Also, the build_topology file shouldn't be removable at all.
-> 
-> >> I don't see a big reason to explicitly undeploy a topology (without
-> >> removing the folders) other then to modify the topology.
-> >> Then when the user changes the filesystem tree, it undeploys the
-> >> topology automatically:
-> >> 
-> >> $ echo "foo" > /configfs/vimc/vimc1/build_topology # here the topology
-> >> of vimc1 will be deployed
-> >> $ rmdir /configfs/vimc/vimc1/ent_debayer # here the topology will be
-> >> undeployed, or this command will fail if vimc1 is in use
-> >> $ echo "foo" > /configfs/vimc/vimc1/build_topology # here the topology
-> >> of the instance vimc1 will be deployed again without the ent_debayer
-> >> entity (assuming the previous command worked)
-> >> 
-> >> Unless it is interesting to easy simulate a disconnect (undeploy) and
-> >> reconnect with the same topology (deploy) without the need to erase
-> >> the /configfs/vimc/vimc0 and re-construct it again, is this
-> >> interesting?
-> >> 
-> >> If it is interesting, then an explicit command to undeploy will indeed
-> >> be better, otherwise we can always erase and reconstruct the folders
-> >> tree outside the kernel with a script.
-> > 
-> > Undeploying has the advantage to make the API symmetrical, it would at
-> > least feel cleaner.
-> 
-> I think we might need different levels of 'undeploying': undeploy the whole
-> graph and undeploying single entities (which is what will happen with
-> dynamic reconfiguration).
-> 
-> And only those parts in configfs that are undeployed can be removed.
-> 
-> Parts that are deployed cannot be changed with the exception of adding links
-> to as yet undeployed entities, but those links won't be deployed until the
-> undeployed entities are explicitly deployed.
+The copy_to_user can succeed, even if i > num_entities depending on how the
+memory was allocated. So I would always check num_entities and refuse to go
+beyond it.
 
-I think this is becoming too complex. How about considering "deploy" as a 
-commit instead ? There would then be no need to undeploy, any modification 
-will start a new transaction that will be applied in one go when committed. 
-This includes removal of entities by removing the corresponding directories.
+> +
+> +		/* Copy fields to userspace struct if not error */
+> +		memset(&uentity, 0, sizeof(uentity));
+> +		uentity.id = entity->graph_obj.id;
+> +		strncpy(uentity.name, entity->name,
+> +			sizeof(uentity.name));
+> +
+> +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
+> +			ret = -EFAULT;
 
-> >>>> I think I would prefer to have proper commands for the build_topology
-> >>>> file. It would also keep the state handling of the driver simple: it's
-> >>>> either deployed or undeployed, and changes to the topology can only
-> >>>> take place if it is undeployed.
-> >> 
-> >> This is simpler to implement, and it seems secure, I could do like
-> >> this in the first version and we see later how to improve it.
-> >> 
-> >>>> Commands for build_topology can be:
-> >>>> 
-> >>>> deploy: deploy the current topology
-> >>>> 
-> >>>> undeploy: undeploy the current topology. but keep the topology,
-> >>>> allowing the user to make changes
-> >>>> 
-> >>>> destroy: undeploy the current topology and remove it, giving the user a
-> >>>> clean slate.
-> >> 
-> >> What do you mean by "remove it" in the destroy command?
-> >> To completely remove an instance the user could just rmdir
-> >> /configfs/vimc5, or do you see another feature?
-> > 
-> > If destroy is indeed just undeploy + rmdir I wouldn't implement it.
-> > 
-> >>>> Feel free to come up with better command names :-)
-> >>>> 
-> >>>>>>> * Creating an entity:
-> >>>>>>> 
-> >>>>>>> Use mkdir in the /configfs/vimc to create an entity representation,
-> >>>>>>> 
-> >>>>>>> e.g.:
-> >>>>>>>         > mkdir /configfs/vimc/sensor_a
-> >>>>>>> 
-> >>>>>>> The attribute files will be created by the driver through configfs:
-> >>>>>>>         > ls /configfs/vimc/sensor_a
-> >>>>>>>         
-> >>>>>>>         name role
-> >>>>>>> 
-> >>>>>>> Configure the name that will appear to the /dev/media0 and what this
-> >>>>>>> node do (debayer, scaler, capture, input, generic)
-> >>>>>>> 
-> >>>>>>>         > echo -n "Sensor A" > /configfs/vimc/sensor_a/name
-> >>>>>>>         > echo -n "sensor" > /configfs/vimc/sensor_a/role
-> >>>>>>> 
-> >>>>>>> * Creating a pad:
-> >>>>>>> Use mkdir inside an entity's folder, the attribute called
-> >>>>>>> "direction"
-> >>>>>>> 
-> >>>>>>> will be automatically created in the process, for example:
-> >>>>>>>         > mkdir /configfs/vimc/sensor_a/pad_0
-> >>>>>>>         > ls /configfs/vimc/sensor_a/pad_0
-> >>>>>>>         
-> >>>>>>>         direction
-> >>>>>>>         
-> >>>>>>>         > echo -n "source" > /configfs/vimc/sensor_a/pad_0/direction
-> >>>>>>> 
-> >>>>>>> The direction attribute can be "source" or "sink"
-> >>>>>> 
-> >>>>>> Hmm. Aren't the pads+direction dictated by the entity role? E.g. a
-> >>>>>> sensor will only have one pad which is always a source. I think
-> >>>>>> setting the role is what creates the pad directories + direction
-> >>>>>> files.
-> >>>>> 
-> >>>>> I thought that we could add as many pads that we want, having a scaler
-> >>>>> with two or more sink pads (for example) in the same format that
-> >>>>> scales the frames coming from any sink pad and send it to its source
-> >>>>> pads, no?
-> >>>>> Maybe it is better if we don't let this choice.
-> >>>> 
-> >>>> I'd leave this out. Entities have a fixed number of pads that's
-> >>>> determined by their IP or HW. I think we should match that in vimc. It
-> >>>> also simplifies configuring the topology since these pads will appear
-> >>>> automatically.
-> >>>> 
-> >>>>> I need to check if I can modify the configfs dynamically, I mean, if
-> >>>>> the user writes "debayer" to the role file, I need to create at least
-> >>>>> one folder (or file) to allow the user to configure the link flag
-> >>>>> related to its source pad, but if in the future we have another entity
-> >>>>> role (lets say "new_entity") that has more then one source pad, and
-> >>>>> the user writes "debayer" in the role and then "new_entity", we will
-> >>>>> need to erase the folder created by the debayer to create two new
-> >>>>> folders, I am still not sure if I can do that.
-> >>>> 
-> >>>> I would expect that it's possible, but I'm not sure about it.
-> >>>> 
-> >>>> BTW, an alternative might be to use the build_topology file build up
-> >>>> the topology entirely by sending commands to it:
-> >>>> 
-> >>>> echo "add entity debayer debayer_a" >build_topology
-> >>>> 
-> >>>> You can prepare a file with commands and just do:
-> >>>> 
-> >>>> cat my-config >build_topology.
-> >>>> 
-> >>>> which would be a nice feature.
-> >> 
-> >> yes, it would be a nice feature indeed, but the configfs doc says:
-> >> 
-> >> "Like sysfs, attributes should be ASCII text files, preferably
-> >> with only one value per file.  The same efficiency caveats from sysfs
-> >> apply. Don't mix more than one attribute in one attribute file"
-> >> 
-> >> That is why I thought in using the mkdir/rmdir/echo fs tree
-> >> configuration in the first place.
-> 
-> I didn't know about this. So I agree that (for now) we should keep with
-> one value per file.
-> 
-> > It would be possible to create a single file "somewhere" that would accept
-> > text-based commands, but I'm not sure if that would be the best solution.
-> > configfs exists already and is used for this kind of purpose. I'm
-> > certainly
-> > open to alternative proposals, but there would need to be a good reason to
-> > create a custom API when a standard one already exists. Hans, what's your
-> > opinion on that ?
-> 
-> I agree with Helen, just ignore my single file proposal.
-> 
-> >>>> I'm not saying you should do this, but it is something to think about.
-> >>>> 
-> >>>>>>> * Creating a link between pads in two steps:
-> >>>>>>> Step 1)
-> >>>>>>> Create a folder inside the source pad folder, the attribute called
-> >>>>>>> 
-> >>>>>>> "flag" will be automatically created in the process, for example:
-> >>>>>>>         > mkdir /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>>>>>>         > ls /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>>>>>>         
-> >>>>>>>         flags
-> >>>>>>>         
-> >>>>>>>         > echo -n "enabled,immutable" >
-> >>>>>>> 
-> >>>>>>> /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/flags
-> >>>>>>> In the flags attribute we can have all the links attributes
-> >>>>>>> (enabled,
-> >>>>>>> immutable and dynamic) separated by comma
-> >>>>>>> 
-> >>>>>>> Step 2)
-> >>>>>>> Add a symlink between the previous folder we just created in the
-> >>>>>>> source pad and the sink pad folder we want to connect. Lets say we
-> >>>>>>> want to connect with the pad on the raw_capture_0 entity pad 0
-> >>>>>>> 
-> >>>>>>>         > ln -s /configfs/vimc/sensor_a/pad_0/link_to_raw_capture_0/
-> >>>>>>>         
-> >>>>>>>         /configfs/vimc/raw_capture_0/pad_0/
-> >>>>>> 
-> >>>>>> Can't this be created automatically? Or possibly not at all, since it
-> >>>>>> is implicit in step 1.
-> >>>>> 
-> >>>>> Do you mean, create the symlink automatically? I don't think so
-> >>>>> because the driver doesn't know a priori the entities you want to
-> >>>>> connect together.
-> >>>> 
-> >>>> I don't follow. If I make a 'link_to_raw_capture_0' directory for pad_0
-> >>>> of sensor_a, then I know there is a backlink from pad_0 of the
-> >>>> raw_capture entity, right? At least, that's how I interpret this.
-> >> 
-> >> I am not sure if I got what you say.
-> >> The user could use the
-> >> /configfs/vimc/vimc0/sensor_a/pad_0/link_to_raw_capture_0 directory to
-> >> link with a debayer instead of the raw_capture node. To connect with
-> >> the debayer, the user could:
-> >> 
-> >> $ mkdir -p /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
-> >> $ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
-> >> /configfs/vimc/vimc0/debayer_b/pad_0/
-> >> 
-> >> But, instead of linking with the debayer, the user could link with the
-> >> capture:
-> >> 
-> >> $ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
-> >> /configfs/vimc/vimc0/raw_capture_1/pad_0/
-> >> 
-> >> Or the user could link with the scaler:
-> >> 
-> >> $ ln -s /configfs/vimc/vimc0/sensor_a/pad_0/any_name_here
-> >> /configfs/vimc/vimc0/scaler/pad_0/
-> >> 
-> >> Thus the driver can't know in advance to which sink pad this link
-> >> should be connected to when creating a link folder inside the pad
-> >> folder
-> 
-> I misunderstood your original proposal, I thought the name of the
-> link_to_raw_capture_0 directory was interpreted by the driver to mean that
-> a link between the pad and pad 0 of the raw_capture entity should be
-> created. But you don't interpret the name at all.
-> 
-> I think this is confusing. Wouldn't it be easier to interpret the name of
-> the link directory? I.e. it has to be of the form: link_to_<entity
-> name>_<pad name>.
+I would just return here. If the user gives bogus values for this, then just
+give up.
 
-I'd rather use symlinks and no link directory at all, but then we'd have no 
-place to specify link flags :-/ I believe that's the reason why a link 
-directory is needed.
+> +	}
+> +	topo->num_entities = i;
 
-Maybe I worry for no reason, but interpreting the name seems to me more error-
-prone than using a symlink inside the link directory.
+What to do if topo->entities != NULL and i > topo->num_entities? Just return 0
+or return ENOSPC? I'm in favor of ENOSPC since a partial topology result is
+useless. But if ENOSPC is returned, then all num_foo values should be updated
+with the current number of elements.
 
-> No back link necessary, and if the names don't match, then the deploy
-> command will fail.
+This behavior would be consistent with e.g. VIDIOC_G_EXT_CTRLS.
 
--- 
+> +
+> +	/* Get interfaces and number of interfaces */
+> +	i = 0;
+> +	media_device_for_each_intf(intf, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->interfaces)
+> +			continue;
+> +
+> +		memset(&uintf, 0, sizeof(uintf));
+> +
+> +		/* Copy intf fields to userspace struct */
+> +		uintf.id = intf->graph_obj.id;
+> +		uintf.intf_type = intf->type;
+> +		uintf.flags = intf->flags;
+> +
+> +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
+> +			struct media_intf_devnode *devnode;
+> +
+> +			devnode = intf_to_devnode(intf);
+> +
+> +			uintf.devnode.major = devnode->major;
+> +			uintf.devnode.minor = devnode->minor;
+> +		}
+> +
+> +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_interfaces = i;
+> +
+> +	/* Get pads and number of pads */
+> +	i = 0;
+> +	media_device_for_each_pad(pad, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->pads)
+> +			continue;
+> +
+> +		memset(&upad, 0, sizeof(upad));
+> +
+> +		/* Copy pad fields to userspace struct */
+> +		upad.id = pad->graph_obj.id;
+> +		upad.entity_id = pad->entity->graph_obj.id;
+> +		upad.flags = pad->flags;
+> +
+> +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_pads = i;
+> +
+> +	/* Get links and number of links */
+> +	i = 0;
+> +	media_device_for_each_link(link, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->links)
+> +			continue;
+> +
+> +		memset(&ulink, 0, sizeof(ulink));
+> +
+> +		/* Copy link fields to userspace struct */
+> +		ulink.id = link->graph_obj.id;
+> +		ulink.source_id = link->gobj0->id;
+> +		ulink.sink_id = link->gobj1->id;
+> +		ulink.flags = link->flags;
+> +
+> +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
+> +			ulink.flags |= MEDIA_NEW_LNK_FL_INTERFACE_LINK;
+> +
+> +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_links = i;
+> +
+> +	return ret;
+> +}
+> +
+> +static long media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology __user *utopo)
+> +{
+> +	struct media_v2_topology ktopo;
+> +	int ret;
+> +
+> +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
+> +
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = __media_device_get_topology(mdev, &ktopo);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
+> +
+> +	return ret;
+> +}
+> +
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+>  {
+> @@ -264,6 +394,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+> +	case MEDIA_IOC_G_TOPOLOGY:
+> +		mutex_lock(&dev->graph_mutex);
+> +		ret = media_device_get_topology(dev,
+> +				(struct media_v2_topology __user *)arg);
+> +		mutex_unlock(&dev->graph_mutex);
+> +		break;
+> +
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> @@ -312,6 +449,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  	case MEDIA_IOC_DEVICE_INFO:
+>  	case MEDIA_IOC_ENUM_ENTITIES:
+>  	case MEDIA_IOC_SETUP_LINK:
+> +	case MEDIA_IOC_G_TOPOLOGY:
+>  		return media_device_ioctl(filp, cmd, arg);
+>  
+>  	case MEDIA_IOC_ENUM_LINKS32:
+> 
+
+Note that this will need compat32 code eventually. Should probably be added to the
+todo list in the cover letter.
+
 Regards,
 
-Laurent Pinchart
+	Hans
