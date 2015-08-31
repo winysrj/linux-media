@@ -1,74 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62496 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751812AbbHUJue (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:43066 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751322AbbHaLc3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Aug 2015 05:50:34 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NTF00JEYFC79H90@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Aug 2015 10:50:32 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>
-Subject: [RFC PATCH] v4l2-compat-ioctl32: fix struct v4l2_event32 alignment
-Date: Fri, 21 Aug 2015 11:50:09 +0200
-Message-id: <1440150609-23312-1-git-send-email-a.hajda@samsung.com>
+	Mon, 31 Aug 2015 07:32:29 -0400
+Message-ID: <55E43B14.9050506@xs4all.nl>
+Date: Mon, 31 Aug 2015 13:31:32 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev
+ or V4L2 DMA
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Union v4l2_event::u is aligned to 8 bytes on arm32. On arm64 v4l2_event32::u
-is aligned to 4 bytes. As a result structures v4l2_event and v4l2_event32 have
-different sizes and VIDOC_DQEVENT ioctl does not work from arm32 apps running
-on arm64 kernel. The patch fixes it.
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> As we'll be removing entity subtypes from the Kernel, we need
+> to provide a way for drivers and core to check if a given
+> entity is represented by a V4L2 subdev or if it is an V4L2
+> I/O entity (typically with DMA).
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
----
-Hi Hans,
+This needs more discussion. The plan (as I understand it) is to have properties
+that describe the entity's functionalities.
 
-It seems there is problem with VIDIOC_DQEVENT called from arm32 apps on arm64
-kernel. After tracking down the issue it seems v4l2_event32 on arm64 have
-different field alignment/size than v4l2_event on arm32. The patch fixes it.
-But i guess it can break ABI on other architectures. Simple tests shows:
+The existing entity subtypes will exist only as backwards compat types, but in
+the future properties should be used to describe the functionalities.
 
-i386:
-sizeof(struct v4l2_event)=0x78
-offsetof(struct v4l2_event::u)=0x4
+This raises the question if we shouldn't use MEDIA_ENT_T_V4L2_SUBDEV to tell
+userspace that this is a subdev-controlled entity, and let userspace look at
+the properties to figure out what it is exactly?
 
-amd64:
-sizeof(struct v4l2_event)=0x88
-offsetof(struct v4l2_event::u)=0x8
+It could be that this is a transitional patch, and this will be fixed later.
+If so, this should be mentioned in the commit message.
 
-arm:
-sizeof(struct v4l2_event)=0x80
-offsetof(struct v4l2_event::u)=0x8
+Regards,
 
-arm64:
-sizeof(struct v4l2_event)=0x88
-offsetof(struct v4l2_event::u)=0x8
+	Hans
 
-Any advices how to fix it in arch compatible way?
-
-Regards
-Andrzej
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index af63543..a4a1856 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -739,7 +739,7 @@ struct v4l2_event32 {
- 	__u32				type;
- 	union {
- 		__u8			data[64];
--	} u;
-+	} u __attribute__((aligned(8)));
- 	__u32				pending;
- 	__u32				sequence;
- 	struct compat_timespec		timestamp;
--- 
-1.9.1
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index e7b20bdc735d..b0cfbc0dffc7 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+>  	return id;
+>  }
+>  
+> +static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+> +{
+> +	if (!entity)
+> +		return false;
+> +
+> +	switch (entity->type) {
+> +	case MEDIA_ENT_T_V4L2_VIDEO:
+> +	case MEDIA_ENT_T_V4L2_VBI:
+> +	case MEDIA_ENT_T_V4L2_SWRADIO:
+> +		return true;
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+> +static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+> +{
+> +	if (!entity)
+> +		return false;
+> +
+> +	switch (entity->type) {
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
+> +		return true;
+> +
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+>  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+>  
+> 
 
