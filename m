@@ -1,195 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58946 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753515AbbHWUSK (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:33203 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012AbbHaWNR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Aug 2015 16:18:10 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCH v7 24/44] [media] uapi/media.h: Fix entity namespace
-Date: Sun, 23 Aug 2015 17:17:41 -0300
-Message-Id: <5cf25be2d0508e02f6ffe469509fa12c45ddcb8d.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1440359643.git.mchehab@osg.samsung.com>
-References: <cover.1440359643.git.mchehab@osg.samsung.com>
+	Mon, 31 Aug 2015 18:13:17 -0400
+Received: by laboe4 with SMTP id oe4so54470053lab.0
+        for <linux-media@vger.kernel.org>; Mon, 31 Aug 2015 15:13:15 -0700 (PDT)
+Subject: Re: [PATCH] rcar_vin: propagate querystd() error upstream
+To: Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+References: <1650569.JYNQd5Bi8T@wasted.cogentembedded.com>
+ <55DC7AE2.6010103@xs4all.nl>
+Cc: linux-sh@vger.kernel.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <55E4D179.4080009@cogentembedded.com>
+Date: Tue, 1 Sep 2015 01:13:13 +0300
+MIME-Version: 1.0
+In-Reply-To: <55DC7AE2.6010103@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that interfaces got created, we need to fix the entity
-namespace.
+Hello.
 
-So, let's create a consistent new namespace and add backward
-compatibility macros to keep the old namespace preserved.
+On 08/25/2015 05:25 PM, Hans Verkuil wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method call
+>> fails (e.g. due to I2C error).  This doesn't work very well when a camera being
+>> used  outputs NTSC which has different order of fields and resolution.  Let  us
+>> stop  pretending and return the actual error (which would prevent video capture
+>> on at least Renesas Henninger/Porter board where I2C seems particularly buggy).
+>>
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>
+>> ---
+>> The patch is against the 'media_tree.git' repo's 'fixes' branch.
+>>
+>>   drivers/media/platform/soc_camera/rcar_vin.c |    2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+>> ===================================================================
+>> --- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -1592,7 +1592,7 @@ static int rcar_vin_set_fmt(struct soc_c
+>>   		/* Query for standard if not explicitly mentioned _TB/_BT */
+>>   		ret = v4l2_subdev_call(sd, video, querystd, &std);
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 5a2bd03f5dc0..acada5ba9442 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -229,17 +229,17 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
- 
- 	switch (type) {
- 	case DVB_DEVICE_FRONTEND:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_FE;
-+		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMOD;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_DEMUX;
-+		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMUX;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_CA:
--		dvbdev->entity->type = MEDIA_ENT_T_DEVNODE_DVB_CA;
-+		dvbdev->entity->type = MEDIA_ENT_T_DVB_CA;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
-@@ -438,7 +438,7 @@ EXPORT_SYMBOL(dvb_unregister_device);
- void dvb_create_media_graph(struct dvb_adapter *adap)
- {
- 	struct media_device *mdev = adap->mdev;
--	struct media_entity *entity, *tuner = NULL, *fe = NULL;
-+	struct media_entity *entity, *tuner = NULL, *demod = NULL;
- 	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
- 	struct media_interface *intf;
- 
-@@ -450,26 +450,26 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_FE:
--			fe = entity;
-+		case MEDIA_ENT_T_DVB_DEMOD:
-+			demod = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_DEMUX:
-+		case MEDIA_ENT_T_DVB_DEMUX:
- 			demux = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_DVR:
-+		case MEDIA_ENT_T_DVB_TSOUT:
- 			dvr = entity;
- 			break;
--		case MEDIA_ENT_T_DEVNODE_DVB_CA:
-+		case MEDIA_ENT_T_DVB_CA:
- 			ca = entity;
- 			break;
- 		}
- 	}
- 
--	if (tuner && fe)
--		media_create_pad_link(tuner, 0, fe, 0, 0);
-+	if (tuner && demod)
-+		media_create_pad_link(tuner, 0, demod, 0, 0);
- 
--	if (fe && demux)
--		media_create_pad_link(fe, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
-+	if (demod && demux)
-+		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
- 
- 	if (demux && dvr)
- 		media_create_pad_link(demux, 1, dvr, 0, MEDIA_LNK_FL_ENABLED);
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 21c96cd7a6ae..7306aeaff807 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -42,31 +42,67 @@ struct media_device_info {
- 
- #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
- 
-+/*
-+ * Base numbers for entity types
-+ *
-+ * Please notice that the huge gap of 16 bits for each base is overkill!
-+ * 8 bits is more than enough to avoid starving entity types for each
-+ * subsystem.
-+ *
-+ * However, It is kept this way just to avoid binary breakages with the
-+ * namespace provided on legacy versions of this header.
-+ */
-+#define MEDIA_ENT_T_DVB_BASE		0x00000000
-+#define MEDIA_ENT_T_V4L2_BASE		0x00010000
-+#define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
-+
-+/* V4L2 entities */
-+#define MEDIA_ENT_T_V4L2_VIDEO		(MEDIA_ENT_T_V4L2_BASE + 1)
-+	/*
-+	 * Please notice that numbers between MEDIA_ENT_T_V4L2_BASE + 2 and
-+	 * MEDIA_ENT_T_V4L2_BASE + 4 can't be used, as those values used
-+	 * to be declared for FB, ALSA and DVB entities.
-+	 * As those values were never atually used in practice, we're just
-+	 * adding them as backward compatibily macros and keeping the
-+	 * numberspace cleaned here. This way, we avoid breaking compilation,
-+	 * in the case of having some userspace application using the old
-+	 * symbols.
-+	 */
-+#define MEDIA_ENT_T_V4L2_VBI		(MEDIA_ENT_T_V4L2_BASE + 5)
-+#define MEDIA_ENT_T_V4L2_RADIO		(MEDIA_ENT_T_V4L2_BASE + 6)
-+#define MEDIA_ENT_T_V4L2_SWRADIO	(MEDIA_ENT_T_V4L2_BASE + 7)
-+
-+/* V4L2 Sub-device entities */
-+#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 1)
-+#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 2)
-+#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 3)
-+	/* A converter of analogue video to its digital representation. */
-+#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 4)
-+	/* Tuner entity is actually both V4L2 and DVB subdev */
-+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 5)
-+
-+/* DVB entities */
-+#define MEDIA_ENT_T_DVB_DEMOD		(MEDIA_ENT_T_DVB_BASE + 4)
-+#define MEDIA_ENT_T_DVB_DEMUX		(MEDIA_ENT_T_DVB_BASE + 5)
-+#define MEDIA_ENT_T_DVB_TSOUT		(MEDIA_ENT_T_DVB_BASE + 6)
-+#define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 7)
-+#define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 8)
-+
-+/* Legacy symbols used to avoid userspace compilation breakages */
- #define MEDIA_ENT_TYPE_SHIFT		16
- #define MEDIA_ENT_TYPE_MASK		0x00ff0000
- #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
- 
--#define MEDIA_ENT_T_DEVNODE		(1 << MEDIA_ENT_TYPE_SHIFT)
--#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
-+#define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_T_V4L2_BASE
-+#define MEDIA_ENT_T_V4L2_SUBDEV		MEDIA_ENT_T_V4L2_SUBDEV_BASE
-+
-+#define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_T_V4L2_VIDEO
-+
- #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
- #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
--#define MEDIA_ENT_T_DEVNODE_DVB_FE	(MEDIA_ENT_T_DEVNODE + 4)
--#define MEDIA_ENT_T_DEVNODE_DVB_DEMUX	(MEDIA_ENT_T_DEVNODE + 5)
--#define MEDIA_ENT_T_DEVNODE_DVB_DVR	(MEDIA_ENT_T_DEVNODE + 6)
--#define MEDIA_ENT_T_DEVNODE_DVB_CA	(MEDIA_ENT_T_DEVNODE + 7)
--#define MEDIA_ENT_T_DEVNODE_DVB_NET	(MEDIA_ENT_T_DEVNODE + 8)
-+#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
- 
--/* Legacy symbol. Use it to avoid userspace compilation breakages */
--#define MEDIA_ENT_T_DEVNODE_DVB		MEDIA_ENT_T_DEVNODE_DVB_FE
--
--#define MEDIA_ENT_T_V4L2_SUBDEV		(2 << MEDIA_ENT_TYPE_SHIFT)
--#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
--#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
--#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
--/* A converter of analogue video to its digital representation. */
--#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
--
--#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	(MEDIA_ENT_T_V4L2_SUBDEV + 5)
-+/* Entity types */
- 
- #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
- 
--- 
-2.4.3
+> Ouch, this should never be done like this.
+
+    Too late. :-)
+
+> Instead the decision should be made using the last set std, never by querying.
+> So querystd should be replaced by g_std in the v4l2_subdev_call above.
+
+    Hm, then this code will stop working, as adv7180.c and ml86v7667.c we use 
+don't support the g_std() method yet...
+
+> The only place querystd can be called is in the QUERYSTD ioctl, all other
+> ioctls should use the last set standard.
+
+    OK, I'll have to fix all the drivers involved...
+
+> Regards,
+> 	Hans
+
+MBR, Sergei
 
