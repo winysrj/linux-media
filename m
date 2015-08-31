@@ -1,74 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:32951 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753095AbbHTVL6 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33680 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752036AbbHaKL2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Aug 2015 17:11:58 -0400
-Date: Thu, 20 Aug 2015 14:11:52 -0700
-From: Brian Norris <computersforpeace@gmail.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Andrzej Hajda <a.hajda@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Michael Hennerich <Michael.Hennerich@analog.com>,
-	linux-iio@vger.kernel.org, linux-wireless@vger.kernel.org,
-	Lee Jones <lee.jones@linaro.org>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	linux-mtd@lists.infradead.org,
-	Lauro Ramos Venancio <lauro.venancio@openbossa.org>,
-	=?iso-8859-1?Q?S=F8ren?= Andersen <san@rosetechnology.dk>,
-	devel@driverdev.osuosl.org, Randy Dunlap <rdunlap@infradead.org>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Devendra Naga <devendra.aaru@gmail.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Aloisio Almeida Jr <aloisio.almeida@openbossa.org>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Stephen Warren <swarren@nvidia.com>,
-	Urs =?iso-8859-1?Q?F=E4ssler?= <urs.fassler@bytesatwork.ch>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
-	George McCollister <george.mccollister@gmail.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Manfred Schlaegl <manfred.schlaegl@gmx.at>,
-	linux-omap@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Antonio Borneo <borneo.antonio@gmail.com>,
-	Andrea Galbusera <gizero@gmail.com>,
-	Michael Welling <mwelling@ieee.org>,
-	Fabian Frederick <fabf@skynet.be>,
-	Mark Brown <broonie@kernel.org>, linux-mmc@vger.kernel.org,
-	linux-spi@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>,
-	David Woodhouse <dwmw2@infradead.org>, netdev@vger.kernel.org,
-	linux-media@vger.kernel.org, Peter Meerwald <pmeerw@pmeerw.net>
-Subject: Re: [PATCH 00/18] Export SPI and OF module aliases in missing drivers
-Message-ID: <20150820211152.GI74600@google.com>
-References: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
+	Mon, 31 Aug 2015 06:11:28 -0400
+Message-ID: <55E42812.6@xs4all.nl>
+Date: Mon, 31 Aug 2015 12:10:26 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v8 03/55] [media] omap3isp: get entity ID using media_entity_id()
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+In-Reply-To: <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 20, 2015 at 09:07:13AM +0200, Javier Martinez Canillas wrote:
-> Patches #1 and #2 solves a), patches #3 to #8 solves b) and patches
+On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> From: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Assessing media_entity ID should now use media_entity_id() macro to
+> obtain the entity ID, as a next patch will remove the .id field from
+> struct media_entity .
+> 
+> So, get rid of it, otherwise the omap3isp driver will fail to build.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-^^^ I'm dying to know how this sentence ends :)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Patch #18 changes the logic of spi_uevent() to report an OF modalias if
-> the device was registered using OF. But this patch is included in the
-> series only as an RFC for illustration purposes since changing that
-> without first applying all the other patches in this series, will break
-> module autoloading for the drivers of devices registered using OF but
-> that lacks an of_match_table. I'll repost patch #18 once all the patches
-> in this series have landed.
+Regards,
 
-On a more productive note, the patches I've looked at look good to me.
-The missing aliases are a problem enough that should be fixed (i.e.,
-part (b)). I'll leave the SPI framework changes to others to comment on.
+	Hans
 
-Brian
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 56e683b19a73..e08183f9d0f7 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+>  	struct v4l2_subdev *subdev;
+>  	int failure = 0;
+>  	int ret;
+> +	u32 id;
+>  
+>  	/*
+>  	 * We need to stop all the modules after CCDC first or they'll
+> @@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+>  		if (ret) {
+>  			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
+>  			isp->stop_failure = true;
+> -			if (subdev == &isp->isp_prev.subdev)
+> -				isp->crashed |= 1U << subdev->entity.id;
+> +			if (subdev == &isp->isp_prev.subdev) {
+> +				id = media_entity_id(&subdev->entity);
+> +				isp->crashed |= 1U << id;
+> +			}
+>  			failure = -ETIMEDOUT;
+>  		}
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+> index 3b10304b580b..d96e3be5e252 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+> @@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+>  	/* Wait for the CCDC to become idle. */
+>  	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
+>  		dev_info(isp->dev, "CCDC won't become idle!\n");
+> -		isp->crashed |= 1U << ccdc->subdev.entity.id;
+> +		isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
+>  		omap3isp_pipeline_cancel_stream(pipe);
+>  		return 0;
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> index 3094572f8897..6c89dc40df85 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -235,7 +235,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+>  		struct isp_video *__video;
+>  
+> -		pipe->entities |= 1 << entity->id;
+> +		pipe->entities |= 1 << media_entity_id(entity);
+>  
+>  		if (far_end != NULL)
+>  			continue;
+> @@ -891,6 +891,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>  	struct v4l2_ext_control ctrl;
+>  	unsigned int i;
+>  	int ret;
+> +	u32 id;
+>  
+>  	/* Memory-to-memory pipelines have no external subdev. */
+>  	if (pipe->input != NULL)
+> @@ -898,7 +899,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>  
+>  	for (i = 0; i < ARRAY_SIZE(ents); i++) {
+>  		/* Is the entity part of the pipeline? */
+> -		if (!(pipe->entities & (1 << ents[i]->id)))
+> +		if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
+>  			continue;
+>  
+>  		/* ISP entities have always sink pad == 0. Find source. */
+> @@ -950,7 +951,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>  
+>  	pipe->external_rate = ctrl.value64;
+>  
+> -	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
+> +	id = media_entity_id(&isp->isp_ccdc.subdev.entity);
+> +	if (pipe->entities & (1 << id)) {
+>  		unsigned int rate = UINT_MAX;
+>  		/*
+>  		 * Check that maximum allowed CCDC pixel rate isn't
+> 
+
