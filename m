@@ -1,63 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:33587 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbbINHR0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 03:17:26 -0400
-Received: by wiclk2 with SMTP id lk2so127728373wic.0
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 00:17:25 -0700 (PDT)
-Subject: Re: Time for a v4l-utils 1.8.0 release
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <55491541.1040709@googlemail.com>
- <20150505172235.4bef50eb@recife.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <55F67483.4030709@googlemail.com>
-Date: Mon, 14 Sep 2015 09:17:23 +0200
-MIME-Version: 1.0
-In-Reply-To: <20150505172235.4bef50eb@recife.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:52882 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400AbbIAV7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Sep 2015 17:59:54 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 03/13] DocBook: document tuner RF gain control
+Date: Wed,  2 Sep 2015 00:59:19 +0300
+Message-Id: <1441144769-29211-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
+References: <1441144769-29211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add brief description for tuner RF gain control.
 
-On 05/05/15 22:22, Mauro Carvalho Chehab wrote:
-> Em Tue, 05 May 2015 21:08:49 +0200
-> Gregor Jasny <gjasny@googlemail.com> escreveu:
->
->> Hello,
->>
->> It's already more than half a year since the last v4l-utils release. Do
->> you have any pending commits or objections? If no one vetos I'd like to
->> release this weekend.
->
-> There is are a additions I'd like to add to v4l-utils:
->
-> 1) on DVB, ioctls may fail with -EAGAIN. Some parts of the libdvbv5 don't
-> handle it well. I made one quick hack for it, but didn't have time to
-> add a timeout to avoid an endless loop. The patch is simple. I just need
-> some time to do that;
->
-> 2) The Media Controller control util (media-ctl) doesn't support DVB.
->
-> The patchset adding DVB support on media-ctl is ready, and I'm merging
-> right now, and matches what's there at Kernel version 4.1-rc1 and upper.
->
-> Yet, Laurent and Sakari want to do some changes at the Kernel API, before
-> setting it into a stone at Kernel v 4.1 release.
->
-> This has to happen on the next 4 weeks.
->
-> So, I suggest to postpone the release of 1.8.0 until the end of this month.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+ Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+ 3 files changed, 19 insertions(+)
 
-I'd like to release v4l-utils 1.8.0 during the upcoming weekend. Please 
-postpone any disruptive fixes until the release has been tagged.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index f56faf5..eb091c7 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+ <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+ 	  </para>
+ 	</listitem>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
++RF Tuner control.</para>
++	</listitem>
+       </orderedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 6e1667b..7cae933 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">The RF amplifier is the very first
++amplifier on the receiver signal path, just right after the antenna input.
++The difference between the LNA gain and the RF gain in this document is that
++the LNA gain is integrated in the tuner chip while the RF gain is a separate
++chip. There may be both RF and LNA gain controls in the same device.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+               <entry>integer</entry>
+             </row>
+@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">LNA (low noise amplifier) gain is first
+ gain stage on the RF tuner signal path. It is located very close to tuner
+ antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
++See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
++and LNA gain differs from the each others.
+ The range and step are driver-specific.</entry>
+             </row>
+             <row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index c9eedc1..ab9fca4 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -156,6 +156,7 @@ applications. -->
+ 	<date>2015-05-26</date>
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++Added V4L2_CID_RF_TUNER_RF_GAIN control.
+ 	</revremark>
+       </revision>
+ 
+-- 
+http://palosaari.fi/
 
-Thanks,
-Gregor
