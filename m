@@ -1,125 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:60693 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752636AbbIQCvo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2015 22:51:44 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6D2AA2A03F3
-	for <linux-media@vger.kernel.org>; Thu, 17 Sep 2015 04:50:24 +0200 (CEST)
-Date: Thu, 17 Sep 2015 04:50:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150917025024.6D2AA2A03F3@tschai.lan>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:36598 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbbIAW3G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 18:29:06 -0400
+Received: by lanb10 with SMTP id b10so9654626lan.3
+        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 15:29:03 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2] rcar_vin: propagate querystd() error upstream
+Date: Wed, 02 Sep 2015 01:29:01 +0300
+Message-ID: <2328024.JIhFUGC0u1@wasted.cogentembedded.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method call
+fails (e.g. due to I2C error).  This doesn't work very well when a camera being
+used  outputs NTSC which has different order of fields and resolution.  Let  us
+stop  pretending and return the actual error except  when the querystd() method
+is not implemented,  in which case  we'll have  to set the 'field' variable  to
+V4L2_FIELD_NONE.
 
-Results of the daily build of media_tree:
+Note that doing this would prevent video capture on at least Renesas Henninger/
+Porter boards where I2C seems particularly buggy.
 
-date:		Thu Sep 17 04:00:19 CEST 2015
-git branch:	test
-git hash:	9ddf9071ea17b83954358b2dac42b34e5857a9af
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+---
+The patch is against the 'media_tree.git' repo's 'fixes' branch.
 
-Detailed results are available here:
+Changes in version 2:
+- filter out -ENOIOCTLCMD error code and default 'field' to V4L2_FIELD_NONE in
+  that case.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+ drivers/media/platform/soc_camera/rcar_vin.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-Full logs are available here:
+Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+===================================================================
+--- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
++++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1591,11 +1591,15 @@ static int rcar_vin_set_fmt(struct soc_c
+ 	case V4L2_FIELD_INTERLACED:
+ 		/* Query for standard if not explicitly mentioned _TB/_BT */
+ 		ret = v4l2_subdev_call(sd, video, querystd, &std);
+-		if (ret < 0)
+-			std = V4L2_STD_625_50;
+-
+-		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
+-						V4L2_FIELD_INTERLACED_BT;
++		if (ret == -ENOIOCTLCMD) {
++			field = V4L2_FIELD_NONE;
++		} else if (ret < 0) {
++			return ret;
++		} else {
++			field = std & V4L2_STD_625_50 ?
++				V4L2_FIELD_INTERLACED_TB :
++				V4L2_FIELD_INTERLACED_BT;
++		}
+ 		break;
+ 	}
+ 
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
