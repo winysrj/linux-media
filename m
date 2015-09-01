@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f172.google.com ([209.85.220.172]:34053 "EHLO
-	mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbbI1VlP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2015 17:41:15 -0400
-Received: by qkfq186 with SMTP id q186so73924474qkf.1
-        for <linux-media@vger.kernel.org>; Mon, 28 Sep 2015 14:41:14 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH] vivid: Fix iteration in driver removal path
-Date: Mon, 28 Sep 2015 18:36:51 -0300
-Message-Id: <1443476211-20212-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from lists.s-osg.org ([54.187.51.154]:33554 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753095AbbIAM3X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Sep 2015 08:29:23 -0400
+Date: Tue, 1 Sep 2015 09:29:17 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: LMML <linux-media@vger.kernel.org>, alsa-devel@alsa-project.org,
+	media-workshop@linuxtv.org
+Subject: [ANNOUNCE] Media Workshop at the Kernel Summit 2015 in Korea
+Message-ID: <20150901092917.5aec83f2@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the diver is removed and all the resources are deallocated,
-we should be iterating through the created devices only.
+Hi,
 
-Currently, the iteration ends when vivid_devs[i] is NULL. Since
-the array contains VIVID_MAX_DEVS elements, it will oops if
-n_devs=VIVID_MAX_DEVS because in that case, no element is NULL.
+As we keep being very active on the development of the Linux Kernel Media
+subsystem, we'll be doing another workshop this year.
 
-Fixes: c88a96b023d8 ('[media] vivid: add core driver code')
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
----
- drivers/media/platform/vivid/vivid-core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+This will be the first time we'll be doing it in Asia, so it is a great
+opportunity for the ones that are there to join us and participate, in
+order to improve the Linux Kernel support for A/V stream capture, webcam
+and analog/digital TV.
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index a047b4716741..0f5e9143cc7e 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1341,8 +1341,11 @@ static int vivid_remove(struct platform_device *pdev)
- 	struct vivid_dev *dev;
- 	unsigned i;
- 
--	for (i = 0; vivid_devs[i]; i++) {
-+
-+	for (i = 0; i < n_devs; i++) {
- 		dev = vivid_devs[i];
-+		if (!dev)
-+			continue;
- 
- 		if (dev->has_vid_cap) {
- 			v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
--- 
-2.5.2
+As usual, we'll be using the media-workshop@linuxtv.org Mailing List for
+specific discussions about that, so the ones interested on participate
+are requested to subscribe it.
 
+This time, we'll be doing something different than what we've done on the
+last years, and use something that other subsystems like ALSA are doing
+for a while: we'll be using two google docs to track the proposals and
+the interested parties.
+
+If you're interested in participate and wants to be invited for the event,
+please put your data at this document:
+	https://docs.google.com/spreadsheets/d/1YecCAUo0L1R_i3jPg3S-A5iqX7BYAd2c_VfJctQmr88/edit?usp=sharing
+
+As this is the first time we'll be using Google Docs, I kindly request
+you to also send an email for media-workshop@linuxtv.org if you have
+any troubles adding things there and/or a backup measure.
+
+If you have any proposal for themes, please add it here:
+	https://docs.google.com/spreadsheets/d/1F67VcdhkDlVfRpx-GPhe61adZh81Q26q--_OhCI5vUg/edit?usp=sharing
+It is useful if you could also send an email to the workshop ML in order
+to better explain the theme proposal.
+
+Hoping to see you there soon!
+Mauro
