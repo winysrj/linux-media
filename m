@@ -1,148 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44714 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751696AbbIKNOn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 09:14:43 -0400
-Message-ID: <55F2D37A.2060503@xs4all.nl>
-Date: Fri, 11 Sep 2015 15:13:30 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v8 41/55] [media] DocBook: update descriptions for the
- media controller entities
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <00369c40b69f5ce1473d98398e32a7842cf28366.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <00369c40b69f5ce1473d98398e32a7842cf28366.1441540862.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55668 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752128AbbIAXFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Sep 2015 19:05:02 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] vivid: SDR cap: add control for FM deviation
+Date: Wed,  2 Sep 2015 02:04:50 +0300
+Message-Id: <1441148691-8799-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> Cleanup the media controller entities description:
-> - remove MEDIA_ENT_T_DEVNODE and MEDIA_ENT_T_V4L2_SUBDEV entity
->   types, as they don't mean anything;
-> - add MEDIA_ENT_T_UNKNOWN with a proper description;
-> - remove ALSA and FB entity types. Those should not be used, as
->   the types are deprecated. We'll soon be adidng ALSA, but with
->   a different entity namespace;
-> - improve the description of some entities.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> index 32a783635649..bc101516e372 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> @@ -179,70 +179,65 @@
->          <colspec colname="c2"/>
->  	<tbody valign="top">
->  	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE</constant></entry>
-> -	    <entry>Unknown device node</entry>
-> +	    <entry><constant>MEDIA_ENT_T_UNKNOWN</constant> and <constant>MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN</constant></entry>
-> +	    <entry>Unknown entity. That generally indicates that
-> +	    a driver didn't initialize properly the entity, with is a Kernel bug</entry>
->  	  </row>
+Add user control to adjust generated FM deviation.
+Default it to 75kHz like public FM radio broadcast.
 
-I'm wondering: if userspace should never see an unknown entity, wouldn't it
-be better to move these UNKNOWN defines out of the public header to a kernel
-header and drop this from the documentation?
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/platform/vivid/vivid-core.h    |  1 +
+ drivers/media/platform/vivid/vivid-ctrls.c   | 37 +++++++++++++++++++++++++++-
+ drivers/media/platform/vivid/vivid-sdr-cap.c |  6 ++++-
+ 3 files changed, 42 insertions(+), 2 deletions(-)
 
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
-> -	    <entry>V4L video, radio or vbi device node</entry>
-> +	    <entry>V4L video streaming input or output entity</entry>
->  	  </row>
-> -	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_FB</constant></entry>
-> -	    <entry>Frame buffer device node</entry>
-> +	    <entry><constant>MEDIA_ENT_T_V4L2_VBI</constant></entry>
-> +	    <entry>V4L VBI streaming input or output entity</entry>
->  	  </row>
-> -	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_ALSA</constant></entry>
-> -	    <entry>ALSA card</entry>
-> +	    <entry><constant>MEDIA_ENT_T_V4L2_SWRADIO</constant></entry>
-> +	    <entry>V4L Sofware Digital Radio (SDR) streaming input or output entity</entry>
-
-s/Sofware/Software/
-
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD</constant></entry>
-> -	    <entry>DVB frontend devnode</entry>
-> +	    <entry>DVB demodulator entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_DVB_DEMUX</constant></entry>
-> -	    <entry>DVB demux devnode</entry>
-> +	    <entry>DVB demux entity. Could be implemented on hardware or in Kernelspace</entry>
-
-s/on/in/
-
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_DVB_TSOUT</constant></entry>
-> -	    <entry>DVB DVR devnode</entry>
-> +	    <entry>DVB Transport Stream output entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_DVB_CA</constant></entry>
-> -	    <entry>DVB CAM devnode</entry>
-> +	    <entry>DVB Conditional Access module (CAM) entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD_NET_DECAP</constant></entry>
-> -	    <entry>DVB network devnode</entry>
-> -	  </row>
-> -	  <row>
-> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV</constant></entry>
-> -	    <entry>Unknown V4L sub-device</entry>
-> +	    <entry>DVB network ULE/MLE desencapsulation entity. Could be implemented on hardware or in Kernelspace</entry>
-
-s/on/in/
-
-Hmm, is desencapsulation correct? Could it be 'de-encapsulation' instead? It looks weird.
-
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_SENSOR</constant></entry>
-> -	    <entry>Video sensor</entry>
-> +	    <entry>Camera video sensor entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_FLASH</constant></entry>
-> -	    <entry>Flash controller</entry>
-> +	    <entry>Flash controller entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_LENS</constant></entry>
-> -	    <entry>Lens controller</entry>
-> +	    <entry>Lens controller entity</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
-> -	    <entry>Video decoder, the basic function of the video decoder is to
-> -	    accept analogue video from a wide variety of sources such as
-> +	    <entry>Analog video decoder, the basic function of the video decoder
-> +	    is to accept analogue video from a wide variety of sources such as
->  	    broadcast, DVD players, cameras and video cassette recorders, in
-> -	    either NTSC, PAL or HD format and still occasionally SECAM, separate
-> -	    it into its component parts, luminance and chrominance, and output
-> +	    either NTSC, PAL, SECAM or HD format, separating the stream
-> +	    into its component parts, luminance and chrominance, and output
->  	    it in some digital video standard, with appropriate embedded timing
->  	    signals.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
-> -	    <entry>TV and/or radio tuner</entry>
-> +	    <entry>Digital TV, analog TV, radio and/or software radio tuner</entry>
->  	  </row>
->  	</tbody>
->        </tgroup>
-> 
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index c72349c..289640c 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -451,6 +451,7 @@ struct vivid_dev {
+ 	unsigned			sdr_buffersize;
+ 	unsigned			sdr_adc_freq;
+ 	unsigned			sdr_fm_freq;
++	unsigned			sdr_fm_deviation;
+ 	int				sdr_fixp_src_phase;
+ 	int				sdr_fixp_mod_phase;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 339c8b7..29834fa 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -99,6 +99,7 @@
+ 
+ #define VIVID_CID_RADIO_TX_RDS_BLOCKIO	(VIVID_CID_VIVID_BASE + 94)
+ 
++#define VIVID_CID_SDR_CAP_FM_DEVIATION	(VIVID_CID_VIVID_BASE + 110)
+ 
+ /* General User Controls */
+ 
+@@ -1257,6 +1258,36 @@ static const struct v4l2_ctrl_config vivid_ctrl_radio_tx_rds_blockio = {
+ };
+ 
+ 
++/* SDR Capture Controls */
++
++static int vivid_sdr_cap_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_sdr_cap);
++
++	switch (ctrl->id) {
++	case VIVID_CID_SDR_CAP_FM_DEVIATION:
++		dev->sdr_fm_deviation = ctrl->val;
++		break;
++	}
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vivid_sdr_cap_ctrl_ops = {
++	.s_ctrl = vivid_sdr_cap_s_ctrl,
++};
++
++static const struct v4l2_ctrl_config vivid_ctrl_sdr_cap_fm_deviation = {
++	.ops = &vivid_sdr_cap_ctrl_ops,
++	.id = VIVID_CID_SDR_CAP_FM_DEVIATION,
++	.name = "FM Deviation",
++	.type = V4L2_CTRL_TYPE_INTEGER,
++	.min =    100,
++	.max = 200000,
++	.def =  75000,
++	.step =     1,
++};
++
++
+ static const struct v4l2_ctrl_config vivid_ctrl_class = {
+ 	.ops = &vivid_user_gen_ctrl_ops,
+ 	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY,
+@@ -1314,7 +1345,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_radio_tx, 17);
+ 	v4l2_ctrl_new_custom(hdl_radio_tx, &vivid_ctrl_class, NULL);
+-	v4l2_ctrl_handler_init(hdl_sdr_cap, 18);
++	v4l2_ctrl_handler_init(hdl_sdr_cap, 19);
+ 	v4l2_ctrl_new_custom(hdl_sdr_cap, &vivid_ctrl_class, NULL);
+ 
+ 	/* User Controls */
+@@ -1545,6 +1576,10 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 			&vivid_radio_tx_ctrl_ops,
+ 			V4L2_CID_RDS_TX_MUSIC_SPEECH, 0, 1, 1, 1);
+ 	}
++	if (dev->has_sdr_cap) {
++		v4l2_ctrl_new_custom(hdl_sdr_cap,
++			&vivid_ctrl_sdr_cap_fm_deviation, NULL);
++	}
+ 	if (hdl_user_gen->error)
+ 		return hdl_user_gen->error;
+ 	if (hdl_user_vid->error)
+diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
+index d2f2188..c36b3f5 100644
+--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
++++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+@@ -22,6 +22,7 @@
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
++#include <linux/math64.h>
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <media/v4l2-common.h>
+@@ -488,12 +489,14 @@ int vidioc_try_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_format *f)
+ #define FIXP_N    (15)
+ #define FIXP_FRAC (1 << FIXP_N)
+ #define FIXP_2PI  ((int)(2 * 3.141592653589 * FIXP_FRAC))
++#define M_100000PI (3.14159 * 100000)
+ 
+ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
+ {
+ 	u8 *vbuf = vb2_plane_vaddr(&buf->vb, 0);
+ 	unsigned long i;
+ 	unsigned long plane_size = vb2_plane_size(&buf->vb, 0);
++	s64 s64tmp;
+ 	s32 src_phase_step;
+ 	s32 mod_phase_step;
+ 	s32 fixp_i;
+@@ -515,7 +518,8 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
+ 						FIXP_2PI) >> (31 - FIXP_N);
+ 
+ 		dev->sdr_fixp_src_phase += src_phase_step;
+-		dev->sdr_fixp_mod_phase += mod_phase_step / 4;
++		s64tmp = (s64) mod_phase_step * dev->sdr_fm_deviation;
++		dev->sdr_fixp_mod_phase += div_s64(s64tmp, M_100000PI);
+ 
+ 		/*
+ 		 * Transfer phases to [0 / 2xPI] in order to avoid variable
+-- 
+http://palosaari.fi/
 
