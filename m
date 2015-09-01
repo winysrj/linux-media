@@ -1,65 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:56728 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752699AbbIUM0p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 08:26:45 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [RESEND PATCH] media: vb2: Fix vb2_dc_prepare do not correct sync data to device
-Date: Mon, 21 Sep 2015 20:26:11 +0800
-Message-ID: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:35385 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755731AbbIAKsd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 06:48:33 -0400
+Received: by wicge5 with SMTP id ge5so2451906wic.0
+        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 03:48:32 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: [PATCH v4 6/6] [media] c8sectpfe: Simplify for loop in load_slim_core_fw
+Date: Tue,  1 Sep 2015 11:48:14 +0100
+Message-Id: <1441104494-10468-7-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
+References: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2_dc_prepare use the number of SG entries dma_map_sg_attrs return.
-But in dma_sync_sg_for_device, it use lengths of each SG entries
-before dma_map_sg_attrs. dma_map_sg_attrs will concatenate
-SGs until dma length > dma seg bundary. sgt->nents will less than
-sgt->orig_nents. Using SG entries after dma_map_sg_attrs
-in vb2_dc_prepare will make some SGs are not sync to device.
-After add DMA_ATTR_SKIP_CPU_SYNC in vb2_dc_get_userptr to remove
-sync data to device twice. Device randomly get incorrect data because
-some SGs are not sync to device. Change to use number of SG entries
-before dma_map_sg_attrs in vb2_dc_prepare to prevent this issue.
-
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 2397ceb..c5d00bd 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -100,7 +100,7 @@ static void vb2_dc_prepare(void *buf_priv)
- 	if (!sgt || buf->db_attach)
- 		return;
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index e19c6b4..782174a 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -1096,7 +1096,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 	Elf32_Ehdr *ehdr;
+ 	Elf32_Phdr *phdr;
+ 	u8 __iomem *dst;
+-	int err, i;
++	int err = 0, i;
  
--	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+ 	if (!fw || !context)
+ 		return -EINVAL;
+@@ -1105,7 +1105,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 	phdr = (Elf32_Phdr *)(fw->data + ehdr->e_phoff);
+ 
+ 	/* go through the available ELF segments */
+-	for (i = 0; i < ehdr->e_phnum && !err; i++, phdr++) {
++	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
+ 
+ 		/* Only consider LOAD segments */
+ 		if (phdr->p_type != PT_LOAD)
+@@ -1118,7 +1118,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 			dev_err(fei->dev,
+ 				"Segment %d is outside of firmware file\n", i);
+ 			err = -EINVAL;
+-			break;
++			goto err;
+ 		}
+ 
+ 		/*
+@@ -1146,6 +1146,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
+ 		}
+ 	}
+ 
++err:
+ 	release_firmware(fw);
+ 	return err;
  }
- 
- static void vb2_dc_finish(void *buf_priv)
-@@ -112,7 +112,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	if (!sgt || buf->db_attach)
- 		return;
- 
--	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
- }
- 
- /*********************************************/
 -- 
-1.8.1.1.dirty
+1.9.1
 
