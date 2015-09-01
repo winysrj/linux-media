@@ -1,74 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:3880 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbbIWBag (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 21:30:36 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>,
-	<linux-tegra@vger.kernel.org>
-Subject: [PATCH 0/3 RFC v3] media: platform: add NVIDIA Tegra VI driver
-Date: Tue, 22 Sep 2015 18:30:31 -0700
-Message-ID: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from server2.tcghosting.com ([168.93.115.130]:36246 "EHLO
+	server2.tcghosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072AbbIAUMr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 16:12:47 -0400
+Received: from h69-130-139-79.prsstn.broadband.dynamic.tds.net ([69.130.139.79]:59051 helo=[192.168.1.100])
+	by server2.tcghosting.com with esmtpa (Exim 4.85)
+	(envelope-from <ron@tallent.ws>)
+	id 1ZWrvC-0002IB-6d
+	for linux-media@vger.kernel.org; Tue, 01 Sep 2015 15:12:46 -0500
+Message-ID: <1441138364.2642.1.camel@Amy>
+Subject: em28xx: new board id [1f4d:1abe]
+From: Ronald Tallent <ron@tallent.ws>
+To: linux-media@vger.kernel.org
+Date: Tue, 01 Sep 2015 15:12:44 -0500
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add and enable V4L2 driver for latest NVIDIA Tegra
-Video Input hardware controller.
+Hi, 
 
-It's based on the staging/work branch of Thierry Reding Tegra
-upstream kernel github repo, which is based on 4.2-rc1.
-(https://github.com/thierryreding/linux/tree/staging/work) 
+I've tested my USB easycap device (Geniatech iGrabber) in Ubuntu
+14.04.
 
-v4:
-  - fix all the coding style issues
-  - solve all the minor problems pointed out by Hans Verkuil
+Make: Geniatech
+Model: iGrabber for MAC
+Vendor/Product ID: [1f4d:1abe]
+Product website: www.geniatech.com/pa/igrabber.asp
 
-v3:
-  - rework on the locking code related to kthread
-  - remove some dead code
-  - other fixes
+Tests Made:
+- Audio Capture [worked]
+- Video Capture [device not detected]
+- DVB [does not have DVB]
 
-v2:
-  - allocate kthread for each channel instead of workqueue
-  - create tegra-csi as a separated V4L2 subdevice
-  - define all the register bits needed in this driver
-  - add device tree binding document
-  - update things according to Hans and Thierry's review.
+Tested by:
+ron@tallent.ws
 
-Bryan Wu (3):
-  [media] v4l: tegra: Add NVIDIA Tegra VI driver
-  ARM64: add tegra-vi support in T210 device-tree
-  Documentation: DT bindings: add VI and CSI bindings
 
- .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 +++++-
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts  |   8 +
- arch/arm64/boot/dts/nvidia/tegra210.dtsi           | 174 ++++-
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/tegra/Kconfig               |  10 +
- drivers/media/platform/tegra/Makefile              |   3 +
- drivers/media/platform/tegra/tegra-channel.c       | 802 +++++++++++++++++++++
- drivers/media/platform/tegra/tegra-core.c          | 252 +++++++
- drivers/media/platform/tegra/tegra-core.h          | 162 +++++
- drivers/media/platform/tegra/tegra-csi.c           | 566 +++++++++++++++
- drivers/media/platform/tegra/tegra-vi.c            | 581 +++++++++++++++
- drivers/media/platform/tegra/tegra-vi.h            | 213 ++++++
- 13 files changed, 2978 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/platform/tegra/Kconfig
- create mode 100644 drivers/media/platform/tegra/Makefile
- create mode 100644 drivers/media/platform/tegra/tegra-channel.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.h
- create mode 100644 drivers/media/platform/tegra/tegra-csi.c
- create mode 100644 drivers/media/platform/tegra/tegra-vi.c
- create mode 100644 drivers/media/platform/tegra/tegra-vi.h
+Detailed information on device and system below for reference:
 
--- 
-2.1.4
+uname -a:
+3.13.0-62-generic #102-Ubuntu SMP Tue Aug 11 14:29:36 UTC 2015 x86_64 
+x86_64 x86_64 GNU/Linux
+
+dmesg:
+[] usb 3-3.3: new high-speed USB device number 8 using xhci_hcd
+[] usb 3-3.3: New USB device found, idVendor=1f4d, idProduct=1abe
+[] usb 3-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[] usb 3-3.3: Product: USB Device
+[] usbcore: registered new interface driver snd-usb-audio
+
+lsusb:
+Bus 003 Device 008: ID 1f4d:1abe G-Tek Electronics Group 
+
+Hardware: 
+Opened the case and found the following text printed on the board:
+   HandyCap
+   v1.51
+   2007-4-24
+
+Three chips on board are:
+1: empia
+   EM2860
+   P8367-010
+   201036-01AG
+
+2: Trident
+   SAA7113H
+   C2P409.00 02
+   A5G11152
+
+3: eMPIA
+   Technology
+   EMP202
+   UT11958
+   1027
+
 
