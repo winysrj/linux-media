@@ -1,163 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:34896 "EHLO
-	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758789AbbIVR2F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 13:28:05 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	stefanr@s5r6.in-berlin.de, crope@iki.fi, dan.carpenter@oracle.com,
-	tskd08@gmail.com, ruchandani.tina@gmail.com, arnd@arndb.de,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	Julia.Lawall@lip6.fr, elfring@users.sourceforge.net,
-	ricardo.ribalda@gmail.com, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, misterpib@gmail.com, takamichiho@gmail.com,
-	pmatilai@laiskiainen.org, damien@zamaudio.com, daniel@zonque.org,
-	vladcatoi@gmail.com, normalperson@yhbt.net, joe@oampo.co.uk,
-	bugzilla.frnkcg@spamgourmet.com, jussi@sonarnerd.net
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 13/21] media: Change v4l-core to check for tuner availability
-Date: Tue, 22 Sep 2015 11:19:32 -0600
-Message-Id: <2fd0fa2d594d7b67023e6484b08ef645925d77b8.1442937669.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
-References: <cover.1442937669.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
-References: <cover.1442937669.git.shuahkh@osg.samsung.com>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38814 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310AbbIAH7X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 03:59:23 -0400
+Received: by wiclp12 with SMTP id lp12so21161027wic.1
+        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 00:59:22 -0700 (PDT)
+Date: Tue, 1 Sep 2015 08:59:19 +0100
+From: Lee Jones <lee.jones@linaro.org>
+To: Peter Griffin <peter.griffin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	valentinrothberg@gmail.com, hugues.fruchet@st.com
+Subject: Re: [PATCH v3 2/6] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT
+ node.
+Message-ID: <20150901075919.GL4796@x1>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+ <1440784362-31217-3-git-send-email-peter.griffin@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1440784362-31217-3-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change s_input, s_fmt, s_tuner, s_frequency, querystd,
-s_hw_freq_seek, and vb2_internal_streamon interfaces that
-alter the tuner configuration to check for tuner availability
-by calling v4l_enable_media_tuner(). If tuner isn't free,
-return -EBUSY. v4l_disable_media_tuner() is called from
-v4l2_fh_exit() to release the tuner.
+On Fri, 28 Aug 2015, Peter Griffin wrote:
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/v4l2-core/v4l2-fh.c        |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c     | 29 +++++++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-core.c |  3 +++
- 3 files changed, 33 insertions(+)
+> This patch adds in the required DT node for the c8sectpfe
+> Linux DVB demux driver which allows the tsin channels
+> to be used on an upstream kernel.
+> 
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> ---
+>  arch/arm/boot/dts/stihxxx-b2120.dtsi | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-index c97067a..538db62 100644
---- a/drivers/media/v4l2-core/v4l2-fh.c
-+++ b/drivers/media/v4l2-core/v4l2-fh.c
-@@ -92,6 +92,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
- {
- 	if (fh->vdev == NULL)
- 		return;
-+	v4l_disable_media_tuner(fh->vdev);
- 	v4l2_event_unsubscribe_all(fh);
- 	fh->vdev = NULL;
- }
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 85de455..deffc1b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1035,6 +1035,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
-+
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
- }
- 
-@@ -1433,6 +1439,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	v4l_sanitize_format(p);
- 
- 	switch (p->type) {
-@@ -1612,7 +1621,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_tuner *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	return ops->vidioc_s_tuner(file, fh, p);
-@@ -1650,7 +1663,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
- 		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
-@@ -1705,7 +1722,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	norm = id & vfd->tvnorms;
- 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
- 		return -EINVAL;
-@@ -1719,7 +1740,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/*
- 	 * If no signal is detected, then the driver should return
- 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
-@@ -1738,7 +1763,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_hw_freq_seek *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/* s_hw_freq_seek is not supported for SDR for now */
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index d835814..f7304d8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2251,6 +2251,9 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 * are available.
- 	 */
- 	if (q->queued_count >= q->min_buffers_needed) {
-+		ret = v4l_enable_media_tuner(q->owner->vdev);
-+		if (ret)
-+			return ret;
- 		ret = vb2_start_streaming(q);
- 		if (ret) {
- 			__vb2_queue_cancel(q);
+Acked-by: Lee Jones <lee.jones@linaro.org>
+
+> diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> index 62994ae..f9fca10 100644
+> --- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> +++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+> @@ -6,6 +6,9 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> +
+> +#include <dt-bindings/clock/stih407-clks.h>
+> +#include <dt-bindings/media/c8sectpfe.h>
+>  / {
+>  	soc {
+>  		sbc_serial0: serial@9530000 {
+> @@ -85,5 +88,37 @@
+>  			status = "okay";
+>  		};
+>  
+> +		demux@08a20000 {
+> +			compatible	= "st,stih407-c8sectpfe";
+> +			status		= "okay";
+> +			reg		= <0x08a20000 0x10000>,
+> +					  <0x08a00000 0x4000>;
+> +			reg-names	= "c8sectpfe", "c8sectpfe-ram";
+> +			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
+> +					  <GIC_SPI 35 IRQ_TYPE_NONE>;
+> +			interrupt-names	= "c8sectpfe-error-irq",
+> +					  "c8sectpfe-idle-irq";
+> +			pinctrl-0	= <&pinctrl_tsin0_serial>;
+> +			pinctrl-1	= <&pinctrl_tsin0_parallel>;
+> +			pinctrl-2	= <&pinctrl_tsin3_serial>;
+> +			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
+> +			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
+> +			pinctrl-names	= "tsin0-serial",
+> +					  "tsin0-parallel",
+> +					  "tsin3-serial",
+> +					  "tsin4-serial",
+> +					  "tsin5-serial";
+> +			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
+> +			clock-names	= "c8sectpfe";
+> +
+> +			/* tsin0 is TSA on NIMA */
+> +			tsin0: port@0 {
+> +				tsin-num	= <0>;
+> +				serial-not-parallel;
+> +				i2c-bus		= <&ssc2>;
+> +				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
+> +				dvb-card	= <STV0367_TDA18212_NIMA_1>;
+> +			};
+> +		};
+>  	};
+>  };
+
 -- 
-2.1.4
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
