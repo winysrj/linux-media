@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54593 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751848AbbIFMDy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v8 16/55] [media] media: Don't accept early-created links
-Date: Sun,  6 Sep 2015 09:02:47 -0300
-Message-Id: <7c566a41726e8ba88873b427912ca7797c63ec2f.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <31329e1be748d26ce5a90fe050ba15b8d1e5aff1.1440902901.git.mchehab@osg.samsung.com>
-References: <31329e1be748d26ce5a90fe050ba15b8d1e5aff1.1440902901.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47250 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751525AbbIAV7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Sep 2015 17:59:54 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 06/13] v4l: add type field to v4l2_modulator struct
+Date: Wed,  2 Sep 2015 00:59:22 +0300
+Message-Id: <1441144769-29211-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
+References: <1441144769-29211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Links are graph objects that represent the links of two already
-existing objects in the graph.
+Add type field to that struct like it counterpart v4l2_tuner
+already has. We need type field to distinguish different tuner
+types from each others for transmitter too.
 
-While with the current implementation, it is possible to create
-the links earlier, It doesn't make any sense to allow linking
-two objects when they are not both created.
-
-So, remove the code that would be handling those early-created
-links and add a BUG_ON() to ensure that.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++++++++++-
+ include/uapi/linux/videodev2.h       |  3 ++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 138b18416460..0d85c6c28004 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -443,13 +443,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
- 	list_add_tail(&entity->list, &mdev->entities);
- 
--	/*
--	 * Initialize objects at the links
--	 * in the case where links got created before entity register
--	 */
--	for (i = 0; i < entity->num_links; i++)
--		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
--				&entity->links[i].graph_obj);
- 	/* Initialize objects at the pads */
- 	for (i = 0; i < entity->num_pads; i++)
- 		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 27fce6224972..0926f08be981 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -161,6 +161,8 @@ void media_gobj_init(struct media_device *mdev,
- 			   enum media_gobj_type type,
- 			   struct media_gobj *gobj)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index a8582d3..6985edd 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1646,15 +1646,31 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
+ static int v4l_g_modulator(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
  {
-+	BUG_ON(!mdev);
-+
- 	gobj->mdev = mdev;
++	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_modulator *p = arg;
+ 	int err;
  
- 	/* Create a per-type unique object ID */
++	if (vfd->vfl_type == VFL_TYPE_RADIO)
++		p->type = V4L2_TUNER_RADIO;
++
+ 	err = ops->vidioc_g_modulator(file, fh, p);
+ 	if (!err)
+ 		p->capability |= V4L2_TUNER_CAP_FREQ_BANDS;
+ 	return err;
+ }
+ 
++static int v4l_s_modulator(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_modulator *p = arg;
++
++	if (vfd->vfl_type == VFL_TYPE_RADIO)
++		p->type = V4L2_TUNER_RADIO;
++
++	return ops->vidioc_s_modulator(file, fh, p);
++}
++
+ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -2441,7 +2457,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
+-	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_S_MODULATOR, v4l_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
+ 	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 70f06c9..3a8eb8e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1584,7 +1584,8 @@ struct v4l2_modulator {
+ 	__u32			rangelow;
+ 	__u32			rangehigh;
+ 	__u32			txsubchans;
+-	__u32			reserved[4];
++	__u32			type;	/* enum v4l2_tuner_type */
++	__u32			reserved[3];
+ };
+ 
+ /*  Flags for the 'capability' field */
 -- 
-2.4.3
-
+http://palosaari.fi/
 
