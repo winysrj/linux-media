@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:35385 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755731AbbIAKsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 06:48:33 -0400
-Received: by wicge5 with SMTP id ge5so2451906wic.0
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 03:48:32 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
-Subject: [PATCH v4 6/6] [media] c8sectpfe: Simplify for loop in load_slim_core_fw
-Date: Tue,  1 Sep 2015 11:48:14 +0100
-Message-Id: <1441104494-10468-7-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
-References: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
+Received: from mail-io0-f174.google.com ([209.85.223.174]:36798 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892AbbIAOFu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 10:05:50 -0400
+Received: by ioii196 with SMTP id i196so1893331ioi.3
+        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 07:05:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <14424259.ko5c2GLiEC@avalon>
+References: <20150901092917.5aec83f2@recife.lan>
+	<14424259.ko5c2GLiEC@avalon>
+Date: Tue, 1 Sep 2015 08:05:49 -0600
+Message-ID: <CAKocOOPs5_X9d=zfKvDBEgBWHBNzzuwuYwcDRv7irhfoifRLqA@mail.gmail.com>
+Subject: Re: [media-workshop] [ANNOUNCE] Media Workshop at the Kernel Summit
+ 2015 in Korea
+From: Shuah Khan <shuahkhan@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: media-workshop@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
----
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+On Tue, Sep 1, 2015 at 6:47 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Mauro,
+>
+> Thank you for organizing this.
+>
+> On Tuesday 01 September 2015 09:29:17 Mauro Carvalho Chehab wrote:
+>> Hi,
+>>
+>> As we keep being very active on the development of the Linux Kernel Media
+>> subsystem, we'll be doing another workshop this year.
+>>
+>> This will be the first time we'll be doing it in Asia, so it is a great
+>> opportunity for the ones that are there to join us and participate, in
+>> order to improve the Linux Kernel support for A/V stream capture, webcam
+>> and analog/digital TV.
+>>
+>> As usual, we'll be using the media-workshop@linuxtv.org Mailing List for
+>> specific discussions about that, so the ones interested on participate
+>> are requested to subscribe it.
+>>
+>> This time, we'll be doing something different than what we've done on the
+>> last years, and use something that other subsystems like ALSA are doing
+>> for a while: we'll be using two google docs to track the proposals and
+>> the interested parties.
+>>
+>> If you're interested in participate and wants to be invited for the event,
+>> please put your data at this document:
+>>       https://docs.google.com/spreadsheets/d/1YecCAUo0L1R_i3jPg3S->   A5iqX7BYAd2c_VfJctQmr88/edit?usp=sharing
+>
+> The document can be edited without a Google account so that's fine with me :-)
+>
+> I'll be there.
+>
 
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index e19c6b4..782174a 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -1096,7 +1096,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
- 	Elf32_Ehdr *ehdr;
- 	Elf32_Phdr *phdr;
- 	u8 __iomem *dst;
--	int err, i;
-+	int err = 0, i;
- 
- 	if (!fw || !context)
- 		return -EINVAL;
-@@ -1105,7 +1105,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
- 	phdr = (Elf32_Phdr *)(fw->data + ehdr->e_phoff);
- 
- 	/* go through the available ELF segments */
--	for (i = 0; i < ehdr->e_phnum && !err; i++, phdr++) {
-+	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
- 
- 		/* Only consider LOAD segments */
- 		if (phdr->p_type != PT_LOAD)
-@@ -1118,7 +1118,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
- 			dev_err(fei->dev,
- 				"Segment %d is outside of firmware file\n", i);
- 			err = -EINVAL;
--			break;
-+			goto err;
- 		}
- 
- 		/*
-@@ -1146,6 +1146,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
- 		}
- 	}
- 
-+err:
- 	release_firmware(fw);
- 	return err;
- }
--- 
-1.9.1
+Thanks for organizing it. I added myself to the google document.
 
+thanks,
+-- Shuah
