@@ -1,75 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:39474 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050AbbIGNpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 09:45:11 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org, linux@arm.linux.org.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv9 05/15] HID: add HDMI CEC specific keycodes
-Date: Mon,  7 Sep 2015 15:44:34 +0200
-Message-Id: <43c01f85d2ab18f39584bf68d779fa10bfa20674.1441633456.git.hansverk@cisco.com>
-In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
-References: <cover.1441633456.git.hansverk@cisco.com>
-In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
-References: <cover.1441633456.git.hansverk@cisco.com>
+Received: from mail-qk0-f178.google.com ([209.85.220.178]:35757 "EHLO
+	mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755696AbbIALzB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 07:55:01 -0400
+MIME-Version: 1.0
+In-Reply-To: <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
+References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
+ <1440784362-31217-5-git-send-email-peter.griffin@linaro.org> <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Date: Tue, 1 Sep 2015 06:54:41 -0500
+Message-ID: <CAL_JsqLccRKCnASOK-tAUn=ifZpQ3hCEJ1eg1hmrei=3vEpzFA@mail.gmail.com>
+Subject: Re: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Peter Griffin <peter.griffin@linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Valentin Rothberg <valentinrothberg@gmail.com>,
+	hugues.fruchet@st.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+On Tue, Sep 1, 2015 at 3:32 AM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
+> Hello Peter,
+>
+> On Fri, Aug 28, 2015 at 7:52 PM, Peter Griffin <peter.griffin@linaro.org> wrote:
+>> gpio.txt documents that GPIO properties should be named
+>> "[<name>-]gpios", with <name> being the purpose of this
+>> GPIO for the device.
+>>
+>> This change has been done as one atomic commit.
+>>
+>> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+>> Acked-by: Lee Jones <lee.jones@linaro.org>
+>> ---
+>>  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
+>>  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
+>>  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
+>>  3 files changed, 6 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+>> index d4def76..e70d840 100644
+>> --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+>> +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+>> @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
+>>
+>>  - tsin-num     : tsin id of the InputBlock (must be between 0 to 6)
+>>  - i2c-bus      : phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
+>> -- rst-gpio     : reset gpio for this tsin channel.
+>> +- reset-gpios  : reset gpio for this tsin channel.
+>
+> The documentation is a bit outdated, the GPIO subsystem supports both
+> -gpio and -gpios, see commit:
+>
+> dd34c37aa3e8 ("gpio: of: Allow -gpio suffix for property names")
 
-Add HDMI CEC specific keycodes to the keycodes definition.
+Yes, because we have lots of them.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/input.h | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+> So it makes sense to me to use -gpio instead of -gpios in this case
+> since is a single GPIO. Also rst is already a descriptive name since
+> that's how many datasheets name a reset pin. I'm not saying I'm
+> against this patch, just pointing out since the commit message is a
+> bit misleading.
 
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index a32bff1..5e7019a 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -752,6 +752,34 @@ struct input_keymap_entry {
- #define KEY_KBDINPUTASSIST_ACCEPT		0x264
- #define KEY_KBDINPUTASSIST_CANCEL		0x265
- 
-+#define KEY_RIGHT_UP			0x266
-+#define KEY_RIGHT_DOWN			0x267
-+#define KEY_LEFT_UP			0x268
-+#define KEY_LEFT_DOWN			0x269
-+#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-+#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-+#define KEY_NUMERIC_11			0x26c
-+#define KEY_NUMERIC_12			0x26d
-+/*
-+ * Toggle Audio Description: refers to an audio service that helps blind and
-+ * visually impaired consumers understand the action in a program. Note: in
-+ * some countries this is referred to as "Video Description".
-+ */
-+#define KEY_AUDIO_DESC			0x26e
-+#define KEY_3D_MODE			0x26f
-+#define KEY_NEXT_FAVORITE		0x270
-+#define KEY_STOP_RECORD			0x271
-+#define KEY_PAUSE_RECORD		0x272
-+#define KEY_VOD				0x273 /* Video on Demand */
-+#define KEY_UNMUTE			0x274
-+#define KEY_FASTREVERSE			0x275
-+#define KEY_SLOWREVERSE			0x276
-+/*
-+ * Control a data application associated with the currently viewed channel,
-+ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-+ */
-+#define KEY_DATA			0x275
-+
- #define BTN_TRIGGER_HAPPY		0x2c0
- #define BTN_TRIGGER_HAPPY1		0x2c0
- #define BTN_TRIGGER_HAPPY2		0x2c1
--- 
-2.1.4
+I believe that this has been discussed at length and it was decided
+that new bindings should use "-gpios" even for 1. Just like "clocks"
+is always plural.
 
+Rob
