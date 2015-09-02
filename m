@@ -1,99 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53835 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830AbbIFRbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 17/18] [media] dvbdev: move indirect links on dvr/demux to a separate function
-Date: Sun,  6 Sep 2015 14:31:00 -0300
-Message-Id: <85b36c34704eeba890472e7973d2e01a69c4b87c.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:33706 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754098AbbIBOyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Sep 2015 10:54:23 -0400
+Subject: Re: [alsa-devel] Linux 4.2 ALSA snd-usb-audio inconsistent lock state
+ warn in PCM nonatomic mode
+To: Clemens Ladisch <clemens@ladisch.de>
+References: <55E4D9BE.2040308@osg.samsung.com> <55E564ED.4050609@ladisch.de>
+ <55E5E31F.6040802@osg.samsung.com> <55E5E625.5010403@ladisch.de>
+Cc: alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <55E70D97.1010206@osg.samsung.com>
+Date: Wed, 2 Sep 2015 08:54:15 -0600
+MIME-Version: 1.0
+In-Reply-To: <55E5E625.5010403@ladisch.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cleanup the code a little bit by moving the routine that creates
-links between DVR and demux to the I/O entitis into a separate
-function.
+On 09/01/2015 11:53 AM, Clemens Ladisch wrote:
+> Shuah Khan wrote:> On 09/01/2015 02:42 AM, Clemens Ladisch wrote:
+>>> Shuah Khan wrote:
+>>>> +++ b/sound/usb/stream.c
+>>>> pcm->private_data = as;
+>>>> pcm->private_free = snd_usb_audio_pcm_free;
+>>>> pcm->info_flags = 0;
+>>>> + pcm->nonatomic = true;
+>>>
+>>> Why do you think you need nonatomic mode in the USB audio driver?
+>>
+>> I have been working on adding Media Controller support for this chip
+>> as chip specific feature in ALSA. This will allow sharing resources
+>> such as the tuner across the drivers that control the device (DVB,
+>> Video, snd-usb-audio). Media Controller framework uses a mutex to
+>> protect access to resources, hence there is a need to hold this mutex
+>> from SNDRV_PCM_TRIGGER_START and SNDRV_PCM_TRIGGER_STOP which could run
+>> in IRQ context.
+> 
+> Resources should be managed in the hw_params/hw_free callbacks.
+> 
 
-While here, fix the code to use strncmp() instead of strcmp().
+snd_usb_hw_params() and snd_usb_hw_free() are the two places
+I could add resource access logic and try if that works for
+what I am trying to do. Thanks for the tip.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+thanks,
+-- Shuah
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 8527fc40e6a0..ea76fe54e0e4 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -522,6 +522,28 @@ EXPORT_SYMBOL(dvb_unregister_device);
- 
- 
- #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+
-+static int dvb_create_io_intf_links(struct dvb_adapter *adap,
-+				    struct media_interface *intf,
-+				    char *name)
-+{
-+	struct media_device *mdev = adap->mdev;
-+	struct media_entity *entity;
-+	struct media_link *link;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		if (entity->function == MEDIA_ENT_F_IO) {
-+			if (strncmp(entity->name, name, strlen(name)))
-+				continue;
-+			link = media_create_intf_link(entity, intf,
-+						      MEDIA_LNK_FL_ENABLED);
-+			if (!link)
-+				return -ENOMEM;
-+		}
-+	}
-+	return 0;
-+}
-+
- int dvb_create_media_graph(struct dvb_adapter *adap)
- {
- 	struct media_device *mdev = adap->mdev;
-@@ -619,25 +641,15 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 			if (!link)
- 				return -ENOMEM;
- 		}
--
--		media_device_for_each_entity(entity, mdev) {
--			if (entity->function == MEDIA_ENT_F_IO) {
--				if (!strcmp(entity->name, DVR_TSOUT)) {
--					link = media_create_intf_link(entity,
--							intf,
--							MEDIA_LNK_FL_ENABLED);
--					if (!link)
--						return -ENOMEM;
--				}
--				if (!strcmp(entity->name, DEMUX_TSOUT)) {
--					link = media_create_intf_link(entity,
--							intf,
--							MEDIA_LNK_FL_ENABLED);
--					if (!link)
--						return -ENOMEM;
--				}
--				break;
--			}
-+		if (intf->type == MEDIA_INTF_T_DVB_DVR) {
-+			ret = dvb_create_io_intf_links(adap, intf, DVR_TSOUT);
-+			if (ret)
-+				return ret;
-+		}
-+		if (intf->type == MEDIA_INTF_T_DVB_DEMUX) {
-+			ret = dvb_create_io_intf_links(adap, intf, DEMUX_TSOUT);
-+			if (ret)
-+				return ret;
- 		}
- 	}
- 	return 0;
+
 -- 
-2.4.3
-
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
