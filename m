@@ -1,135 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39296 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbbINCdf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 22:33:35 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 19C4C2A009D
-	for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 04:32:20 +0200 (CEST)
-Date: Mon, 14 Sep 2015 04:32:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150914023220.19C4C2A009D@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:33980 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753760AbbICRkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2015 13:40:22 -0400
+Date: Thu, 3 Sep 2015 14:40:16 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, gjasny@googlemail.com,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH 2/2] v4l-utils: allow building even if argp.h is not
+ present
+Message-ID: <20150903144016.4c6f9dce@recife.lan>
+In-Reply-To: <dd3bbf524477c868636605620b34a7acb32b1238.1441293195.git.hansverk@cisco.com>
+References: <1441293796-16972-1-git-send-email-hverkuil@xs4all.nl>
+	<dd3bbf524477c868636605620b34a7acb32b1238.1441293195.git.hansverk@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Thu,  3 Sep 2015 17:23:16 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> From: Hans Verkuil <hansverk@cisco.com>
+> 
+> The argp.h functionality is not always available on embedded systems
+> (android!). A number of utilities depend on this and running configure
+> will fail if argp.h is missing.
+> 
+> Add a new configure option --without-argp to disable that argp.h check
+> and instead skip any utilities that use argp.h.
 
-date:		Mon Sep 14 04:00:33 CEST 2015
-git branch:	test
-git hash:	9ddf9071ea17b83954358b2dac42b34e5857a9af
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Not sure about this patch. Maybe the better would be to see if we could
+add a poor man's argp, instead, for those broken userspace systems.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-ABI WARNING: change for sh
-smatch: ERRORS
+Weird enough, a quick search on Google for "argp replacement android"
+actually showed an argp.h at some android source:
+	https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.7-4.6/+/jb-dev/sysroot/usr/include/argp.h
 
-Detailed results are available here:
+This site has an standalone argp imported from glibc-2.2, according
+with its ChangeLog:
+	https://github.com/jahrome/argp-standalone
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Static linking an standalone version is a little ugly. So, wee can do
+something simpler than that, as there is just one important function at
+argp: the one that calls a callback that will handle the command line
+options (argp_parse). This can be trivial to be implemented, specially 
+if it would handle just the one letter parameters, as it would be just
+a callback.
 
-Full logs are available here:
+It can just ignore the help message functions like argp_help(), 
+giving some error message and giving up.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Eventually, just a small set of inline functions, plus adding the
+argp structures on a header would be enough.
 
-The Media Infrastructure API from this daily build is here:
+Regards,
+Mauro
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+> ---
+>  configure.ac             | 22 ++++++++++++++++------
+>  contrib/test/Makefile.am |  7 ++++++-
+>  utils/Makefile.am        | 11 +++++++----
+>  3 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 13df263..d645386 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -270,14 +270,24 @@ dl_saved_libs=$LIBS
+>    AC_SUBST([DLOPEN_LIBS])
+>  LIBS=$dl_saved_libs
+>  
+> -AC_CHECK_HEADER([argp.h],,AC_MSG_ERROR(Cannot continue: argp.h not found))
+> +AC_ARG_WITH([argp],
+> +            AS_HELP_STRING([--without-argp], [Do not use argp.h]),
+> +            [],
+> +            [with_argp=yes])
+> +
+>  argp_saved_libs=$LIBS
+> -  AC_SEARCH_LIBS([argp_parse],
+> -                 [argp],
+> -                 [test "$ac_cv_search_argp_parse" = "none required" || ARGP_LIBS=$ac_cv_search_argp_parse],
+> -                 [AC_MSG_ERROR([unable to find the argp_parse() function])])
+> -  AC_SUBST([ARGP_LIBS])
+> +AS_IF([test "x$with_argp" != xno],
+> +      [
+> +          AC_CHECK_HEADER([argp.h],,AC_MSG_ERROR(Cannot continue: argp.h not found))]
+> +	  AC_SEARCH_LIBS([argp_parse],
+> +			 [argp],
+> +			 [test "$ac_cv_search_argp_parse" = "none required" || ARGP_LIBS=$ac_cv_search_argp_parse],
+> +			 [AC_MSG_ERROR([unable to find the argp_parse() function])])
+> +	  AC_SUBST([ARGP_LIBS])
+> +      ],
+> +      )
+>  LIBS=$argp_saved_libs
+> +AM_CONDITIONAL([HAVE_ARGP], [test "x$with_argp" != xno])
+>  
+>  AC_CHECK_HEADER([linux/i2c-dev.h], [linux_i2c_dev=yes], [linux_i2c_dev=no])
+>  AM_CONDITIONAL([HAVE_LINUX_I2C_DEV], [test x$linux_i2c_dev = xyes])
+> diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
+> index 7f84435..f223f68 100644
+> --- a/contrib/test/Makefile.am
+> +++ b/contrib/test/Makefile.am
+> @@ -2,7 +2,6 @@ noinst_PROGRAMS = \
+>  	ioctl-test		\
+>  	sliced-vbi-test		\
+>  	sliced-vbi-detect	\
+> -	v4l2grab		\
+>  	driver-test		\
+>  	stress-buffer		\
+>  	capture-example
+> @@ -12,8 +11,14 @@ noinst_PROGRAMS += pixfmt-test
+>  endif
+>  
+>  if HAVE_GLU
+> +if HAVE_ARGP
+>  noinst_PROGRAMS += v4l2gl
+>  endif
+> +endif
+> +
+> +if HAVE_ARGP
+> +noinst_PROGRAMS += v4l2grab
+> +endif
+>  
+>  driver_test_SOURCES = driver-test.c
+>  driver_test_LDADD = ../../utils/libv4l2util/libv4l2util.la
+> diff --git a/utils/Makefile.am b/utils/Makefile.am
+> index 5674c16..5645d55 100644
+> --- a/utils/Makefile.am
+> +++ b/utils/Makefile.am
+> @@ -1,16 +1,12 @@
+>  SUBDIRS = \
+> -	dvb \
+>  	libv4l2util \
+>  	libmedia_dev \
+> -	decode_tm6000 \
+>  	ivtv-ctl \
+>  	cx18-ctl \
+> -	keytable \
+>  	media-ctl \
+>  	v4l2-compliance \
+>  	v4l2-ctl \
+>  	v4l2-dbg \
+> -	v4l2-sysfs-path \
+>  	rds-ctl
+>  
+>  if LINUX_OS
+> @@ -27,3 +23,10 @@ if WITH_QV4L2
+>  SUBDIRS += qv4l2
+>  endif
+>  
+> +if HAVE_ARGP
+> +SUBDIRS += \
+> +	dvb \
+> +	keytable \
+> +	decode_tm6000 \
+> +	v4l2-sysfs-path
+> +endif
