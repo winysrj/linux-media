@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33706 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754098AbbIBOyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Sep 2015 10:54:23 -0400
-Subject: Re: [alsa-devel] Linux 4.2 ALSA snd-usb-audio inconsistent lock state
- warn in PCM nonatomic mode
-To: Clemens Ladisch <clemens@ladisch.de>
-References: <55E4D9BE.2040308@osg.samsung.com> <55E564ED.4050609@ladisch.de>
- <55E5E31F.6040802@osg.samsung.com> <55E5E625.5010403@ladisch.de>
-Cc: alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <55E70D97.1010206@osg.samsung.com>
-Date: Wed, 2 Sep 2015 08:54:15 -0600
+Received: from mail-la0-f45.google.com ([209.85.215.45]:34165 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756849AbbICXOj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 19:14:39 -0400
+Received: by laeb10 with SMTP id b10so2868951lae.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 16:14:37 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	lars@metafoo.de
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 1/3] adv7180: implement g_std() method
+Date: Fri, 04 Sep 2015 02:14:35 +0300
+Message-ID: <55445603.CDVZru8CKl@wasted.cogentembedded.com>
+In-Reply-To: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
+References: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <55E5E625.5010403@ladisch.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2015 11:53 AM, Clemens Ladisch wrote:
-> Shuah Khan wrote:> On 09/01/2015 02:42 AM, Clemens Ladisch wrote:
->>> Shuah Khan wrote:
->>>> +++ b/sound/usb/stream.c
->>>> pcm->private_data = as;
->>>> pcm->private_free = snd_usb_audio_pcm_free;
->>>> pcm->info_flags = 0;
->>>> + pcm->nonatomic = true;
->>>
->>> Why do you think you need nonatomic mode in the USB audio driver?
->>
->> I have been working on adding Media Controller support for this chip
->> as chip specific feature in ALSA. This will allow sharing resources
->> such as the tuner across the drivers that control the device (DVB,
->> Video, snd-usb-audio). Media Controller framework uses a mutex to
->> protect access to resources, hence there is a need to hold this mutex
->> from SNDRV_PCM_TRIGGER_START and SNDRV_PCM_TRIGGER_STOP which could run
->> in IRQ context.
-> 
-> Resources should be managed in the hw_params/hw_free callbacks.
-> 
+Commit cccb83f7a184 ([media] adv7180: add more subdev video ops) forgot to add
+the g_std() video method. Its implementation seems identical to the querystd()
+method,  so we  can just  point at adv7180_querystd()...
 
-snd_usb_hw_params() and snd_usb_hw_free() are the two places
-I could add resource access logic and try if that works for
-what I am trying to do. Thanks for the tip.
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-thanks,
--- Shuah
+---
+ drivers/media/i2c/adv7180.c |    1 +
+ 1 file changed, 1 insertion(+)
 
+Index: media_tree/drivers/media/i2c/adv7180.c
+===================================================================
+--- media_tree.orig/drivers/media/i2c/adv7180.c
++++ media_tree/drivers/media/i2c/adv7180.c
+@@ -717,6 +717,7 @@ static int adv7180_g_mbus_config(struct
+ }
+ 
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
++	.g_std = adv7180_querystd,
+ 	.s_std = adv7180_s_std,
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
