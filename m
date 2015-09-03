@@ -1,57 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:21344 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752493AbbIKLwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 07:52:30 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	sumit.semwal@linaro.org, robdclark@gmail.com,
-	daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC RESEND 09/11] vb2: dma-contig: Don't warn on failure in obtaining scatterlist
-Date: Fri, 11 Sep 2015 14:50:32 +0300
-Message-Id: <1441972234-8643-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:36550 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758071AbbICSKb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 14:10:31 -0400
+Received: by wibz8 with SMTP id z8so107631014wib.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 11:10:30 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	hugues.fruchet@st.com
+Subject: [PATCH v5 2/6] ARM: DT: STi: STiH407: Add c8sectpfe LinuxDVB DT node.
+Date: Thu,  3 Sep 2015 18:59:50 +0100
+Message-Id: <1441303194-28211-3-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
+References: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2_dc_get_base_sgt() which obtains the scatterlist already prints
-information on why the scatterlist could not be obtained.
+This patch adds in the required DT node for the c8sectpfe
+Linux DVB demux driver which allows the tsin channels
+to be used on an upstream kernel.
 
-Also, remove the useless warning of a failed kmalloc().
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/stihxxx-b2120.dtsi | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 3260392..65bc687 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -88,10 +88,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
- 	struct sg_table *sgt;
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index 62994ae..f9fca10 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -6,6 +6,9 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++
++#include <dt-bindings/clock/stih407-clks.h>
++#include <dt-bindings/media/c8sectpfe.h>
+ / {
+ 	soc {
+ 		sbc_serial0: serial@9530000 {
+@@ -85,5 +88,37 @@
+ 			status = "okay";
+ 		};
  
- 	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (!sgt) {
--		dev_err(buf->dev, "failed to alloc sg table\n");
-+	if (!sgt)
- 		return NULL;
--	}
- 
- 	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
- 		buf->size);
-@@ -411,7 +409,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- 	if (!buf->dma_sgt)
- 		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
- 
--	if (WARN_ON(!buf->dma_sgt))
-+	if (!buf->dma_sgt)
- 		return NULL;
- 
- 	dbuf = dma_buf_export(&exp_info);
++		demux@08a20000 {
++			compatible	= "st,stih407-c8sectpfe";
++			status		= "okay";
++			reg		= <0x08a20000 0x10000>,
++					  <0x08a00000 0x4000>;
++			reg-names	= "c8sectpfe", "c8sectpfe-ram";
++			interrupts	= <GIC_SPI 34 IRQ_TYPE_NONE>,
++					  <GIC_SPI 35 IRQ_TYPE_NONE>;
++			interrupt-names	= "c8sectpfe-error-irq",
++					  "c8sectpfe-idle-irq";
++			pinctrl-0	= <&pinctrl_tsin0_serial>;
++			pinctrl-1	= <&pinctrl_tsin0_parallel>;
++			pinctrl-2	= <&pinctrl_tsin3_serial>;
++			pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
++			pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
++			pinctrl-names	= "tsin0-serial",
++					  "tsin0-parallel",
++					  "tsin3-serial",
++					  "tsin4-serial",
++					  "tsin5-serial";
++			clocks		= <&clk_s_c0_flexgen CLK_PROC_STFE>;
++			clock-names	= "c8sectpfe";
++
++			/* tsin0 is TSA on NIMA */
++			tsin0: port@0 {
++				tsin-num	= <0>;
++				serial-not-parallel;
++				i2c-bus		= <&ssc2>;
++				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
++				dvb-card	= <STV0367_TDA18212_NIMA_1>;
++			};
++		};
+ 	};
+ };
 -- 
-2.1.0.231.g7484e3b
+1.9.1
 
