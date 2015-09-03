@@ -1,88 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:43485 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756470AbbIULmK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 07:42:10 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cobalt: fix Kconfig dependency
-Cc: fengguang.wu@intel.com
-Message-ID: <55FFED0C.6080403@xs4all.nl>
-Date: Mon, 21 Sep 2015 13:42:04 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:33921 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933574AbbICQBF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Sep 2015 12:01:05 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-sh@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/5] [media] v4l: vsp1: separate links creation from entities init
+Date: Thu,  3 Sep 2015 18:00:34 +0200
+Message-Id: <1441296036-20727-4-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
+References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cobalt driver should depend on VIDEO_V4L2_SUBDEV_API.
+The vsp1 driver initializes the entities and creates the pads links
+before the entities are registered with the media device. This doesn't
+work now that object IDs are used to create links so the media_device
+has to be set.
 
-This fixes this kbuild error:
+Split out the pads links creation from the entity initialization so are
+made after the entities registration.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-head:   99bc7215bc60f6cd414cf1b85cd9d52cc596cccb
-commit: 85756a069c55e0315ac5990806899cfb607b987f [media] cobalt: add new driver
-date:   4 months ago
-config: x86_64-randconfig-s0-09201514 (attached as .config)
-reproduce:
-  git checkout 85756a069c55e0315ac5990806899cfb607b987f
-  # save the attached .config to linux build tree
-  make ARCH=x86_64 
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-All error/warnings (new ones prefixed by >>):
+ drivers/media/platform/vsp1/vsp1_drv.c  | 14 ++++++++++--
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 29 ++++++++++++++++--------
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  5 +++++
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 40 ++++++++++++++++++++-------------
+ 4 files changed, 62 insertions(+), 26 deletions(-)
 
-   drivers/media/i2c/adv7604.c: In function 'adv76xx_get_format':
->> drivers/media/i2c/adv7604.c:1853:9: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-            ^
-   drivers/media/i2c/adv7604.c:1853:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   drivers/media/i2c/adv7604.c: In function 'adv76xx_set_format':
-   drivers/media/i2c/adv7604.c:1882:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   cc1: some warnings being treated as errors
---
-   drivers/media/i2c/adv7842.c: In function 'adv7842_get_format':
->> drivers/media/i2c/adv7842.c:2093:9: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-            ^
-   drivers/media/i2c/adv7842.c:2093:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   drivers/media/i2c/adv7842.c: In function 'adv7842_set_format':
-   drivers/media/i2c/adv7842.c:2125:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   cc1: some warnings being treated as errors
---
-   drivers/media/i2c/adv7511.c: In function 'adv7511_get_fmt':
->> drivers/media/i2c/adv7511.c:859:9: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-            ^
-   drivers/media/i2c/adv7511.c:859:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   drivers/media/i2c/adv7511.c: In function 'adv7511_set_fmt':
-   drivers/media/i2c/adv7511.c:910:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-      fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-          ^
-   cc1: some warnings being treated as errors
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 2aa427d3ff39..8f995d267646 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -260,9 +260,19 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 
+ 	/* Create links. */
+ 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
+-		if (entity->type == VSP1_ENTITY_LIF ||
+-		    entity->type == VSP1_ENTITY_RPF)
++		if (entity->type == VSP1_ENTITY_LIF) {
++			ret = vsp1_wpf_create_pads_links(vsp1, entity);
++			if (ret < 0)
++				goto done;
++			continue;
++		}
++
++		if (entity->type == VSP1_ENTITY_RPF) {
++			ret = vsp1_rpf_create_pads_links(vsp1, entity);
++			if (ret < 0)
++				goto done;
+ 			continue;
++		}
+ 
+ 		ret = vsp1_create_links(vsp1, entity);
+ 		if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index b60a528a8fe8..38aebdf691b5 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -277,18 +277,29 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	rpf->entity.video = video;
+ 
+-	/* Connect the video device to the RPF. */
+-	ret = media_create_pad_link(&rpf->video.video.entity, 0,
+-				       &rpf->entity.subdev.entity,
+-				       RWPF_PAD_SINK,
+-				       MEDIA_LNK_FL_ENABLED |
+-				       MEDIA_LNK_FL_IMMUTABLE);
+-	if (ret < 0)
+-		goto error;
+-
+ 	return rpf;
+ 
+ error:
+ 	vsp1_entity_destroy(&rpf->entity);
+ 	return ERR_PTR(ret);
+ }
++
++/*
++ * vsp1_rpf_create_pads_links_create_pads_links() - RPF pads links creation
++ * @vsp1: Pointer to VSP1 device
++ * @entity: Pointer to VSP1 entity
++ *
++ * return negative error code or zero on success
++ */
++int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
++			       struct vsp1_entity *entity)
++{
++	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
++
++	/* Connect the video device to the RPF. */
++	return media_create_pad_link(&rpf->video.video.entity, 0,
++				     &rpf->entity.subdev.entity,
++				     RWPF_PAD_SINK,
++				     MEDIA_LNK_FL_ENABLED |
++				     MEDIA_LNK_FL_IMMUTABLE);
++}
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index f452dce1a931..6638b3587369 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -50,6 +50,11 @@ static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
+ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index);
+ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
+ 
++int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
++			       struct vsp1_entity *entity);
++int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
++			       struct vsp1_entity *entity);
++
+ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			     struct v4l2_subdev_pad_config *cfg,
+ 			     struct v4l2_subdev_mbus_code_enum *code);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d39aa4b8aea1..1be363e4f741 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -220,7 +220,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	struct v4l2_subdev *subdev;
+ 	struct vsp1_video *video;
+ 	struct vsp1_rwpf *wpf;
+-	unsigned int flags;
+ 	int ret;
+ 
+ 	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
+@@ -276,20 +275,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 		goto error;
+ 
+ 	wpf->entity.video = video;
+-
+-	/* Connect the video device to the WPF. All connections are immutable
+-	 * except for the WPF0 source link if a LIF is present.
+-	 */
+-	flags = MEDIA_LNK_FL_ENABLED;
+-	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || index != 0)
+-		flags |= MEDIA_LNK_FL_IMMUTABLE;
+-
+-	ret = media_create_pad_link(&wpf->entity.subdev.entity,
+-				       RWPF_PAD_SOURCE,
+-				       &wpf->video.video.entity, 0, flags);
+-	if (ret < 0)
+-		goto error;
+-
+ 	wpf->entity.sink = &wpf->video.video.entity;
+ 
+ 	return wpf;
+@@ -298,3 +283,28 @@ error:
+ 	vsp1_entity_destroy(&wpf->entity);
+ 	return ERR_PTR(ret);
+ }
++
++/*
++ * vsp1_wpf_create_pads_links_create_pads_links() - RPF pads links creation
++ * @vsp1: Pointer to VSP1 device
++ * @entity: Pointer to VSP1 entity
++ *
++ * return negative error code or zero on success
++ */
++int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
++			       struct vsp1_entity *entity)
++{
++	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
++	unsigned int flags;
++
++	/* Connect the video device to the WPF. All connections are immutable
++	 * except for the WPF0 source link if a LIF is present.
++	 */
++	flags = MEDIA_LNK_FL_ENABLED;
++	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || entity->index != 0)
++		flags |= MEDIA_LNK_FL_IMMUTABLE;
++
++	return media_create_pad_link(&wpf->entity.subdev.entity,
++				     RWPF_PAD_SOURCE,
++				     &wpf->video.video.entity, 0, flags);
++}
+-- 
+2.4.3
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported by: kbuild test robot <fengguang.wu@intel.com>
-
-diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
-index 1f88ccc..a01f0cc 100644
---- a/drivers/media/pci/cobalt/Kconfig
-+++ b/drivers/media/pci/cobalt/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_COBALT
- 	tristate "Cisco Cobalt support"
--	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
- 	depends on GPIOLIB || COMPILE_TEST
- 	depends on SND
