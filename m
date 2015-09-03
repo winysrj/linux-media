@@ -1,120 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28146 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751532AbbIKKLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 06:11:17 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 4/9] media: Use media entity enum API for managing low IDs
-Date: Fri, 11 Sep 2015 13:09:07 +0300
-Message-Id: <1441966152-28444-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:34781 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758095AbbICSKd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 14:10:33 -0400
+Received: by wicfx3 with SMTP id fx3so28473068wic.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 11:10:32 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	hugues.fruchet@st.com
+Subject: [PATCH v5 4/6] [media] c8sectpfe: Update binding to reset-gpios
+Date: Thu,  3 Sep 2015 18:59:52 +0100
+Message-Id: <1441303194-28211-5-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
+References: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 15 +++++++--------
- include/media/media-device.h |  2 +-
- include/media/media-entity.h | 12 ++++++++++++
- 3 files changed, 20 insertions(+), 9 deletions(-)
+reset-gpios is more clear than rst-gpio.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index dfc5e4a..43d0760 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -20,7 +20,6 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+This change has been done as one atomic commit but it
+does breaks compatability with older dtbs.
+
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+---
+ Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
+ arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+index d4def76..e70d840 100644
+--- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
++++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
+@@ -35,7 +35,7 @@ Required properties (tsin (child) node):
+ 
+ - tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
+ - i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
+-- rst-gpio	: reset gpio for this tsin channel.
++- reset-gpios	: reset gpio for this tsin channel.
+ 
+ Optional properties (tsin (child) node):
+ 
+@@ -75,7 +75,7 @@ Example:
+ 			tsin-num		= <0>;
+ 			serial-not-parallel;
+ 			i2c-bus			= <&ssc2>;
+-			rst-gpio		= <&pio15 4 0>;
++			reset-gpios		= <&pio15 4 GPIO_ACTIVE_HIGH>;
+ 			dvb-card		= <STV0367_TDA18212_NIMA_1>;
+ 		};
+ 
+@@ -83,7 +83,7 @@ Example:
+ 			tsin-num		= <3>;
+ 			serial-not-parallel;
+ 			i2c-bus			= <&ssc3>;
+-			rst-gpio		= <&pio15 7 0>;
++			reset-gpios		= <&pio15 7 GPIO_ACTIVE_HIGH>;
+ 			dvb-card		= <STV0367_TDA18212_NIMB_1>;
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+index f9fca10..0b7592e 100644
+--- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
++++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
+@@ -6,8 +6,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
   */
+-
+ #include <dt-bindings/clock/stih407-clks.h>
++#include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/media/c8sectpfe.h>
+ / {
+ 	soc {
+@@ -116,7 +116,7 @@
+ 				tsin-num	= <0>;
+ 				serial-not-parallel;
+ 				i2c-bus		= <&ssc2>;
+-				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
++				reset-gpios	= <&pio15 4 GPIO_ACTIVE_HIGH>;
+ 				dvb-card	= <STV0367_TDA18212_NIMA_1>;
+ 			};
+ 		};
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index 3a91093..c691e13 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+ 		}
+ 		of_node_put(i2c_bus);
  
--#include <linux/bitmap.h>
- #include <linux/compat.h>
- #include <linux/export.h>
- #include <linux/ioctl.h>
-@@ -544,7 +543,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
- 		return -EINVAL;
+-		tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
++		tsin->rst_gpio = of_get_named_gpio(child, "reset-gpios", 0);
  
--	bitmap_zero(mdev->entity_low_id, MEDIA_ENTITY_MAX_LOW_ID);
-+	media_entity_enum_init(mdev->entity_low_id);
- 
- 	INIT_LIST_HEAD(&mdev->entities);
- 	INIT_LIST_HEAD(&mdev->interfaces);
-@@ -618,6 +617,7 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
- {
- 	unsigned int i;
-+	int id;
- 
- 	if (entity->function == MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN ||
- 	    entity->function == MEDIA_ENT_F_UNKNOWN)
-@@ -631,14 +631,13 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	INIT_LIST_HEAD(&entity->links);
- 
- 	spin_lock(&mdev->lock);
--	entity->low_id = find_first_zero_bit(mdev->entity_low_id,
--					     MEDIA_ENTITY_MAX_LOW_ID);
--	if (entity->low_id == MEDIA_ENTITY_MAX_LOW_ID) {
-+	id = media_entity_enum_get_next(mdev->entity_low_id);
-+	if (id < 0) {
- 		spin_unlock(&mdev->lock);
--		return -ENOSPC;
-+		return id;
- 	}
- 
--	__set_bit(entity->low_id, mdev->entity_low_id);
-+	entity->id = id;
- 
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
-@@ -672,7 +671,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- 
- 	spin_lock(&mdev->lock);
- 
--	__clear_bit(entity->low_id, mdev->entity_low_id);
-+	media_entity_enum_clear(mdev->entity_low_id, entity);
- 
- 	/* Remove interface links with this entity on it */
- 	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 732163f..b074ff8 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -83,7 +83,7 @@ struct media_device {
- 	u32 pad_id;
- 	u32 link_id;
- 	u32 intf_devnode_id;
--	DECLARE_BITMAP(entity_low_id, MEDIA_ENTITY_MAX_LOW_ID);
-+	DECLARE_MEDIA_ENTITY_ENUM(entity_low_id);
- 
- 	struct list_head entities;
- 	struct list_head interfaces;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 17ec205..95b1061 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -352,6 +352,18 @@ static inline bool media_entity_enum_intersects(unsigned long *e,
- 	return bitmap_intersects(e, f, MEDIA_ENTITY_MAX_LOW_ID);
- }
- 
-+static inline int media_entity_enum_get_next(unsigned long *e)
-+{
-+	unsigned int id = find_first_zero_bit(e, MEDIA_ENTITY_MAX_LOW_ID);
-+
-+	if (id == MEDIA_ENTITY_MAX_LOW_ID)
-+		return -ENOSPC;
-+
-+	__set_bit(id, e);
-+
-+	return id;
-+}
-+
- struct media_entity_graph {
- 	struct {
- 		struct media_entity *entity;
+ 		ret = gpio_is_valid(tsin->rst_gpio);
+ 		if (!ret) {
 -- 
-2.1.0.231.g7484e3b
+1.9.1
 
