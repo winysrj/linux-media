@@ -1,116 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34512 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752376AbbIFTx7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Sep 2015 15:53:59 -0400
-Date: Sun, 6 Sep 2015 16:53:54 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Ronald Tallent <ron@tallent.ws>
-Cc: linux-media@vger.kernel.org
-Subject: Re: 3rd posting: em28xx: new board id [1f4d:1abe]
-Message-ID: <20150906165354.7f6f0c96@recife.lan>
-In-Reply-To: <1441567008.5526.8.camel@Amy>
-References: <1441567008.5526.8.camel@Amy>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38674 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933034AbbIDNgq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Sep 2015 09:36:46 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 690372A0080
+	for <linux-media@vger.kernel.org>; Fri,  4 Sep 2015 15:35:44 +0200 (CEST)
+Message-ID: <55E99E30.5000702@xs4all.nl>
+Date: Fri, 04 Sep 2015 15:35:44 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.4] Various fixes
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ronald,
+Various fixes and enhancements, nothing special.
 
-Well, probably nobody knows what to do with that ;)
-
-If I understood well your post, video didn't work, right?
-
-So, either you or someone else with the same hardware as you have would
-need to make it work and send a patch to the mailing list adding support
-for this new ID.
-
-Probably, it is just either a GPIO or the video input that it is wrong.
-In order to fix it, you would either need some help from the manufacturer
-or to sniff the USB message exchanges from the original driver and check
-the settings for saa7113 and em28xx. The wiki has some info about how
-to do it.
+Note that the v4l2-compat-ioctl32 fix has a CC for stable from 3.10 onwards.
+The arm64 architecture was added in 3.10.
 
 Regards,
-Mauro
 
+	Hans
 
-Em Sun, 06 Sep 2015 14:16:48 -0500
-Ronald Tallent <ron@tallent.ws> escreveu:
+The following changes since commit 50ef28a6ac216fd8b796257a3768fef8f57b917d:
 
-> Hi, 
-> 
-> This is my third attempt to post this information to mailing list in a
-> little over a week. Am I invisible? Can nobody see my messages? I have
-> precisely followed the instructions posted on
-> linuxtv.org/wiki/index.php/Em28xx_devices#How_to_validate_my_vendor.2Fproduct_id_at_upstream_kernel.3F
-> trying to get my hardware validated. What else do I need to do?  Can
-> someone answer please and help me. 
-> 
-> Thanks,
-> --Ronald
-> 
-> 
-> I've tested my USB easycap device (Geniatech iGrabber) in Ubuntu
-> 14.04.
-> 
-> Make: Geniatech
-> Model: iGrabber for MAC
-> Vendor/Product ID: [1f4d:1abe]
-> Product website: www.geniatech.com/pa/igrabber.asp
-> 
-> Tests Made:
-> - Audio Capture [worked]
-> - Video Capture [device not detected]
-> - DVB [does not have DVB]
-> 
-> Tested by:
-> ron@tallent.ws
-> 
-> 
-> Detailed information on device and system below for reference:
-> 
-> uname -a:
-> 3.13.0-62-generic #102-Ubuntu SMP Tue Aug 11 14:29:36 UTC 2015 x86_64 
-> x86_64 x86_64 GNU/Linux
-> 
-> dmesg:
-> [] usb 3-3.3: new high-speed USB device number 8 using xhci_hcd
-> [] usb 3-3.3: New USB device found, idVendor=1f4d, idProduct=1abe
-> [] usb 3-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-> [] usb 3-3.3: Product: USB Device
-> [] usbcore: registered new interface driver snd-usb-audio
-> 
-> lsusb:
-> Bus 003 Device 008: ID 1f4d:1abe G-Tek Electronics Group 
-> 
-> Hardware: 
-> Opened the case and found the following text printed on the board:
->    HandyCap
->    v1.51
->    2007-4-24
-> 
-> Three chips on board are:
-> 1: empia
->    EM2860
->    P8367-010
->    201036-01AG
-> 
-> 2: Trident
->    SAA7113H
->    C2P409.00 02
->    A5G11152
-> 
-> 3: eMPIA
->    Technology
->    EMP202
->    UT11958
->    1027
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  [media] c8sectpfe: Remove select on undefined LIBELF_32 (2015-09-03 14:10:06 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.4a
+
+for you to fetch changes up to f71d4170d11859760f70ce4667b9c1d4da8373eb:
+
+  vivid: sdr cap: few enhancements (2015-09-04 15:24:42 +0200)
+
+----------------------------------------------------------------
+Alexander Kuleshov (1):
+      media/pci/cobalt: Use %*ph to print small buffers
+
+Andrew Milkovich (1):
+      Staging: media: bcm2048: warnings for uninitialized variables fixed
+
+Andrzej Hajda (1):
+      v4l2-compat-ioctl32: fix alignment for ARM64
+
+Antti Palosaari (2):
+      vivid: SDR cap: add control for FM deviation
+      vivid: sdr cap: few enhancements
+
+Darek Zielski (1):
+      saa7134: add Leadtek Winfast TV2100 FM card support
+
+Nicolas Sugino (1):
+      ivtv-alsa: Add index to specify device number
+
+Zahari Doychev (1):
+      m2m: fix bad unlock balance
+
+ Documentation/video4linux/CARDLIST.saa7134    |  1 +
+ drivers/media/pci/cobalt/cobalt-cpld.c        |  8 +++-----
+ drivers/media/pci/ivtv/ivtv-alsa-main.c       | 14 ++++++++++++--
+ drivers/media/pci/saa7134/saa7134-cards.c     | 43 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/saa7134/saa7134-input.c     |  7 +++++++
+ drivers/media/pci/saa7134/saa7134.h           |  1 +
+ drivers/media/platform/vivid/vivid-core.h     |  1 +
+ drivers/media/platform/vivid/vivid-ctrls.c    | 37 ++++++++++++++++++++++++++++++++++++-
+ drivers/media/platform/vivid/vivid-sdr-cap.c  | 37 +++++++++++++++++--------------------
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  9 +++++----
+ drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++---------------
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 20 ++++++++++----------
+ 12 files changed, 144 insertions(+), 57 deletions(-)
