@@ -1,72 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:45393 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758037AbbIVQhC (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:41152 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753195AbbIDK53 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 12:37:02 -0400
-Date: Tue, 22 Sep 2015 17:36:48 +0100 (BST)
-From: William Towle <william.towle@codethink.co.uk>
-To: William Towle <william.towle@codethink.co.uk>
-cc: linux-media@vger.kernel.org, linux-kernel@lists.codethink.co.uk,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Simon Horman <horms@verge.net.au>, linux-sh@vger.kernel.org
-Subject: Re: [Linux-kernel] Renesas Lager: Device Tree entries for VIN HDMI
- input, version 2
-In-Reply-To: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
-Message-ID: <alpine.DEB.2.02.1509221642350.6758@xk120.dyn.ducie.codethink.co.uk>
-References: <1439465811-936-1-git-send-email-william.towle@codethink.co.uk>
+	Fri, 4 Sep 2015 06:57:29 -0400
+Message-ID: <55E978DA.1040604@xs4all.nl>
+Date: Fri, 04 Sep 2015 12:56:26 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 06/10] usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com> <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+Laurent, can you review this?
 
-> On Thu, 13 Aug 2015, William Towle wrote:
-> >  (Obsoletes corresponding parts of "HDMI and Composite capture on
-> > Lager...", published previously)
+Regards,
 
-> > To follow:
-> > 	[PATCH 1/3] ARM: shmobile: lager dts: Add entries for VIN HDMI input
-> > 	[PATCH 2/3] media: adv7604: automatic "default-input" selection
-> > 	[PATCH 3/3] ARM: shmobile: lager dts: specify default-input for
+	Hans
 
-> I am wondering about the status of patch 2 of the series,
-> is it queued-up anywhere?
+On 08/21/2015 03:19 PM, Ricardo Ribalda Delgado wrote:
+> This driver does not use the control infrastructure.
+> Add support for the new field which on structure
+>  v4l2_ext_controls
+> 
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index 2764f43607c1..e6d3a1bcfa2f 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -980,6 +980,7 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>  	struct uvc_fh *handle = fh;
+>  	struct uvc_video_chain *chain = handle->chain;
+>  	struct v4l2_ext_control *ctrl = ctrls->controls;
+> +	struct v4l2_queryctrl qc;
+>  	unsigned int i;
+>  	int ret;
+>  
+> @@ -988,7 +989,14 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>  		return ret;
+>  
+>  	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> -		ret = uvc_ctrl_get(chain, ctrl);
+> +		if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+> +			qc.id = ctrl->id;
+> +			ret = uvc_query_v4l2_ctrl(chain, &qc);
+> +			if (!ret)
+> +				ctrl->value = qc.default_value;
+> +		} else
+> +			ret = uvc_ctrl_get(chain, ctrl);
+> +
+>  		if (ret < 0) {
+>  			uvc_ctrl_rollback(handle);
+>  			ctrls->error_idx = i;
+> @@ -1010,6 +1018,10 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>  	unsigned int i;
+>  	int ret;
+>  
+> +	/* Default value cannot be changed */
+> +	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+> +		return -EINVAL;
+> +
+>  	ret = uvc_ctrl_begin(chain);
+>  	if (ret < 0)
+>  		return ret;
+> 
 
-   All of these are effectively new, although the first and third
-debuted in another thread. The patchwork link for the latter (at
-https://patchwork.linuxtv.org/patch/30707/) contains the discussion
-that led to the above being separated out.
-
-
-> I am also wondering about the relationship between patch 2 and 3.
-> Does 3 work without 2? Does 2 make 3 unnecessary?
-
-   The device tree change in patch 3 is from Ian Molton's original
-submissions, and works regardless of whether patch 2 is alongside it
-or not.
-
-   As far as the automatic port selection goes, patch 2 is related to
-the argument made in commit 7111cdd ("[media] media: adv7604: reduce
-support to first (digital) input") that since cable detect doesn't
-work for port B, the .max_port property for boards using an ADV7612
-should be ADV76XX_PAD_HDMI_PORT_A and we can use this to configure
-port A as the default where there is not also an entry to specify it
-in the device tree.
-   If support for port B were available [in future], no action would
-be taken where an ADV7612 is present and one would need to arrange
-for applications in userland to actively make a choice where the
-device tree does not have an appropriate value. In our particular case
-we don't differentiate between hardware with ADV7611/7612 in the test
-suite, and this necessitates having port selection available in the
-device tree.
-
-   Laurent may wish to comment further; for earlier discussion, see
-https://patchwork.linuxtv.org/patch/30707/
-
-Cheers,
-   Wills.
