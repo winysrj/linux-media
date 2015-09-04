@@ -1,116 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:47774 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753108AbbIDLCL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2015 07:02:11 -0400
-Message-ID: <55E979F4.2030100@xs4all.nl>
-Date: Fri, 04 Sep 2015 13:01:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:36126 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760373AbbIDUEg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2015 16:04:36 -0400
+Received: by lbcao8 with SMTP id ao8so16988528lbc.3
+        for <linux-media@vger.kernel.org>; Fri, 04 Sep 2015 13:04:35 -0700 (PDT)
+From: Maciek Borzecki <maciek.borzecki@gmail.com>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Isely <isely@pobox.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 00/10] Support getting default values from any control
-References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: maciek.borzecki@gmail.com
+Subject: [PATCH 2/3] [media] staging: lirc: fix indentation
+Date: Fri,  4 Sep 2015 22:04:04 +0200
+Message-Id: <cf23848e5fed33dfaa967fc3399de30318535aa6.1441396162.git.maciek.borzecki@gmail.com>
+In-Reply-To: <cover.1441396162.git.maciek.borzecki@gmail.com>
+References: <cover.1441396162.git.maciek.borzecki@gmail.com>
+In-Reply-To: <cover.1441396162.git.maciek.borzecki@gmail.com>
+References: <cover.1441396162.git.maciek.borzecki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series looks good. I'll drop the saa7164 patches since I made a
-patch series converting it to the control framework. Once Steve gives me the
-Ack for that I can merge that series.
+Fix non-tab indentation.
 
-All I need to merge your series (minus the saa7164 patches) is the Ack from
-Laurent for the uvc patch.
+This resolves the following checkpatch problem:
+ERROR: code indent should use tabs where possible
 
-Regards,
+Signed-off-by: Maciek Borzecki <maciek.borzecki@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_sasem.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-	Hans
-
-On 08/21/2015 03:19 PM, Ricardo Ribalda Delgado wrote:
-> Integer controls provide a way to get their default/initial value, but
-> any other control (p_u32, p_u8.....) provide no other way to get the
-> initial value than unloading the module and loading it back.
-> 
-> *What is the actual problem?
-> I have a custom control with WIDTH integer values. Every value
-> represents the calibrated FPN (fixed pattern noise) correction value for that
-> column
-> -Application A changes the FPN correction value
-> -Application B wants to restore the calibrated value but it cant :(
-> 
-> *What is the proposed solution?
-> 
-> (Kudos to Hans Verkuil!!!)
-> 
-> The key change is in struct v4l2_ext_controls where the __u32 ctrl_class field
-> is changed to:
-> 
->         union {
->                 __u32 ctrl_class;
->                 __u32 which;
->         };
-> 
-> And two new defines are added:
-> 
-> #define V4L2_CTRL_WHICH_CUR_VAL        0
-> #define V4L2_CTRL_WHICH_DEF_VAL        0x0f000000
-> 
-> The 'which' field tells you which controls are get/set/tried.
-> 
-> V4L2_CTRL_WHICH_CUR_VAL: the current value of the controls
-> V4L2_CTRL_WHICH_DEF_VAL: the default value of the controls
-> V4L2_CTRL_CLASS_*: the current value of the controls belonging to the specified class.
->         Note: this is deprecated usage and is only there for backwards compatibility.
->         Which is also why I don't think there is a need to add V4L2_CTRL_WHICH_
->         aliases for these defines.
-> 
-> 
-> I have posted a copy of my working tree to
-> 
-> https://github.com/ribalda/linux/tree/which_def_v2
-> 
-> Changelog v2:
-> 
-> Suggested by Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> Replace ctrls_class with which on all the codebase
-> Changes in Documentation
-> (Thanks!)
-> 
-> Ricardo Ribalda Delgado (10):
->   videodev2.h: Fix typo in comment
->   videodev2.h: Extend struct v4l2_ext_controls
->   media/v4l2-compat-ioctl32: Simple stylechecks
->   media/core: Replace ctrl_class with which
->   media/v4l2-core: struct struct v4l2_ext_controls param which
->   usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
->   media/usb/pvrusb2: Support for V4L2_CTRL_WHICH_DEF_VAL
->   media/pci/saa7164-encoder Support for V4L2_CTRL_WHICH_DEF_VAL
->   media/pci/saa7164-vbi Support for V4L2_CTRL_WHICH_DEF_VAL
->   Docbook: media: Document changes on struct v4l2_ext_controls
-> 
->  Documentation/DocBook/media/v4l/v4l2.xml           |  9 ++++
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 28 ++++++++--
->  drivers/media/pci/saa7164/saa7164-encoder.c        | 59 ++++++++++++---------
->  drivers/media/pci/saa7164/saa7164-vbi.c            | 61 +++++++++++++---------
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  2 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  2 +-
->  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 17 +++++-
->  drivers/media/usb/uvc/uvc_v4l2.c                   | 14 ++++-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c      | 17 +++---
->  drivers/media/v4l2-core/v4l2-ctrls.c               | 54 +++++++++++++------
->  drivers/media/v4l2-core/v4l2-ioctl.c               | 14 ++---
->  include/uapi/linux/videodev2.h                     | 14 ++++-
->  12 files changed, 200 insertions(+), 91 deletions(-)
-> 
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 9e5674341abe7368e5ec228f737e4c2d766f7d80..904a4667bbb8bebe3cb43bf5201be9d533ada07a 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -181,10 +181,10 @@ static void deregister_from_lirc(struct sasem_context *context)
+ 	if (retval)
+ 		dev_err(&context->dev->dev,
+ 			"%s: unable to deregister from lirc (%d)\n",
+-		       __func__, retval);
++			__func__, retval);
+ 	else
+ 		dev_info(&context->dev->dev,
+-		         "Deregistered Sasem driver (minor:%d)\n", minor);
++			 "Deregistered Sasem driver (minor:%d)\n", minor);
+ 
+ }
+ 
+-- 
+2.5.1
 
