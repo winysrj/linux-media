@@ -1,137 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755445AbbIMU52 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 25/32] v4l: vsp1: Make pipeline inputs array index by RPF index
-Date: Sun, 13 Sep 2015 23:57:03 +0300
-Message-Id: <1442177830-24536-26-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:34308 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760273AbbIDRIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Sep 2015 13:08:32 -0400
+Date: Fri, 4 Sep 2015 14:08:27 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version
+ field
+Message-ID: <20150904140827.424c6d81@recife.lan>
+In-Reply-To: <55E4582A.5050205@xs4all.nl>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<e8cb8de5ad8f2da3c32418d67340fe4bb663ce5c.1440902901.git.mchehab@osg.samsung.com>
+	<55E448A8.6060004@xs4all.nl>
+	<20150831095213.667d7a22@recife.lan>
+	<55E4582A.5050205@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pipeline inputs array stores pointers to all RPFs contained in the
-pipeline. It's currently indexed contiguously by adding RPFs in the
-order they are found during graph walk. This can't easily support
-dynamic addition and removal of RPFs while streaming, which will be
-required for combined VSP+DU support.
+Em Mon, 31 Aug 2015 15:35:38 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Make the array indexed by RPF index instead and skip NULL elements when
-iterating over RPFs.
+> On 08/31/2015 02:52 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 31 Aug 2015 14:29:28 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> >> On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> >>> Every time a graph object is added or removed, the version
+> >>> of the topology changes. That's a requirement for the new
+> >>> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
+> >>> that the topology has changed after a previous call to it.
+> >>>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>
+> >> I think this should be postponed until we actually have dynamic reconfigurable
+> >> graphs.
+> > 
+> > So far, we're using the term "dynamic" to mean partial graph object
+> > removal.
+> > 
+> > But even today, MC does support "dynamic" in the sense of graph
+> > object additions.
+> > 
+> > You should notice that having a topology_version is something that
+> > IMHO, it is needed since the beginning, even without dynamic
+> > reconfigurable graphs, because the graph may grow in runtime.
+> > 
+> > That will happen, for example, if usb-snd-audio is blacklisted
+> > at /etc/modprobe*, and someone connects an au0828.
+> > 
+> > New entities/links will be created (after Shuah patches) if one would
+> > modprobe latter snd-usb-audio.
+> 
+> latter -> later :-)
+> 
+> You are right, this would trigger a topology change. I hadn't thought about
+> that.
+> 
+> > 
+> >>
+> >> I would also like to reserve version 0: if 0 is returned, then the graph is
+> >> static.
+> > 
+> > Why? Implementing this would be really hard, as that would mean that
+> > G_TOPOLOGY would need to be blocked until all drivers and subdevices
+> > get probed.
+> > 
+> > In order to implement that, some logic would be needed at the drivers
+> > to identify if everything was set and unlock G_TOPOLOGY.
+> 
+> That wouldn't be needed if the media device node was created last. Which
+> I think is a good idea anyway.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c  |  6 +++++-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
- drivers/media/platform/vsp1/vsp1_video.c | 16 ++++++++++++----
- drivers/media/platform/vsp1/vsp1_wpf.c   |  5 ++++-
- 4 files changed, 22 insertions(+), 7 deletions(-)
+Creating the media device node last won't work. It should be the first
+thing to be created, as all objects should be added to media_device
+linked lists. 
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index df11259dcc0a..d41e4ca94a02 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -140,14 +140,18 @@ const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- {
-+	unsigned int i;
-+
- 	if (pipe->bru) {
- 		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--		unsigned int i;
- 
- 		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
- 			bru->inputs[i].rpf = NULL;
- 	}
- 
-+	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
-+		pipe->inputs[i] = NULL;
-+
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
- 	pipe->buffers_ready = 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index f9035c739e9a..c4c300561c5c 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -66,7 +66,7 @@ enum vsp1_pipeline_state {
-  * @stream_count: number of streaming video nodes
-  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
-  * @num_inputs: number of RPFs
-- * @inputs: array of RPFs in the pipeline
-+ * @inputs: array of RPFs in the pipeline (indexed by RPF index)
-  * @output: WPF at the output of the pipeline
-  * @bru: BRU entity, if present
-  * @lif: LIF entity, if present
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index e0d4f84bc26d..78926c9f4125 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -305,8 +305,8 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
- 
- 		if (e->type == VSP1_ENTITY_RPF) {
- 			rwpf = to_rwpf(subdev);
--			pipe->inputs[pipe->num_inputs++] = rwpf;
--			rwpf->video->pipe_index = pipe->num_inputs;
-+			pipe->inputs[rwpf->entity.index] = rwpf;
-+			rwpf->video->pipe_index = ++pipe->num_inputs;
- 		} else if (e->type == VSP1_ENTITY_WPF) {
- 			rwpf = to_rwpf(subdev);
- 			pipe->output = rwpf;
-@@ -329,7 +329,10 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
- 	/* Follow links downstream for each input and make sure the graph
- 	 * contains no loop and that all branches end at the output WPF.
- 	 */
--	for (i = 0; i < pipe->num_inputs; ++i) {
-+	for (i = 0; i < video->vsp1->pdata.rpf_count; ++i) {
-+		if (!pipe->inputs[i])
-+			continue;
-+
- 		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
- 							  pipe->output);
- 		if (ret < 0)
-@@ -453,11 +456,16 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 
- static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	unsigned int i;
- 
- 	/* Complete buffers on all video nodes. */
--	for (i = 0; i < pipe->num_inputs; ++i)
-+	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
-+		if (!pipe->inputs[i])
-+			continue;
-+
- 		vsp1_video_frame_end(pipe, pipe->inputs[i]);
-+	}
- 
- 	if (!pipe->lif)
- 		vsp1_video_frame_end(pipe, pipe->output);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 451ca37930e0..5996a35143b8 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -97,9 +97,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	 * inputs as sub-layers and select the virtual RPF as the master
- 	 * layer.
- 	 */
--	for (i = 0; i < pipe->num_inputs; ++i) {
-+	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
- 		struct vsp1_rwpf *input = pipe->inputs[i];
- 
-+		if (!input)
-+			continue;
-+
- 		srcrpf |= (!pipe->bru && pipe->num_inputs == 1)
- 			? VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index)
- 			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
--- 
-2.4.6
+Also, the numberspace should be local to a given media_device, as the
+graph traversal algorithm relies on having the number of entities <= 64,
+currently, in order to be able to detect loops. We should increase that
+number, but removing an "as low as possible" entity number limit is not
+trivial.
 
+> 
+> > 
+> > What would be the gain for that? I fail to see any.
+> 
+> It would tell userspace that it doesn't have to cope with dynamically
+> changing graphs.
+> 
+> Even though with the au0828 example you can expect to see cases like that,
+> I can pretty much guarantee that no generic v4l2 applications will ever
+> support dynamic changes.
+
+Well, my test app supports it and it is generic ;) My plan is to use it
+as a basis for the library to be used on userspace for generic apps,
+extending it to be used by other tools like xawtv, qv4l2 and the dvbv5 apps.
+
+I don't think it is hard to handle it on a generic app, and this should
+be done anyway if we want dynamic support.
+
+The logic seems actually be simple:
+
+at G_TOPOLOGY, if the topology changes, reload the objects;
+
+at SETUP_LINK_V2, the topology will be sent. if the driver detects that
+topology changed, it returns an error.
+
+The caller will then need to reload the topology and re-apply the
+transaction to select the links, if the entities affected still
+exists. In other words, if the user's intent were to change the pipeline
+to receive the data at /dev/video2, e. g. something like:
+	./yavta/yavta -f UYVY -s 720x312 -n 1 --capture=1 -F /dev/video2
+
+What userspace would do is to reload everything, check if /dev/video2
+still exists and then redo the function that it is equivalent to the
+above command, failing otherwise. That doesn't sound hard to implement.
+
+> Those that will support it will be custom-made.
+> 
+> Being able to see that graphs can change dynamically would allow such apps
+> to either refuse to use the device, or warn the user.
+
+The way I see is that applications that will assume that the graph
+is static will be the custom-made ones. As they know the hardware,
+they can just either ignore the topology_version or wait for it to
+stabilize when the hardware is still being probed.
+
+In any case, if we end by needing to have an explicit way for the
+Kernelspace to tell userspace that a graph is static, that could
+be done via an extra flag at MEDIA_INFO.
+
+Enabling this flag could be as easy as waiting for all graph
+elements to be created (where the topology is still dynamic),
+and raise such flag after finishing the probe sequence.
+
+Regards,
+Mauro
