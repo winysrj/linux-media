@@ -1,71 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:18410 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904AbbIPBfc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 21:35:32 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <gerrit2@nvidia.com>
-Subject: [PATCH 0/3 RFC v2] media: platform: add NVIDIA Tegra VI driver
-Date: Tue, 15 Sep 2015 18:35:28 -0700
-Message-ID: <1442367331-20046-1-git-send-email-pengw@nvidia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34793 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932843AbbIDTYZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Sep 2015 15:24:25 -0400
+Subject: Re: [PATCH 13/13] DocBook: add SDR specific info to G_MODULATOR /
+ S_MODULATOR
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1441144769-29211-1-git-send-email-crope@iki.fi>
+ <1441144769-29211-14-git-send-email-crope@iki.fi>
+ <55E971EF.3070901@xs4all.nl>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <55E9EFE6.7040506@iki.fi>
+Date: Fri, 4 Sep 2015 22:24:22 +0300
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <55E971EF.3070901@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add and enable V4L2 driver for latest NVIDIA Tegra
-Video Input hardware controller.
+On 09/04/2015 01:26 PM, Hans Verkuil wrote:
+> On 09/01/2015 11:59 PM, Antti Palosaari wrote:
+>> Add SDR specific notes to G_MODULATOR / S_MODULATOR documentation.
+>>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   Documentation/DocBook/media/v4l/vidioc-g-modulator.xml | 9 +++++++++
+>>   1 file changed, 9 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+>> index 80167fc..affb694 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+>> @@ -78,6 +78,15 @@ different audio modulation if the request cannot be satisfied. However
+>>   this is a write-only ioctl, it does not return the actual audio
+>>   modulation selected.</para>
+>>
+>> +    <para><link linkend="sdr">SDR</link> specific modulator types are
+>> +<constant>V4L2_TUNER_SDR</constant> and <constant>V4L2_TUNER_RF</constant>.
+>> +Valid fields for these modulator types are <structfield>index</structfield>,
+>> +<structfield>name</structfield>, <structfield>capability</structfield>,
+>> +<structfield>rangelow</structfield>, <structfield>rangehigh</structfield>
+>> +and <structfield>type</structfield>. All the rest fields must be
+>
+> s/rest/remaining/
+>
+>> +initialized to zero by both application and driver.
+>
+> I would drop this sentence. The spec is clear about which fields have to be set
+> by the user. The only thing I would mention here is that txsubchans should be
+> initialized to 0 by applications (we might want to use it in the future) when
+> calling S_MODULATOR.
+>
+> For S_TUNER it is the same: only mention that audmode should be initialized to
+> 0 for these SDR tuner types.
+>
+>> +Term modulator means SDR transmitter on this context.</para>
+>
+> s/Term/The term/
+> s/on/in/
+>
+> Note: the same typos are in patch 12/13.
+>
+> Perhaps this sentence should be rewritten since it is not clear what you
+> mean. I guess the idea is that 'modulator' is not a good match to what actually
+> happens in the SDR hardware?
+>
+> How about:
+>
+> "Note that the term 'modulator' is a misnomer for type V4L2_TUNER_SDR since
+> this really is a DAC and the 'modulator' frequency is in reality the sampling
+> frequency of the DAC."
+>
+> I hope I got that right.
+>
+> And do something similar for patch 12/13.
 
-It's based on the staging/work branch of Thierry Reding Tegra
-upstream kernel github repo, which is based on 4.2-rc1.
-(https://github.com/thierryreding/linux/tree/staging/work) 
+I added it mainly because struct v4l2_modulator is somehow misleading as 
+it contains both modulator and RF frontend specific stuff and especially 
+misleading for SDR case as modulator is located in a host computer 
+software. On DVB side modulator/demodulator and tuner are split more 
+correctly.
 
-v2:
-  - allocate kthread for each channel instead of workqueue
-  - create tegra-csi as a separated V4L2 subdevice
-  - define all the register bits needed in this driver
-  - add device tree binding document
-  - update things according to Hans and Thierry's review.
+If you look that struct v4l2_modulator:
+index: common field
+name: common field
+capability: contains both RF frontend and modulator stuff
+rangelow: RF frontend specific
+rangehigh: RF frontend specific
+txsubchans: modulator specific
+type: common field
+reserved: reserved
 
-Bryan Wu (3):
-  [media] v4l: tegra: Add NVIDIA Tegra VI driver
-  ARM64: add tegra-vi support in T210 device-tree
-  Documentation: DT bindings: add VI and CSI bindings
+So actually most field on that struct v4l2_modulator are RF frontend 
+specific, not modulator. Same applies to struct v4l2_tuner.
 
- .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 +++++-
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts  |   8 +
- arch/arm64/boot/dts/nvidia/tegra210.dtsi           | 174 ++++-
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/tegra/Kconfig               |  10 +
- drivers/media/platform/tegra/Makefile              |   3 +
- drivers/media/platform/tegra/tegra-channel.c       | 802 +++++++++++++++++++++
- drivers/media/platform/tegra/tegra-core.c          | 252 +++++++
- drivers/media/platform/tegra/tegra-core.h          | 162 +++++
- drivers/media/platform/tegra/tegra-csi.c           | 566 +++++++++++++++
- drivers/media/platform/tegra/tegra-vi.c            | 581 +++++++++++++++
- drivers/media/platform/tegra/tegra-vi.h            | 213 ++++++
- 13 files changed, 2978 insertions(+), 7 deletions(-)
- create mode 100644 drivers/media/platform/tegra/Kconfig
- create mode 100644 drivers/media/platform/tegra/Makefile
- create mode 100644 drivers/media/platform/tegra/tegra-channel.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.c
- create mode 100644 drivers/media/platform/tegra/tegra-core.h
- create mode 100644 drivers/media/platform/tegra/tegra-csi.c
- create mode 100644 drivers/media/platform/tegra/tegra-vi.c
- create mode 100644 drivers/media/platform/tegra/tegra-vi.h
+These should be probably:
+tuner => receiver
+modulator => transmitter
+
+Or even better, like DVB side, split modulator/demodulator and RF stuff 
+to own structs. But as it is not reasonable to start changing those, so 
+I decided to add comment for tuner that it means SDR receiver and for 
+modulator it means SDR transmitter.
+
+regards
+Antti
+
+>
+>> +
+>>       <para>To change the radio frequency the &VIDIOC-S-FREQUENCY; ioctl
+>>   is available.</para>
+>>
+>>
+>
+> Regards,
+>
+> 	Hans
+>
 
 -- 
-2.1.4
-
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
+http://palosaari.fi/
