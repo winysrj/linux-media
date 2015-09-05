@@ -1,190 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:41838 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168AbbIKLwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 07:52:31 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:36279 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbbIEL2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Sep 2015 07:28:16 -0400
+Received: by lanb10 with SMTP id b10so27187056lan.3
+        for <linux-media@vger.kernel.org>; Sat, 05 Sep 2015 04:28:15 -0700 (PDT)
+Received: from faustian.sytes.net (77-254-35-59.adsl.inetia.pl. [77.254.35.59])
+        by smtp.googlemail.com with ESMTPSA id au10sm1296192lbc.1.2015.09.05.04.28.13
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sat, 05 Sep 2015 04:28:13 -0700 (PDT)
+Message-ID: <55EAD1CC.1090303@gmail.com>
+Date: Sat, 05 Sep 2015 13:28:12 +0200
+From: =?UTF-8?B?UGF3ZcWCIEtpZcWCa293c2tp?= <kielkowski.pawel@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	sumit.semwal@linaro.org, robdclark@gmail.com,
-	daniel.vetter@ffwll.ch, labbott@redhat.com,
-	Samu Onkalo <samu.onkalo@intel.com>
-Subject: [RFC RESEND 05/11] v4l2-core: Don't sync cache for a buffer if so requested
-Date: Fri, 11 Sep 2015 14:50:28 +0300
-Message-Id: <1441972234-8643-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: noise after modprobe cx8800
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Samu Onkalo <samu.onkalo@intel.com>
+Hello,
 
-The user may request to the driver (vb2) to skip the cache maintenance
-operations in case the buffer does not need cache synchronisation, e.g. in
-cases where the buffer is passed between hardware blocks without it being
-touched by the CPU.
+I have also another issue after switching from Fedora 16 to Fedora 22.
+Every time the cx8800 module is loaded I hear annoying high-pitched
+noise until I open tvtime. After closing tvtime there is no sound
+anymore. Similar case was already reported here:
+http://video4linux-list.redhat.narkive.com/I1MD0PsM/cx88-white-noise-with-audio-cable-no-sound-with-cx88-alsa
+But it is very old case (even pre-F16) and seems that it did not get any
+attention.
 
-Also document that the prepare and finish vb2_mem_ops might not get called
-every time the buffer ownership changes between the kernel and the user
-space.
+I have the TV card connected to soundcard’s Line In as I couldn’t get
+the cx88-alsa to work. Is that so, if I do not see the corresponding
+"…[Audio Port]…" in lspci, that my card does not support the DMA sound
+and cx88-alsa won’t work? At boot cx88-alsa is not loaded at all and if
+I load it by myself there is no log output apart from "cx2388x alsa
+driver version 0.0.9 loaded". No new audio device is created or anything
+like that.
 
-Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 52 +++++++++++++++++++++++++-------
- include/media/videobuf2-core.h           | 12 +++++---
- 2 files changed, 49 insertions(+), 15 deletions(-)
+Fedora 16 kernel: 3.6.11-4.fc16.i686.PAE
+Fedora 22 kernel: 4.1.6-200.fc22.x86_64
+TV card: 01:09.0 Multimedia video controller [0400]: Conexant Systems,
+Inc. CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+        Subsystem: LeadTek Research Inc. Winfast TV 2000XP Expert
+[107d:6611]
+        Flags: bus master, medium devsel, latency 32, IRQ 19
+        Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [44] Vital Product Data
+        Capabilities: [4c] Power Management version 2
+        Kernel driver in use: cx8800
+        Kernel modules: cx8800
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c5c0707a..b664024 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -187,6 +187,28 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
- static void __enqueue_in_driver(struct vb2_buffer *vb);
- 
- /**
-+ * __mem_prepare_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_prepare_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-+}
-+
-+/**
-+ * __mem_finish_planes() - call finish mem op for all planes of the buffer
-+ */
-+static void __mem_finish_planes(struct vb2_buffer *vb)
-+{
-+	unsigned int plane;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+}
-+
-+/**
-  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-  */
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
-@@ -1391,6 +1413,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- static int __prepare_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
- 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
-+
-+	if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC))
-+		__mem_prepare_planes(vb);
-+
- 	return call_vb_qop(vb, buf_prepare, vb);
- }
- 
-@@ -1476,6 +1502,11 @@ static int __prepare_userptr(struct vb2_buffer *vb,
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC)) {
-+		__mem_prepare_planes(vb);
- 	}
- 
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1601,6 +1632,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			dprintk(1, "buffer initialization failed\n");
- 			goto err;
- 		}
-+
-+		/* This is new buffer memory --- always synchronise cache. */
-+		__mem_prepare_planes(vb);
-+	} else if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC)) {
-+		__mem_prepare_planes(vb);
- 	}
- 
- 	ret = call_vb_qop(vb, buf_prepare, vb);
-@@ -1624,7 +1660,6 @@ err:
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->owned_by_drv_count);
-@@ -1691,10 +1726,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		return ret;
- 	}
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
--
- 	vb->state = VB2_BUF_STATE_PREPARED;
- 
- 	return 0;
-@@ -2078,7 +2109,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
- /**
-  * __vb2_dqbuf() - bring back the buffer to the DEQUEUED state
-  */
--static void __vb2_dqbuf(struct vb2_buffer *vb)
-+static void __vb2_dqbuf(struct vb2_buffer *vb, bool no_cache_sync)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned int plane;
-@@ -2089,9 +2120,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; plane++)
--		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+	if (!no_cache_sync)
-+		__mem_finish_planes(vb);
- 
- 	/* unmap DMABUF buffer */
- 	if (q->memory == V4L2_MEMORY_DMABUF)
-@@ -2143,7 +2173,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
- 		q->last_buffer_dequeued = true;
- 	/* go back to dequeued state */
--	__vb2_dqbuf(vb);
-+	__vb2_dqbuf(vb, b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
- 
- 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
- 			vb->v4l2_buf.index, vb->state);
-@@ -2246,7 +2276,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 			vb->state = VB2_BUF_STATE_PREPARED;
- 			call_void_vb_qop(vb, buf_finish, vb);
- 		}
--		__vb2_dqbuf(vb);
-+		__vb2_dqbuf(vb, false);
- 	}
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 4f7f7ae..a825bd5 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -59,10 +59,14 @@ struct vb2_threadio_data;
-  *		dmabuf.
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now.
-- * @prepare:	called every time the buffer is passed from userspace to the
-- *		driver, useful for cache synchronisation, optional.
-- * @finish:	called every time the buffer is passed back from the driver
-- *		to the userspace, also optional.
-+ * @prepare:	Called on the plane when the buffer ownership is passed from
-+ *		the user space to the kernel and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-+ * @finish:	Called on the plane when the buffer ownership is passed from
-+ *		the kernel to the user space and the plane must be cache
-+ *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
-+ *		be used to skip this call. Optional.
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists.
--- 
-2.1.0.231.g7484e3b
+Line In is not muted in Fedora 16. I use following options:
+"options cx88xx card=5 tuner=38 i2c_scan=1"
 
+Best regards
+PK
