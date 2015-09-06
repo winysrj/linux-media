@@ -1,71 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:53479 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753405AbbITRKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2015 13:10:46 -0400
-Received: from axis700.grange ([87.79.255.48]) by mail.gmx.com (mrgmx101) with
- ESMTPSA (Nemesis) id 0ME33j-1ZMv1f1WRz-00HOCT for
- <linux-media@vger.kernel.org>; Sun, 20 Sep 2015 19:10:44 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 4021840BD9
-	for <linux-media@vger.kernel.org>; Sun, 20 Sep 2015 19:10:42 +0200 (CEST)
-Date: Sun, 20 Sep 2015 19:10:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:53890 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853AbbIFRbj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:39 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera: 4.4 batch #1
-Message-ID: <Pine.LNX.4.64.1509201853320.30819@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>
+Subject: [PATCH 10/18] [media] cx231xx: enforce check for graph creation
+Date: Sun,  6 Sep 2015 14:30:53 -0300
+Message-Id: <ca2647ddd7cc6058cdc87cc0e5869d2753cf6c19.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+If the graph creation fails, don't register the device.
 
-I missed the 4.3 cycle completely, so, this should clean up my backlog. 
-There are still PXA patches outstanding, but Robert wanted to work a bit 
-more on them.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 1070d87efc65..c05aaef85491 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1185,8 +1185,6 @@ static void cx231xx_unregister_media_device(struct cx231xx *dev)
+ */
+ void cx231xx_release_resources(struct cx231xx *dev)
+ {
+-	cx231xx_unregister_media_device(dev);
+-
+ 	cx231xx_release_analog_resources(dev);
+ 
+ 	cx231xx_remove_from_devlist(dev);
+@@ -1199,6 +1197,8 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	/* delete v4l2 device */
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
++	cx231xx_unregister_media_device(dev);
++
+ 	usb_put_dev(dev->udev);
+ 
+ 	/* Mark device as unused */
+@@ -1237,15 +1237,16 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
+ #endif
+ }
+ 
+-static void cx231xx_create_media_graph(struct cx231xx *dev)
++static int cx231xx_create_media_graph(struct cx231xx *dev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *entity;
+ 	struct media_entity *tuner = NULL, *decoder = NULL;
++	int ret;
+ 
+ 	if (!mdev)
+-		return;
++		return 0;
+ 
+ 	media_device_for_each_entity(entity, mdev) {
+ 		switch (entity->type) {
+@@ -1261,16 +1262,24 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+ 	/* Analog setup, using tuner as a link */
+ 
+ 	if (!decoder)
+-		return;
++		return 0;
+ 
+-	if (tuner)
+-		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+-					 MEDIA_LNK_FL_ENABLED);
+-	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
+-	media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
+-				 MEDIA_LNK_FL_ENABLED);
++	if (tuner) {
++		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
++					    MEDIA_LNK_FL_ENABLED);
++		if (ret < 0)
++			return ret;
++	}
++	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
++				    MEDIA_LNK_FL_ENABLED);
++	if (ret < 0)
++		return ret;
++	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
++				    MEDIA_LNK_FL_ENABLED);
++	if (ret < 0)
++		return ret;
+ #endif
++	return 0;
+ }
+ 
+ /*
+@@ -1732,9 +1741,12 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* load other modules required */
+ 	request_modules(dev);
+ 
+-	cx231xx_create_media_graph(dev);
++	retval = cx231xx_create_media_graph(dev);
++	if (retval < 0) {
++		cx231xx_release_resources(dev);
++	}
+ 
+-	return 0;
++	return retval;
+ err_video_alt:
+ 	/* cx231xx_uninit_dev: */
+ 	cx231xx_close_extension(dev);
+-- 
+2.4.3
 
-  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
 
-are available in the git repository at:
-
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.4-1
-
-for you to fetch changes up to 8cf27580b31fd81031e8cd3b54008236dc7193c1:
-
-  atmel-isi: parse the DT parameters for vsync/hsync/pixclock polarity (2015-09-20 18:30:28 +0200)
-
-----------------------------------------------------------------
-Geert Uytterhoeven (2):
-      rcar_vin: Remove obsolete r8a779x-vin platform_device_id entries
-      atmel-isi: Protect PM-only functions to kill warning
-
-Josh Wu (6):
-      soc-camera: increase the length of clk_name on soc_of_bind()
-      atmel-isi: increase timeout to disable/enable isi
-      atmel-isi: setup the ISI_CFG2 register directly
-      atmel-isi: move configure_geometry() to start_streaming()
-      atmel-isi: add sanity check for supported formats in try/set_fmt()
-      atmel-isi: parse the DT parameters for vsync/hsync/pixclock polarity
-
-Laurent Pinchart (3):
-      v4l: atmel-isi: Simplify error handling during DT parsing
-      v4l: atmel-isi: Remove support for platform data
-      v4l: atmel-isi: Remove unused platform data fields
-
-Sergei Shtylyov (2):
-      rcar_vin: propagate querystd() error upstream
-      rcar_vin: call g_std() instead of querystd()
-
- drivers/media/platform/soc_camera/atmel-isi.c      | 125 +++++++++++----------
- .../media/platform/soc_camera}/atmel-isi.h         |   7 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |  20 ++--
- drivers/media/platform/soc_camera/soc_camera.c     |   2 +-
- 4 files changed, 79 insertions(+), 75 deletions(-)
- rename {include/media => drivers/media/platform/soc_camera}/atmel-isi.h (95%)
-
-Thanks
-Guennadi
