@@ -1,69 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36000 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754176AbbINMWH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 08:22:07 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v2 1/2] [media] media-device: check before unregister if mdev was registered
-Date: Mon, 14 Sep 2015 14:21:40 +0200
-Message-Id: <1442233301-25181-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
-References: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54639 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143AbbIFMD6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v8 15/55] [media] uapi/media.h: Declare interface types for ALSA
+Date: Sun,  6 Sep 2015 09:02:46 -0300
+Message-Id: <ab80a0838a2a82207de3b60d164877e90e3074e2.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <cd69226f7f42baafbc4a3db5f8a8c387fba879dd.1440902901.git.mchehab@osg.samsung.com>
+References: <cd69226f7f42baafbc4a3db5f8a8c387fba879dd.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most media functions that unregister, check if the corresponding register
-function succeed before. So these functions can safely be called even if a
-registration was never made or the component as already been unregistered.
+Declare the interface types to be used on alsa for the new
+G_TOPOLOGY ioctl.
 
-Add the same check to media_device_unregister() function for consistency.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This will also allow to split the media_device_register() function in an
-initialization and registration functions without the need to change the
-generic cleanup functions and error code paths for all the media drivers.
-
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
----
-
-Changes in v2:
-- Reword the documentation for media_device_unregister(). Suggested by Sakari.
-- Added Sakari's Acked-by tag for patch #1.
-
- drivers/media/media-device.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 1312e93ebd6e..47d09ffe6a9b 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -574,6 +574,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
-  * media_device_unregister - unregister a media device
-  * @mdev:	The media device
-  *
-+ * It is safe to call this function on an unregistered
-+ * (but initialised) media device.
-  */
- void media_device_unregister(struct media_device *mdev)
- {
-@@ -582,6 +584,10 @@ void media_device_unregister(struct media_device *mdev)
- 	struct media_link *link, *tmp_link;
- 	struct media_interface *intf, *tmp_intf;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index dc679dfe8ade..27fce6224972 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -74,6 +74,18 @@ static inline const char *intf_type(struct media_interface *intf)
+ 		return "v4l2-subdev";
+ 	case MEDIA_INTF_T_V4L_SWRADIO:
+ 		return "swradio";
++	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
++		return "pcm-capture";
++	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
++		return "pcm-playback";
++	case MEDIA_INTF_T_ALSA_CONTROL:
++		return "alsa-control";
++	case MEDIA_INTF_T_ALSA_COMPRESS:
++		return "compress";
++	case MEDIA_INTF_T_ALSA_RAWMIDI:
++		return "rawmidi";
++	case MEDIA_INTF_T_ALSA_HWDEP:
++		return "hwdep";
+ 	default:
+ 		return "unknown-intf";
+ 	}
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 3ad3d6be293f..aca828709bad 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -171,6 +171,7 @@ struct media_links_enum {
  
-+	/* Check if mdev was ever registered at all */
-+	if (!media_devnode_is_registered(&mdev->devnode))
-+		return;
+ #define MEDIA_INTF_T_DVB_BASE	0x00000100
+ #define MEDIA_INTF_T_V4L_BASE	0x00000200
++#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+ 
+ /* Interface types */
+ 
+@@ -186,6 +187,13 @@ struct media_links_enum {
+ #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+ #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+ 
++#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
++#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
++#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
++#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
++#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
++#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
 +
- 	/* Remove interface links from the media device */
- 	list_for_each_entry_safe(link, tmp_link, &mdev->links,
- 				 graph_obj.list) {
+ /* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
+ 
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
 -- 
 2.4.3
+
 
