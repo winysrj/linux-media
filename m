@@ -1,147 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55615 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753367AbbIMQm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 12:42:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/6] vivid: use Bradford method when converting Rec. 709 to NTSC 1953
-Date: Sun, 13 Sep 2015 18:41:28 +0200
-Message-Id: <1442162492-46238-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
-References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:53905 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856AbbIFRbk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:40 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 02/18] [media] au0828: add support for the connectors
+Date: Sun,  6 Sep 2015 14:30:45 -0300
+Message-Id: <03ff3c6c6ee5ddc03ddbfd3f0da5bb4a4f13c8a6.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Depending on the input, an au0828 may have a different
+number of connectors. add entities to represent them.
 
-The V4L2_COLORSPACE_470_SYSTEM_M (aka NTSC 1953) colorspace has a different
-whitepoint (C) compared to Rec. 709 (D65). The Bradford method is the
-recommended method to compensate for that when converting a Rec. 709 color
-to an NTSC 1953 color.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-See http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html for more
-details on the Bradford method.
-
-This patch updates the Rec. 709 to NTSC 1953 matrix so that it includes the
-chromatic adaptation as calculated by the Bradford method, and it recalculates
-the tpg_csc_colors table accordingly.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-tpg-colors.c | 90 +++++++++++++------------
- 1 file changed, 47 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/media/platform/vivid/vivid-tpg-colors.c b/drivers/media/platform/vivid/vivid-tpg-colors.c
-index 8f231a6..650d9c7 100644
---- a/drivers/media/platform/vivid/vivid-tpg-colors.c
-+++ b/drivers/media/platform/vivid/vivid-tpg-colors.c
-@@ -719,46 +719,46 @@ const struct color16 tpg_csc_colors[V4L2_COLORSPACE_BT2020 + 1][V4L2_XFER_FUNC_N
- 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][5] = { 2125, 130, 130 },
- 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][6] = { 130, 130, 2125 },
- 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][0] = { 2892, 2988, 2807 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][1] = { 2846, 3070, 843 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][2] = { 1656, 2962, 2783 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][3] = { 1572, 3045, 763 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][4] = { 2476, 229, 2742 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][5] = { 2420, 672, 614 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][6] = { 725, 63, 2718 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][7] = { 534, 561, 509 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][0] = { 3013, 3099, 2935 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][1] = { 2970, 3174, 1091 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][2] = { 1871, 3076, 2913 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][3] = { 1791, 3152, 1013 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][4] = { 2632, 468, 2876 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][5] = { 2581, 924, 866 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][6] = { 976, 180, 2854 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][7] = { 786, 813, 762 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][0] = { 2990, 3077, 2912 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][1] = { 2947, 3153, 1119 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][2] = { 1859, 3053, 2889 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][3] = { 1782, 3130, 1047 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][4] = { 2608, 556, 2852 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][5] = { 2557, 964, 912 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][6] = { 1013, 309, 2830 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][7] = { 839, 864, 817 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2879, 2975, 2793 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2832, 3059, 806 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][2] = { 1629, 2949, 2768 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][3] = { 1543, 3033, 725 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][4] = { 2457, 203, 2727 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][5] = { 2401, 633, 574 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][6] = { 687, 56, 2702 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][7] = { 493, 521, 469 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][0] = { 2060, 2194, 1943 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][1] = { 1995, 2314, 237 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][2] = { 725, 2157, 1911 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][3] = { 660, 2278, 205 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][4] = { 1525, 50, 1857 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][5] = { 1461, 171, 151 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][6] = { 190, 14, 1825 },
--	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][7] = { 126, 134, 118 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][1] = { 2892, 3034, 910 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][2] = { 1715, 2916, 2914 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][3] = { 1631, 3012, 828 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][4] = { 2497, 119, 2867 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][5] = { 2440, 649, 657 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][6] = { 740, 0, 2841 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][7] = { 547, 547, 547 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][0] = { 3056, 3055, 3056 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][1] = { 3013, 3142, 1157 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][2] = { 1926, 3034, 3032 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][3] = { 1847, 3121, 1076 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][4] = { 2651, 304, 2990 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][5] = { 2599, 901, 909 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][6] = { 991, 0, 2966 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][7] = { 800, 799, 800 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][1] = { 2989, 3120, 1180 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][2] = { 1913, 3011, 3009 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][3] = { 1836, 3099, 1105 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][4] = { 2627, 413, 2966 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][5] = { 2576, 943, 951 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][6] = { 1026, 0, 2942 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2879, 3022, 874 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][2] = { 1688, 2903, 2901 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][3] = { 1603, 2999, 791 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][4] = { 2479, 106, 2853 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][5] = { 2422, 610, 618 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][6] = { 702, 0, 2827 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][7] = { 507, 507, 507 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][0] = { 2125, 2125, 2125 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][1] = { 2059, 2262, 266 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][2] = { 771, 2092, 2089 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][3] = { 705, 2229, 231 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][4] = { 1550, 26, 2024 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][5] = { 1484, 163, 165 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][6] = { 196, 0, 1988 },
-+	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
- 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
- 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][1] = { 2939, 2939, 464 },
- 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][2] = { 786, 2939, 2939 },
-@@ -930,9 +930,13 @@ const struct color16 tpg_csc_colors[V4L2_COLORSPACE_BT2020 + 1][V4L2_XFER_FUNC_N
- #include <stdlib.h>
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index f54c7d10f350..fe9a60484343 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -153,11 +153,26 @@ static void au0828_usb_release(struct au0828_dev *dev)
+ }
  
- static const double rec709_to_ntsc1953[3][3] = {
--	{ 0.6689794, 0.2678309, 0.0323187 },
--	{ 0.0184901, 1.0742442, -0.0602820 },
--	{ 0.0162259, 0.0431716, 0.8549253 }
-+	/*
-+	 * This transform uses the Bradford method to compensate for
-+	 * the different whitepoints.
-+	 */
-+	{ 0.6785011, 0.2883441, 0.0331548 },
-+	{ 0.0165284, 1.0518725, -0.0684009 },
-+	{ 0.0179230, 0.0506096, 0.9314674 }
+ #ifdef CONFIG_VIDEO_AU0828_V4L2
++
++static void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int i;
++
++	for (i = 0; i < AU0828_MAX_INPUT; i++) {
++		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
++			return;
++		media_device_unregister_entity(&dev->input_ent[i]);
++	}
++#endif
++}
++
+ static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
+ {
+ 	struct au0828_dev *dev =
+ 		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
+ 
++	au0828_usb_v4l2_media_release(dev);
+ 	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	au0828_usb_release(dev);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 4511e2893282..806b8d320bae 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1793,6 +1793,69 @@ static int au0828_vb2_setup(struct au0828_dev *dev)
+ 	return 0;
+ }
+ 
++static void au0828_analog_create_entities(struct au0828_dev *dev)
++{
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	static const char *inames[] = {
++		[AU0828_VMUX_COMPOSITE] = "Composite",
++		[AU0828_VMUX_SVIDEO] = "S-Video",
++		[AU0828_VMUX_CABLE] = "Cable TV",
++		[AU0828_VMUX_TELEVISION] = "Television",
++		[AU0828_VMUX_DVB] = "DVB",
++		[AU0828_VMUX_DEBUG] = "tv debug"
++	};
++	int ret, i;
++
++	/* Initialize Video and VBI pads */
++	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
++	if (ret < 0)
++		pr_err("failed to initialize video media entity!\n");
++
++	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
++	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
++	if (ret < 0)
++		pr_err("failed to initialize vbi media entity!\n");
++
++	/* Create entities for each input connector */
++	for (i = 0; i < AU0828_MAX_INPUT; i++) {
++		struct media_entity *ent = &dev->input_ent[i];
++
++		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
++			break;
++
++		ent->name = inames[AUVI_INPUT(i).type];
++		ent->flags = MEDIA_ENT_FL_CONNECTOR;
++		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
++
++		switch(AUVI_INPUT(i).type) {
++		case AU0828_VMUX_COMPOSITE:
++			ent->type = MEDIA_ENT_T_CONN_COMPOSITE;
++			break;
++		case AU0828_VMUX_SVIDEO:
++			ent->type = MEDIA_ENT_T_CONN_SVIDEO;
++			break;
++		case AU0828_VMUX_CABLE:
++		case AU0828_VMUX_TELEVISION:
++		case AU0828_VMUX_DVB:
++			ent->type = MEDIA_ENT_T_CONN_RF;
++			break;
++		default: /* AU0828_VMUX_DEBUG */
++			ent->type = MEDIA_ENT_T_CONN_TEST;
++			break;
++		}
++
++		ret = media_entity_init(ent, 1, &dev->input_pad[i]);
++		if (ret < 0)
++			pr_err("failed to initialize input pad[%d]!\n", i);
++
++		ret = media_device_register_entity(dev->media_dev, ent);
++		if (ret < 0)
++			pr_err("failed to register input entity %d!\n", i);
++	}
++#endif
++}
++
+ /**************************************************************************/
+ 
+ int au0828_analog_register(struct au0828_dev *dev,
+@@ -1881,17 +1944,8 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
+ 	strcpy(dev->vbi_dev.name, "au0828a vbi");
+ 
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
+-	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
+-	if (ret < 0)
+-		pr_err("failed to initialize video media entity!\n");
+-
+-	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
+-	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
+-	if (ret < 0)
+-		pr_err("failed to initialize vbi media entity!\n");
+-#endif
++	/* Init entities at the Media Controller */
++	au0828_analog_create_entities(dev);
+ 
+ 	/* initialize videobuf2 stuff */
+ 	retval = au0828_vb2_setup(dev);
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index d3644b3fe6fa..b7940c54d006 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -93,7 +93,6 @@ struct au0828_board {
+ 	unsigned char has_ir_i2c:1;
+ 	unsigned char has_analog:1;
+ 	struct au0828_input input[AU0828_MAX_INPUT];
+-
  };
  
- static const double rec709_to_ebu[3][3] = {
+ struct au0828_dvb {
+@@ -281,6 +280,8 @@ struct au0828_dev {
+ 	struct media_device *media_dev;
+ 	struct media_pad video_pad, vbi_pad;
+ 	struct media_entity *decoder;
++	struct media_entity input_ent[AU0828_MAX_INPUT];
++	struct media_pad input_pad[AU0828_MAX_INPUT];
+ #endif
+ };
+ 
 -- 
-2.1.4
+2.4.3
+
 
