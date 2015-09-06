@@ -1,74 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755384AbbIMU5R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:17 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 09/32] v4l: vsp1: Remove struct vsp1_pipeline num_video field
-Date: Sun, 13 Sep 2015 23:56:47 +0300
-Message-Id: <1442177830-24536-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54645 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149AbbIFMD6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 52/55] [media] media-device: remove interfaces and interface links
+Date: Sun,  6 Sep 2015 09:03:12 -0300
+Message-Id: <fcb7fe56b016191b35dfc9fbc007ba1a1f35e837.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
+References: <e5eba1a99757919c9bda78401b30bcad823200c0.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The field always has the same value as the num_inputs field, remove the
-duplicate.
+Just like what's done with entities, when the media controller is
+unregistered, release any interface and interface links that
+might still be there.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 7 ++-----
- drivers/media/platform/vsp1/vsp1_video.h | 1 -
- 2 files changed, 2 insertions(+), 6 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 2d27e8334911..c726d76bd570 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -396,7 +396,6 @@ static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
- 	pipe->buffers_ready = 0;
--	pipe->num_video = 0;
- 	pipe->num_inputs = 0;
- 	pipe->output = NULL;
- 	pipe->bru = NULL;
-@@ -423,10 +422,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 		struct vsp1_rwpf *rwpf;
- 		struct vsp1_entity *e;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7c37aeab05bb..0238885fcc74 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -574,6 +574,22 @@ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
++	struct media_link *link, *tmp_link;
++	struct media_interface *intf, *tmp_intf;
++
++	/* Remove interface links from the media device */
++	list_for_each_entry_safe(link, tmp_link, &mdev->links,
++				 graph_obj.list) {
++		media_gobj_remove(&link->graph_obj);
++		kfree(link);
++	}
++
++	/* Remove all interfaces from the media device */
++	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
++				 graph_obj.list) {
++		media_gobj_remove(&intf->graph_obj);
++		kfree(intf);
++	}
  
--		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
--			pipe->num_video++;
-+		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
- 			continue;
--		}
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		media_device_unregister_entity(entity);
+@@ -651,7 +667,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	/* Remove all data links that belong to this entity */
+ 	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+ 		media_gobj_remove(&link->graph_obj);
+-		list_del(&link->list);
+ 		kfree(link);
+ 	}
  
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 		e = to_vsp1_entity(subdev);
-@@ -890,7 +887,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	int ret;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index a37ccd2edfd5..cd4d767644df 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -206,6 +206,10 @@ void media_gobj_remove(struct media_gobj *gobj)
  
- 	mutex_lock(&pipe->lock);
--	if (pipe->stream_count == pipe->num_video - 1) {
-+	if (pipe->stream_count == pipe->num_inputs - 1) {
- 		if (pipe->uds) {
- 			struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+ 	/* Remove the object from mdev list */
+ 	list_del(&gobj->list);
++
++	/* Links have their own list - we need to drop them there too */
++	if (media_type(gobj) == MEDIA_GRAPH_LINK)
++		list_del(&gobj_to_link(gobj)->list);
+ }
  
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index b7eabe6bab70..cea6d1f3f07b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -75,7 +75,6 @@ struct vsp1_pipeline {
- 	unsigned int stream_count;
- 	unsigned int buffers_ready;
+ /**
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index ca4a4f23362f..fb5f0e21f137 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -153,7 +153,7 @@ struct media_entity {
+ };
  
--	unsigned int num_video;
- 	unsigned int num_inputs;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF];
- 	struct vsp1_rwpf *output;
+ /**
+- * struct media_intf_devnode - Define a Kernel API interface
++ * struct media_interface - Define a Kernel API interface
+  *
+  * @graph_obj:		embedded graph object
+  * @list:		Linked list used to find other interfaces that belong
+@@ -163,6 +163,11 @@ struct media_entity {
+  *			uapi/media/media.h header, e. g.
+  *			MEDIA_INTF_T_*
+  * @flags:		Interface flags as defined at uapi/media/media.h
++ *
++ * NOTE: As media_device_unregister() will free the address of the
++ *	 media_interface, this structure should be embedded as the first
++ *	 element of the derived functions, in order for the address to be
++ *	 the same.
+  */
+ struct media_interface {
+ 	struct media_gobj		graph_obj;
+@@ -179,11 +184,11 @@ struct media_interface {
+  * @minor:	Minor number of a device node
+  */
+ struct media_intf_devnode {
+-	struct media_interface		intf;
++	struct media_interface	intf; /* must be first field in struct */
+ 
+ 	/* Should match the fields at media_v2_intf_devnode */
+-	u32				major;
+-	u32				minor;
++	u32			major;
++	u32			minor;
+ };
+ 
+ static inline u32 media_entity_id(struct media_entity *entity)
 -- 
-2.4.6
+2.4.3
+
 
