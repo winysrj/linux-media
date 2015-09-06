@@ -1,191 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34667 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750752AbbIGL5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Sep 2015 07:57:51 -0400
-Date: Mon, 7 Sep 2015 08:57:46 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:54582 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682AbbIFMDy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:54 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Ronald Tallent <ron@tallent.ws>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Call for help: em28xx: new board id [1f4d:1abe]
-Message-ID: <20150907085746.4fac0033@recife.lan>
-In-Reply-To: <1441583930.27835.25.camel@Amy>
-References: <1441567008.5526.8.camel@Amy>
-	<20150906165354.7f6f0c96@recife.lan>
-	<1441583930.27835.25.camel@Amy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 20/55] [media] media: make add link more generic
+Date: Sun,  6 Sep 2015 09:02:49 -0300
+Message-Id: <1d94e71434a16c7dcb24d9df592ad6b2d72a4895.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
+References: <81b61cdb4bb2192b2810675f80cc12b06b4d242b.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Sep 2015 18:58:50 -0500
-Ronald Tallent <ron@tallent.ws> escreveu:
+The media_entity_add_link() function takes an entity
+as an argument just to get the list head.
 
-> Hey Mauro,
-> 
-> Thanks for the reply. Relieved to know I'm not invisible. =)
-> 
-> I'm a total noob to linux driver issues, so if I'm  posting this in the
-> wrong area, please forgive me. I only posted here because this is where
-> linuxtv.org said to go to ask for help. Until now all my hardware has
-> just worked. So big thanks to all the people who made that happen! But
-> this EasyCap board is kind of kicking my butt.
-> 
-> You are correct, when I plug this USB device in video capture device is
-> not detected and so does not work. As I understand it, all the drivers
-> needed to make this Easycap work in linux already exist and are used by
-> various forms of Easycap devices already.
-> 
-> The em2860 USB video bridge chip should be supported by the "em28xx"
-> kernel modules, and the Trident SAA7115H chip should be supported by the
-> "saa7115" module. My best guess is that the card vendor:product id
-> [1f4d:1abe] is simply not "attached" to those drivers or known by those
-> drivers so when I plug this USB device in, video drivers are not loaded.
-> But my assessment of the situation might be completely off here.
-> 
-> Couple questions...
-> 
-> First, if nobody know what to do with the information I've posted, why
-> does linuxtv.org/wiki instruct me to post this information here, exactly
-> this way? Not a big issue really, just quite confusing.
+Make it more generic by changing the function argument
+to list_head.
 
-Feel free to improve the documentation ;)
-Just remember that the documentation there should be generic enough for
-people having different boards, specially if you're looking into a
-generic section of the Wiki.
+No functional changes.
 
-> Secondly, if all the drivers already exist, what do I need to do to get
-> them to "attach" to my hardware? 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Because of two things:
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d5efa0e2c88c..625b505e8496 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -580,7 +580,7 @@ EXPORT_SYMBOL_GPL(media_entity_put);
+  * Links management
+  */
+ 
+-static struct media_link *media_entity_add_link(struct media_entity *entity)
++static struct media_link *media_add_link(struct list_head *head)
+ {
+ 	struct media_link *link;
+ 
+@@ -588,7 +588,7 @@ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ 	if (link == NULL)
+ 		return NULL;
+ 
+-	list_add_tail(&link->list, &entity->links);
++	list_add_tail(&link->list, head);
+ 
+ 	return link;
+ }
+@@ -607,7 +607,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	BUG_ON(source_pad >= source->num_pads);
+ 	BUG_ON(sink_pad >= sink->num_pads);
+ 
+-	link = media_entity_add_link(source);
++	link = media_add_link(&source->links);
+ 	if (link == NULL)
+ 		return -ENOMEM;
+ 
+@@ -622,7 +622,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	/* Create the backlink. Backlinks are used to help graph traversal and
+ 	 * are not reported to userspace.
+ 	 */
+-	backlink = media_entity_add_link(sink);
++	backlink = media_add_link(&sink->links);
+ 	if (backlink == NULL) {
+ 		__media_entity_remove_link(source, link);
+ 		return -ENOMEM;
+-- 
+2.4.3
 
-- the USB ID is used to identify the driver that will be used. If
-  the driver doesn't know the USB ID, it won't be loaded.
 
-- each hardware is wired on a different way. The saa7113 have 4 different
-  video inputs (if I remember correctly). Also, there are several pins used
-  on most video hardware called GPIO. They're used to power on and reset the
-  other devices. The power on/reset sequence is board-specific.
-
-> Is there some place I can go to learn
-> how to do that fairly quickly? Is anyone in this board knowledgeable
-> about how that can easily be done? I am competent enough with linux that
-> I can perform the steps necessary if I know what those steps are. This
-> is new territory for me though.
-
-Wiki is your friend. Also look at other posts on the ML from other
-people that had to do the same.
-
-> 
-> Any help anyone can offer would be greatly appreciated! =)
-> 
-> Thanks,
-> --Ronald
-> 
-> 
-> 
-> On Sun, 2015-09-06 at 16:53 -0300, Mauro Carvalho Chehab wrote:
-> > Hi Ronald,
-> > 
-> > Well, probably nobody knows what to do with that ;)
-> > 
-> > If I understood well your post, video didn't work, right?
-> > 
-> > So, either you or someone else with the same hardware as you have would
-> > need to make it work and send a patch to the mailing list adding support
-> > for this new ID.
-> > 
-> > Probably, it is just either a GPIO or the video input that it is wrong.
-> > In order to fix it, you would either need some help from the manufacturer
-> > or to sniff the USB message exchanges from the original driver and check
-> > the settings for saa7113 and em28xx. The wiki has some info about how
-> > to do it.
-> > 
-> > Regards,
-> > Mauro
-> > 
-> > 
-> > Em Sun, 06 Sep 2015 14:16:48 -0500
-> > Ronald Tallent <ron@tallent.ws> escreveu:
-> > 
-> > > Hi, 
-> > > 
-> > > This is my third attempt to post this information to mailing list in a
-> > > little over a week. Am I invisible? Can nobody see my messages? I have
-> > > precisely followed the instructions posted on
-> > > linuxtv.org/wiki/index.php/Em28xx_devices#How_to_validate_my_vendor.2Fproduct_id_at_upstream_kernel.3F
-> > > trying to get my hardware validated. What else do I need to do?  Can
-> > > someone answer please and help me. 
-> > > 
-> > > Thanks,
-> > > --Ronald
-> > > 
-> > > 
-> > > I've tested my USB easycap device (Geniatech iGrabber) in Ubuntu
-> > > 14.04.
-> > > 
-> > > Make: Geniatech
-> > > Model: iGrabber for MAC
-> > > Vendor/Product ID: [1f4d:1abe]
-> > > Product website: www.geniatech.com/pa/igrabber.asp
-> > > 
-> > > Tests Made:
-> > > - Audio Capture [worked]
-> > > - Video Capture [device not detected]
-> > > - DVB [does not have DVB]
-> > > 
-> > > Tested by:
-> > > ron@tallent.ws
-> > > 
-> > > 
-> > > Detailed information on device and system below for reference:
-> > > 
-> > > uname -a:
-> > > 3.13.0-62-generic #102-Ubuntu SMP Tue Aug 11 14:29:36 UTC 2015 x86_64 
-> > > x86_64 x86_64 GNU/Linux
-> > > 
-> > > dmesg:
-> > > [] usb 3-3.3: new high-speed USB device number 8 using xhci_hcd
-> > > [] usb 3-3.3: New USB device found, idVendor=1f4d, idProduct=1abe
-> > > [] usb 3-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-> > > [] usb 3-3.3: Product: USB Device
-> > > [] usbcore: registered new interface driver snd-usb-audio
-> > > 
-> > > lsusb:
-> > > Bus 003 Device 008: ID 1f4d:1abe G-Tek Electronics Group 
-> > > 
-> > > Hardware: 
-> > > Opened the case and found the following text printed on the board:
-> > >    HandyCap
-> > >    v1.51
-> > >    2007-4-24
-> > > 
-> > > Three chips on board are:
-> > > 1: empia
-> > >    EM2860
-> > >    P8367-010
-> > >    201036-01AG
-> > > 
-> > > 2: Trident
-> > >    SAA7113H
-> > >    C2P409.00 02
-> > >    A5G11152
-> > > 
-> > > 3: eMPIA
-> > >    Technology
-> > >    EMP202
-> > >    UT11958
-> > >    1027
-> > > 
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
