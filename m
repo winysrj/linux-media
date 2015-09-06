@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:9082 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091AbbIGNpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 09:45:11 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
-	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	kamil@wypas.org, linux@arm.linux.org.uk,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv9 04/15] input.h: add BUS_CEC type
-Date: Mon,  7 Sep 2015 15:44:33 +0200
-Message-Id: <038a1a9ae13d89f73cba2cb328ed286ec8fa6cec.1441633456.git.hansverk@cisco.com>
-In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
-References: <cover.1441633456.git.hansverk@cisco.com>
-In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
-References: <cover.1441633456.git.hansverk@cisco.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54641 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752164AbbIFMD6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 51/55] [media] remove interface links at media_entity_unregister()
+Date: Sun,  6 Sep 2015 09:03:11 -0300
+Message-Id: <ce03152d3a7f156ff3fe9a3ff15a8d9530e0307a.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <36ec2d60b61f769115982c5060d550d35e3ca602.1440902901.git.mchehab@osg.samsung.com>
+References: <36ec2d60b61f769115982c5060d550d35e3ca602.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Interface links connected to an entity should be removed
+before being able of removing the entity.
 
-Inputs can come in over the HDMI CEC bus, so add a new type for this.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
- include/uapi/linux/input.h | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index 731417c..a32bff1 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -972,6 +972,7 @@ struct input_keymap_entry {
- #define BUS_GSC			0x1A
- #define BUS_ATARI		0x1B
- #define BUS_SPI			0x1C
-+#define BUS_CEC			0x1D
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 96a476eeb16e..7c37aeab05bb 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -638,14 +638,30 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 		return;
  
- /*
-  * MT_TOOL types
+ 	spin_lock(&mdev->lock);
++
++	/* Remove interface links with this entity on it */
++	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
++		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
++		    && link->entity == entity) {
++			media_gobj_remove(&link->graph_obj);
++			kfree(link);
++		}
++	}
++
++	/* Remove all data links that belong to this entity */
+ 	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+ 		media_gobj_remove(&link->graph_obj);
+ 		list_del(&link->list);
+ 		kfree(link);
+ 	}
++
++	/* Remove all pads that belong to this entity */
+ 	for (i = 0; i < entity->num_pads; i++)
+ 		media_gobj_remove(&entity->pads[i].graph_obj);
++
++	/* Remove the entity */
+ 	media_gobj_remove(&entity->graph_obj);
++
+ 	spin_unlock(&mdev->lock);
+ 	entity->graph_obj.mdev = NULL;
+ }
 -- 
-2.1.4
+2.4.3
+
 
