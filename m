@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53822 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:54635 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173AbbIFRbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
+	with ESMTP id S1752125AbbIFMD5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:57 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 14/18] [media] media-device: export the entity function via new ioctl
-Date: Sun,  6 Sep 2015 14:30:57 -0300
-Message-Id: <13a08789f63775c6f014c08969bc8ed3f0550c82.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev or V4L2 DMA
+Date: Sun,  6 Sep 2015 09:02:57 -0300
+Message-Id: <a811ed07aab2bf1410ffe4c438fcbd4149581290.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
+References: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that entities have a main function, expose it via
-MEDIA_IOC_G_TOPOLOGY ioctl.
+As we'll be removing entity subtypes from the Kernel, we need
+to provide a way for drivers and core to check if a given
+entity is represented by a V4L2 subdev or if it is an V4L2
+I/O entity (typically with DMA).
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index ccef9621d147..32090030c342 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -263,6 +263,7 @@ static long __media_device_get_topology(struct media_device *mdev,
- 		/* Copy fields to userspace struct if not error */
- 		memset(&uentity, 0, sizeof(uentity));
- 		uentity.id = entity->graph_obj.id;
-+		uentity.function = entity->function;
- 		strncpy(uentity.name, entity->name,
- 			sizeof(uentity.name));
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 4e36b1f2b2d7..220864319d21 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+ 	return id;
+ }
  
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 69433405aec2..d232cc680c67 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -284,7 +284,8 @@ struct media_links_enum {
- struct media_v2_entity {
- 	__u32 id;
- 	char name[64];		/* FIXME: move to a property? (RFC says so) */
--	__u16 reserved[14];
-+	__u32 function;		/* Main function of the entity */
-+	__u16 reserved[12];
- };
++static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
++{
++	if (!entity)
++		return false;
++
++	switch (entity->type) {
++	case MEDIA_ENT_T_V4L2_VIDEO:
++	case MEDIA_ENT_T_V4L2_VBI:
++	case MEDIA_ENT_T_V4L2_SWRADIO:
++		return true;
++	default:
++		return false;
++	}
++}
++
++static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
++{
++	if (!entity)
++		return false;
++
++	switch (entity->type) {
++	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
++	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
++	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
++	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+ #define MEDIA_ENTITY_ENUM_MAX_ID	64
  
- /* Should match the specific fields at media_intf_devnode */
 -- 
 2.4.3
 
