@@ -1,125 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35377 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755626AbbI1Czp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Sep 2015 22:55:45 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 866012A009D
-	for <linux-media@vger.kernel.org>; Mon, 28 Sep 2015 04:54:09 +0200 (CEST)
-Date: Mon, 28 Sep 2015 04:54:09 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150928025409.866012A009D@tschai.lan>
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:27314 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752219AbbIFLrE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 07:47:04 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+Date: Sun,  6 Sep 2015 13:42:10 +0200
+Message-Id: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Fix the error path where the video buffer wasn't allocated nor
+mapped. In this case, in the driver free path don't try to unmap memory
+which was not mapped in the first place.
 
-Results of the daily build of media_tree:
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+Since v3: take into account the 2 paths possibilities to free_buffer()
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-date:		Mon Sep 28 04:00:20 CEST 2015
-git branch:	test
-git hash:	ac4033e02a54a1dd3b22364d392ffe3da5d09a5f
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index fcb942de0c7f..d4e887841372 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -272,8 +272,6 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 	 * longer in STATE_QUEUED or STATE_ACTIVE
+ 	 */
+ 	videobuf_waiton(vq, &buf->vb, 0, 0);
+-	videobuf_dma_unmap(vq->dev, dma);
+-	videobuf_dma_free(dma);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(buf->dmas); i++) {
+ 		if (buf->dmas[i].sg_cpu)
+@@ -283,6 +281,8 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+ 					  buf->dmas[i].sg_dma);
+ 		buf->dmas[i].sg_cpu = NULL;
+ 	}
++	videobuf_dma_unmap(vq->dev, dma);
++	videobuf_dma_free(dma);
+ 
+ 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+ }
+@@ -479,7 +479,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 
+ 		ret = videobuf_iolock(vq, vb, NULL);
+ 		if (ret)
+-			goto fail;
++			goto out;
+ 
+ 		if (pcdev->channels == 3) {
+ 			size_y = size / 2;
+@@ -504,7 +504,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 						   size_u, &sg, &next_ofs);
+ 		if (ret) {
+ 			dev_err(dev, "DMA initialization for U failed\n");
+-			goto fail_u;
++			goto fail;
+ 		}
+ 
+ 		/* init DMA for V channel */
+@@ -513,7 +513,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 						   size_v, &sg, &next_ofs);
+ 		if (ret) {
+ 			dev_err(dev, "DMA initialization for V failed\n");
+-			goto fail_v;
++			goto fail;
+ 		}
+ 
+ 		vb->state = VIDEOBUF_PREPARED;
+@@ -524,12 +524,6 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 
+ 	return 0;
+ 
+-fail_v:
+-	dma_free_coherent(dev, buf->dmas[1].sg_size,
+-			  buf->dmas[1].sg_cpu, buf->dmas[1].sg_dma);
+-fail_u:
+-	dma_free_coherent(dev, buf->dmas[0].sg_size,
+-			  buf->dmas[0].sg_cpu, buf->dmas[0].sg_dma);
+ fail:
+ 	free_buffer(vq, buf);
+ out:
+-- 
+2.1.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
