@@ -1,123 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755396AbbIMU5U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:20 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 12/32] v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
-Date: Sun, 13 Sep 2015 23:56:50 +0300
-Message-Id: <1442177830-24536-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:34953 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752266AbbIFLrF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 07:47:05 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 2/4] media: pxa_camera: move interrupt to tasklet
+Date: Sun,  6 Sep 2015 13:42:11 +0200
+Message-Id: <1441539733-19201-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those functions are specific to video nodes, rename them for
-consistency.
+In preparation for dmaengine conversion, move the camera interrupt
+handling into a tasklet. This won't change the global flow, as this
+interrupt is only used to detect the end of frame and activate DMA fifos
+handling.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/media/platform/soc_camera/pxa_camera.c | 44 +++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 1a909ab34ea1..8569836ea51b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -308,9 +308,9 @@ vsp1_video_format_adjust(struct vsp1_video *video,
-  * Pipeline Management
-  */
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index d4e887841372..db041a5ed444 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -223,6 +223,7 @@ struct pxa_camera_dev {
  
--static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
--					 struct vsp1_rwpf *input,
--					 struct vsp1_rwpf *output)
-+static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
-+					       struct vsp1_rwpf *input,
-+					       struct vsp1_rwpf *output)
- {
- 	struct vsp1_entity *entity;
- 	unsigned int entities = 0;
-@@ -384,8 +384,8 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 	return 0;
+ 	struct pxa_buffer	*active;
+ 	struct pxa_dma_desc	*sg_tail[3];
++	struct tasklet_struct	task_eof;
+ 
+ 	u32			save_cicr[5];
+ };
+@@ -597,6 +598,7 @@ static void pxa_camera_start_capture(struct pxa_camera_dev *pcdev)
+ 	unsigned long cicr0;
+ 
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "%s\n", __func__);
++	__raw_writel(__raw_readl(pcdev->base + CISR), pcdev->base + CISR);
+ 	/* Enable End-Of-Frame Interrupt */
+ 	cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_ENB;
+ 	cicr0 &= ~CICR0_EOFM;
+@@ -914,13 +916,35 @@ static void pxa_camera_deactivate(struct pxa_camera_dev *pcdev)
+ 	clk_disable_unprepare(pcdev->clk);
  }
  
--static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
--				  struct vsp1_video *video)
-+static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
-+					struct vsp1_video *video)
+-static irqreturn_t pxa_camera_irq(int irq, void *data)
++static void pxa_camera_eof(unsigned long arg)
  {
- 	struct media_entity_graph graph;
- 	struct media_entity *entity = &video->video.entity;
-@@ -437,8 +437,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 	 * contains no loop and that all branches end at the output WPF.
- 	 */
- 	for (i = 0; i < pipe->num_inputs; ++i) {
--		ret = vsp1_pipeline_validate_branch(pipe, pipe->inputs[i],
--						    pipe->output);
-+		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
-+							  pipe->output);
- 		if (ret < 0)
- 			goto error;
+-	struct pxa_camera_dev *pcdev = data;
+-	unsigned long status, cifr, cicr0;
++	struct pxa_camera_dev *pcdev = (struct pxa_camera_dev *)arg;
++	unsigned long cifr;
+ 	struct pxa_buffer *buf;
+ 	struct videobuf_buffer *vb;
+ 
++	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
++		"Camera interrupt status 0x%x\n",
++		__raw_readl(pcdev->base + CISR));
++
++	/* Reset the FIFOs */
++	cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
++	__raw_writel(cifr, pcdev->base + CIFR);
++
++	pcdev->active = list_first_entry(&pcdev->capture,
++					 struct pxa_buffer, vb.queue);
++	vb = &pcdev->active->vb;
++	buf = container_of(vb, struct pxa_buffer, vb);
++	pxa_videobuf_set_actdma(pcdev, buf);
++
++	pxa_dma_start_channels(pcdev);
++}
++
++static irqreturn_t pxa_camera_irq(int irq, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++	unsigned long status, cicr0;
++
+ 	status = __raw_readl(pcdev->base + CISR);
+ 	dev_dbg(pcdev->soc_host.v4l2_dev.dev,
+ 		"Camera interrupt status 0x%lx\n", status);
+@@ -931,20 +955,9 @@ static irqreturn_t pxa_camera_irq(int irq, void *data)
+ 	__raw_writel(status, pcdev->base + CISR);
+ 
+ 	if (status & CISR_EOF) {
+-		/* Reset the FIFOs */
+-		cifr = __raw_readl(pcdev->base + CIFR) | CIFR_RESET_F;
+-		__raw_writel(cifr, pcdev->base + CIFR);
+-
+-		pcdev->active = list_first_entry(&pcdev->capture,
+-					   struct pxa_buffer, vb.queue);
+-		vb = &pcdev->active->vb;
+-		buf = container_of(vb, struct pxa_buffer, vb);
+-		pxa_videobuf_set_actdma(pcdev, buf);
+-
+-		pxa_dma_start_channels(pcdev);
+-
+ 		cicr0 = __raw_readl(pcdev->base + CICR0) | CICR0_EOFM;
+ 		__raw_writel(cicr0, pcdev->base + CICR0);
++		tasklet_schedule(&pcdev->task_eof);
  	}
-@@ -450,8 +450,8 @@ error:
- 	return ret;
- }
  
--static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
--			      struct vsp1_video *video)
-+static int vsp1_video_pipeline_init(struct vsp1_pipeline *pipe,
-+				    struct vsp1_video *video)
- {
- 	int ret;
+ 	return IRQ_HANDLED;
+@@ -1839,6 +1852,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 	pcdev->soc_host.priv		= pcdev;
+ 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+ 	pcdev->soc_host.nr		= pdev->id;
++	tasklet_init(&pcdev->task_eof, pxa_camera_eof, (unsigned long)pcdev);
  
-@@ -459,7 +459,7 @@ static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
- 
- 	/* If we're the first user validate and initialize the pipeline. */
- 	if (pipe->use_count == 0) {
--		ret = vsp1_pipeline_validate(pipe, video);
-+		ret = vsp1_video_pipeline_validate(pipe, video);
- 		if (ret < 0)
- 			goto done;
- 	}
-@@ -472,7 +472,7 @@ done:
- 	return ret;
- }
- 
--static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
-+static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
- {
- 	mutex_lock(&pipe->lock);
- 
-@@ -738,7 +738,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 	}
- 	mutex_unlock(&pipe->lock);
- 
--	vsp1_pipeline_cleanup(pipe);
-+	vsp1_video_pipeline_cleanup(pipe);
- 	media_entity_pipeline_stop(&video->video.entity);
- 
- 	/* Remove all buffers from the IRQ queue. */
-@@ -879,7 +879,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	if (ret < 0)
- 		goto err_stop;
- 
--	ret = vsp1_pipeline_init(pipe, video);
-+	ret = vsp1_video_pipeline_init(pipe, video);
- 	if (ret < 0)
- 		goto err_stop;
- 
-@@ -891,7 +891,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	return 0;
- 
- err_cleanup:
--	vsp1_pipeline_cleanup(pipe);
-+	vsp1_video_pipeline_cleanup(pipe);
- err_stop:
- 	media_entity_pipeline_stop(&video->video.entity);
- 	return ret;
+ 	err = soc_camera_host_register(&pcdev->soc_host);
+ 	if (err)
 -- 
-2.4.6
+2.1.4
 
