@@ -1,58 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55587 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751862AbbIIPOj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 11:14:39 -0400
-Date: Wed, 9 Sep 2015 11:14:38 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Mian Yousaf Kaukab <yousaf.kaukab@intel.com>,
-	<linux-media@vger.kernel.org>, <mchehab@osg.samsung.com>,
-	<linux-usb@vger.kernel.org>
-Subject: Re: [PATCH v1] media: uvcvideo: handle urb completion in a work
- queue
-In-Reply-To: <1866316.khDarOHzbX@avalon>
-Message-ID: <Pine.LNX.4.44L0.1509091111570.2045-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([198.137.202.9]:53951 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752878AbbIFRbn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:43 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>, Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Richard Vollkommer <linux@hauppauge.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Luis de Bethencourt <luis@debethencourt.com>
+Subject: [PATCH 08/18] [media] dvb core: must check dvb_create_media_graph()
+Date: Sun,  6 Sep 2015 14:30:51 -0300
+Message-Id: <fbc05ef2908903fe1978ed1df68aecc8464efdfc.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 9 Sep 2015, Laurent Pinchart wrote:
+If media controller is enabled and mdev is filled, it should
+ensure that the media graph will be properly initialized.
 
-> On Wednesday 09 September 2015 10:30:12 Hans de Goede wrote:
-> > On 08-09-15 16:36, Alan Stern wrote:
-> > > On Tue, 8 Sep 2015, Hans de Goede wrote:
-> > >> On 09/07/2015 06:23 PM, Mian Yousaf Kaukab wrote:
-> > >>> urb completion callback is executed in host controllers interrupt
-> > >>> context. To keep preempt disable time short, add urbs to a list on
-> > >>> completion and schedule work to process the list.
-> > >>> 
-> > >>> Moreover, save timestamp and sof number in the urb completion callback
-> > >>> to avoid any delays.
-> > >> 
-> > >> Erm, I thought that we had already moved to using threaded interrupt
-> > >> handling for the urb completion a while (1-2 years ?) back. Is this then
-> > >> still needed ?
-> > > 
-> > > We moved to handling URB completions in a tasklet, not a threaded
-> > > handler.
-> > 
-> > Right.
-> > 
-> > > (Similar idea, though.)  And the change was made in only one
-> > > or two HCDs, not in all of them.
-> > 
-> > Ah, I was under the impression this was a core change, not a per
-> > hcd change.
-> 
-> Instead of fixing the issue in the uvcvideo driver, would it then make more 
-> sense to fix it in the remaining hcd drivers ?
+Enforce that.
 
-Unfortunately that's not so easy.  It involves some subtle changes 
-related to the way isochronous endpoints are handled.  I wouldn't know 
-what to change in any of the HCDs, except the ones that I maintain.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Alan Stern
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index f4305ae800f4..ab345490a43a 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -1183,7 +1183,11 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+ 	if (smsdvb_debugfs_create(client) < 0)
+ 		pr_info("failed to create debugfs node\n");
+ 
+-	dvb_create_media_graph(&client->adapter);
++	rc = dvb_create_media_graph(&client->adapter);
++	if (rc < 0) {
++		pr_err("dvb_create_media_graph failed %d\n", rc);
++		goto client_error;
++	}
+ 
+ 	pr_info("DVB interface registered.\n");
+ 	return 0;
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 5c51084a331a..df2fe4cc2d47 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -430,17 +430,6 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = dvb_register_media_device(dvbdev, type, minor, demux_sink_pads);
+-	if (ret) {
+-		printk(KERN_ERR
+-		      "%s: dvb_register_media_device failed to create the mediagraph\n",
+-		      __func__);
+-
+-		dvb_media_device_free(dvbdev);
+-		mutex_unlock(&dvbdev_register_lock);
+-		return ret;
+-	}
+-
+ 	dvbdevfops = kzalloc(sizeof(struct file_operations), GFP_KERNEL);
+ 
+ 	if (!dvbdevfops){
+@@ -493,6 +482,17 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
+ 		       __func__, adap->num, dnames[type], id, PTR_ERR(clsdev));
+ 		return PTR_ERR(clsdev);
+ 	}
++
++	ret = dvb_register_media_device(dvbdev, type, minor, demux_sink_pads);
++	if (ret) {
++		printk(KERN_ERR
++		      "%s: dvb_register_media_device failed to create the media graph\n",
++		      __func__);
++
++		dvb_unregister_device(dvbdev);
++		return ret;
++	}
++
+ 	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
+ 		adap->num, dnames[type], id, minor, minor);
+ 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 9e24aafeb9ea..bd9fac91c7b9 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -210,7 +210,7 @@ int dvb_register_device(struct dvb_adapter *adap,
+ void dvb_unregister_device(struct dvb_device *dvbdev);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-int dvb_create_media_graph(struct dvb_adapter *adap);
++__must_check int dvb_create_media_graph(struct dvb_adapter *adap);
+ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
+ 						 struct media_device *mdev)
+ {
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index c01772c4f9f0..cd542b49a6c2 100644
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -486,12 +486,14 @@ static int dvb_register(struct au0828_dev *dev)
+ 	dvb->start_count = 0;
+ 	dvb->stop_count = 0;
+ 
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	dvb_create_media_graph(&dvb->adapter);
+-#endif
++	result = dvb_create_media_graph(&dvb->adapter);
++	if (result < 0)
++		goto fail_create_graph;
+ 
+ 	return 0;
+ 
++fail_create_graph:
++	dvb_net_release(&dvb->net);
+ fail_fe_conn:
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+ fail_fe_mem:
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 66ee161fc7ba..aaf8ef246f13 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -551,10 +551,14 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	/* register network adapter */
+ 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
+-	dvb_create_media_graph(&dvb->adapter);
++	result = dvb_create_media_graph(&dvb->adapter);
++	if (result < 0)
++		goto fail_create_graph;
+ 
+ 	return 0;
+ 
++fail_create_graph:
++	dvb_net_release(&dvb->net);
+ fail_fe_conn:
+ 	dvb->demux.dmx.remove_frontend(&dvb->demux.dmx, &dvb->fe_mem);
+ fail_fe_mem:
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index f5df9eaba04f..6d3f61f6dc77 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -698,7 +698,9 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 		}
+ 	}
+ 
+-	dvb_create_media_graph(&adap->dvb_adap);
++	ret = dvb_create_media_graph(&adap->dvb_adap);
++	if (ret < 0)
++		goto err_dvb_unregister_frontend;
+ 
+ 	return 0;
+ 
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+index 8a260c854653..b51dbdf03f42 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -318,10 +318,12 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 
+ 		adap->num_frontends_initialized++;
+ 	}
++	if (ret)
++		return ret;
+ 
+-	dvb_create_media_graph(&adap->dvb_adap);
++	ret = dvb_create_media_graph(&adap->dvb_adap);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int dvb_usb_adapter_frontend_exit(struct dvb_usb_adapter *adap)
+-- 
+2.4.3
+
 
