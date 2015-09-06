@@ -1,106 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51699 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756468AbbIUJgz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 05:36:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: ricardo.ribalda@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] DocBook/media: clarify control documentation
-Date: Mon, 21 Sep 2015 11:36:42 +0200
-Message-Id: <1442828202-25578-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
-References: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:53828 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752776AbbIFRbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 06/18] [media] media.h: create connector entities for hybrid TV devices
+Date: Sun,  6 Sep 2015 14:30:49 -0300
+Message-Id: <9af2bbe9e63004f843e8478bc3d31cd03ea75d64.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add entities to represent the connectors that exists inside a
+hybrid TV device.
 
-- Add missing V4L2_CTRL_TYPE_U32 documentation
-- Remove 'which are actually different on the hardware' sentence which
-  is confusing. I think the idea was to let the user know that the step can
-  be different for different hardware, but that's obvious because otherwise
-  you wouldn't need to specify the step value.
-- Clarify that V4L2_CTRL_COMPOUND_TYPES also applies to arrays.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml        |  7 +++++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml          | 21 ++++++++++++++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index c5bdbfc..842536a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -200,6 +200,13 @@ Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>__u32 *</entry>
-+	    <entry><structfield>p_u32</structfield></entry>
-+	    <entry>A pointer to a matrix control of unsigned 32-bit values.
-+Valid if this control is of type <constant>V4L2_CTRL_TYPE_U32</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>void *</entry>
- 	    <entry><structfield>ptr</structfield></entry>
- 	    <entry>A pointer to a compound type which can be an N-dimensional array and/or a
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 6ec39c6..55b7582 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -101,8 +101,9 @@ prematurely end the enumeration).</para></footnote></para>
- next supported non-compound control, or <errorcode>EINVAL</errorcode>
- if there is none. In addition, the <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant>
- flag can be specified to enumerate all compound controls (i.e. controls
--with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant>). Specify both
--<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
-+with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant> and/or array
-+control, in other words controls that contain more than one value).
-+Specify both <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
- <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant> in order to enumerate
- all controls, compound or not. Drivers which do not support these flags yet
- always return <errorcode>EINVAL</errorcode>.</para>
-@@ -422,7 +423,7 @@ the array to zero.</entry>
- 	    <entry>any</entry>
- 	    <entry>An integer-valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.</entry>
-+values.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BOOLEAN</constant></entry>
-@@ -518,7 +519,7 @@ Older drivers which do not support this feature return an
- 	    <entry>any</entry>
- 	    <entry>An unsigned 8-bit valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.
-+values.
- </entry>
- 	  </row>
- 	  <row>
-@@ -528,7 +529,17 @@ values which are actually different on the hardware.
- 	    <entry>any</entry>
- 	    <entry>An unsigned 16-bit valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.
-+values.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_U32</constant></entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>An unsigned 32-bit valued control ranging from minimum to
-+maximum inclusive. The step value indicates the increment between
-+values.
- </entry>
- 	  </row>
- 	</tbody>
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index b17f6763aff4..69433405aec2 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -61,6 +61,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DVB_BASE		0x00000000
+ #define MEDIA_ENT_T_V4L2_BASE		0x00010000
+ #define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
++#define MEDIA_ENT_T_CONNECTOR_BASE	0x00030000
+ 
+ /*
+  * V4L2 entities - Those are used for DMA (mmap/DMABUF) and
+@@ -105,6 +106,13 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 4)
+ #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 5)
+ 
++/* Connectors */
++#define MEDIA_ENT_T_CONN_RF		(MEDIA_ENT_T_CONNECTOR_BASE)
++#define MEDIA_ENT_T_CONN_SVIDEO		(MEDIA_ENT_T_CONNECTOR_BASE + 1)
++#define MEDIA_ENT_T_CONN_COMPOSITE	(MEDIA_ENT_T_CONNECTOR_BASE + 2)
++	/* For internal test signal generators and other debug connectors */
++#define MEDIA_ENT_T_CONN_TEST		(MEDIA_ENT_T_CONNECTOR_BASE + 3)
++
+ #ifndef __KERNEL__
+ /* Legacy symbols used to avoid userspace compilation breakages */
+ #define MEDIA_ENT_TYPE_SHIFT		16
+@@ -121,9 +129,9 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+ #endif
+ 
+-/* Entity types */
+-
++/* Entity flags */
+ #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
++#define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
+ 
+ struct media_entity_desc {
+ 	__u32 id;
 -- 
-2.5.3
+2.4.3
+
 
