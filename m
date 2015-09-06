@@ -1,190 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39093 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbbIKO6e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:58:34 -0400
-Message-ID: <55F2EBD2.2010603@xs4all.nl>
-Date: Fri, 11 Sep 2015 16:57:22 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: =?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: Re: [PATCH 02/18] [media] au0828: add support for the connectors
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <03ff3c6c6ee5ddc03ddbfd3f0da5bb4a4f13c8a6.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <03ff3c6c6ee5ddc03ddbfd3f0da5bb4a4f13c8a6.1441559233.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:54602 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751809AbbIFMDy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:54 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 14/55] [media] media: add functions to allow creating interfaces
+Date: Sun,  6 Sep 2015 09:02:45 -0300
+Message-Id: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
+References: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> Depending on the input, an au0828 may have a different
-> number of connectors. add entities to represent them.
+Interfaces are different than entities: they represent a
+Kernel<->userspace interaction, while entities represent a
+piece of hardware/firmware/software that executes a function.
 
-Hmm, this patch uses the new connector defines that are only added in patch 6!
-So this doesn't compile.
+Let's distinguish them by creating a separate structure to
+store the interfaces.
 
-Is there a reason why the connector support is needed now? I would prefer to have
-this in a separate follow-up patch series.
+Later patches should change the existing drivers and logic
+to split the current interface embedded inside the entity
+structure (device nodes) into a separate object of the graph.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-	Hans
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index a23c93369a04..dc679dfe8ade 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -44,11 +44,41 @@ static inline const char *gobj_type(enum media_gobj_type type)
+ 		return "pad";
+ 	case MEDIA_GRAPH_LINK:
+ 		return "link";
++	case MEDIA_GRAPH_INTF_DEVNODE:
++		return "intf-devnode";
+ 	default:
+ 		return "unknown";
+ 	}
+ }
+ 
++static inline const char *intf_type(struct media_interface *intf)
++{
++	switch (intf->type) {
++	case MEDIA_INTF_T_DVB_FE:
++		return "frontend";
++	case MEDIA_INTF_T_DVB_DEMUX:
++		return "demux";
++	case MEDIA_INTF_T_DVB_DVR:
++		return "DVR";
++	case MEDIA_INTF_T_DVB_CA:
++		return  "CA";
++	case MEDIA_INTF_T_DVB_NET:
++		return "dvbnet";
++	case MEDIA_INTF_T_V4L_VIDEO:
++		return "video";
++	case MEDIA_INTF_T_V4L_VBI:
++		return "vbi";
++	case MEDIA_INTF_T_V4L_RADIO:
++		return "radio";
++	case MEDIA_INTF_T_V4L_SUBDEV:
++		return "v4l2-subdev";
++	case MEDIA_INTF_T_V4L_SWRADIO:
++		return "swradio";
++	default:
++		return "unknown-intf";
++	}
++};
++
+ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ {
+ #if defined(DEBUG) || defined (CONFIG_DYNAMIC_DEBUG)
+@@ -84,6 +114,19 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 			"%s: id 0x%08x pad#%d: '%s':%d\n",
+ 			event_name, gobj->id, media_localid(gobj),
+ 			pad->entity->name, pad->index);
++		break;
++	}
++	case MEDIA_GRAPH_INTF_DEVNODE:
++	{
++		struct media_interface *intf = gobj_to_intf(gobj);
++		struct media_intf_devnode *devnode = intf_to_devnode(intf);
++
++		dev_dbg(gobj->mdev->dev,
++			"%s: id 0x%08x intf_devnode#%d: %s - major: %d, minor: %d\n",
++			event_name, gobj->id, media_localid(gobj),
++			intf_type(intf),
++			devnode->major, devnode->minor);
++		break;
+ 	}
+ 	}
+ #endif
+@@ -119,6 +162,9 @@ void media_gobj_init(struct media_device *mdev,
+ 	case MEDIA_GRAPH_LINK:
+ 		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+ 		break;
++	case MEDIA_GRAPH_INTF_DEVNODE:
++		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
++		break;
+ 	}
+ 	dev_dbg_obj(__func__, gobj);
+ }
+@@ -793,3 +839,40 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+ 
+ }
+ EXPORT_SYMBOL_GPL(media_entity_remote_pad);
++
++
++/* Functions related to the media interface via device nodes */
++
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 type, u32 flags,
++						u32 major, u32 minor,
++						gfp_t gfp_flags)
++{
++	struct media_intf_devnode *devnode;
++	struct media_interface *intf;
++
++	devnode = kzalloc(sizeof(*devnode), gfp_flags);
++	if (!devnode)
++		return NULL;
++
++	intf = &devnode->intf;
++
++	intf->type = type;
++	intf->flags = flags;
++
++	devnode->major = major;
++	devnode->minor = minor;
++
++	media_gobj_init(mdev, MEDIA_GRAPH_INTF_DEVNODE,
++		       &devnode->intf.graph_obj);
++
++	return devnode;
++}
++EXPORT_SYMBOL_GPL(media_devnode_create);
++
++void media_devnode_remove(struct media_intf_devnode *devnode)
++{
++	media_gobj_remove(&devnode->intf.graph_obj);
++	kfree(devnode);
++}
++EXPORT_SYMBOL_GPL(media_devnode_remove);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 05414e351f8e..3b14394d5701 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -44,6 +44,7 @@ struct device;
+  * @entity_id:	Unique ID used on the last entity registered
+  * @pad_id:	Unique ID used on the last pad registered
+  * @link_id:	Unique ID used on the last link registered
++ * @intf_devnode_id: Unique ID used on the last interface devnode registered
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+@@ -73,6 +74,7 @@ struct media_device {
+ 	u32 entity_id;
+ 	u32 pad_id;
+ 	u32 link_id;
++	u32 intf_devnode_id;
+ 
+ 	struct list_head entities;
+ 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 239c4ec30ef6..7df8836f4eef 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -36,11 +36,14 @@
+  * @MEDIA_GRAPH_ENTITY:		Identify a media entity
+  * @MEDIA_GRAPH_PAD:		Identify a media pad
+  * @MEDIA_GRAPH_LINK:		Identify a media link
++ * @MEDIA_GRAPH_INTF_DEVNODE:	Identify a media Kernel API interface via
++ *				a device node
+  */
+ enum media_gobj_type {
+ 	MEDIA_GRAPH_ENTITY,
+ 	MEDIA_GRAPH_PAD,
+ 	MEDIA_GRAPH_LINK,
++	MEDIA_GRAPH_INTF_DEVNODE,
+ };
+ 
+ #define MEDIA_BITS_PER_TYPE		8
+@@ -141,6 +144,34 @@ struct media_entity {
+ 	} info;
+ };
+ 
++/**
++ * struct media_intf_devnode - Define a Kernel API interface
++ *
++ * @graph_obj:		embedded graph object
++ * @type:		Type of the interface as defined at the
++ *			uapi/media/media.h header, e. g.
++ *			MEDIA_INTF_T_*
++ * @flags:		Interface flags as defined at uapi/media/media.h
++ */
++struct media_interface {
++	struct media_gobj		graph_obj;
++	u32				type;
++	u32				flags;
++};
++
++/**
++ * struct media_intf_devnode - Define a Kernel API interface via a device node
++ *
++ * @intf:	embedded interface object
++ * @major:	Major number of a device node
++ * @minor:	Minor number of a device node
++ */
++struct media_intf_devnode {
++	struct media_interface		intf;
++	u32				major;
++	u32				minor;
++};
++
+ static inline u32 media_entity_type(struct media_entity *entity)
+ {
+ 	return entity->type & MEDIA_ENT_TYPE_MASK;
+@@ -198,6 +229,18 @@ struct media_entity_graph {
+ #define gobj_to_link(gobj) \
+ 		container_of(gobj, struct media_link, graph_obj)
+ 
++#define gobj_to_link(gobj) \
++		container_of(gobj, struct media_link, graph_obj)
++
++#define gobj_to_pad(gobj) \
++		container_of(gobj, struct media_pad, graph_obj)
++
++#define gobj_to_intf(gobj) \
++		container_of(gobj, struct media_interface, graph_obj)
++
++#define intf_to_devnode(intf) \
++		container_of(intf, struct media_intf_devnode, intf)
++
+ void media_gobj_init(struct media_device *mdev,
+ 		    enum media_gobj_type type,
+ 		    struct media_gobj *gobj);
+@@ -229,6 +272,11 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 					     struct media_pipeline *pipe);
+ void media_entity_pipeline_stop(struct media_entity *entity);
+ 
++struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
++						u32 type, u32 flags,
++						u32 major, u32 minor,
++						gfp_t gfp_flags);
++void media_devnode_remove(struct media_intf_devnode *devnode);
+ #define media_entity_call(entity, operation, args...)			\
+ 	(((entity)->ops && (entity)->ops->operation) ?			\
+ 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+-- 
+2.4.3
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index f54c7d10f350..fe9a60484343 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -153,11 +153,26 @@ static void au0828_usb_release(struct au0828_dev *dev)
->  }
->  
->  #ifdef CONFIG_VIDEO_AU0828_V4L2
-> +
-> +static void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	int i;
-> +
-> +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
-> +			return;
-> +		media_device_unregister_entity(&dev->input_ent[i]);
-> +	}
-> +#endif
-> +}
-> +
->  static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
->  {
->  	struct au0828_dev *dev =
->  		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
->  
-> +	au0828_usb_v4l2_media_release(dev);
->  	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
->  	v4l2_device_unregister(&dev->v4l2_dev);
->  	au0828_usb_release(dev);
-> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> index 4511e2893282..806b8d320bae 100644
-> --- a/drivers/media/usb/au0828/au0828-video.c
-> +++ b/drivers/media/usb/au0828/au0828-video.c
-> @@ -1793,6 +1793,69 @@ static int au0828_vb2_setup(struct au0828_dev *dev)
->  	return 0;
->  }
->  
-> +static void au0828_analog_create_entities(struct au0828_dev *dev)
-> +{
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	static const char *inames[] = {
-> +		[AU0828_VMUX_COMPOSITE] = "Composite",
-> +		[AU0828_VMUX_SVIDEO] = "S-Video",
-> +		[AU0828_VMUX_CABLE] = "Cable TV",
-> +		[AU0828_VMUX_TELEVISION] = "Television",
-> +		[AU0828_VMUX_DVB] = "DVB",
-> +		[AU0828_VMUX_DEBUG] = "tv debug"
-> +	};
-> +	int ret, i;
-> +
-> +	/* Initialize Video and VBI pads */
-> +	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-> +	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
-> +	if (ret < 0)
-> +		pr_err("failed to initialize video media entity!\n");
-> +
-> +	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-> +	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
-> +	if (ret < 0)
-> +		pr_err("failed to initialize vbi media entity!\n");
-> +
-> +	/* Create entities for each input connector */
-> +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> +		struct media_entity *ent = &dev->input_ent[i];
-> +
-> +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
-> +			break;
-> +
-> +		ent->name = inames[AUVI_INPUT(i).type];
-> +		ent->flags = MEDIA_ENT_FL_CONNECTOR;
-> +		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +		switch(AUVI_INPUT(i).type) {
-> +		case AU0828_VMUX_COMPOSITE:
-> +			ent->type = MEDIA_ENT_T_CONN_COMPOSITE;
-> +			break;
-> +		case AU0828_VMUX_SVIDEO:
-> +			ent->type = MEDIA_ENT_T_CONN_SVIDEO;
-> +			break;
-> +		case AU0828_VMUX_CABLE:
-> +		case AU0828_VMUX_TELEVISION:
-> +		case AU0828_VMUX_DVB:
-> +			ent->type = MEDIA_ENT_T_CONN_RF;
-> +			break;
-> +		default: /* AU0828_VMUX_DEBUG */
-> +			ent->type = MEDIA_ENT_T_CONN_TEST;
-> +			break;
-> +		}
-> +
-> +		ret = media_entity_init(ent, 1, &dev->input_pad[i]);
-> +		if (ret < 0)
-> +			pr_err("failed to initialize input pad[%d]!\n", i);
-> +
-> +		ret = media_device_register_entity(dev->media_dev, ent);
-> +		if (ret < 0)
-> +			pr_err("failed to register input entity %d!\n", i);
-> +	}
-> +#endif
-> +}
-> +
->  /**************************************************************************/
->  
->  int au0828_analog_register(struct au0828_dev *dev,
-> @@ -1881,17 +1944,8 @@ int au0828_analog_register(struct au0828_dev *dev,
->  	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
->  	strcpy(dev->vbi_dev.name, "au0828a vbi");
->  
-> -#if defined(CONFIG_MEDIA_CONTROLLER)
-> -	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-> -	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
-> -	if (ret < 0)
-> -		pr_err("failed to initialize video media entity!\n");
-> -
-> -	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-> -	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
-> -	if (ret < 0)
-> -		pr_err("failed to initialize vbi media entity!\n");
-> -#endif
-> +	/* Init entities at the Media Controller */
-> +	au0828_analog_create_entities(dev);
->  
->  	/* initialize videobuf2 stuff */
->  	retval = au0828_vb2_setup(dev);
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index d3644b3fe6fa..b7940c54d006 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -93,7 +93,6 @@ struct au0828_board {
->  	unsigned char has_ir_i2c:1;
->  	unsigned char has_analog:1;
->  	struct au0828_input input[AU0828_MAX_INPUT];
-> -
->  };
->  
->  struct au0828_dvb {
-> @@ -281,6 +280,8 @@ struct au0828_dev {
->  	struct media_device *media_dev;
->  	struct media_pad video_pad, vbi_pad;
->  	struct media_entity *decoder;
-> +	struct media_entity input_ent[AU0828_MAX_INPUT];
-> +	struct media_pad input_pad[AU0828_MAX_INPUT];
->  #endif
->  };
->  
-> 
 
