@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42698 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752888AbbIKOA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:00:58 -0400
-Message-ID: <55F2DE52.6020906@xs4all.nl>
-Date: Fri, 11 Sep 2015 15:59:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version
- field
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <d7db0184f4c44eb84f54417c560f3e15bfa40b1c.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7db0184f4c44eb84f54417c560f3e15bfa40b1c.1441540862.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:53823 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752786AbbIFRbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 04/18] [media] media-device: supress backlinks at G_TOPOLOGY ioctl
+Date: Sun,  6 Sep 2015 14:30:47 -0300
+Message-Id: <7cc4f0ce2266e6300d349535e705941a190398e9.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> Every time a graph object is added or removed, the version
-> of the topology changes. That's a requirement for the new
-> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
-> that the topology has changed after a previous call to it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Due to the graph traversal algorithm currently in usage, we
+need a copy of all data links. Those backlinks should not be
+send to userspace, as otherwise, all links there will be
+duplicated.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 568553d41f5d..064515f2ba9b 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -185,6 +185,9 @@ void media_gobj_init(struct media_device *mdev,
->  		list_add_tail(&gobj->list, &mdev->interfaces);
->  		break;
->  	}
-> +
-> +	mdev->topology_version++;
-> +
->  	dev_dbg_obj(__func__, gobj);
->  }
->  
-> @@ -199,6 +202,8 @@ void media_gobj_remove(struct media_gobj *gobj)
->  {
->  	dev_dbg_obj(__func__, gobj);
->  
-> +	gobj->mdev->topology_version++;
-> +
->  	/* Remove the object from mdev list */
->  	list_del(&gobj->list);
->  }
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 0d1b9c687454..1b12774a9ab4 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -41,6 +41,8 @@ struct device;
->   * @bus_info:	Unique and stable device location identifier
->   * @hw_revision: Hardware device revision
->   * @driver_version: Device driver version
-> + * @topology_version: Monotonic counter for storing the version of the graph
-> + *		topology. Should be incremented each time the topology changes.
->   * @entity_id:	Unique ID used on the last entity registered
->   * @pad_id:	Unique ID used on the last pad registered
->   * @link_id:	Unique ID used on the last link registered
-> @@ -74,6 +76,8 @@ struct media_device {
->  	u32 hw_revision;
->  	u32 driver_version;
->  
-> +	u32 topology_version;
-> +
->  	u32 entity_id;
->  	u32 pad_id;
->  	u32 link_id;
-> 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 0238885fcc74..97eb97d9b662 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -333,6 +333,9 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 	/* Get links and number of links */
+ 	i = 0;
+ 	media_device_for_each_link(link, mdev) {
++		if (link->is_backlink)
++			continue;
++
+ 		i++;
+ 
+ 		if (ret || !topo->links)
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index cd4d767644df..4868b8269204 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -648,6 +648,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ 	backlink->source = &source->pads[source_pad];
+ 	backlink->sink = &sink->pads[sink_pad];
+ 	backlink->flags = flags;
++	backlink->is_backlink = true;
+ 
+ 	/* Initialize graph object embedded at the new link */
+ 	media_gobj_init(sink->graph_obj.mdev, MEDIA_GRAPH_LINK,
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index e1a89899deef..3d389f142a1d 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -96,6 +96,7 @@ struct media_pipeline {
+  * @reverse:	Pointer to the link for the reverse direction of a pad to pad
+  *		link.
+  * @flags:	Link flags, as defined at uapi/media.h (MEDIA_LNK_FL_*)
++ * @is_backlink: Indicate if the link is a backlink.
+  */
+ struct media_link {
+ 	struct media_gobj graph_obj;
+@@ -112,6 +113,7 @@ struct media_link {
+ 	};
+ 	struct media_link *reverse;
+ 	unsigned long flags;
++	bool is_backlink;
+ };
+ 
+ /**
+-- 
+2.4.3
+
 
