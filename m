@@ -1,105 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:34781 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758095AbbICSKd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 14:10:33 -0400
-Received: by wicfx3 with SMTP id fx3so28473068wic.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 11:10:32 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	hugues.fruchet@st.com
-Subject: [PATCH v5 4/6] [media] c8sectpfe: Update binding to reset-gpios
-Date: Thu,  3 Sep 2015 18:59:52 +0100
-Message-Id: <1441303194-28211-5-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
-References: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:50378 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752271AbbIFLrG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 07:47:06 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq functions
+Date: Sun,  6 Sep 2015 13:42:12 +0200
+Message-Id: <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-reset-gpios is more clear than rst-gpio.
+This moves the dma irq handling functions up in the source file, so that
+they are available before DMA preparation functions. It prepares the
+conversion to DMA engine, where the descriptors are populated with these
+functions as callbacks.
 
-This change has been done as one atomic commit but it
-does breaks compatability with older dtbs.
-
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
- Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
- arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Since v1: fixed prototypes change
+Since v4: refixed prototypes change
+---
+ drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-index d4def76..e70d840 100644
---- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-+++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-@@ -35,7 +35,7 @@ Required properties (tsin (child) node):
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index db041a5ed444..bb7054221a86 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+ 	return i + 1;
+ }
  
- - tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
- - i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
--- rst-gpio	: reset gpio for this tsin channel.
-+- reset-gpios	: reset gpio for this tsin channel.
++static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
++			       enum pxa_camera_active_dma act_dma);
++
++static void pxa_camera_dma_irq_y(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
++}
++
++static void pxa_camera_dma_irq_u(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(channel, pcdev, DMA_U);
++}
++
++static void pxa_camera_dma_irq_v(int channel, void *data)
++{
++	struct pxa_camera_dev *pcdev = data;
++
++	pxa_camera_dma_irq(channel, pcdev, DMA_V);
++}
++
+ /**
+  * pxa_init_dma_channel - init dma descriptors
+  * @pcdev: pxa camera device
+@@ -802,24 +826,6 @@ out:
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
  
- Optional properties (tsin (child) node):
- 
-@@ -75,7 +75,7 @@ Example:
- 			tsin-num		= <0>;
- 			serial-not-parallel;
- 			i2c-bus			= <&ssc2>;
--			rst-gpio		= <&pio15 4 0>;
-+			reset-gpios		= <&pio15 4 GPIO_ACTIVE_HIGH>;
- 			dvb-card		= <STV0367_TDA18212_NIMA_1>;
- 		};
- 
-@@ -83,7 +83,7 @@ Example:
- 			tsin-num		= <3>;
- 			serial-not-parallel;
- 			i2c-bus			= <&ssc3>;
--			rst-gpio		= <&pio15 7 0>;
-+			reset-gpios		= <&pio15 7 GPIO_ACTIVE_HIGH>;
- 			dvb-card		= <STV0367_TDA18212_NIMB_1>;
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index f9fca10..0b7592e 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -6,8 +6,8 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
+-static void pxa_camera_dma_irq_y(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+-}
 -
- #include <dt-bindings/clock/stih407-clks.h>
-+#include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/media/c8sectpfe.h>
- / {
- 	soc {
-@@ -116,7 +116,7 @@
- 				tsin-num	= <0>;
- 				serial-not-parallel;
- 				i2c-bus		= <&ssc2>;
--				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
-+				reset-gpios	= <&pio15 4 GPIO_ACTIVE_HIGH>;
- 				dvb-card	= <STV0367_TDA18212_NIMA_1>;
- 			};
- 		};
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index 3a91093..c691e13 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
- 		}
- 		of_node_put(i2c_bus);
- 
--		tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
-+		tsin->rst_gpio = of_get_named_gpio(child, "reset-gpios", 0);
- 
- 		ret = gpio_is_valid(tsin->rst_gpio);
- 		if (!ret) {
+-static void pxa_camera_dma_irq_u(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+-}
+-
+-static void pxa_camera_dma_irq_v(int channel, void *data)
+-{
+-	struct pxa_camera_dev *pcdev = data;
+-	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+-}
+-
+ static struct videobuf_queue_ops pxa_videobuf_ops = {
+ 	.buf_setup      = pxa_videobuf_setup,
+ 	.buf_prepare    = pxa_videobuf_prepare,
 -- 
-1.9.1
+2.1.4
 
