@@ -1,73 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14390 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752452AbbIKKLq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 06:11:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 5/9] media: Use entity enums in graph walk
-Date: Fri, 11 Sep 2015 13:09:08 +0300
-Message-Id: <1441966152-28444-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:53831 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752779AbbIFRbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 05/18] [media] media-controller: enable all interface links at init
+Date: Sun,  6 Sep 2015 14:30:48 -0300
+Message-Id: <2ddddaaaecbdbf624441793ca4c57e81530eaf05.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 10 +++++-----
- include/media/media-entity.h |  2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Interface links are normally enabled, meaning that the interfaces are
+bound to the entities. So, any ioctl send to the interface are reflected
+at the entities managed by the interface.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5526e8c..a4d6e1b 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -332,12 +332,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- {
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
--	bitmap_zero(graph->entities, MEDIA_ENTITY_MAX_LOW_ID);
-+	media_entity_enum_init(graph->entities);
- 
--	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_MAX_LOW_ID))
-+	if (WARN_ON(entity->low_id >= MEDIA_ENTITY_MAX_LOW_ID))
+However, when a device is usage, other interfaces for the same hardware
+could be decoupled from the entities linked to them, because the
+hardware may have some parts busy.
+
+That's for example, what happens when an hybrid TV device is in usage.
+If it is streaming analog TV or capturing signals from S-Video/Composite
+connectors, typically the digital part of the hardware can't be used and
+vice-versa.
+
+This is generally due to some internal hardware or firmware limitation,
+that it is not easily mapped via data pipelines.
+
+What the Kernel drivers do internally is that they decouple the hardware
+from the interface. So, all changes, if allowed, are done only at some
+interface cache, but not physically changed at the hardware.
+
+The usage is similar to the usage of the MEDIA_LNK_FL_ENABLED on data
+links. So, let's use the same flag to indicate if ether the interface
+to entity link is bound/enabled or not.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index a8e7e2398f7a..5c4fb41060b4 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -396,7 +396,8 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
+ 	if (!dvbdev->entity || !dvbdev->intf_devnode)
  		return;
  
--	__set_bit(media_entity_id(entity), graph->entities);
-+	media_entity_enum_set(graph->entities, entity);
- 	stack_push(graph, entity);
+-	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
++	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
++			       MEDIA_LNK_FL_ENABLED);
+ 
+ #endif
  }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -381,11 +381,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+@@ -583,20 +584,24 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
+ 	media_device_for_each_intf(intf, mdev) {
+ 		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
+-			media_create_intf_link(ca, intf, 0);
++			media_create_intf_link(ca, intf, MEDIA_LNK_FL_ENABLED);
  
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_MAX_LOW_ID))
-+		if (WARN_ON(entity->low_id >= MEDIA_ENTITY_MAX_LOW_ID))
- 			return NULL;
+ 		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
+-			media_create_intf_link(tuner, intf, 0);
++			media_create_intf_link(tuner, intf,
++					       MEDIA_LNK_FL_ENABLED);
  
- 		/* Has the entity already been visited? */
--		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
-+		if (media_entity_enum_test_and_set(graph->entities, next)) {
- 			link_top(graph) = link_top(graph)->next;
- 			continue;
+ 		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
+-			media_create_intf_link(demux, intf, 0);
++			media_create_intf_link(demux, intf,
++					       MEDIA_LNK_FL_ENABLED);
+ 
+ 		media_device_for_each_entity(entity, mdev) {
+ 			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
+ 				if (!strcmp(entity->name, DVR_TSOUT))
+-					media_create_intf_link(entity, intf, 0);
++					media_create_intf_link(entity, intf,
++							       MEDIA_LNK_FL_ENABLED);
+ 				if (!strcmp(entity->name, DEMUX_TSOUT))
+-					media_create_intf_link(entity, intf, 0);
++					media_create_intf_link(entity, intf,
++							       MEDIA_LNK_FL_ENABLED);
+ 				break;
+ 			}
  		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 95b1061..849ec4a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -370,7 +370,7 @@ struct media_entity_graph {
- 		struct list_head *link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 07123dd569c4..8429da66754a 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -788,7 +788,8 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 		struct media_link *link;
  
--	DECLARE_BITMAP(entities, MEDIA_ENTITY_MAX_LOW_ID);
-+	DECLARE_MEDIA_ENTITY_ENUM(entities);
- 	int top;
- };
+ 		link = media_create_intf_link(&vdev->entity,
+-					      &vdev->intf_devnode->intf, 0);
++					      &vdev->intf_devnode->intf,
++					      MEDIA_LNK_FL_ENABLED);
+ 		if (!link) {
+ 			media_devnode_remove(vdev->intf_devnode);
+ 			media_device_unregister_entity(&vdev->entity);
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index e788a085ba96..bb58d90fde5e 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -256,7 +256,7 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
  
+ 			link = media_create_intf_link(&sd->entity,
+ 						      &vdev->intf_devnode->intf,
+-						      0);
++						      MEDIA_LNK_FL_ENABLED);
+ 			if (!link)
+ 				goto clean_up;
+ 		}
 -- 
-2.1.0.231.g7484e3b
+2.4.3
+
 
