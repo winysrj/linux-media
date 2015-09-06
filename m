@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755359AbbIMU5Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:16 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, devicetree@vger.kernel.org
-Subject: [PATCH 07/32] v4l: vsp1: Support VSP1 instances without any UDS
-Date: Sun, 13 Sep 2015 23:56:45 +0300
-Message-Id: <1442177830-24536-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:54615 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbbIFMD4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:56 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v8 27/55] [media] dvbdev: add support for indirect interface links
+Date: Sun,  6 Sep 2015 09:02:55 -0300
+Message-Id: <e5ac39ceb04d99e20f956801d06c1e4a582ee694.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <2e77a279dd0e4cb7721766fafed79ed19a38cb7c.1440902901.git.mchehab@osg.samsung.com>
+References: <2e77a279dd0e4cb7721766fafed79ed19a38cb7c.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not all VSP1 instances include a UDS. Make the renesas,#uds DT property
-optional and accept a number of UDS equal to 0 as valid.
+Some interfaces indirectly control multiple entities.
+Add support for those.
 
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/renesas,vsp1.txt | 3 ++-
- drivers/media/platform/vsp1/vsp1_drv.c                   | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-index 87fe08abf36d..674c8c30d046 100644
---- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-+++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-@@ -13,12 +13,13 @@ Required properties:
-   - clocks: A phandle + clock-specifier pair for the VSP1 functional clock.
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 6bf61d42c017..ada0738d26f2 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -441,6 +441,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+ 	struct media_device *mdev = adap->mdev;
+ 	struct media_entity *entity, *tuner = NULL, *fe = NULL;
+ 	struct media_entity *demux = NULL, *dvr = NULL, *ca = NULL;
++	struct media_interface *intf;
  
-   - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
--  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
-   - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP1.
+ 	if (!mdev)
+ 		return;
+@@ -476,6 +477,16 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
  
- 
- Optional properties:
- 
-+  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1. Defaults
-+    to 0 if not present.
-   - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
-     available.
-   - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module is
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index de0b80e8d048..5f93cbdcb0f1 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -513,7 +513,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
- 		return -EINVAL;
- 	}
- 
--	if (pdata->uds_count <= 0 || pdata->uds_count > VSP1_MAX_UDS) {
-+	if (pdata->uds_count > VSP1_MAX_UDS) {
- 		dev_err(vsp1->dev, "invalid number of UDS (%u)\n",
- 			pdata->uds_count);
- 		return -EINVAL;
+ 	if (demux && ca)
+ 		media_create_pad_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
++
++	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
++	list_for_each_entry(intf, &mdev->interfaces, list) {
++		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
++			media_create_intf_link(ca, intf, 0);
++		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
++			media_create_intf_link(tuner, intf, 0);
++		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
++			media_create_intf_link(demux, intf, 0);
++	}
+ }
+ EXPORT_SYMBOL_GPL(dvb_create_media_graph);
+ #endif
 -- 
-2.4.6
+2.4.3
+
 
