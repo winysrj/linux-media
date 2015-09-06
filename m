@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:38197 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758066AbbICSK3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 14:10:29 -0400
-Received: by wiclk2 with SMTP id lk2so16905734wic.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 11:10:28 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	hugues.fruchet@st.com
-Subject: [PATCH v5 1/6] ARM: DT: STi: stihxxx-b2120: Add pulse-width properties to ssc2 & ssc3
-Date: Thu,  3 Sep 2015 18:59:49 +0100
-Message-Id: <1441303194-28211-2-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
-References: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:54634 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbbIFMD5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:57 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 43/55] [media] media: report if a pad is sink or source at debug msg
+Date: Sun,  6 Sep 2015 09:03:03 -0300
+Message-Id: <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <e1e261997cc156eb6f6839944431fb6dba0c814a.1440902901.git.mchehab@osg.samsung.com>
+References: <e1e261997cc156eb6f6839944431fb6dba0c814a.1440902901.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding these properties makes the I2C bus to the demodulators much
-more reliable, and we no longer suffer from I2C errors when tuning.
+Sometimes, it is important to see if the created pad is
+sink or source. Add info to track that.
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- arch/arm/boot/dts/stihxxx-b2120.dtsi | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index f589fe4..62994ae 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -27,12 +27,18 @@
- 			};
- 		};
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index d8038a53f945..6ed5eef88593 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+ 		struct media_pad *pad = gobj_to_pad(gobj);
  
--		i2c@9842000 {
-+		ssc2: i2c@9842000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
- 
--		i2c@9843000 {
-+		ssc3: i2c@9843000 {
- 			status = "okay";
-+			clock-frequency = <100000>;
-+			st,i2c-min-scl-pulse-width-us = <0>;
-+			st,i2c-min-sda-pulse-width-us = <5>;
- 		};
- 
- 		i2c@9844000 {
+ 		dev_dbg(gobj->mdev->dev,
+-			"%s: id 0x%08x pad#%d: '%s':%d\n",
+-			event_name, gobj->id, media_localid(gobj),
++			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
++			event_name, gobj->id,
++			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
++			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
++			media_localid(gobj),
+ 			pad->entity->name, pad->index);
+ 		break;
+ 	}
 -- 
-1.9.1
+2.4.3
+
 
