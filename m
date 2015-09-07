@@ -1,130 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:57541 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754661AbbIOPte (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:49:34 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 7/7] [RFC] [media] introduce v4l2_timespec type for timestamps
-Date: Tue, 15 Sep 2015 17:49:08 +0200
-Message-Id: <1442332148-488079-8-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442332148-488079-1-git-send-email-arnd@arndb.de>
-References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46696 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977AbbIGVtr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 17:49:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v6 2/8] [media] media: add a common struct to be embed on media graph objects
+Date: Tue, 08 Sep 2015 00:49:58 +0300
+Message-ID: <1533583.FbVB9fTcuR@avalon>
+In-Reply-To: <55D6DC48.3070406@xs4all.nl>
+References: <cover.1439981515.git.mchehab@osg.samsung.com> <1667127.681LBiMjnq@avalon> <55D6DC48.3070406@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2 event queue uses a 'struct timespec' to pass monotonic
-timestamps. This is not a problem by itself, but it breaks when user
-space redefines timespec to use 'long long' on 32-bit systems.
+Hi Hans,
 
-To avoid that problem, we define our own replacement for timespec here,
-using 'long' tv_sec and tv_nsec members. This means no change to the
-existing API, but lets us keep using it with a y2038 compatible libc.
+On Friday 21 August 2015 10:07:36 Hans Verkuil wrote:
+> On 08/21/2015 03:02 AM, Laurent Pinchart wrote:
+> > On Wednesday 19 August 2015 08:01:49 Mauro Carvalho Chehab wrote:
+> >> +/* Enums used internally at the media controller to represent graphs */
+> >> +
+> >> +/**
+> >> + * enum media_gobj_type - type of a graph element
+> > 
+> > Let's try to standardize the vocabulary, should it be called graph object
+> > or graph element ? In the first case let's document it as graph object.
+> > In the second case it would be more consistent to refer to it as enum
+> > media_gelem_type (and struct media_gelem below).
+> 
+> For what it is worth, I prefer the term graph object.
 
-As a side-effect, this changes the API for x32 programs to be the same
-as native 32-bit, using a 32-bit tv_sec/tv_nsec value, but both old and
-new kernels already support both formats for on the binary level for
-compat and x32.
+So do I.
 
-Alternatively, we could leave the header file to define the interface
-based on 'struct timespec', and implement both ioctls for native
-processes. I picked the approach in this case because it matches what
-we do for v4l2_timeval in the respective patch, but both would work
-equally well here.
+> >> + *
+> >> + */
+> >> +enum media_gobj_type {
+> >> +	 /* FIXME: add the types here, as we embed media_gobj */
+> >> +	MEDIA_GRAPH_NONE
+> >> +};
+> >> +
+> >> +#define MEDIA_BITS_PER_TYPE		8
+> >> +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
+> >> +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 
+0)
+> >> +
+> >> +/* Structs to represent the objects that belong to a media graph */
+> >> +
+> >> +/**
+> >> + * struct media_gobj - Define a graph object.
+> >> + *
+> >> + * @id:		Non-zero object ID identifier. The ID should be unique
+> >> + *		inside a media_device, as it is composed by
+> >> + *		MEDIA_BITS_PER_TYPE to store the type plus
+> >> + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+> >> + *		(called as "local ID").
+> > 
+> > I'd very much prefer using a single ID range and adding a type field.
+> > Abusing bits of the ID field to store the type will just makes IDs
+> > impractical to use. Let's do it properly.
+> 
+> Why is that impractical? I think it is more practical. Why waste memory on
+> something that is easy to encode in the ID?
+> 
+> I'm not necessarily opposed to splitting this up (Mauro's initial patch
+> series used a separate type field if I remember correctly), but it's not
+> clear to me what the benefits are. Keeping it in a single u32 makes
+> describing links also very easy since you just give it the two objects that
+> are linked and it is immediately clear which object types are linked: no
+> need to either store the types in the link struct or look up each object to
+> find the type.
+> 
+> >> + * All elements on the media graph should have this struct embedded
+> > 
+> > All elements (objects) or only the ones that need an ID ? Or maybe we'll
+> > define graph element (object) as an element (object) that has an ID,
+> > making some "elements" not elements.
+> 
+> Yes, all objects have an ID. I see no reason to special-case this.
+> 
+> You wrote this at 3 am, so you were probably sleep-deprived when you wrote
+> the second sentence as I can't wrap my head around that one :-)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/v4l2-core/v4l2-event.c | 20 +++++++++++++-------
- include/uapi/linux/videodev2.h       |  8 +++++++-
- 2 files changed, 20 insertions(+), 8 deletions(-)
+It's always 3:00am in some time zone, but it wasn't in Seattle ;-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index 8d3171c6bee8..2a26ad591f59 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -108,7 +108,7 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
- }
- 
- static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
--		const struct timespec *ts)
-+		const struct v4l2_timespec *ts)
- {
- 	struct v4l2_subscribed_event *sev;
- 	struct v4l2_kevent *kev;
-@@ -170,17 +170,20 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
- {
- 	struct v4l2_fh *fh;
- 	unsigned long flags;
--	struct timespec timestamp;
-+	struct timespec64 timestamp;
-+	struct v4l2_timespec vts;
- 
- 	if (vdev == NULL)
- 		return;
- 
--	ktime_get_ts(&timestamp);
-+	ktime_get_ts64(&timestamp);
-+	vts.tv_sec = timestamp.tv_sec;
-+	vts.tv_nsec = timestamp.tv_nsec;
- 
- 	spin_lock_irqsave(&vdev->fh_lock, flags);
- 
- 	list_for_each_entry(fh, &vdev->fh_list, list)
--		__v4l2_event_queue_fh(fh, ev, &timestamp);
-+		__v4l2_event_queue_fh(fh, ev, &vts);
- 
- 	spin_unlock_irqrestore(&vdev->fh_lock, flags);
- }
-@@ -189,12 +192,15 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue);
- void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
- {
- 	unsigned long flags;
--	struct timespec timestamp;
-+	struct timespec64 timestamp;
-+	struct v4l2_timespec vts;
- 
--	ktime_get_ts(&timestamp);
-+	ktime_get_ts64(&timestamp);
-+	vts.tv_sec = timestamp.tv_sec;
-+	vts.tv_nsec = timestamp.tv_nsec;
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
--	__v4l2_event_queue_fh(fh, ev, &timestamp);
-+	__v4l2_event_queue_fh(fh, ev, &vts);
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index b02cf054fbb8..bc659be87260 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -809,6 +809,12 @@ struct v4l2_timeval {
- 	long tv_usec;
- };
- 
-+/* used for monotonic times, therefore y2038 safe */
-+struct v4l2_timespec {
-+	long tv_sec;
-+	long tv_nsec;
-+};
-+
- /**
-  * struct v4l2_buffer - video buffer info
-  * @index:	id number of the buffer
-@@ -2088,7 +2094,7 @@ struct v4l2_event {
- 	} u;
- 	__u32				pending;
- 	__u32				sequence;
--	struct timespec			timestamp;
-+	struct v4l2_timespec		timestamp;
- 	__u32				id;
- 	__u32				reserved[8];
- };
+The question was whether every element is required to have an ID. If some of 
+what we currently call element doesn't need an ID, then we'll have to either 
+modify the quoted documentation, or redefine "element" to only include the 
+elements that have an ID, making the graph objects that don't have an ID not 
+"elements".
+
+> >> + */
+> >> +struct media_gobj {
+> >> +	u32			id;
+> >> +};
+
 -- 
-2.1.0.rc2
+Regards,
 
+Laurent Pinchart
