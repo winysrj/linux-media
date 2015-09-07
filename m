@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53824 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752820AbbIFRbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:35 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:61895 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbbIGNpJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 09:45:09 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 18/18] [media] dvbdev: Don't create indirect links
-Date: Sun,  6 Sep 2015 14:31:01 -0300
-Message-Id: <2460617268cac8bbabad0db7372914379f7c8644.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
+Subject: [PATCHv9 02/15] dts: exynos4: add node for the HDMI CEC device
+Date: Mon,  7 Sep 2015 15:44:31 +0200
+Message-Id: <ab218941e8afa17b82c2c6893f69f89c3cac5308.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Indirect links are those whose the interface indirectly controls
-other functions.
+From: Kamil Debski <kamil@wypas.org>
 
-There are two interfaces that have indirect controls at the DVB
-side:
-- the network interface, with also controls the demux;
-- the DVR interface with also controls the demux.
+This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
 
-One could argue that the frontend control to the tuner is indirect.
-Well, that's debateable. There's no way to create subdef interfaces
-for tuner and demod, as those devices are tightly coupled. So, it
-was decided that just one interface is the best to control both
-entities, and there's no plan (or easy way) to decouple both. So,
-the DVB frontend interface should link to both entities.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index ea76fe54e0e4..e9f24c1479dd 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -619,7 +619,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 		}
- 	}
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index b0d52b1..0d5319e 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -719,6 +719,18 @@
+ 		status = "disabled";
+ 	};
  
--	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
-+	/* Create interface links for FE->tuner, DVR->demux and CA->ca */
- 	media_device_for_each_intf(intf, mdev) {
- 		if (intf->type == MEDIA_INTF_T_DVB_CA && ca) {
- 			link = media_create_intf_link(ca, intf,
-@@ -634,13 +634,19 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 			if (!link)
- 				return -ENOMEM;
- 		}
--
-+#if 0
-+		/*
-+		 * Indirect link - let's not create yet, as we don't know how
-+		 *		   to handle indirect links, nor if this will
-+		 *		   actually be needed.
-+		 */
- 		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux) {
- 			link = media_create_intf_link(demux, intf,
- 						      MEDIA_LNK_FL_ENABLED);
- 			if (!link)
- 				return -ENOMEM;
- 		}
-+#endif
- 		if (intf->type == MEDIA_INTF_T_DVB_DVR) {
- 			ret = dvb_create_io_intf_links(adap, intf, DVR_TSOUT);
- 			if (ret)
++	hdmicec: cec@100B0000 {
++		compatible = "samsung,s5p-cec";
++		reg = <0x100B0000 0x200>;
++		interrupts = <0 114 0>;
++		clocks = <&clock CLK_HDMI_CEC>;
++		clock-names = "hdmicec";
++		samsung,syscon-phandle = <&pmu_system_controller>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmi_cec>;
++		status = "disabled";
++	};
++
+ 	mixer: mixer@12C10000 {
+ 		compatible = "samsung,exynos4210-mixer";
+ 		interrupts = <0 91 0>;
 -- 
-2.4.3
-
+2.1.4
 
