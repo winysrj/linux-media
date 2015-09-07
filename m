@@ -1,58 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:51875 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbbIOPte (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:49:34 -0400
-From: Arnd Bergmann <arnd@arndb.de>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:39474 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050AbbIGNpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 09:45:11 -0400
+From: Hans Verkuil <hansverk@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 3/7] [media] dvb: don't use 'time_t' in event ioctl
-Date: Tue, 15 Sep 2015 17:49:04 +0200
-Message-Id: <1442332148-488079-4-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442332148-488079-1-git-send-email-arnd@arndb.de>
-References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv9 05/15] HID: add HDMI CEC specific keycodes
+Date: Mon,  7 Sep 2015 15:44:34 +0200
+Message-Id: <43c01f85d2ab18f39584bf68d779fa10bfa20674.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'struct video_event' is used for the VIDEO_GET_EVENT ioctl, implemented
-by drivers/media/pci/ivtv/ivtv-ioctl.c and
-drivers/media/pci/ttpci/av7110_av.c. The structure contains a 'time_t',
-which will be redefined in the future to be 64-bit wide, causing an
-incompatible ABI change for this ioctl.
+From: Kamil Debski <kamil@wypas.org>
 
-As it turns out, neither of the drivers currently sets the timestamp
-field, and it is presumably useless anyway because of the limited
-resolutions (no sub-second times). This means we can simply change
-the structure definition to use a 'long' instead of 'time_t' and
-remain compatible with all existing user space binaries when time_t
-gets changed.
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-If anybody ever starts using this field, they have to make sure not
-to use 1970 based seconds in there, as those overflow in 2038.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/dvb/video.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/uapi/linux/input.h | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
-index d3d14a59d2d5..6c7f9298d7c2 100644
---- a/include/uapi/linux/dvb/video.h
-+++ b/include/uapi/linux/dvb/video.h
-@@ -135,7 +135,8 @@ struct video_event {
- #define VIDEO_EVENT_FRAME_RATE_CHANGED	2
- #define VIDEO_EVENT_DECODER_STOPPED 	3
- #define VIDEO_EVENT_VSYNC 		4
--	__kernel_time_t timestamp;
-+	/* unused, make sure to use atomic time for y2038 if it ever gets used */
-+	long timestamp;
- 	union {
- 		video_size_t size;
- 		unsigned int frame_rate;	/* in frames per 1000sec */
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index a32bff1..5e7019a 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -752,6 +752,34 @@ struct input_keymap_entry {
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
+ 
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
++#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
++#define KEY_NUMERIC_11			0x26c
++#define KEY_NUMERIC_12			0x26d
++/*
++ * Toggle Audio Description: refers to an audio service that helps blind and
++ * visually impaired consumers understand the action in a program. Note: in
++ * some countries this is referred to as "Video Description".
++ */
++#define KEY_AUDIO_DESC			0x26e
++#define KEY_3D_MODE			0x26f
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273 /* Video on Demand */
++#define KEY_UNMUTE			0x274
++#define KEY_FASTREVERSE			0x275
++#define KEY_SLOWREVERSE			0x276
++/*
++ * Control a data application associated with the currently viewed channel,
++ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
++ */
++#define KEY_DATA			0x275
++
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
 -- 
-2.1.0.rc2
+2.1.4
 
