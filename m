@@ -1,107 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:34154 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214AbbIAJQH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 05:16:07 -0400
-Received: by qgtt94 with SMTP id t94so37807481qgt.1
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 02:16:07 -0700 (PDT)
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:34324 "EHLO
+	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953AbbIGSV3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 14:21:29 -0400
+Received: by oiev17 with SMTP id v17so47100819oie.1
+        for <linux-media@vger.kernel.org>; Mon, 07 Sep 2015 11:21:29 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20150901090916.GM4796@x1>
-References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
-	<1440784362-31217-5-git-send-email-peter.griffin@linaro.org>
-	<CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
-	<20150901090916.GM4796@x1>
-Date: Tue, 1 Sep 2015 11:16:05 +0200
-Message-ID: <CABxcv==iC+mkVGKi_9LSidPjFa2WTooARMCOcWW1Nyr80UYJgw@mail.gmail.com>
-Subject: Re: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Peter Griffin <peter.griffin@linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
+In-Reply-To: <55CDDBFE.3020905@xs4all.nl>
+References: <cover.1438891530.git.helen.fornazier@gmail.com>
+ <e3c80eb0aebe828d2df72be9971ad720f439bb71.1438891530.git.helen.fornazier@gmail.com>
+ <55CDDBFE.3020905@xs4all.nl>
+From: Helen Fornazier <helen.fornazier@gmail.com>
+Date: Mon, 7 Sep 2015 15:21:09 -0300
+Message-ID: <CAPW4XYbpiUZ7=vHdODQypfv2CygJ=nkMMCvkYA8o=8ONs_JMeQ@mail.gmail.com>
+Subject: Re: [PATCH 2/7] [media] vimc: sen: Integrate the tpg on the sensor
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Lee,
+Hi, thank you all for your review
 
-On Tue, Sep 1, 2015 at 11:09 AM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Tue, 01 Sep 2015, Javier Martinez Canillas wrote:
->> On Fri, Aug 28, 2015 at 7:52 PM, Peter Griffin <peter.griffin@linaro.org> wrote:
->> > gpio.txt documents that GPIO properties should be named
->> > "[<name>-]gpios", with <name> being the purpose of this
->> > GPIO for the device.
->> >
->> > This change has been done as one atomic commit.
->> >
->> > Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
->> > Acked-by: Lee Jones <lee.jones@linaro.org>
->> > ---
->> >  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
->> >  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
->> >  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
->> >  3 files changed, 6 insertions(+), 6 deletions(-)
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> > index d4def76..e70d840 100644
->> > --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> > +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> > @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
->> >
->> >  - tsin-num     : tsin id of the InputBlock (must be between 0 to 6)
->> >  - i2c-bus      : phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
->> > -- rst-gpio     : reset gpio for this tsin channel.
->> > +- reset-gpios  : reset gpio for this tsin channel.
+On Fri, Aug 14, 2015 at 9:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 08/06/2015 10:26 PM, Helen Fornazier wrote:
+>> Initialize the test pattern generator on the sensor
+>> Generate a colored bar image instead of a grey one
+>
+> You don't want to put the tpg in every sensor and have all the blocks in
+> between process the video. This is all virtual, so all that is necessary
+> is to put the tpg in every DMA engine (video node) but have the subdevs
+> modify the tpg setting when you start the pipeline.
+>
+> So the source would set the width/height to the sensor resolution, and it
+> will initialize the crop/compose rectangles. Every other entity in the
+> pipeline will continue modifying according to what they do. E.g. a scaler
+> will just change the compose rectangle.
+>
+> When you start streaming the tpg will generate the image based on all those
+> settings as if all the entities would actually do the work.
+>
+> Of course, this assumes the processing the entities do map to what the tpg
+> can do, but that's true for vimc.
+>
+> An additional advantage is that the entities can use a wide range of
+> mediabus formats since the tpg can generate basically anything. Implementing
+> multiplanar is similarly easy. This would be much harder if you had to write
+> the image processing code for the entities since you'd either have to support
+> lots of different formats (impractical) or limit yourself to just a few.
+>
 >>
->> The documentation is a bit outdated, the GPIO subsystem supports both
->> -gpio and -gpios, see commit:
+>> Signed-off-by: Helen Fornazier <helen.fornazier@gmail.com>
+>> ---
+>>  drivers/media/platform/vimc/Kconfig       |  1 +
+>>  drivers/media/platform/vimc/vimc-sensor.c | 44 +++++++++++++++++++++++++++++--
+>>  2 files changed, 43 insertions(+), 2 deletions(-)
 >>
->> dd34c37aa3e8 ("gpio: of: Allow -gpio suffix for property names")
+>> diff --git a/drivers/media/platform/vimc/Kconfig b/drivers/media/platform/vimc/Kconfig
+>> index 81279f4..7cf7e84 100644
+>> --- a/drivers/media/platform/vimc/Kconfig
+>> +++ b/drivers/media/platform/vimc/Kconfig
+>> @@ -1,6 +1,7 @@
+>>  config VIDEO_VIMC
+>>       tristate "Virtual Media Controller Driver (VIMC)"
+>>       select VIDEO_V4L2_SUBDEV_API
+>> +     select VIDEO_TPG
+>>       default n
+>>       ---help---
+>>         Skeleton driver for Virtual Media Controller
+>> diff --git a/drivers/media/platform/vimc/vimc-sensor.c b/drivers/media/platform/vimc/vimc-sensor.c
+>> index d613792..a2879ad 100644
+>> --- a/drivers/media/platform/vimc/vimc-sensor.c
+>> +++ b/drivers/media/platform/vimc/vimc-sensor.c
+>> @@ -16,15 +16,19 @@
+>>   */
 >>
->> So it makes sense to me to use -gpio instead of -gpios in this case
->> since is a single GPIO. Also rst is already a descriptive name since
->> that's how many datasheets name a reset pin. I'm not saying I'm
->> against this patch, just pointing out since the commit message is a
->> bit misleading.
+>>  #include <linux/freezer.h>
+>> +#include <media/tpg.h>
+>>  #include <linux/vmalloc.h>
+>>  #include <linux/v4l2-mediabus.h>
+>>  #include <media/v4l2-subdev.h>
+>>
+>>  #include "vimc-sensor.h"
+>>
+>> +#define VIMC_SEN_FRAME_MAX_WIDTH 4096
+>> +
+>>  struct vimc_sen_device {
+>>       struct vimc_ent_device ved;
+>>       struct v4l2_subdev sd;
+>> +     struct tpg_data tpg;
+>>       struct v4l2_device *v4l2_dev;
+>>       struct device *dev;
+>>       struct task_struct *kthread_sen;
+>> @@ -87,6 +91,29 @@ static int vimc_sen_get_fmt(struct v4l2_subdev *sd,
+>>       return 0;
+>>  }
+>>
+>> +static void vimc_sen_tpg_s_format(struct vimc_sen_device *vsen)
+>> +{
+>> +     const struct vimc_pix_map *vpix;
+>> +
+>> +     vpix = vimc_pix_map_by_code(vsen->mbus_format.code);
+>> +     /* This should never be NULL, as we won't allow any format other then
+>> +      * the ones in the vimc_pix_map_list table */
+>> +     BUG_ON(!vpix);
+>> +
+>> +     tpg_s_bytesperline(&vsen->tpg, 0,
+>> +                        vsen->mbus_format.width * vpix->bpp);
+>> +     tpg_s_buf_height(&vsen->tpg, vsen->mbus_format.height);
+>> +     tpg_s_fourcc(&vsen->tpg, vpix->pixelformat);
+>> +     /* TODO: check why the tpg_s_field need this third argument if
+>> +      * it is already receiving the field */
+>> +     tpg_s_field(&vsen->tpg, vsen->mbus_format.field,
+>> +                 vsen->mbus_format.field == V4L2_FIELD_ALTERNATE);
 >
-> As I suggested this patch, I feel I must comment.
+> Actually the second argument argument cannot be FIELD_ALTERNATE. If it
+> is field ALTERNATE, then the second argument must be either FIELD_TOP or
+> FIELD_BOTTOM: i.e. it tells the generator which field comes first in the
+> FIELD_ALTERNATE case.
 >
-> My order of preference would be:
+> And in case you are wondering: it's always FIELD_TOP except for 60 Hz SDTV
+> formats where it is FIELD_BOTTOM.
+
+I am not really familiar to SDTV, but it seems to me to be a different
+structure API. Thus can I put FIELD_TOP directly in the second
+argument?
+
+tpg_s_field(&vsen->tpg, V4L2_FIELD_TOP,
+        vsen->mbus_format.field == V4L2_FIELD_ALTERNATE);
+
+Or is there a way to check if the format is SDTV? I didn't find it
+defined on V4L2_PIX_FMT_
+
 >
->  reset-gpio
->  reset-gpios
->  rst-gpio
->  rst-gpios
+>> +     tpg_s_colorspace(&vsen->tpg, vsen->mbus_format.colorspace);
+>> +     tpg_s_ycbcr_enc(&vsen->tpg, vsen->mbus_format.ycbcr_enc);
+>> +     tpg_s_quantization(&vsen->tpg, vsen->mbus_format.quantization);
+>> +     tpg_s_xfer_func(&vsen->tpg, vsen->mbus_format.xfer_func);
+>> +}
+>> +
+>>  static const struct v4l2_subdev_pad_ops vimc_sen_pad_ops = {
+>>       .enum_mbus_code         = vimc_sen_enum_mbus_code,
+>>       .enum_frame_size        = vimc_sen_enum_frame_size,
+>> @@ -112,7 +139,7 @@ static int vimc_thread_sen(void *data)
+>>               if (kthread_should_stop())
+>>                       break;
+>>
+>> -             memset(vsen->frame, 100, vsen->frame_size);
+>> +             tpg_fill_plane_buffer(&vsen->tpg, V4L2_STD_PAL, 0, vsen->frame);
+>>
+>>               /* Send the frame to all source pads */
+>>               for (i = 0; i < vsen->sd.entity.num_pads; i++)
+>> @@ -192,6 +219,7 @@ static void vimc_sen_destroy(struct vimc_ent_device *ved)
+>>       struct vimc_sen_device *vsen = container_of(ved,
+>>                                               struct vimc_sen_device, ved);
+>>
+>> +     tpg_free(&vsen->tpg);
+>>       media_entity_cleanup(ved->ent);
+>>       v4l2_device_unregister_subdev(&vsen->sd);
+>>       kfree(vsen);
+>> @@ -242,6 +270,16 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+>>       vsen->mbus_format.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+>>       vsen->mbus_format.xfer_func = V4L2_XFER_FUNC_SRGB;
+>>
+>> +     /* Initialize the test pattern generator */
+>> +     tpg_init(&vsen->tpg, vsen->mbus_format.width,
+>> +              vsen->mbus_format.height);
+>> +     ret = tpg_alloc(&vsen->tpg, VIMC_SEN_FRAME_MAX_WIDTH);
+>> +     if (ret)
+>> +             goto err_clean_m_ent;
+>> +
+>> +     /* Configure the tpg */
+>> +     vimc_sen_tpg_s_format(vsen);
+>> +
+>>       /* Fill the vimc_ent_device struct */
+>>       vsen->ved.destroy = vimc_sen_destroy;
+>>       vsen->ved.ent = &vsen->sd.entity;
+>> @@ -261,11 +299,13 @@ struct vimc_ent_device *vimc_sen_create(struct v4l2_device *v4l2_dev,
+>>       if (ret) {
+>>               dev_err(vsen->dev,
+>>                       "subdev register failed (err=%d)\n", ret);
+>> -             goto err_clean_m_ent;
+>> +             goto err_free_tpg;
+>>       }
+>>
+>>       return &vsen->ved;
+>>
+>> +err_free_tpg:
+>> +     tpg_free(&vsen->tpg);
+>>  err_clean_m_ent:
+>>       media_entity_cleanup(&vsen->sd.entity);
+>>  err_clean_pads:
+>>
 >
-> This current patch is No2, so it's okay to stay IMHO.
+> Regards,
 >
+>         Hans
 
-If the property is being changed anyways, why not going with No1 then?
 
-As I said, I'm not against the patch but I think the commit message
-has to be reworded since implies that the problem is that the -gpio
-sufix is being used instead of -gpios. But since both are supported by
-the GPIO subsystem, the commit should mention that "reset" is more
-clear and easier to read than "rst" or something along those lines.
 
-BTW, I just posted a patch for the GPIO doc to mention that -gpio is
-also supported:
-
-https://patchwork.kernel.org/patch/7103761/
-
-> --
-> Lee Jones
-> Linaro STMicroelectronics Landing Team Lead
-> Linaro.org │ Open source software for ARM SoCs
-> Follow Linaro: Facebook | Twitter | Blog
-
-Best regards,
-Javier
+-- 
+Helen Fornazier
