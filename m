@@ -1,111 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57844 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:34667 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751862AbbIAXFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 19:05:02 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] vivid: sdr cap: few enhancements
-Date: Wed,  2 Sep 2015 02:04:51 +0300
-Message-Id: <1441148691-8799-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1441148691-8799-1-git-send-email-crope@iki.fi>
-References: <1441148691-8799-1-git-send-email-crope@iki.fi>
+	id S1750752AbbIGL5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Sep 2015 07:57:51 -0400
+Date: Mon, 7 Sep 2015 08:57:46 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Ronald Tallent <ron@tallent.ws>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Call for help: em28xx: new board id [1f4d:1abe]
+Message-ID: <20150907085746.4fac0033@recife.lan>
+In-Reply-To: <1441583930.27835.25.camel@Amy>
+References: <1441567008.5526.8.camel@Amy>
+	<20150906165354.7f6f0c96@recife.lan>
+	<1441583930.27835.25.camel@Amy>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Constify struct
+Em Sun, 06 Sep 2015 18:58:50 -0500
+Ronald Tallent <ron@tallent.ws> escreveu:
 
-* Fix comments
+> Hey Mauro,
+> 
+> Thanks for the reply. Relieved to know I'm not invisible. =)
+> 
+> I'm a total noob to linux driver issues, so if I'm  posting this in the
+> wrong area, please forgive me. I only posted here because this is where
+> linuxtv.org said to go to ask for help. Until now all my hardware has
+> just worked. So big thanks to all the people who made that happen! But
+> this EasyCap board is kind of kicking my butt.
+> 
+> You are correct, when I plug this USB device in video capture device is
+> not detected and so does not work. As I understand it, all the drivers
+> needed to make this Easycap work in linux already exist and are used by
+> various forms of Easycap devices already.
+> 
+> The em2860 USB video bridge chip should be supported by the "em28xx"
+> kernel modules, and the Trident SAA7115H chip should be supported by the
+> "saa7115" module. My best guess is that the card vendor:product id
+> [1f4d:1abe] is simply not "attached" to those drivers or known by those
+> drivers so when I plug this USB device in, video drivers are not loaded.
+> But my assessment of the situation might be completely off here.
+> 
+> Couple questions...
+> 
+> First, if nobody know what to do with the information I've posted, why
+> does linuxtv.org/wiki instruct me to post this information here, exactly
+> this way? Not a big issue really, just quite confusing.
 
-* Fix alignment
+Feel free to improve the documentation ;)
+Just remember that the documentation there should be generic enough for
+people having different boards, specially if you're looking into a
+generic section of the Wiki.
 
-* Use modulus to transfer phase angles
+> Secondly, if all the drivers already exist, what do I need to do to get
+> them to "attach" to my hardware? 
 
-* Correct float [-1.0, +1.0] to s8 [-128, 127] conversion
+Because of two things:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/platform/vivid/vivid-sdr-cap.c | 31 +++++++++++-----------------
- 1 file changed, 12 insertions(+), 19 deletions(-)
+- the USB ID is used to identify the driver that will be used. If
+  the driver doesn't know the USB ID, it won't be loaded.
 
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index c36b3f5..fcbf498 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -41,7 +41,7 @@ struct vivid_format {
- };
- 
- /* format descriptions for capture and preview */
--static struct vivid_format formats[] = {
-+static const struct vivid_format formats[] = {
- 	{
- 		.pixelformat	= V4L2_SDR_FMT_CU8,
- 		.buffersize	= SDR_CAP_SAMPLES_PER_BUF * 2,
-@@ -502,16 +502,10 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- 	s32 fixp_i;
- 	s32 fixp_q;
- 
--	/*
--	 * TODO: Generated beep tone goes very crackly when sample rate is
--	 * increased to ~1Msps or more. That is because of huge rounding error
--	 * of phase angle caused by used cosine implementation.
--	 */
--
- 	/* calculate phase step */
- 	#define BEEP_FREQ 1000 /* 1kHz beep */
- 	src_phase_step = DIV_ROUND_CLOSEST(FIXP_2PI * BEEP_FREQ,
--			dev->sdr_adc_freq);
-+					   dev->sdr_adc_freq);
- 
- 	for (i = 0; i < plane_size; i += 2) {
- 		mod_phase_step = fixp_cos32_rad(dev->sdr_fixp_src_phase,
-@@ -522,17 +516,15 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		dev->sdr_fixp_mod_phase += div_s64(s64tmp, M_100000PI);
- 
- 		/*
--		 * Transfer phases to [0 / 2xPI] in order to avoid variable
-+		 * Transfer phase agle to [0, 2xPI] in order to avoid variable
- 		 * overflow and make it suitable for cosine implementation
- 		 * used, which does not support negative angles.
- 		 */
--		while (dev->sdr_fixp_mod_phase < FIXP_2PI)
--			dev->sdr_fixp_mod_phase += FIXP_2PI;
--		while (dev->sdr_fixp_mod_phase > FIXP_2PI)
--			dev->sdr_fixp_mod_phase -= FIXP_2PI;
-+		dev->sdr_fixp_src_phase %= FIXP_2PI;
-+		dev->sdr_fixp_mod_phase %= FIXP_2PI;
- 
--		while (dev->sdr_fixp_src_phase > FIXP_2PI)
--			dev->sdr_fixp_src_phase -= FIXP_2PI;
-+		if (dev->sdr_fixp_mod_phase < 0)
-+			dev->sdr_fixp_mod_phase += FIXP_2PI;
- 
- 		fixp_i = fixp_cos32_rad(dev->sdr_fixp_mod_phase, FIXP_2PI);
- 		fixp_q = fixp_sin32_rad(dev->sdr_fixp_mod_phase, FIXP_2PI);
-@@ -544,7 +536,7 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- 
- 		switch (dev->sdr_pixelformat) {
- 		case V4L2_SDR_FMT_CU8:
--			/* convert 'fixp float' to u8 */
-+			/* convert 'fixp float' to u8 [0, +255] */
- 			/* u8 = X * 127.5 + 127.5; X is float [-1.0, +1.0] */
- 			fixp_i = fixp_i * 1275 + FIXP_FRAC * 1275;
- 			fixp_q = fixp_q * 1275 + FIXP_FRAC * 1275;
-@@ -552,9 +544,10 @@ void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- 			*vbuf++ = DIV_ROUND_CLOSEST(fixp_q, FIXP_FRAC * 10);
- 			break;
- 		case V4L2_SDR_FMT_CS8:
--			/* convert 'fixp float' to s8 */
--			fixp_i = fixp_i * 1275;
--			fixp_q = fixp_q * 1275;
-+			/* convert 'fixp float' to s8 [-128, +127] */
-+			/* s8 = X * 127.5 - 0.5; X is float [-1.0, +1.0] */
-+			fixp_i = fixp_i * 1275 - FIXP_FRAC * 5;
-+			fixp_q = fixp_q * 1275 - FIXP_FRAC * 5;
- 			*vbuf++ = DIV_ROUND_CLOSEST(fixp_i, FIXP_FRAC * 10);
- 			*vbuf++ = DIV_ROUND_CLOSEST(fixp_q, FIXP_FRAC * 10);
- 			break;
--- 
-http://palosaari.fi/
+- each hardware is wired on a different way. The saa7113 have 4 different
+  video inputs (if I remember correctly). Also, there are several pins used
+  on most video hardware called GPIO. They're used to power on and reset the
+  other devices. The power on/reset sequence is board-specific.
 
+> Is there some place I can go to learn
+> how to do that fairly quickly? Is anyone in this board knowledgeable
+> about how that can easily be done? I am competent enough with linux that
+> I can perform the steps necessary if I know what those steps are. This
+> is new territory for me though.
+
+Wiki is your friend. Also look at other posts on the ML from other
+people that had to do the same.
+
+> 
+> Any help anyone can offer would be greatly appreciated! =)
+> 
+> Thanks,
+> --Ronald
+> 
+> 
+> 
+> On Sun, 2015-09-06 at 16:53 -0300, Mauro Carvalho Chehab wrote:
+> > Hi Ronald,
+> > 
+> > Well, probably nobody knows what to do with that ;)
+> > 
+> > If I understood well your post, video didn't work, right?
+> > 
+> > So, either you or someone else with the same hardware as you have would
+> > need to make it work and send a patch to the mailing list adding support
+> > for this new ID.
+> > 
+> > Probably, it is just either a GPIO or the video input that it is wrong.
+> > In order to fix it, you would either need some help from the manufacturer
+> > or to sniff the USB message exchanges from the original driver and check
+> > the settings for saa7113 and em28xx. The wiki has some info about how
+> > to do it.
+> > 
+> > Regards,
+> > Mauro
+> > 
+> > 
+> > Em Sun, 06 Sep 2015 14:16:48 -0500
+> > Ronald Tallent <ron@tallent.ws> escreveu:
+> > 
+> > > Hi, 
+> > > 
+> > > This is my third attempt to post this information to mailing list in a
+> > > little over a week. Am I invisible? Can nobody see my messages? I have
+> > > precisely followed the instructions posted on
+> > > linuxtv.org/wiki/index.php/Em28xx_devices#How_to_validate_my_vendor.2Fproduct_id_at_upstream_kernel.3F
+> > > trying to get my hardware validated. What else do I need to do?  Can
+> > > someone answer please and help me. 
+> > > 
+> > > Thanks,
+> > > --Ronald
+> > > 
+> > > 
+> > > I've tested my USB easycap device (Geniatech iGrabber) in Ubuntu
+> > > 14.04.
+> > > 
+> > > Make: Geniatech
+> > > Model: iGrabber for MAC
+> > > Vendor/Product ID: [1f4d:1abe]
+> > > Product website: www.geniatech.com/pa/igrabber.asp
+> > > 
+> > > Tests Made:
+> > > - Audio Capture [worked]
+> > > - Video Capture [device not detected]
+> > > - DVB [does not have DVB]
+> > > 
+> > > Tested by:
+> > > ron@tallent.ws
+> > > 
+> > > 
+> > > Detailed information on device and system below for reference:
+> > > 
+> > > uname -a:
+> > > 3.13.0-62-generic #102-Ubuntu SMP Tue Aug 11 14:29:36 UTC 2015 x86_64 
+> > > x86_64 x86_64 GNU/Linux
+> > > 
+> > > dmesg:
+> > > [] usb 3-3.3: new high-speed USB device number 8 using xhci_hcd
+> > > [] usb 3-3.3: New USB device found, idVendor=1f4d, idProduct=1abe
+> > > [] usb 3-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+> > > [] usb 3-3.3: Product: USB Device
+> > > [] usbcore: registered new interface driver snd-usb-audio
+> > > 
+> > > lsusb:
+> > > Bus 003 Device 008: ID 1f4d:1abe G-Tek Electronics Group 
+> > > 
+> > > Hardware: 
+> > > Opened the case and found the following text printed on the board:
+> > >    HandyCap
+> > >    v1.51
+> > >    2007-4-24
+> > > 
+> > > Three chips on board are:
+> > > 1: empia
+> > >    EM2860
+> > >    P8367-010
+> > >    201036-01AG
+> > > 
+> > > 2: Trident
+> > >    SAA7113H
+> > >    C2P409.00 02
+> > >    A5G11152
+> > > 
+> > > 3: eMPIA
+> > >    Technology
+> > >    EMP202
+> > >    UT11958
+> > >    1027
+> > > 
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
