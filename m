@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yyz01.teckelworks.net ([208.76.111.99]:40089 "EHLO
-	yyz01.teckelworks.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226AbbIIDC3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2015 23:02:29 -0400
-Received: from localhost.localdomain ([127.0.0.1]:58737 helo=yyz01.teckelworks.net)
-	by yyz01.teckelworks.net with esmtpa (Exim 4.85)
-	(envelope-from <doug@stradm.com>)
-	id 1ZZUZV-0006mL-Cc
-	for linux-media@vger.kernel.org; Tue, 08 Sep 2015 21:53:13 -0400
-Message-ID: <50eea204c270be3e44867576216677a0.squirrel@yyz01.teckelworks.net>
-Date: Tue, 8 Sep 2015 21:53:13 -0400
-Subject: V4L2 Overlay to reserved memory??
-From: "Douglas Renton" <doug@stradm.com>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:29257 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022AbbIGNpJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Sep 2015 09:45:09 -0400
+From: Hans Verkuil <hansverk@cisco.com>
 To: linux-media@vger.kernel.org
-Reply-To: doug@stradm.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Cc: dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, linux@arm.linux.org.uk,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv9 03/15] dts: exynos4412-odroid*: enable the HDMI CEC device
+Date: Mon,  7 Sep 2015 15:44:32 +0200
+Message-Id: <fb1766e40e5038e0071800d3635c42787df8dca2.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
+In-Reply-To: <cover.1441633456.git.hansverk@cisco.com>
+References: <cover.1441633456.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-  I am trying to port some code I wrote for V4l to V4L2.
-  What I am trying to do is "overlay" video in memory instead of to a
-video card. This worked fine in V4L, I hope I can still pull such
-tricks... My "good" reason to this is that I want to be able to analyse
-the video in a "RTAI" realtime driver.
+From: Kamil Debski <kamil@wypas.org>
 
-  Basically I have reserved "One G" of memory telling GRUB2 that there is
-only 14G of memory in the system.
+Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+family of SoCs.
 
-in my /etc/default/grub
-# 14G
-GRUB_CMDLINE_LINUX="mem=15032385536"
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4210-universal_c210.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-  I have a RTAI driver that I access this memory from, and a user space
-application, they talk fine. (Yes all the covers are off the computer,
-and no children are in the room.)
-
-driver...
-sd = (shared_data *) ioremap(ADDRESS,(unsigned long)sizeof(shared_data));
-
-user..
-sd = (shared_data *)mmap(0, sizeof(shared_data), PROT_READ|PROT_WRITE,
-MAP_SHARED, MEM, ADDRESS);
-
-
-  I believe my issue is in the VIDIOC_S_FBUF IOCTL call. I need the
-"Physical base address of the frame buffer, the address of the pixel at
-coordinates (0; 0)"
-
-  fbuf.base = &(buf[0]);
-
-  I have looked high and low, and have not found an example of using the
-V4L2 "4.2. Video Overlay Interface".
-
-  *************************
-  Questions..
-
-  Is this being done with V4L2?
-  Any Idea how to pass the "Physical base address of the frame buffer" in
-this situation?
-  Any examples?
-  Is this no longer possible?
-  Is there another way to stream data continuously into memory? Ie without
-constantly swapping buffers...
-
-  Thanks
-  Doug
-
+diff --git a/arch/arm/boot/dts/exynos4210-universal_c210.dts b/arch/arm/boot/dts/exynos4210-universal_c210.dts
+index d4f2b11..06df693 100644
+--- a/arch/arm/boot/dts/exynos4210-universal_c210.dts
++++ b/arch/arm/boot/dts/exynos4210-universal_c210.dts
+@@ -515,6 +515,10 @@
+ 		enable-active-high;
+ 	};
+ 
++	cec@100B0000 {
++		status = "okay";
++	};
++
+ 	hdmi_ddc: i2c-ddc {
+ 		compatible = "i2c-gpio";
+ 		gpios = <&gpe4 2 0 &gpe4 3 0>;
+-- 
+2.1.4
 
