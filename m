@@ -1,50 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:38837 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965156AbbI2S7w (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:43963 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753174AbbIGCyK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Sep 2015 14:59:52 -0400
-Received: by igxx6 with SMTP id x6so14210662igx.1
-        for <linux-media@vger.kernel.org>; Tue, 29 Sep 2015 11:59:51 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 29 Sep 2015 21:59:51 +0300
-Message-ID: <CAM_ZknUEP73dQ2eEtVM_A_psAwcovKeiCDhpNgW+Fo96RRKM2w@mail.gmail.com>
-Subject: H264 headers generation for driver
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: "kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, m.chehab@samsung.com,
-	khalasa <khalasa@piap.pl>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 6 Sep 2015 22:54:10 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 239732A0081
+	for <linux-media@vger.kernel.org>; Mon,  7 Sep 2015 04:53:04 +0200 (CEST)
+Date: Mon, 07 Sep 2015 04:53:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150907025304.239732A0081@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a new chapter of tw5864 video grabber & encoder driver
-development drama.
-Last state of code is here (tw5864 branch, drivers/staging/media/tw5864):
-https://github.com/bluecherrydvr/linux/tree/tw5864/drivers/staging/media/tw5864
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Currently I use a third-side LGPL library for H.264 headers generation
-- SPS, PPS and slice headers (because device doesn't generate them).
-It is included as a git submodule "h264bitstream". It is used from
-tw5864-h264.c .
-Of course we want our driver to get to upstream repository when it
-matures enough, that's why we want to ask for advice regarding this.
-I see that there is no similar case in upstream kernel repo - no
-submodules and no libraries for H264 bitstreams.
-Device datasheet
-(http://lizard.bluecherry.net/~autkin/tw5864/tw5864b1-ds.pdf , page
-47) shows that there's almost no variety of modes, so minimally an
-implementation of bitstream writing functions ue() and se() will
-suffice.
-I guess that one acceptable way is to pre-generate all headers for all
-needed cases and ship them inlined; for correctness checking purpose,
-it is possible to ship also a script or additional source code file
-which is able to generate same headers.
-Please advise.
+Results of the daily build of media_tree:
 
-Thanks in advance for any kind reply.
+date:		Mon Sep  7 04:00:16 CEST 2015
+git branch:	test
+git hash:	50ef28a6ac216fd8b796257a3768fef8f57b917d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
--- 
-Bluecherry developer.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
