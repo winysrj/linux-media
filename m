@@ -1,56 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:51725 "EHLO mout.gmx.net"
+Received: from mga02.intel.com ([134.134.136.20]:40850 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802AbbI0TXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Sep 2015 15:23:47 -0400
-Date: Sun, 27 Sep 2015 21:23:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] rcar_vin: call g_std() instead
- of querystd()
-In-Reply-To: <5605BF3C.5040309@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1509272120240.14212@axis700.grange>
-References: <E1ZfZpS-0004ra-EU@www.linuxtv.org> <5605BF3C.5040309@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1754239AbbIHKfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2015 06:35:54 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Subject: [RFC 00/11] vb2: Handle user cache hints, allow drivers to choose cache coherency
+Date: Tue,  8 Sep 2015 13:33:44 +0300
+Message-Id: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 26 Sep 2015, Sergei Shtylyov wrote:
+Hi folks,
 
-> Hello.
-> 
-> On 09/25/2015 11:32 PM, Mauro Carvalho Chehab wrote:
-> 
-> > This is an automatic generated email to let you know that the following
-> > patch were queued at the
-> > http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
-> > 
-> > Subject: [media] rcar_vin: call g_std() instead of querystd()
-> > Author:  Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > Date:    Thu Sep 3 20:18:05 2015 -0300
-> > 
-> > Hans Verkuil says: "The only place querystd can be called  is in the
-> > QUERYSTD
-> > ioctl, all other ioctls should use the last set standard." So call the
-> > g_std()
-> > subdevice method instead of querystd() in the driver's set_fmt() method.
-> > 
-> > Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-> > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
->    Note that merging this patch without the 2 patches preceding it in the the
-> series will break the frame capture.
+This RFC patchset achieves two main objectives:
 
-Ouch, the other 2 patches were not for me, I wasn't even CC'ed on them, 
-but I guess I should have read patch 0/3, on which I was indeed CC'ed and 
-just have acked this patch instead of pushing it... Mauro, I guess the 
-only two possibilities to fix this now is to also push the other two 
-patches or to revert this one. Sorry about this.
+1. Respects cache flags passed from the user space. As no driver nor
+videobuf2 has (ever?) implemented them, the two flags are replaced by a
+single one (V4L2_BUF_FLAG_NO_CACHE_SYNC) and the two old flags are
+deprecated. This is done since a single flag provides the driver with
+enough information on what to do. (See more info in patch 4.)
 
-Thanks
-Guennadi
+2. Allows a driver using videobuf2 dma-contig memory type to choose
+whether it prefers coherent or non-coherent CPU access to buffer memory
+for MMAP and USERPTR buffers. This could be later extended to be specified
+by the user, and per buffer if needed.
+
+Only dma-contig memory type is changed but the same could be done to
+dma-sg as well. I can add it to the set if people are happy with the
+changes to dma-contig.
+
+-- 
+Kind regards,
+Sakari
+
