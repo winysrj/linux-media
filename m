@@ -1,150 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45656 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759083AbbIDNGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2015 09:06:02 -0400
-Message-ID: <55E996FB.1080009@xs4all.nl>
-Date: Fri, 04 Sep 2015 15:04:59 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:36844 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbbIHHnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2015 03:43:07 -0400
+Received: by wicgb1 with SMTP id gb1so66895593wic.1
+        for <linux-media@vger.kernel.org>; Tue, 08 Sep 2015 00:43:05 -0700 (PDT)
+Received: from [192.168.0.123] (HSI-KBW-109-193-170-038.hsi7.kabel-badenwuerttemberg.de. [109.193.170.38])
+        by smtp.googlemail.com with ESMTPSA id uc12sm4231099wib.13.2015.09.08.00.43.04
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 08 Sep 2015 00:43:05 -0700 (PDT)
+To: linux-media@vger.kernel.org
+From: Manuel Kampert <manuel.kampert@googlemail.com>
+Subject: [PATCH] [media] tda10023: fix wrong register assignment
+Message-ID: <55EE9188.5070707@googlemail.com>
+Date: Tue, 8 Sep 2015 09:43:04 +0200
 MIME-Version: 1.0
-To: Prashant Laddha <prladdha@cisco.com>, linux-media@vger.kernel.org
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/2] vivid: add support for reduced fps in video out.
-References: <1440338951-23748-1-git-send-email-prladdha@cisco.com> <1440338951-23748-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1440338951-23748-2-git-send-email-prladdha@cisco.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prashant,
+Register INTP1 (0x12) Bit POCLKP (bit 0) sets the output clock polarity 
+of tda10023 . However, the driver tries to set the parallel output mode 
+in this register which is not correct.
 
-Sorry for the late review, but here it is (finally):
+Parallel output mode is set on register INTP2 (0x20) INTPSEL (bit 1/0) .
 
-On 08/23/2015 04:09 PM, Prashant Laddha wrote:
-> If bt timing has REDUCED_FPS flag set, then reduce the frame rate
-> by factor of 1000 / 1001. For vivid, timeperframe_vid_out indicates
-> the frame timings used by video out thread. The timeperframe_vid_out
-> is derived from pixel clock. Adjusting the timeperframe_vid_out by
-> scaling down pixel clock with factor of 1000 / 1001.
-> 
-> The reduced fps is supported for CVT timings if reduced blanking v2
-> (indicated by vsync = 8) is true. For CEA861 timings, reduced fps is
-> supported if V4L2_DV_FL_CAN_REDUCE_FPS flag is true. For GTF timings,
-> reduced fps is not supported.
-> 
-> The reduced fps will allow refresh rates like 29.97, 59.94 etc.
-> 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Prashant Laddha <prladdha@cisco.com>
-> ---
->  drivers/media/platform/vivid/vivid-vid-out.c | 30 +++++++++++++++++++++++++++-
->  drivers/media/v4l2-core/v4l2-dv-timings.c    |  5 +++++
->  2 files changed, 34 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-> index c404e27..ca6ec78 100644
-> --- a/drivers/media/platform/vivid/vivid-vid-out.c
-> +++ b/drivers/media/platform/vivid/vivid-vid-out.c
-> @@ -213,6 +213,27 @@ const struct vb2_ops vivid_vid_out_qops = {
->  };
->  
->  /*
-> + * Called to check conditions for reduced fps. For CVT timings, reduced
-> + * fps is allowed only with reduced blanking v2 (vsync == 8). For CEA861
-> + * timings, reduced fps is allowed if V4L2_DV_FL_CAN_REDUCE_FPS flag is
-> + * true.
-> + */
-> +static bool reduce_fps(struct v4l2_bt_timings *bt)
-> +{
-> +	if (!(bt->flags & V4L2_DV_FL_REDUCED_FPS))
-> +		return false;
-> +
-> +	if ((bt->standards & V4L2_DV_BT_STD_CVT) && (bt->vsync == 8))
+Drivers affected by this patch are the anysee devices.
 
-I propose that you add a static inline helper function to v4l2-dv-timings.h
-to test for reduced blanking v2. This condition is way too magical...
+Signed-off-by: Manuel Kampert <manuel.kampert@googlemail.com>
+---
+diff --git a/drivers/media/dvb-frontends/tda10023.c 
+b/drivers/media/dvb-frontends/tda10023.c
 
-If you add such a helper, then you should check if there is existing code
-that could switch to this helper.
+--- a/drivers/media/dvb-frontends/tda10023.c
++++ b/drivers/media/dvb-frontends/tda10023.c
+@@ -269,10 +269,9 @@ static int tda10023_init (struct dvb_frontend *fe)
+/* 084 */ 0x02, 0xff, 0x93, /* AGCCONF1 IFS=1 KAGCIF=2 KAGCTUN=3 */
+/* 087 */ 0x2d, 0xff, 0xf6, /* SWEEP SWPOS=1 SWDYN=7 SWSTEP=1 SWLEN=2 */
+/* 090 */ 0x04, 0x10, 0x00, /* SWRAMP=1 */
+-/* 093 */ 0x12, 0xff, TDA10023_OUTPUT_MODE_PARALLEL_B, /*
+- INTP1 POCLKP=1 FEL=1 MFS=0 */
++/* 093 */ 0x12, 0xff, 0xa1, /* POCLKP=1 */
+/* 096 */ 0x2b, 0x01, 0xa1, /* INTS1 */
+-/* 099 */ 0x20, 0xff, 0x04, /* INTP2 SWAPP=? MSBFIRSTP=? INTPSEL=? */
++/* 099 */ 0x20, 0xff, TDA10023_OUTPUT_MODE_PARALLEL_B, /* INTPSEL=? */
+/* 102 */ 0x2c, 0xff, 0x0d, /* INTP/S TRIP=0 TRIS=0 */
+/* 105 */ 0xc4, 0xff, 0x00,
+/* 108 */ 0xc3, 0x30, 0x00,
+@@ -291,7 +290,7 @@ static int tda10023_init (struct dvb_frontend *fe)
+}
 
-> +			return true;
+if (state->config->output_mode)
+- tda10023_inittab[95] = state->config->output_mode;
++ tda10023_inittab[101] = state->config->output_mode;
 
-Bad indentation (one tab too far to the right).
+tda10023_writetab(state, tda10023_inittab);
 
-> +
-> +	if ((bt->standards & V4L2_DV_BT_STD_CEA861) &&
-> +	    (bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS))
-> +			return true;
+diff --git a/drivers/media/dvb-frontends/tda1002x.h 
+b/drivers/media/dvb-frontends/tda1002x.h
+index 0d33461..dc7258f 100644
+--- a/drivers/media/dvb-frontends/tda1002x.h
++++ b/drivers/media/dvb-frontends/tda1002x.h
+@@ -33,9 +33,9 @@ struct tda1002x_config {
+};
 
-Ditto.
+enum tda10023_output_mode {
+- TDA10023_OUTPUT_MODE_PARALLEL_A = 0xe0,
+- TDA10023_OUTPUT_MODE_PARALLEL_B = 0xa1,
+- TDA10023_OUTPUT_MODE_PARALLEL_C = 0xa0,
++ TDA10023_OUTPUT_MODE_PARALLEL_A = 0x04,
++ TDA10023_OUTPUT_MODE_PARALLEL_B = 0x05,
++ TDA10023_OUTPUT_MODE_PARALLEL_C = 0x06,
+TDA10023_OUTPUT_MODE_SERIAL, /* TODO: not implemented */
+};
 
-> +
-> +	return false;
-> +}
-> +
-> +/*
->   * Called whenever the format has to be reset which can occur when
->   * changing outputs, standard, timings, etc.
->   */
-> @@ -220,6 +241,7 @@ void vivid_update_format_out(struct vivid_dev *dev)
->  {
->  	struct v4l2_bt_timings *bt = &dev->dv_timings_out.bt;
->  	unsigned size, p;
-> +	u64 pixelclock;
->  
->  	switch (dev->output_type[dev->output]) {
->  	case SVID:
-> @@ -241,8 +263,14 @@ void vivid_update_format_out(struct vivid_dev *dev)
->  		dev->sink_rect.width = bt->width;
->  		dev->sink_rect.height = bt->height;
->  		size = V4L2_DV_BT_FRAME_WIDTH(bt) * V4L2_DV_BT_FRAME_HEIGHT(bt);
-> +
-> +		if (reduce_fps(bt))
-> +			pixelclock = div_u64((bt->pixelclock * 1000), 1001);
+diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c 
+b/drivers/media/usb/dvb-usb-v2/anysee.c
+index ae917c0..698a1d2 100644
+--- a/drivers/media/usb/dvb-usb-v2/anysee.c
++++ b/drivers/media/usb/dvb-usb-v2/anysee.c
+@@ -291,7 +291,6 @@ static struct tda10023_config anysee_tda10023_config = {
+.pll_m = 11,
+.pll_p = 3,
+.pll_n = 1,
+- .output_mode = TDA10023_OUTPUT_MODE_PARALLEL_C,
+.deltaf = 0xfeeb,
+};
 
-No need for the parenthesis around bt->pixelclock * 1000.
+@@ -327,7 +326,6 @@ static struct tda10023_config 
+anysee_tda10023_tda18212_config = {
+.pll_m = 12,
+.pll_p = 3,
+.pll_n = 1,
+- .output_mode = TDA10023_OUTPUT_MODE_PARALLEL_B,
+.deltaf = 0xba02,
+};
 
-> +		else
-> +			pixelclock = bt->pixelclock;
-> +
->  		dev->timeperframe_vid_out = (struct v4l2_fract) {
-> -			size / 100, (u32)bt->pixelclock / 100
-> +			size / 100, (u32)pixelclock / 100
->  		};
->  		if (bt->interlaced)
->  			dev->field_out = V4L2_FIELD_ALTERNATE;
-> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> index 6a83d61..adc03bd 100644
-> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-> @@ -210,7 +210,12 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
->  					  fnc, fnc_handle) &&
->  		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i,
->  					  pclock_delta)) {
-> +			u32 flags = t->bt.flags & V4L2_DV_FL_REDUCED_FPS;
-> +
->  			*t = v4l2_dv_timings_presets[i];
-> +			if (t->bt.flags & V4L2_DV_FL_CAN_REDUCE_FPS)
-> +				t->bt.flags |= flags;
-> +
+@@ -781,6 +779,11 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+adap->fe[0] = dvb_attach(tda10023_attach,
+&anysee_tda10023_config, &d->i2c_adap, 0x48);
 
-This isn't quite right. This doesn't support V4L2_DV_BT_DMT_4096X2160P60_RB
-which is a CVT format with reduced blanking v2 and so it should support reduced
-fps.
++ /* output clock polarity */
++ ret = anysee_write_reg(d, 0x12, 0xa0);
++ if (ret)
++ goto error;
++
+break;
+case ANYSEE_HW_507SI: /* 11 */
+/* E30 S2 Plus */
+@@ -846,6 +849,11 @@ static int anysee_frontend_attach(struct 
+dvb_usb_adapter *adap)
+adap->fe[0] = dvb_attach(tda10023_attach,
+&anysee_tda10023_config,
+&d->i2c_adap, 0x48);
++
++ /* output clock polarity */
++ ret = anysee_write_reg(d, 0x12, 0xa0);
++ if (ret)
++ goto error;
+}
 
-In theory the 'if' above should check for both the V4L2_DV_FL_CAN_REDUCE_FPS and
-for CVT RB v2 (using the helper function I've proposed). However, that would
-cause weird behavior with the V4L2_DV_BT_DMT_4096X2160P59_94_RB timings since
-these are already reduced fps.
-
-I think the best approach is to add V4L2_DV_FL_CAN_REDUCE_FPS to the
-V4L2_DV_BT_DMT_4096X2160P60_RB definition in v4l2-dv-timings.h.
-
-That way the code above is unchanged, and it will work as expected with
-V4L2_DV_BT_DMT_4096X2160P60_RB.
-
-Regards,
-
-	Hans
+/* break out if first frontend attaching fails */
