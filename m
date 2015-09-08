@@ -1,50 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fed1rmfepo102.cox.net ([68.230.241.144]:48360 "EHLO
-	fed1rmfepo102.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757211AbbIUTIs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 15:08:48 -0400
-Received: from fed1rmimpo306 ([68.230.241.174]) by fed1rmfepo102.cox.net
-          (InterMail vM.8.01.05.15 201-2260-151-145-20131218) with ESMTP
-          id <20150921190847.VWCW19282.fed1rmfepo102.cox.net@fed1rmimpo306>
-          for <linux-media@vger.kernel.org>;
-          Mon, 21 Sep 2015 15:08:47 -0400
-From: Eric Nelson <eric@nelint.com>
+Received: from mga11.intel.com ([192.55.52.93]:53611 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754155AbbIHKfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2015 06:35:54 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mchehab@osg.samsung.com,
-	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
-	galak@codeaurora.org, patrice.chotard@st.com, fabf@skynet.be,
-	wsa@the-dreams.de, heiko@sntech.de, devicetree@vger.kernel.org,
-	otavio@ossystems.com.br, Eric Nelson <eric@nelint.com>
-Subject: [PATCH V2 1/2] rc-core: define a default timeout for drivers
-Date: Mon, 21 Sep 2015 12:08:43 -0700
-Message-Id: <1442862524-3694-2-git-send-email-eric@nelint.com>
-In-Reply-To: <1442862524-3694-1-git-send-email-eric@nelint.com>
-References: <1441980024-1944-1-git-send-email-eric@nelint.com>
- <1442862524-3694-1-git-send-email-eric@nelint.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Subject: [RFC 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
+Date: Tue,  8 Sep 2015 13:33:47 +0300
+Message-Id: <1441708435-12736-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A default timeout value of 100ms is workable for most decoders.
-Declare a constant to help standardize its' use.
+The cache synchronisation may be a time consuming operation and thus not
+best performed in an interrupt which is a typical context for
+vb2_buffer_done() calls. This may consume up to tens of ms on some
+machines, depending on the buffer size.
 
-Signed-off-by: Eric Nelson <eric@nelint.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/media/rc-core.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index ec921f6..62c64bd 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -239,6 +239,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
- 	memset(ev, 0, sizeof(*ev));
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 64fce4d..c5c0707a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
+-	unsigned int plane;
+ 
+ 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+ 		return;
+@@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, state);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+-
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int i;
++	unsigned int plane;
+ 
+ 	/* nothing to do if the buffer is already dequeued */
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+@@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; plane++)
++		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
++
+ 	/* unmap DMABUF buffer */
+ 	if (q->memory == V4L2_MEMORY_DMABUF)
+-		for (i = 0; i < vb->num_planes; ++i) {
+-			if (!vb->planes[i].dbuf_mapped)
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			if (!vb->planes[plane].dbuf_mapped)
+ 				continue;
+-			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+-			vb->planes[i].dbuf_mapped = 0;
++			call_void_memop(vb, unmap_dmabuf,
++					vb->planes[plane].mem_priv);
++			vb->planes[plane].dbuf_mapped = 0;
+ 		}
  }
  
-+#define IR_DEFAULT_TIMEOUT	MS_TO_NS(100)
- #define IR_MAX_DURATION         500000000	/* 500 ms */
- #define US_TO_NS(usec)		((usec) * 1000)
- #define MS_TO_US(msec)		((msec) * 1000)
 -- 
-2.5.2
+2.1.0.231.g7484e3b
 
