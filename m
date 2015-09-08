@@ -1,133 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53892 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752306AbbIPMOc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2015 08:14:32 -0400
-Message-ID: <55F95CD9.80802@xs4all.nl>
-Date: Wed, 16 Sep 2015 14:13:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [RFC PATCH] v4l2-ctrls: fix NEXT_COMPOUND support
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mga02.intel.com ([134.134.136.20]:8562 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754437AbbIHKgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Sep 2015 06:36:24 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Subject: [RFC 01/11] vb2: Rename confusingly named internal buffer preparation functions
+Date: Tue,  8 Sep 2015 13:33:45 +0300
+Message-Id: <1441708435-12736-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ricardo reported a problem in v4l2-compliance if an integer control was used in
-an array. It turned out to be a problem in the implementation of NEXT_COMPOUND
-that didn't match arrays as being compound controls.
+Rename __qbuf_*() functions which are specific to a buffer type as
+__prepare_*() which matches with what they do. The naming was there for
+historical reasons; the purpose of the functions was changed without
+renaming them.
 
-I also did some DocBook updates. The final version of this patch will split off
-the docbook changes in a separate patch (or patches).
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-Ricardo, can you test this?
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index b866a6b..af6a23a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1391,18 +1391,19 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ }
+ 
+ /**
+- * __qbuf_mmap() - handle qbuf of an MMAP buffer
++ * __prepare_mmap() - prepare an MMAP buffer
+  */
+-static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++static int __prepare_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+ 	return call_vb_qop(vb, buf_prepare, vb);
+ }
+ 
+ /**
+- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
++ * __prepare_userptr() - prepare a USERPTR buffer
+  */
+-static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++static int __prepare_userptr(struct vb2_buffer *vb,
++			     const struct v4l2_buffer *b)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1504,9 +1505,9 @@ err:
+ }
+ 
+ /**
+- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
++ * __prepare_dmabuf() - prepare a DMABUF buffer
+  */
+-static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++static int __prepare_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct vb2_queue *q = vb->vb2_queue;
+@@ -1678,15 +1679,15 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
+-		ret = __qbuf_mmap(vb, b);
++		ret = __prepare_mmap(vb, b);
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+ 		down_read(&current->mm->mmap_sem);
+-		ret = __qbuf_userptr(vb, b);
++		ret = __prepare_userptr(vb, b);
+ 		up_read(&current->mm->mmap_sem);
+ 		break;
+ 	case V4L2_MEMORY_DMABUF:
+-		ret = __qbuf_dmabuf(vb, b);
++		ret = __prepare_dmabuf(vb, b);
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid queue type\n");
+-- 
+2.1.0.231.g7484e3b
 
-In order to be able to use integer controls in an array we also need a new field in
-the union in struct v4l2_ext_control: __s32 __user *p_s32.
-
-Ricardo, please test this thoroughly. I've never tested INTEGER arrays before, so
-I'm not sure if there are no hidden surprises somewhere.
-
-Regards,
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index c5bdbfc..842536a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -200,6 +200,13 @@ Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry
- 	  </row>
- 	  <row>
- 	    <entry></entry>
-+	    <entry>__u32 *</entry>
-+	    <entry><structfield>p_u32</structfield></entry>
-+	    <entry>A pointer to a matrix control of unsigned 32-bit values.
-+Valid if this control is of type <constant>V4L2_CTRL_TYPE_U32</constant>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>void *</entry>
- 	    <entry><structfield>ptr</structfield></entry>
- 	    <entry>A pointer to a compound type which can be an N-dimensional array and/or a
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 6ec39c6..8246b30 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -101,8 +101,9 @@ prematurely end the enumeration).</para></footnote></para>
- next supported non-compound control, or <errorcode>EINVAL</errorcode>
- if there is none. In addition, the <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant>
- flag can be specified to enumerate all compound controls (i.e. controls
--with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant>). Specify both
--<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
-+with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant> and/or array
-+control, in other words controls that contain more than one value).i
-+Specify both <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
- <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant> in order to enumerate
- all controls, compound or not. Drivers which do not support these flags yet
- always return <errorcode>EINVAL</errorcode>.</para>
-@@ -422,7 +423,7 @@ the array to zero.</entry>
- 	    <entry>any</entry>
- 	    <entry>An integer-valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.</entry>
-+values.</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BOOLEAN</constant></entry>
-@@ -518,7 +519,7 @@ Older drivers which do not support this feature return an
- 	    <entry>any</entry>
- 	    <entry>An unsigned 8-bit valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.
-+values.
- </entry>
- 	  </row>
- 	  <row>
-@@ -528,7 +529,17 @@ values which are actually different on the hardware.
- 	    <entry>any</entry>
- 	    <entry>An unsigned 16-bit valued control ranging from minimum to
- maximum inclusive. The step value indicates the increment between
--values which are actually different on the hardware.
-+values.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_U32</constant></entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>any</entry>
-+	    <entry>An unsigned 32-bit valued control ranging from minimum to
-+maximum inclusive. The step value indicates the increment between
-+values.
- </entry>
- 	  </row>
- 	</tbody>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6b7dcc..d5de70e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2498,7 +2498,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
- 			/* We found a control with the given ID, so just get
- 			   the next valid one in the list. */
- 			list_for_each_entry_continue(ref, &hdl->ctrl_refs, node) {
--				is_compound =
-+				is_compound = ref->ctrl->is_array ||
- 					ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
- 				if (id < ref->ctrl->id &&
- 				    (is_compound & mask) == match)
-@@ -2512,7 +2512,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
- 			   is one, otherwise the first 'if' above would have
- 			   been true. */
- 			list_for_each_entry(ref, &hdl->ctrl_refs, node) {
--				is_compound =
-+				is_compound = ref->ctrl->is_array ||
- 					ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
- 				if (id < ref->ctrl->id &&
- 				    (is_compound & mask) == match)
