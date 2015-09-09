@@ -1,15 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:45952 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933072AbbIVNam (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 09:30:42 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+Received: from mailout3.samsung.com ([203.254.224.33]:55678 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281AbbIILUD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 07:20:03 -0400
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
  64bit (built May  5 2014))
- with ESMTP id <0NV200E41YV3E500@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Sep 2015 22:30:39 +0900 (KST)
+ with ESMTP id <0NUE02PT8Q5DORC0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 09 Sep 2015 20:20:01 +0900 (KST)
 From: Junghak Sung <jh1009.sung@samsung.com>
 To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
 	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
@@ -17,350 +16,860 @@ To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
 Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
 	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
 	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v5 0/8] Refactoring Videobuf2 for common use
-Date: Tue, 22 Sep 2015 22:30:28 +0900
-Message-id: <1442928636-3589-1-git-send-email-jh1009.sung@samsung.com>
+Subject: [RFC PATCH v4 1/8] [media] videobuf2: Replace videobuf2-core with
+ videobuf2-v4l2
+Date: Wed, 09 Sep 2015 20:19:50 +0900
+Message-id: <1441797597-17389-2-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1441797597-17389-1-git-send-email-jh1009.sung@samsung.com>
+References: <1441797597-17389-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+Make videobuf2-v4l2 as a wrapper of videobuf2-core for v4l2-use.
+And replace videobuf2-core.h with videobuf2-v4l2.h.
+This renaming change should be accompanied by the modifications
+of all device drivers that include videobuf2-core.h.
+It can be done with just running this shell script.
 
-This is the 5th round for refactoring Videobuf2(a.k.a VB2).
-The purpose of this patch series is to separate existing VB2 framework
-into core part and V4L2 specific part. So that not only V4L2 but also other
-frameworks can use them to manage buffer and utilize queue.
+replace()
+{
+str1=$1
+str2=$2
+dir=$3
+for file in $(find $dir -name *.h -o -name *.c -o -name Makefile)
+do
+    echo $file
+    sed "s/$str1/$str2/g" $file > $file.out
+    mv $file.out $file
+done
+}
 
-Why do we try to make the VB2 framework to be common?
+replace "videobuf2-core" "videobuf2-v4l2" "include/media/"
+replace "videobuf2-core" "videobuf2-v4l2" "drivers/media/"
+replace "videobuf2-core" "videobuf2-v4l2" "drivers/usb/gadget/"
 
-As you may know, current DVB framework uses ringbuffer mechanism to demux
-MPEG-2 TS data and pass it to userspace. However, this mechanism requires
-extra memory copy because DVB framework provides only read() system call for
-application - read() system call copies the kernel data to user-space buffer.
-So if we can use VB2 framework which supports streaming I/O and buffer
-sharing mechanism, then we could enhance existing DVB framework by removing
-the extra memory copy - with VB2 framework, application can access the kernel
-data directly through mmap system call.
-
-We have a plan for this work as follows:
-1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
-   Of course, this change will not affect other v4l2-based
-   device drivers. This patch series corresponds to this step.
-
-2. Add and implement new APIs for DVB streaming I/O.
-   We can remove unnecessary memory copy between kernel-space and user-space
-   by using these new APIs. However, we leaves legacy interfaces as-is
-   for backward compatibility.
-
-This patch series is the first step for it.
-The previous version of this patch series can be found at belows.
-
-[1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
-[2] RFC PATCH v2 - http://www.spinics.net/lists/linux-media/msg92130.html
-[3] RFC PATCH v3 - http://www.spinics.net/lists/linux-media/msg92953.html
-[4] RFC PATCH v4 - http://www.spinics.net/lists/linux-media/msg93421.html
-
-Changes since v4
-1. Rebase on 4.3-rc1
-Kernel 4.3-rc1 was released. So, this patch set is made based on
-that version.
-
-2. Modify queue_setup() argument
-In previous patch set, struct v4l2_format, which is a parameter of
-queue_setup(), is abstracted by using void pointer. But, it is better way to
-pass the parameter with presise meaning than abstracting it.
-So, replace void * with struct vb2_format which is newly defined to contain
-the format information for common use.
-
-3. Add a code to check if VB2_MAX_* match with VIDEO_MAX_*
-Add a check code to videobuf2-v4l2.c where the compiler compares VIDEO_MAX_FRAME
-and VB2_MAX_FRAME (and ditto for MAX_PLANES) and throws an #error if they
-do not match.
-
-4. Change the commit order
-For easier review, the patch that just move things around without doing any
-functional change is moved to the last.
-
-All ideas above are from Hans and it seems to be better and right way.
-
-
-Changes since v3
-
-1. Resolve build errors
-In previous patch set, the build errors prevented reviewers from applying
-the patch. So, in this patch, I tryed to fix the build errors but I hadn't
-the build test on all architectures except for x86 and ARM.
-
-2. Modify descriptions for DocBook
-Descriptions not complying with the DocBook rule are modified,
-which was pointed out by Mauro.
-
-3. Initialize reserved fields explicitly
-The reserved fields of v4l2_buffer are initialized by 0 explicitly
-when the vb2_buffer information is returned to userspace,
-which was pointed out by Hans.
-
-4. Remove unnecessary type-cast
-According to Mauro's advice, the unnecessary type-cast are removed
-because it's better for the compiler - rather than human - to check those
-things.
-
-5. Sperate the patch - not easy to review - into two patches
-In previous patch set, patch 5 was too difficult to review. So accoring to
-Hans' opinion, it separated the patch without any functional changes.
-
-
-Changes since v2
-
-1. Remove v4l2 stuffs completely from vb2_buffer
-The v4l2 stuffs - v4l2_buf and v4l2_planes - are removed completely from
-struct vb2_buffer. New member variables - index, type, memory - are added
-to struct vb2_buffer, all of which can be used commonly. And bytesused,
-length, offset, userptr, fd, data_offset are added to struct vb2_plane
-for the same reason. So, we can manage video buffer by only using
-struct vb2_buffer.
-And, v4l2 stuffs - flags, field, timestamp, timecode, sequence - are defined
-as member variables of struct vb2_v4l2_buffer.
-
-2. Create new header file for VB2 internal use
-videobuf2-internal.h is created, which is referred by videobuf2-core
-and videobuf2-v4l2. The header file contains dprintk() for debug,
-macro functions to invoke various callbacks, and vb2_core_* function prototypes
-referred by inside of videobuf2.
-
-3. Remove buffer-specific callbacks as much as possible
-There were many callback functions to handle video buffer information
-in previous patch series. In this patch series, I try to remove these callbacks
-as much as possible without breaking the existing function flow.
-As a result, only four callbacks are remained - fill_user_buffer(),
-fill_vb2_buffer(), fill_vb2_timestamp() and is_last().
-
-All ideas above are from Hans and it seems to be better and right way.
-
-
-Changes since v1
-
-1. Divide patch set into more pieces
-v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
-list with size problem - over 300kb. So I have divided the patch set into five
-pieces and refined them neatly, which was pointed by Hans.
-
-2. Add shell scripts for renaming patch
-In case of renaming patch, shell scripts are included inside the body of the
-patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
-be used by reviewers or maintainers to regenerate big patch file if something
-goes wrong during patch apply.
-
-3. Remove dependency on v4l2 from videobuf2
-In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
-e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
-from using videobuf2 independently and made them forced to include
-v4l2-specific stuff.
-In this version, these dependent stuffs are replaced with VB2 own stuffs.
-e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
-required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
-will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
-backward compatibility.
-
-4. Unify duplicated definitions
-VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
-duplicated macro functions that invoke callback functions implemented in vb2
-backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
-callbacks of device drivers.
-In previous patch set, these macro functions were defined
-in both videobuf2-core.c and videobuf2-v4l2.c.
-
-
-This patch series is based on media_tree.git [5]. I have applied this patches
-to my own git [6] for review, and tested this patch series on ubuntu
-PC(Intel i7-3770) for x86 system and odroid-xu3(exynos5422) for ARM.
-
-[5] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
-[6] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
-    (branch: vb2-refactoring)
-
-Any suggestions and comments are welcome.
-
-Regards,
-Junghak
-
-Junghak Sung (8):
-  media: videobuf2: Replace videobuf2-core with videobuf2-v4l2
-  media: videobuf2: Restructure vb2_buffer (1/3)
-  media: videobuf2: Restructure vb2_buffer (2/3)
-  media: videobuf2: Restructure vb2_buffer (3/3)
-  media: videobuf2: Change queue_setup argument
-  media: videobuf2: Replace v4l2-specific data with vb2 data.
-  media: videobuf2: Prepare to divide videobuf2
-  media: videobuf2: Move v4l2-specific stuff to videobuf2-v4l2
-
- drivers/input/touchscreen/sur40.c                  |   28 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c          |   23 +-
- drivers/media/pci/cobalt/cobalt-driver.h           |    6 +-
- drivers/media/pci/cobalt/cobalt-irq.c              |    7 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c             |   26 +-
- drivers/media/pci/cx23885/cx23885-417.c            |   13 +-
- drivers/media/pci/cx23885/cx23885-core.c           |   24 +-
- drivers/media/pci/cx23885/cx23885-dvb.c            |   11 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |   18 +-
- drivers/media/pci/cx23885/cx23885-video.c          |   29 +-
- drivers/media/pci/cx23885/cx23885.h                |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |   32 +-
- drivers/media/pci/cx25821/cx25821.h                |    3 +-
- drivers/media/pci/cx88/cx88-blackbird.c            |   15 +-
- drivers/media/pci/cx88/cx88-core.c                 |    8 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |   13 +-
- drivers/media/pci/cx88/cx88-mpeg.c                 |   14 +-
- drivers/media/pci/cx88/cx88-vbi.c                  |   19 +-
- drivers/media/pci/cx88/cx88-video.c                |   21 +-
- drivers/media/pci/cx88/cx88.h                      |    2 +-
- drivers/media/pci/dt3155/dt3155.c                  |   23 +-
- drivers/media/pci/dt3155/dt3155.h                  |    3 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |   21 +-
- drivers/media/pci/saa7134/saa7134-core.c           |   14 +-
- drivers/media/pci/saa7134/saa7134-ts.c             |   16 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |   12 +-
- drivers/media/pci/saa7134/saa7134-video.c          |   23 +-
- drivers/media/pci/saa7134/saa7134.h                |    4 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   48 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   26 +-
- drivers/media/pci/solo6x10/solo6x10.h              |    4 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |   14 +-
- drivers/media/pci/tw68/tw68-video.c                |   28 +-
- drivers/media/pci/tw68/tw68.h                      |    3 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   41 +-
- drivers/media/platform/am437x/am437x-vpfe.h        |    3 +-
- drivers/media/platform/blackfin/bfin_capture.c     |   34 +-
- drivers/media/platform/coda/coda-bit.c             |  135 +-
- drivers/media/platform/coda/coda-common.c          |   25 +-
- drivers/media/platform/coda/coda-jpeg.c            |    6 +-
- drivers/media/platform/coda/coda.h                 |    8 +-
- drivers/media/platform/coda/trace.h                |   18 +-
- drivers/media/platform/davinci/vpbe_display.c      |   37 +-
- drivers/media/platform/davinci/vpif_capture.c      |   36 +-
- drivers/media/platform/davinci/vpif_capture.h      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |   28 +-
- drivers/media/platform/davinci/vpif_display.h      |    2 +-
- drivers/media/platform/exynos-gsc/gsc-core.h       |    4 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |   25 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |   36 +-
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/pci/solo6x10/solo6x10.h              |    2 +-
+ drivers/media/platform/coda/coda-bit.c             |    2 +-
+ drivers/media/platform/coda/coda-common.c          |    2 +-
+ drivers/media/platform/coda/coda.h                 |    2 +-
+ drivers/media/platform/coda/trace.h                |    2 +-
+ drivers/media/platform/exynos-gsc/gsc-core.h       |    2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |    2 +-
  drivers/media/platform/exynos4-is/fimc-core.c      |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.h      |    4 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |    2 +-
  drivers/media/platform/exynos4-is/fimc-is.h        |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |   27 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |    2 +-
  drivers/media/platform/exynos4-is/fimc-isp-video.h |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |    4 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |   29 +-
- drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |   23 +-
- drivers/media/platform/m2m-deinterlace.c           |   25 +-
- drivers/media/platform/marvell-ccic/mcam-core.c    |   49 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |    2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |    2 +-
  drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
- drivers/media/platform/mx2_emmaprp.c               |   17 +-
- drivers/media/platform/omap3isp/ispvideo.c         |   27 +-
- drivers/media/platform/omap3isp/ispvideo.h         |    4 +-
- drivers/media/platform/rcar_jpu.c                  |   66 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |   29 +-
+ drivers/media/platform/omap3isp/ispvideo.h         |    2 +-
+ drivers/media/platform/rcar_jpu.c                  |    2 +-
+ drivers/media/platform/s3c-camif/camif-capture.c   |    2 +-
  drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
- drivers/media/platform/s3c-camif/camif-core.h      |    4 +-
- drivers/media/platform/s5p-g2d/g2d.c               |   24 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |   34 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   80 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   19 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   62 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |   46 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   33 +-
- drivers/media/platform/s5p-tv/mixer.h              |    4 +-
- drivers/media/platform/s5p-tv/mixer_grp_layer.c    |    2 +-
- drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c        |   13 +-
- drivers/media/platform/s5p-tv/mixer_vp_layer.c     |    5 +-
- drivers/media/platform/sh_veu.c                    |   70 +-
- drivers/media/platform/sh_vou.c                    |   37 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |   28 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |   23 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |   41 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |   59 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   71 +-
+ drivers/media/platform/s3c-camif/camif-core.h      |    2 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |    2 +-
+ drivers/media/platform/s5p-tv/mixer.h              |    2 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |    2 +-
  drivers/media/platform/soc_camera/soc_camera.c     |    2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |   29 +-
- drivers/media/platform/ti-vpe/vpe.c                |   44 +-
- drivers/media/platform/vim2m.c                     |   58 +-
- drivers/media/platform/vivid/vivid-core.h          |    4 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c   |   73 +-
- drivers/media/platform/vivid/vivid-kthread-out.c   |   34 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c       |   51 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |   45 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |   25 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |   35 +-
- drivers/media/platform/vivid/vivid-vid-out.c       |   36 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |    4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  135 +-
- drivers/media/platform/vsp1/vsp1_video.h           |    8 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |    4 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |   32 +-
+ drivers/media/platform/ti-vpe/vpe.c                |    2 +-
+ drivers/media/platform/vivid/vivid-core.h          |    2 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |    2 +-
+ drivers/media/platform/vsp1/vsp1_video.h           |    2 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         |    2 +-
  drivers/media/platform/xilinx/xilinx-dma.h         |    2 +-
- drivers/media/usb/airspy/airspy.c                  |   26 +-
- drivers/media/usb/au0828/au0828-vbi.c              |   17 +-
- drivers/media/usb/au0828/au0828-video.c            |   49 +-
- drivers/media/usb/au0828/au0828.h                  |    3 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |   16 +-
- drivers/media/usb/em28xx/em28xx-video.c            |   38 +-
- drivers/media/usb/em28xx/em28xx.h                  |    3 +-
- drivers/media/usb/go7007/go7007-driver.c           |   29 +-
- drivers/media/usb/go7007/go7007-priv.h             |    4 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |   22 +-
- drivers/media/usb/hackrf/hackrf.c                  |   24 +-
- drivers/media/usb/msi2500/msi2500.c                |   19 +-
- drivers/media/usb/pwc/pwc-if.c                     |   35 +-
- drivers/media/usb/pwc/pwc-uncompress.c             |    6 +-
- drivers/media/usb/pwc/pwc.h                        |    4 +-
- drivers/media/usb/s2255/s2255drv.c                 |   29 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |   17 +-
- drivers/media/usb/stk1160/stk1160-video.c          |   12 +-
- drivers/media/usb/stk1160/stk1160.h                |    4 +-
- drivers/media/usb/usbtv/usbtv-video.c              |   27 +-
- drivers/media/usb/usbtv/usbtv.h                    |    3 +-
- drivers/media/usb/uvc/uvc_queue.c                  |   32 +-
- drivers/media/usb/uvc/uvc_video.c                  |   20 +-
- drivers/media/usb/uvc/uvcvideo.h                   |    6 +-
- drivers/media/v4l2-core/Makefile                   |    4 +-
+ drivers/media/usb/go7007/go7007-priv.h             |    2 +-
+ drivers/media/usb/stk1160/stk1160.h                |    2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |    2 +-
+ drivers/media/usb/uvc/uvcvideo.h                   |    2 +-
+ drivers/media/v4l2-core/Makefile                   |    2 +-
  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c             |   10 +-
- drivers/media/v4l2-core/v4l2-trace.c               |   10 +-
- drivers/media/v4l2-core/vb2-trace.c                |    9 +
- drivers/media/v4l2-core/videobuf2-core.c           | 2040 +++-----------------
- drivers/media/v4l2-core/videobuf2-dma-contig.c     |    2 +-
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |    2 +-
- drivers/media/v4l2-core/videobuf2-internal.h       |  161 ++
- drivers/media/v4l2-core/videobuf2-memops.c         |    2 +-
- drivers/media/v4l2-core/videobuf2-v4l2.c           | 1709 ++++++++++++++++
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |    2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |   46 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.h    |    3 +-
- drivers/staging/media/omap4iss/iss_video.c         |   25 +-
- drivers/staging/media/omap4iss/iss_video.h         |    6 +-
- drivers/usb/gadget/function/uvc_queue.c            |   28 +-
- drivers/usb/gadget/function/uvc_queue.h            |    4 +-
- include/media/davinci/vpbe_display.h               |    3 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |    2 +-
+ drivers/media/v4l2-core/v4l2-trace.c               |    2 +-
+ drivers/media/v4l2-core/videobuf2-core.c           |   10 +++----
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |   31 ++++++++++++++++++++
+ drivers/usb/gadget/function/uvc_queue.h            |    2 +-
  include/media/soc_camera.h                         |    2 +-
- include/media/v4l2-mem2mem.h                       |   11 +-
- include/media/videobuf2-core.h                     |  247 ++-
- include/media/videobuf2-dma-contig.h               |    2 +-
- include/media/videobuf2-dma-sg.h                   |    2 +-
- include/media/videobuf2-dvb.h                      |    8 +-
- include/media/videobuf2-memops.h                   |    2 +-
- include/media/videobuf2-v4l2.h                     |  149 ++
- include/media/videobuf2-vmalloc.h                  |    2 +-
- include/trace/events/v4l2.h                        |   62 +-
- include/trace/events/vb2.h                         |   65 +
- 161 files changed, 4310 insertions(+), 3348 deletions(-)
- create mode 100644 drivers/media/v4l2-core/vb2-trace.c
- create mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
+ include/media/v4l2-mem2mem.h                       |    2 +-
+ include/media/videobuf2-core.h                     |    3 +-
+ include/media/videobuf2-dvb.h                      |    2 +-
+ include/media/videobuf2-v4l2.h                     |   17 +++++++++++
+ 53 files changed, 103 insertions(+), 56 deletions(-)
  create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
  create mode 100644 include/media/videobuf2-v4l2.h
- create mode 100644 include/trace/events/vb2.h
 
+diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+index 27423d7..5cc9e9d 100644
+--- a/drivers/media/pci/solo6x10/solo6x10.h
++++ b/drivers/media/pci/solo6x10/solo6x10.h
+@@ -35,7 +35,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include "solo6x10-regs.h"
+ 
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index fd7819d..cd41d49 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -25,7 +25,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-mem2mem.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 04310cd..6e0c9be 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -36,7 +36,7 @@
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mem2mem.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 59b2af9..feb9671 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -24,7 +24,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-fh.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include "coda_regs.h"
+ 
+diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
+index d9099a0..9db6a66 100644
+--- a/drivers/media/platform/coda/trace.h
++++ b/drivers/media/platform/coda/trace.h
+@@ -5,7 +5,7 @@
+ #define __CODA_TRACE_H__
+ 
+ #include <linux/tracepoint.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include "coda.h"
+ 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index fa572aa..769ff50 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -19,7 +19,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index cfebf29..d0ceae3 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -24,7 +24,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mem2mem.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "common.h"
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index 1101c41..cef2a7f 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -27,7 +27,7 @@
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "fimc-core.h"
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 7328f08..ccb5d91 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -22,7 +22,7 @@
+ #include <linux/sizes.h>
+ 
+ #include <media/media-entity.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
+index e0be691..386eb49 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.h
++++ b/drivers/media/platform/exynos4-is/fimc-is.h
+@@ -22,7 +22,7 @@
+ #include <linux/sizes.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-ctrls.h>
+ 
+ #include "fimc-isp.h"
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index 76b6b4d..195f9b5 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -28,7 +28,7 @@
+ 
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/exynos-fimc.h>
+ 
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.h b/drivers/media/platform/exynos4-is/fimc-isp-video.h
+index 98c6626..f79a1b3 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.h
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.h
+@@ -11,7 +11,7 @@
+ #ifndef FIMC_ISP_VIDEO__
+ #define FIMC_ISP_VIDEO__
+ 
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include "fimc-isp.h"
+ 
+ #ifdef CONFIG_VIDEO_EXYNOS4_ISP_DMA_CAPTURE
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
+index b99be09..ad9908b 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.h
++++ b/drivers/media/platform/exynos4-is/fimc-isp.h
+@@ -21,7 +21,7 @@
+ #include <linux/videodev2.h>
+ 
+ #include <media/media-entity.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/exynos-fimc.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index ca6261a..7e37c9a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -28,7 +28,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mem2mem.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/exynos-fimc.h>
+ 
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index ea19dc7..7e4c708 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -19,7 +19,7 @@
+ #include <linux/videodev2.h>
+ 
+ #include <media/media-entity.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index 0ad1b6f..9c27335 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -24,7 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "common.h"
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 97167f6..35cd9e5 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -10,7 +10,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ /*
+  * Create our own symbols for the supported buffer modes, but, for now,
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 4071dd7..31c2445 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -20,7 +20,7 @@
+ #include <media/media-entity.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #define ISP_VIDEO_DRIVER_NAME		"ispvideo"
+ #define ISP_VIDEO_DRIVER_VERSION	"0.0.2"
+diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+index 2973f07..18e62d0 100644
+--- a/drivers/media/platform/rcar_jpu.c
++++ b/drivers/media/platform/rcar_jpu.c
+@@ -37,7 +37,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ 
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 76e6289..bb01eaa 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -34,7 +34,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "camif-core.h"
+diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
+index f47b332..1ba9bb0 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.c
++++ b/drivers/media/platform/s3c-camif/camif-core.c
+@@ -32,7 +32,7 @@
+ #include <media/media-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "camif-core.h"
+diff --git a/drivers/media/platform/s3c-camif/camif-core.h b/drivers/media/platform/s3c-camif/camif-core.h
+index 35d2fcd..8ef6f26 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.h
++++ b/drivers/media/platform/s3c-camif/camif-core.h
+@@ -25,7 +25,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/s3c_camif.h>
+ 
+ #define S3C_CAMIF_DRIVER_NAME	"s3c-camif"
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 421a7c3..81483da 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -23,7 +23,7 @@
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "g2d.h"
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 9690f9d..5b1861b 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -26,7 +26,7 @@
+ #include <linux/string.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "jpeg-core.h"
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8de61dc..b3758b8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -22,7 +22,7 @@
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_ctrl.h"
+ #include "s5p_mfc_debug.h"
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 24262bb..10884a7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -21,7 +21,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include "regs-mfc.h"
+ #include "regs-mfc-v8.h"
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index aebe4fd..2fd59e7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -22,7 +22,7 @@
+ #include <linux/workqueue.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_ctrl.h"
+ #include "s5p_mfc_debug.h"
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2e57e9f..e42014c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -23,7 +23,7 @@
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_ctrl.h"
+ #include "s5p_mfc_debug.h"
+diff --git a/drivers/media/platform/s5p-tv/mixer.h b/drivers/media/platform/s5p-tv/mixer.h
+index fb2acc5..855b723 100644
+--- a/drivers/media/platform/s5p-tv/mixer.h
++++ b/drivers/media/platform/s5p-tv/mixer.h
+@@ -24,7 +24,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/wait.h>
+ #include <media/v4l2-device.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include "regs-mixer.h"
+ 
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index ea4c423..6e41335 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -32,7 +32,7 @@
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 9087fed..3a18df7 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -38,7 +38,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-of.h>
+ #include <media/videobuf-core.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ /* Default to VGA resolution */
+ #define DEFAULT_WIDTH	640
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index c44760b..d82c2f2 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -40,7 +40,7 @@
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-mem2mem.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "vpdma.h"
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index c72349c..5f1b1da 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -21,7 +21,7 @@
+ #define _VIVID_CORE_H_
+ 
+ #include <linux/fb.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 3c124c1..dfd45c7 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -24,7 +24,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-subdev.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "vsp1.h"
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 0887a4d..d808301 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -18,7 +18,7 @@
+ #include <linux/wait.h>
+ 
+ #include <media/media-entity.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ struct vsp1_video;
+ 
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index e779c93..d9dcd4b 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -22,7 +22,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "xilinx-dma.h"
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
+index a540111..7a1621a 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.h
++++ b/drivers/media/platform/xilinx/xilinx-dma.h
+@@ -22,7 +22,7 @@
+ 
+ #include <media/media-entity.h>
+ #include <media/v4l2-dev.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ struct dma_chan;
+ struct xvip_composite_device;
+diff --git a/drivers/media/usb/go7007/go7007-priv.h b/drivers/media/usb/go7007/go7007-priv.h
+index 2251c3f..9e83bbf 100644
+--- a/drivers/media/usb/go7007/go7007-priv.h
++++ b/drivers/media/usb/go7007/go7007-priv.h
+@@ -20,7 +20,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ struct go7007;
+ 
+diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
+index 72cc8e8..047131b 100644
+--- a/drivers/media/usb/stk1160/stk1160.h
++++ b/drivers/media/usb/stk1160/stk1160.h
+@@ -23,7 +23,7 @@
+ #include <linux/i2c.h>
+ #include <sound/core.h>
+ #include <sound/ac97_codec.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ 
+diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
+index 08fb0f2..a46766c 100644
+--- a/drivers/media/usb/usbtv/usbtv-video.c
++++ b/drivers/media/usb/usbtv/usbtv-video.c
+@@ -29,7 +29,7 @@
+  */
+ 
+ #include <media/v4l2-ioctl.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include "usbtv.h"
+ 
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 816dd1a..53e6484 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -15,7 +15,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-fh.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ /* --------------------------------------------------------------------------
+  * UVC constants
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index d1dd440..ad07401 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -33,7 +33,7 @@ obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ 
+-obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o
++obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o videobuf2-v4l2.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 4a384fc..5dc6908 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -26,7 +26,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-device.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index ec3ad4e..38703bd 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -17,7 +17,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ 
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mem2mem.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+diff --git a/drivers/media/v4l2-core/v4l2-trace.c b/drivers/media/v4l2-core/v4l2-trace.c
+index ae10b02..4004814 100644
+--- a/drivers/media/v4l2-core/v4l2-trace.c
++++ b/drivers/media/v4l2-core/v4l2-trace.c
+@@ -1,6 +1,6 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-fh.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/v4l2.h>
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index b866a6b..ab00ea0 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1,5 +1,5 @@
+ /*
+- * videobuf2-core.c - V4L2 driver helper framework
++ * videobuf2-core.c - video buffer 2 core framework
+  *
+  * Copyright (C) 2010 Samsung Electronics
+  *
+@@ -28,7 +28,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-common.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+@@ -1810,7 +1810,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
+ 	/*
+ 	 * If you see this warning, then the driver isn't cleaning up properly
+ 	 * after a failed start_streaming(). See the start_streaming()
+-	 * documentation in videobuf2-core.h for more information how buffers
++	 * documentation in videobuf2-v4l2.h for more information how buffers
+ 	 * should be returned to vb2 in start_streaming().
+ 	 */
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+@@ -2197,7 +2197,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	/*
+ 	 * If you see this warning, then the driver isn't cleaning up properly
+ 	 * in stop_streaming(). See the stop_streaming() documentation in
+-	 * videobuf2-core.h for more information how buffers should be returned
++	 * videobuf2-v4l2.h for more information how buffers should be returned
+ 	 * to vb2 in stop_streaming().
+ 	 */
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+@@ -2731,7 +2731,7 @@ EXPORT_SYMBOL_GPL(vb2_poll);
+  * responsible of clearing it's content and setting initial values for some
+  * required entries before calling this function.
+  * q->ops, q->mem_ops, q->type and q->io_modes are mandatory. Please refer
+- * to the struct vb2_queue description in include/media/videobuf2-core.h
++ * to the struct vb2_queue description in include/media/videobuf2-v4l2.h
+  * for more information.
+  */
+ int vb2_queue_init(struct vb2_queue *q)
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+new file mode 100644
+index 0000000..2f2b738
+--- /dev/null
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -0,0 +1,31 @@
++/*
++ * videobuf2-v4l2.c - V4L2 driver helper framework
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <pawel@osciak.com>
++ *	   Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * The vb2_thread implementation was based on code from videobuf-dvb.c:
++ *	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/poll.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++#include <linux/freezer.h>
++#include <linux/kthread.h>
++
++#include <media/videobuf2-v4l2.h>
++
++MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
++MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/usb/gadget/function/uvc_queue.h b/drivers/usb/gadget/function/uvc_queue.h
+index 01ca9ea..0ffe498 100644
+--- a/drivers/usb/gadget/function/uvc_queue.h
++++ b/drivers/usb/gadget/function/uvc_queue.h
+@@ -6,7 +6,7 @@
+ #include <linux/kernel.h>
+ #include <linux/poll.h>
+ #include <linux/videodev2.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ /* Maximum frame size in bytes, for sanity checking. */
+ #define UVC_MAX_FRAME_SIZE	(16*1024*1024)
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 2f6261f..97aa133 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -18,7 +18,7 @@
+ #include <linux/pm.h>
+ #include <linux/videodev2.h>
+ #include <media/videobuf-core.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 8849aab..5c60da9 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -17,7 +17,7 @@
+ #ifndef _MEDIA_V4L2_MEM2MEM_H
+ #define _MEDIA_V4L2_MEM2MEM_H
+ 
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ /**
+  * struct v4l2_m2m_ops - mem-to-mem device driver callbacks
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 4f7f7ae..155991e 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -1,5 +1,5 @@
+ /*
+- * videobuf2-core.h - V4L2 driver helper framework
++ * videobuf2-core.h - Video Buffer 2 Core Framework
+  *
+  * Copyright (C) 2010 Samsung Electronics
+  *
+@@ -661,5 +661,4 @@ unsigned long vb2_fop_get_unmapped_area(struct file *file, unsigned long addr,
+ 
+ void vb2_ops_wait_prepare(struct vb2_queue *vq);
+ void vb2_ops_wait_finish(struct vb2_queue *vq);
+-
+ #endif /* _MEDIA_VIDEOBUF2_CORE_H */
+diff --git a/include/media/videobuf2-dvb.h b/include/media/videobuf2-dvb.h
+index 8f61456..bef9127 100644
+--- a/include/media/videobuf2-dvb.h
++++ b/include/media/videobuf2-dvb.h
+@@ -6,7 +6,7 @@
+ #include <dvb_demux.h>
+ #include <dvb_net.h>
+ #include <dvb_frontend.h>
+-#include <media/videobuf2-core.h>
++#include <media/videobuf2-v4l2.h>
+ 
+ struct vb2_dvb {
+ 	/* filling that the job of the driver */
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+new file mode 100644
+index 0000000..d4a4d9a
+--- /dev/null
++++ b/include/media/videobuf2-v4l2.h
+@@ -0,0 +1,17 @@
++/*
++ * videobuf2-v4l2.h - V4L2 driver helper framework
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <pawel@osciak.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++#ifndef _MEDIA_VIDEOBUF2_V4L2_H
++#define _MEDIA_VIDEOBUF2_V4L2_H
++
++#include <media/videobuf2-core.h>
++
++#endif /* _MEDIA_VIDEOBUF2_V4L2_H */
 -- 
 1.7.9.5
 
