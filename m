@@ -1,44 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.polytechnique.org ([129.104.30.34]:52589 "EHLO
-	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984AbbITOWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Sep 2015 10:22:46 -0400
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-To: Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	kernel@stlinux.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: [PATCH 1/2] [media] c8sectpfe: initialize err in load_slim_core_fw
-Date: Sun, 20 Sep 2015 16:14:06 +0200
-Message-Id: <1442758447-1474-1-git-send-email-nicolas.iooss_linux@m4x.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:55794 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752147AbbIIQ3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 12:29:38 -0400
+Date: Wed, 9 Sep 2015 12:29:36 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Mian Yousaf Kaukab <yousaf.kaukab@intel.com>,
+	<linux-media@vger.kernel.org>, <mchehab@osg.samsung.com>,
+	<linux-usb@vger.kernel.org>
+Subject: Re: [PATCH v1] media: uvcvideo: handle urb completion in a work
+ queue
+In-Reply-To: <2075897.6pASZPILMt@avalon>
+Message-ID: <Pine.LNX.4.44L0.1509091226310.2045-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-load_slim_core_fw() uses a for loop with !err in its condition without
-first initializing err.  Fix this by setting err to 0 in its definition.
+On Wed, 9 Sep 2015, Laurent Pinchart wrote:
 
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
----
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> > > Instead of fixing the issue in the uvcvideo driver, would it then make
+> > > more sense to fix it in the remaining hcd drivers ?
+> > 
+> > Unfortunately that's not so easy.  It involves some subtle changes
+> > related to the way isochronous endpoints are handled.  I wouldn't know
+> > what to change in any of the HCDs, except the ones that I maintain.
+> 
+> I'm not saying it would be easy, but I'm wondering whether it makes change to 
+> move individual USB device drivers to work queues when the long term goal is 
+> to use tasklets for URB completion anyway.
 
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index 486aef50d99b..a424339b18bc 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -1097,7 +1097,7 @@ static int load_slim_core_fw(const struct firmware *fw, void *context)
- 	Elf32_Ehdr *ehdr;
- 	Elf32_Phdr *phdr;
- 	u8 __iomem *dst;
--	int err, i;
-+	int err = 0, i;
- 
- 	if (!fw || !context)
- 		return -EINVAL;
--- 
-2.5.2
+I'm not sure that this is a long-term goal for every HCD.  For
+instance, there probably isn't much incentive to convert a driver if
+its host controllers can only run at low speed or full speed.
+
+Alan Stern
 
