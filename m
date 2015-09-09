@@ -1,46 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:36102 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571AbbIDUEd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Sep 2015 16:04:33 -0400
-Received: by lbcao8 with SMTP id ao8so16987879lbc.3
-        for <linux-media@vger.kernel.org>; Fri, 04 Sep 2015 13:04:32 -0700 (PDT)
-From: Maciek Borzecki <maciek.borzecki@gmail.com>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: maciek.borzecki@gmail.com
-Subject: [PATCH 0/3] [media] staging: lirc: mostly checkpatch cleanups
-Date: Fri,  4 Sep 2015 22:04:02 +0200
-Message-Id: <cover.1441396162.git.maciek.borzecki@gmail.com>
+Received: from yyz01.teckelworks.net ([208.76.111.99]:40089 "EHLO
+	yyz01.teckelworks.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753226AbbIIDC3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Sep 2015 23:02:29 -0400
+Received: from localhost.localdomain ([127.0.0.1]:58737 helo=yyz01.teckelworks.net)
+	by yyz01.teckelworks.net with esmtpa (Exim 4.85)
+	(envelope-from <doug@stradm.com>)
+	id 1ZZUZV-0006mL-Cc
+	for linux-media@vger.kernel.org; Tue, 08 Sep 2015 21:53:13 -0400
+Message-ID: <50eea204c270be3e44867576216677a0.squirrel@yyz01.teckelworks.net>
+Date: Tue, 8 Sep 2015 21:53:13 -0400
+Subject: V4L2 Overlay to reserved memory??
+From: "Douglas Renton" <doug@stradm.com>
+To: linux-media@vger.kernel.org
+Reply-To: doug@stradm.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A tiny patch series that addresses warnings or errors identified by
-checkpatch.
+Hi,
+  I am trying to port some code I wrote for V4l to V4L2.
+  What I am trying to do is "overlay" video in memory instead of to a
+video card. This worked fine in V4L, I hope I can still pull such
+tricks... My "good" reason to this is that I want to be able to analyse
+the video in a "RTAI" realtime driver.
 
-The patches were first submitted to driver-devel sometime in June.
-While on driver-devel, Sudip Mukherjee helped to cleanup all
-issues. I'm resending the set to linux-media so that they can be
-picked up for the media tree.
+  Basically I have reserved "One G" of memory telling GRUB2 that there is
+only 14G of memory in the system.
 
-The first patch fixes minor warning with unnecessary brakes around
-single statement block. The second fixes non-tab indentation. The
-third patch does away with a custom dprintk() in favor of dev_dbg and
-pr_debug().
+in my /etc/default/grub
+# 14G
+GRUB_CMDLINE_LINUX="mem=15032385536"
+
+  I have a RTAI driver that I access this memory from, and a user space
+application, they talk fine. (Yes all the covers are off the computer,
+and no children are in the room.)
+
+driver...
+sd = (shared_data *) ioremap(ADDRESS,(unsigned long)sizeof(shared_data));
+
+user..
+sd = (shared_data *)mmap(0, sizeof(shared_data), PROT_READ|PROT_WRITE,
+MAP_SHARED, MEM, ADDRESS);
 
 
-Maciek Borzecki (3):
-  [media] staging: lirc: remove unnecessary braces
-  [media] staging: lirc: fix indentation
-  [media] staging: lirc: lirc_serial: use dynamic debugs
+  I believe my issue is in the VIDIOC_S_FBUF IOCTL call. I need the
+"Physical base address of the frame buffer, the address of the pixel at
+coordinates (0; 0)"
 
- drivers/staging/media/lirc/lirc_imon.c   |  8 ++++----
- drivers/staging/media/lirc/lirc_sasem.c  |  4 ++--
- drivers/staging/media/lirc/lirc_serial.c | 32 ++++++++++----------------------
- 3 files changed, 16 insertions(+), 28 deletions(-)
+  fbuf.base = &(buf[0]);
 
--- 
-2.5.1
+  I have looked high and low, and have not found an example of using the
+V4L2 "4.2. Video Overlay Interface".
+
+  *************************
+  Questions..
+
+  Is this being done with V4L2?
+  Any Idea how to pass the "Physical base address of the frame buffer" in
+this situation?
+  Any examples?
+  Is this no longer possible?
+  Is there another way to stream data continuously into memory? Ie without
+constantly swapping buffers...
+
+  Thanks
+  Doug
+
 
