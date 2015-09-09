@@ -1,86 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755474AbbIMU5Z (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45911 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751342AbbIIGxz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:25 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 20/32] v4l: vsp1: Move entity route setup function to vsp1_entity.c
-Date: Sun, 13 Sep 2015 23:56:58 +0300
-Message-Id: <1442177830-24536-21-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 9 Sep 2015 02:53:55 -0400
+Date: Wed, 9 Sep 2015 09:53:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH] v4l2-compat-ioctl32: replace pr_warn by pr_debug
+Message-ID: <20150909065351.GH3175@valkosipuli.retiisi.org.uk>
+References: <55EFD467.2030208@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55EFD467.2030208@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function will be used by the DU code, move it out of vsp1_video.c.
+On Wed, Sep 09, 2015 at 08:40:39AM +0200, Hans Verkuil wrote:
+> Every time compat32 encounters an unknown ioctl it will call pr_warn.
+> However, that's very irritating since it is perfectly normal that this
+> happens. For example, applications often try to call an ioctl to see if
+> it exists, and if that's used with an older kernel where compat32 doesn't
+> support that ioctl yet, then it starts spamming the kernel log.
+> 
+> So replace pr_warn by pr_debug.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index af63543..ba26a19 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -1033,8 +1033,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+>  
+>  	if (ret == -ENOIOCTLCMD)
+> -		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> -			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+> +		pr_debug("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> +			 _IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.c | 12 ++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
- drivers/media/platform/vsp1/vsp1_video.c  | 12 ------------
- 3 files changed, 14 insertions(+), 12 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 0c52e4b71a98..cb9d480d8ee5 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -58,6 +58,18 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
- 	return ret;
- }
- 
-+void vsp1_entity_route_setup(struct vsp1_entity *source)
-+{
-+	struct vsp1_entity *sink;
-+
-+	if (source->route->reg == 0)
-+		return;
-+
-+	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
-+	vsp1_write(source->vsp1, source->route->reg,
-+		   sink->route->inputs[source->sink_pad]);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Operations
-  */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 9c95507ec762..9606d0d21263 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -96,4 +96,6 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
- int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
- 
-+void vsp1_entity_route_setup(struct vsp1_entity *source);
-+
- #endif /* __VSP1_ENTITY_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index c0afbf81d9aa..589ce49e8688 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -657,18 +657,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
--static void vsp1_entity_route_setup(struct vsp1_entity *source)
--{
--	struct vsp1_entity *sink;
--
--	if (source->route->reg == 0)
--		return;
--
--	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
--	vsp1_write(source->vsp1, source->route->reg,
--		   sink->route->inputs[source->sink_pad]);
--}
--
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
 -- 
-2.4.6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
