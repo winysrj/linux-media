@@ -1,79 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33298 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746AbbIVIST (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:46638 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751323AbbIIGly (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 04:18:19 -0400
-Received: by pacex6 with SMTP id ex6so2987710pac.0
-        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2015 01:18:19 -0700 (PDT)
-From: Terry Heo <terryheo@google.com>
-To: linux-media@vger.kernel.org
-Cc: Terry Heo <terryheo@google.com>
-Subject: [PATCH] [media] cx231xx: fix bulk transfer mode
-Date: Tue, 22 Sep 2015 17:18:05 +0900
-Message-Id: <1442909885-26277-1-git-send-email-terryheo@google.com>
+	Wed, 9 Sep 2015 02:41:54 -0400
+Message-ID: <55EFD467.2030208@xs4all.nl>
+Date: Wed, 09 Sep 2015 08:40:39 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH] v4l2-compat-ioctl32: replace pr_warn by pr_debug
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current cx231xx driver doesn't work with bulk transfer mode.
-This patch makes it possible to use bulk transfer mode.
+Every time compat32 encounters an unknown ioctl it will call pr_warn.
+However, that's very irritating since it is perfectly normal that this
+happens. For example, applications often try to call an ioctl to see if
+it exists, and if that's used with an older kernel where compat32 doesn't
+support that ioctl yet, then it starts spamming the kernel log.
 
-Signed-off-by: Terry Heo <terryheo@google.com>
+So replace pr_warn by pr_debug.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index a2fd49b..f497888 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -914,6 +914,7 @@ EXPORT_SYMBOL_GPL(cx231xx_uninit_isoc);
-  */
- void cx231xx_uninit_bulk(struct cx231xx *dev)
- {
-+	struct cx231xx_dmaqueue *dma_q = &dev->video_mode.vidq;
- 	struct urb *urb;
- 	int i;
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index af63543..ba26a19 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1033,8 +1033,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 		ret = vdev->fops->compat_ioctl32(file, cmd, arg);
  
-@@ -931,7 +932,7 @@ void cx231xx_uninit_bulk(struct cx231xx *dev)
- 			if (dev->video_mode.bulk_ctl.transfer_buffer[i]) {
- 				usb_free_coherent(dev->udev,
- 						urb->transfer_buffer_length,
--						dev->video_mode.isoc_ctl.
-+						dev->video_mode.bulk_ctl.
- 						transfer_buffer[i],
- 						urb->transfer_dma);
- 			}
-@@ -943,10 +944,12 @@ void cx231xx_uninit_bulk(struct cx231xx *dev)
- 
- 	kfree(dev->video_mode.bulk_ctl.urb);
- 	kfree(dev->video_mode.bulk_ctl.transfer_buffer);
-+	kfree(dma_q->p_left_data);
- 
- 	dev->video_mode.bulk_ctl.urb = NULL;
- 	dev->video_mode.bulk_ctl.transfer_buffer = NULL;
- 	dev->video_mode.bulk_ctl.num_bufs = 0;
-+	dma_q->p_left_data = NULL;
- 
- 	if (dev->mode_tv == 0)
- 		cx231xx_capture_start(dev, 0, Raw_Video);
-@@ -1196,6 +1199,16 @@ int cx231xx_init_bulk(struct cx231xx *dev, int max_packets,
- 				  sb_size, cx231xx_bulk_irq_callback, dma_q);
- 	}
- 
-+	/* clear halt */
-+	rc = usb_clear_halt(dev->udev, dev->video_mode.bulk_ctl.urb[0]->pipe);
-+	if (rc < 0) {
-+		dev_err(dev->dev,
-+			"failed to clear USB bulk endpoint stall/halt condition (error=%i)\n",
-+			rc);
-+		cx231xx_uninit_bulk(dev);
-+		return rc;
-+	}
-+
- 	init_waitqueue_head(&dma_q->wq);
- 
- 	/* submit urbs and enables IRQ */
+ 	if (ret == -ENOIOCTLCMD)
+-		pr_warn("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+-			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
++		pr_debug("compat_ioctl32: unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
++			 _IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_compat_ioctl32);
 -- 
-2.6.0.rc0.131.gf624c3d
+2.1.4
 
