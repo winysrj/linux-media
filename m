@@ -1,228 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38822 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752167AbbIKOKG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:10:06 -0400
-Message-ID: <55F2E076.30102@xs4all.nl>
-Date: Fri, 11 Sep 2015 16:08:54 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:35096 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752642AbbIILKg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Sep 2015 07:10:36 -0400
+Date: Wed, 9 Sep 2015 08:10:31 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 04/55] [media] media: add a common struct to be embed
+ on media graph objects
+Message-ID: <20150909081031.58b4a5e1@recife.lan>
+In-Reply-To: <20150909070149.GI3175@valkosipuli.retiisi.org.uk>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<8127dc64593c95072f3b5eaa820f738dc1af1920.1440902901.git.mchehab@osg.samsung.com>
+	<20150909070149.GI3175@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY
- ioctl
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
-> with the RFC for the MC next generation.
+Hi Sakari,
+
+Em Wed, 09 Sep 2015 10:01:49 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+
+> Hi Mauro,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> On Sun, Aug 30, 2015 at 12:06:15AM -0300, Mauro Carvalho Chehab wrote:
+> > Due to the MC API proposed changes, we'll need to have an unique
+> > object ID for all graph objects, and have some shared fields
+> > that will be common on all media graph objects.
+> > 
+> > Right now, the only common object is the object ID, but other
+> > fields will be added later on.
 
-Two comments:
+Thanks for the review!
 
+There are already too much patches on the top of this one. So, I'll
+be addressing anything we've agreed on at a separate patch series.
+
+I guess this makes easier for reviewers, and avoid spending hours with rebases
+and re-tests. On my experience, rebasing a long series like this is not
+a good idea, as errors can be introduced on every rebase. So, doing a 
+separate patch is usually better.
+
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index cb0ac4e0dfa5..4834172bf6f8 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -27,6 +27,38 @@
+> >  #include <media/media-device.h>
+> >  
+> >  /**
+> > + *  media_gobj_init - Initialize a graph object
+> > + *
+> > + * @mdev:	Pointer to the media_device that contains the object
+> > + * @type:	Type of the object
+> > + * @gobj:	Pointer to the object
+> > + *
+> > + * This routine initializes the embedded struct media_gobj inside a
+> > + * media graph object. It is called automatically if media_*_create()
+> > + * calls are used. However, if the object (entity, link, pad, interface)
+> > + * is embedded on some other object, this function should be called before
+> > + * registering the object at the media controller.
+> > + */
+> > +void media_gobj_init(struct media_device *mdev,
+> > +			   enum media_gobj_type type,
+> > +			   struct media_gobj *gobj)
+> > +{
+> > +	/* For now, nothing to do */
+> > +}
+> > +
+> > +/**
+> > + *  media_gobj_remove - Stop using a graph object on a media device
+> > + *
+> > + * @graph_obj:	Pointer to the object
+> > + *
+> > + * This should be called at media_device_unregister_*() routines
+> > + */
+> > +void media_gobj_remove(struct media_gobj *gobj)
+> > +{
+> > +	/* For now, nothing to do */
+> > +}
+> > +
+> > +/**
+> >   * media_entity_init - Initialize a media entity
+> >   *
+> >   * @num_pads: Total number of sink and source pads.
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 0a66fc225559..b1854239a476 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -28,6 +28,39 @@
+> >  #include <linux/list.h>
+> >  #include <linux/media.h>
+> >  
+> > +/* Enums used internally at the media controller to represent graphs */
+> > +
+> > +/**
+> > + * enum media_gobj_type - type of a graph object
+> > + *
+> > + */
+> > +enum media_gobj_type {
+> > +	 /* FIXME: add the types here, as we embed media_gobj */
+> > +	MEDIA_GRAPH_NONE
+> > +};
+> > +
+> > +#define MEDIA_BITS_PER_TYPE		8
+> > +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
+> > +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 0)
+> > +
+> > +/* Structs to represent the objects that belong to a media graph */
+> > +
+> > +/**
+> > + * struct media_gobj - Define a graph object.
+> > + *
+> > + * @id:		Non-zero object ID identifier. The ID should be unique
+> > + *		inside a media_device, as it is composed by
+> > + *		MEDIA_BITS_PER_TYPE to store the type plus
+> > + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+> > + *		(called as "local ID").
+> > + *
+> > + * All objects on the media graph should have this struct embedded
+> > + */
+> > +struct media_gobj {
+> > +	u32			id;
+> > +};
+> > +
+> > +
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 5b2c9f7fcd45..96a476eeb16e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -232,6 +232,156 @@ static long media_device_setup_link(struct media_device *mdev,
->  	return ret;
->  }
->  
-> +static long __media_device_get_topology(struct media_device *mdev,
-> +				      struct media_v2_topology *topo)
-> +{
-> +	struct media_entity *entity;
-> +	struct media_interface *intf;
-> +	struct media_pad *pad;
-> +	struct media_link *link;
-> +	struct media_v2_entity uentity;
-> +	struct media_v2_interface uintf;
-> +	struct media_v2_pad upad;
-> +	struct media_v2_link ulink;
-> +	int ret = 0, i;
-> +
-> +	topo->topology_version = mdev->topology_version;
-> +
-> +	/* Get entities and number of entities */
-> +	i = 0;
-> +	media_device_for_each_entity(entity, mdev) {
-> +		i++;
-> +
-> +		if (ret || !topo->entities)
-> +			continue;
-> +
-> +		if (i > topo->num_entities) {
-> +			ret = -ENOSPC;
-> +			continue;
-> +		}
-> +
-> +		/* Copy fields to userspace struct if not error */
-> +		memset(&uentity, 0, sizeof(uentity));
-> +		uentity.id = entity->graph_obj.id;
-> +		strncpy(uentity.name, entity->name,
-> +			sizeof(uentity.name));
-> +
-> +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
-> +			ret = -EFAULT;
-> +	}
-> +	topo->num_entities = i;
-> +
-> +	/* Get interfaces and number of interfaces */
-> +	i = 0;
-> +	media_device_for_each_intf(intf, mdev) {
-> +		i++;
-> +
-> +		if (ret || !topo->interfaces)
-> +			continue;
-> +
-> +		if (i > topo->num_interfaces) {
-> +			ret = -ENOSPC;
-> +			continue;
-> +		}
-> +
-> +		memset(&uintf, 0, sizeof(uintf));
-> +
-> +		/* Copy intf fields to userspace struct */
-> +		uintf.id = intf->graph_obj.id;
-> +		uintf.intf_type = intf->type;
-> +		uintf.flags = intf->flags;
-> +
-> +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
-> +			struct media_intf_devnode *devnode;
-> +
-> +			devnode = intf_to_devnode(intf);
-> +
-> +			uintf.devnode.major = devnode->major;
-> +			uintf.devnode.minor = devnode->minor;
-> +		}
-> +
-> +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
-> +			ret = -EFAULT;
-> +	}
-> +	topo->num_interfaces = i;
-> +
-> +	/* Get pads and number of pads */
-> +	i = 0;
-> +	media_device_for_each_pad(pad, mdev) {
-> +		i++;
-> +
-> +		if (ret || !topo->pads)
-> +			continue;
-> +
-> +		if (i > topo->num_pads) {
-> +			ret = -ENOSPC;
-> +			continue;
-> +		}
-> +
-> +		memset(&upad, 0, sizeof(upad));
-> +
-> +		/* Copy pad fields to userspace struct */
-> +		upad.id = pad->graph_obj.id;
-> +		upad.entity_id = pad->entity->graph_obj.id;
-> +		upad.flags = pad->flags;
-> +
-> +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
-> +			ret = -EFAULT;
-> +	}
-> +	topo->num_pads = i;
-> +
-> +	/* Get links and number of links */
-> +	i = 0;
-> +	media_device_for_each_link(link, mdev) {
-> +		i++;
-> +
-> +		if (ret || !topo->links)
-> +			continue;
-> +
-> +		if (i > topo->num_links) {
-> +			ret = -ENOSPC;
-> +			continue;
-> +		}
-> +
-> +		memset(&ulink, 0, sizeof(ulink));
-> +
-> +		/* Copy link fields to userspace struct */
-> +		ulink.id = link->graph_obj.id;
-> +		ulink.source_id = link->gobj0->id;
-> +		ulink.sink_id = link->gobj1->id;
-> +		ulink.flags = link->flags;
-> +
-> +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
-> +			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
+> Two newlines. Looks like one would be enough. A minor matter though.
 
-Why isn't this flag part of link->flags? I would expect that when an interface
-link is created the media core code will set this flag automatically.
+Ok, I'll be dropping the extra line.
 
-It's a bit strange that this flag is set here. Or am I missing something?
-
-> +
-> +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
-> +			ret = -EFAULT;
-> +	}
-> +	topo->num_links = i;
-> +
-> +	return ret;
-> +}
-> +
-> +static long media_device_get_topology(struct media_device *mdev,
-> +				      struct media_v2_topology __user *utopo)
-> +{
-> +	struct media_v2_topology ktopo;
-> +	int ret;
-> +
-> +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
-> +
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = __media_device_get_topology(mdev, &ktopo);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
-> +
-> +	return ret;
-> +}
-> +
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			       unsigned long arg)
->  {
-> @@ -264,6 +414,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  		mutex_unlock(&dev->graph_mutex);
->  		break;
->  
-> +	case MEDIA_IOC_G_TOPOLOGY:
-> +		mutex_lock(&dev->graph_mutex);
-> +		ret = media_device_get_topology(dev,
-> +				(struct media_v2_topology __user *)arg);
-> +		mutex_unlock(&dev->graph_mutex);
-> +		break;
-> +
->  	default:
->  		ret = -ENOIOCTLCMD;
->  	}
-> @@ -312,6 +469,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
->  	case MEDIA_IOC_DEVICE_INFO:
->  	case MEDIA_IOC_ENUM_ENTITIES:
->  	case MEDIA_IOC_SETUP_LINK:
-> +	case MEDIA_IOC_G_TOPOLOGY:
->  		return media_device_ioctl(filp, cmd, arg);
-
-This doesn't work: G_TOPOLOGY needs pointer conversion.
-
-Regards,
-
-	Hans
-
->  
->  	case MEDIA_IOC_ENUM_LINKS32:
+> >  struct media_pipeline {
+> >  };
+> >  
+> > @@ -118,6 +151,26 @@ static inline u32 media_entity_id(struct media_entity *entity)
+> >  	return entity->id;
+> >  }
+> >  
+> > +static inline enum media_gobj_type media_type(struct media_gobj *gobj)
+> > +{
+> > +	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
+> > +}
+> > +
+> > +static inline u32 media_localid(struct media_gobj *gobj)
+> > +{
+> > +	return gobj->id & MEDIA_LOCAL_ID_MASK;
+> > +}
+> > +
+> > +static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+> > +{
+> > +	u32 id;
+> > +
+> > +	id = type << MEDIA_BITS_PER_LOCAL_ID;
+> > +	id |= local_id & MEDIA_LOCAL_ID_MASK;
+> > +
+> > +	return id;
+> > +}
+> > +
+> >  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+> >  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+> >  
+> > @@ -131,6 +184,14 @@ struct media_entity_graph {
+> >  	int top;
+> >  };
+> >  
+> > +#define gobj_to_entity(gobj) \
+> > +		container_of(gobj, struct media_entity, graph_obj)
 > 
+> Just on naming: I'd call this media_gobj_to_entity, as the type is called
+> media_gobj and secondly the common media prefix is used throughout the MC
+> API.
+> 
+> Same for the rest of similar macros in further patches.
 
+As commented on my answer to your review on patch 14/55, the above is
+the right namespace for this kind of macro. Nobody uses big names for
+those container_of macros, as the hole idea is to have a short name
+at the form of:
+	"to_bar"
+or
+	"foo_to_bar"
+
+> > +
+> > +void media_gobj_init(struct media_device *mdev,
+> > +		    enum media_gobj_type type,
+> > +		    struct media_gobj *gobj);
+> > +void media_gobj_remove(struct media_gobj *gobj);
+> > +
+> >  int media_entity_init(struct media_entity *entity, u16 num_pads,
+> >  		struct media_pad *pads);
+> >  void media_entity_cleanup(struct media_entity *entity);
+> 
