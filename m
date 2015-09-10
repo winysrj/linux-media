@@ -1,202 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:43542 "EHLO
-	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758767AbbIVR2C (ORCPT
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:34116 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955AbbIJOQK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 13:28:02 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	stefanr@s5r6.in-berlin.de, crope@iki.fi, dan.carpenter@oracle.com,
-	tskd08@gmail.com, ruchandani.tina@gmail.com, arnd@arndb.de,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	Julia.Lawall@lip6.fr, elfring@users.sourceforge.net,
-	ricardo.ribalda@gmail.com, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
-	clemens@ladisch.de, misterpib@gmail.com, takamichiho@gmail.com,
-	pmatilai@laiskiainen.org, damien@zamaudio.com, daniel@zonque.org,
-	vladcatoi@gmail.com, normalperson@yhbt.net, joe@oampo.co.uk,
-	bugzilla.frnkcg@spamgourmet.com, jussi@sonarnerd.net
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 02/21] media: Media Controller register/unregister entity_notify API
-Date: Tue, 22 Sep 2015 11:19:21 -0600
-Message-Id: <21da4006a0f95ec7aad81539e58df5ef04a173cb.1442937669.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
-References: <cover.1442937669.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
-References: <cover.1442937669.git.shuahkh@osg.samsung.com>
+	Thu, 10 Sep 2015 10:16:10 -0400
+Received: by ykdg206 with SMTP id g206so58468278ykd.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2015 07:16:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <06bad8b26ee0cef02d9c52d578af3a51a0f03b1f.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<06bad8b26ee0cef02d9c52d578af3a51a0f03b1f.1440902901.git.mchehab@osg.samsung.com>
+Date: Thu, 10 Sep 2015 16:16:10 +0200
+Message-ID: <CABxcv=mdyshSH5wzRRJHnhiavr_m74=Ax07=JzSTO1uxiCmJtA@mail.gmail.com>
+Subject: Re: [PATCH v8 10/55] [media] media: rename the function that create
+ pad links
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?Q?S=C3=B6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Rafael_Louren=C3=A7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>, Shuah Khan <shuahkh@osg.samsung.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	anuvazhayil <anuv.1994@gmail.com>,
+	Mahati Chamarthy <mahati.chamarthy@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Jiayi Ye <yejiayily@gmail.com>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Heena Sirwani <heenasirwani@gmail.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new interfaces to register and unregister entity_notify
-hook to media device to allow drivers to take appropriate
-actions when as new entities get added to the shared media
-device.When a new entity is registered, all registered
-entity_notify hooks are invoked to allow drivers or modules
-that registered hook to take appropriate action. For example,
-ALSA driver registers an entity_notify hook to parse the list
-of registered entities to determine if decoder has been linked
-to ALSA entity. au0828 bridge driver registers an entity_notify
-hook to create media graph for the device.
+On Sun, Aug 30, 2015 at 5:06 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> With the new API, a link can be either between two PADs or between an interface
+> and an entity. So, we need to use a better name for the function that create
+> links between two pads.
+>
+> So, rename the such function to media_create_pad_link().
+>
+> No functional changes.
+>
+> This patch was created via this shell script:
+>         for i in $(find drivers/media -name '*.[ch]' -type f) $(find drivers/staging/media -name '*.[ch]' -type f) $(find include/ -name '*.h' -type f) ; do sed s,media_entity_create_link,media_create_pad_link,g <$i >a && mv a $i; done
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/media-device.c | 45 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/media-device.h | 23 ++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c55ab50..22565a8 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -381,6 +381,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	mdev->entity_id = 1;
- 	INIT_LIST_HEAD(&mdev->entities);
-+	INIT_LIST_HEAD(&mdev->entity_notify);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
- 
-@@ -411,9 +412,12 @@ void media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
- 	struct media_entity *next;
-+	struct media_entity_notify *notify, *nextp;
- 
- 	list_for_each_entry_safe(entity, next, &mdev->entities, list)
- 		media_device_unregister_entity(entity);
-+	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
-+		media_device_unregister_entity_notify(mdev, notify);
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	media_devnode_unregister(&mdev->devnode);
-@@ -421,6 +425,39 @@ void media_device_unregister(struct media_device *mdev)
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
- /**
-+ * media_device_register_entity_notify - Register a media entity notify
-+ * callback with a media device. When a new entity is registered, all
-+ * the registered media_entity_notify callbacks are invoked.
-+ * @mdev:	The media device
-+ * @nptr:	The media_entity_notify
-+ */
-+int __must_check media_device_register_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	spin_lock(&mdev->lock);
-+	list_add_tail(&nptr->list, &mdev->entity_notify);
-+	spin_unlock(&mdev->lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
-+
-+/**
-+ * media_device_unregister_entity_notify - Unregister a media entity notify
-+ * callback with a media device. When a new entity is registered, all
-+ * the registered media_entity_notify callbacks are invoked.
-+ * @mdev:	The media device
-+ * @nptr:	The media_entity_notify
-+ */
-+void media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	spin_lock(&mdev->lock);
-+	list_del(&nptr->list);
-+	spin_unlock(&mdev->lock);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
-+
-+/**
-  * media_device_register_entity - Register an entity with a media device
-  * @mdev:	The media device
-  * @entity:	The entity
-@@ -428,6 +465,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity)
- {
-+	struct media_entity_notify *notify, *next;
-+
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->parent != NULL);
- 	entity->parent = mdev;
-@@ -440,6 +479,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	list_add_tail(&entity->list, &mdev->entities);
- 	spin_unlock(&mdev->lock);
- 
-+	/* invoke entity_notify callbacks */
-+	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
-+		(notify)->notify(entity, notify->notify_data);
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(media_device_register_entity);
-@@ -462,6 +506,7 @@ void media_device_unregister_entity(struct media_entity *entity)
- 	list_del(&entity->list);
- 	spin_unlock(&mdev->lock);
- 	entity->parent = NULL;
-+	/* invoke entity_notify callbacks to handle entity removal?? */
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity);
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a44f18f..a3854f6 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -32,6 +32,12 @@
- 
- struct device;
- 
-+struct media_entity_notify {
-+	struct list_head list;
-+	void *notify_data;
-+	void (*notify)(struct media_entity *entity, void *notify_data);
-+};
-+
- /**
-  * struct media_device - Media device
-  * @dev:	Parent device
-@@ -70,6 +76,8 @@ struct media_device {
- 
- 	u32 entity_id;
- 	struct list_head entities;
-+	/* notify callback list invoked when a new entity is registered */
-+	struct list_head entity_notify;
- 
- 	/* Protects the entities list */
- 	spinlock_t lock;
-@@ -94,6 +102,10 @@ int __must_check __media_device_register(struct media_device *mdev,
- #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
- void media_device_unregister(struct media_device *mdev);
- 
-+int __must_check media_device_register_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr);
-+void media_device_unregister_entity_notify(struct media_device *mdev,
-+					struct media_entity_notify *nptr);
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity);
- void media_device_unregister_entity(struct media_entity *entity);
-@@ -112,6 +124,17 @@ static inline int media_device_register(struct media_device *mdev)
- static inline void media_device_unregister(struct media_device *mdev)
- {
- }
-+static inline int media_device_register_entity_notify(
-+					struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+	return 0;
-+}
-+static inline void media_device_unregister_entity_notify(
-+					struct media_device *mdev,
-+					struct media_entity_notify *nptr)
-+{
-+}
- static inline int media_device_register_entity(struct media_device *mdev,
- 						struct media_entity *entity)
- {
--- 
-2.1.4
-
+Best regards,
+Javier
