@@ -1,96 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54076 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932857AbbIUPsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 11:48:30 -0400
-From: Sudeep Holla <sudeep.holla@arm.com>
-To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com,
-	linux-media@vger.kernel.org
-Subject: [PATCH 14/17] media: st-rc: remove misuse of IRQF_NO_SUSPEND flag
-Date: Mon, 21 Sep 2015 16:47:10 +0100
-Message-Id: <1442850433-5903-15-git-send-email-sudeep.holla@arm.com>
-In-Reply-To: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39954 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752422AbbIJCxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Sep 2015 22:53:48 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 621DA2A0097
+	for <linux-media@vger.kernel.org>; Thu, 10 Sep 2015 04:52:38 +0200 (CEST)
+Date: Thu, 10 Sep 2015 04:52:38 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150910025238.621DA2A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device is set as wakeup capable using proper wakeup API but the
-driver misuses IRQF_NO_SUSPEND to set the interrupt as wakeup source
-which is incorrect.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch removes the use of IRQF_NO_SUSPEND flags replacing it with
-enable_irq_wake instead.
+Results of the daily build of media_tree:
 
-Cc: Srinivas Kandagatla <srinivas.kandagatla@gmail.com>
-Cc: Maxime Coquelin <maxime.coquelin@st.com>
-Cc: Patrice Chotard <patrice.chotard@st.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: kernel@stlinux.com
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/media/rc/st_rc.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+date:		Thu Sep 10 04:00:23 CEST 2015
+git branch:	test
+git hash:	50ef28a6ac216fd8b796257a3768fef8f57b917d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index 37d040158dff..1fa0c9d1c508 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -16,6 +16,7 @@
- #include <linux/reset.h>
- #include <media/rc-core.h>
- #include <linux/pinctrl/consumer.h>
-+#include <linux/pm_wakeirq.h>
- 
- struct st_rc_device {
- 	struct device			*dev;
-@@ -190,6 +191,9 @@ static void st_rc_hardware_init(struct st_rc_device *dev)
- static int st_rc_remove(struct platform_device *pdev)
- {
- 	struct st_rc_device *rc_dev = platform_get_drvdata(pdev);
-+
-+	dev_pm_clear_wake_irq(&pdev->dev);
-+	device_init_wakeup(&pdev->dev, false);
- 	clk_disable_unprepare(rc_dev->sys_clock);
- 	rc_unregister_device(rc_dev->rdev);
- 	return 0;
-@@ -298,22 +302,22 @@ static int st_rc_probe(struct platform_device *pdev)
- 	rdev->map_name = RC_MAP_LIRC;
- 	rdev->input_name = "ST Remote Control Receiver";
- 
--	/* enable wake via this device */
--	device_set_wakeup_capable(dev, true);
--	device_set_wakeup_enable(dev, true);
--
- 	ret = rc_register_device(rdev);
- 	if (ret < 0)
- 		goto clkerr;
- 
- 	rc_dev->rdev = rdev;
- 	if (devm_request_irq(dev, rc_dev->irq, st_rc_rx_interrupt,
--			IRQF_NO_SUSPEND, IR_ST_NAME, rc_dev) < 0) {
-+			     0, IR_ST_NAME, rc_dev) < 0) {
- 		dev_err(dev, "IRQ %d register failed\n", rc_dev->irq);
- 		ret = -EINVAL;
- 		goto rcerr;
- 	}
- 
-+	/* enable wake via this device */
-+	device_init_wakeup(dev, true);
-+	dev_pm_set_wake_irq(dev, rc_dev->irq);
-+
- 	/**
- 	 * for LIRC_MODE_MODE2 or LIRC_MODE_PULSE or LIRC_MODE_RAW
- 	 * lircd expects a long space first before a signal train to sync.
--- 
-1.9.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
