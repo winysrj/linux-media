@@ -1,120 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37850 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753052AbbIUKAS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 06:00:18 -0400
-Received: from [10.61.104.16] (unknown [173.38.220.50])
-	by tschai.lan (Postfix) with ESMTPSA id 1AF652A00AE
-	for <linux-media@vger.kernel.org>; Mon, 21 Sep 2015 11:58:53 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.4] Fixes, enhancements, etc.
-Message-ID: <55FFD52D.9040502@xs4all.nl>
-Date: Mon, 21 Sep 2015 12:00:13 +0200
+Received: from lists.s-osg.org ([54.187.51.154]:35304 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289AbbIJLqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2015 07:46:22 -0400
+Date: Thu, 10 Sep 2015 08:46:16 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.3-rc1] media updates
+Message-ID: <20150910084616.6fe26a80@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request is a pile of fixes and enhancements.
+Hi Linus,
 
-The main changes are a new colorspace and a new transfer function and a cleaned
-up saa7164 (now passes v4l2-compliance).
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.3-2
 
-Arnd also did some preparation to simplify future y2038 work.
+For a series of patches that move part of the code used to allocate memory
+from the media subsystem to the mm subsystem.
 
-Regards,
+PS.: there are some conflicts with upstream. Two of them are really trivial
+(just Kconfig/Makefile additions). The other one is more complex, and
+involves some code that are been moved to mm. 
 
-	Hans
+As you told in the past that you generally prefers to see the conflicts,
+I'm keeping it. However, if you prefer, I can solve it locally and send you
+another pull request with the conflict fixed. Whatever works best for you.
 
-The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
+Thanks and regards,
+Mauro
 
-  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
+The following changes since commit 27c039750c8ff1297632e424a4674732cc4c3c70:
+
+  [media] sr030pc30: don't read a new pointer (2015-08-16 12:58:31 -0300)
 
 are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.4b
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.3-2
 
-for you to fetch changes up to d8af0338c98cd184eb8753fb1ba4291756ba30d6:
+for you to fetch changes up to 63540f01917c0d8b03b9813a0d6539469b163139:
 
-  go7007: Fix returned errno code in gen_mjpeghdr_to_package() (2015-09-21 11:50:40 +0200)
+  [media] drm/exynos: Convert g2d_userptr_get_dma_addr() to use get_vaddr_frames() (2015-08-16 13:15:58 -0300)
 
 ----------------------------------------------------------------
-Arnd Bergmann (2):
-      exynos4-is: use monotonic timestamps as advertized
-      use v4l2_get_timestamp where possible
+media updates for v4.3-rc1
 
-Geliang Tang (1):
-      media: fix kernel-doc warnings in v4l2-dv-timings.h
+----------------------------------------------------------------
+Jan Kara (9):
+      [media] vb2: Push mmap_sem down to memops
+      [media] mm: Provide new get_vaddr_frames() helper
+      [media] media: omap_vout: Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
+      [media] vb2: Provide helpers for mapping virtual addresses
+      [media] media: vb2: Convert vb2_dma_sg_get_userptr() to use frame vector
+      [media] media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
+      [media] media: vb2: Convert vb2_dc_get_userptr() to use frame vector
+      [media] media: vb2: Remove unused functions
+      [media] drm/exynos: Convert g2d_userptr_get_dma_addr() to use get_vaddr_frames()
 
-Hans Verkuil (24):
-      v4l2-compat-ioctl32: replace pr_warn by pr_debug
-      vivid: use ARRAY_SIZE to calculate max control value
-      vivid: use Bradford method when converting Rec. 709 to NTSC 1953
-      videodev2.h: add support for the DCI-P3 colorspace
-      DocBook media: document the new DCI-P3 colorspace
-      vivid-tpg: support the DCI-P3 colorspace
-      vivid: add support for the DCI-P3 colorspace
-      videodev2.h: add SMPTE 2084 transfer function define
-      vivid-tpg: add support for SMPTE 2084 transfer function
-      vivid: add support for SMPTE 2084 transfer function
-      DocBook media: Document the SMPTE 2084 transfer function
-      vim2m: small cleanup: use assignment instead of memcpy
-      v4l2-compat-ioctl32: add missing SDR support
-      vivid: add 10 and 12 bit Bayer formats
-      saa7164: convert to the control framework
-      saa7164: add v4l2_fh support
-      saa7164: fix poll bugs
-      saa7164: add support for control events
-      saa7164: fix format ioctls
-      saa7164: remove unused videobuf references
-      saa7164: fix input and tuner compliance problems
-      saa7164: video and vbi ports share the same input/tuner/std
-      v4l2-ctrls: arrays are also considered compound controls
-      DocBook/media: clarify control documentation
+ drivers/gpu/drm/exynos/Kconfig                 |   1 +
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  89 +-
+ drivers/gpu/drm/exynos/exynos_drm_gem.c        |  97 -
+ drivers/media/platform/omap/Kconfig            |   1 +
+ drivers/media/platform/omap/omap_vout.c        |  69 +-
+ drivers/media/v4l2-core/Kconfig                |   1 +
+ drivers/media/v4l2-core/videobuf2-core.c       |   2 -
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 207 +-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |  91 +-
+ drivers/media/v4l2-core/videobuf2-memops.c     | 148 +-
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |  90 +-
+ include/linux/mm.h                             |  44 +
+ include/media/videobuf2-memops.h               |  11 +-
+ mm/Kconfig                                     |   3 +
+ mm/Makefile                                    |   1 +
+ mm/frame_vector.c                              | 230 ++
+ 16 files changed, 477 insertions(+), 608 deletions(-)
+ create mode 100644 mm/frame_vector.c
 
-Javier Martinez Canillas (2):
-      s5c73m3: Export OF module alias information
-      go7007: Fix returned errno code in gen_mjpeghdr_to_package()
-
-Ricardo Ribalda Delgado (2):
-      videodev2.h: Fix typo in comment
-      media/v4l2-compat-ioctl32: Simple stylechecks
-
-Sergei Shtylyov (1):
-      ml86v7667: implement g_std() method
-
- Documentation/DocBook/media/v4l/biblio.xml             |  18 +++
- Documentation/DocBook/media/v4l/pixfmt.xml             | 109 +++++++++++++
- Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml |   7 +
- Documentation/DocBook/media/v4l/vidioc-queryctrl.xml   |  21 ++-
- drivers/media/i2c/ml86v7667.c                          |  10 ++
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c                |   1 +
- drivers/media/pci/bt8xx/bttv-driver.c                  |   5 +-
- drivers/media/pci/cx18/cx18-mailbox.c                  |   2 +-
- drivers/media/pci/saa7164/Kconfig                      |   1 -
- drivers/media/pci/saa7164/saa7164-encoder.c            | 653 +++++++++++++++++++++--------------------------------------------------------
- drivers/media/pci/saa7164/saa7164-vbi.c                | 629 +++-----------------------------------------------------------------------
- drivers/media/pci/saa7164/saa7164.h                    |  26 +++-
- drivers/media/platform/exynos4-is/fimc-capture.c       |   8 +-
- drivers/media/platform/exynos4-is/fimc-lite.c          |   7 +-
- drivers/media/platform/omap3isp/ispstat.c              |   5 +-
- drivers/media/platform/omap3isp/ispstat.h              |   2 +-
- drivers/media/platform/s3c-camif/camif-capture.c       |   8 +-
- drivers/media/platform/vim2m.c                         |   7 +-
- drivers/media/platform/vivid/vivid-core.h              |   1 +
- drivers/media/platform/vivid/vivid-ctrls.c             |  18 ++-
- drivers/media/platform/vivid/vivid-tpg-colors.c        | 328 +++++++++++++++++++++++++++++++++------
- drivers/media/platform/vivid/vivid-tpg-colors.h        |   4 +-
- drivers/media/platform/vivid/vivid-tpg.c               |  91 +++++++++++
- drivers/media/platform/vivid/vivid-vid-common.c        |  56 +++++++
- drivers/media/usb/go7007/go7007-fw.c                   |   6 +-
- drivers/media/usb/gspca/gspca.c                        |   4 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c          |  40 +++--
- drivers/media/v4l2-core/v4l2-ctrls.c                   |   4 +-
- drivers/staging/media/omap4iss/iss_video.c             |   5 +-
- include/media/v4l2-dv-timings.h                        |  32 ++--
- include/uapi/linux/videodev2.h                         |  21 ++-
- 31 files changed, 899 insertions(+), 1230 deletions(-)
