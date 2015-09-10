@@ -1,39 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60947 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753550AbbIMTTq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 15:19:46 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 58ACA2A009D
-	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2015 21:18:32 +0200 (CEST)
-Message-ID: <55F5CC08.1010300@xs4all.nl>
-Date: Sun, 13 Sep 2015 21:18:32 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:55002 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752078AbbIJRjs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Sep 2015 13:39:48 -0400
+Subject: Re: [PATCH 2/2] [media] media-device: split media initialization and
+ registration
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Cc: Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>
+References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
+ <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <55F1C04C.1040906@linux.intel.com>
+Date: Thu, 10 Sep 2015 20:39:24 +0300
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/4] v4l2: add support for the SMPTE 2084 transfer function
-References: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/13/2015 09:15 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This transfer function is used in High Dynamic Range content. It can be signaled
-> via the new HDMI Dynamic Range and Mastering InfoFrame (defined in CEA-861.3).
+Javier Martinez Canillas wrote:
+> Also, add a media_entity_cleanup() function that will destroy the
+> graph_mutex that is initialized in media_entity_init().
 
-Forgot to mention: this patch series sits up top of the series adding DCI-P3 colorspace
-support.
+media_device_init() and media_device_cleanup()?
 
-Also, a version of v4l-utils that understands both this new transfer function and
-the DCI-P3 colorspace is available here:
-
-http://git.linuxtv.org/cgit.cgi/hverkuil/v4l-utils.git/log/?h=dcip3
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
