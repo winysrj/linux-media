@@ -1,79 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755397AbbIMU5U (ORCPT
+Received: from mail-yk0-f173.google.com ([209.85.160.173]:34528 "EHLO
+	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116AbbIJN6y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:20 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 13/32] v4l: vsp1: Extract pipeline initialization code into a function
-Date: Sun, 13 Sep 2015 23:56:51 +0300
-Message-Id: <1442177830-24536-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 10 Sep 2015 09:58:54 -0400
+Received: by ykdg206 with SMTP id g206so57841012ykd.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2015 06:58:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <6185117c4ad70fd3e1c780689e0ad2407fdf1294.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<6185117c4ad70fd3e1c780689e0ad2407fdf1294.1440902901.git.mchehab@osg.samsung.com>
+Date: Thu, 10 Sep 2015 15:58:53 +0200
+Message-ID: <CABxcv=myNegKSr7xtrgV7BHqiTLMFCicLZtr1Md8m_wS8O52og@mail.gmail.com>
+Subject: Re: [PATCH v8 01/55] [media] media: create a macro to get entity ID
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-sh@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be reused outside of vsp1_video.c.
+On Sun, Aug 30, 2015 at 5:06 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Instead of accessing directly entity.id, let's create a macro,
+> as this field will be moved into a common struct later on.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c  | 10 ++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h  |  1 +
- drivers/media/platform/vsp1/vsp1_video.c |  6 +-----
- 3 files changed, 12 insertions(+), 5 deletions(-)
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 199d57f1fe06..524420ed6333 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -48,6 +48,16 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- 	pipe->uds = NULL;
- }
- 
-+void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
-+{
-+	mutex_init(&pipe->lock);
-+	spin_lock_init(&pipe->irqlock);
-+	init_waitqueue_head(&pipe->wq);
-+
-+	INIT_LIST_HEAD(&pipe->entities);
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+}
-+
- void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index f8a099fba973..8553d5a03aa3 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -67,6 +67,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- }
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-+void vsp1_pipeline_init(struct vsp1_pipeline *pipe);
- 
- void vsp1_pipeline_run(struct vsp1_pipeline *pipe);
- bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 8569836ea51b..ec68890af14b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1009,11 +1009,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	spin_lock_init(&video->irqlock);
- 	INIT_LIST_HEAD(&video->irqqueue);
- 
--	mutex_init(&video->pipe.lock);
--	spin_lock_init(&video->pipe.irqlock);
--	INIT_LIST_HEAD(&video->pipe.entities);
--	init_waitqueue_head(&video->pipe.wq);
--	video->pipe.state = VSP1_PIPELINE_STOPPED;
-+	vsp1_pipeline_init(&video->pipe);
- 	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
- 
- 	/* Initialize the media entity... */
--- 
-2.4.6
-
+Best regards,
+Javier
