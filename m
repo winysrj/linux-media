@@ -1,113 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46192 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751342AbbIIIEI (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:52234 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753465AbbIKQ0x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2015 04:04:08 -0400
-Date: Wed, 9 Sep 2015 11:03:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v8 18/55] [media] omap3isp: create links after all
- subdevs have been bound
-Message-ID: <20150909080333.GL3175@valkosipuli.retiisi.org.uk>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
- <6e78f34ad454da44d68720a114f0f8e872560e8e.1440902901.git.mchehab@osg.samsung.com>
+	Fri, 11 Sep 2015 12:26:53 -0400
+Message-ID: <55F30085.504@xs4all.nl>
+Date: Fri, 11 Sep 2015 18:25:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6e78f34ad454da44d68720a114f0f8e872560e8e.1440902901.git.mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+CC: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@linaro.org,
+	robdclark@gmail.com, daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 03/11] vb2: Move cache synchronisation from buffer
+ done to dqbuf handler
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441972234-8643-4-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier and Mauro,
-
-On Sun, Aug 30, 2015 at 12:06:29AM -0300, Mauro Carvalho Chehab wrote:
-> From: Javier Martinez Canillas <javier@osg.samsung.com>
+On 09/11/2015 01:50 PM, Sakari Ailus wrote:
+> The cache synchronisation may be a time consuming operation and thus not
+> best performed in an interrupt which is a typical context for
+> vb2_buffer_done() calls. This may consume up to tens of ms on some
+> machines, depending on the buffer size.
 > 
-> The omap3isp driver parses the graph endpoints to know how many subdevices
-> needs to be registered async and register notifiers callbacks for to know
-> when these are bound and when the async registrations are completed.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 > 
-> Currently the entities pad are linked with the correct ISP input interface
-> when the subdevs are bound but it happens before entitities are registered
-> with the media device so that won't work now that the entity links list is
-> initialized on device registration.
-> 
-> So instead creating the pad links when the subdevice is bound, create them
-> on the complete callback once all the subdevices have been bound but only
-> try to create for the ones that have a bus configuration set during bound.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index b8f6f81d2db2..69e7733d36cd 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2321,26 +2321,33 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
->  				     struct v4l2_subdev *subdev,
->  				     struct v4l2_async_subdev *asd)
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 64fce4d..c5c0707a 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
 >  {
-> -	struct isp_device *isp = container_of(async, struct isp_device,
-> -					      notifier);
->  	struct isp_async_subdev *isd =
->  		container_of(asd, struct isp_async_subdev, asd);
-> -	int ret;
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned long flags;
+> -	unsigned int plane;
+>  
+>  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+>  		return;
+> @@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>  	dprintk(4, "done processing on buffer %d, state: %d\n",
+>  			vb->v4l2_buf.index, state);
+>  
+> -	/* sync buffers */
+> -	for (plane = 0; plane < vb->num_planes; ++plane)
+> -		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
 > -
-> -	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
-> -	if (ret < 0)
-> -		return ret;
->  
->  	isd->sd = subdev;
->  	isd->sd->host_priv = &isd->bus;
->  
-> -	return ret;
-> +	return 0;
->  }
->  
->  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+
+Ah, OK, so it is removed here,
+
+>  	/* Add the buffer to the done buffers list */
+>  	spin_lock_irqsave(&q->done_lock, flags);
+>  	vb->state = state;
+> @@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+>  static void __vb2_dqbuf(struct vb2_buffer *vb)
 >  {
->  	struct isp_device *isp = container_of(async, struct isp_device,
->  					      notifier);
-> +	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
-> +	struct v4l2_subdev *sd;
-> +	struct isp_bus_cfg *bus;
-> +	int ret;
-> +
-> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> +		/* Only try to link entities whose interface was set on bound */
-> +		if (sd->host_priv) {
-> +			bus = (struct isp_bus_cfg *)sd->host_priv;
-> +			ret = isp_link_entity(isp, &sd->entity, bus->interface);
-> +			if (ret < 0)
-> +				return ret;
-> +		}
-> +	}
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	unsigned int i;
+> +	unsigned int plane;
 >  
->  	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
+>  	/* nothing to do if the buffer is already dequeued */
+>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+> @@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+>  
+>  	vb->state = VB2_BUF_STATE_DEQUEUED;
+>  
+> +	/* sync buffers */
+> +	for (plane = 0; plane < vb->num_planes; plane++)
+> +		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> +
+
+to here.
+
+I'm not sure if this is correct... So __vb2_dqbuf is called from __vb2_queue_cancel(),
+but now the buf_finish() callback is called *before* the memop finish() callback,
+where this was the other way around in __vb2_queue_cancel(). I don't think that is
+right since buf_finish() expects that the buffer is synced for the cpu.
+
+Was this tested with CONFIG_VIDEO_ADV_DEBUG set and with 'v4l2-compliance -s'?
+Not that that would help if things are done in the wrong order...
+
+Regards,
+
+	Hans
+
+>  	/* unmap DMABUF buffer */
+>  	if (q->memory == V4L2_MEMORY_DMABUF)
+> -		for (i = 0; i < vb->num_planes; ++i) {
+> -			if (!vb->planes[i].dbuf_mapped)
+> +		for (plane = 0; plane < vb->num_planes; ++plane) {
+> +			if (!vb->planes[plane].dbuf_mapped)
+>  				continue;
+> -			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+> -			vb->planes[i].dbuf_mapped = 0;
+> +			call_void_memop(vb, unmap_dmabuf,
+> +					vb->planes[plane].mem_priv);
+> +			vb->planes[plane].dbuf_mapped = 0;
+>  		}
 >  }
+>  
+> 
 
-I think you're working around a problem here, not really fixing it.
-
-This change will create the links only after the media device is registered,
-which means the user may obtain a partial enumeration of links if the
-enumeration is performed too early.
-
-Before this set, the problem also was that the media device was registered
-before the async entities were bound, again making it possible to obtain a
-partial enumeration of entities.
-
-What I'd suggest instead is that we split media device initialisation and
-registration to the system; that way the media device can be prepared
-(entities registered and links created) before it becomes visible to the
-user space. I can write a patch for that if you like.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
