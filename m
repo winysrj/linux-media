@@ -1,160 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57892 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:21344 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755834AbbIYJqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Sep 2015 05:46:14 -0400
-Date: Fri, 25 Sep 2015 17:46:16 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
-To: Abylay Ospan <aospan@netup.ru>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [kbuild-all] drivers/media/dvb-frontends/cxd2841er.c:2393:1:
- warning: the frame size of 2992 bytes is larger than 2048 bytes
-Message-ID: <20150925094616.GA18800@wfg-t540p.sh.intel.com>
-References: <201509171442.9SuPHPv8%fengguang.wu@intel.com>
- <CAK3bHNX7boQYW2Wk2_jz-KzbNrkk9mdnaXY52NeYFMy_SCmVGA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAK3bHNX7boQYW2Wk2_jz-KzbNrkk9mdnaXY52NeYFMy_SCmVGA@mail.gmail.com>
+	id S1752412AbbIKLw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 07:52:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	sumit.semwal@linaro.org, robdclark@gmail.com,
+	daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC RESEND 04/11] v4l: Unify cache management hint buffer flags
+Date: Fri, 11 Sep 2015 14:50:27 +0300
+Message-Id: <1441972234-8643-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Abylay,
+The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
+buffer flags are currently not used by the kernel. Replace the definitions
+by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
+patches.
 
-This warning can be reproduced with gcc-5.2:
+Different cache architectures should not be visible to the user space
+which can make no meaningful use of the differences anyway. In case a
+device can make use of non-coherent memory accesses, the necessary cache
+operations depend on the CPU architecture and the buffer type, not the
+requests of the user. The cache operation itself may be skipped on the
+user's request which was the purpose of the two flags.
 
-=============== commit a6dc60ff1 ===============
-/home/wfg/linux
-HEAD is now at a6dc60ff... [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
-/home/wfg/linux/obj-compiletest
+On ARM the invalidate and clean are separate operations whereas on
+x86(-64) the two are a single operation (flush). Whether the hardware uses
+the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
+(V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
+(clean and invalidate, respectively). No user input is required.
 
-make ARCH=x86_64 drivers/media/dvb-frontends/cxd2841er.o
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/DocBook/media/v4l/io.xml | 25 +++++++++++--------------
+ include/trace/events/v4l2.h            |  3 +--
+ include/uapi/linux/videodev2.h         |  7 +++++--
+ 3 files changed, 17 insertions(+), 18 deletions(-)
 
-grep -a -F drivers/media/dvb-frontends/cxd2841er.c /tmp/build-err-a6dc60ff1209df29ee4668024e93d31f31421932-wfg --color
-../drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_sleep_tc':
-../drivers/media/dvb-frontends/cxd2841er.c:2393:1: warning: the frame size of 2992 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
-../drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_set_frontend_tc':
-../drivers/media/dvb-frontends/cxd2841er.c:2274:1: warning: the frame size of 4336 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7bbc2a4..4facd63 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -1112,21 +1112,18 @@ application. Drivers set or clear this flag when the
+ 	  linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called.</entry>
+ 	  </row>
+ 	  <row>
+-	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_SYNC</constant></entry>
+ 	    <entry>0x00000800</entry>
+-	    <entry>Caches do not have to be invalidated for this buffer.
+-Typically applications shall use this flag if the data captured in the buffer
+-is not going to be touched by the CPU, instead the buffer will, probably, be
+-passed on to a DMA-capable hardware unit for further processing or output.
+-</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+-	    <entry>0x00001000</entry>
+-	    <entry>Caches do not have to be cleaned for this buffer.
+-Typically applications shall use this flag for output buffers if the data
+-in this buffer has not been created by the CPU but by some DMA-capable unit,
+-in which case caches have not been used.</entry>
++	    <entry>Do not perform CPU cache synchronisation operations
++	    when the buffer is queued or dequeued. The user is
++	    responsible for the correct use of this flag. It should be
++	    only used when the buffer is not accessed using the CPU,
++	    e.g. the buffer is written to by a hardware block and then
++	    read by another one, in which case the flag should be set
++	    in both <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link>
++	    and <link linkend="vidioc-qbuf">VIDIOC_QBUF</link> IOCTLs.
++	    The flag has no effect on some devices / architectures.
++	    </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index dbf017b..4cee91d 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -78,8 +78,7 @@ SHOW_FIELD
+ 		{ V4L2_BUF_FLAG_ERROR,		     "ERROR" },		      \
+ 		{ V4L2_BUF_FLAG_TIMECODE,	     "TIMECODE" },	      \
+ 		{ V4L2_BUF_FLAG_PREPARED,	     "PREPARED" },	      \
+-		{ V4L2_BUF_FLAG_NO_CACHE_INVALIDATE, "NO_CACHE_INVALIDATE" }, \
+-		{ V4L2_BUF_FLAG_NO_CACHE_CLEAN,	     "NO_CACHE_CLEAN" },      \
++		{ V4L2_BUF_FLAG_NO_CACHE_SYNC,	     "NO_CACHE_SYNC" },	      \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3228fbe..8d85aac 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -875,8 +875,11 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+ /* Buffer is prepared for queuing */
+ #define V4L2_BUF_FLAG_PREPARED			0x00000400
+-/* Cache handling flags */
+-#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
++/* Cache sync hint */
++#define V4L2_BUF_FLAG_NO_CACHE_SYNC		0x00000800
++/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
++#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	V4L2_BUF_FLAG_NO_CACHE_SYNC
++/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+ /* Timestamp type */
+ #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+-- 
+2.1.0.231.g7484e3b
 
-=============== PREV commit e025273b86fb4a6440192b809e05332777c3faa5 ===============
-/home/wfg/linux
-Previous HEAD position was a6dc60ff... [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
-HEAD is now at e025273... [media] lnbh25: LNBH25 SEC controller driver
-/home/wfg/linux/obj-compiletest
-
-make ARCH=x86_64 drivers/media/dvb-frontends/cxd2841er.o
-
-!!! BUILD ERROR !!!
-grep -a -F drivers/media/dvb-frontends/cxd2841er.c /tmp/build-err-e025273b86fb4a6440192b809e05332777c3faa5-wfg --color
-
-=============== linus/master linus/master ===============
-/home/wfg/linux
-Previous HEAD position was e025273... [media] lnbh25: LNBH25 SEC controller driver
-HEAD is now at 8e64a73... Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/sage/ceph-client
-/home/wfg/linux/obj-compiletest
-
-make ARCH=x86_64 drivers/media/dvb-frontends/cxd2841er.o
-
-grep -a -F drivers/media/dvb-frontends/cxd2841er.c /tmp/build-err-8e64a7331702b7888ccf84b2b9ff46ab8e167c7f-wfg --color
-../drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_sleep_tc':
-../drivers/media/dvb-frontends/cxd2841er.c:2401:1: warning: the frame size of 2984 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
-../drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_set_frontend_tc':
-../drivers/media/dvb-frontends/cxd2841er.c:2282:1: warning: the frame size of 4336 bytes is larger than 2048 bytes [-Wframe-larger-than=]
- }
- ^
-
-Thanks,
-Fengguang
-
-On Fri, Sep 25, 2015 at 12:21:57PM +0300, Abylay Ospan wrote:
-> Hello,
-> 
-> I cannot reproduce this warning. I'm compiling with your config and
-> following commands:
-> 
->   git checkout a6dc60ff1209df29ee4668024e93d31f31421932
->   make ARCH=x86_64
-> 
-> my gcc version is 4.9.2 (Ubuntu 4.9.2-10ubuntu13)
-> 
-> warning doesn't appear even if I set:
-> CONFIG_FRAME_WARN=128
-> 
-> Please point me if problem still exist.
-> 
-> thanks !
-> 
-> 
-> 
-> 2015-09-17 9:05 GMT+03:00 kbuild test robot <fengguang.wu@intel.com>:
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> > head:   72714841b705a5b9bccf37ee85a62352bee3a3ef
-> > commit: a6dc60ff1209df29ee4668024e93d31f31421932 [media] cxd2841er: Sony CXD2841ER DVB-S/S2/T/T2/C demodulator driver
-> > date:   5 weeks ago
-> > config: x86_64-randconfig-b0-09171322 (attached as .config)
-> > reproduce:
-> >   git checkout a6dc60ff1209df29ee4668024e93d31f31421932
-> >   # save the attached .config to linux build tree
-> >   make ARCH=x86_64
-> >
-> > All warnings (new ones prefixed by >>):
-> >
-> >    drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_sleep_tc':
-> >>> drivers/media/dvb-frontends/cxd2841er.c:2393:1: warning: the frame size of 2992 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-> >     }
-> >     ^
-> >    drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_set_frontend_tc':
-> >    drivers/media/dvb-frontends/cxd2841er.c:2274:1: warning: the frame size of 4336 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-> >     }
-> >     ^
-> >
-> > vim +2393 drivers/media/dvb-frontends/cxd2841er.c
-> >
-> >   2377                  case SYS_DVBC_ANNEX_A:
-> >   2378                          cxd2841er_active_c_to_sleep_tc(priv);
-> >   2379                          break;
-> >   2380                  default:
-> >   2381                          dev_warn(&priv->i2c->dev,
-> >   2382                                  "%s(): unknown delivery system %d\n",
-> >   2383                                  __func__, priv->system);
-> >   2384                  }
-> >   2385          }
-> >   2386          if (priv->state != STATE_SLEEP_TC) {
-> >   2387                  dev_err(&priv->i2c->dev, "%s(): invalid state %d\n",
-> >   2388                          __func__, priv->state);
-> >   2389                  return -EINVAL;
-> >   2390          }
-> >   2391          cxd2841er_sleep_tc_to_shutdown(priv);
-> >   2392          return 0;
-> >> 2393  }
-> >   2394
-> >   2395  static int cxd2841er_send_burst(struct dvb_frontend *fe,
-> >   2396                                  enum fe_sec_mini_cmd burst)
-> >   2397  {
-> >   2398          u8 data;
-> >   2399          struct cxd2841er_priv *priv  = fe->demodulator_priv;
-> >   2400
-> >   2401          dev_dbg(&priv->i2c->dev, "%s(): burst mode %s\n", __func__,
-> >
-> > ---
-> > 0-DAY kernel test infrastructure                Open Source Technology Center
-> > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
-> 
-> 
-> -- 
-> Abylay Ospan,
-> NetUP Inc.
-> http://www.netup.tv
-> _______________________________________________
-> kbuild-all mailing list
-> kbuild-all@lists.01.org
-> https://lists.01.org/mailman/listinfo/kbuild-all
