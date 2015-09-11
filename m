@@ -1,270 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:17465 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026AbbIPBfc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34159 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751215AbbIKOWF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 21:35:32 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <gerrit2@nvidia.com>
-Subject: [PATCH 3/3] Documentation: DT bindings: add VI and CSI bindings
-Date: Tue, 15 Sep 2015 18:35:31 -0700
-Message-ID: <1442367331-20046-4-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1442367331-20046-1-git-send-email-pengw@nvidia.com>
-References: <1442367331-20046-1-git-send-email-pengw@nvidia.com>
+	Fri, 11 Sep 2015 10:22:05 -0400
+Message-ID: <55F2E345.9000807@xs4all.nl>
+Date: Fri, 11 Sep 2015 16:20:53 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 52/55] [media] media-device: remove interfaces and
+ interface links
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <fcb7fe56b016191b35dfc9fbc007ba1a1f35e837.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <fcb7fe56b016191b35dfc9fbc007ba1a1f35e837.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
----
- .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 ++++++++++++++++++++-
- 1 file changed, 205 insertions(+), 6 deletions(-)
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Just like what's done with entities, when the media controller is
+> unregistered, release any interface and interface links that
+> might still be there.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt b/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt
-index 46d6ead..433cb52 100644
---- a/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt
-+++ b/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt
-@@ -40,10 +40,39 @@ of the following host1x client modules:
-   - interrupts: The interrupt outputs from the controller.
-   - clocks: Must contain one entry, for the module clock.
-     See ../clocks/clock-bindings.txt for details.
-+  - clock-names: Must include the following entries:
-+    - vi
-+      This MUST be the first entry.
-+    - csi
-+    - parent
-   - resets: Must contain an entry for each entry in reset-names.
-     See ../reset/reset.txt for details.
-   - reset-names: Must include the following entries:
-     - vi
-+  - power-domains: The power domains settings.
-+    See ../power/power_domain.txt
-+  - iommus: The IOMMU settings.
-+    See ../iommu/iommu.txt
-+  - ports: several VI input ports which connecting CSI ports. Ports contain
-+    several port and each port has one endpoint.
-+    See ../graph.txt and ../media/video-interfaces.txt
-+  - avdd-dsi-csi-supply: a regulator required by VI.
-+
-+- csi: camera serial interface
-+
-+  Required properties:
-+  - compatible: "nvidia,tegra<chip>-csi"
-+  - reg: Physical base address and length of the controller's registers.
-+  - interrupts: The interrupt outputs from the controller.
-+  - clocks: Must contain one entry, for the module clock.
-+    See ../clocks/clock-bindings.txt for details.
-+  - clock-names: Must include the following entries:
-+    - cil
-+      This MUST be the first entry.
-+  - ports: 2 ports presenting 2 channels of CSI. Each port has 2 endpoints:
-+    one connects to sensor device tree node as input and the other one connects
-+    to VI endpoint.
-+    See ../graph.txt and ../media/video-interfaces.txt
- 
- - epp: encoder pre-processor
- 
-@@ -274,13 +303,183 @@ Example:
- 			reset-names = "mpe";
- 		};
- 
--		vi {
--			compatible = "nvidia,tegra20-vi";
--			reg = <0x54080000 0x00040000>;
--			interrupts = <0 69 0x04>;
--			clocks = <&tegra_car TEGRA20_CLK_VI>;
--			resets = <&tegra_car 100>;
-+		vi@0,54080000 {
-+			compatible = "nvidia,tegra210-vi";
-+			reg = <0x0 0x54080000 0x0 0x800>;
-+			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>;
-+			clock-names = "vi", "csi", "parent";
-+			resets = <&tegra_car 20>;
- 			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+
-+					vi_in0: endpoint {
-+						remote-endpoint = <&csi_out0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+
-+					vi_in1: endpoint {
-+						remote-endpoint = <&csi_out1>;
-+					};
-+				};
-+				port@2 {
-+					reg = <2>;
-+
-+					vi_in2: endpoint {
-+						remote-endpoint = <&csi_out2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+
-+					vi_in3: endpoint {
-+						remote-endpoint = <&csi_out3>;
-+					};
-+				};
-+				port@4 {
-+					reg = <4>;
-+
-+					vi_in4: endpoint {
-+						remote-endpoint = <&csi_out4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+
-+					vi_in5: endpoint {
-+						remote-endpoint = <&csi_out5>;
-+					};
-+				};
-+
-+			};
-+		};
-+
-+		csi@0,54080838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54080838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in0: endpoint@0 {
-+						reg = <0x0>;
-+					};
-+					csi_out0: endpoint@1 {
-+						reg = <0x1>;
-+						remote-endpoint = <&vi_in0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in1: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out1: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in1>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@1,54081038 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081038 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@2 {
-+					reg = <2>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in2: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out2: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in3: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out3: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in3>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@2,54081838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@4 {
-+					reg = <4>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in4: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out4: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in5: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out5: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in5>;
-+					};
-+				};
-+			};
- 		};
- 
- 		epp {
--- 
-2.1.4
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7c37aeab05bb..0238885fcc74 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -574,6 +574,22 @@ void media_device_unregister(struct media_device *mdev)
+>  {
+>  	struct media_entity *entity;
+>  	struct media_entity *next;
+> +	struct media_link *link, *tmp_link;
+> +	struct media_interface *intf, *tmp_intf;
+> +
+> +	/* Remove interface links from the media device */
+> +	list_for_each_entry_safe(link, tmp_link, &mdev->links,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&link->graph_obj);
+> +		kfree(link);
+> +	}
+> +
+> +	/* Remove all interfaces from the media device */
+> +	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&intf->graph_obj);
+> +		kfree(intf);
+> +	}
+>  
+>  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+>  		media_device_unregister_entity(entity);
+> @@ -651,7 +667,6 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  	/* Remove all data links that belong to this entity */
+>  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+>  		media_gobj_remove(&link->graph_obj);
+> -		list_del(&link->list);
+>  		kfree(link);
+>  	}
+>  
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index a37ccd2edfd5..cd4d767644df 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -206,6 +206,10 @@ void media_gobj_remove(struct media_gobj *gobj)
+>  
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+> +
+> +	/* Links have their own list - we need to drop them there too */
+> +	if (media_type(gobj) == MEDIA_GRAPH_LINK)
+> +		list_del(&gobj_to_link(gobj)->list);
+>  }
+>  
+>  /**
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index ca4a4f23362f..fb5f0e21f137 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -153,7 +153,7 @@ struct media_entity {
+>  };
+>  
+>  /**
+> - * struct media_intf_devnode - Define a Kernel API interface
+> + * struct media_interface - Define a Kernel API interface
+>   *
+>   * @graph_obj:		embedded graph object
+>   * @list:		Linked list used to find other interfaces that belong
+> @@ -163,6 +163,11 @@ struct media_entity {
+>   *			uapi/media/media.h header, e. g.
+>   *			MEDIA_INTF_T_*
+>   * @flags:		Interface flags as defined at uapi/media/media.h
+> + *
+> + * NOTE: As media_device_unregister() will free the address of the
+> + *	 media_interface, this structure should be embedded as the first
+> + *	 element of the derived functions, in order for the address to be
+> + *	 the same.
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> @@ -179,11 +184,11 @@ struct media_interface {
+>   * @minor:	Minor number of a device node
+>   */
+>  struct media_intf_devnode {
+> -	struct media_interface		intf;
+> +	struct media_interface	intf; /* must be first field in struct */
+>  
+>  	/* Should match the fields at media_v2_intf_devnode */
+> -	u32				major;
+> -	u32				minor;
+> +	u32			major;
+> +	u32			minor;
+>  };
+>  
+>  static inline u32 media_entity_id(struct media_entity *entity)
+> 
 
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
