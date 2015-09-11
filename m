@@ -1,292 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24329 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754401AbbIHKf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 06:35:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 10/11] vb2: dma-contig: Let drivers decide DMA attrs of MMAP and USERPTR bufs
-Date: Tue,  8 Sep 2015 13:33:54 +0300
-Message-Id: <1441708435-12736-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42240 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751795AbbIKOtX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 10:49:23 -0400
+Message-ID: <55F2E9AA.7090900@xs4all.nl>
+Date: Fri, 11 Sep 2015 16:48:10 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	=?windows-1252?Q?Rafael_Lour?=
+	 =?windows-1252?Q?en=E7o_de_Lima_Chehab?= <chehabrafael@gmail.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH 01/18] [media] tuner-core: add an input pad
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The desirable DMA attributes are not generic for all devices using
-Videobuf2 contiguous DMA ops. Let the drivers decide.
+On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
+> Tuners actually have at least one connector on its
+> input.
+> 
+> Add a PAD to connect it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-This change also results in MMAP buffers always having an sg_table
-(dma_sgt field).
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Also arrange the header files alphabetically.
+And yes, I do think tuner.h is the best place for the pad info.
 
-As a result, also the DMA-BUF exporter must provide ops for synchronising
-the cache. This adds begin_cpu_access and end_cpu_access ops to
-vb2_dc_dmabuf_ops.
+Regards,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 104 ++++++++++++++++++-------
- include/media/videobuf2-dma-contig.h           |   3 +-
- 2 files changed, 79 insertions(+), 28 deletions(-)
+	Hans
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 65bc687..65ee122 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -11,11 +11,11 @@
-  */
- 
- #include <linux/dma-buf.h>
-+#include <linux/dma-mapping.h>
- #include <linux/module.h>
- #include <linux/scatterlist.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
--#include <linux/dma-mapping.h>
- 
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
-@@ -23,6 +23,7 @@
- 
- struct vb2_dc_conf {
- 	struct device		*dev;
-+	struct dma_attrs	attrs;
- };
- 
- struct vb2_dc_buf {
-@@ -34,6 +35,7 @@ struct vb2_dc_buf {
- 	struct sg_table			*dma_sgt;
- 
- 	/* MMAP related */
-+	struct dma_attrs		*attrs;
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
- 
-@@ -135,8 +137,12 @@ static void vb2_dc_prepare(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
--	/* DMABUF exporter will flush the cache for us */
--	if (!buf->vma)
-+	/*
-+	 * DMABUF exporter will flush the cache for us; only USERPTR
-+	 * and MMAP buffers with non-coherent memory will be flushed.
-+	 */
-+	if (!buf->attrs ||
-+	    !dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
- 		return;
- 
- 	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-@@ -147,8 +153,12 @@ static void vb2_dc_finish(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
- 
--	/* DMABUF exporter will flush the cache for us */
--	if (!buf->vma)
-+	/*
-+	 * DMABUF exporter will flush the cache for us; only USERPTR
-+	 * and MMAP buffers with non-coherent memory will be flushed.
-+	 */
-+	if (!buf->attrs ||
-+	    !dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
- 		return;
- 
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-@@ -169,7 +179,8 @@ static void vb2_dc_put(void *buf_priv)
- 		sg_free_table(buf->dma_sgt);
- 		kfree(buf->dma_sgt);
- 	}
--	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	dma_free_attrs(buf->dev, buf->size, buf->vaddr, buf->dma_addr,
-+		       buf->attrs);
- 	put_device(buf->dev);
- 	kfree(buf);
- }
-@@ -185,14 +196,25 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
--						GFP_KERNEL | gfp_flags);
-+	buf->attrs = &conf->attrs;
-+
-+	buf->vaddr = dma_alloc_attrs(dev, size, &buf->dma_addr,
-+				     GFP_KERNEL | gfp_flags, buf->attrs);
- 	if (!buf->vaddr) {
--		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
-+		dev_err(dev, "dma_alloc_attrs of size %ld failed\n", size);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-+	if (dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs)) {
-+		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
-+		if (!buf->dma_sgt) {
-+			dma_free_attrs(dev, size, buf->vaddr, buf->dma_addr,
-+				       buf->attrs);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+	}
-+
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
-@@ -223,8 +245,8 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	 */
- 	vma->vm_pgoff = 0;
- 
--	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
--		buf->dma_addr, buf->size);
-+	ret = dma_mmap_attrs(buf->dev, vma, buf->vaddr, buf->dma_addr,
-+			     buf->size, buf->attrs);
- 
- 	if (ret) {
- 		pr_err("Remapping memory failed, error: %d\n", ret);
-@@ -370,6 +392,34 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
- 	return buf->vaddr + pgnum * PAGE_SIZE;
- }
- 
-+static int vb2_dc_dmabuf_ops_begin_cpu_access(
-+	struct dma_buf *dbuf, size_t start, size_t len,
-+	enum dma_data_direction direction)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
-+		return 0;
-+
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+
-+	return 0;
-+}
-+
-+static void vb2_dc_dmabuf_ops_end_cpu_access(
-+	struct dma_buf *dbuf, size_t start, size_t len,
-+	enum dma_data_direction direction)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
-+		return;
-+
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+}
-+
- static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
- {
- 	struct vb2_dc_buf *buf = dbuf->priv;
-@@ -390,6 +440,8 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
- 	.kmap = vb2_dc_dmabuf_ops_kmap,
- 	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
-+	.begin_cpu_access = vb2_dc_dmabuf_ops_begin_cpu_access,
-+	.end_cpu_access = vb2_dc_dmabuf_ops_end_cpu_access,
- 	.vmap = vb2_dc_dmabuf_ops_vmap,
- 	.mmap = vb2_dc_dmabuf_ops_mmap,
- 	.release = vb2_dc_dmabuf_ops_release,
-@@ -514,15 +566,13 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 	struct sg_table *sgt = buf->dma_sgt;
- 
- 	if (sgt) {
--		DEFINE_DMA_ATTRS(attrs);
--
--		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 		/*
--		 * No need to sync to CPU, it's already synced to the CPU
--		 * since the finish() memop will have been called before this.
-+		 * Don't ask to skip cache sync in case if the user
-+		 * did ask to skip cache flush the last time the
-+		 * buffer was dequeued.
- 		 */
- 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
--				   buf->dma_dir, &attrs);
-+				   buf->dma_dir, buf->attrs);
- 		if (!vma_is_io(buf->vma))
- 			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
- 
-@@ -579,9 +629,6 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
- 	unsigned long dma_align = dma_get_cache_alignment();
--	DEFINE_DMA_ATTRS(attrs);
--
--	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
- 	/* Only cache aligned DMA transfers are reliable */
- 	if (!IS_ALIGNED(vaddr | size, dma_align)) {
-@@ -598,6 +645,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
-+	buf->attrs = &conf->attrs;
-+
- 	buf->dev = conf->dev;
- 	buf->dma_dir = dma_dir;
- 
-@@ -667,12 +716,8 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	kfree(pages);
- 	pages = NULL;
- 
--	/*
--	 * No need to sync to the device, this will happen later when the
--	 * prepare() memop is called.
--	 */
- 	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
--				      buf->dma_dir, &attrs);
-+				      buf->dma_dir, buf->attrs);
- 	if (sgt->nents <= 0) {
- 		pr_err("failed to map scatterlist\n");
- 		ret = -EIO;
-@@ -695,7 +740,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 
- fail_map_sg:
- 	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
--			   buf->dma_dir, &attrs);
-+			   buf->dma_dir, buf->attrs);
- 
- fail_sgt_init:
- 	if (!vma_is_io(buf->vma))
-@@ -856,7 +901,7 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
--void *vb2_dma_contig_init_ctx(struct device *dev)
-+void *vb2_dma_contig_init_ctx(struct device *dev, struct dma_attrs *attrs)
- {
- 	struct vb2_dc_conf *conf;
- 
-@@ -866,6 +911,11 @@ void *vb2_dma_contig_init_ctx(struct device *dev)
- 
- 	conf->dev = dev;
- 
-+	if (!attrs)
-+		init_dma_attrs(&conf->attrs);
-+	else
-+		conf->attrs = *attrs;
-+
- 	return conf;
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index 8197f87..1b85282 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -24,7 +24,8 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
- 	return *addr;
- }
- 
--void *vb2_dma_contig_init_ctx(struct device *dev);
-+void *vb2_dma_contig_init_ctx(struct device *dev,
-+			      struct dma_attrs *attrs);
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
- 
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
--- 
-2.1.0.231.g7484e3b
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index f00f1a5f279c..a8e7e2398f7a 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -34,6 +34,9 @@
+>  #include <linux/mutex.h>
+>  #include "dvbdev.h"
+>  
+> +/* Due to enum tuner_pad_index */
+> +#include <media/tuner.h>
+> +
+>  static DEFINE_MUTEX(dvbdev_mutex);
+>  static int dvbdev_debug;
+>  
+> @@ -552,7 +555,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+>  	}
+>  
+>  	if (tuner && demod)
+> -		media_create_pad_link(tuner, 0, demod, 0, 0);
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, demod, 0, 0);
+>  
+>  	if (demod && demux)
+>  		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index e28cabe65934..f54c7d10f350 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -27,6 +27,9 @@
+>  #include <media/v4l2-common.h>
+>  #include <linux/mutex.h>
+>  
+> +/* Due to enum tuner_pad_index */
+> +#include <media/tuner.h>
+> +
+>  /*
+>   * 1 = General debug messages
+>   * 2 = USB handling
+> @@ -260,7 +263,7 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+>  		return;
+>  
+>  	if (tuner)
+> -		media_create_pad_link(tuner, 0, decoder, 0,
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+>  				      MEDIA_LNK_FL_ENABLED);
+>  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+>  			      MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> index 3b5c9ae39ad3..1070d87efc65 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -1264,7 +1264,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
+>  		return;
+>  
+>  	if (tuner)
+> -		media_create_pad_link(tuner, 0, decoder, 0,
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+>  					 MEDIA_LNK_FL_ENABLED);
+>  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+>  				 MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index 100b8f069640..b90f2a52db96 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -134,8 +134,9 @@ struct tuner {
+>  	unsigned int        type; /* chip type id */
+>  	void                *config;
+>  	const char          *name;
+> +
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	struct media_pad	pad;
+> +	struct media_pad	pad[TUNER_NUM_PADS];
+>  #endif
+>  };
+>  
+> @@ -695,11 +696,12 @@ static int tuner_probe(struct i2c_client *client,
+>  	/* Should be just before return */
+>  register_client:
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> +	t->pad[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
+>  	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+>  	t->sd.entity.name = t->name;
+>  
+> -	ret = media_entity_init(&t->sd.entity, 1, &t->pad);
+> +	ret = media_entity_init(&t->sd.entity, TUNER_NUM_PADS, &t->pad[0]);
+>  	if (ret < 0) {
+>  		tuner_err("failed to initialize media entity!\n");
+>  		kfree(t);
+> diff --git a/include/media/tuner.h b/include/media/tuner.h
+> index b46ebb48fe74..95835c8069dd 100644
+> --- a/include/media/tuner.h
+> +++ b/include/media/tuner.h
+> @@ -25,6 +25,14 @@
+>  
+>  #include <linux/videodev2.h>
+>  
+> +/* Tuner PADs */
+> +/* FIXME: is this the right place for it? */
+> +enum tuner_pad_index {
+> +	TUNER_PAD_RF_INPUT,
+> +	TUNER_PAD_IF_OUTPUT,
+> +	TUNER_NUM_PADS
+> +};
+> +
+>  #define ADDR_UNSET (255)
+>  
+>  #define TUNER_TEMIC_PAL			0        /* 4002 FH5 (3X 7756, 9483) */
+> 
 
