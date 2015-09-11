@@ -1,70 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42200 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753454AbbIMQnB (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:44293 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbbIKLMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 12:43:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/6] vivid: add support for the DCI-P3 colorspace
-Date: Sun, 13 Sep 2015 18:41:32 +0200
-Message-Id: <1442162492-46238-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
-References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 11 Sep 2015 07:12:05 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NUI034UHF43VGA0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Sep 2015 20:12:04 +0900 (KST)
+Message-id: <55F2B703.7030500@samsung.com>
+Date: Fri, 11 Sep 2015 20:12:03 +0900
+From: Junghak Sung <jh1009.sung@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v4 6/8] [media] videobuf2: Replace v4l2-specific data
+ with vb2 data.
+References: <1441797597-17389-1-git-send-email-jh1009.sung@samsung.com>
+ <1441797597-17389-7-git-send-email-jh1009.sung@samsung.com>
+ <55F28D4E.9@xs4all.nl>
+In-reply-to: <55F28D4E.9@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Support this new colorspace in vivid.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-core.h  | 1 +
- drivers/media/platform/vivid/vivid-ctrls.c | 3 +++
- 2 files changed, 4 insertions(+)
+On 09/11/2015 05:14 PM, Hans Verkuil wrote:
+> Hi Junghak,
+>
+> A few comments:
+>
+> On 09/09/2015 01:19 PM, Junghak Sung wrote:
+>> enum v4l2_memory -> enum vb2_memory
+>> VIDEO_MAX_FRAME -> VB2_MAX_FRAME
+>> VIDEO_MAX_PLANES -> VB2_MAX_PLANES
+>
+> and owner is now a void pointer!
+>
+> With respect to the two defines above: I think it is a good idea to
+> add a check to videobuf2-v4l2.c where the compiler compares VIDEO_MAX_FRAME
+> and VB2_MAX_FRAME (and ditto for MAX_PLANES) and throws an #error if they
+> do not match.
+>
 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index c72349c..72c4cd3 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -123,6 +123,7 @@ enum vivid_colorspace {
- 	VIVID_CS_SRGB,
- 	VIVID_CS_ADOBERGB,
- 	VIVID_CS_2020,
-+	VIVID_CS_DCI_P3,
- 	VIVID_CS_240M,
- 	VIVID_CS_SYS_M,
- 	VIVID_CS_SYS_BG,
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 3d8e161..995e303 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -342,6 +342,7 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
- 		V4L2_COLORSPACE_SRGB,
- 		V4L2_COLORSPACE_ADOBERGB,
- 		V4L2_COLORSPACE_BT2020,
-+		V4L2_COLORSPACE_DCI_P3,
- 		V4L2_COLORSPACE_SMPTE240M,
- 		V4L2_COLORSPACE_470_SYSTEM_M,
- 		V4L2_COLORSPACE_470_SYSTEM_BG,
-@@ -701,6 +702,7 @@ static const char * const vivid_ctrl_colorspace_strings[] = {
- 	"sRGB",
- 	"AdobeRGB",
- 	"BT.2020",
-+	"DCI-P3",
- 	"SMPTE 240M",
- 	"470 System M",
- 	"470 System BG",
-@@ -724,6 +726,7 @@ static const char * const vivid_ctrl_xfer_func_strings[] = {
- 	"AdobeRGB",
- 	"SMPTE 240M",
- 	"None",
-+	"DCI-P3",
- 	NULL,
- };
- 
--- 
-2.1.4
+OK, I'll do that at next round.
 
+>>
+>> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+>> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+>> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+>> Acked-by: Inki Dae <inki.dae@samsung.com>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-core.c |   80 +++++++++++++++---------------
+>>   include/media/videobuf2-core.h           |   29 +++++++----
+>>   include/trace/events/v4l2.h              |    5 +-
+>>   3 files changed, 64 insertions(+), 50 deletions(-)
+>
+> <snip>
+>
+>> diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+>> index b015b38..b3616ab 100644
+>> --- a/include/trace/events/v4l2.h
+>> +++ b/include/trace/events/v4l2.h
+>> @@ -5,6 +5,7 @@
+>>   #define _TRACE_V4L2_H
+>>
+>>   #include <linux/tracepoint.h>
+>> +#include <media/videobuf2-v4l2.h>
+>>
+>>   /* Enums require being exported to userspace, for user tool parsing */
+>>   #undef EM
+>> @@ -203,7 +204,9 @@ DECLARE_EVENT_CLASS(vb2_event_class,
+>>
+>>   	TP_fast_assign(
+>>   		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>> -		__entry->minor = q->owner ? q->owner->vdev->minor : -1;
+>> +		struct v4l2_fh *owner = (struct v4l2_fh *) q->owner;
+>
+> You don't need a cast here.
+
+Oh, it was my mistake. I'll fix it.
+
+>
+>> +
+>> +		__entry->minor = owner ? owner->vdev->minor : -1;
+>>   		__entry->queued_count = q->queued_count;
+>>   		__entry->owned_by_drv_count =
+>>   			atomic_read(&q->owned_by_drv_count);
+>>
+>
+> Regards,
+>
+> 	Hans
+>
