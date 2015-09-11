@@ -1,200 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755351AbbIMU5P (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59940 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752657AbbIKPtb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:15 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 06/32] v4l: vsp1: Make rwpf operations independent of video device
-Date: Sun, 13 Sep 2015 23:56:44 +0300
-Message-Id: <1442177830-24536-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 11 Sep 2015 11:49:31 -0400
+Message-ID: <55F2F7C3.6030305@xs4all.nl>
+Date: Fri, 11 Sep 2015 17:48:19 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 18/18] [media] dvbdev: Don't create indirect links
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <2460617268cac8bbabad0db7372914379f7c8644.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <2460617268cac8bbabad0db7372914379f7c8644.1441559233.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rwpf queue operation doesn't queue a buffer but sets the memory
-address for the next run. Rename it to set_memory and pass it a new
-structure independent of the video buffer than only contains memory
-information.
+On 09/06/2015 07:31 PM, Mauro Carvalho Chehab wrote:
+> Indirect links are those whose the interface indirectly controls
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_rpf.c   | 16 ++++++++--------
- drivers/media/platform/vsp1/vsp1_rwpf.h  | 10 ++++++++--
- drivers/media/platform/vsp1/vsp1_video.c | 14 ++++++++------
- drivers/media/platform/vsp1/vsp1_video.h |  7 +++----
- drivers/media/platform/vsp1/vsp1_wpf.c   | 14 +++++++-------
- 5 files changed, 34 insertions(+), 27 deletions(-)
+s/the//
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index ae51c31112aa..c0b7f76cd0b5 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -186,28 +186,28 @@ static struct v4l2_subdev_ops rpf_ops = {
-  * Video Device Operations
-  */
- 
--static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_vb2_buffer *buf)
-+static void rpf_set_memory(struct vsp1_rwpf *rpf, struct vsp1_rwpf_memory *mem)
- {
- 	unsigned int i;
- 
- 	for (i = 0; i < 3; ++i)
--		rpf->buf_addr[i] = buf->addr[i];
-+		rpf->buf_addr[i] = mem->addr[i];
- 
- 	if (!vsp1_entity_is_streaming(&rpf->entity))
- 		return;
- 
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
--		       buf->addr[0] + rpf->offsets[0]);
--	if (buf->buf.num_planes > 1)
-+		       mem->addr[0] + rpf->offsets[0]);
-+	if (mem->num_planes > 1)
- 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
--			       buf->addr[1] + rpf->offsets[1]);
--	if (buf->buf.num_planes > 2)
-+			       mem->addr[1] + rpf->offsets[1]);
-+	if (mem->num_planes > 2)
- 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
--			       buf->addr[2] + rpf->offsets[1]);
-+			       mem->addr[2] + rpf->offsets[1]);
- }
- 
- static const struct vsp1_rwpf_operations rpf_vdev_ops = {
--	.queue = rpf_buf_queue,
-+	.set_memory = rpf_set_memory,
- };
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index ee2a8bf269fa..0076920adb28 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -24,10 +24,16 @@
- #define RWPF_PAD_SOURCE				1
- 
- struct vsp1_rwpf;
--struct vsp1_vb2_buffer;
-+
-+struct vsp1_rwpf_memory {
-+	unsigned int num_planes;
-+	dma_addr_t addr[3];
-+	unsigned int length[3];
-+};
- 
- struct vsp1_rwpf_operations {
--	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_vb2_buffer *buf);
-+	void (*set_memory)(struct vsp1_rwpf *rwpf,
-+			   struct vsp1_rwpf_memory *mem);
- };
- 
- struct vsp1_rwpf {
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 216894cee2e7..121f8724bcf6 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -613,7 +613,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 	done->buf.v4l2_buf.sequence = video->sequence++;
- 	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
- 	for (i = 0; i < done->buf.num_planes; ++i)
--		vb2_set_plane_payload(&done->buf, i, done->length[i]);
-+		vb2_set_plane_payload(&done->buf, i, done->mem.length[i]);
- 	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
- 
- 	return next;
-@@ -631,7 +631,7 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
--	video->rwpf->ops->queue(video->rwpf, buf);
-+	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- 
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
-@@ -828,11 +828,13 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb->num_planes < format->num_planes)
- 		return -EINVAL;
- 
-+	buf->mem.num_planes = vb->num_planes;
-+
- 	for (i = 0; i < vb->num_planes; ++i) {
--		buf->addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
--		buf->length[i] = vb2_plane_size(vb, i);
-+		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
-+		buf->mem.length[i] = vb2_plane_size(vb, i);
- 
--		if (buf->length[i] < format->plane_fmt[i].sizeimage)
-+		if (buf->mem.length[i] < format->plane_fmt[i].sizeimage)
- 			return -EINVAL;
- 	}
- 
-@@ -857,7 +859,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
--	video->rwpf->ops->queue(video->rwpf, buf);
-+	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- 
- 	if (vb2_is_streaming(&video->queue) &&
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index f75c67976bcd..b7eabe6bab70 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -20,7 +20,8 @@
- #include <media/media-entity.h>
- #include <media/videobuf2-core.h>
- 
--struct vsp1_rwpf;
-+#include "vsp1_rwpf.h"
-+
- struct vsp1_video;
- 
- /*
-@@ -97,9 +98,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- struct vsp1_vb2_buffer {
- 	struct vb2_buffer buf;
- 	struct list_head queue;
--
--	dma_addr_t addr[3];
--	unsigned int length[3];
-+	struct vsp1_rwpf_memory mem;
- };
- 
- static inline struct vsp1_vb2_buffer *to_vsp1_vb2_buffer(struct vb2_buffer *vb)
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 4f0e4ab0f05b..d2537b46fc46 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -195,17 +195,17 @@ static struct v4l2_subdev_ops wpf_ops = {
-  * Video Device Operations
-  */
- 
--static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_vb2_buffer *buf)
-+static void wpf_set_memory(struct vsp1_rwpf *wpf, struct vsp1_rwpf_memory *mem)
- {
--	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
--	if (buf->buf.num_planes > 1)
--		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, buf->addr[1]);
--	if (buf->buf.num_planes > 2)
--		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, buf->addr[2]);
-+	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, mem->addr[0]);
-+	if (mem->num_planes > 1)
-+		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, mem->addr[1]);
-+	if (mem->num_planes > 2)
-+		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, mem->addr[2]);
- }
- 
- static const struct vsp1_rwpf_operations wpf_vdev_ops = {
--	.queue = wpf_buf_queue,
-+	.set_memory = wpf_set_memory,
- };
- 
- /* -----------------------------------------------------------------------------
--- 
-2.4.6
+> other functions.
+> 
+> There are two interfaces that have indirect controls at the DVB
+> side:
+> - the network interface, with also controls the demux;
+
+s/with/which/
+
+> - the DVR interface with also controls the demux.
+
+ditto
+
+> 
+> One could argue that the frontend control to the tuner is indirect.
+> Well, that's debateable. There's no way to create subdef interfaces
+
+s/debateable/debatable/
+s/subdef/subdev/
+
+> for tuner and demod, as those devices are tightly coupled. So, it
+> was decided that just one interface is the best to control both
+> entities, and there's no plan (or easy way) to decouple both. So,
+> the DVB frontend interface should link to both entities.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+With the typos fixed:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Note: I am not convinced that the dvr->demux indirect link isn't needed, but
+it can be enabled later, so it's OK for me to keep it under #if 0 for now.
+
+Regards,
+
+	Hans
+
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+> index ea76fe54e0e4..e9f24c1479dd 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -619,7 +619,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
+>  		}
+>  	}
+>  
+> -	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
+> +	/* Create interface links for FE->tuner, DVR->demux and CA->ca */
+>  	media_device_for_each_intf(intf, mdev) {
+>  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca) {
+>  			link = media_create_intf_link(ca, intf,
+> @@ -634,13 +634,19 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
+>  			if (!link)
+>  				return -ENOMEM;
+>  		}
+> -
+> +#if 0
+> +		/*
+> +		 * Indirect link - let's not create yet, as we don't know how
+> +		 *		   to handle indirect links, nor if this will
+> +		 *		   actually be needed.
+> +		 */
+>  		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux) {
+>  			link = media_create_intf_link(demux, intf,
+>  						      MEDIA_LNK_FL_ENABLED);
+>  			if (!link)
+>  				return -ENOMEM;
+>  		}
+> +#endif
+>  		if (intf->type == MEDIA_INTF_T_DVB_DVR) {
+>  			ret = dvb_create_io_intf_links(adap, intf, DVR_TSOUT);
+>  			if (ret)
+> 
+
 
