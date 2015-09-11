@@ -1,143 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53888 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752844AbbIFRbj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:39 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [PATCH 11/18] [media] au0828:: enforce check for graph creation
-Date: Sun,  6 Sep 2015 14:30:54 -0300
-Message-Id: <771213e570c44ef74ba1bed24e9b7c4f1faa353a.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:33927 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752073AbbIKPUZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 11:20:25 -0400
+Message-ID: <55F2F0F1.2070804@xs4all.nl>
+Date: Fri, 11 Sep 2015 17:19:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: linux-api@vger.kernel.org
+Subject: Re: [PATCH 06/18] [media] media.h: create connector entities for
+ hybrid TV devices
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <9af2bbe9e63004f843e8478bc3d31cd03ea75d64.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <9af2bbe9e63004f843e8478bc3d31cd03ea75d64.1441559233.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the graph creation fails, don't register the device.
+On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
+> Add entities to represent the connectors that exists inside a
+> hybrid TV device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index b17f6763aff4..69433405aec2 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -61,6 +61,7 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DVB_BASE		0x00000000
+>  #define MEDIA_ENT_T_V4L2_BASE		0x00010000
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
+> +#define MEDIA_ENT_T_CONNECTOR_BASE	0x00030000
+>  
+>  /*
+>   * V4L2 entities - Those are used for DMA (mmap/DMABUF) and
+> @@ -105,6 +106,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 4)
+>  #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 5)
+>  
+> +/* Connectors */
+> +#define MEDIA_ENT_T_CONN_RF		(MEDIA_ENT_T_CONNECTOR_BASE)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Please start at BASE + 1.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 35c607c35155..399c6712faf9 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -172,9 +172,9 @@ static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
- 	struct au0828_dev *dev =
- 		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
- 
--	au0828_usb_v4l2_media_release(dev);
- 	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+	au0828_usb_v4l2_media_release(dev);
- 	au0828_usb_release(dev);
- }
- #endif
-@@ -251,16 +251,16 @@ static void au0828_media_device_register(struct au0828_dev *dev,
- }
- 
- 
--static void au0828_create_media_graph(struct au0828_dev *dev)
-+static int au0828_create_media_graph(struct au0828_dev *dev)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev = dev->media_dev;
- 	struct media_entity *entity;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
--	int i;
-+	int i, ret;
- 
- 	if (!mdev)
--		return;
-+		return 0;
- 
- 	media_device_for_each_entity(entity, mdev) {
- 		switch (entity->type) {
-@@ -277,15 +277,23 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
- 
- 	/* Something bad happened! */
- 	if (!decoder)
--		return;
-+		return -EINVAL;
- 
--	if (tuner)
--		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
--				      MEDIA_LNK_FL_ENABLED);
--	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
--			      MEDIA_LNK_FL_ENABLED);
--	media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
--			      MEDIA_LNK_FL_ENABLED);
-+	if (tuner) {
-+		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
-+					    decoder, 0,
-+				            MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+	}
-+	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-+			 	    MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		return ret;
-+	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-+				    MEDIA_LNK_FL_ENABLED);
-+	if (ret)
-+		return ret;
- 
- 	for (i = 0; i < AU0828_MAX_INPUT; i++) {
- 		struct media_entity *ent = &dev->input_ent[i];
-@@ -297,20 +305,27 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
- 		case AU0828_VMUX_CABLE:
- 		case AU0828_VMUX_TELEVISION:
- 		case AU0828_VMUX_DVB:
--			if (tuner)
--				media_create_pad_link(ent, 0, tuner,
--						      TUNER_PAD_RF_INPUT,
--						      MEDIA_LNK_FL_ENABLED);
-+			if (!tuner)
-+				break;
-+
-+			ret = media_create_pad_link(ent, 0, tuner,
-+						    TUNER_PAD_RF_INPUT,
-+						    MEDIA_LNK_FL_ENABLED);
-+			if (ret)
-+				return ret;
- 			break;
- 		case AU0828_VMUX_COMPOSITE:
- 		case AU0828_VMUX_SVIDEO:
- 		default: /* AU0828_VMUX_DEBUG */
- 			/* FIXME: fix the decoder PAD */
--			media_create_pad_link(ent, 0, decoder, 0, 0);
-+			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
-+			if (ret)
-+				return ret;
- 			break;
- 		}
- 	}
- #endif
-+	return 0;
- }
- 
- static int au0828_usb_probe(struct usb_interface *interface,
-@@ -425,7 +440,12 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 
- 	mutex_unlock(&dev->lock);
- 
--	au0828_create_media_graph(dev);
-+	retval = au0828_create_media_graph(dev);
-+	if (retval) {
-+		pr_err("%s() au0282_dev_register failed to create graph\n",
-+		       __func__);
-+		au0828_usb_disconnect(interface);
-+	}
- 
- 	return retval;
- }
--- 
-2.4.3
+With that change:
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> +#define MEDIA_ENT_T_CONN_SVIDEO		(MEDIA_ENT_T_CONNECTOR_BASE + 1)
+> +#define MEDIA_ENT_T_CONN_COMPOSITE	(MEDIA_ENT_T_CONNECTOR_BASE + 2)
+> +	/* For internal test signal generators and other debug connectors */
+> +#define MEDIA_ENT_T_CONN_TEST		(MEDIA_ENT_T_CONNECTOR_BASE + 3)
+> +
+>  #ifndef __KERNEL__
+>  /* Legacy symbols used to avoid userspace compilation breakages */
+>  #define MEDIA_ENT_TYPE_SHIFT		16
+> @@ -121,9 +129,9 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+>  #endif
+>  
+> -/* Entity types */
+> -
+> +/* Entity flags */
+>  #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+> +#define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
+>  
+>  struct media_entity_desc {
+>  	__u32 id;
+> 
 
