@@ -1,116 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:58062 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756520AbbIVFM7 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48848 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751986AbbIKM6w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 01:12:59 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor output YUV formats
-Date: Tue, 22 Sep 2015 13:14:34 +0800
-Message-ID: <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+	Fri, 11 Sep 2015 08:58:52 -0400
+Message-ID: <55F2CFC5.7010805@xs4all.nl>
+Date: Fri, 11 Sep 2015 14:57:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 14/55] [media] media: add functions to allow creating
+ interfaces
+References: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com> <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enable Atmel ISI preview path to convert the YUV to RGB format.
+On 09/06/2015 02:02 PM, Mauro Carvalho Chehab wrote:
+> Interfaces are different than entities: they represent a
+> Kernel<->userspace interaction, while entities represent a
+> piece of hardware/firmware/software that executes a function.
+> 
+> Let's distinguish them by creating a separate structure to
+> store the interfaces.
+> 
+> Later patches should change the existing drivers and logic
+> to split the current interface embedded inside the entity
+> structure (device nodes) into a separate object of the graph.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
- drivers/media/platform/soc_camera/atmel-isi.c | 38 ++++++++++++++++++++-------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+But see a small note below:
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index e87d354..e33a16a 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YVYU:
- 	case V4L2_PIX_FMT_VYUY:
-+	/* RGB */
-+	case V4L2_PIX_FMT_RGB565:
- 		return true;
--	/* RGB, TODO */
- 	default:
- 		return false;
- 	}
- }
- 
-+static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
-+{
-+	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
-+			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
-+}
-+
- static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
- {
- 	if (isi->active) {
-@@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
-+	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
-+
- 	pm_runtime_get_sync(ici->v4l2_dev.dev);
- 
- 	/* Reset ISI */
-@@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
- 		.order			= SOC_MBUS_ORDER_LE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
-+	{
-+		.fourcc			= V4L2_PIX_FMT_RGB565,
-+		.name			= "RGB565",
-+		.bits_per_sample	= 8,
-+		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
-+	},
- };
- 
- /* This will be corrected as we get more formats */
-@@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
- 				  struct soc_camera_format_xlate *xlate)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	int formats = 0, ret;
-+	int formats = 0, ret, i, n;
- 	/* sensor format */
- 	struct v4l2_subdev_mbus_code_enum code = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-@@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
- 	case MEDIA_BUS_FMT_YVYU8_2X8:
--		formats++;
--		if (xlate) {
--			xlate->host_fmt	= &isi_camera_formats[0];
--			xlate->code	= code.code;
--			xlate++;
--			dev_dbg(icd->parent, "Providing format %s using code %d\n",
--				isi_camera_formats[0].name, code.code);
-+		n = ARRAY_SIZE(isi_camera_formats);
-+		formats += n;
-+		for (i = 0; i < n; i++) {
-+			if (xlate) {
-+				xlate->host_fmt	= &isi_camera_formats[i];
-+				xlate->code	= code.code;
-+				dev_dbg(icd->parent, "Providing format %s using code %d\n",
-+					isi_camera_formats[0].name, code.code);
-+				xlate++;
-+			}
- 		}
- 		break;
- 	default:
--- 
-1.9.1
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index a23c93369a04..dc679dfe8ade 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -44,11 +44,41 @@ static inline const char *gobj_type(enum media_gobj_type type)
+>  		return "pad";
+>  	case MEDIA_GRAPH_LINK:
+>  		return "link";
+> +	case MEDIA_GRAPH_INTF_DEVNODE:
+> +		return "intf-devnode";
+>  	default:
+>  		return "unknown";
+>  	}
+>  }
+>  
+> +static inline const char *intf_type(struct media_interface *intf)
+> +{
+> +	switch (intf->type) {
+> +	case MEDIA_INTF_T_DVB_FE:
+> +		return "frontend";
+> +	case MEDIA_INTF_T_DVB_DEMUX:
+> +		return "demux";
+> +	case MEDIA_INTF_T_DVB_DVR:
+> +		return "DVR";
+> +	case MEDIA_INTF_T_DVB_CA:
+> +		return  "CA";
+
+Would lower case be better? "dvr" and "ca"? Although for some reason I feel that "CA"
+is fine too. Not sure why :-)
+
+What is the name of the associated device node? Upper or lower case? I feel that the
+name here should match the name of the device node.
+
+> +	case MEDIA_INTF_T_DVB_NET:
+> +		return "dvbnet";
+> +	case MEDIA_INTF_T_V4L_VIDEO:
+> +		return "video";
+> +	case MEDIA_INTF_T_V4L_VBI:
+> +		return "vbi";
+> +	case MEDIA_INTF_T_V4L_RADIO:
+> +		return "radio";
+> +	case MEDIA_INTF_T_V4L_SUBDEV:
+> +		return "v4l2-subdev";
+> +	case MEDIA_INTF_T_V4L_SWRADIO:
+> +		return "swradio";
+> +	default:
+> +		return "unknown-intf";
+> +	}
+> +};
+
+Regards,
+
+	Hans
 
