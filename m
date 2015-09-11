@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:35676 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbbIJOEt (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50538 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752130AbbIKNxL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2015 10:04:49 -0400
-Received: by ykdu9 with SMTP id u9so58916732ykd.2
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2015 07:04:49 -0700 (PDT)
+	Fri, 11 Sep 2015 09:53:11 -0400
+Message-ID: <55F2DC80.7000309@xs4all.nl>
+Date: Fri, 11 Sep 2015 15:52:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <3dad0210717d61927a2c6f370a3b1eb145f1580b.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-	<3dad0210717d61927a2c6f370a3b1eb145f1580b.1440902901.git.mchehab@osg.samsung.com>
-Date: Thu, 10 Sep 2015 16:04:48 +0200
-Message-ID: <CABxcv=mZkNMPvQTYmwGY1tFszYS8LPe9YJWzoDVaToPg6N42tQ@mail.gmail.com>
-Subject: Re: [PATCH v8 05/55] [media] media: use media_gobj inside entities
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 43/55] [media] media: report if a pad is sink or source
+ at debug msg
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 30, 2015 at 5:06 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> As entities are graph objects, let's embed media_gobj
-> on it. That ensures an unique ID for entities that can be
-> global along the entire media controller.
->
-> For now, we'll keep the already existing entity ID. Such
-> field need to be dropped at some point, but for now, let's
-> not do this, to avoid needing to review all drivers and
-> the userspace apps.
->
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Sometimes, it is important to see if the created pad is
+> sink or source. Add info to track that.
+> 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Best regards,
-Javier
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index d8038a53f945..6ed5eef88593 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
+>  		struct media_pad *pad = gobj_to_pad(gobj);
+>  
+>  		dev_dbg(gobj->mdev->dev,
+> -			"%s: id 0x%08x pad#%d: '%s':%d\n",
+> -			event_name, gobj->id, media_localid(gobj),
+> +			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
+> +			event_name, gobj->id,
+> +			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
+> +			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
+> +			media_localid(gobj),
+>  			pad->entity->name, pad->index);
+>  		break;
+>  	}
+> 
+
