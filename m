@@ -1,89 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47250 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([134.134.136.65]:56629 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751525AbbIAV7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 17:59:54 -0400
-From: Antti Palosaari <crope@iki.fi>
+	id S1752368AbbIKKL2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 06:11:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 06/13] v4l: add type field to v4l2_modulator struct
-Date: Wed,  2 Sep 2015 00:59:22 +0300
-Message-Id: <1441144769-29211-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
-References: <1441144769-29211-1-git-send-email-crope@iki.fi>
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [RFC 9/9] staging: omap4iss: Use media entity enum API
+Date: Fri, 11 Sep 2015 13:09:12 +0300
+Message-Id: <1441966152-28444-10-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add type field to that struct like it counterpart v4l2_tuner
-already has. We need type field to distinguish different tuner
-types from each others for transmitter too.
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++++++++++-
- include/uapi/linux/videodev2.h       |  3 ++-
- 2 files changed, 19 insertions(+), 2 deletions(-)
+ drivers/staging/media/omap4iss/iss.c       | 7 ++++---
+ drivers/staging/media/omap4iss/iss.h       | 4 ++--
+ drivers/staging/media/omap4iss/iss_video.c | 4 ++--
+ drivers/staging/media/omap4iss/iss_video.h | 4 ++--
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index a8582d3..6985edd 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1646,15 +1646,31 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- static int v4l_g_modulator(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_modulator *p = arg;
- 	int err;
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 076ddd4..9f310e7 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -606,7 +606,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+ 			 * crashed. Mark it as such, the ISS will be reset when
+ 			 * applications will release it.
+ 			 */
+-			iss->crashed |= 1U << media_entity_id(&subdev->entity);
++			media_entity_enum_set(iss->crashed, &subdev->entity);
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+@@ -641,7 +641,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+ 	 * pipeline won't start anyway (those entities would then likely fail to
+ 	 * stop, making the problem worse).
+ 	 */
+-	if (pipe->entities & iss->crashed)
++	if (media_entity_enum_intersects(pipe->entities, iss->crashed))
+ 		return -EIO;
  
-+	if (vfd->vfl_type == VFL_TYPE_RADIO)
-+		p->type = V4L2_TUNER_RADIO;
+ 	spin_lock_irqsave(&pipe->lock, flags);
+@@ -761,7 +761,8 @@ static int iss_reset(struct iss_device *iss)
+ 		return -ETIMEDOUT;
+ 	}
+ 
+-	iss->crashed = 0;
++	media_entity_enum_init(iss->crashed);
 +
- 	err = ops->vidioc_g_modulator(file, fh, p);
- 	if (!err)
- 		p->capability |= V4L2_TUNER_CAP_FREQ_BANDS;
- 	return err;
+ 	return 0;
  }
  
-+static int v4l_s_modulator(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_modulator *p = arg;
-+
-+	if (vfd->vfl_type == VFL_TYPE_RADIO)
-+		p->type = V4L2_TUNER_RADIO;
-+
-+	return ops->vidioc_s_modulator(file, fh, p);
-+}
-+
- static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -2441,7 +2457,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
--	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
-+	IOCTL_INFO_FNC(VIDIOC_S_MODULATOR, v4l_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
- 	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 70f06c9..3a8eb8e 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1584,7 +1584,8 @@ struct v4l2_modulator {
- 	__u32			rangelow;
- 	__u32			rangehigh;
- 	__u32			txsubchans;
--	__u32			reserved[4];
-+	__u32			type;	/* enum v4l2_tuner_type */
-+	__u32			reserved[3];
- };
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 35df8b4..a124555 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -82,7 +82,7 @@ struct iss_reg {
+ /*
+  * struct iss_device - ISS device structure.
+  * @syscon: Regmap for the syscon register space
+- * @crashed: Bitmask of crashed entities (indexed by entity ID)
++ * @crashed: Crashed entities
+  */
+ struct iss_device {
+ 	struct v4l2_device v4l2_dev;
+@@ -101,7 +101,7 @@ struct iss_device {
+ 	u64 raw_dmamask;
  
- /*  Flags for the 'capability' field */
+ 	struct mutex iss_mutex;	/* For handling ref_count field */
+-	unsigned int crashed;
++	DECLARE_MEDIA_ENTITY_ENUM(crashed);
+ 	int has_context;
+ 	int ref_count;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index cbe5783..385b668 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -771,7 +771,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->external = NULL;
+ 	pipe->external_rate = 0;
+ 	pipe->external_bpp = 0;
+-	pipe->entities = 0;
++	media_entity_enum_init(pipe->entities);
+ 
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, true);
+@@ -783,7 +783,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	entity = &video->video.entity;
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph)))
+-		pipe->entities |= 1 << media_entity_id(entity);
++		media_entity_enum_set(pipe->entities, entity);
+ 
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index f11fce2..d415594 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -77,7 +77,7 @@ enum iss_pipeline_state {
+ 
+ /*
+  * struct iss_pipeline - An OMAP4 ISS hardware pipeline
+- * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
++ * @entities: Entities in the pipeline
+  * @error: A hardware error occurred during capture
+  */
+ struct iss_pipeline {
+@@ -87,7 +87,7 @@ struct iss_pipeline {
+ 	enum iss_pipeline_stream_state stream_state;
+ 	struct iss_video *input;
+ 	struct iss_video *output;
+-	unsigned int entities;
++	DECLARE_MEDIA_ENTITY_ENUM(entities);
+ 	atomic_t frame_number;
+ 	bool do_propagation; /* of frame number */
+ 	bool error;
 -- 
-http://palosaari.fi/
+2.1.0.231.g7484e3b
 
