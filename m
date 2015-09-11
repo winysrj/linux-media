@@ -1,42 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:35276 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbbIJOWP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2015 10:22:15 -0400
-Received: by ykdu9 with SMTP id u9so59542691ykd.2
-        for <linux-media@vger.kernel.org>; Thu, 10 Sep 2015 07:22:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
-	<ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-Date: Thu, 10 Sep 2015 16:22:14 +0200
-Message-ID: <CABxcv=k5vMhTx_Bw2YZV5xDij10Zet8tdkPb23V86g5Mpwc51g@mail.gmail.com>
-Subject: Re: [PATCH v8 14/55] [media] media: add functions to allow creating interfaces
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mga11.intel.com ([192.55.52.93]:12487 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751873AbbIKLw1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 07:52:27 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	sumit.semwal@linaro.org, robdclark@gmail.com,
+	daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC RESEND 02/11] vb2: Move buffer cache synchronisation to prepare from queue
+Date: Fri, 11 Sep 2015 14:50:25 +0300
+Message-Id: <1441972234-8643-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 6, 2015 at 2:02 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Interfaces are different than entities: they represent a
-> Kernel<->userspace interaction, while entities represent a
-> piece of hardware/firmware/software that executes a function.
->
-> Let's distinguish them by creating a separate structure to
-> store the interfaces.
->
-> Later patches should change the existing drivers and logic
-> to split the current interface embedded inside the entity
-> structure (device nodes) into a separate object of the graph.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
+The buffer cache should be synchronised in buffer preparation, not when
+the buffer is queued to the device. Fix this.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Mmap buffers do not need cache synchronisation since they are always
+coherent.
 
-Best regards,
-Javier
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index af6a23a..64fce4d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1636,10 +1636,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ 
+ 	trace_vb2_buf_queue(q, vb);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+-
+ 	call_void_vb_qop(vb, buf_queue, vb);
+ }
+ 
+@@ -1694,11 +1690,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		ret = -EINVAL;
+ 	}
+ 
+-	if (ret)
++	if (ret) {
+ 		dprintk(1, "buffer preparation failed: %d\n", ret);
+-	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
++		vb->state = VB2_BUF_STATE_DEQUEUED;
++		return ret;
++	}
+ 
+-	return ret;
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
++
++	vb->state = VB2_BUF_STATE_PREPARED;
++
++	return 0;
+ }
+ 
+ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+-- 
+2.1.0.231.g7484e3b
+
