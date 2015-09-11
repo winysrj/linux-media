@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:36297 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757981AbbICXSI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 19:18:08 -0400
-Received: by lbcao8 with SMTP id ao8so2365655lbc.3
-        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 16:18:07 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 3/3] rcar_vin: call g_std() instead of querystd()
-Date: Fri, 04 Sep 2015 02:18:05 +0300
-Message-ID: <2719391.j5OZOaG8ai@wasted.cogentembedded.com>
-In-Reply-To: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
-References: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45855 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752847AbbIKPYQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 11:24:16 -0400
+Message-ID: <55F2F1D9.9010908@xs4all.nl>
+Date: Fri, 11 Sep 2015 17:23:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 09/18] [media] media-entity: enforce check of interface
+ and links creation
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <e434a5b64b652589c99f421f6b18ea7ff445158c.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <e434a5b64b652589c99f421f6b18ea7ff445158c.1441559233.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil says: "The only place querystd can be called  is in the QUERYSTD
-ioctl, all other ioctls should use the last set standard." So call the g_std()
-subdevice method instead of querystd() in the driver's set_fmt() method.
+On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
+> Drivers should check if interfaces and interface links were
+> created. Add a must_check for them.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
----
- drivers/media/platform/soc_camera/rcar_vin.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-===================================================================
---- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
-+++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1589,8 +1589,8 @@ static int rcar_vin_set_fmt(struct soc_c
- 		field = pix->field;
- 		break;
- 	case V4L2_FIELD_INTERLACED:
--		/* Query for standard if not explicitly mentioned _TB/_BT */
--		ret = v4l2_subdev_call(sd, video, querystd, &std);
-+		/* Get the last standard if not explicitly mentioned _TB/_BT */
-+		ret = v4l2_subdev_call(sd, video, g_std, &std);
- 		if (ret == -ENOIOCTLCMD) {
- 			field = V4L2_FIELD_NONE;
- 		} else if (ret < 0) {
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 3d389f142a1d..62f882d872b1 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -370,14 +370,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>  					     struct media_pipeline *pipe);
+>  void media_entity_pipeline_stop(struct media_entity *entity);
+>  
+> -struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+> -						u32 type, u32 flags,
+> -						u32 major, u32 minor,
+> -						gfp_t gfp_flags);
+> +struct media_intf_devnode *
+> +__must_check media_devnode_create(struct media_device *mdev,
+> +				  u32 type, u32 flags,
+> +				  u32 major, u32 minor,
+> +				  gfp_t gfp_flags);
+>  void media_devnode_remove(struct media_intf_devnode *devnode);
+> -struct media_link *media_create_intf_link(struct media_entity *entity,
+> -					    struct media_interface *intf,
+> -					    u32 flags);
+> +struct media_link *
+> +__must_check media_create_intf_link(struct media_entity *entity,
+> +				    struct media_interface *intf,
+> +				    u32 flags);
+>  void media_remove_intf_link(struct media_link *link);
+>  void __media_remove_intf_links(struct media_interface *intf);
+>  void media_remove_intf_links(struct media_interface *intf);
+> 
 
