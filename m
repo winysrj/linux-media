@@ -1,80 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43887 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752143AbbIKO7q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:59:46 -0400
-Message-ID: <55F2EC1A.10600@xs4all.nl>
-Date: Fri, 11 Sep 2015 16:58:34 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/18] [media] media-device: supress backlinks at G_TOPOLOGY
- ioctl
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <7cc4f0ce2266e6300d349535e705941a190398e9.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <7cc4f0ce2266e6300d349535e705941a190398e9.1441559233.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:57619 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751873AbbIKLw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 07:52:28 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	sumit.semwal@linaro.org, robdclark@gmail.com,
+	daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: [RFC RESEND 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
+Date: Fri, 11 Sep 2015 14:50:26 +0300
+Message-Id: <1441972234-8643-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> Due to the graph traversal algorithm currently in usage, we
-> need a copy of all data links. Those backlinks should not be
-> send to userspace, as otherwise, all links there will be
-> duplicated.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The cache synchronisation may be a time consuming operation and thus not
+best performed in an interrupt which is a typical context for
+vb2_buffer_done() calls. This may consume up to tens of ms on some
+machines, depending on the buffer size.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 0238885fcc74..97eb97d9b662 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -333,6 +333,9 @@ static long __media_device_get_topology(struct media_device *mdev,
->  	/* Get links and number of links */
->  	i = 0;
->  	media_device_for_each_link(link, mdev) {
-> +		if (link->is_backlink)
-> +			continue;
-> +
->  		i++;
->  
->  		if (ret || !topo->links)
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index cd4d767644df..4868b8269204 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -648,6 +648,7 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
->  	backlink->source = &source->pads[source_pad];
->  	backlink->sink = &sink->pads[sink_pad];
->  	backlink->flags = flags;
-> +	backlink->is_backlink = true;
->  
->  	/* Initialize graph object embedded at the new link */
->  	media_gobj_init(sink->graph_obj.mdev, MEDIA_GRAPH_LINK,
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index e1a89899deef..3d389f142a1d 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -96,6 +96,7 @@ struct media_pipeline {
->   * @reverse:	Pointer to the link for the reverse direction of a pad to pad
->   *		link.
->   * @flags:	Link flags, as defined at uapi/media.h (MEDIA_LNK_FL_*)
-> + * @is_backlink: Indicate if the link is a backlink.
->   */
->  struct media_link {
->  	struct media_gobj graph_obj;
-> @@ -112,6 +113,7 @@ struct media_link {
->  	};
->  	struct media_link *reverse;
->  	unsigned long flags;
-> +	bool is_backlink;
->  };
->  
->  /**
-> 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 64fce4d..c5c0707a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
+-	unsigned int plane;
+ 
+ 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+ 		return;
+@@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, state);
+ 
+-	/* sync buffers */
+-	for (plane = 0; plane < vb->num_planes; ++plane)
+-		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+-
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+-	unsigned int i;
++	unsigned int plane;
+ 
+ 	/* nothing to do if the buffer is already dequeued */
+ 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+@@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+ 
+ 	vb->state = VB2_BUF_STATE_DEQUEUED;
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; plane++)
++		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
++
+ 	/* unmap DMABUF buffer */
+ 	if (q->memory == V4L2_MEMORY_DMABUF)
+-		for (i = 0; i < vb->num_planes; ++i) {
+-			if (!vb->planes[i].dbuf_mapped)
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			if (!vb->planes[plane].dbuf_mapped)
+ 				continue;
+-			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
+-			vb->planes[i].dbuf_mapped = 0;
++			call_void_memop(vb, unmap_dmabuf,
++					vb->planes[plane].mem_priv);
++			vb->planes[plane].dbuf_mapped = 0;
+ 		}
+ }
+ 
+-- 
+2.1.0.231.g7484e3b
 
