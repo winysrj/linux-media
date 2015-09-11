@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25835 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753655AbbIUJ7a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 05:59:30 -0400
-Subject: Re: [PATCH 4/4] ARM64: dts: exynos5433: add jpeg node
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
- <1442586060-23657-5-git-send-email-andrzej.p@samsung.com>
- <55FFD2D2.1010508@xs4all.nl>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:35610 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752212AbbIKKxS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 06:53:18 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <55FFD4FF.6090306@samsung.com>
-Date: Mon, 21 Sep 2015 11:59:27 +0200
-MIME-version: 1.0
-In-reply-to: <55FFD2D2.1010508@xs4all.nl>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v2] [media] s5c73m3: Export OF module alias information
+Date: Fri, 11 Sep 2015 12:53:09 +0200
+Message-Id: <1441968789-25966-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The SPI core always reports the MODALIAS uevent as "spi:<modalias>"
+regardless of the mechanism that was used to register the device
+(i.e: OF or board code) and the table that is used later to match
+the driver with the device (i.e: SPI id table or OF match table).
 
-W dniu 21.09.2015 o 11:50, Hans Verkuil pisze:
-> On 18-09-15 16:21, Andrzej Pietrasiewicz wrote:
->> From: Marek Szyprowski <m.szyprowski@samsung.com>
->>
->> Add Exynos 5433 jpeg h/w codec node.
->>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
->> ---
->>   arch/arm64/boot/dts/exynos/exynos5433.dtsi | 21 +++++++++++++++++++++
->>   1 file changed, 21 insertions(+)
->>
->> diff --git a/arch/arm64/boot/dts/exynos/exynos5433.dtsi b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
->
-> This dtsi file doesn't exist in the media-git tree. What is the story here?
->
-> Should this go through a different subsystem?
->
-> I think the media subsystem can take patches 1-3 and whoever does DT patches can
-> take this patch, right?
->
+So drivers needs to export the SPI id table and this be built into
+the module or udev won't have the necessary information to autoload
+the needed driver module when the device is added.
 
-The cover letter explains that the series is rebased onto Mauro's
-master with Kukjin's branch merged. The latter does contain
-the exynos5433.dtsi. That said, yes, taking patches 1-3 in
-media subsystem and leaving DT patch to someone else is the
-way to go.
+But this means that OF-only drivers needs to have both OF and SPI id
+tables that have to be kept in sync and also the dev node compatible
+manufacturer prefix is stripped when reporting the MODALIAS. Which can
+lead to issues if two vendors use the same SPI device name for example.
 
-Andrzej
+To avoid the above, the SPI core behavior may be changed in the future
+to not require an SPI device table for OF-only drivers and report the
+OF module alias. So, it's better to also export the OF table even when
+is unused now to prevent breaking module loading when the core changes.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+
+---
+
+Changes in v2:
+- Fix build error due a silly typo. Pointed out by Andrzej.
+- Added Andrzej Hajda Reviewed-by tag.
+
+ drivers/media/i2c/s5c73m3/s5c73m3-spi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+index fa4a5ebda6b2..17ac4417fb17 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
+@@ -31,6 +31,7 @@ static const struct of_device_id s5c73m3_spi_ids[] = {
+ 	{ .compatible = "samsung,s5c73m3" },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(of, s5c73m3_spi_ids);
+ 
+ enum spi_direction {
+ 	SPI_DIR_RX,
+-- 
+2.4.3
+
