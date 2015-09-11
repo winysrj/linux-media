@@ -1,101 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:34113 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbbINPF0 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34228 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752365AbbIKOqV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 11:05:26 -0400
-Received: by padhy16 with SMTP id hy16so146500374pad.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 08:05:26 -0700 (PDT)
-Subject: Re: [PATCH][resend] rc: gpio-ir-recv: allow flush space on idle
-To: Sean Young <sean@mess.org>
-References: <1441980024-1944-1-git-send-email-eric@nelint.com>
- <20150914100044.GA21149@gofer.mess.org> <55F6DAE2.6080901@nelint.com>
- <20150914145436.GA23973@gofer.mess.org>
-Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
-	heiko@sntech.de, devicetree@vger.kernel.org,
-	otavio@ossystems.com.br
-From: Eric Nelson <eric@nelint.com>
-Message-ID: <55F6E234.5050502@nelint.com>
-Date: Mon, 14 Sep 2015 08:05:24 -0700
+	Fri, 11 Sep 2015 10:46:21 -0400
+Message-ID: <55F2E8F5.8050902@xs4all.nl>
+Date: Fri, 11 Sep 2015 16:45:09 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20150914145436.GA23973@gofer.mess.org>
-Content-Type: text/plain; charset=utf-8
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 55/55] [media] media-entity.h: document all the structs
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <8943d6841f2278a0030fd1fdaee0a90a7e70385b.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <8943d6841f2278a0030fd1fdaee0a90a7e70385b.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks again Sean,
-
-On 09/14/2015 07:54 AM, Sean Young wrote:
-> On Mon, Sep 14, 2015 at 07:34:10AM -0700, Eric Nelson wrote:
->> Thanks Shawn,
->>
->> On 09/14/2015 03:00 AM, Sean Young wrote:
->>> On Fri, Sep 11, 2015 at 07:00:24AM -0700, Eric Nelson wrote:
->>>> Many decoders require a trailing space (period without IR illumination)
->>>> to be delivered before completing a decode.
->>>>
->>>> Since the gpio-ir-recv driver only delivers events on gpio transitions,
->>>> a single IR symbol (caused by a quick touch on an IR remote) will not
->>>> be properly decoded without the use of a timer to flush the tail end
->>>> state of the IR receiver.
->>>
->>> This is a problem other IR drivers suffer from too. It might be better
->>> to send a IR timeout event like st_rc_send_lirc_timeout() in st_rc.c,
->>> with the duration set to what the timeout was. That is what irraw 
->>> timeouts are for; much better than fake transitions.
->>>
->>
->> If I'm understanding this correctly, this would require modification
->> of each decoder to handle what seems to be a special case regarding
->> the GPIO IR driver (which needs an edge to trigger an interrupt).
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Only a few structs are documented on kernel-doc-nano format
+> (the ones added by the MC next gen patches).
 > 
-> No, this is not a special case. Many drivers do have extra code to generate
-> some sort of end-of-signal message: redrat3; igorplugusb; st_rc. They don't
-> handle it consistently but this should be fixed.
+> Add a documentation for all structs, and ensure that they'll
+> be producing the documentation at the Kernel's device driver
+> DocBook.
 > 
-> Secondly, the decoders already handle it. A timeout event matches 
-> is_timing_event(), so it's processed by the decoders. The duration should 
-> be set correctly.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+After correcting some typos (see below):
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index fb5f0e21f137..e1a89899deef 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -55,11 +55,13 @@ enum media_gobj_type {
+>  /**
+>   * struct media_gobj - Define a graph object.
+>   *
+> + * @mdev:	Pointer to the struct media_device that owns the object
+>   * @id:		Non-zero object ID identifier. The ID should be unique
+>   *		inside a media_device, as it is composed by
+>   *		MEDIA_BITS_PER_TYPE to store the type plus
+>   *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
+>   *		(called as "local ID").
+> + * @list:	Linked list associated to one of the per-type mdev object lists
+>   *
+>   * All objects on the media graph should have this struct embedded
+>   */
+> @@ -73,6 +75,28 @@ struct media_gobj {
+>  struct media_pipeline {
+>  };
+>  
+> +/**
+> + * struct media_link - Define a media link graph object.
+> + *
+> + * @graph_obj:	Embedded structure containing the media object common data
+> + * @list:	Linked list associated with an entity or an interface that
+> + *		owns the link.
+> + * @gobj0:	Part of an union. Used to get the pointer for the first
+
+s/an union/a union/  (in multiple places)
+
+See: https://answers.yahoo.com/question/index?qid=20081006092816AAvPO9n
+
+> + *		graph_object of the link.
+> + * @source:	Part of an union. Used only if the first object (gobj0) is
+> + *		a pad. On such case, it represents the source pad.
+
+s/On such case/In that case/  (in multiple places)
+
+> + * @intf:	Part of an union. Used only if the first object (gobj0) is
+> + *		an interface.
+> + * @gobj1:	Part of an union. Used to get the pointer for the second
+> + *		graph_object of the link.
+> + * @source:	Part of an union. Used only if the second object (gobj0) is
+> + *		a pad. On such case, it represents the sink pad.
+> + * @entity:	Part of an union. Used only if the second object (gobj0) is
+> + *		an entity.
+> + * @reverse:	Pointer to the link for the reverse direction of a pad to pad
+> + *		link.
+> + * @flags:	Link flags, as defined at uapi/media.h (MEDIA_LNK_FL_*)
+
+s/as defined at/as defined in/  (in multiple places)
+
+> + */
+>  struct media_link {
+>  	struct media_gobj graph_obj;
+>  	struct list_head list;
+> @@ -86,15 +110,23 @@ struct media_link {
+>  		struct media_pad *sink;
+>  		struct media_entity *entity;
+>  	};
+> -	struct media_link *reverse;	/* Link in the reverse direction */
+> -	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
+> +	struct media_link *reverse;
+> +	unsigned long flags;
+>  };
+>  
+> +/**
+> + * struct media_pad - Define a media pad graph object.
+> + *
+> + * @graph_obj:	Embedded structure containing the media object common data
+> + * @entity:	Entity where this object belongs
+> + * @index:	Pad index in the entity pads array, numbered from 0 to n
+> + * @flags:	Pad flags, as defined at uapi/media.h (MEDIA_PAD_FL_*)
+> + */
+>  struct media_pad {
+>  	struct media_gobj graph_obj;	/* must be first field in struct */
+> -	struct media_entity *entity;	/* Entity this pad belongs to */
+> -	u16 index;			/* Pad index in the entity pads array */
+> -	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
+> +	struct media_entity *entity;
+> +	u16 index;
+> +	unsigned long flags;
+>  };
+>  
+>  /**
+> @@ -113,51 +145,73 @@ struct media_entity_operations {
+>  	int (*link_validate)(struct media_link *link);
+>  };
+>  
+> +/**
+> + * struct media_entity - Define a media entity graph object.
+> + *
+> + * @graph_obj:	Embedded structure containing the media object common data.
+> + * @name:	Entity name.
+> + * @type:	Entity type, as defined at uapi/media.h (MEDIA_ENT_T_*)
+> + * @revision:	Entity revision - OBSOLETE - should be removed soon.
+> + * @flags:	Entity flags, as defined at uapi/media.h (MEDIA_ENT_FL_*)
+> + * @group_id:	Entity group ID - OBSOLETE - should be removed soon.
+> + * @num_pads:	Number of sink and source pads.
+> + * @num_links:	Number of existing links, both enabled and disabled.
+> + * @num_backlinks: Number of backlinks
+> + * @pads:	Pads array with the size defined by @num_pads.
+> + * @links:	Linked list for the data links.
+> + * @ops:	Entity operations.
+> + * @stream_count: Stream count for the entity.
+> + * @use_count:	Use count for the entity.
+> + * @pipe:	Pipeline this entity belongs to.
+> + * @info:	Union with devnode information.  Kept just for backward
+> + * 		compatibility.
+> + * @major:	Devnode major number (zero if not applicable). Kept just
+> + * 		for backward compatibility.
+> + * @minor:	Devnode minor number (zero if not applicable). Kept just
+> + * 		for backward compatibility.
+> + *
+> + * NOTE: @stream_count and @use_count reference counts must never be
+> + * negative, but are signed integers on purpose: a simple WARN_ON(<0) check
+> + * can be used to detect reference count bugs that would make them negative.
+> + */
+>  struct media_entity {
+>  	struct media_gobj graph_obj;	/* must be first field in struct */
+> -	const char *name;		/* Entity name */
+> -	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+> -	u32 revision;			/* Entity revision, driver specific */
+> -	unsigned long flags;		/* Entity flags (MEDIA_ENT_FL_*) */
+> -	u32 group_id;			/* Entity group ID */
+> +	const char *name;
+> +	u32 type;
+> +	u32 revision;
+> +	unsigned long flags;
+> +	u32 group_id;
+>  
+> -	u16 num_pads;			/* Number of sink and source pads */
+> -	u16 num_links;			/* Number of existing links, both
+> -					 * enabled and disabled */
+> -	u16 num_backlinks;		/* Number of backlinks */
+> +	u16 num_pads;
+> +	u16 num_links;
+> +	u16 num_backlinks;
+>  
+> -	struct media_pad *pads;		/* Pads array (num_pads objects) */
+> -	struct list_head links;		/* Pad-to-pad links list */
+> +	struct media_pad *pads;
+> +	struct list_head links;
+>  
+> -	const struct media_entity_operations *ops;	/* Entity operations */
+> +	const struct media_entity_operations *ops;
+>  
+>  	/* Reference counts must never be negative, but are signed integers on
+>  	 * purpose: a simple WARN_ON(<0) check can be used to detect reference
+>  	 * count bugs that would make them negative.
+>  	 */
+> -	int stream_count;		/* Stream count for the entity. */
+> -	int use_count;			/* Use count for the entity. */
+> +	int stream_count;
+> +	int use_count;
+>  
+> -	struct media_pipeline *pipe;	/* Pipeline this entity belongs to. */
+> +	struct media_pipeline *pipe;
+>  
+>  	union {
+> -		/* Node specifications */
+>  		struct {
+>  			u32 major;
+>  			u32 minor;
+>  		} dev;
+> -
+> -		/* Sub-device specifications */
+> -		/* Nothing needed yet */
+>  	} info;
+>  };
+>  
+>  /**
+> - * struct media_interface - Define a Kernel API interface
+> + * struct media_interface - Define a media interface graph object
+>   *
+>   * @graph_obj:		embedded graph object
+> - * @list:		Linked list used to find other interfaces that belong
+> - *			to the same media controller
+>   * @links:		List of links pointing to graph entities
+>   * @type:		Type of the interface as defined at the
+>   *			uapi/media/media.h header, e. g.
+> @@ -177,7 +231,7 @@ struct media_interface {
+>  };
+>  
+>  /**
+> - * struct media_intf_devnode - Define a Kernel API interface via a device node
+> + * struct media_intf_devnode - Define a media interface via a device node
+>   *
+>   * @intf:	embedded interface object
+>   * @major:	Major number of a device node
 > 
 
-I think I did misunderstand you.
+Regards,
 
-You're suggesting that I re-work the patch to gpio-ir-recv.c to
-produce a timeout instead of an edge. Is that right?
-
->> Isn't it better to have the device interface handle this in one place?
-> 
->>>> This patch adds an optional device tree node "flush-ms" which, if
->>>> present, will use a jiffie-based timer to complete the last pulse
->>>> stream and allow decode.
->>>
->>> A common value for this is 100ms, I'm not sure what use it has to have
->>> it configurable. It's nice to have it exposed in rc_dev->timeout.
->>>
->>
->> I'm enough of a n00b regarding the details of the various decoders
->> not to know that...
->>
->> I looked through the couple of decoders my customer was using (NEC and
->> RC6) and came up with a value of 100ms though...
->>
->> Implementing this through DT and having the default as 0 (disabled)
->> provides an interim solution if the choice is made to change each of
->> the decoders, since I would expect that to take a while and a bunch of
->> remote control devices for testing.
-> 
-> Many other drivers use 100ms just fine and I don't remember ever seeing
-> any bug reports on that.
-> 
-
-So you'd like to see this as a constant?
-
-Please advise,
-
-
-Eric
-
+	Hans
