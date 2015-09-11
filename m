@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28146 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752365AbbIKKL1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 06:11:27 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 6/9] media: entity: Remove useless WARN_ON()'s
-Date: Fri, 11 Sep 2015 13:09:09 +0300
-Message-Id: <1441966152-28444-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44369 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751730AbbIKOAA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 10:00:00 -0400
+Message-ID: <55F2DE18.3020201@xs4all.nl>
+Date: Fri, 11 Sep 2015 15:58:48 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: linux-api@vger.kernel.org
+Subject: Re: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <297afcfe4c9c5ebc074f92d1badd34b94e8b28f9.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <297afcfe4c9c5ebc074f92d1badd34b94e8b28f9.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The checks for entity ID not reaching too high value the framework could
-not handle are now present in the entity registration. It's quite
-far-fetched this condition could happen inside the framework, so remove
-the WARN_ON()'s.
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Add a new ioctl that will report the entire topology on
+> one go.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 5 -----
- 1 file changed, 5 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index a4d6e1b..e4f0f4a 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -334,9 +334,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 	graph->stack[graph->top].entity = NULL;
- 	media_entity_enum_init(graph->entities);
- 
--	if (WARN_ON(entity->low_id >= MEDIA_ENTITY_MAX_LOW_ID))
--		return;
--
- 	media_entity_enum_set(graph->entities, entity);
- 	stack_push(graph, entity);
- }
-@@ -381,8 +378,6 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(entity->low_id >= MEDIA_ENTITY_MAX_LOW_ID))
--			return NULL;
- 
- 		/* Has the entity already been visited? */
- 		if (media_entity_enum_test_and_set(graph->entities, next)) {
--- 
-2.1.0.231.g7484e3b
+I do have one suggestion: media_v2_interface, media_v2_pad and media_v2_link all
+have a 'flags' field, but it is not clear from the code in the header which flag
+#defines are used for which struct. Perhaps a few comments would help with that.
 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index a1bd7afba110..b17f6763aff4 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+
+<snip>
+
+> +
+> +struct media_v2_pad {
+> +	__u32 id;
+> +	__u32 entity_id;
+> +	__u32 flags;
+> +	__u16 reserved[9];
+
+Strange odd number here for no clear reason. Perhaps use 8 or 10 instead?
+
+Anyway, you have my Ack.
+
+Regards,
+
+	Hans
