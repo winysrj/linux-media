@@ -1,90 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14132 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757483AbbIVJN4 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50936 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751677AbbIKMyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 05:13:56 -0400
-Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of unsigned types
-To: David Howells <dhowells@redhat.com>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
- <17571.1442842945@warthog.procyon.org.uk>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, brcm80211-dev-list@broadcom.com,
-	devel@driverdev.osuosl.org, dev@openvswitch.org,
-	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-cachefs@redhat.com, linux-clk@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-mm@kvack.org,
-	linux-omap@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-serial@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lustre-devel@lists.lustre.org, netdev@vger.kernel.org,
-	rtc-linux@googlegroups.com
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <56011BB9.5030004@samsung.com>
-Date: Tue, 22 Sep 2015 11:13:29 +0200
-MIME-version: 1.0
-In-reply-to: <17571.1442842945@warthog.procyon.org.uk>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Fri, 11 Sep 2015 08:54:12 -0400
+Message-ID: <55F2CEAC.7080101@xs4all.nl>
+Date: Fri, 11 Sep 2015 14:53:00 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Helen Fornazier <helen.fornazier@gmail.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] [media] vimc: Virtual Media Controller core, capture
+ and sensor
+References: <2432c202f32951718624bdd04b90e9d69a13b621.1438833746.git.helen.fornazier@gmail.com> <CAPW4XYb50sWN82EYqQpGZVYCp8JjPcAfd1mLQsaz7nJcPakkUg@mail.gmail.com>
+In-Reply-To: <CAPW4XYb50sWN82EYqQpGZVYCp8JjPcAfd1mLQsaz7nJcPakkUg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/21/2015 03:42 PM, David Howells wrote:
-> Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
+On 09/11/2015 02:43 PM, Helen Fornazier wrote:
+> Hi
 > 
->> Semantic patch finds comparisons of types:
->>     unsigned < 0
->>     unsigned >= 0
->> The former is always false, the latter is always true.
->> Such comparisons are useless, so theoretically they could be
->> safely removed, but their presence quite often indicates bugs.
-> 
-> Or someone has left them in because they don't matter and there's the
-> possibility that the type being tested might be or become signed under some
-> circumstances.  If the comparison is useless, I'd expect the compiler to just
-> discard it - for such cases your patch is pointless.
-> 
-> If I have, for example:
-> 
-> 	unsigned x;
-> 
-> 	if (x == 0 || x > 27)
-> 		give_a_range_error();
-> 
-> I will write this as:
-> 
-> 	unsigned x;
-> 
-> 	if (x <= 0 || x > 27)
-> 		give_a_range_error();
-> 
-> because it that gives a way to handle x being changed to signed at some point
-> in the future for no cost.  In which case, your changing the <= to an ==
-> "because the < part of the case is useless" is arguably wrong.
+> On Thu, Aug 6, 2015 at 1:10 AM, Helen Fornazier
 
-This is why I have not checked for such cases - I have skipped checks of type
-	unsigned <= 0
-exactly for the reasons above.
-
-However I have left two other checks as they seems to me more suspicious - they
-are always true or false. But as Dmitry and Andrew pointed out Linus have quite
-strong opinion against removing range checks in such cases as he finds it
-clearer. I think it applies to patches 29-36. I am not sure about patches 26-28,37.
-
-Regards
-Andrzej
+<snip>
 
 > 
-> David
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> I am sending this email as a reminder to review this patch. Thanks
 > 
 
+As you've no doubt seen the amount of patches that need to be reviewed is huge.
+Given the fact that it is 1) busy at work as well and 2) I will be absent from
+September 23-October 10, I will have to prioritize. So I think it is better if
+I postpone the review. Once the MC API has settled and vimc has been rebased on
+top of that, then I will hopefully have time to look at it.
+
+The reality is that it can't be merged anyway while the MC API is being reworked,
+so I think it's better if I revisit this once it is rebased.
+
+Sorry about that....
+
+Regards,
+
+	Hans
