@@ -1,73 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54635 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbbIFMD5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:57 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev or V4L2 DMA
-Date: Sun,  6 Sep 2015 09:02:57 -0300
-Message-Id: <a811ed07aab2bf1410ffe4c438fcbd4149581290.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
-References: <eeff62ccee9a5f9ad0c92e6da2953900ad7f7c03.1440902901.git.mchehab@osg.samsung.com>
+Received: from mujunyku.leporine.io ([113.212.96.195]:46683 "EHLO
+	mujunyku.leporine.io" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbbIKJGR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 05:06:17 -0400
+Message-ID: <55F29805.6080307@rabbit.us>
+Date: Fri, 11 Sep 2015 10:59:49 +0200
+From: Peter Rabbitson <rabbit@rabbit.us>
+MIME-Version: 1.0
+To: mchehab@osg.samsung.com
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.3-rc1] media updates
+In-Reply-To: 20150904205347.1d908985@recife.lan
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we'll be removing entity subtypes from the Kernel, we need
-to provide a way for drivers and core to check if a given
-entity is represented by a V4L2 subdev or if it is an V4L2
-I/O entity (typically with DMA).
+> Hi Linus,
+>
+> Please pull from:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.3-1
+>
+> For the media subsystem patches for Kernel 4.3.
+>
+> This series contain:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hello Mauro!
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 4e36b1f2b2d7..220864319d21 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
- 	return id;
- }
- 
-+static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-+{
-+	if (!entity)
-+		return false;
-+
-+	switch (entity->type) {
-+	case MEDIA_ENT_T_V4L2_VIDEO:
-+	case MEDIA_ENT_T_V4L2_VBI:
-+	case MEDIA_ENT_T_V4L2_SWRADIO:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
-+{
-+	if (!entity)
-+		return false;
-+
-+	switch (entity->type) {
-+	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
-+	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
-+	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
-+	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
-+	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
- #define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
--- 
-2.4.3
+Is there a chance that you could also push up 
+https://patchwork.linuxtv.org/patch/30695/ ? It is a trivial patch 
+reverting a long standing regression, which got overlooked this summer. 
+It would be rather unfortunate to have this wait until 4.4 to get in :(
 
-
+Thank you in advance!
