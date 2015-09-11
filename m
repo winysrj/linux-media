@@ -1,242 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:4188 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbbIWBag (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44714 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751696AbbIKNOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 21:30:36 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>,
-	<linux-tegra@vger.kernel.org>
-Subject: [PATCH 2/3] ARM64: add tegra-vi support in T210 device-tree
-Date: Tue, 22 Sep 2015 18:30:33 -0700
-Message-ID: <1442971834-2721-3-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
-References: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
+	Fri, 11 Sep 2015 09:14:43 -0400
+Message-ID: <55F2D37A.2060503@xs4all.nl>
+Date: Fri, 11 Sep 2015 15:13:30 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v8 41/55] [media] DocBook: update descriptions for the
+ media controller entities
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <00369c40b69f5ce1473d98398e32a7842cf28366.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <00369c40b69f5ce1473d98398e32a7842cf28366.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following device tree support for Tegra VI now:
- - "vi" node which might have 6 ports/endpoints
- - in TPG mode, "vi" node don't need to define any ports/endpoints
- - ports/endpoints defines the link between VI and external sensors.
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Cleanup the media controller entities description:
+> - remove MEDIA_ENT_T_DEVNODE and MEDIA_ENT_T_V4L2_SUBDEV entity
+>   types, as they don't mean anything;
+> - add MEDIA_ENT_T_UNKNOWN with a proper description;
+> - remove ALSA and FB entity types. Those should not be used, as
+>   the types are deprecated. We'll soon be adidng ALSA, but with
+>   a different entity namespace;
+> - improve the description of some entities.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> index 32a783635649..bc101516e372 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
+> @@ -179,70 +179,65 @@
+>          <colspec colname="c2"/>
+>  	<tbody valign="top">
+>  	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE</constant></entry>
+> -	    <entry>Unknown device node</entry>
+> +	    <entry><constant>MEDIA_ENT_T_UNKNOWN</constant> and <constant>MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN</constant></entry>
+> +	    <entry>Unknown entity. That generally indicates that
+> +	    a driver didn't initialize properly the entity, with is a Kernel bug</entry>
+>  	  </row>
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
----
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts |   8 +
- arch/arm64/boot/dts/nvidia/tegra210.dtsi          | 174 +++++++++++++++++++++-
- 2 files changed, 181 insertions(+), 1 deletion(-)
+I'm wondering: if userspace should never see an unknown entity, wouldn't it
+be better to move these UNKNOWN defines out of the public header to a kernel
+header and drop this from the documentation?
 
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-index d4ee460..534ada52 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-+++ b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-@@ -7,6 +7,14 @@
- 	model = "NVIDIA Tegra210 P2571 reference board (E.1)";
- 	compatible = "nvidia,p2571-e01", "nvidia,tegra210";
- 
-+	host1x@0,50000000 {
-+		vi@0,54080000 {
-+			status = "okay";
-+
-+			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
-+		};
-+	};
-+
- 	pinmux: pinmux@0,700008d4 {
- 		pinctrl-names = "boot";
- 		pinctrl-0 = <&state_boot>;
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210.dtsi b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-index 1168bcd..3f6501f 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-@@ -109,9 +109,181 @@
- 
- 		vi@0,54080000 {
- 			compatible = "nvidia,tegra210-vi";
--			reg = <0x0 0x54080000 0x0 0x00040000>;
-+			reg = <0x0 0x54080000 0x0 0x800>;
- 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>;
-+			clock-names = "vi", "csi", "parent";
-+			resets = <&tegra_car 20>;
-+			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+
-+					vi_in0: endpoint {
-+						remote-endpoint = <&csi_out0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+
-+					vi_in1: endpoint {
-+						remote-endpoint = <&csi_out1>;
-+					};
-+				};
-+				port@2 {
-+					reg = <2>;
-+
-+					vi_in2: endpoint {
-+						remote-endpoint = <&csi_out2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+
-+					vi_in3: endpoint {
-+						remote-endpoint = <&csi_out3>;
-+					};
-+				};
-+				port@4 {
-+					reg = <4>;
-+
-+					vi_in4: endpoint {
-+						remote-endpoint = <&csi_out4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+
-+					vi_in5: endpoint {
-+						remote-endpoint = <&csi_out5>;
-+					};
-+				};
-+
-+			};
-+		};
-+
-+		csi@0,54080838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54080838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in0: endpoint@0 {
-+						reg = <0x0>;
-+					};
-+					csi_out0: endpoint@1 {
-+						reg = <0x1>;
-+						remote-endpoint = <&vi_in0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in1: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out1: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in1>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@1,54081038 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081038 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@2 {
-+					reg = <2>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in2: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out2: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in3: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out3: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in3>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@2,54081838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@4 {
-+					reg = <4>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in4: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out4: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in5: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out5: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in5>;
-+					};
-+				};
-+			};
- 		};
- 
- 		tsec@0,54100000 {
--- 
-2.1.4
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
+> -	    <entry>V4L video, radio or vbi device node</entry>
+> +	    <entry>V4L video streaming input or output entity</entry>
+>  	  </row>
+> -	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_FB</constant></entry>
+> -	    <entry>Frame buffer device node</entry>
+> +	    <entry><constant>MEDIA_ENT_T_V4L2_VBI</constant></entry>
+> +	    <entry>V4L VBI streaming input or output entity</entry>
+>  	  </row>
+> -	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_DEVNODE_ALSA</constant></entry>
+> -	    <entry>ALSA card</entry>
+> +	    <entry><constant>MEDIA_ENT_T_V4L2_SWRADIO</constant></entry>
+> +	    <entry>V4L Sofware Digital Radio (SDR) streaming input or output entity</entry>
+
+s/Sofware/Software/
+
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD</constant></entry>
+> -	    <entry>DVB frontend devnode</entry>
+> +	    <entry>DVB demodulator entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_DVB_DEMUX</constant></entry>
+> -	    <entry>DVB demux devnode</entry>
+> +	    <entry>DVB demux entity. Could be implemented on hardware or in Kernelspace</entry>
+
+s/on/in/
+
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_DVB_TSOUT</constant></entry>
+> -	    <entry>DVB DVR devnode</entry>
+> +	    <entry>DVB Transport Stream output entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_DVB_CA</constant></entry>
+> -	    <entry>DVB CAM devnode</entry>
+> +	    <entry>DVB Conditional Access module (CAM) entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD_NET_DECAP</constant></entry>
+> -	    <entry>DVB network devnode</entry>
+> -	  </row>
+> -	  <row>
+> -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV</constant></entry>
+> -	    <entry>Unknown V4L sub-device</entry>
+> +	    <entry>DVB network ULE/MLE desencapsulation entity. Could be implemented on hardware or in Kernelspace</entry>
+
+s/on/in/
+
+Hmm, is desencapsulation correct? Could it be 'de-encapsulation' instead? It looks weird.
+
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_SENSOR</constant></entry>
+> -	    <entry>Video sensor</entry>
+> +	    <entry>Camera video sensor entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_FLASH</constant></entry>
+> -	    <entry>Flash controller</entry>
+> +	    <entry>Flash controller entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_LENS</constant></entry>
+> -	    <entry>Lens controller</entry>
+> +	    <entry>Lens controller entity</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
+> -	    <entry>Video decoder, the basic function of the video decoder is to
+> -	    accept analogue video from a wide variety of sources such as
+> +	    <entry>Analog video decoder, the basic function of the video decoder
+> +	    is to accept analogue video from a wide variety of sources such as
+>  	    broadcast, DVD players, cameras and video cassette recorders, in
+> -	    either NTSC, PAL or HD format and still occasionally SECAM, separate
+> -	    it into its component parts, luminance and chrominance, and output
+> +	    either NTSC, PAL, SECAM or HD format, separating the stream
+> +	    into its component parts, luminance and chrominance, and output
+>  	    it in some digital video standard, with appropriate embedded timing
+>  	    signals.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
+> -	    <entry>TV and/or radio tuner</entry>
+> +	    <entry>Digital TV, analog TV, radio and/or software radio tuner</entry>
+>  	  </row>
+>  	</tbody>
+>        </tgroup>
+> 
 
