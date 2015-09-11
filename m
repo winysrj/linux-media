@@ -1,143 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56157 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751172AbbIAV7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 17:59:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 01/13] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-Date: Wed,  2 Sep 2015 00:59:17 +0300
-Message-Id: <1441144769-29211-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
-References: <1441144769-29211-1-git-send-email-crope@iki.fi>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56911 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752444AbbIKPZE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 11:25:04 -0400
+Message-ID: <55F2F209.7000208@xs4all.nl>
+Date: Fri, 11 Sep 2015 17:23:53 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: =?windows-1252?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH 11/18] [media] au0828:: enforce check for graph creation
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <771213e570c44ef74ba1bed24e9b7c4f1faa353a.1441559233.git.mchehab@osg.samsung.com>
+In-Reply-To: <771213e570c44ef74ba1bed24e9b7c4f1faa353a.1441559233.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
-has DAC (Digital-to-Analog Converter). Originally I though it could
-be good idea to have own type for receiver and transmitter, but now I
-feel one common type for SDR is enough. So lets rename it.
+On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
+> If the graph creation fails, don't register the device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
- Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
- Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
- drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
- include/uapi/linux/videodev2.h              |  5 ++++-
- 5 files changed, 29 insertions(+), 7 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index a0aef85..f56faf5 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 4.2</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
-+<constant>V4L2_TUNER_SDR</constant>. The use of
-+<constant>V4L2_TUNER_ADC</constant> is deprecated now.
-+	  </para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index f890356..3344921 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -44,10 +44,10 @@ frequency.
-     </para>
- 
-     <para>
--The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
-+The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
- the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
--tuner index of the RF tuner (if any) must always follow the ADC tuner index.
--Normally the ADC tuner is #0 and the RF tuner is #1.
-+tuner index of the RF tuner (if any) must always follow the SDR tuner index.
-+Normally the SDR tuner is #0 and the RF tuner is #1.
-     </para>
- 
-     <para>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index e98caa1..c9eedc1 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
- structs, ioctls) must be noted in more detail in the history chapter
- (compat.xml), along with the possible impact on existing drivers and
- applications. -->
-+      <revision>
-+	<revnumber>4.2</revnumber>
-+	<date>2015-05-26</date>
-+	<authorinitials>ap</authorinitials>
-+	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-+	</revremark>
-+      </revision>
- 
-       <revision>
- 	<revnumber>3.21</revnumber>
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4a384fc..6655be8 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_frequency *p = arg;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
--		p->type = V4L2_TUNER_ADC;
-+		p->type = V4L2_TUNER_SDR;
- 	else
- 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-@@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	enum v4l2_tuner_type type;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 	} else {
- 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-@@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	int err;
- 
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
--		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
-+		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
- 		type = p->type;
- 	} else {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3228fbe..467816cb 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
- 	V4L2_TUNER_DIGITAL_TV	     = 3,
--	V4L2_TUNER_ADC               = 4,
-+	V4L2_TUNER_SDR               = 4,
- 	V4L2_TUNER_RF                = 5,
- };
- 
-+/* Deprecated, do not use */
-+#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
-+
- enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
--- 
-http://palosaari.fi/
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 35c607c35155..399c6712faf9 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -172,9 +172,9 @@ static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
+>  	struct au0828_dev *dev =
+>  		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
+>  
+> -	au0828_usb_v4l2_media_release(dev);
+>  	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
+>  	v4l2_device_unregister(&dev->v4l2_dev);
+> +	au0828_usb_v4l2_media_release(dev);
+>  	au0828_usb_release(dev);
+>  }
+>  #endif
+> @@ -251,16 +251,16 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+>  }
+>  
+>  
+> -static void au0828_create_media_graph(struct au0828_dev *dev)
+> +static int au0828_create_media_graph(struct au0828_dev *dev)
+>  {
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_device *mdev = dev->media_dev;
+>  	struct media_entity *entity;
+>  	struct media_entity *tuner = NULL, *decoder = NULL;
+> -	int i;
+> +	int i, ret;
+>  
+>  	if (!mdev)
+> -		return;
+> +		return 0;
+>  
+>  	media_device_for_each_entity(entity, mdev) {
+>  		switch (entity->type) {
+> @@ -277,15 +277,23 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+>  
+>  	/* Something bad happened! */
+>  	if (!decoder)
+> -		return;
+> +		return -EINVAL;
+>  
+> -	if (tuner)
+> -		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+> -				      MEDIA_LNK_FL_ENABLED);
+> -	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+> -			      MEDIA_LNK_FL_ENABLED);
+> -	media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
+> -			      MEDIA_LNK_FL_ENABLED);
+> +	if (tuner) {
+> +		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
+> +					    decoder, 0,
+> +				            MEDIA_LNK_FL_ENABLED);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+> +			 	    MEDIA_LNK_FL_ENABLED);
+> +	if (ret)
+> +		return ret;
+> +	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
+> +				    MEDIA_LNK_FL_ENABLED);
+> +	if (ret)
+> +		return ret;
+>  
+>  	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+>  		struct media_entity *ent = &dev->input_ent[i];
+> @@ -297,20 +305,27 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
+>  		case AU0828_VMUX_CABLE:
+>  		case AU0828_VMUX_TELEVISION:
+>  		case AU0828_VMUX_DVB:
+> -			if (tuner)
+> -				media_create_pad_link(ent, 0, tuner,
+> -						      TUNER_PAD_RF_INPUT,
+> -						      MEDIA_LNK_FL_ENABLED);
+> +			if (!tuner)
+> +				break;
+> +
+> +			ret = media_create_pad_link(ent, 0, tuner,
+> +						    TUNER_PAD_RF_INPUT,
+> +						    MEDIA_LNK_FL_ENABLED);
+> +			if (ret)
+> +				return ret;
+>  			break;
+>  		case AU0828_VMUX_COMPOSITE:
+>  		case AU0828_VMUX_SVIDEO:
+>  		default: /* AU0828_VMUX_DEBUG */
+>  			/* FIXME: fix the decoder PAD */
+> -			media_create_pad_link(ent, 0, decoder, 0, 0);
+> +			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
+> +			if (ret)
+> +				return ret;
+>  			break;
+>  		}
+>  	}
+>  #endif
+> +	return 0;
+>  }
+>  
+>  static int au0828_usb_probe(struct usb_interface *interface,
+> @@ -425,7 +440,12 @@ static int au0828_usb_probe(struct usb_interface *interface,
+>  
+>  	mutex_unlock(&dev->lock);
+>  
+> -	au0828_create_media_graph(dev);
+> +	retval = au0828_create_media_graph(dev);
+> +	if (retval) {
+> +		pr_err("%s() au0282_dev_register failed to create graph\n",
+> +		       __func__);
+> +		au0828_usb_disconnect(interface);
+> +	}
+>  
+>  	return retval;
+>  }
+> 
 
