@@ -1,159 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42240 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751795AbbIKOtX (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38822 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752167AbbIKOKG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:49:23 -0400
-Message-ID: <55F2E9AA.7090900@xs4all.nl>
-Date: Fri, 11 Sep 2015 16:48:10 +0200
+	Fri, 11 Sep 2015 10:10:06 -0400
+Message-ID: <55F2E076.30102@xs4all.nl>
+Date: Fri, 11 Sep 2015 16:08:54 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	=?windows-1252?Q?Rafael_Lour?=
-	 =?windows-1252?Q?en=E7o_de_Lima_Chehab?= <chehabrafael@gmail.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH 01/18] [media] tuner-core: add an input pad
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
+Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY
+ ioctl
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> Tuners actually have at least one connector on its
-> input.
-> 
-> Add a PAD to connect it.
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
+> with the RFC for the MC next generation.
 > 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Two comments:
 
-And yes, I do think tuner.h is the best place for the pad info.
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 5b2c9f7fcd45..96a476eeb16e 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -232,6 +232,156 @@ static long media_device_setup_link(struct media_device *mdev,
+>  	return ret;
+>  }
+>  
+> +static long __media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology *topo)
+> +{
+> +	struct media_entity *entity;
+> +	struct media_interface *intf;
+> +	struct media_pad *pad;
+> +	struct media_link *link;
+> +	struct media_v2_entity uentity;
+> +	struct media_v2_interface uintf;
+> +	struct media_v2_pad upad;
+> +	struct media_v2_link ulink;
+> +	int ret = 0, i;
+> +
+> +	topo->topology_version = mdev->topology_version;
+> +
+> +	/* Get entities and number of entities */
+> +	i = 0;
+> +	media_device_for_each_entity(entity, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->entities)
+> +			continue;
+> +
+> +		if (i > topo->num_entities) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		/* Copy fields to userspace struct if not error */
+> +		memset(&uentity, 0, sizeof(uentity));
+> +		uentity.id = entity->graph_obj.id;
+> +		strncpy(uentity.name, entity->name,
+> +			sizeof(uentity.name));
+> +
+> +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_entities = i;
+> +
+> +	/* Get interfaces and number of interfaces */
+> +	i = 0;
+> +	media_device_for_each_intf(intf, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->interfaces)
+> +			continue;
+> +
+> +		if (i > topo->num_interfaces) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&uintf, 0, sizeof(uintf));
+> +
+> +		/* Copy intf fields to userspace struct */
+> +		uintf.id = intf->graph_obj.id;
+> +		uintf.intf_type = intf->type;
+> +		uintf.flags = intf->flags;
+> +
+> +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
+> +			struct media_intf_devnode *devnode;
+> +
+> +			devnode = intf_to_devnode(intf);
+> +
+> +			uintf.devnode.major = devnode->major;
+> +			uintf.devnode.minor = devnode->minor;
+> +		}
+> +
+> +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_interfaces = i;
+> +
+> +	/* Get pads and number of pads */
+> +	i = 0;
+> +	media_device_for_each_pad(pad, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->pads)
+> +			continue;
+> +
+> +		if (i > topo->num_pads) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&upad, 0, sizeof(upad));
+> +
+> +		/* Copy pad fields to userspace struct */
+> +		upad.id = pad->graph_obj.id;
+> +		upad.entity_id = pad->entity->graph_obj.id;
+> +		upad.flags = pad->flags;
+> +
+> +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_pads = i;
+> +
+> +	/* Get links and number of links */
+> +	i = 0;
+> +	media_device_for_each_link(link, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->links)
+> +			continue;
+> +
+> +		if (i > topo->num_links) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&ulink, 0, sizeof(ulink));
+> +
+> +		/* Copy link fields to userspace struct */
+> +		ulink.id = link->graph_obj.id;
+> +		ulink.source_id = link->gobj0->id;
+> +		ulink.sink_id = link->gobj1->id;
+> +		ulink.flags = link->flags;
+> +
+> +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
+> +			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
+
+Why isn't this flag part of link->flags? I would expect that when an interface
+link is created the media core code will set this flag automatically.
+
+It's a bit strange that this flag is set here. Or am I missing something?
+
+> +
+> +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_links = i;
+> +
+> +	return ret;
+> +}
+> +
+> +static long media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology __user *utopo)
+> +{
+> +	struct media_v2_topology ktopo;
+> +	int ret;
+> +
+> +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
+> +
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = __media_device_get_topology(mdev, &ktopo);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
+> +
+> +	return ret;
+> +}
+> +
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+>  {
+> @@ -264,6 +414,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+> +	case MEDIA_IOC_G_TOPOLOGY:
+> +		mutex_lock(&dev->graph_mutex);
+> +		ret = media_device_get_topology(dev,
+> +				(struct media_v2_topology __user *)arg);
+> +		mutex_unlock(&dev->graph_mutex);
+> +		break;
+> +
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> @@ -312,6 +469,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  	case MEDIA_IOC_DEVICE_INFO:
+>  	case MEDIA_IOC_ENUM_ENTITIES:
+>  	case MEDIA_IOC_SETUP_LINK:
+> +	case MEDIA_IOC_G_TOPOLOGY:
+>  		return media_device_ioctl(filp, cmd, arg);
+
+This doesn't work: G_TOPOLOGY needs pointer conversion.
 
 Regards,
 
 	Hans
 
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index f00f1a5f279c..a8e7e2398f7a 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -34,6 +34,9 @@
->  #include <linux/mutex.h>
->  #include "dvbdev.h"
 >  
-> +/* Due to enum tuner_pad_index */
-> +#include <media/tuner.h>
-> +
->  static DEFINE_MUTEX(dvbdev_mutex);
->  static int dvbdev_debug;
->  
-> @@ -552,7 +555,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	}
->  
->  	if (tuner && demod)
-> -		media_create_pad_link(tuner, 0, demod, 0, 0);
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, demod, 0, 0);
->  
->  	if (demod && demux)
->  		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index e28cabe65934..f54c7d10f350 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -27,6 +27,9 @@
->  #include <media/v4l2-common.h>
->  #include <linux/mutex.h>
->  
-> +/* Due to enum tuner_pad_index */
-> +#include <media/tuner.h>
-> +
->  /*
->   * 1 = General debug messages
->   * 2 = USB handling
-> @@ -260,7 +263,7 @@ static void au0828_create_media_graph(struct au0828_dev *dev)
->  		return;
->  
->  	if (tuner)
-> -		media_create_pad_link(tuner, 0, decoder, 0,
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
->  				      MEDIA_LNK_FL_ENABLED);
->  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
->  			      MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 3b5c9ae39ad3..1070d87efc65 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1264,7 +1264,7 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
->  		return;
->  
->  	if (tuner)
-> -		media_create_pad_link(tuner, 0, decoder, 0,
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
->  					 MEDIA_LNK_FL_ENABLED);
->  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
->  				 MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-> index 100b8f069640..b90f2a52db96 100644
-> --- a/drivers/media/v4l2-core/tuner-core.c
-> +++ b/drivers/media/v4l2-core/tuner-core.c
-> @@ -134,8 +134,9 @@ struct tuner {
->  	unsigned int        type; /* chip type id */
->  	void                *config;
->  	const char          *name;
-> +
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	struct media_pad	pad;
-> +	struct media_pad	pad[TUNER_NUM_PADS];
->  #endif
->  };
->  
-> @@ -695,11 +696,12 @@ static int tuner_probe(struct i2c_client *client,
->  	/* Should be just before return */
->  register_client:
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-> +	t->pad[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
->  	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
->  	t->sd.entity.name = t->name;
->  
-> -	ret = media_entity_init(&t->sd.entity, 1, &t->pad);
-> +	ret = media_entity_init(&t->sd.entity, TUNER_NUM_PADS, &t->pad[0]);
->  	if (ret < 0) {
->  		tuner_err("failed to initialize media entity!\n");
->  		kfree(t);
-> diff --git a/include/media/tuner.h b/include/media/tuner.h
-> index b46ebb48fe74..95835c8069dd 100644
-> --- a/include/media/tuner.h
-> +++ b/include/media/tuner.h
-> @@ -25,6 +25,14 @@
->  
->  #include <linux/videodev2.h>
->  
-> +/* Tuner PADs */
-> +/* FIXME: is this the right place for it? */
-> +enum tuner_pad_index {
-> +	TUNER_PAD_RF_INPUT,
-> +	TUNER_PAD_IF_OUTPUT,
-> +	TUNER_NUM_PADS
-> +};
-> +
->  #define ADDR_UNSET (255)
->  
->  #define TUNER_TEMIC_PAL			0        /* 4002 FH5 (3X 7756, 9483) */
+>  	case MEDIA_IOC_ENUM_LINKS32:
 > 
 
