@@ -1,125 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41566 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754800AbbI0Czg (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34363 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750804AbbIKOUE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Sep 2015 22:55:36 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7F3002A0006
-	for <linux-media@vger.kernel.org>; Sun, 27 Sep 2015 04:54:01 +0200 (CEST)
-Date: Sun, 27 Sep 2015 04:54:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20150927025401.7F3002A0006@tschai.lan>
+	Fri, 11 Sep 2015 10:20:04 -0400
+Message-ID: <55F2E2CB.9010504@xs4all.nl>
+Date: Fri, 11 Sep 2015 16:18:51 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 51/55] [media] remove interface links at media_entity_unregister()
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <ce03152d3a7f156ff3fe9a3ff15a8d9530e0307a.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <ce03152d3a7f156ff3fe9a3ff15a8d9530e0307a.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Interface links connected to an entity should be removed
+> before being able of removing the entity.
 
-Results of the daily build of media_tree:
+I'd replace that with:
 
-date:		Sun Sep 27 04:00:16 CEST 2015
-git branch:	test
-git hash:	ac4033e02a54a1dd3b22364d392ffe3da5d09a5f
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+...before the entity itself can be removed.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Detailed results are available here:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 96a476eeb16e..7c37aeab05bb 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -638,14 +638,30 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  		return;
+>  
+>  	spin_lock(&mdev->lock);
+> +
+> +	/* Remove interface links with this entity on it */
+> +	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
+> +		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
 
-Full logs are available here:
+I honestly think that the media_type() check can be removed. I think I
+mentioned it before. Not important enough to withhold the Ack, though.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+> +		    && link->entity == entity) {
+> +			media_gobj_remove(&link->graph_obj);
+> +			kfree(link);
+> +		}
+> +	}
+> +
+> +	/* Remove all data links that belong to this entity */
+>  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+>  		media_gobj_remove(&link->graph_obj);
+>  		list_del(&link->list);
+>  		kfree(link);
+>  	}
+> +
+> +	/* Remove all pads that belong to this entity */
+>  	for (i = 0; i < entity->num_pads; i++)
+>  		media_gobj_remove(&entity->pads[i].graph_obj);
+> +
+> +	/* Remove the entity */
+>  	media_gobj_remove(&entity->graph_obj);
+> +
+>  	spin_unlock(&mdev->lock);
+>  	entity->graph_obj.mdev = NULL;
+>  }
+> 
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
