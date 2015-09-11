@@ -1,116 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:21344 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:28146 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752412AbbIKLw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 07:52:28 -0400
+	id S1751584AbbIKKLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Sep 2015 06:11:17 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	sumit.semwal@linaro.org, robdclark@gmail.com,
-	daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC RESEND 04/11] v4l: Unify cache management hint buffer flags
-Date: Fri, 11 Sep 2015 14:50:27 +0300
-Message-Id: <1441972234-8643-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [RFC 2/9] media: Introduce low_id for media entities
+Date: Fri, 11 Sep 2015 13:09:05 +0300
+Message-Id: <1441966152-28444-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
-buffer flags are currently not used by the kernel. Replace the definitions
-by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
-patches.
-
-Different cache architectures should not be visible to the user space
-which can make no meaningful use of the differences anyway. In case a
-device can make use of non-coherent memory accesses, the necessary cache
-operations depend on the CPU architecture and the buffer type, not the
-requests of the user. The cache operation itself may be skipped on the
-user's request which was the purpose of the two flags.
-
-On ARM the invalidate and clean are separate operations whereas on
-x86(-64) the two are a single operation (flush). Whether the hardware uses
-the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
-(V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
-(clean and invalidate, respectively). No user input is required.
+A low ID is a unique number specific to a media entity. The number is
+guaranteed to be under MEDIA_ENTITY_MAX_LOW_ID.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/DocBook/media/v4l/io.xml | 25 +++++++++++--------------
- include/trace/events/v4l2.h            |  3 +--
- include/uapi/linux/videodev2.h         |  7 +++++--
- 3 files changed, 17 insertions(+), 18 deletions(-)
+ drivers/media/media-device.c | 14 ++++++++++++++
+ include/media/media-device.h |  2 ++
+ include/media/media-entity.h |  3 +++
+ 3 files changed, 19 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 7bbc2a4..4facd63 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1112,21 +1112,18 @@ application. Drivers set or clear this flag when the
- 	  linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
-+	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_SYNC</constant></entry>
- 	    <entry>0x00000800</entry>
--	    <entry>Caches do not have to be invalidated for this buffer.
--Typically applications shall use this flag if the data captured in the buffer
--is not going to be touched by the CPU, instead the buffer will, probably, be
--passed on to a DMA-capable hardware unit for further processing or output.
--</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
--	    <entry>0x00001000</entry>
--	    <entry>Caches do not have to be cleaned for this buffer.
--Typically applications shall use this flag for output buffers if the data
--in this buffer has not been created by the CPU but by some DMA-capable unit,
--in which case caches have not been used.</entry>
-+	    <entry>Do not perform CPU cache synchronisation operations
-+	    when the buffer is queued or dequeued. The user is
-+	    responsible for the correct use of this flag. It should be
-+	    only used when the buffer is not accessed using the CPU,
-+	    e.g. the buffer is written to by a hardware block and then
-+	    read by another one, in which case the flag should be set
-+	    in both <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link>
-+	    and <link linkend="vidioc-qbuf">VIDIOC_QBUF</link> IOCTLs.
-+	    The flag has no effect on some devices / architectures.
-+	    </entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index dbf017b..4cee91d 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -78,8 +78,7 @@ SHOW_FIELD
- 		{ V4L2_BUF_FLAG_ERROR,		     "ERROR" },		      \
- 		{ V4L2_BUF_FLAG_TIMECODE,	     "TIMECODE" },	      \
- 		{ V4L2_BUF_FLAG_PREPARED,	     "PREPARED" },	      \
--		{ V4L2_BUF_FLAG_NO_CACHE_INVALIDATE, "NO_CACHE_INVALIDATE" }, \
--		{ V4L2_BUF_FLAG_NO_CACHE_CLEAN,	     "NO_CACHE_CLEAN" },      \
-+		{ V4L2_BUF_FLAG_NO_CACHE_SYNC,	     "NO_CACHE_SYNC" },	      \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
- 		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3228fbe..8d85aac 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -875,8 +875,11 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TIMECODE			0x00000100
- /* Buffer is prepared for queuing */
- #define V4L2_BUF_FLAG_PREPARED			0x00000400
--/* Cache handling flags */
--#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
-+/* Cache sync hint */
-+#define V4L2_BUF_FLAG_NO_CACHE_SYNC		0x00000800
-+/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	V4L2_BUF_FLAG_NO_CACHE_SYNC
-+/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
- #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
- /* Timestamp type */
- #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1312e93..dfc5e4a 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -20,6 +20,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
++#include <linux/bitmap.h>
+ #include <linux/compat.h>
+ #include <linux/export.h>
+ #include <linux/ioctl.h>
+@@ -543,6 +544,8 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+ 		return -EINVAL;
+ 
++	bitmap_zero(mdev->entity_low_id, MEDIA_ENTITY_MAX_LOW_ID);
++
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+ 	INIT_LIST_HEAD(&mdev->pads);
+@@ -628,6 +631,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	INIT_LIST_HEAD(&entity->links);
+ 
+ 	spin_lock(&mdev->lock);
++	entity->low_id = find_first_zero_bit(mdev->entity_low_id,
++					     MEDIA_ENTITY_MAX_LOW_ID);
++	if (entity->low_id == MEDIA_ENTITY_MAX_LOW_ID) {
++		spin_unlock(&mdev->lock);
++		return -ENOSPC;
++	}
++
++	__set_bit(entity->low_id, mdev->entity_low_id);
++
+ 	/* Initialize media_gobj embedded at the entity */
+ 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ 
+@@ -660,6 +672,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 
+ 	spin_lock(&mdev->lock);
+ 
++	__clear_bit(entity->low_id, mdev->entity_low_id);
++
+ 	/* Remove interface links with this entity on it */
+ 	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
+ 		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 1b12774..732163f 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -47,6 +47,7 @@ struct device;
+  * @pad_id:	Unique ID used on the last pad registered
+  * @link_id:	Unique ID used on the last link registered
+  * @intf_devnode_id: Unique ID used on the last interface devnode registered
++ * @entity_low_id: Allocated low entity IDs
+  * @entities:	List of registered entities
+  * @interfaces:	List of registered interfaces
+  * @pads:	List of registered pads
+@@ -82,6 +83,7 @@ struct media_device {
+ 	u32 pad_id;
+ 	u32 link_id;
+ 	u32 intf_devnode_id;
++	DECLARE_BITMAP(entity_low_id, MEDIA_ENTITY_MAX_LOW_ID);
+ 
+ 	struct list_head entities;
+ 	struct list_head interfaces;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index bb6383b..2c56027 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -159,6 +159,8 @@ struct media_entity_operations {
+  * @num_pads:	Number of sink and source pads.
+  * @num_links:	Number of existing links, both enabled and disabled.
+  * @num_backlinks: Number of backlinks
++ * @low_id:	An unique low entity specific number. The numbers are
++ *		re-used if entities are unregistered or registered again.
+  * @pads:	Pads array with the size defined by @num_pads.
+  * @links:	Linked list for the data links.
+  * @ops:	Entity operations.
+@@ -187,6 +189,7 @@ struct media_entity {
+ 	u16 num_pads;
+ 	u16 num_links;
+ 	u16 num_backlinks;
++	u8 low_id;
+ 
+ 	struct media_pad *pads;
+ 	struct list_head links;
 -- 
 2.1.0.231.g7484e3b
 
