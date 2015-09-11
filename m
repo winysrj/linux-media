@@ -1,40 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47455 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217AbbIXPHa (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43156 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753003AbbIKROx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2015 11:07:30 -0400
-Date: Thu, 24 Sep 2015 18:07:11 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 06/19] staging: media: omap4iss: fix handling
- platform_get_irq result
-Message-ID: <20150924150711.GL4953@mwanda>
-References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
- <1443103227-25612-7-git-send-email-a.hajda@samsung.com>
+	Fri, 11 Sep 2015 13:14:53 -0400
+Message-ID: <55F30BC5.9020200@xs4all.nl>
+Date: Fri, 11 Sep 2015 19:13:41 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1443103227-25612-7-git-send-email-a.hajda@samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+CC: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@linaro.org,
+	robdclark@gmail.com, daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 06/11] vb2: Improve struct vb2_mem_ops documentation;
+ alloc and put are for MMAP
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1441972234-8643-7-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 24, 2015 at 04:00:14PM +0200, Andrzej Hajda wrote:
-> Hi,
+On 09/11/2015 01:50 PM, Sakari Ailus wrote:
+> The alloc() and put() ops are for MMAP buffers only. Document it.
 > 
-> To avoid problems with too many mail recipients I have sent whole
-> patchset only to LKML. Anyway patches have no dependencies.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>'
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> ---
+>  include/media/videobuf2-core.h | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 > 
-
-I'm pretty sure mailman or whatever counts CCs as recipients as well.
-
-regards,
-dan carpenter
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index a825bd5..efc9a19 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -24,16 +24,16 @@ struct vb2_threadio_data;
+>  
+>  /**
+>   * struct vb2_mem_ops - memory handling/memory allocator operations
+> - * @alloc:	allocate video memory and, optionally, allocator private data,
+> - *		return NULL on failure or a pointer to allocator private,
+> - *		per-buffer data on success; the returned private structure
+> - *		will then be passed as buf_priv argument to other ops in this
+> - *		structure. Additional gfp_flags to use when allocating the
+> - *		are also passed to this operation. These flags are from the
+> - *		gfp_flags field of vb2_queue.
+> - * @put:	inform the allocator that the buffer will no longer be used;
+> - *		usually will result in the allocator freeing the buffer (if
+> - *		no other users of this buffer are present); the buf_priv
+> + * @alloc:	allocate video memory for an MMAP buffer and, optionally,
+> + *		allocator private data, return NULL on failure or a pointer
+> + *		to allocator private, per-buffer data on success; the returned
+> + *		private structure will then be passed as buf_priv argument to
+> + *		other ops in this structure. Additional gfp_flags to use when
+> + *		allocating the are also passed to this operation. These flags
+> + *		are from the gfp_flags field of vb2_queue.
+> + * @put:	inform the allocator that the MMAP buffer will no longer be
+> + *		used; usually will result in the allocator freeing the buffer
+> + *		(if no other users of this buffer are present); the buf_priv
+>   *		argument is the allocator private per-buffer structure
+>   *		previously returned from the alloc callback.
+>   * @get_userptr: acquire userspace memory for a hardware operation; used for
+> 
 
