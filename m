@@ -1,248 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:17463 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987AbbIPBfc (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:54247 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbbIKGzW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 21:35:32 -0400
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <gerrit2@nvidia.com>
-Subject: [PATCH 2/3] ARM64: add tegra-vi support in T210 device-tree
-Date: Tue, 15 Sep 2015 18:35:30 -0700
-Message-ID: <1442367331-20046-3-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1442367331-20046-1-git-send-email-pengw@nvidia.com>
-References: <1442367331-20046-1-git-send-email-pengw@nvidia.com>
+	Fri, 11 Sep 2015 02:55:22 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 2/3] media: atmel-isi: move configure_geometry() to start_streaming()
+Date: Fri, 11 Sep 2015 15:00:15 +0800
+Message-ID: <1441954816-11285-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1441954816-11285-1-git-send-email-josh.wu@atmel.com>
+References: <1441954816-11285-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following device tree support for Tegra VI now:
- - "vi" node which might have 6 ports/endpoints
- - in TPG mode, "vi" node don't need to define any ports/endpoints
- - ports/endpoints defines the link between VI and external sensors.
+As in set_fmt() function we only need to know which format is been set,
+we don't need to access the ISI hardware in this moment.
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
+So move the configure_geometry(), which access the ISI hardware, to
+start_streaming() will make code more consistent and simpler.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts |   8 +
- arch/arm64/boot/dts/nvidia/tegra210.dtsi          | 174 +++++++++++++++++++++-
- 2 files changed, 181 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-index d4ee460..534ada52 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-+++ b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
-@@ -7,6 +7,14 @@
- 	model = "NVIDIA Tegra210 P2571 reference board (E.1)";
- 	compatible = "nvidia,p2571-e01", "nvidia,tegra210";
+Changes in v4: None
+Changes in v3: None
+Changes in v2:
+- Add Laurent's reviewed-by tag.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index a76c609..d727037 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -390,6 +390,11 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Disable all interrupts */
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
  
-+	host1x@0,50000000 {
-+		vi@0,54080000 {
-+			status = "okay";
++	ret = configure_geometry(isi, icd->user_width, icd->user_height,
++				icd->current_fmt->code);
++	if (ret < 0)
++		return ret;
 +
-+			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
-+		};
-+	};
-+
- 	pinmux: pinmux@0,700008d4 {
- 		pinctrl-names = "boot";
- 		pinctrl-0 = <&state_boot>;
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210.dtsi b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-index 1168bcd..3f6501f 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-@@ -109,9 +109,181 @@
+ 	spin_lock_irq(&isi->lock);
+ 	/* Clear any pending interrupt */
+ 	isi_readl(isi, ISI_STATUS);
+@@ -477,8 +482,6 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct atmel_isi *isi = ici->priv;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+@@ -511,16 +514,6 @@ static int isi_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (mf->code != xlate->code)
+ 		return -EINVAL;
  
- 		vi@0,54080000 {
- 			compatible = "nvidia,tegra210-vi";
--			reg = <0x0 0x54080000 0x0 0x00040000>;
-+			reg = <0x0 0x54080000 0x0 0x800>;
- 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>;
-+			clock-names = "vi", "csi", "parent";
-+			resets = <&tegra_car 20>;
-+			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+
-+					vi_in0: endpoint {
-+						remote-endpoint = <&csi_out0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+
-+					vi_in1: endpoint {
-+						remote-endpoint = <&csi_out1>;
-+					};
-+				};
-+				port@2 {
-+					reg = <2>;
-+
-+					vi_in2: endpoint {
-+						remote-endpoint = <&csi_out2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+
-+					vi_in3: endpoint {
-+						remote-endpoint = <&csi_out3>;
-+					};
-+				};
-+				port@4 {
-+					reg = <4>;
-+
-+					vi_in4: endpoint {
-+						remote-endpoint = <&csi_out4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+
-+					vi_in5: endpoint {
-+						remote-endpoint = <&csi_out5>;
-+					};
-+				};
-+
-+			};
-+		};
-+
-+		csi@0,54080838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54080838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in0: endpoint@0 {
-+						reg = <0x0>;
-+					};
-+					csi_out0: endpoint@1 {
-+						reg = <0x1>;
-+						remote-endpoint = <&vi_in0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in1: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out1: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in1>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@1,54081038 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081038 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@2 {
-+					reg = <2>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in2: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out2: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in3: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out3: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in3>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@2,54081838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@4 {
-+					reg = <4>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in4: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out4: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in5: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out5: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in5>;
-+					};
-+				};
-+			};
- 		};
- 
- 		tsec@0,54100000 {
+-	/* Enable PM and peripheral clock before operate isi registers */
+-	pm_runtime_get_sync(ici->v4l2_dev.dev);
+-
+-	ret = configure_geometry(isi, pix->width, pix->height, xlate->code);
+-
+-	pm_runtime_put(ici->v4l2_dev.dev);
+-
+-	if (ret < 0)
+-		return ret;
+-
+ 	pix->width		= mf->width;
+ 	pix->height		= mf->height;
+ 	pix->field		= mf->field;
 -- 
-2.1.4
+1.9.1
 
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
