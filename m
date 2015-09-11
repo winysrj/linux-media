@@ -1,75 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:33276 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756009AbbIUIUJ (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42698 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752888AbbIKOA6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 04:20:09 -0400
-Received: by ykft14 with SMTP id t14so95874911ykf.0
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2015 01:20:08 -0700 (PDT)
+	Fri, 11 Sep 2015 10:00:58 -0400
+Message-ID: <55F2DE52.6020906@xs4all.nl>
+Date: Fri, 11 Sep 2015 15:59:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <201509201159.QAcxzCyr%fengguang.wu@intel.com>
-References: <201509201159.QAcxzCyr%fengguang.wu@intel.com>
-Date: Mon, 21 Sep 2015 10:20:08 +0200
-Message-ID: <CABxcv==4OQce73RGPstvHQWt0sbHyx5Hv114rweOtpyb2F+fcQ@mail.gmail.com>
-Subject: Re: drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type
- name 'dvb_frontend'
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version
+ field
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <d7db0184f4c44eb84f54417c560f3e15bfa40b1c.1441540862.git.mchehab@osg.samsung.com>
+In-Reply-To: <d7db0184f4c44eb84f54417c560f3e15bfa40b1c.1441540862.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
+> Every time a graph object is added or removed, the version
+> of the topology changes. That's a requirement for the new
+> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
+> that the topology has changed after a previous call to it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On Sun, Sep 20, 2015 at 5:17 AM, kbuild test robot
-<fengguang.wu@intel.com> wrote:
-> Hi Kozlov,
->
-> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> head:   133bb59585140747fd3938002670cb395f40dc76
-> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
-> date:   6 weeks ago
-> config: x86_64-randconfig-h0-09201020 (attached as .config)
-> reproduce:
->   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
->   # save the attached .config to linux build tree
->   make ARCH=x86_64
->
-> All error/warnings (new ones prefixed by >>):
->
->    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
->>> drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type name 'dvb_frontend'
->     static inline dvb_frontend *lnbh25_attach(
->                   ^
->
-> vim +/dvb_frontend +46 drivers/media/dvb-frontends/lnbh25.h
->
-> e025273b Kozlov Sergey 2015-07-28  40  #if IS_REACHABLE(CONFIG_DVB_LNBH25)
-> e025273b Kozlov Sergey 2015-07-28  41  struct dvb_frontend *lnbh25_attach(
-> e025273b Kozlov Sergey 2015-07-28  42   struct dvb_frontend *fe,
-> e025273b Kozlov Sergey 2015-07-28  43   struct lnbh25_config *cfg,
-> e025273b Kozlov Sergey 2015-07-28  44   struct i2c_adapter *i2c);
-> e025273b Kozlov Sergey 2015-07-28  45  #else
-> e025273b Kozlov Sergey 2015-07-28 @46  static inline dvb_frontend *lnbh25_attach(
-> e025273b Kozlov Sergey 2015-07-28  47   struct dvb_frontend *fe,
-> e025273b Kozlov Sergey 2015-07-28  48   struct lnbh25_config *cfg,
-> e025273b Kozlov Sergey 2015-07-28  49   struct i2c_adapter *i2c)
->
-> :::::: The code at line 46 was first introduced by commit
-> :::::: e025273b86fb4a6440192b809e05332777c3faa5 [media] lnbh25: LNBH25 SEC controller driver
->
-> :::::: TO: Kozlov Sergey <serjk@netup.ru>
-> :::::: CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I had already posted a patch to fix this issue about a week ago:
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 568553d41f5d..064515f2ba9b 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -185,6 +185,9 @@ void media_gobj_init(struct media_device *mdev,
+>  		list_add_tail(&gobj->list, &mdev->interfaces);
+>  		break;
+>  	}
+> +
+> +	mdev->topology_version++;
+> +
+>  	dev_dbg_obj(__func__, gobj);
+>  }
+>  
+> @@ -199,6 +202,8 @@ void media_gobj_remove(struct media_gobj *gobj)
+>  {
+>  	dev_dbg_obj(__func__, gobj);
+>  
+> +	gobj->mdev->topology_version++;
+> +
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+>  }
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 0d1b9c687454..1b12774a9ab4 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -41,6 +41,8 @@ struct device;
+>   * @bus_info:	Unique and stable device location identifier
+>   * @hw_revision: Hardware device revision
+>   * @driver_version: Device driver version
+> + * @topology_version: Monotonic counter for storing the version of the graph
+> + *		topology. Should be incremented each time the topology changes.
+>   * @entity_id:	Unique ID used on the last entity registered
+>   * @pad_id:	Unique ID used on the last pad registered
+>   * @link_id:	Unique ID used on the last link registered
+> @@ -74,6 +76,8 @@ struct media_device {
+>  	u32 hw_revision;
+>  	u32 driver_version;
+>  
+> +	u32 topology_version;
+> +
+>  	u32 entity_id;
+>  	u32 pad_id;
+>  	u32 link_id;
+> 
 
-https://patchwork.linuxtv.org/patch/31402/
-
-Best regards,
-Javier
