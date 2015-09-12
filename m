@@ -1,81 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-2.cisco.com ([72.163.197.26]:12077 "EHLO
-	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756816AbbIVO1e (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:40820 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754106AbbILCxd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 10:27:34 -0400
-From: Prashant Laddha <prladdha@cisco.com>
+	Fri, 11 Sep 2015 22:53:33 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E1AF62A008F
+	for <linux-media@vger.kernel.org>; Sat, 12 Sep 2015 04:52:20 +0200 (CEST)
+Date: Sat, 12 Sep 2015 04:52:20 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC v2 1/4] v4l2-dv-timings: add condition checks for reduced fps
-Date: Tue, 22 Sep 2015 19:57:28 +0530
-Message-Id: <1442932051-24972-2-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
-References: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150912025220.E1AF62A008F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added a helper function to check necessary conditions required for
-reduced fps. The reduced fps is supported for CVT and CEA861 timings.
-CVT supports reduced fps only if reduced blanking v2 (indicated by
-vsync = 8) is true. Whereas CEA861 supports reduced fps if
-V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dv-timings.c |  5 +++++
- include/media/v4l2-dv-timings.h           | 21 +++++++++++++++++++++
- 2 files changed, 26 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 6a83d61..d8e62f6 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -210,7 +210,12 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
- 					  fnc, fnc_handle) &&
- 		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i,
- 					  pclock_delta)) {
-+			u32 flags = t->bt.flags & V4L2_DV_FL_REDUCED_FPS;
-+
- 			*t = v4l2_dv_timings_presets[i];
-+			if (can_reduce_fps(&t->bt))
-+				t->bt.flags |= flags;
-+
- 			return true;
- 		}
- 	}
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index b6130b5..49c2328 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -183,4 +183,25 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
-  */
- struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
- 
-+/*
-+ * reduce_fps - check if conditions for reduced fps are true.
-+ * bt - v4l2 timing structure
-+ * For different timings reduced fps is allowed if following conditions
-+ * are met -
-+ * For CVT timings: if reduced blanking v2 (vsync == 8) is true.
-+ * For CEA861 timings: if V4L2_DV_FL_CAN_REDUCE_FPS flag is true.
-+ */
-+static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
-+{
-+	if ((bt->standards & V4L2_DV_BT_STD_CVT) && (bt->vsync == 8))
-+		return true;
-+
-+	if ((bt->standards & V4L2_DV_BT_STD_CEA861) &&
-+	    (bt->flags & V4L2_DV_FL_CAN_REDUCE_FPS))
-+		return true;
-+
-+	return false;
-+}
-+
-+
- #endif
--- 
-1.9.1
+date:		Sat Sep 12 04:00:19 CEST 2015
+git branch:	test
+git hash:	50ef28a6ac216fd8b796257a3768fef8f57b917d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
