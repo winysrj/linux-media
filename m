@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:35757 "EHLO
-	mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755696AbbIALzB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 07:55:01 -0400
-MIME-Version: 1.0
-In-Reply-To: <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
-References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
- <1440784362-31217-5-git-send-email-peter.griffin@linaro.org> <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
-From: Rob Herring <robherring2@gmail.com>
-Date: Tue, 1 Sep 2015 06:54:41 -0500
-Message-ID: <CAL_JsqLccRKCnASOK-tAUn=ifZpQ3hCEJ1eg1hmrei=3vEpzFA@mail.gmail.com>
-Subject: Re: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Peter Griffin <peter.griffin@linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Valentin Rothberg <valentinrothberg@gmail.com>,
-	hugues.fruchet@st.com
-Content-Type: text/plain; charset=UTF-8
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52269 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753402AbbIMQm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 12:42:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/6] videodev2.h: add support for the DCI-P3 colorspace
+Date: Sun, 13 Sep 2015 18:41:29 +0200
+Message-Id: <1442162492-46238-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 1, 2015 at 3:32 AM, Javier Martinez Canillas
-<javier@dowhile0.org> wrote:
-> Hello Peter,
->
-> On Fri, Aug 28, 2015 at 7:52 PM, Peter Griffin <peter.griffin@linaro.org> wrote:
->> gpio.txt documents that GPIO properties should be named
->> "[<name>-]gpios", with <name> being the purpose of this
->> GPIO for the device.
->>
->> This change has been done as one atomic commit.
->>
->> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
->> Acked-by: Lee Jones <lee.jones@linaro.org>
->> ---
->>  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
->>  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
->>  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
->>  3 files changed, 6 insertions(+), 6 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> index d4def76..e70d840 100644
->> --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
->> @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
->>
->>  - tsin-num     : tsin id of the InputBlock (must be between 0 to 6)
->>  - i2c-bus      : phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
->> -- rst-gpio     : reset gpio for this tsin channel.
->> +- reset-gpios  : reset gpio for this tsin channel.
->
-> The documentation is a bit outdated, the GPIO subsystem supports both
-> -gpio and -gpios, see commit:
->
-> dd34c37aa3e8 ("gpio: of: Allow -gpio suffix for property names")
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, because we have lots of them.
+This colorspace is used for cinema projectors and is supported by
+the DisplayPort standard.
 
-> So it makes sense to me to use -gpio instead of -gpios in this case
-> since is a single GPIO. Also rst is already a descriptive name since
-> that's how many datasheets name a reset pin. I'm not saying I'm
-> against this patch, just pointing out since the commit message is a
-> bit misleading.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-I believe that this has been discussed at length and it was decided
-that new bindings should use "-gpios" even for 1. Just like "clocks"
-is always plural.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3228fbe..4900e15 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -229,6 +229,9 @@ enum v4l2_colorspace {
+ 
+ 	/* Raw colorspace: for RAW unprocessed images */
+ 	V4L2_COLORSPACE_RAW           = 11,
++
++	/* DCI-P3 colorspace, used by cinema projectors */
++	V4L2_COLORSPACE_DCI_P3        = 12,
+ };
+ 
+ /*
+@@ -256,6 +259,8 @@ enum v4l2_xfer_func {
+ 	 * V4L2_COLORSPACE_SMPTE240M: V4L2_XFER_FUNC_SMPTE240M
+ 	 *
+ 	 * V4L2_COLORSPACE_RAW: V4L2_XFER_FUNC_NONE
++	 *
++	 * V4L2_COLORSPACE_DCI_P3: V4L2_XFER_FUNC_DCI_P3
+ 	 */
+ 	V4L2_XFER_FUNC_DEFAULT     = 0,
+ 	V4L2_XFER_FUNC_709         = 1,
+@@ -263,6 +268,7 @@ enum v4l2_xfer_func {
+ 	V4L2_XFER_FUNC_ADOBERGB    = 3,
+ 	V4L2_XFER_FUNC_SMPTE240M   = 4,
+ 	V4L2_XFER_FUNC_NONE        = 5,
++	V4L2_XFER_FUNC_DCI_P3      = 6,
+ };
+ 
+ /*
+@@ -272,9 +278,10 @@ enum v4l2_xfer_func {
+ #define V4L2_MAP_XFER_FUNC_DEFAULT(colsp) \
+ 	((colsp) == V4L2_COLORSPACE_ADOBERGB ? V4L2_XFER_FUNC_ADOBERGB : \
+ 	 ((colsp) == V4L2_COLORSPACE_SMPTE240M ? V4L2_XFER_FUNC_SMPTE240M : \
+-	  ((colsp) == V4L2_COLORSPACE_RAW ? V4L2_XFER_FUNC_NONE : \
+-	   ((colsp) == V4L2_COLORSPACE_SRGB || (colsp) == V4L2_COLORSPACE_JPEG ? \
+-	    V4L2_XFER_FUNC_SRGB : V4L2_XFER_FUNC_709))))
++	  ((colsp) == V4L2_COLORSPACE_DCI_P3 ? V4L2_XFER_FUNC_DCI_P3 : \
++	   ((colsp) == V4L2_COLORSPACE_RAW ? V4L2_XFER_FUNC_NONE : \
++	    ((colsp) == V4L2_COLORSPACE_SRGB || (colsp) == V4L2_COLORSPACE_JPEG ? \
++	     V4L2_XFER_FUNC_SRGB : V4L2_XFER_FUNC_709)))))
+ 
+ enum v4l2_ycbcr_encoding {
+ 	/*
+@@ -285,7 +292,7 @@ enum v4l2_ycbcr_encoding {
+ 	 * V4L2_COLORSPACE_470_SYSTEM_BG, V4L2_COLORSPACE_ADOBERGB and
+ 	 * V4L2_COLORSPACE_JPEG: V4L2_YCBCR_ENC_601
+ 	 *
+-	 * V4L2_COLORSPACE_REC709: V4L2_YCBCR_ENC_709
++	 * V4L2_COLORSPACE_REC709 and V4L2_COLORSPACE_DCI_P3: V4L2_YCBCR_ENC_709
+ 	 *
+ 	 * V4L2_COLORSPACE_SRGB: V4L2_YCBCR_ENC_SYCC
+ 	 *
+@@ -325,7 +332,8 @@ enum v4l2_ycbcr_encoding {
+  * This depends on the colorspace.
+  */
+ #define V4L2_MAP_YCBCR_ENC_DEFAULT(colsp) \
+-	((colsp) == V4L2_COLORSPACE_REC709 ? V4L2_YCBCR_ENC_709 : \
++	(((colsp) == V4L2_COLORSPACE_REC709 || \
++	  (colsp) == V4L2_COLORSPACE_DCI_P3) ? V4L2_YCBCR_ENC_709 : \
+ 	 ((colsp) == V4L2_COLORSPACE_BT2020 ? V4L2_YCBCR_ENC_BT2020 : \
+ 	  ((colsp) == V4L2_COLORSPACE_SMPTE240M ? V4L2_YCBCR_ENC_SMPTE240M : \
+ 	   V4L2_YCBCR_ENC_601)))
+-- 
+2.1.4
 
-Rob
