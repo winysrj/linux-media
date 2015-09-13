@@ -1,64 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:44211 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752020AbbIHI73 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 04:59:29 -0400
-Message-ID: <1441702684.26994.34.camel@suse.com>
-Subject: Re: [PATCH v1] media: uvcvideo: handle urb completion in a work
- queue
-From: Oliver Neukum <oneukum@suse.com>
-To: Mian Yousaf Kaukab <yousaf.kaukab@intel.com>
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com, linux-usb@vger.kernel.org
-Date: Tue, 08 Sep 2015 10:58:04 +0200
-In-Reply-To: <1441643029-25341-1-git-send-email-yousaf.kaukab@intel.com>
-References: <1441643029-25341-1-git-send-email-yousaf.kaukab@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755359AbbIMU5T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:19 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 10/32] v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
+Date: Sun, 13 Sep 2015 23:56:48 +0300
+Message-Id: <1442177830-24536-11-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2015-09-07 at 18:23 +0200, Mian Yousaf Kaukab wrote:
-> urb completion callback is executed in host controllers interrupt
-> context. To keep preempt disable time short, add urbs to a list on
-> completion and schedule work to process the list.
-> 
-> Moreover, save timestamp and sof number in the urb completion callback
-> to avoid any delays.
-> 
-> Signed-off-by: Mian Yousaf Kaukab <yousaf.kaukab@intel.com>
-> ---
-> History:
-> v1:
->  - Use global work queue instead of creating ordered queue.
+To make the pipeline structure and operations usable without video
+devices the frame end processing must be decoupled from struct
+vsp1_video. Implement this by calling the video frame end function
+indirectly through a function pointer in struct vsp1_pipeline.
 
-1. using a common queue for real-time work is probably not nice for
-picture quality
-2. it will deadlock under some conditions
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 25 +++++++++++++++++--------
+ drivers/media/platform/vsp1/vsp1_video.h |  2 ++
+ 2 files changed, 19 insertions(+), 8 deletions(-)
 
-The explanation is a bit long
-
-Suppose we have a device with a camera and a storage device,
-like an ordinary camera you can use as a video device which also
-exports its memory card.
-
-Now we assume that the storage part is suspended.
-
-CPU A					CPU B
-					work item scheduled
-entering uvc_uninit_video()
-					work item executed
-					work item allocates memory
-					write to storage interface
-					storage interface being resumed
-flush_work() - waiting for CPU B
-					DEADLOCK
-
-
-If you want to use flush_work() you must use a dedicated queue.
-
-	Regards
-		Oliver
-
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index c726d76bd570..c86a4065ea9c 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -617,8 +617,9 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ }
+ 
+ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+-				 struct vsp1_video *video)
++				 struct vsp1_rwpf *rwpf)
+ {
++	struct vsp1_video *video = rwpf->video;
+ 	struct vsp1_vb2_buffer *buf;
+ 	unsigned long flags;
+ 
+@@ -634,21 +635,28 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ }
+ 
++static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
++{
++	unsigned int i;
++
++	/* Complete buffers on all video nodes. */
++	for (i = 0; i < pipe->num_inputs; ++i)
++		vsp1_video_frame_end(pipe, pipe->inputs[i]);
++
++	if (!pipe->lif)
++		vsp1_video_frame_end(pipe, pipe->output);
++}
++
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ {
+ 	enum vsp1_pipeline_state state;
+ 	unsigned long flags;
+-	unsigned int i;
+ 
+ 	if (pipe == NULL)
+ 		return;
+ 
+-	/* Complete buffers on all video nodes. */
+-	for (i = 0; i < pipe->num_inputs; ++i)
+-		vsp1_video_frame_end(pipe, pipe->inputs[i]->video);
+-
+-	if (!pipe->lif)
+-		vsp1_video_frame_end(pipe, pipe->output->video);
++	/* Signal frame end to the pipeline handler. */
++	pipe->frame_end(pipe);
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+@@ -1223,6 +1231,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	INIT_LIST_HEAD(&video->pipe.entities);
+ 	init_waitqueue_head(&video->pipe.wq);
+ 	video->pipe.state = VSP1_PIPELINE_STOPPED;
++	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
+ 
+ 	/* Initialize the media entity... */
+ 	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index cea6d1f3f07b..d2d229ed8aa7 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -70,6 +70,8 @@ struct vsp1_pipeline {
+ 	enum vsp1_pipeline_state state;
+ 	wait_queue_head_t wq;
+ 
++	void (*frame_end)(struct vsp1_pipeline *pipe);
++
+ 	struct mutex lock;
+ 	unsigned int use_count;
+ 	unsigned int stream_count;
+-- 
+2.4.6
 
