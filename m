@@ -1,63 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:33137 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758112AbbICSKe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 14:10:34 -0400
-Received: by wiclk2 with SMTP id lk2so7416570wic.0
-        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 11:10:33 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	hugues.fruchet@st.com
-Subject: [PATCH v5 5/6] [media] c8sectpfe: Update DT binding doc with some minor fixes
-Date: Thu,  3 Sep 2015 18:59:53 +0100
-Message-Id: <1441303194-28211-6-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
-References: <1441303194-28211-1-git-send-email-peter.griffin@linaro.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55615 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753367AbbIMQm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 12:42:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/6] vivid: use Bradford method when converting Rec. 709 to NTSC 1953
+Date: Sun, 13 Sep 2015 18:41:28 +0200
+Message-Id: <1442162492-46238-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- .../devicetree/bindings/media/stih407-c8sectpfe.txt        | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-index e70d840..cc51b1f 100644
---- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-+++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-@@ -55,20 +55,20 @@ Example:
- 		status = "okay";
- 		reg = <0x08a20000 0x10000>, <0x08a00000 0x4000>;
- 		reg-names = "stfe", "stfe-ram";
--		interrupts = <0 34 0>, <0 35 0>;
-+		interrupts = <GIC_SPI 34 IRQ_TYPE_NONE>, <GIC_SPI 35 IRQ_TYPE_NONE>;
- 		interrupt-names = "stfe-error-irq", "stfe-idle-irq";
--
--		pinctrl-names	= "tsin0-serial", "tsin0-parallel", "tsin3-serial",
--				"tsin4-serial", "tsin5-serial";
--
- 		pinctrl-0	= <&pinctrl_tsin0_serial>;
- 		pinctrl-1	= <&pinctrl_tsin0_parallel>;
- 		pinctrl-2	= <&pinctrl_tsin3_serial>;
- 		pinctrl-3	= <&pinctrl_tsin4_serial_alt3>;
- 		pinctrl-4	= <&pinctrl_tsin5_serial_alt1>;
--
-+		pinctrl-names	= "tsin0-serial",
-+				  "tsin0-parallel",
-+				  "tsin3-serial",
-+				  "tsin4-serial",
-+				  "tsin5-serial";
- 		clocks = <&clk_s_c0_flexgen CLK_PROC_STFE>;
--		clock-names = "stfe";
-+		clock-names = "c8sectpfe";
+The V4L2_COLORSPACE_470_SYSTEM_M (aka NTSC 1953) colorspace has a different
+whitepoint (C) compared to Rec. 709 (D65). The Bradford method is the
+recommended method to compensate for that when converting a Rec. 709 color
+to an NTSC 1953 color.
+
+See http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html for more
+details on the Bradford method.
+
+This patch updates the Rec. 709 to NTSC 1953 matrix so that it includes the
+chromatic adaptation as calculated by the Bradford method, and it recalculates
+the tpg_csc_colors table accordingly.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-tpg-colors.c | 90 +++++++++++++------------
+ 1 file changed, 47 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/media/platform/vivid/vivid-tpg-colors.c b/drivers/media/platform/vivid/vivid-tpg-colors.c
+index 8f231a6..650d9c7 100644
+--- a/drivers/media/platform/vivid/vivid-tpg-colors.c
++++ b/drivers/media/platform/vivid/vivid-tpg-colors.c
+@@ -719,46 +719,46 @@ const struct color16 tpg_csc_colors[V4L2_COLORSPACE_BT2020 + 1][V4L2_XFER_FUNC_N
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][5] = { 2125, 130, 130 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][6] = { 130, 130, 2125 },
+ 	[V4L2_COLORSPACE_REC709][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][0] = { 2892, 2988, 2807 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][1] = { 2846, 3070, 843 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][2] = { 1656, 2962, 2783 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][3] = { 1572, 3045, 763 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][4] = { 2476, 229, 2742 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][5] = { 2420, 672, 614 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][6] = { 725, 63, 2718 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][7] = { 534, 561, 509 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][0] = { 3013, 3099, 2935 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][1] = { 2970, 3174, 1091 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][2] = { 1871, 3076, 2913 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][3] = { 1791, 3152, 1013 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][4] = { 2632, 468, 2876 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][5] = { 2581, 924, 866 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][6] = { 976, 180, 2854 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][7] = { 786, 813, 762 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][0] = { 2990, 3077, 2912 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][1] = { 2947, 3153, 1119 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][2] = { 1859, 3053, 2889 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][3] = { 1782, 3130, 1047 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][4] = { 2608, 556, 2852 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][5] = { 2557, 964, 912 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][6] = { 1013, 309, 2830 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][7] = { 839, 864, 817 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2879, 2975, 2793 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2832, 3059, 806 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][2] = { 1629, 2949, 2768 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][3] = { 1543, 3033, 725 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][4] = { 2457, 203, 2727 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][5] = { 2401, 633, 574 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][6] = { 687, 56, 2702 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][7] = { 493, 521, 469 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][0] = { 2060, 2194, 1943 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][1] = { 1995, 2314, 237 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][2] = { 725, 2157, 1911 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][3] = { 660, 2278, 205 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][4] = { 1525, 50, 1857 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][5] = { 1461, 171, 151 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][6] = { 190, 14, 1825 },
+-	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][7] = { 126, 134, 118 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][1] = { 2892, 3034, 910 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][2] = { 1715, 2916, 2914 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][3] = { 1631, 3012, 828 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][4] = { 2497, 119, 2867 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][5] = { 2440, 649, 657 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][6] = { 740, 0, 2841 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_709][7] = { 547, 547, 547 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][0] = { 3056, 3055, 3056 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][1] = { 3013, 3142, 1157 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][2] = { 1926, 3034, 3032 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][3] = { 1847, 3121, 1076 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][4] = { 2651, 304, 2990 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][5] = { 2599, 901, 909 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][6] = { 991, 0, 2966 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SRGB][7] = { 800, 799, 800 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][0] = { 3033, 3033, 3033 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][1] = { 2989, 3120, 1180 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][2] = { 1913, 3011, 3009 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][3] = { 1836, 3099, 1105 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][4] = { 2627, 413, 2966 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][5] = { 2576, 943, 951 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][6] = { 1026, 0, 2942 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_ADOBERGB][7] = { 851, 851, 851 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][0] = { 2926, 2926, 2926 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][1] = { 2879, 3022, 874 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][2] = { 1688, 2903, 2901 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][3] = { 1603, 2999, 791 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][4] = { 2479, 106, 2853 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][5] = { 2422, 610, 618 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][6] = { 702, 0, 2827 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_SMPTE240M][7] = { 507, 507, 507 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][0] = { 2125, 2125, 2125 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][1] = { 2059, 2262, 266 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][2] = { 771, 2092, 2089 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][3] = { 705, 2229, 231 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][4] = { 1550, 26, 2024 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][5] = { 1484, 163, 165 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][6] = { 196, 0, 1988 },
++	[V4L2_COLORSPACE_470_SYSTEM_M][V4L2_XFER_FUNC_NONE][7] = { 130, 130, 130 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][0] = { 2939, 2939, 2939 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][1] = { 2939, 2939, 464 },
+ 	[V4L2_COLORSPACE_470_SYSTEM_BG][V4L2_XFER_FUNC_709][2] = { 786, 2939, 2939 },
+@@ -930,9 +930,13 @@ const struct color16 tpg_csc_colors[V4L2_COLORSPACE_BT2020 + 1][V4L2_XFER_FUNC_N
+ #include <stdlib.h>
  
- 		/* tsin0 is TSA on NIMA */
- 		tsin0: port@0 {
+ static const double rec709_to_ntsc1953[3][3] = {
+-	{ 0.6689794, 0.2678309, 0.0323187 },
+-	{ 0.0184901, 1.0742442, -0.0602820 },
+-	{ 0.0162259, 0.0431716, 0.8549253 }
++	/*
++	 * This transform uses the Bradford method to compensate for
++	 * the different whitepoints.
++	 */
++	{ 0.6785011, 0.2883441, 0.0331548 },
++	{ 0.0165284, 1.0518725, -0.0684009 },
++	{ 0.0179230, 0.0506096, 0.9314674 }
+ };
+ 
+ static const double rec709_to_ebu[3][3] = {
 -- 
-1.9.1
+2.1.4
 
