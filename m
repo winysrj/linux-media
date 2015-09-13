@@ -1,154 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35090 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751886AbbIIK2w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2015 06:28:52 -0400
-Date: Wed, 9 Sep 2015 07:28:47 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v8 18/55] [media] omap3isp: create links after all
- subdevs have been bound
-Message-ID: <20150909072847.5a1c7f78@recife.lan>
-In-Reply-To: <20150909080333.GL3175@valkosipuli.retiisi.org.uk>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-	<6e78f34ad454da44d68720a114f0f8e872560e8e.1440902901.git.mchehab@osg.samsung.com>
-	<20150909080333.GL3175@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42200 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753426AbbIMQm7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 12:42:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/6] DocBook media: document the new DCI-P3 colorspace
+Date: Sun, 13 Sep 2015 18:41:30 +0200
+Message-Id: <1442162492-46238-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Em Wed, 09 Sep 2015 11:03:33 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Document this colorspace.
 
-> Hi Javier and Mauro,
-> 
-> On Sun, Aug 30, 2015 at 12:06:29AM -0300, Mauro Carvalho Chehab wrote:
-> > From: Javier Martinez Canillas <javier@osg.samsung.com>
-> > 
-> > The omap3isp driver parses the graph endpoints to know how many subdevices
-> > needs to be registered async and register notifiers callbacks for to know
-> > when these are bound and when the async registrations are completed.
-> > 
-> > Currently the entities pad are linked with the correct ISP input interface
-> > when the subdevs are bound but it happens before entitities are registered
-> > with the media device so that won't work now that the entity links list is
-> > initialized on device registration.
-> > 
-> > So instead creating the pad links when the subdevice is bound, create them
-> > on the complete callback once all the subdevices have been bound but only
-> > try to create for the ones that have a bus configuration set during bound.
-> > 
-> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> > index b8f6f81d2db2..69e7733d36cd 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -2321,26 +2321,33 @@ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
-> >  				     struct v4l2_subdev *subdev,
-> >  				     struct v4l2_async_subdev *asd)
-> >  {
-> > -	struct isp_device *isp = container_of(async, struct isp_device,
-> > -					      notifier);
-> >  	struct isp_async_subdev *isd =
-> >  		container_of(asd, struct isp_async_subdev, asd);
-> > -	int ret;
-> > -
-> > -	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
-> > -	if (ret < 0)
-> > -		return ret;
-> >  
-> >  	isd->sd = subdev;
-> >  	isd->sd->host_priv = &isd->bus;
-> >  
-> > -	return ret;
-> > +	return 0;
-> >  }
-> >  
-> >  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
-> >  {
-> >  	struct isp_device *isp = container_of(async, struct isp_device,
-> >  					      notifier);
-> > +	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
-> > +	struct v4l2_subdev *sd;
-> > +	struct isp_bus_cfg *bus;
-> > +	int ret;
-> > +
-> > +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> > +		/* Only try to link entities whose interface was set on bound */
-> > +		if (sd->host_priv) {
-> > +			bus = (struct isp_bus_cfg *)sd->host_priv;
-> > +			ret = isp_link_entity(isp, &sd->entity, bus->interface);
-> > +			if (ret < 0)
-> > +				return ret;
-> > +		}
-> > +	}
-> >  
-> >  	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-> >  }
-> 
-> I think you're working around a problem here, not really fixing it.
-> 
-> This change will create the links only after the media device is registered,
-> which means the user may obtain a partial enumeration of links if the
-> enumeration is performed too early.
-> 
-> Before this set, the problem also was that the media device was registered
-> before the async entities were bound, again making it possible to obtain a
-> partial enumeration of entities.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/biblio.xml |  9 ++++
+ Documentation/DocBook/media/v4l/pixfmt.xml | 70 ++++++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
 
-Before of after this series, if userspace tries to read the topology too
-early, it will get a partial topology. Before this series, it may lose
-entities and links; after this series, it may lose any object.
+diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
+index fdee6b3..f54db59 100644
+--- a/Documentation/DocBook/media/v4l/biblio.xml
++++ b/Documentation/DocBook/media/v4l/biblio.xml
+@@ -177,6 +177,15 @@ Signal - NTSC for Studio Applications"</title>
+ 1125-Line High-Definition Production"</title>
+     </biblioentry>
+ 
++    <biblioentry id="smpte431">
++      <abbrev>SMPTE&nbsp;RP&nbsp;431-2</abbrev>
++      <authorgroup>
++	<corpauthor>Society of Motion Picture and Television Engineers
++(<ulink url="http://www.smpte.org">http://www.smpte.org</ulink>)</corpauthor>
++      </authorgroup>
++      <title>SMPTE RP 431-2:2011 "D-Cinema Quality - Reference Projector and Environment"</title>
++    </biblioentry>
++
+     <biblioentry id="srgb">
+       <abbrev>sRGB</abbrev>
+       <authorgroup>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 965ea91..4173333 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -540,6 +540,10 @@ colorspaces except for BT.2020 which uses limited range R'G'B' quantization.</pa
+ 	    <entry>See <xref linkend="col-bt2020" />.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_COLORSPACE_DCI_P3</constant></entry>
++	    <entry>See <xref linkend="col-dcip3" />.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_COLORSPACE_SMPTE240M</constant></entry>
+ 	    <entry>See <xref linkend="col-smpte-240m" />.</entry>
+ 	  </row>
+@@ -601,6 +605,10 @@ colorspaces except for BT.2020 which uses limited range R'G'B' quantization.</pa
+ 	    <entry><constant>V4L2_XFER_FUNC_NONE</constant></entry>
+ 	    <entry>Do not use a transfer function (i.e. use linear RGB values).</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_XFER_FUNC_DCI_P3</constant></entry>
++	    <entry>Use the DCI-P3 transfer function.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+@@ -1154,6 +1162,68 @@ clamped to the range [-0.5&hellip;0.5]. The Y'CbCr quantization is limited range
+ clamped to the range [-0.5&hellip;0.5]. The Yc'CbcCrc quantization is limited range.</para>
+     </section>
+ 
++    <section id="col-dcip3">
++      <title>Colorspace DCI-P3 (<constant>V4L2_COLORSPACE_DCI_P3</constant>)</title>
++      <para>The <xref linkend="smpte431" /> standard defines the colorspace used by cinema
++projectors that use the DCI-P3 colorspace.
++The default transfer function is <constant>V4L2_XFER_FUNC_DCI_P3</constant>.
++The default Y'CbCr encoding is <constant>V4L2_YCBCR_ENC_709</constant>. Note that this
++colorspace does not specify a Y'CbCr encoding since it is not meant to be encoded
++to Y'CbCr. So this default Y'CbCr encoding was picked because it is the HDTV
++encoding. The default Y'CbCr quantization is limited range. The chromaticities of
++the primary colors and the white reference are:</para>
++      <table frame="none">
++        <title>DCI-P3 Chromaticities</title>
++        <tgroup cols="3" align="left">
++          &cs-str;
++    	<thead>
++    	  <row>
++    	    <entry>Color</entry>
++    	    <entry>x</entry>
++    	    <entry>y</entry>
++    	  </row>
++    	</thead>
++          <tbody valign="top">
++            <row>
++              <entry>Red</entry>
++              <entry>0.6800</entry>
++              <entry>0.3200</entry>
++            </row>
++            <row>
++              <entry>Green</entry>
++              <entry>0.2650</entry>
++              <entry>0.6900</entry>
++            </row>
++            <row>
++              <entry>Blue</entry>
++              <entry>0.1500</entry>
++              <entry>0.0600</entry>
++            </row>
++            <row>
++              <entry>White Reference</entry>
++              <entry>0.3140</entry>
++              <entry>0.3510</entry>
++            </row>
++          </tbody>
++        </tgroup>
++      </table>
++      <variablelist>
++	<varlistentry>
++          <term>Transfer function:</term>
++	  <listitem>
++            <para>L' = L<superscript>1/2.6</superscript></para>
++	  </listitem>
++	</varlistentry>
++	<varlistentry>
++          <term>Inverse Transfer function:</term>
++	  <listitem>
++            <para>L = L'<superscript>2.6</superscript></para>
++	  </listitem>
++	</varlistentry>
++      </variablelist>
++      <para>Y'CbCr encoding is not specified. V4L2 defaults to Rec. 709.</para>
++    </section>
++
+     <section id="col-smpte-240m">
+       <title>Colorspace SMPTE 240M (<constant>V4L2_COLORSPACE_SMPTE240M</constant>)</title>
+       <para>The <xref linkend="smpte240m" /> standard was an interim standard used during
+-- 
+2.1.4
 
-In any case, userspace won't do the right thing, whatever order we
-initialize.
-
-The patches on this series is not meant to solve this issue.
-
-The rationale for this patch is due to a different reason. You should 
-notice that, due to the G_TOPOLOGY ioctl requirements, all objects
-should have their ID assigned and should be added at the mdev linked
-lists, as those are used by G_TOPOLOGY loops that copy the object
-data to userspace.
-
-So, before registering/creating any object, the media_device struct
-need to exist internally at Kernelspace.
-
-> 
-> What I'd suggest instead is that we split media device initialisation and
-> registration to the system; that way the media device can be prepared
-> (entities registered and links created) before it becomes visible to the
-> user space. I can write a patch for that if you like.
-
-Yes, we can split the internal media register stuff from the
-creation of the /dev/media0 device node, doing that only after
-having everything set in Kernel, as the patch that Javier proposed
-on IRC.
-
-Another alternative would be to add a "busy" flag at media_device,
-making all ioctl's at /dev/mdeia0 to return -EBUSY during massive
-graph changes.
-
-Such flag would be rised at media_device registration and dropped
-at the end of the device probe routine.
-
-The advantage of using such flags is that this could be used,
-for example, on ARA project, when a module is removed or inserted.
-
-The disadvantage is that current userspace apps may not be prepared
-to receive -EBUSY.
-
-I'm OK with both strategies.
-
-Regards,
-Mauro
