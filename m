@@ -1,71 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36260 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751728AbbIOKdE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 06:33:04 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v4 1/2] [media] media-device: check before unregister if mdev was registered
-Date: Tue, 15 Sep 2015 12:32:26 +0200
-Message-Id: <1442313147-24566-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1442313147-24566-1-git-send-email-javier@osg.samsung.com>
-References: <1442313147-24566-1-git-send-email-javier@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755397AbbIMU5U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:20 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 13/32] v4l: vsp1: Extract pipeline initialization code into a function
+Date: Sun, 13 Sep 2015 23:56:51 +0300
+Message-Id: <1442177830-24536-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most media functions that unregister, check if the corresponding register
-function succeed before. So these functions can safely be called even if a
-registration was never made or the component as already been unregistered.
+The code will be reused outside of vsp1_video.c.
 
-Add the same check to media_device_unregister() function for consistency.
-
-This will also allow to split the media_device_register() function in an
-initialization and registration functions without the need to change the
-generic cleanup functions and error code paths for all the media drivers.
-
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
+ drivers/media/platform/vsp1/vsp1_pipe.c  | 10 ++++++++++
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  1 +
+ drivers/media/platform/vsp1/vsp1_video.c |  6 +-----
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2:
-- Reword the documentation for media_device_unregister(). Suggested by Sakari.
-- Added Sakari's Acked-by tag for patch #1.
-
- drivers/media/media-device.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 1312e93ebd6e..47d09ffe6a9b 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -574,6 +574,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
-  * media_device_unregister - unregister a media device
-  * @mdev:	The media device
-  *
-+ * It is safe to call this function on an unregistered
-+ * (but initialised) media device.
-  */
- void media_device_unregister(struct media_device *mdev)
- {
-@@ -582,6 +584,10 @@ void media_device_unregister(struct media_device *mdev)
- 	struct media_link *link, *tmp_link;
- 	struct media_interface *intf, *tmp_intf;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 199d57f1fe06..524420ed6333 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -48,6 +48,16 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
+ 	pipe->uds = NULL;
+ }
  
-+	/* Check if mdev was ever registered at all */
-+	if (!media_devnode_is_registered(&mdev->devnode))
-+		return;
++void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
++{
++	mutex_init(&pipe->lock);
++	spin_lock_init(&pipe->irqlock);
++	init_waitqueue_head(&pipe->wq);
 +
- 	/* Remove interface links from the media device */
- 	list_for_each_entry_safe(link, tmp_link, &mdev->links,
- 				 graph_obj.list) {
++	INIT_LIST_HEAD(&pipe->entities);
++	pipe->state = VSP1_PIPELINE_STOPPED;
++}
++
+ void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
+ {
+ 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index f8a099fba973..8553d5a03aa3 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -67,6 +67,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
+ }
+ 
+ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
++void vsp1_pipeline_init(struct vsp1_pipeline *pipe);
+ 
+ void vsp1_pipeline_run(struct vsp1_pipeline *pipe);
+ bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 8569836ea51b..ec68890af14b 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -1009,11 +1009,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	spin_lock_init(&video->irqlock);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+ 
+-	mutex_init(&video->pipe.lock);
+-	spin_lock_init(&video->pipe.irqlock);
+-	INIT_LIST_HEAD(&video->pipe.entities);
+-	init_waitqueue_head(&video->pipe.wq);
+-	video->pipe.state = VSP1_PIPELINE_STOPPED;
++	vsp1_pipeline_init(&video->pipe);
+ 	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
+ 
+ 	/* Initialize the media entity... */
 -- 
-2.4.3
+2.4.6
 
