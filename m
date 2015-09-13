@@ -1,84 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35944 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752795AbbINKCH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 06:02:07 -0400
-Date: Mon, 14 Sep 2015 07:02:01 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: Time for a v4l-utils 1.8.0 release
-Message-ID: <20150914070201.39302d8c@recife.lan>
-In-Reply-To: <55F67483.4030709@googlemail.com>
-References: <55491541.1040709@googlemail.com>
-	<20150505172235.4bef50eb@recife.lan>
-	<55F67483.4030709@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755522AbbIMU5b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:31 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 29/32] v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
+Date: Sun, 13 Sep 2015 23:57:07 +0300
+Message-Id: <1442177830-24536-30-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Em Mon, 14 Sep 2015 09:17:23 +0200
-Gregor Jasny <gjasny@googlemail.com> escreveu:
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 2969d570f462..5cef619b708d 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -38,13 +38,17 @@ static int vsp1_drm_pipeline_run(struct vsp1_pipeline *pipe)
+ 		struct vsp1_entity *entity;
+ 
+ 		list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-			/* Skip unused RPFs. */
++			/* Disconnect unused RPFs from the pipeline. */
+ 			if (entity->type == VSP1_ENTITY_RPF) {
+ 				struct vsp1_rwpf *rpf =
+ 					to_rwpf(&entity->subdev);
+ 
+-				if (!pipe->inputs[rpf->entity.index])
++				if (!pipe->inputs[rpf->entity.index]) {
++					vsp1_write(entity->vsp1,
++						   entity->route->reg,
++						   VI6_DPR_NODE_UNUSED);
+ 					continue;
++				}
+ 			}
+ 
+ 			vsp1_entity_route_setup(entity);
+-- 
+2.4.6
 
-> Hello,
-> 
-> On 05/05/15 22:22, Mauro Carvalho Chehab wrote:
-> > Em Tue, 05 May 2015 21:08:49 +0200
-> > Gregor Jasny <gjasny@googlemail.com> escreveu:
-> >
-> >> Hello,
-> >>
-> >> It's already more than half a year since the last v4l-utils release. Do
-> >> you have any pending commits or objections? If no one vetos I'd like to
-> >> release this weekend.
-> >
-> > There is are a additions I'd like to add to v4l-utils:
-> >
-> > 1) on DVB, ioctls may fail with -EAGAIN. Some parts of the libdvbv5 don't
-> > handle it well. I made one quick hack for it, but didn't have time to
-> > add a timeout to avoid an endless loop. The patch is simple. I just need
-> > some time to do that;
-> >
-> > 2) The Media Controller control util (media-ctl) doesn't support DVB.
-> >
-> > The patchset adding DVB support on media-ctl is ready, and I'm merging
-> > right now, and matches what's there at Kernel version 4.1-rc1 and upper.
-> >
-> > Yet, Laurent and Sakari want to do some changes at the Kernel API, before
-> > setting it into a stone at Kernel v 4.1 release.
-> >
-> > This has to happen on the next 4 weeks.
-> >
-> > So, I suggest to postpone the release of 1.8.0 until the end of this month.
-> 
-> I'd like to release v4l-utils 1.8.0 during the upcoming weekend. Please 
-> postpone any disruptive fixes until the release has been tagged.
-
-OK.
-
-There was one patch there adding support for DVB at the Media Controller
-part based on the old approach. As we decided to use a different
-approach ("MC next generation"), I reverted the change, as we won't
-want that change to go to the distros. It is not actually a big deal,
-as there's no released Kernel using the old approach, and the code in
-question is only triggered by certain types of defines that will never
-be found. Yet, I prefer not having an API support on a non-development
-branch for something that will never be mainstream.
-
-Besides of such change, I think the remaining stuff there are OK for
-a new release.
-
-After the release of 1.8.x, I'll likely be merging a test application
-to allow checking the new API on the next development branch, at
-contrib/test.
-
-Regards,
-Mauro
