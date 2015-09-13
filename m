@@ -1,151 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54610 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751994AbbIFMD4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:56 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY ioctl
-Date: Sun,  6 Sep 2015 09:03:04 -0300
-Message-Id: <297afcfe4c9c5ebc074f92d1badd34b94e8b28f9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
-References: <ed72ef83c937fe6f665001eb9d6a54f25f253391.1440902901.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754937AbbIMU5M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:12 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 02/32] v4l: vsp1: Store the memory format in struct vsp1_rwpf
+Date: Sun, 13 Sep 2015 23:56:40 +0300
+Message-Id: <1442177830-24536-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new ioctl that will report the entire topology on
-one go.
+Move the format from struct vsp1_video to struct vsp1_rwpf to prepare
+for VSPD KMS support that will not instantiate V4L2 video device nodes.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c   |  4 ++--
+ drivers/media/platform/vsp1/vsp1_rpf.c   |  4 ++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h  |  2 ++
+ drivers/media/platform/vsp1/vsp1_video.c | 40 ++++++++++++++++----------------
+ drivers/media/platform/vsp1/vsp1_video.h |  2 --
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  4 ++--
+ 6 files changed, 28 insertions(+), 28 deletions(-)
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 7320cdc45833..2d5ad40254b7 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -181,6 +181,8 @@ struct media_interface {
-  */
- struct media_intf_devnode {
- 	struct media_interface		intf;
-+
-+	/* Should match the fields at media_v2_intf_devnode */
- 	u32				major;
- 	u32				minor;
- };
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index a1bd7afba110..b17f6763aff4 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -206,6 +206,10 @@ struct media_pad_desc {
- #define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
- #define MEDIA_LNK_FL_DYNAMIC		(1 << 2)
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 7dd763311c0f..1308dfef0f92 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -94,7 +94,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	/* Disable dithering and enable color data normalization unless the
+ 	 * format at the pipeline output is premultiplied.
+ 	 */
+-	flags = pipe->output ? pipe->output->video.format.flags : 0;
++	flags = pipe->output ? pipe->output->format.flags : 0;
+ 	vsp1_bru_write(bru, VI6_BRU_INCTRL,
+ 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
+ 		       0 : VI6_BRU_INCTRL_NRM);
+@@ -125,7 +125,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 		if (bru->inputs[i].rpf) {
+ 			ctrl |= VI6_BRU_CTRL_RBC;
  
-+#define MEDIA_LNK_FL_LINK_TYPE		(0xf << 28)
-+#  define MEDIA_LNK_FL_DATA_LINK	(0 << 28)
-+#  define MEDIA_LNK_FL_INTERFACE_LINK	(1 << 28)
-+
- struct media_link_desc {
- 	struct media_pad_desc source;
- 	struct media_pad_desc sink;
-@@ -249,11 +253,93 @@ struct media_links_enum {
- #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
- #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+-			premultiplied = bru->inputs[i].rpf->video.format.flags
++			premultiplied = bru->inputs[i].rpf->format.flags
+ 				      & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
+ 		} else {
+ 			ctrl |= VI6_BRU_CTRL_CROP(VI6_ROP_NOP)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index a1093cc1b9a1..6e0564b5b37b 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -75,8 +75,8 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
+ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
+ 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
+-	const struct vsp1_format_info *fmtinfo = rpf->video.fmtinfo;
+-	const struct v4l2_pix_format_mplane *format = &rpf->video.format;
++	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
++	const struct v4l2_pix_format_mplane *format = &rpf->format;
+ 	const struct v4l2_rect *crop = &rpf->crop;
+ 	u32 pstride;
+ 	u32 infmt;
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index f452dce1a931..8609c3d02679 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -32,6 +32,8 @@ struct vsp1_rwpf {
+ 	unsigned int max_width;
+ 	unsigned int max_height;
  
--/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-+/*
-+ * MC next gen API definitions
-+ *
-+ * NOTE: The declarations below are close to the MC RFC for the Media
-+ *	 Controller, the next generation. Yet, there are a few adjustments
-+ *	 to do, as we want to be able to have a functional API before
-+ *	 the MC properties change. Those will be properly marked below.
-+ *	 Please also notice that I removed "num_pads", "num_links",
-+ *	 from the proposal, as a proper userspace application will likely
-+ *	 use lists for pads/links, just as we intend to do in Kernelspace.
-+ *	 The API definition should be freed from fields that are bound to
-+ *	 some specific data structure.
-+ *
-+ * FIXME: Currently, I opted to name the new types as "media_v2", as this
-+ *	  won't cause any conflict with the Kernelspace namespace, nor with
-+ *	  the previous kAPI media_*_desc namespace. This can be changed
-+ *	  later, before the adding this API upstream.
-+ */
-+
-+
-+struct media_v2_entity {
-+	__u32 id;
-+	char name[64];		/* FIXME: move to a property? (RFC says so) */
-+	__u16 reserved[14];
-+};
-+
-+/* Should match the specific fields at media_intf_devnode */
-+struct media_v2_intf_devnode {
-+	__u32 major;
-+	__u32 minor;
-+};
-+
-+struct media_v2_interface {
-+	__u32 id;
-+	__u32 intf_type;
-+	__u32 flags;
-+	__u32 reserved[9];
-+
-+	union {
-+		struct media_v2_intf_devnode devnode;
-+		__u32 raw[16];
-+	};
-+};
-+
-+struct media_v2_pad {
-+	__u32 id;
-+	__u32 entity_id;
-+	__u32 flags;
-+	__u16 reserved[9];
-+};
-+
-+struct media_v2_link {
-+    __u32 id;
-+    __u32 source_id;
-+    __u32 sink_id;
-+    __u32 flags;
-+    __u32 reserved[5];
-+};
-+
-+struct media_v2_topology {
-+	__u32 topology_version;
-+
-+	__u32 num_entities;
-+	struct media_v2_entity *entities;
-+
-+	__u32 num_interfaces;
-+	struct media_v2_interface *interfaces;
-+
-+	__u32 num_pads;
-+	struct media_v2_pad *pads;
-+
-+	__u32 num_links;
-+	struct media_v2_link *links;
-+
-+	struct {
-+		__u32 reserved_num;
-+		void *reserved_ptr;
-+	} reserved_types[16];
-+	__u32 reserved[8];
-+};
-+
-+/* ioctls */
++	struct v4l2_pix_format_mplane format;
++	const struct vsp1_format_info *fmtinfo;
+ 	struct {
+ 		unsigned int left;
+ 		unsigned int top;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 48480e66fad6..90d5791c80b6 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -185,9 +185,9 @@ static int vsp1_video_verify_format(struct vsp1_video *video)
+ 	if (ret < 0)
+ 		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
  
- #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-+#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+-	if (video->fmtinfo->mbus != fmt.format.code ||
+-	    video->format.height != fmt.format.height ||
+-	    video->format.width != fmt.format.width)
++	if (video->rwpf->fmtinfo->mbus != fmt.format.code ||
++	    video->rwpf->format.height != fmt.format.height ||
++	    video->rwpf->format.width != fmt.format.width)
+ 		return -EINVAL;
  
- #endif /* __LINUX_MEDIA_H */
+ 	return 0;
+@@ -805,7 +805,7 @@ vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ 
+ 		format = &pix_mp;
+ 	} else {
+-		format = &video->format;
++		format = &video->rwpf->format;
+ 	}
+ 
+ 	*nplanes = format->num_planes;
+@@ -822,7 +822,7 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
+-	const struct v4l2_pix_format_mplane *format = &video->format;
++	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
+ 	unsigned int i;
+ 
+ 	if (vb->num_planes < format->num_planes)
+@@ -904,7 +904,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 				struct vsp1_rwpf *rpf =
+ 					to_rwpf(&pipe->uds_input->subdev);
+ 
+-				uds->scale_alpha = rpf->video.fmtinfo->alpha;
++				uds->scale_alpha = rpf->fmtinfo->alpha;
+ 			}
+ 		}
+ 
+@@ -1008,7 +1008,7 @@ vsp1_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&video->lock);
+-	format->fmt.pix_mp = video->format;
++	format->fmt.pix_mp = video->rwpf->format;
+ 	mutex_unlock(&video->lock);
+ 
+ 	return 0;
+@@ -1048,8 +1048,8 @@ vsp1_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
+ 		goto done;
+ 	}
+ 
+-	video->format = format->fmt.pix_mp;
+-	video->fmtinfo = info;
++	video->rwpf->format = format->fmt.pix_mp;
++	video->rwpf->fmtinfo = info;
+ 
+ done:
+ 	mutex_unlock(&video->lock);
+@@ -1226,17 +1226,17 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
+ 		return ret;
+ 
+ 	/* ... and the format ... */
+-	video->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
+-	video->format.pixelformat = video->fmtinfo->fourcc;
+-	video->format.colorspace = V4L2_COLORSPACE_SRGB;
+-	video->format.field = V4L2_FIELD_NONE;
+-	video->format.width = VSP1_VIDEO_DEF_WIDTH;
+-	video->format.height = VSP1_VIDEO_DEF_HEIGHT;
+-	video->format.num_planes = 1;
+-	video->format.plane_fmt[0].bytesperline =
+-		video->format.width * video->fmtinfo->bpp[0] / 8;
+-	video->format.plane_fmt[0].sizeimage =
+-		video->format.plane_fmt[0].bytesperline * video->format.height;
++	rwpf->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
++	rwpf->format.pixelformat = rwpf->fmtinfo->fourcc;
++	rwpf->format.colorspace = V4L2_COLORSPACE_SRGB;
++	rwpf->format.field = V4L2_FIELD_NONE;
++	rwpf->format.width = VSP1_VIDEO_DEF_WIDTH;
++	rwpf->format.height = VSP1_VIDEO_DEF_HEIGHT;
++	rwpf->format.num_planes = 1;
++	rwpf->format.plane_fmt[0].bytesperline =
++		rwpf->format.width * rwpf->fmtinfo->bpp[0] / 8;
++	rwpf->format.plane_fmt[0].sizeimage =
++		rwpf->format.plane_fmt[0].bytesperline * rwpf->format.height;
+ 
+ 	/* ... and the video node... */
+ 	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 5f48eec5562c..dbcb7b5b6c95 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -123,8 +123,6 @@ struct vsp1_video {
+ 	struct media_pad pad;
+ 
+ 	struct mutex lock;
+-	struct v4l2_pix_format_mplane format;
+-	const struct vsp1_format_info *fmtinfo;
+ 
+ 	struct vsp1_pipeline pipe;
+ 	unsigned int pipe_index;
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 50dfb3060156..b14070d1e457 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -112,7 +112,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 
+ 	/* Destination stride. */
+ 	if (!pipe->lif) {
+-		struct v4l2_pix_format_mplane *format = &wpf->video.format;
++		struct v4l2_pix_format_mplane *format = &wpf->format;
+ 
+ 		vsp1_wpf_write(wpf, VI6_WPF_DSTM_STRIDE_Y,
+ 			       format->plane_fmt[0].bytesperline);
+@@ -130,7 +130,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 
+ 	/* Format */
+ 	if (!pipe->lif) {
+-		const struct vsp1_format_info *fmtinfo = wpf->video.fmtinfo;
++		const struct vsp1_format_info *fmtinfo = wpf->fmtinfo;
+ 
+ 		outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
+ 
 -- 
-2.4.3
-
+2.4.6
 
