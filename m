@@ -1,148 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:55970 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375AbbIOPtf (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755199AbbIMU5N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:49:35 -0400
-From: Arnd Bergmann <arnd@arndb.de>
+	Sun, 13 Sep 2015 16:57:13 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 1/7] [media] dvb: use ktime_t for internal timeout
-Date: Tue, 15 Sep 2015 17:49:02 +0200
-Message-Id: <1442332148-488079-2-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442332148-488079-1-git-send-email-arnd@arndb.de>
-References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 04/32] v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
+Date: Sun, 13 Sep 2015 23:56:42 +0300
+Message-Id: <1442177830-24536-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb demuxer code uses a 'struct timespec' to pass a timeout
-as absolute time. This will cause problems on 32-bit architectures
-in 2038 when time_t overflows, and it is racy with a concurrent
-settimeofday() call.
+The structure represent a vsp1 videobuf2 buffer, name it accordingly.
 
-This patch changes the code to use ktime_get() instead, using
-the monotonic time base to avoid both the race and the overflow.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-core/demux.h     |  2 +-
- drivers/media/dvb-core/dmxdev.c    |  2 +-
- drivers/media/dvb-core/dvb_demux.c | 17 ++++++-----------
- drivers/media/dvb-core/dvb_demux.h |  4 ++--
- drivers/media/dvb-core/dvb_net.c   |  2 +-
- 5 files changed, 11 insertions(+), 16 deletions(-)
+ drivers/media/platform/vsp1/vsp1_rpf.c   |  2 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h  |  4 ++--
+ drivers/media/platform/vsp1/vsp1_video.c | 20 ++++++++++----------
+ drivers/media/platform/vsp1/vsp1_video.h |  7 +++----
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  2 +-
+ 5 files changed, 17 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 833191bcd810..d8e2b1213bef 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -92,7 +92,7 @@ struct dmx_ts_feed {
- 		    int type,
- 		    enum dmx_ts_pes pes_type,
- 		    size_t circular_buffer_size,
--		    struct timespec timeout);
-+		    ktime_t timeout);
- 	int (*start_filtering) (struct dmx_ts_feed* feed);
- 	int (*stop_filtering) (struct dmx_ts_feed* feed);
- };
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index d0e3f9d85f34..0d20b379eeec 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -558,7 +558,7 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
- 				 struct dmxdev_filter *filter,
- 				 struct dmxdev_feed *feed)
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index a17154d98a54..9c2e34374c60 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -186,7 +186,7 @@ static struct v4l2_subdev_ops rpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_video_buffer *buf)
++static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_vb2_buffer *buf)
  {
--	struct timespec timeout = { 0 };
-+	ktime_t timeout = ktime_set(0, 0);
- 	struct dmx_pes_filter_params *para = &filter->params.pes;
- 	dmx_output_t otype;
+ 	unsigned int i;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 3cc80be03524..aa22cc062ff3 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -25,10 +25,10 @@
+ #define RWPF_PAD_SOURCE				1
+ 
+ struct vsp1_rwpf;
+-struct vsp1_video_buffer;
++struct vsp1_vb2_buffer;
+ 
+ struct vsp1_rwpf_operations {
+-	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_video_buffer *buf);
++	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_vb2_buffer *buf);
+ };
+ 
+ struct vsp1_rwpf {
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 2ddbcbaf498f..d02cd63a9c5e 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -577,12 +577,12 @@ static bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
+  *
+  * Return the next queued buffer or NULL if the queue is empty.
+  */
+-static struct vsp1_video_buffer *
++static struct vsp1_vb2_buffer *
+ vsp1_video_complete_buffer(struct vsp1_video *video)
+ {
+ 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
+-	struct vsp1_video_buffer *next = NULL;
+-	struct vsp1_video_buffer *done;
++	struct vsp1_vb2_buffer *next = NULL;
++	struct vsp1_vb2_buffer *done;
+ 	unsigned long flags;
+ 	unsigned int i;
+ 
+@@ -594,7 +594,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 	}
+ 
+ 	done = list_first_entry(&video->irqqueue,
+-				struct vsp1_video_buffer, queue);
++				struct vsp1_vb2_buffer, queue);
+ 
+ 	/* In DU output mode reuse the buffer if the list is singular. */
+ 	if (pipe->lif && list_is_singular(&video->irqqueue)) {
+@@ -606,7 +606,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 
+ 	if (!list_empty(&video->irqqueue))
+ 		next = list_first_entry(&video->irqqueue,
+-					struct vsp1_video_buffer, queue);
++					struct vsp1_vb2_buffer, queue);
+ 
+ 	spin_unlock_irqrestore(&video->irqlock, flags);
+ 
+@@ -622,7 +622,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 				 struct vsp1_video *video)
+ {
+-	struct vsp1_video_buffer *buf;
++	struct vsp1_vb2_buffer *buf;
+ 	unsigned long flags;
+ 
+ 	buf = vsp1_video_complete_buffer(video);
+@@ -821,7 +821,7 @@ vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
+ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
+-	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
++	struct vsp1_vb2_buffer *buf = to_vsp1_vb2_buffer(vb);
+ 	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
+ 	unsigned int i;
+ 
+@@ -843,7 +843,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
+-	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
++	struct vsp1_vb2_buffer *buf = to_vsp1_vb2_buffer(vb);
+ 	unsigned long flags;
+ 	bool empty;
+ 
+@@ -935,7 +935,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+ 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
+-	struct vsp1_video_buffer *buffer;
++	struct vsp1_vb2_buffer *buffer;
+ 	unsigned long flags;
  	int ret;
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 6c7ff0cdcd32..d83dd0eb5757 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -399,28 +399,23 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
- 	int dvr_done = 0;
  
- 	if (dvb_demux_speedcheck) {
--		struct timespec cur_time, delta_time;
-+		ktime_t cur_time;
- 		u64 speed_bytes, speed_timedelta;
+@@ -1260,7 +1260,7 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
+ 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	video->queue.lock = &video->lock;
+ 	video->queue.drv_priv = video;
+-	video->queue.buf_struct_size = sizeof(struct vsp1_video_buffer);
++	video->queue.buf_struct_size = sizeof(struct vsp1_vb2_buffer);
+ 	video->queue.ops = &vsp1_video_queue_qops;
+ 	video->queue.mem_ops = &vb2_dma_contig_memops;
+ 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 34efc471351c..e66ee14c596d 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -94,7 +94,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
+ 		return NULL;
+ }
  
- 		demux->speed_pkts_cnt++;
+-struct vsp1_video_buffer {
++struct vsp1_vb2_buffer {
+ 	struct vb2_buffer buf;
+ 	struct list_head queue;
  
- 		/* show speed every SPEED_PKTS_INTERVAL packets */
- 		if (!(demux->speed_pkts_cnt % SPEED_PKTS_INTERVAL)) {
--			cur_time = current_kernel_time();
-+			cur_time = ktime_get();
- 
--			if (demux->speed_last_time.tv_sec != 0 &&
--					demux->speed_last_time.tv_nsec != 0) {
--				delta_time = timespec_sub(cur_time,
--						demux->speed_last_time);
-+			if (ktime_to_ns(demux->speed_last_time) == 0) {
- 				speed_bytes = (u64)demux->speed_pkts_cnt
- 					* 188 * 8;
- 				/* convert to 1024 basis */
- 				speed_bytes = 1000 * div64_u64(speed_bytes,
- 						1024);
--				speed_timedelta =
--					(u64)timespec_to_ns(&delta_time);
--				speed_timedelta = div64_u64(speed_timedelta,
--						1000000); /* nsec -> usec */
-+				speed_timedelta = ktime_ms_delta(cur_time,
-+							demux->speed_last_time);
- 				printk(KERN_INFO "TS speed %llu Kbits/sec \n",
- 						div64_u64(speed_bytes,
- 							speed_timedelta));
-@@ -667,7 +662,7 @@ out:
- 
- static int dmx_ts_feed_set(struct dmx_ts_feed *ts_feed, u16 pid, int ts_type,
- 			   enum dmx_ts_pes pes_type,
--			   size_t circular_buffer_size, struct timespec timeout)
-+			   size_t circular_buffer_size, ktime_t timeout)
- {
- 	struct dvb_demux_feed *feed = (struct dvb_demux_feed *)ts_feed;
- 	struct dvb_demux *demux = feed->demux;
-diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
-index ae7fc33c3231..5ed3cab4ad28 100644
---- a/drivers/media/dvb-core/dvb_demux.h
-+++ b/drivers/media/dvb-core/dvb_demux.h
-@@ -83,7 +83,7 @@ struct dvb_demux_feed {
- 	u8 *buffer;
- 	int buffer_size;
- 
--	struct timespec timeout;
-+	ktime_t timeout;
- 	struct dvb_demux_filter *filter;
- 
- 	int ts_type;
-@@ -134,7 +134,7 @@ struct dvb_demux {
- 
- 	uint8_t *cnt_storage; /* for TS continuity check */
- 
--	struct timespec speed_last_time; /* for TS speed check */
-+	ktime_t speed_last_time; /* for TS speed check */
- 	uint32_t speed_pkts_cnt; /* for TS speed check */
+@@ -102,10 +102,9 @@ struct vsp1_video_buffer {
+ 	unsigned int length[3];
  };
  
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index b81e026edab3..df3ba15c007e 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -998,7 +998,7 @@ static int dvb_net_feed_start(struct net_device *dev)
- 		netdev_dbg(dev, "start filtering\n");
- 		priv->secfeed->start_filtering(priv->secfeed);
- 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
--		struct timespec timeout = { 0, 10000000 }; // 10 msec
-+		ktime_t timeout = ns_to_ktime(10 * NSEC_PER_MSEC);
+-static inline struct vsp1_video_buffer *
+-to_vsp1_video_buffer(struct vb2_buffer *vb)
++static inline struct vsp1_vb2_buffer *to_vsp1_vb2_buffer(struct vb2_buffer *vb)
+ {
+-	return container_of(vb, struct vsp1_video_buffer, buf);
++	return container_of(vb, struct vsp1_vb2_buffer, buf);
+ }
  
- 		/* we have payloads encapsulated in TS */
- 		netdev_dbg(dev, "alloc tsfeed\n");
+ struct vsp1_video {
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index f93b545949b6..1bb389529f24 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -195,7 +195,7 @@ static struct v4l2_subdev_ops wpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_video_buffer *buf)
++static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_vb2_buffer *buf)
+ {
+ 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
+ 	if (buf->buf.num_planes > 1)
 -- 
-2.1.0.rc2
+2.4.6
 
