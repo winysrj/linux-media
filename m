@@ -1,316 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38709 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932151AbbIVXVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 19:21:30 -0400
-Date: Tue, 22 Sep 2015 20:21:24 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [RFC 0/9] Unrestricted media entity ID range support
-Message-ID: <20150922202124.20c22f2a@recife.lan>
-In-Reply-To: <5601CE75.3040503@linux.intel.com>
-References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
-	<20150919092231.55fd5c28@osg.samsung.com>
-	<55FE5F91.6090506@linux.intel.com>
-	<20150922091144.328735a3@recife.lan>
-	<5601CE75.3040503@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755523AbbIMU5c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:32 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 30/32] v4l: vsp1: Implement atomic update for the DRM driver
+Date: Sun, 13 Sep 2015 23:57:08 +0300
+Message-Id: <1442177830-24536-31-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Sep 2015 00:56:05 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Add two API functions named vsp1_du_atomic_begin() and
+vsp1_du_atomic_flush() to signal the start and end of an atomic update.
+The vsp1_du_setup_rpf() function is renamed to vsp1_du_atomic_update()
+for consistency.
 
-> Hi Mauro,
-> 
-> Mauro Carvalho Chehab wrote:
-> > Em Sun, 20 Sep 2015 10:26:09 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >
-> >> Hi Mauro,
-> >>
-> >> Mauro Carvalho Chehab wrote:
-> >>> Hi Sakari,
-> >>>
-> >>> On Fri, 11 Sep 2015 13:09:03 +0300
-> >>> Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
-> >>>
-> >>>> Hi all,
-> >>>>
-> >>>> This patchset adds an API for managing entity enumerations, i.e.
-> >>>> storing a bit of information per entity. The entity ID is no longer
-> >>>> limited to small integers (e.g. 31 or 63), but
-> >>>> MEDIA_ENTITY_MAX_LOW_ID. The drivers are also converted to use that
-> >>>> instead of a fixed number.
-> >>>>
-> >>>> If the number of entities in a real use case grows beyond the
-> >>>> capabilities of the approach, the algorithm may be changed. But most
-> >>>> importantly, the API is used to perform the same operation everywhere
-> >>>> it's done.
-> >>>>
-> >>>> I'm sending this for review only, the code itself is untested.
-> >>>>
-> >>>> I haven't entirely made up my mind on the fourth patch. It could be
-> >>>> dropped, as it uses the API for a somewhat different purpose.
-> >>>>
-> >>>
-> >>> Sorry for not reviewing this earlier, but I'm traveling this week to
-> >>> China, and I was having some troubles with the Internet. Btw, I don't
-> >>> have my notebook here (just a chromebook without the media tree).
-> >>> So, please consider this as just a preliminary review.
-> >>>
-> >>> I won't be comment this series patch by patch, because it is really
-> >>> painful to do it while here with this Internet.
-> >>>
-> >>> Also, I want to discuss the patch series as a hole.
-> >>>
-> >>>   From what we've agreed last week, we won't be using a separate ID
-> >>> range for the entity ID, but this patch series is actually adding
-> >>> it, and, IMHO, using a confusing nomenclature: instead of calling the
-> >>> entity ID range as "entity_id" at the media_device struct, you're
-> >>> now calling it "low_id". That sounds confusing to me. If you think
-> >>> we should keep a separate range for entities, calling it as
-> >>> "entity_id" is clearer.
-> >>
-> >> It's *not* the entity ID. It's a number used internally to keep track of
-> >> the entities, and only used for this purpose, nothing else. If you look
-> >> at the patch, the number of places where low_id is used is very limited.
-> >> Individual drivers do not and must not access the low_id field.
-> >>
-> >> The underlying algorithm for keeping track of entities does not change,
-> >> but that could be changed later on without affecting the users of the
-> >> alrogithm. --- See patch 3.
-> >>
-> >> There are two main reasons for this:
-> >>
-> >> 1. No need to implement a new algorithm which would be less efficient
-> >> but could cope in cases we do not have yet; this can be done later on,
-> >> as patch 3 adds an API to access the information without making
-> >> assumptions on the implementation.
-> >
-> > If this is an internal number used only by the graph traversal
-> > algorithm, then the implementation doesn't seem correct. I mean:
-> > such number should be generated internally when starting the
-> > graph traversal algorithm, and it would be better to store such
-> > graph-traversal internal algorithm data on a separate struct.
-> 
-> In that case the number would become enumeration specific. I have no 
-> problem in that, but if a single entity specific number works for the 
-> purpose, I think that could be used as well. Using something else than a 
-> constant value per entity quickly will require memory allocation, and 
-> graph traversal is performance critical in many cases.
+With this new API, the driver will reprogram all modified inputs
+atomically before restarting the video stream.
 
-I guess a single loop at graph traversal start would solve it. Yet,
-it means an extra O(n) to fill in the numbers, but the algorithm
-that fills such numbers will be at least O(n) either here or at the
-entity creation.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 70 +++++++++++++++++++++++++---------
+ drivers/media/platform/vsp1/vsp1_drm.h |  7 ++++
+ include/media/vsp1.h                   |  9 +++--
+ 3 files changed, 66 insertions(+), 20 deletions(-)
 
-Perhaps one solution would be to have a "dirty" flag that would be
-raised if a new entity would be created (and removed?). If dirty
-flag is raised, it would do the count at the beginning of the graph
-start.
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 5cef619b708d..ef8e91d65209 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -254,7 +254,26 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
+ 
+ /**
+- * vsp1_du_setup_rpf - Setup one RPF input of the VSP pipeline
++ * vsp1_du_atomic_begin - Prepare for an atomic update
++ * @dev: the VSP device
++ */
++void vsp1_du_atomic_begin(struct device *dev)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pipe->irqlock, flags);
++
++	vsp1->drm->num_inputs = pipe->num_inputs;
++	vsp1->drm->update = false;
++
++	spin_unlock_irqrestore(&pipe->irqlock, flags);
++}
++EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
++
++/**
++ * vsp1_du_atomic_update - Setup one RPF input of the VSP pipeline
+  * @dev: the VSP device
+  * @rpf_index: index of the RPF to setup (0-based)
+  * @pixelformat: V4L2 pixel format for the RPF memory input
+@@ -288,10 +307,10 @@ EXPORT_SYMBOL_GPL(vsp1_du_setup_lif);
+  *
+  * Return 0 on success or a negative error code on failure.
+  */
+-int vsp1_du_setup_rpf(struct device *dev, unsigned int rpf_index,
+-		      u32 pixelformat, unsigned int pitch,
+-		      dma_addr_t mem[2], const struct v4l2_rect *src,
+-		      const struct v4l2_rect *dst)
++int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
++			  u32 pixelformat, unsigned int pitch,
++			  dma_addr_t mem[2], const struct v4l2_rect *src,
++			  const struct v4l2_rect *dst)
+ {
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+@@ -301,7 +320,6 @@ int vsp1_du_setup_rpf(struct device *dev, unsigned int rpf_index,
+ 	struct vsp1_rwpf_memory memory;
+ 	struct vsp1_rwpf *rpf;
+ 	unsigned long flags;
+-	bool start_stop = false;
+ 	int ret;
+ 
+ 	if (rpf_index >= vsp1->pdata.rpf_count)
+@@ -322,16 +340,11 @@ int vsp1_du_setup_rpf(struct device *dev, unsigned int rpf_index,
+ 			vsp1->bru->inputs[rpf_index].rpf = NULL;
+ 			pipe->inputs[rpf_index] = NULL;
+ 
+-			vsp1->drm->update = true;
+-			start_stop = --pipe->num_inputs == 0;
++			pipe->num_inputs--;
+ 		}
+ 
+ 		spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 
+-		/* Stop the pipeline if we're the last user. */
+-		if (start_stop)
+-			vsp1_pipeline_stop(pipe);
+-
+ 		return 0;
+ 	}
+ 
+@@ -459,19 +472,42 @@ int vsp1_du_setup_rpf(struct device *dev, unsigned int rpf_index,
+ 	if (!pipe->inputs[rpf->entity.index]) {
+ 		vsp1->bru->inputs[rpf_index].rpf = rpf;
+ 		pipe->inputs[rpf->entity.index] = rpf;
+-		start_stop = pipe->num_inputs++ == 0;
++		pipe->num_inputs++;
+ 	}
+ 
+-	/* Start the pipeline if it's currently stopped. */
++	spin_unlock_irqrestore(&pipe->irqlock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
++
++/**
++ * vsp1_du_atomic_flush - Commit an atomic update
++ * @dev: the VSP device
++ */
++void vsp1_du_atomic_flush(struct device *dev)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
++	unsigned long flags;
++	bool stop = false;
++
++	spin_lock_irqsave(&pipe->irqlock, flags);
++
+ 	vsp1->drm->update = true;
+-	if (start_stop)
++
++	/* Start or stop the pipeline if needed. */
++	if (!vsp1->drm->num_inputs && pipe->num_inputs)
+ 		vsp1_drm_pipeline_run(pipe);
++	else if (vsp1->drm->num_inputs && !pipe->num_inputs)
++		stop = true;
+ 
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 
+-	return 0;
++	if (stop)
++		vsp1_pipeline_stop(pipe);
+ }
+-EXPORT_SYMBOL_GPL(vsp1_du_setup_rpf);
++EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+ 
+ /* -----------------------------------------------------------------------------
+  * Initialization
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 2ad320ab1e45..25d7f017feb4 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -15,8 +15,15 @@
+ 
+ #include "vsp1_pipe.h"
+ 
++/**
++ * vsp1_drm - State for the API exposed to the DRM driver
++ * @pipe: the VSP1 pipeline used for display
++ * @num_inputs: number of active pipeline inputs at the beginning of an update
++ * @update: the pipeline configuration has been updated
++ */
+ struct vsp1_drm {
+ 	struct vsp1_pipeline pipe;
++	unsigned int num_inputs;
+ 	bool update;
+ };
+ 
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 2c1aea7066be..cc541753896f 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -23,8 +23,11 @@ int vsp1_du_init(struct device *dev);
+ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 		      unsigned int height);
+ 
+-int vsp1_du_setup_rpf(struct device *dev, unsigned int rpf, u32 pixelformat,
+-		      unsigned int pitch, dma_addr_t mem[2],
+-		      const struct v4l2_rect *src, const struct v4l2_rect *dst);
++int vsp1_du_atomic_begin(struct device *dev);
++int vsp1_du_atomic_update(struct device *dev, unsigned int rpf, u32 pixelformat,
++			  unsigned int pitch, dma_addr_t mem[2],
++			  const struct v4l2_rect *src,
++			  const struct v4l2_rect *dst);
++int vsp1_du_atomic_flush(struct device *dev);
+ 
+ #endif /* __MEDIA_VSP1_H__ */
+-- 
+2.4.6
 
-> >
-> >> 2. It does solve the problem. The graph object IDs of the entities can
-> >> be large without adversely affecting the functionality of existing drivers.
-> >
-> > Right now, with just those 9 patches, it doesn't ;)
-> >
-> > I mean: if I apply your patches after the MC next gen ones and try to use the
-> > graph traversal, it will do the wrong thing for hybrid TV cards, as the number
-> > of entities there are more than 64. Ok, easy to fix after this series by
-> > just changing the value of MEDIA_ENTITY_MAX_LOW_ID, but this will only
-> > work while we don't implement dynamic support.
-> 
-> Fair enough. Still, it didn't work before either: the graph traversal 
-> algorithm depends on entity ID not exceeding MEDIA_ENTITY_ENUM_MAX_ID 
-> (which this set renames).
-
-Well, for existing drivers that use graph traversal, this number is
-not exceeded.
-
-> I still consider that a separate problem.
-> 
-> >
-> >>>
-> >>> Also, you said at the low_id comment that if an entity is
-> >>> unregistered and then re-registered, it would preserve the same
-> >>
-> >> I never claimed that, and the patchset does not implement that either.
-> >
-> > That's what I understood from this comment:
-> >
-> > 	Rename the macro as it no longer is a maximum ID that an entity can have,
-> > 	but a low ID which is used for internal purposes of enumeration. This is
-> > 	the maximum number of concurrent entities that may exist in a media
-> > 	device.
-> >
-> > If this is the "max number of concurrent entities", you need to reassign
-> > those numbers when entities are removed.
-> >
-> > If this is not what you're meaning, then fix the patch description
-> > to let it clearer.
-> >
-> > I guess then that "low ID" is actually an upper bound for that
-> > graph-traversal only control number. We should really not use the word "ID"
-> > here, as this is not an ID. it is just some index/control number that will
-> > be granted to be below some upper bound.
-> 
-> Index sounds good to me, it's indeed clearer. I didn't like "low" 
-> either, it just happens to be that way right now.
-
-OK.
-
-> With a different 
-> algorithm, I think we can get rid of the entire field --- but it will 
-> have to be replaced by something that requires memory allocation.
-
-It is hard to tell how a new algorithm would be without writing the
-code for it and do some experimentation ;)
-
-> 
-> ...
-> 
-> >>>
-> >>> - some other mechanism would be available for drivers that
-> >>>     would support dynamic entity creation.
-> >>>
-> >>> So, I don't see how this would solve the problems that we
-> >>> discussed at the last week IRC chats.
-> >>>
-> >>> Am I missing something?
-> >>
-> >> This set indeed solves a problem, and that problem was unrestricting the
-> >> graph object ID of the entities. There are other problems remaining
-> >> before entities can be e.g. unregistered one by one, but they are
-> >> separate problems.
-> >
-> > That's not the way I see it ;) I mean, for the current MC code, this patch
-> > series is not needed, as all drivers right now have less than 64 entities.
-> 
-> In the last IRC meeting we agreed to have a single ID range for graph 
-> object IDs. Now that ID will be given to all graph objects, 64 will be 
-> reached much sooner than it used to, and it probably happens on at least 
-> some existing drivers as well.
-
-Yes, using a single range will make this an issue. So, yes we need to
-apply the patches that fixes the upper bound problem before applying
-the patch that moves from 4 ranges into one. So, the order would be:
-
-- the 82 patches
-- the graph traversal change to use an "index" for the entity count
-  (the equivalent of this series)
-- the patch that changes from 4 to 1 range.
-> 
-> >
-> > This need only starts after/during the MC next gen patches, in order
-> > to address two changes that come on this series:
-> >
-> > - having an arbitrary entity ID number that will be a way bigger
-> >    than the current upper bound (the number of entities);
-> 
-> It's indeed *the number of entities*, not entity ID.
-> 
-> >
-> > - support more than 64 entities.
-> >
-> > So, I would be expecting a patch series that would either:
-> >
-> > 1) change the graph traversal algorithms to not depend on some
-> > upper bound limit;
-> >
-> > 	or:
-> >
-> > 2) dynamically create whatever internal index number and to
-> > dynamically determine the upper bound limit that would be needed for the
-> > graph traversal algorithm to work, allocating those data when the graph
-> > traversal algorithm starts and freeing them when the graph traversal
-> > stops, and/or when the media device is unregistered.
-> 
-> Even with 4 k entities, the memory required by that algorithm to track 
-> the entities would be just 512 bytes + 16 * depth. I wonder if a more 
-> sophisticated algorithm would be able to operate with less or as 
-> efficiently.
-
-Hard to tell without seeing the code ;) 
-
-The current algorithm is not bad, but I never really needed to look at
-other alternatives for it.
-
-Yet, with dynamic entity creation/removal, we'll need to add some extra
-code to re-numerate the new entities and re-calculate the upper bound,
-as entities are created/removed. So, it might justify the need or a better
-algorithm, in order to avoid adding too much penalty to the performance.
-
-> 
-> The memory would need to come from elsewhere than from the stack obviously.
-
-Yes.
-
-> 
-> >
-> >>
-> >>>
-> >>> Regards,
-> >>> Mauro
-> >>>
-> >>> PS.: sparse already complains on two places at the media-entity where
-> >>> bitmaps are declared at the stack. With max entities equal to 64,
-> >>> that's not an issue, but if we change to a higher number, those will
-> >>> need to be dynamically allocated, in order to avoid stack overflows.
-> >>> I didn't see any patches touching that.
-> >>
-> >> I agree. The aim of the set was not to increase the number of concurrent
-> >> entities. That is a separate problem which can be solved later on once
-> >> we have a use case for it.
-> >>
-> >
-> > I reviewed that code. The problem there is actually unrelated to what
-> > this patch series is trying to solve, as the problem there is due to the
-> > number of PADs (and not on the number of entities). I mean about this
-> > code at media_entity_pipeline_start():
-> >
-> > 	while ((entity = media_entity_graph_walk_next(&graph))) {
-> > 		DECLARE_BITMAP(active, entity->num_pads);
-> > 		DECLARE_BITMAP(has_no_links, entity->num_pads);
-> >
-> > That limits the max number of pads, as a big number would cause a
-> > Linux stack overflow.
-> >
-> > Those bitmaps should likely be moved to struct media_pipeline or
-> > struct media_device and be either dynamically created/removed or
-> > having them relying on a max number of pads.
-> 
-> How many pads are we looking forwards to have?
-> 
-> I don't think we have a fixed limit as such, but AFAIR there's no driver 
-> using more than around five at the moment, so there was really no need 
-> to worry about it.
-> 
-> I guess it'd be good to have a maximum though just to be on the safe side.
-
-DVB drivers use currently 256 pads. At the patch I wrote earlier today:
-
-	https://patchwork.linuxtv.org/patch/31512/
-
-(not sure why it was not at patchwork yet... Had to re-send it now)
-
-I used the next power of two as the max limit, so 512 pads. I opted to
-just add the two bitmaps used at the graph traversal logic as part of
-the private fields of struct media_device. I don't expect any performance
-penalty with that.
-
-One thing I forgot to add there was a test if a driver is using more than
-the maximum number of PADs. We should add such test on a version 2 of the
-patch.
-
-Regards,
-Mauro
-
-
-
-> 
