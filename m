@@ -1,211 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754937AbbIMU5M (ORCPT
+	with ESMTP id S1755396AbbIMU5U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:12 -0400
+	Sun, 13 Sep 2015 16:57:20 -0400
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 02/32] v4l: vsp1: Store the memory format in struct vsp1_rwpf
-Date: Sun, 13 Sep 2015 23:56:40 +0300
-Message-Id: <1442177830-24536-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 12/32] v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
+Date: Sun, 13 Sep 2015 23:56:50 +0300
+Message-Id: <1442177830-24536-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the format from struct vsp1_video to struct vsp1_rwpf to prepare
-for VSPD KMS support that will not instantiate V4L2 video device nodes.
+Those functions are specific to video nodes, rename them for
+consistency.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c   |  4 ++--
- drivers/media/platform/vsp1/vsp1_rpf.c   |  4 ++--
- drivers/media/platform/vsp1/vsp1_rwpf.h  |  2 ++
- drivers/media/platform/vsp1/vsp1_video.c | 40 ++++++++++++++++----------------
- drivers/media/platform/vsp1/vsp1_video.h |  2 --
- drivers/media/platform/vsp1/vsp1_wpf.c   |  4 ++--
- 6 files changed, 28 insertions(+), 28 deletions(-)
+ drivers/media/platform/vsp1/vsp1_video.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 7dd763311c0f..1308dfef0f92 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -94,7 +94,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Disable dithering and enable color data normalization unless the
- 	 * format at the pipeline output is premultiplied.
- 	 */
--	flags = pipe->output ? pipe->output->video.format.flags : 0;
-+	flags = pipe->output ? pipe->output->format.flags : 0;
- 	vsp1_bru_write(bru, VI6_BRU_INCTRL,
- 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
- 		       0 : VI6_BRU_INCTRL_NRM);
-@@ -125,7 +125,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		if (bru->inputs[i].rpf) {
- 			ctrl |= VI6_BRU_CTRL_RBC;
- 
--			premultiplied = bru->inputs[i].rpf->video.format.flags
-+			premultiplied = bru->inputs[i].rpf->format.flags
- 				      & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA;
- 		} else {
- 			ctrl |= VI6_BRU_CTRL_CROP(VI6_ROP_NOP)
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index a1093cc1b9a1..6e0564b5b37b 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -75,8 +75,8 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
- static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- {
- 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
--	const struct vsp1_format_info *fmtinfo = rpf->video.fmtinfo;
--	const struct v4l2_pix_format_mplane *format = &rpf->video.format;
-+	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
-+	const struct v4l2_pix_format_mplane *format = &rpf->format;
- 	const struct v4l2_rect *crop = &rpf->crop;
- 	u32 pstride;
- 	u32 infmt;
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index f452dce1a931..8609c3d02679 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -32,6 +32,8 @@ struct vsp1_rwpf {
- 	unsigned int max_width;
- 	unsigned int max_height;
- 
-+	struct v4l2_pix_format_mplane format;
-+	const struct vsp1_format_info *fmtinfo;
- 	struct {
- 		unsigned int left;
- 		unsigned int top;
 diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 48480e66fad6..90d5791c80b6 100644
+index 1a909ab34ea1..8569836ea51b 100644
 --- a/drivers/media/platform/vsp1/vsp1_video.c
 +++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -185,9 +185,9 @@ static int vsp1_video_verify_format(struct vsp1_video *video)
- 	if (ret < 0)
- 		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
+@@ -308,9 +308,9 @@ vsp1_video_format_adjust(struct vsp1_video *video,
+  * Pipeline Management
+  */
  
--	if (video->fmtinfo->mbus != fmt.format.code ||
--	    video->format.height != fmt.format.height ||
--	    video->format.width != fmt.format.width)
-+	if (video->rwpf->fmtinfo->mbus != fmt.format.code ||
-+	    video->rwpf->format.height != fmt.format.height ||
-+	    video->rwpf->format.width != fmt.format.width)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -805,7 +805,7 @@ vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- 		format = &pix_mp;
- 	} else {
--		format = &video->format;
-+		format = &video->rwpf->format;
- 	}
- 
- 	*nplanes = format->num_planes;
-@@ -822,7 +822,7 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
+-static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+-					 struct vsp1_rwpf *input,
+-					 struct vsp1_rwpf *output)
++static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
++					       struct vsp1_rwpf *input,
++					       struct vsp1_rwpf *output)
  {
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
--	const struct v4l2_pix_format_mplane *format = &video->format;
-+	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
- 	unsigned int i;
- 
- 	if (vb->num_planes < format->num_planes)
-@@ -904,7 +904,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- 				struct vsp1_rwpf *rpf =
- 					to_rwpf(&pipe->uds_input->subdev);
- 
--				uds->scale_alpha = rpf->video.fmtinfo->alpha;
-+				uds->scale_alpha = rpf->fmtinfo->alpha;
- 			}
- 		}
- 
-@@ -1008,7 +1008,7 @@ vsp1_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
- 		return -EINVAL;
- 
- 	mutex_lock(&video->lock);
--	format->fmt.pix_mp = video->format;
-+	format->fmt.pix_mp = video->rwpf->format;
- 	mutex_unlock(&video->lock);
- 
+ 	struct vsp1_entity *entity;
+ 	unsigned int entities = 0;
+@@ -384,8 +384,8 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
  	return 0;
-@@ -1048,8 +1048,8 @@ vsp1_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
- 		goto done;
+ }
+ 
+-static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+-				  struct vsp1_video *video)
++static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
++					struct vsp1_video *video)
+ {
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+@@ -437,8 +437,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 	 * contains no loop and that all branches end at the output WPF.
+ 	 */
+ 	for (i = 0; i < pipe->num_inputs; ++i) {
+-		ret = vsp1_pipeline_validate_branch(pipe, pipe->inputs[i],
+-						    pipe->output);
++		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
++							  pipe->output);
+ 		if (ret < 0)
+ 			goto error;
  	}
+@@ -450,8 +450,8 @@ error:
+ 	return ret;
+ }
  
--	video->format = format->fmt.pix_mp;
--	video->fmtinfo = info;
-+	video->rwpf->format = format->fmt.pix_mp;
-+	video->rwpf->fmtinfo = info;
+-static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
+-			      struct vsp1_video *video)
++static int vsp1_video_pipeline_init(struct vsp1_pipeline *pipe,
++				    struct vsp1_video *video)
+ {
+ 	int ret;
  
- done:
- 	mutex_unlock(&video->lock);
-@@ -1226,17 +1226,17 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
- 		return ret;
+@@ -459,7 +459,7 @@ static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
  
- 	/* ... and the format ... */
--	video->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
--	video->format.pixelformat = video->fmtinfo->fourcc;
--	video->format.colorspace = V4L2_COLORSPACE_SRGB;
--	video->format.field = V4L2_FIELD_NONE;
--	video->format.width = VSP1_VIDEO_DEF_WIDTH;
--	video->format.height = VSP1_VIDEO_DEF_HEIGHT;
--	video->format.num_planes = 1;
--	video->format.plane_fmt[0].bytesperline =
--		video->format.width * video->fmtinfo->bpp[0] / 8;
--	video->format.plane_fmt[0].sizeimage =
--		video->format.plane_fmt[0].bytesperline * video->format.height;
-+	rwpf->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
-+	rwpf->format.pixelformat = rwpf->fmtinfo->fourcc;
-+	rwpf->format.colorspace = V4L2_COLORSPACE_SRGB;
-+	rwpf->format.field = V4L2_FIELD_NONE;
-+	rwpf->format.width = VSP1_VIDEO_DEF_WIDTH;
-+	rwpf->format.height = VSP1_VIDEO_DEF_HEIGHT;
-+	rwpf->format.num_planes = 1;
-+	rwpf->format.plane_fmt[0].bytesperline =
-+		rwpf->format.width * rwpf->fmtinfo->bpp[0] / 8;
-+	rwpf->format.plane_fmt[0].sizeimage =
-+		rwpf->format.plane_fmt[0].bytesperline * rwpf->format.height;
+ 	/* If we're the first user validate and initialize the pipeline. */
+ 	if (pipe->use_count == 0) {
+-		ret = vsp1_pipeline_validate(pipe, video);
++		ret = vsp1_video_pipeline_validate(pipe, video);
+ 		if (ret < 0)
+ 			goto done;
+ 	}
+@@ -472,7 +472,7 @@ done:
+ 	return ret;
+ }
  
- 	/* ... and the video node... */
- 	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 5f48eec5562c..dbcb7b5b6c95 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -123,8 +123,6 @@ struct vsp1_video {
- 	struct media_pad pad;
+-static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
++static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
+ {
+ 	mutex_lock(&pipe->lock);
  
- 	struct mutex lock;
--	struct v4l2_pix_format_mplane format;
--	const struct vsp1_format_info *fmtinfo;
+@@ -738,7 +738,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
  
- 	struct vsp1_pipeline pipe;
- 	unsigned int pipe_index;
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 50dfb3060156..b14070d1e457 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -112,7 +112,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ 	media_entity_pipeline_stop(&video->video.entity);
  
- 	/* Destination stride. */
- 	if (!pipe->lif) {
--		struct v4l2_pix_format_mplane *format = &wpf->video.format;
-+		struct v4l2_pix_format_mplane *format = &wpf->format;
+ 	/* Remove all buffers from the IRQ queue. */
+@@ -879,7 +879,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_stop;
  
- 		vsp1_wpf_write(wpf, VI6_WPF_DSTM_STRIDE_Y,
- 			       format->plane_fmt[0].bytesperline);
-@@ -130,7 +130,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+-	ret = vsp1_pipeline_init(pipe, video);
++	ret = vsp1_video_pipeline_init(pipe, video);
+ 	if (ret < 0)
+ 		goto err_stop;
  
- 	/* Format */
- 	if (!pipe->lif) {
--		const struct vsp1_format_info *fmtinfo = wpf->video.fmtinfo;
-+		const struct vsp1_format_info *fmtinfo = wpf->fmtinfo;
+@@ -891,7 +891,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
  
- 		outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
- 
+ err_cleanup:
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ err_stop:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 	return ret;
 -- 
 2.4.6
 
