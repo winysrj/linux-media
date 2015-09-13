@@ -1,152 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46079 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751464AbbIIHhO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755477AbbIMU50 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2015 03:37:14 -0400
-Date: Wed, 9 Sep 2015 10:37:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 06/55] [media] media: use media_gobj inside pads
-Message-ID: <20150909073710.GK3175@valkosipuli.retiisi.org.uk>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
- <239d2a20505179788c7fb1aa09bbc5df00cc8453.1440902901.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <239d2a20505179788c7fb1aa09bbc5df00cc8453.1440902901.git.mchehab@osg.samsung.com>
+	Sun, 13 Sep 2015 16:57:26 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH 22/32] v4l: vsp1: Make the BRU optional
+Date: Sun, 13 Sep 2015 23:57:00 +0300
+Message-Id: <1442177830-24536-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Not all VSP instances have a BRU on R-Car Gen3, make it optional. For
+backward compatibility with older DT bindings default to BRU
+availability on R-Car Gen2.
 
-On Sun, Aug 30, 2015 at 12:06:17AM -0300, Mauro Carvalho Chehab wrote:
-> PADs also need unique object IDs that won't conflict with
-> the entity object IDs.
-> 
-> The pad objects are currently created via media_entity_init()
-> and, once created, never change.
-> 
-> While this will likely change in the future in order to
-> support dynamic changes, for now we'll keep PADs as arrays
-> and initialize the media_gobj embedded structs when
-> registering the entity.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 81d6a130efef..3bdda16584fe 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -427,6 +427,8 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
->  int __must_check media_device_register_entity(struct media_device *mdev,
->  					      struct media_entity *entity)
->  {
-> +	int i;
+Cc: devicetree@vger.kernel.org
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ .../devicetree/bindings/media/renesas,vsp1.txt     |  3 +++
+ drivers/media/platform/vsp1/vsp1.h                 |  1 +
+ drivers/media/platform/vsp1/vsp1_drv.c             | 23 ++++++++++++++++------
+ 3 files changed, 21 insertions(+), 6 deletions(-)
 
-unsigned int?
-
-> +
->  	/* Warn if we apparently re-register an entity */
->  	WARN_ON(entity->parent != NULL);
->  	entity->parent = mdev;
-> @@ -435,6 +437,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  	/* Initialize media_gobj embedded at the entity */
->  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
->  	list_add_tail(&entity->list, &mdev->entities);
-> +
-> +	/* Initialize objects at the pads */
-> +	for (i = 0; i < entity->num_pads; i++)
-> +		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> +			       &entity->pads[i].graph_obj);
-> +
->  	spin_unlock(&mdev->lock);
->  
->  	return 0;
-> @@ -450,12 +458,15 @@ EXPORT_SYMBOL_GPL(media_device_register_entity);
->   */
->  void media_device_unregister_entity(struct media_entity *entity)
->  {
-> +	int i;
-
-Ditto. It'd be nice to declare short temporary and counter variables as
-last (i.e. after mdev).
-
->  	struct media_device *mdev = entity->parent;
->  
->  	if (mdev == NULL)
->  		return;
->  
->  	spin_lock(&mdev->lock);
-> +	for (i = 0; i < entity->num_pads; i++)
-> +		media_gobj_remove(&entity->pads[i].graph_obj);
->  	media_gobj_remove(&entity->graph_obj);
->  	list_del(&entity->list);
->  	spin_unlock(&mdev->lock);
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 888cb88e19bf..377c6655c5d0 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -48,6 +48,9 @@ void media_gobj_init(struct media_device *mdev,
->  	case MEDIA_GRAPH_ENTITY:
->  		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
->  		break;
-> +	case MEDIA_GRAPH_PAD:
-> +		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
-> +		break;
->  	}
->  }
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index f6deef6e5820..9493721f630e 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -42,6 +42,7 @@ struct device;
->   * @hw_revision: Hardware device revision
->   * @driver_version: Device driver version
->   * @entity_id:	Unique ID used on the last entity registered
-> + * @pad_id:	Unique ID used on the last pad registered
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> @@ -69,6 +70,7 @@ struct media_device {
->  	u32 driver_version;
->  
->  	u32 entity_id;
-> +	u32 pad_id;
->  
->  	struct list_head entities;
->  
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index bb74b5883cbb..ce4c654486d6 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -34,9 +34,11 @@
->   * enum media_gobj_type - type of a graph object
->   *
->   * @MEDIA_GRAPH_ENTITY:		Identify a media entity
-> + * @MEDIA_GRAPH_PAD:		Identify a media pad
->   */
->  enum media_gobj_type {
->  	MEDIA_GRAPH_ENTITY,
-> +	MEDIA_GRAPH_PAD,
->  };
->  
->  #define MEDIA_BITS_PER_TYPE		8
-> @@ -72,6 +74,7 @@ struct media_link {
->  };
->  
->  struct media_pad {
-> +	struct media_gobj graph_obj;
->  	struct media_entity *entity;	/* Entity this pad belongs to */
->  	u16 index;			/* Pad index in the entity pads array */
->  	unsigned long flags;		/* Pad flags (MEDIA_PAD_FL_*) */
-
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 674c8c30d046..766f034c1e45 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -20,6 +20,9 @@ Optional properties:
+ 
+   - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1. Defaults
+     to 0 if not present.
++  - renesas,has-bru: Boolean, indicates that the Blending & ROP Unit (BRU)
++    module is available. Defaults to true on R-Car Gen2 and false on R-Car Gen3
++    if not present.
+   - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
+     available.
+   - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module is
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 3b2b2387e085..173f9f830049 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -42,6 +42,7 @@ struct vsp1_uds;
+ #define VSP1_HAS_LIF		(1 << 0)
+ #define VSP1_HAS_LUT		(1 << 1)
+ #define VSP1_HAS_SRU		(1 << 2)
++#define VSP1_HAS_BRU		(1 << 3)
+ 
+ struct vsp1_platform_data {
+ 	unsigned int features;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index bd22457bf392..eccdacdf4f4c 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -223,13 +223,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	/* Instantiate all the entities. */
+-	vsp1->bru = vsp1_bru_create(vsp1);
+-	if (IS_ERR(vsp1->bru)) {
+-		ret = PTR_ERR(vsp1->bru);
+-		goto done;
+-	}
++	if (vsp1->pdata.features & VSP1_HAS_BRU) {
++		vsp1->bru = vsp1_bru_create(vsp1);
++		if (IS_ERR(vsp1->bru)) {
++			ret = PTR_ERR(vsp1->bru);
++			goto done;
++		}
+ 
+-	list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
++		list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
++	}
+ 
+ 	vsp1->hsi = vsp1_hsit_create(vsp1, true);
+ 	if (IS_ERR(vsp1->hsi)) {
+@@ -513,6 +515,8 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
+ 
+ 	vsp1->info = of_device_get_match_data(vsp1->dev);
+ 
++	if (of_property_read_bool(np, "renesas,has-bru"))
++		pdata->features |= VSP1_HAS_BRU;
+ 	if (of_property_read_bool(np, "renesas,has-lif"))
+ 		pdata->features |= VSP1_HAS_LIF;
+ 	if (of_property_read_bool(np, "renesas,has-lut"))
+@@ -542,6 +546,13 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
+ 		return -EINVAL;
+ 	}
+ 
++	/* Backward compatibility: all Gen2 VSP instances have a BRU, the
++	 * renesas,has-bru property was thus not available. Set the HAS_BRU
++	 * feature automatically in that case.
++	 */
++	if (vsp1->info->num_bru_inputs == 4)
++		pdata->features |= VSP1_HAS_BRU;
++
+ 	return 0;
+ }
+ 
 -- 
-Kind regards,
+2.4.6
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
