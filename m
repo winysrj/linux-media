@@ -1,65 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33559 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753923AbbIAMcb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 08:32:31 -0400
-Date: Tue, 1 Sep 2015 09:32:27 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>, alsa-devel@alsa-project.org,
-	media-workshop@linuxtv.org
-Subject: Re: [ANNOUNCE] Media Workshop at the Kernel Summit 2015 in Korea
-Message-ID: <20150901093227.31222cfb@recife.lan>
-In-Reply-To: <20150901092917.5aec83f2@recife.lan>
-References: <20150901092917.5aec83f2@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42200 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753243AbbIMQmz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 12:42:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/6] vivid: use ARRAY_SIZE to calculate max control value
+Date: Sun, 13 Sep 2015 18:41:27 +0200
+Message-Id: <1442162492-46238-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 1 Sep 2015 09:29:17 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi,
-> 
-> As we keep being very active on the development of the Linux Kernel Media
-> subsystem, we'll be doing another workshop this year.
+The max value of various menu controls is hardcoded, and it is easy to forget
+to update it after adding a new menu item.
 
-In time: 
+So use ARRAY_SIZE instead to calculate this value.
 
-The annual Kernel Summit for 2015 will be held October 26th through
-the 28th in Seoul, South Korea, overlapping with the Korea Linux Forum,
-which will be on October 26th.   
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-ctrls.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-The Kernel Summit workshops will be at Oct, 26.
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 339c8b7..3d8e161 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -548,7 +548,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_osd_mode = {
+ 	.id = VIVID_CID_OSD_TEXT_MODE,
+ 	.name = "OSD Text Mode",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 2,
++	.max = ARRAY_SIZE(vivid_ctrl_osd_mode_strings) - 2,
+ 	.qmenu = vivid_ctrl_osd_mode_strings,
+ };
+ 
+@@ -640,7 +640,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_tstamp_src = {
+ 	.id = VIVID_CID_TSTAMP_SRC,
+ 	.name = "Timestamp Source",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 1,
++	.max = ARRAY_SIZE(vivid_ctrl_tstamp_src_strings) - 2,
+ 	.qmenu = vivid_ctrl_tstamp_src_strings,
+ };
+ 
+@@ -712,7 +712,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_colorspace = {
+ 	.id = VIVID_CID_COLORSPACE,
+ 	.name = "Colorspace",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 7,
++	.max = ARRAY_SIZE(vivid_ctrl_colorspace_strings) - 2,
+ 	.def = 2,
+ 	.qmenu = vivid_ctrl_colorspace_strings,
+ };
+@@ -732,7 +732,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_xfer_func = {
+ 	.id = VIVID_CID_XFER_FUNC,
+ 	.name = "Transfer Function",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 5,
++	.max = ARRAY_SIZE(vivid_ctrl_xfer_func_strings) - 2,
+ 	.qmenu = vivid_ctrl_xfer_func_strings,
+ };
+ 
+@@ -754,7 +754,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_ycbcr_enc = {
+ 	.id = VIVID_CID_YCBCR_ENC,
+ 	.name = "Y'CbCr Encoding",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 8,
++	.max = ARRAY_SIZE(vivid_ctrl_ycbcr_enc_strings) - 2,
+ 	.qmenu = vivid_ctrl_ycbcr_enc_strings,
+ };
+ 
+@@ -770,7 +770,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_quantization = {
+ 	.id = VIVID_CID_QUANTIZATION,
+ 	.name = "Quantization",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 2,
++	.max = ARRAY_SIZE(vivid_ctrl_quantization_strings) - 2,
+ 	.qmenu = vivid_ctrl_quantization_strings,
+ };
+ 
+@@ -1088,7 +1088,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_std_signal_mode = {
+ 	.id = VIVID_CID_STD_SIGNAL_MODE,
+ 	.name = "Standard Signal Mode",
+ 	.type = V4L2_CTRL_TYPE_MENU,
+-	.max = 5,
++	.max = ARRAY_SIZE(vivid_ctrl_std_signal_mode_strings) - 2,
+ 	.menu_skip_mask = 1 << 3,
+ 	.qmenu = vivid_ctrl_std_signal_mode_strings,
+ };
+-- 
+2.1.4
 
-> 
-> This will be the first time we'll be doing it in Asia, so it is a great
-> opportunity for the ones that are there to join us and participate, in
-> order to improve the Linux Kernel support for A/V stream capture, webcam
-> and analog/digital TV.
-> 
-> As usual, we'll be using the media-workshop@linuxtv.org Mailing List for
-> specific discussions about that, so the ones interested on participate
-> are requested to subscribe it.
-> 
-> This time, we'll be doing something different than what we've done on the
-> last years, and use something that other subsystems like ALSA are doing
-> for a while: we'll be using two google docs to track the proposals and
-> the interested parties.
-> 
-> If you're interested in participate and wants to be invited for the event,
-> please put your data at this document:
-> 	https://docs.google.com/spreadsheets/d/1YecCAUo0L1R_i3jPg3S-A5iqX7BYAd2c_VfJctQmr88/edit?usp=sharing
-> 
-> As this is the first time we'll be using Google Docs, I kindly request
-> you to also send an email for media-workshop@linuxtv.org if you have
-> any troubles adding things there and/or a backup measure.
-> 
-> If you have any proposal for themes, please add it here:
-> 	https://docs.google.com/spreadsheets/d/1F67VcdhkDlVfRpx-GPhe61adZh81Q26q--_OhCI5vUg/edit?usp=sharing
-> It is useful if you could also send an email to the workshop ML in order
-> to better explain the theme proposal.
-> 
-> Hoping to see you there soon!
-> Mauro
