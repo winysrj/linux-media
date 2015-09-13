@@ -1,84 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16388 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753339AbbIVJrF (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:51397 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754976AbbIMCxS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 05:47:05 -0400
-Message-id: <56012392.7020807@samsung.com>
-Date: Tue, 22 Sep 2015 11:46:58 +0200
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: David Howells <dhowells@redhat.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, brcm80211-dev-list@broadcom.com,
-	devel@driverdev.osuosl.org, dev@openvswitch.org,
-	dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-cachefs@redhat.com, linux-clk@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-leds@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-mm@kvack.org, linux-omap@vger.kernel.org,
-	linux-rdma@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-wireless@vger.kernel.org, lustre-devel@lists.lustre.org,
-	netdev@vger.kernel.org, rtc-linux@googlegroups.com
-Subject: Re: [PATCH 00/38] Fixes related to incorrect usage of unsigned types
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
- <17571.1442842945@warthog.procyon.org.uk> <56011BB9.5030004@samsung.com>
-In-reply-to: <56011BB9.5030004@samsung.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
+	Sat, 12 Sep 2015 22:53:18 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6F2642A0006
+	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2015 04:52:04 +0200 (CEST)
+Date: Sun, 13 Sep 2015 04:52:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150913025204.6F2642A0006@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/22/2015 11:13 AM, Andrzej Hajda wrote:
-> On 09/21/2015 03:42 PM, David Howells wrote:
->> Andrzej Hajda <a.hajda-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org> wrote:
->>
->>> Semantic patch finds comparisons of types:
->>>      unsigned < 0
->>>      unsigned >= 0
->>> The former is always false, the latter is always true.
->>> Such comparisons are useless, so theoretically they could be
->>> safely removed, but their presence quite often indicates bugs.
->>
->> Or someone has left them in because they don't matter and there's the
->> possibility that the type being tested might be or become signed under some
->> circumstances.  If the comparison is useless, I'd expect the compiler to just
->> discard it - for such cases your patch is pointless.
->>
->> If I have, for example:
->>
->> 	unsigned x;
->>
->> 	if (x == 0 || x > 27)
->> 		give_a_range_error();
->>
->> I will write this as:
->>
->> 	unsigned x;
->>
->> 	if (x <= 0 || x > 27)
->> 		give_a_range_error();
->>
->> because it that gives a way to handle x being changed to signed at some point
->> in the future for no cost.  In which case, your changing the <= to an ==
->> "because the < part of the case is useless" is arguably wrong.
->
-> This is why I have not checked for such cases - I have skipped checks of type
-> 	unsigned <= 0
-> exactly for the reasons above.
->
-> However I have left two other checks as they seems to me more suspicious - they
-> are always true or false. But as Dmitry and Andrew pointed out Linus have quite
-> strong opinion against removing range checks in such cases as he finds it
-> clearer. I think it applies to patches 29-36. I am not sure about patches 26-28,37.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Dropped 30/38 and 31/38 from LED tree then.
+Results of the daily build of media_tree:
 
--- 
-Best Regards,
-Jacek Anaszewski
+date:		Sun Sep 13 04:00:19 CEST 2015
+git branch:	test
+git hash:	50ef28a6ac216fd8b796257a3768fef8f57b917d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
