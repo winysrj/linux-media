@@ -1,123 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56911 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752664AbbIKPYm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755474AbbIMU5Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 11:24:42 -0400
-Message-ID: <55F2F1F1.50003@xs4all.nl>
-Date: Fri, 11 Sep 2015 17:23:29 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>
-Subject: Re: [PATCH 10/18] [media] cx231xx: enforce check for graph creation
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <ca2647ddd7cc6058cdc87cc0e5869d2753cf6c19.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <ca2647ddd7cc6058cdc87cc0e5869d2753cf6c19.1441559233.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 13 Sep 2015 16:57:25 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 20/32] v4l: vsp1: Move entity route setup function to vsp1_entity.c
+Date: Sun, 13 Sep 2015 23:56:58 +0300
+Message-Id: <1442177830-24536-21-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> If the graph creation fails, don't register the device.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The function will be used by the DU code, move it out of vsp1_video.c.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_entity.c | 12 ++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_video.c  | 12 ------------
+ 3 files changed, 14 insertions(+), 12 deletions(-)
 
-> 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 1070d87efc65..c05aaef85491 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1185,8 +1185,6 @@ static void cx231xx_unregister_media_device(struct cx231xx *dev)
->  */
->  void cx231xx_release_resources(struct cx231xx *dev)
->  {
-> -	cx231xx_unregister_media_device(dev);
-> -
->  	cx231xx_release_analog_resources(dev);
->  
->  	cx231xx_remove_from_devlist(dev);
-> @@ -1199,6 +1197,8 @@ void cx231xx_release_resources(struct cx231xx *dev)
->  	/* delete v4l2 device */
->  	v4l2_device_unregister(&dev->v4l2_dev);
->  
-> +	cx231xx_unregister_media_device(dev);
-> +
->  	usb_put_dev(dev->udev);
->  
->  	/* Mark device as unused */
-> @@ -1237,15 +1237,16 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
->  #endif
->  }
->  
-> -static void cx231xx_create_media_graph(struct cx231xx *dev)
-> +static int cx231xx_create_media_graph(struct cx231xx *dev)
->  {
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device *mdev = dev->media_dev;
->  	struct media_entity *entity;
->  	struct media_entity *tuner = NULL, *decoder = NULL;
-> +	int ret;
->  
->  	if (!mdev)
-> -		return;
-> +		return 0;
->  
->  	media_device_for_each_entity(entity, mdev) {
->  		switch (entity->type) {
-> @@ -1261,16 +1262,24 @@ static void cx231xx_create_media_graph(struct cx231xx *dev)
->  	/* Analog setup, using tuner as a link */
->  
->  	if (!decoder)
-> -		return;
-> +		return 0;
->  
-> -	if (tuner)
-> -		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
-> -					 MEDIA_LNK_FL_ENABLED);
-> -	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-> -				 MEDIA_LNK_FL_ENABLED);
-> -	media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-> -				 MEDIA_LNK_FL_ENABLED);
-> +	if (tuner) {
-> +		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
-> +					    MEDIA_LNK_FL_ENABLED);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-> +				    MEDIA_LNK_FL_ENABLED);
-> +	if (ret < 0)
-> +		return ret;
-> +	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-> +				    MEDIA_LNK_FL_ENABLED);
-> +	if (ret < 0)
-> +		return ret;
->  #endif
-> +	return 0;
->  }
->  
->  /*
-> @@ -1732,9 +1741,12 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
->  	/* load other modules required */
->  	request_modules(dev);
->  
-> -	cx231xx_create_media_graph(dev);
-> +	retval = cx231xx_create_media_graph(dev);
-> +	if (retval < 0) {
-> +		cx231xx_release_resources(dev);
-> +	}
->  
-> -	return 0;
-> +	return retval;
->  err_video_alt:
->  	/* cx231xx_uninit_dev: */
->  	cx231xx_close_extension(dev);
-> 
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 0c52e4b71a98..cb9d480d8ee5 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -58,6 +58,18 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ 	return ret;
+ }
+ 
++void vsp1_entity_route_setup(struct vsp1_entity *source)
++{
++	struct vsp1_entity *sink;
++
++	if (source->route->reg == 0)
++		return;
++
++	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
++	vsp1_write(source->vsp1, source->route->reg,
++		   sink->route->inputs[source->sink_pad]);
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 Subdevice Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 9c95507ec762..9606d0d21263 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -96,4 +96,6 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
+ bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
+ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
+ 
++void vsp1_entity_route_setup(struct vsp1_entity *source);
++
+ #endif /* __VSP1_ENTITY_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index c0afbf81d9aa..589ce49e8688 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -657,18 +657,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ }
+ 
+-static void vsp1_entity_route_setup(struct vsp1_entity *source)
+-{
+-	struct vsp1_entity *sink;
+-
+-	if (source->route->reg == 0)
+-		return;
+-
+-	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
+-	vsp1_write(source->vsp1, source->route->reg,
+-		   sink->route->inputs[source->sink_pad]);
+-}
+-
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+-- 
+2.4.6
 
