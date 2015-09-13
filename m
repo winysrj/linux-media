@@ -1,105 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35990 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751451AbbINMWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 08:22:05 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>
-Subject: [PATCH v2 0/2] [media] Fix race between graph enumeration and entities registration
-Date: Mon, 14 Sep 2015 14:21:39 +0200
-Message-Id: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351AbbIMU5P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 16:57:15 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 06/32] v4l: vsp1: Make rwpf operations independent of video device
+Date: Sun, 13 Sep 2015 23:56:44 +0300
+Message-Id: <1442177830-24536-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The rwpf queue operation doesn't queue a buffer but sets the memory
+address for the next run. Rename it to set_memory and pass it a new
+structure independent of the video buffer than only contains memory
+information.
 
-The Media Controller framework has an issue in which the media device node
-is registered before all the media entities and pads links are created so
-if user-space tries to enumerate the graph too early, it may get a partial
-graph since not everything has been registered yet.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c   | 16 ++++++++--------
+ drivers/media/platform/vsp1/vsp1_rwpf.h  | 10 ++++++++--
+ drivers/media/platform/vsp1/vsp1_video.c | 14 ++++++++------
+ drivers/media/platform/vsp1/vsp1_video.h |  7 +++----
+ drivers/media/platform/vsp1/vsp1_wpf.c   | 14 +++++++-------
+ 5 files changed, 34 insertions(+), 27 deletions(-)
 
-This series fixes the issue by separate the media device registration from
-the initialization so drives can first initialize the media device, create
-the graph and then finally register the media device node once is finished.
-The solution was suggested by Sakari Ailus.
-
-This is the second version of the series that fixes issues pointed out by
-Sakari Ailus. The first version was [0].
-
-Patch #1 adds a check to the media_device_unregister() function to know if
-the media device has been registed yet so calling it will be safe and the
-cleanup functions of the drivers won't need to be changed in case register
-failed.
-
-Patch #2 does the init and registration split, changing all the drivers to
-make the change atomic and also adds a cleanup function for media devices.
-
-The patches are on top of Mauro's "[PATCH v8 00/55] MC next generation" [1]
-but is not a dependency for that series, it was only be based on that patch
-series to avoid conflicts with in-flight patches.
-
-The patches have been tested on an OMAP3 IGEPv2 board that has a OMAP3 ISP
-device and an Exynos5800 Chromebook with a built-in UVC camera.
-
-[0]: https://lkml.org/lkml/2015/9/10/311
-[1]: http://permalink.gmane.org/gmane.linux.drivers.driver-project.devel/74515
-
-Best regards,
-Javier
-
-Changes in v2:
-- Reword the documentation for media_device_unregister(). Suggested by Sakari.
-- Added Sakari's Acked-by tag for patch #1.
-- Change media_device_init() to return void instead of an error.
-  Suggested by Sakari Ailus.
-- Remove the error messages when media_device_register() fails.
-  Suggested by Sakari Ailus.
-- Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
-
-Javier Martinez Canillas (2):
-  [media] media-device: check before unregister if mdev was registered
-  [media] media-device: split media initialization and registration
-
- drivers/media/common/siano/smsdvb-main.c      |  1 +
- drivers/media/media-device.c                  | 43 ++++++++++++++++++++++-----
- drivers/media/platform/exynos4-is/media-dev.c | 15 +++++-----
- drivers/media/platform/omap3isp/isp.c         | 14 ++++-----
- drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++----
- drivers/media/platform/vsp1/vsp1_drv.c        | 12 ++++----
- drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++-----
- drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++---------
- drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 +++++++++----------
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 +++++++-------
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++-------
- drivers/media/usb/siano/smsusb.c              |  5 ++--
- drivers/media/usb/uvc/uvc_driver.c            | 10 +++++--
- include/media/media-device.h                  |  2 ++
- 14 files changed, 136 insertions(+), 97 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index ae51c31112aa..c0b7f76cd0b5 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -186,28 +186,28 @@ static struct v4l2_subdev_ops rpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_vb2_buffer *buf)
++static void rpf_set_memory(struct vsp1_rwpf *rpf, struct vsp1_rwpf_memory *mem)
+ {
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < 3; ++i)
+-		rpf->buf_addr[i] = buf->addr[i];
++		rpf->buf_addr[i] = mem->addr[i];
+ 
+ 	if (!vsp1_entity_is_streaming(&rpf->entity))
+ 		return;
+ 
+ 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
+-		       buf->addr[0] + rpf->offsets[0]);
+-	if (buf->buf.num_planes > 1)
++		       mem->addr[0] + rpf->offsets[0]);
++	if (mem->num_planes > 1)
+ 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
+-			       buf->addr[1] + rpf->offsets[1]);
+-	if (buf->buf.num_planes > 2)
++			       mem->addr[1] + rpf->offsets[1]);
++	if (mem->num_planes > 2)
+ 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
+-			       buf->addr[2] + rpf->offsets[1]);
++			       mem->addr[2] + rpf->offsets[1]);
+ }
+ 
+ static const struct vsp1_rwpf_operations rpf_vdev_ops = {
+-	.queue = rpf_buf_queue,
++	.set_memory = rpf_set_memory,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index ee2a8bf269fa..0076920adb28 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -24,10 +24,16 @@
+ #define RWPF_PAD_SOURCE				1
+ 
+ struct vsp1_rwpf;
+-struct vsp1_vb2_buffer;
++
++struct vsp1_rwpf_memory {
++	unsigned int num_planes;
++	dma_addr_t addr[3];
++	unsigned int length[3];
++};
+ 
+ struct vsp1_rwpf_operations {
+-	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_vb2_buffer *buf);
++	void (*set_memory)(struct vsp1_rwpf *rwpf,
++			   struct vsp1_rwpf_memory *mem);
+ };
+ 
+ struct vsp1_rwpf {
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 216894cee2e7..121f8724bcf6 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -613,7 +613,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 	done->buf.v4l2_buf.sequence = video->sequence++;
+ 	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
+ 	for (i = 0; i < done->buf.num_planes; ++i)
+-		vb2_set_plane_payload(&done->buf, i, done->length[i]);
++		vb2_set_plane_payload(&done->buf, i, done->mem.length[i]);
+ 	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
+ 
+ 	return next;
+@@ -631,7 +631,7 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+-	video->rwpf->ops->queue(video->rwpf, buf);
++	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
+ 	pipe->buffers_ready |= 1 << video->pipe_index;
+ 
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+@@ -828,11 +828,13 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
+ 	if (vb->num_planes < format->num_planes)
+ 		return -EINVAL;
+ 
++	buf->mem.num_planes = vb->num_planes;
++
+ 	for (i = 0; i < vb->num_planes; ++i) {
+-		buf->addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
+-		buf->length[i] = vb2_plane_size(vb, i);
++		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
++		buf->mem.length[i] = vb2_plane_size(vb, i);
+ 
+-		if (buf->length[i] < format->plane_fmt[i].sizeimage)
++		if (buf->mem.length[i] < format->plane_fmt[i].sizeimage)
+ 			return -EINVAL;
+ 	}
+ 
+@@ -857,7 +859,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+-	video->rwpf->ops->queue(video->rwpf, buf);
++	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
+ 	pipe->buffers_ready |= 1 << video->pipe_index;
+ 
+ 	if (vb2_is_streaming(&video->queue) &&
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index f75c67976bcd..b7eabe6bab70 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -20,7 +20,8 @@
+ #include <media/media-entity.h>
+ #include <media/videobuf2-core.h>
+ 
+-struct vsp1_rwpf;
++#include "vsp1_rwpf.h"
++
+ struct vsp1_video;
+ 
+ /*
+@@ -97,9 +98,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
+ struct vsp1_vb2_buffer {
+ 	struct vb2_buffer buf;
+ 	struct list_head queue;
+-
+-	dma_addr_t addr[3];
+-	unsigned int length[3];
++	struct vsp1_rwpf_memory mem;
+ };
+ 
+ static inline struct vsp1_vb2_buffer *to_vsp1_vb2_buffer(struct vb2_buffer *vb)
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 4f0e4ab0f05b..d2537b46fc46 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -195,17 +195,17 @@ static struct v4l2_subdev_ops wpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_vb2_buffer *buf)
++static void wpf_set_memory(struct vsp1_rwpf *wpf, struct vsp1_rwpf_memory *mem)
+ {
+-	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
+-	if (buf->buf.num_planes > 1)
+-		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, buf->addr[1]);
+-	if (buf->buf.num_planes > 2)
+-		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, buf->addr[2]);
++	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, mem->addr[0]);
++	if (mem->num_planes > 1)
++		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, mem->addr[1]);
++	if (mem->num_planes > 2)
++		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, mem->addr[2]);
+ }
+ 
+ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
+-	.queue = wpf_buf_queue,
++	.set_memory = wpf_set_memory,
+ };
+ 
+ /* -----------------------------------------------------------------------------
 -- 
-2.4.3
+2.4.6
 
