@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54634 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107AbbIFMD5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:57 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v8 43/55] [media] media: report if a pad is sink or source at debug msg
-Date: Sun,  6 Sep 2015 09:03:03 -0300
-Message-Id: <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <e1e261997cc156eb6f6839944431fb6dba0c814a.1440902901.git.mchehab@osg.samsung.com>
-References: <e1e261997cc156eb6f6839944431fb6dba0c814a.1440902901.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57283 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753550AbbIMTQi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 15:16:38 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 769CA2A009D
+	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2015 21:15:22 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/4] v4l2: add support for the SMPTE 2084 transfer function
+Date: Sun, 13 Sep 2015 21:15:17 +0200
+Message-Id: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes, it is important to see if the created pad is
-sink or source. Add info to track that.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This transfer function is used in High Dynamic Range content. It can be signaled
+via the new HDMI Dynamic Range and Mastering InfoFrame (defined in CEA-861.3).
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d8038a53f945..6ed5eef88593 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct media_gobj *gobj)
- 		struct media_pad *pad = gobj_to_pad(gobj);
- 
- 		dev_dbg(gobj->mdev->dev,
--			"%s: id 0x%08x pad#%d: '%s':%d\n",
--			event_name, gobj->id, media_localid(gobj),
-+			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
-+			event_name, gobj->id,
-+			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
-+			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
-+			media_localid(gobj),
- 			pad->entity->name, pad->index);
- 		break;
- 	}
+Regards,
+
+	Hans
+
+Hans Verkuil (4):
+  videodev2.h: add SMPTE 2084 transfer function define
+  vivid-tpg: add support for SMPTE 2084 transfer function
+  vivid: add support for SMPTE 2084 transfer function
+  DocBook media: Document the SMPTE 2084 transfer function
+
+ Documentation/DocBook/media/v4l/biblio.xml      |  9 +++
+ Documentation/DocBook/media/v4l/pixfmt.xml      | 39 ++++++++++
+ drivers/media/platform/vivid/vivid-ctrls.c      |  1 +
+ drivers/media/platform/vivid/vivid-tpg-colors.c | 96 ++++++++++++++++++++++++-
+ drivers/media/platform/vivid/vivid-tpg-colors.h |  2 +-
+ include/uapi/linux/videodev2.h                  |  1 +
+ 6 files changed, 144 insertions(+), 4 deletions(-)
+
 -- 
-2.4.3
-
+2.1.4
 
