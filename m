@@ -1,91 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:20267 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752621AbbIKLwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 07:52:30 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42200 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753243AbbIMQmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Sep 2015 12:42:51 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DF4562A009D
+	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2015 18:41:33 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	sumit.semwal@linaro.org, robdclark@gmail.com,
-	daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: [RFC RESEND 08/11] vb2: dma-contig: Move vb2_dc_get_base_sgt() up
-Date: Fri, 11 Sep 2015 14:50:31 +0300
-Message-Id: <1441972234-8643-9-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: [PATCH 0/6] v4l2: add support for the DCI-P3 colorspace
+Date: Sun, 13 Sep 2015 18:41:26 +0200
+Message-Id: <1442162492-46238-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just move the function up. It'll be soon needed earlier than previously.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++++-------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+This patch series adds support for the DCI-P3 colorspace. This colorspace
+is used by cinema projectors and is also support by the DisplayPort
+standard.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 26a0a0f..3260392 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -82,6 +82,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- 	return size;
- }
- 
-+static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-+{
-+	int ret;
-+	struct sg_table *sgt;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt) {
-+		dev_err(buf->dev, "failed to alloc sg table\n");
-+		return NULL;
-+	}
-+
-+	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
-+		buf->size);
-+	if (ret < 0) {
-+		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-+		kfree(sgt);
-+		return NULL;
-+	}
-+
-+	return sgt;
-+}
-+
- /*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
-@@ -375,28 +397,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.release = vb2_dc_dmabuf_ops_release,
- };
- 
--static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
--{
--	int ret;
--	struct sg_table *sgt;
--
--	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (!sgt) {
--		dev_err(buf->dev, "failed to alloc sg table\n");
--		return NULL;
--	}
--
--	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
--		buf->size);
--	if (ret < 0) {
--		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
--		kfree(sgt);
--		return NULL;
--	}
--
--	return sgt;
--}
--
- static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
+The first patch is a cleanup patch for the vivid driver, the second
+improves the colorspace handling of NTSC 1953 (it now compensates for the
+different whitepoints between NTSC 1953 and Rec. 709).
+
+The next two add support for DCI-P3 to the header and the documentation and
+the last two support the new colorspace in the vivid driver.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (6):
+  vivid: use ARRAY_SIZE to calculate max control value
+  vivid: use Bradford method when converting Rec. 709 to NTSC 1953
+  videodev2.h: add support for the DCI-P3 colorspace
+  DocBook media: document the new DCI-P3 colorspace
+  vivid-tpg: support the DCI-P3 colorspace
+  vivid: add support for the DCI-P3 colorspace
+
+ Documentation/DocBook/media/v4l/biblio.xml      |   9 +
+ Documentation/DocBook/media/v4l/pixfmt.xml      |  70 +++++++
+ drivers/media/platform/vivid/vivid-core.h       |   1 +
+ drivers/media/platform/vivid/vivid-ctrls.c      |  17 +-
+ drivers/media/platform/vivid/vivid-tpg-colors.c | 238 +++++++++++++++++++-----
+ drivers/media/platform/vivid/vivid-tpg-colors.h |   4 +-
+ include/uapi/linux/videodev2.h                  |  18 +-
+ 7 files changed, 296 insertions(+), 61 deletions(-)
+
 -- 
-2.1.0.231.g7484e3b
+2.1.4
 
