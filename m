@@ -1,90 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-3.cisco.com ([72.163.197.27]:38895 "EHLO
-	bgl-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757518AbbIVO1e (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755437AbbIMU5V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 10:27:34 -0400
-From: Prashant Laddha <prladdha@cisco.com>
+	Sun, 13 Sep 2015 16:57:21 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC v2 3/4] vivid-capture: add control for reduced frame rate
-Date: Tue, 22 Sep 2015 19:57:30 +0530
-Message-Id: <1442932051-24972-4-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
-References: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 15/32] v4l: vsp1: Extract link creation to separate function
+Date: Sun, 13 Sep 2015 23:56:53 +0300
+Message-Id: <1442177830-24536-16-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A boolean control Reduced Framerate is added to vivid controls for
-controlling the reduced fps option for vivid capture from gui.
+Link creation will be handled differently for the DU pipeline.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vivid/vivid-core.h  |  1 +
- drivers/media/platform/vivid/vivid-ctrls.c | 15 +++++++++++++++
- 2 files changed, 16 insertions(+)
+ drivers/media/platform/vsp1/vsp1_drv.c | 114 ++++++++++++++++++---------------
+ 1 file changed, 64 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index c72349c..4a2c8b7 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -263,6 +263,7 @@ struct vivid_dev {
- 	bool				vflip;
- 	bool				vbi_cap_interlaced;
- 	bool				loop_video;
-+	bool				reduced_fps;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 91ecf75119ba..d1e42260a871 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -67,7 +67,7 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
+  */
  
- 	/* Framebuffer */
- 	unsigned long			video_pbase;
-diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-index 339c8b7..30d472a 100644
---- a/drivers/media/platform/vivid/vivid-ctrls.c
-+++ b/drivers/media/platform/vivid/vivid-ctrls.c
-@@ -78,6 +78,7 @@
- #define VIVID_CID_TIME_WRAP		(VIVID_CID_VIVID_BASE + 39)
- #define VIVID_CID_MAX_EDID_BLOCKS	(VIVID_CID_VIVID_BASE + 40)
- #define VIVID_CID_PERCENTAGE_FILL	(VIVID_CID_VIVID_BASE + 41)
-+#define VIVID_CID_REDUCED_FPS		(VIVID_CID_VIVID_BASE + 42)
+ /*
+- * vsp1_create_links - Create links from all sources to the given sink
++ * vsp1_create_sink_links - Create links from all sources to the given sink
+  *
+  * This function creates media links from all valid sources to the given sink
+  * pad. Links that would be invalid according to the VSP1 hardware capabilities
+@@ -76,7 +76,8 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
+  * - from a UDS to a UDS (UDS entities can't be chained)
+  * - from an entity to itself (no loops are allowed)
+  */
+-static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
++static int vsp1_create_sink_links(struct vsp1_device *vsp1,
++				  struct vsp1_entity *sink)
+ {
+ 	struct media_entity *entity = &sink->subdev.entity;
+ 	struct vsp1_entity *source;
+@@ -116,6 +117,64 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
+ 	return 0;
+ }
  
- #define VIVID_CID_STD_SIGNAL_MODE	(VIVID_CID_VIVID_BASE + 60)
- #define VIVID_CID_STANDARD		(VIVID_CID_VIVID_BASE + 61)
-@@ -422,6 +423,10 @@ static int vivid_vid_cap_s_ctrl(struct v4l2_ctrl *ctrl)
- 		dev->sensor_vflip = ctrl->val;
- 		tpg_s_vflip(&dev->tpg, dev->sensor_vflip ^ dev->vflip);
- 		break;
-+	case VIVID_CID_REDUCED_FPS:
-+		dev->reduced_fps = ctrl->val;
-+		vivid_update_format_cap(dev, true);
-+		break;
- 	case VIVID_CID_HAS_CROP_CAP:
- 		dev->has_crop_cap = ctrl->val;
- 		vivid_update_format_cap(dev, true);
-@@ -599,6 +604,15 @@ static const struct v4l2_ctrl_config vivid_ctrl_vflip = {
- 	.step = 1,
- };
- 
-+static const struct v4l2_ctrl_config vivid_ctrl_reduced_fps = {
-+	.ops = &vivid_vid_cap_ctrl_ops,
-+	.id = VIVID_CID_REDUCED_FPS,
-+	.name = "Reduced Framerate",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
++static int vsp1_create_links(struct vsp1_device *vsp1)
++{
++	struct vsp1_entity *entity;
++	unsigned int i;
++	int ret;
 +
- static const struct v4l2_ctrl_config vivid_ctrl_has_crop_cap = {
- 	.ops = &vivid_vid_cap_ctrl_ops,
- 	.id = VIVID_CID_HAS_CROP_CAP,
-@@ -1379,6 +1393,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_vflip, NULL);
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_insert_sav, NULL);
- 		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_insert_eav, NULL);
-+		v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_reduced_fps, NULL);
- 		if (show_ccs_cap) {
- 			dev->ctrl_has_crop_cap = v4l2_ctrl_new_custom(hdl_vid_cap,
- 				&vivid_ctrl_has_crop_cap, NULL);
++	list_for_each_entry(entity, &vsp1->entities, list_dev) {
++		if (entity->type == VSP1_ENTITY_LIF ||
++		    entity->type == VSP1_ENTITY_RPF)
++			continue;
++
++		ret = vsp1_create_sink_links(vsp1, entity);
++		if (ret < 0)
++			return ret;
++	}
++
++	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
++		struct vsp1_rwpf *rpf = vsp1->rpf[i];
++
++		ret = media_entity_create_link(&rpf->video->video.entity, 0,
++					       &rpf->entity.subdev.entity,
++					       RWPF_PAD_SINK,
++					       MEDIA_LNK_FL_ENABLED |
++					       MEDIA_LNK_FL_IMMUTABLE);
++		if (ret < 0)
++			return ret;
++	}
++
++	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		/* Connect the video device to the WPF. All connections are
++		 * immutable except for the WPF0 source link if a LIF is
++		 * present.
++		 */
++		struct vsp1_rwpf *wpf = vsp1->wpf[i];
++		unsigned int flags = MEDIA_LNK_FL_ENABLED;
++
++		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || i != 0)
++			flags |= MEDIA_LNK_FL_IMMUTABLE;
++
++		ret = media_entity_create_link(&wpf->entity.subdev.entity,
++					       RWPF_PAD_SOURCE,
++					       &wpf->video->video.entity,
++					       0, flags);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (vsp1->pdata.features & VSP1_HAS_LIF) {
++		ret = media_entity_create_link(
++			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
++			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
+ static void vsp1_destroy_entities(struct vsp1_device *vsp1)
+ {
+ 	struct vsp1_entity *entity, *_entity;
+@@ -276,54 +335,9 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	/* Create links. */
+-	list_for_each_entry(entity, &vsp1->entities, list_dev) {
+-		if (entity->type == VSP1_ENTITY_LIF ||
+-		    entity->type == VSP1_ENTITY_RPF)
+-			continue;
+-
+-		ret = vsp1_create_links(vsp1, entity);
+-		if (ret < 0)
+-			goto done;
+-	}
+-
+-	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
+-		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+-
+-		ret = media_entity_create_link(&rpf->video->video.entity, 0,
+-					       &rpf->entity.subdev.entity,
+-					       RWPF_PAD_SINK,
+-					       MEDIA_LNK_FL_ENABLED |
+-					       MEDIA_LNK_FL_IMMUTABLE);
+-		if (ret < 0)
+-			goto done;
+-	}
+-
+-	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
+-		/* Connect the video device to the WPF. All connections are
+-		 * immutable except for the WPF0 source link if a LIF is
+-		 * present.
+-		 */
+-		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+-		unsigned int flags = MEDIA_LNK_FL_ENABLED;
+-
+-		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || i != 0)
+-			flags |= MEDIA_LNK_FL_IMMUTABLE;
+-
+-		ret = media_entity_create_link(&wpf->entity.subdev.entity,
+-					       RWPF_PAD_SOURCE,
+-					       &wpf->video->video.entity,
+-					       0, flags);
+-		if (ret < 0)
+-			goto done;
+-	}
+-
+-	if (vsp1->pdata.features & VSP1_HAS_LIF) {
+-		ret = media_entity_create_link(
+-			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
+-			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = vsp1_create_links(vsp1);
++	if (ret < 0)
++		goto done;
+ 
+ 	/* Register all subdevs. */
+ 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
 -- 
-1.9.1
+2.4.6
 
