@@ -1,555 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47664 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752856AbbIKPV7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52477 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096AbbIMWw6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 11:21:59 -0400
-Message-ID: <55F2F14F.2060203@xs4all.nl>
-Date: Fri, 11 Sep 2015 17:20:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 13 Sep 2015 18:52:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 00/32] VSP: Add R-Car Gen3 support
+Date: Mon, 14 Sep 2015 01:53:02 +0300
+Message-ID: <5702510.irZQAHDheR@avalon>
+In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 07/18] [media] dvbdev: returns error if graph object creation
- fails
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <53c51b68fe6dce9073746be61a23cca30c64ac9e.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <53c51b68fe6dce9073746be61a23cca30c64ac9e.1441559233.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> Right now, if something gets wrong at dvb_create_media_entity()
-> or at dvb_create_media_graph(), the device will still be
-> registered.
+On Sunday 13 September 2015 23:56:38 Laurent Pinchart wrote:
+> Hello,
 > 
-> Change the logic to properly handle it and free all media graph
-> objects if something goes wrong at dvb_register_device().
+> This patch set adds support for the Renesas R-Car Gen3 SoC family to the
+> VSP1 driver. The large number of patches is caused by a change in the
+> display controller architecture that makes usage of the VSP mandatory as
+> the display controller has lost the ability to read data from memory.
 > 
-> Also, change the logic at dvb_create_media_graph() to return
-> an error code if something goes wrong. It is up to the
-> caller to implement the right logic and to call
-> dvb_unregister_device() to unregister the already-created
-> objects.
-> 
-> While here, add a missing logic to unregister the created
-> interfaces.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Patch 01/31 to 26/31 prepare for the implementation of an API exported to
+> the DRM driver in patch 27/31. Patches 30/31 enables support for the R-Car
+> Gen3 family, and patch 31/31 finally enhances perfomances by implementing
+> support for display lists.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+For reference, the patch set that introduces usage of the VSP exported API in 
+the DRM driver has been posted to the dri-devel mailing list and is available 
+in the list archive at http://lists.freedesktop.org/archives/dri-devel/2015-September/090218.html
 
+> Laurent Pinchart (31):
+>   v4l: vsp1: Change the type of the rwpf field in struct vsp1_video
+>   v4l: vsp1: Store the memory format in struct vsp1_rwpf
+>   v4l: vsp1: Move video operations to vsp1_rwpf
+>   v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
+>   v4l: vsp1: Move video device out of struct vsp1_rwpf
+>   v4l: vsp1: Make rwpf operations independent of video device
+>   v4l: vsp1: Support VSP1 instances without any UDS
+>   v4l: vsp1: Move vsp1_video pointer from vsp1_entity to vsp1_rwpf
+>   v4l: vsp1: Remove struct vsp1_pipeline num_video field
+>   v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
+>   v4l: vsp1: Split pipeline management code from vsp1_video.c
+>   v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
+>   v4l: vsp1: Extract pipeline initialization code into a function
+>   v4l: vsp1: Reuse local variable instead of recomputing it
+>   v4l: vsp1: Extract link creation to separate function
+>   v4l: vsp1: Document the vsp1_pipeline structure
+>   v4l: vsp1: Fix typo in VI6_DISP_IRQ_STA_DST register name
+>   v4l: vsp1: Set the SRU CTRL0 register when starting the stream
+>   v4l: vsp1: Remove unused module write functions
+>   v4l: vsp1: Move entity route setup function to vsp1_entity.c
+>   v4l: vsp1: Make number of BRU inputs configurable
+>   v4l: vsp1: Make the BRU optional
+>   v4l: vsp1: Move format info to vsp1_pipe.c
+>   v4l: vsp1: Make the userspace API optional
+>   v4l: vsp1: Make pipeline inputs array index by RPF index
+>   v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream
+>     handlers
+>   v4l: vsp1: Don't validate links when the userspace API is disabled
+>   v4l: vsp1: Add VSP+DU support
+>   v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
+>   v4l: vsp1: Implement atomic update for the DRM driver
+>   v4l: vsp1: Add support for the R-Car Gen3 VSP2
 > 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 5c4fb41060b4..5c51084a331a 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -183,7 +183,29 @@ skip:
->  	return -ENFILE;
->  }
->  
-> -static void dvb_create_tsout_entity(struct dvb_device *dvbdev,
-> +static void dvb_media_device_free(struct dvb_device *dvbdev)
-> +{
-> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> +	if (dvbdev->entity) {
-> +		int i;
-> +
-> +		for (i = 0; i < dvbdev->tsout_num_entities; i++) {
-> +			media_device_unregister_entity(&dvbdev->tsout_entity[i]);
-> +			kfree(dvbdev->tsout_entity[i].name);
-> +		}
-> +		media_device_unregister_entity(dvbdev->entity);
-> +
-> +		kfree(dvbdev->entity);
-> +		kfree(dvbdev->pads);
-> +		kfree(dvbdev->tsout_entity);
-> +		kfree(dvbdev->tsout_pads);
-> +	}
-> +	if (dvbdev->intf_devnode)
-> +		media_devnode_remove(dvbdev->intf_devnode);
-> +#endif
-> +}
-> +
-> +static int dvb_create_tsout_entity(struct dvb_device *dvbdev,
->  				    const char *name, int npads)
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> @@ -192,77 +214,60 @@ static void dvb_create_tsout_entity(struct dvb_device *dvbdev,
->  	dvbdev->tsout_pads = kcalloc(npads, sizeof(*dvbdev->tsout_pads),
->  				     GFP_KERNEL);
->  	if (!dvbdev->tsout_pads)
-> -		return;
-> +		return -ENOMEM;
-> +
->  	dvbdev->tsout_entity = kcalloc(npads, sizeof(*dvbdev->tsout_entity),
->  				       GFP_KERNEL);
-> -	if (!dvbdev->tsout_entity) {
-> -		kfree(dvbdev->tsout_pads);
-> -		dvbdev->tsout_pads = NULL;
-> -		return;
-> -	}
-> +	if (!dvbdev->tsout_entity)
-> +		return -ENOMEM;
-> +
->  	for (i = 0; i < npads; i++) {
->  		struct media_pad *pads = &dvbdev->tsout_pads[i];
->  		struct media_entity *entity = &dvbdev->tsout_entity[i];
->  
->  		entity->name = kasprintf(GFP_KERNEL, "%s #%d", name, i);
-> -		if (!entity->name) {
-> -			ret = -ENOMEM;
-> -			break;
-> -		}
-> +		if (!entity->name)
-> +			return ret;
->  
->  		entity->type = MEDIA_ENT_T_DVB_TSOUT;
->  		pads->flags = MEDIA_PAD_FL_SINK;
->  
->  		ret = media_entity_init(entity, 1, pads);
->  		if (ret < 0)
-> -			break;
-> +			return ret;
->  
->  		ret = media_device_register_entity(dvbdev->adapter->mdev,
->  						   entity);
->  		if (ret < 0)
-> -			break;
-> +			return ret;
->  	}
-> -
-> -	if (!ret) {
-> -		dvbdev->tsout_num_entities = npads;
-> -		return;
-> -	}
-> -
-> -	for (i--; i >= 0; i--) {
-> -		media_device_unregister_entity(&dvbdev->tsout_entity[i]);
-> -		kfree(dvbdev->tsout_entity[i].name);
-> -	}
-> -
-> -	printk(KERN_ERR
-> -		"%s: media_device_register_entity failed for %s\n",
-> -		__func__, name);
-> -
-> -	kfree(dvbdev->tsout_entity);
-> -	kfree(dvbdev->tsout_pads);
-> -	dvbdev->tsout_entity = NULL;
-> -	dvbdev->tsout_pads = NULL;
->  #endif
-> +	return 0;
->  }
->  
->  #define DEMUX_TSOUT	"demux-tsout"
->  #define DVR_TSOUT	"dvr-tsout"
->  
-> -static void dvb_create_media_entity(struct dvb_device *dvbdev,
-> -				    int type, int demux_sink_pads)
-> +static int dvb_create_media_entity(struct dvb_device *dvbdev,
-> +				   int type, int demux_sink_pads)
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> -	int i, ret = 0, npads;
-> +	int i, ret, npads;
->  
->  	switch (type) {
->  	case DVB_DEVICE_FRONTEND:
->  		npads = 2;
->  		break;
->  	case DVB_DEVICE_DVR:
-> -		dvb_create_tsout_entity(dvbdev, DVR_TSOUT, demux_sink_pads);
-> -		return;
-> +		ret = dvb_create_tsout_entity(dvbdev, DVR_TSOUT,
-> +					      demux_sink_pads);
-> +		return ret;
->  	case DVB_DEVICE_DEMUX:
->  		npads = 1 + demux_sink_pads;
-> -		dvb_create_tsout_entity(dvbdev, DEMUX_TSOUT, demux_sink_pads);
-> +		ret = dvb_create_tsout_entity(dvbdev, DEMUX_TSOUT,
-> +					      demux_sink_pads);
-> +		if (ret < 0)
-> +			return ret;
->  		break;
->  	case DVB_DEVICE_CA:
->  		npads = 2;
-> @@ -277,24 +282,22 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
->  		 * the Media Controller, let's not create the decap
->  		 * entities yet.
->  		 */
-> -		return;
-> +		return 0;
->  	default:
-> -		return;
-> +		return 0;
->  	}
->  
->  	dvbdev->entity = kzalloc(sizeof(*dvbdev->entity), GFP_KERNEL);
->  	if (!dvbdev->entity)
-> -		return;
-> +		return -ENOMEM;
->  
->  	dvbdev->entity->name = dvbdev->name;
->  
->  	if (npads) {
->  		dvbdev->pads = kcalloc(npads, sizeof(*dvbdev->pads),
->  				       GFP_KERNEL);
-> -		if (!dvbdev->pads) {
-> -			kfree(dvbdev->entity);
-> -			return;
-> -		}
-> +		if (!dvbdev->pads)
-> +			return -ENOMEM;
->  	}
->  
->  	switch (type) {
-> @@ -316,49 +319,43 @@ static void dvb_create_media_entity(struct dvb_device *dvbdev,
->  		break;
->  	default:
->  		kfree(dvbdev->entity);
-> +		kfree(dvbdev->pads);
->  		dvbdev->entity = NULL;
-> -		return;
-> +		return 0;
->  	}
->  
-> -	if (npads)
-> +	if (npads) {
->  		ret = media_entity_init(dvbdev->entity, npads, dvbdev->pads);
-> -	if (!ret)
-> -		ret = media_device_register_entity(dvbdev->adapter->mdev,
-> -						   dvbdev->entity);
-> -	if (ret < 0) {
-> -		printk(KERN_ERR
-> -			"%s: media_device_register_entity failed for %s\n",
-> -			__func__, dvbdev->entity->name);
-> -
-> -		media_device_unregister_entity(dvbdev->entity);
-> -		for (i = 0; i < dvbdev->tsout_num_entities; i++) {
-> -			media_device_unregister_entity(&dvbdev->tsout_entity[i]);
-> -			kfree(dvbdev->tsout_entity[i].name);
-> -		}
-> -		kfree(dvbdev->pads);
-> -		kfree(dvbdev->entity);
-> -		kfree(dvbdev->tsout_pads);
-> -		kfree(dvbdev->tsout_entity);
-> -		dvbdev->entity = NULL;
-> -		return;
-> +		if (ret)
-> +			return ret;
->  	}
-> +	ret = media_device_register_entity(dvbdev->adapter->mdev,
-> +					   dvbdev->entity);
-> +	if (ret)
-> +		return (ret);
->  
->  	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
->  		__func__, dvbdev->entity->name);
-> +
->  #endif
-> +	return 0;
->  }
->  
-> -static void dvb_register_media_device(struct dvb_device *dvbdev,
-> -				      int type, int minor,
-> -				      unsigned demux_sink_pads)
-> +static int dvb_register_media_device(struct dvb_device *dvbdev,
-> +				     int type, int minor,
-> +				     unsigned demux_sink_pads)
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> +	struct media_link *link;
->  	u32 intf_type;
-> +	int ret;
->  
->  	if (!dvbdev->adapter->mdev)
-> -		return;
-> +		return 0;
->  
-> -	dvb_create_media_entity(dvbdev, type, demux_sink_pads);
-> +	ret = dvb_create_media_entity(dvbdev, type, demux_sink_pads);
-> +	if (ret)
-> +		return ret;
->  
->  	switch (type) {
->  	case DVB_DEVICE_FRONTEND:
-> @@ -377,13 +374,16 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  		intf_type = MEDIA_INTF_T_DVB_NET;
->  		break;
->  	default:
-> -		return;
-> +		return 0;
->  	}
->  
->  	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
-> -						 intf_type, 0,
-> -						 DVB_MAJOR, minor,
-> -						 GFP_KERNEL);
-> +						    intf_type, 0,
-> +						    DVB_MAJOR, minor,
-> +						    GFP_KERNEL);
-> +
-> +	if (!dvbdev->intf_devnode)
-> +		return -ENOMEM;
->  
->  	/*
->  	 * Create the "obvious" link, e. g. the ones that represent
-> @@ -393,13 +393,15 @@ static void dvb_register_media_device(struct dvb_device *dvbdev,
->  	 *		DVB demux intf -> dvr
->  	 */
->  
-> -	if (!dvbdev->entity || !dvbdev->intf_devnode)
-> -		return;
-> -
-> -	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
-> -			       MEDIA_LNK_FL_ENABLED);
-> +	if (!dvbdev->entity)
-> +		return 0;
->  
-> +	link = media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
-> +				      MEDIA_LNK_FL_ENABLED);
-> +	if (!link)
-> +		return -ENOMEM;
->  #endif
-> +	return 0;
->  }
->  
->  int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
-> @@ -410,7 +412,7 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
->  	struct file_operations *dvbdevfops;
->  	struct device *clsdev;
->  	int minor;
-> -	int id;
-> +	int id, ret;
->  
->  	mutex_lock(&dvbdev_register_lock);
->  
-> @@ -428,6 +430,17 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
->  		return -ENOMEM;
->  	}
->  
-> +	ret = dvb_register_media_device(dvbdev, type, minor, demux_sink_pads);
-> +	if (ret) {
-> +		printk(KERN_ERR
-> +		      "%s: dvb_register_media_device failed to create the mediagraph\n",
-> +		      __func__);
-> +
-> +		dvb_media_device_free(dvbdev);
-> +		mutex_unlock(&dvbdev_register_lock);
-> +		return ret;
-> +	}
-> +
->  	dvbdevfops = kzalloc(sizeof(struct file_operations), GFP_KERNEL);
->  
->  	if (!dvbdevfops){
-> @@ -483,8 +496,6 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
->  	dprintk(KERN_DEBUG "DVB: register adapter%d/%s%d @ minor: %i (0x%02x)\n",
->  		adap->num, dnames[type], id, minor, minor);
->  
-> -	dvb_register_media_device(dvbdev, type, minor, demux_sink_pads);
-> -
->  	return 0;
->  }
->  EXPORT_SYMBOL(dvb_register_device);
-> @@ -499,25 +510,10 @@ void dvb_unregister_device(struct dvb_device *dvbdev)
->  	dvb_minors[dvbdev->minor] = NULL;
->  	up_write(&minor_rwsem);
->  
-> +	dvb_media_device_free(dvbdev);
-> +
->  	device_destroy(dvb_class, MKDEV(DVB_MAJOR, dvbdev->minor));
->  
-> -#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> -	if (dvbdev->entity) {
-> -		int i;
-> -
-> -		media_device_unregister_entity(dvbdev->entity);
-> -		for (i = 0; i < dvbdev->tsout_num_entities; i++) {
-> -			media_device_unregister_entity(&dvbdev->tsout_entity[i]);
-> -			kfree(dvbdev->tsout_entity[i].name);
-> -		}
-> -
-> -		kfree(dvbdev->entity);
-> -		kfree(dvbdev->pads);
-> -		kfree(dvbdev->tsout_entity);
-> -		kfree(dvbdev->tsout_pads);
-> -	}
-> -#endif
-> -
->  	list_del (&dvbdev->list_head);
->  	kfree (dvbdev->fops);
->  	kfree (dvbdev);
-> @@ -526,17 +522,19 @@ EXPORT_SYMBOL(dvb_unregister_device);
->  
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -void dvb_create_media_graph(struct dvb_adapter *adap)
-> +int dvb_create_media_graph(struct dvb_adapter *adap)
->  {
->  	struct media_device *mdev = adap->mdev;
->  	struct media_entity *entity, *tuner = NULL, *demod = NULL;
->  	struct media_entity *demux = NULL, *ca = NULL;
-> +	struct media_link *link;
->  	struct media_interface *intf;
->  	unsigned demux_pad = 0;
->  	unsigned dvr_pad = 0;
-> +	int ret;
->  
->  	if (!mdev)
-> -		return;
-> +		return 0;
->  
->  	media_device_for_each_entity(entity, mdev) {
->  		switch (entity->type) {
-> @@ -555,57 +553,94 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  		}
->  	}
->  
-> -	if (tuner && demod)
-> -		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, demod, 0, 0);
-> +	if (tuner && demod) {
-> +		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
-> +					    demod, 0, MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
-> -	if (demod && demux)
-> -		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
-> -	if (demux && ca)
-> -		media_create_pad_link(demux, 1, ca, 0, MEDIA_LNK_FL_ENABLED);
-> +	if (demod && demux) {
-> +		ret = media_create_pad_link(demod, 1, demux,
-> +					    0, MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return -ENOMEM;
-> +	}
-> +	if (demux && ca) {
-> +		ret = media_create_pad_link(demux, 1, ca,
-> +					    0, MEDIA_LNK_FL_ENABLED);
-> +		if (!ret)
-> +			return -ENOMEM;
-> +	}
->  
->  	/* Create demux links for each ringbuffer/pad */
->  	if (demux) {
->  		media_device_for_each_entity(entity, mdev) {
->  			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
->  				if (!strncmp(entity->name, DVR_TSOUT,
-> -					strlen(DVR_TSOUT)))
-> -					media_create_pad_link(demux,
-> -							      ++dvr_pad,
-> -							entity, 0, 0);
-> +				    strlen(DVR_TSOUT))) {
-> +					ret = media_create_pad_link(demux,
-> +								++dvr_pad,
-> +							    entity, 0, 0);
-> +					if (ret)
-> +						return ret;
-> +				}
->  				if (!strncmp(entity->name, DEMUX_TSOUT,
-> -					strlen(DEMUX_TSOUT)))
-> -					media_create_pad_link(demux,
-> +				    strlen(DEMUX_TSOUT))) {
-> +					ret = media_create_pad_link(demux,
->  							      ++demux_pad,
-> -							entity, 0, 0);
-> +							    entity, 0, 0);
-> +					if (ret)
-> +						return ret;
-> +				}
->  			}
->  		}
->  	}
->  
->  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
->  	media_device_for_each_intf(intf, mdev) {
-> -		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
-> -			media_create_intf_link(ca, intf, MEDIA_LNK_FL_ENABLED);
-> +		if (intf->type == MEDIA_INTF_T_DVB_CA && ca) {
-> +			link = media_create_intf_link(ca, intf,
-> +						      MEDIA_LNK_FL_ENABLED);
-> +			if (!link)
-> +				return -ENOMEM;
-> +		}
->  
-> -		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
-> -			media_create_intf_link(tuner, intf,
-> -					       MEDIA_LNK_FL_ENABLED);
-> +		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner) {
-> +			link = media_create_intf_link(tuner, intf,
-> +						      MEDIA_LNK_FL_ENABLED);
-> +			if (!link)
-> +				return -ENOMEM;
-> +		}
->  
-> -		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
-> -			media_create_intf_link(demux, intf,
-> -					       MEDIA_LNK_FL_ENABLED);
-> +		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux) {
-> +			link = media_create_intf_link(demux, intf,
-> +						      MEDIA_LNK_FL_ENABLED);
-> +			if (!link)
-> +				return -ENOMEM;
-> +		}
->  
->  		media_device_for_each_entity(entity, mdev) {
->  			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
-> -				if (!strcmp(entity->name, DVR_TSOUT))
-> -					media_create_intf_link(entity, intf,
-> -							       MEDIA_LNK_FL_ENABLED);
-> -				if (!strcmp(entity->name, DEMUX_TSOUT))
-> -					media_create_intf_link(entity, intf,
-> -							       MEDIA_LNK_FL_ENABLED);
-> +				if (!strcmp(entity->name, DVR_TSOUT)) {
-> +					link = media_create_intf_link(entity,
-> +							intf,
-> +							MEDIA_LNK_FL_ENABLED);
-> +					if (!link)
-> +						return -ENOMEM;
-> +				}
-> +				if (!strcmp(entity->name, DEMUX_TSOUT)) {
-> +					link = media_create_intf_link(entity,
-> +							intf,
-> +							MEDIA_LNK_FL_ENABLED);
-> +					if (!link)
-> +						return -ENOMEM;
-> +				}
->  				break;
->  			}
->  		}
->  	}
-> +	return 0;
->  }
->  EXPORT_SYMBOL_GPL(dvb_create_media_graph);
->  #endif
-> diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-> index 0b140e8595de..9e24aafeb9ea 100644
-> --- a/drivers/media/dvb-core/dvbdev.h
-> +++ b/drivers/media/dvb-core/dvbdev.h
-> @@ -210,7 +210,7 @@ int dvb_register_device(struct dvb_adapter *adap,
->  void dvb_unregister_device(struct dvb_device *dvbdev);
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -void dvb_create_media_graph(struct dvb_adapter *adap);
-> +int dvb_create_media_graph(struct dvb_adapter *adap);
->  static inline void dvb_register_media_controller(struct dvb_adapter *adap,
->  						 struct media_device *mdev)
->  {
-> @@ -218,7 +218,10 @@ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
->  }
->  
->  #else
-> -static inline void dvb_create_media_graph(struct dvb_adapter *adap) {}
-> +static inline int dvb_create_media_graph(struct dvb_adapter *adap)
-> +{
-> +	return 0;
-> +};
->  #define dvb_register_media_controller(a, b) {}
->  #endif
->  
+> Takashi Saito (1):
+>   v4l: vsp1: Add display list support
 > 
+>  .../devicetree/bindings/media/renesas,vsp1.txt     |  11 +-
+>  drivers/media/platform/vsp1/Makefile               |   3 +-
+>  drivers/media/platform/vsp1/vsp1.h                 |  28 +
+>  drivers/media/platform/vsp1/vsp1_bru.c             |  33 +-
+>  drivers/media/platform/vsp1/vsp1_bru.h             |   3 +-
+>  drivers/media/platform/vsp1/vsp1_dl.c              | 304 +++++++++++
+>  drivers/media/platform/vsp1/vsp1_dl.h              |  42 ++
+>  drivers/media/platform/vsp1/vsp1_drm.c             | 595 ++++++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_drm.h             |  38 ++
+>  drivers/media/platform/vsp1/vsp1_drv.c             | 255 +++++++--
+>  drivers/media/platform/vsp1/vsp1_entity.c          |  31 +-
+>  drivers/media/platform/vsp1/vsp1_entity.h          |  14 +-
+>  drivers/media/platform/vsp1/vsp1_hsit.c            |   2 +-
+>  drivers/media/platform/vsp1/vsp1_lif.c             |  11 +-
+>  drivers/media/platform/vsp1/vsp1_lut.c             |   7 +-
+>  drivers/media/platform/vsp1/vsp1_pipe.c            | 405 ++++++++++++++
+>  drivers/media/platform/vsp1/vsp1_pipe.h            | 134 +++++
+>  drivers/media/platform/vsp1/vsp1_regs.h            |  14 +-
+>  drivers/media/platform/vsp1/vsp1_rpf.c             |  77 ++-
+>  drivers/media/platform/vsp1/vsp1_rwpf.h            |  24 +-
+>  drivers/media/platform/vsp1/vsp1_sru.c             |   9 +-
+>  drivers/media/platform/vsp1/vsp1_uds.c             |   8 +-
+>  drivers/media/platform/vsp1/vsp1_video.c           | 515 ++++--------------
+>  drivers/media/platform/vsp1/vsp1_video.h           | 110 +---
+>  drivers/media/platform/vsp1/vsp1_wpf.c             |  88 ++-
+>  include/media/vsp1.h                               |  33 ++
+>  26 files changed, 2050 insertions(+), 744 deletions(-)
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_dl.c
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_dl.h
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_drm.c
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_drm.h
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.c
+>  create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.h
+>  create mode 100644 include/media/vsp1.h
+
+-- 
+Regards,
+
+Laurent Pinchart
 
