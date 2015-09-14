@@ -1,89 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34554 "EHLO foss.arm.com"
+Received: from lists.s-osg.org ([54.187.51.154]:35944 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754282AbbIWOhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2015 10:37:52 -0400
-Subject: Re: [PATCH 15/17] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
-To: zhangfei <zhangfei.gao@linaro.org>,
-	"linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
- <1442850433-5903-16-git-send-email-sudeep.holla@arm.com>
- <5602B6A1.2090309@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Guoxiong Yan <yanguoxiong@huawei.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Sudeep Holla <sudeep.holla@arm.com>
-Message-ID: <5602B93B.7040108@arm.com>
-Date: Wed, 23 Sep 2015 15:37:47 +0100
+	id S1752795AbbINKCH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2015 06:02:07 -0400
+Date: Mon, 14 Sep 2015 07:02:01 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: Time for a v4l-utils 1.8.0 release
+Message-ID: <20150914070201.39302d8c@recife.lan>
+In-Reply-To: <55F67483.4030709@googlemail.com>
+References: <55491541.1040709@googlemail.com>
+	<20150505172235.4bef50eb@recife.lan>
+	<55F67483.4030709@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <5602B6A1.2090309@linaro.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Gregor,
 
+Em Mon, 14 Sep 2015 09:17:23 +0200
+Gregor Jasny <gjasny@googlemail.com> escreveu:
 
-On 23/09/15 15:26, zhangfei wrote:
->
->
-> On 09/21/2015 08:47 AM, Sudeep Holla wrote:
->> This driver doesn't claim the IR transmitter to be wakeup source. It
->> even disables the clock and the IR during suspend-resume cycle.
->>
->> This patch removes yet another misuse of IRQF_NO_SUSPEND.
->>
->> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->> Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
->> Cc: Patrice Chotard <patrice.chotard@st.com>
->> Cc: Fabio Estevam <fabio.estevam@freescale.com>
->> Cc: Guoxiong Yan <yanguoxiong@huawei.com>
->> Cc: linux-media@vger.kernel.org
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->> ---
->>    drivers/media/rc/ir-hix5hd2.c | 2 +-
->>    1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
->> index 1c087cb76815..d0549fba711c 100644
->> --- a/drivers/media/rc/ir-hix5hd2.c
->> +++ b/drivers/media/rc/ir-hix5hd2.c
->> @@ -257,7 +257,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
->>    		goto clkerr;
->>
->>    	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
->> -			     IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
->> +			     0, pdev->name, priv) < 0) {
->>    		dev_err(dev, "IRQ %d register failed\n", priv->irq);
->>    		ret = -EINVAL;
->>    		goto regerr;
->>
->
-> ir is wakeup source for hix5hd2, so we use IRQF_NO_SUSPEND.
+> Hello,
+> 
+> On 05/05/15 22:22, Mauro Carvalho Chehab wrote:
+> > Em Tue, 05 May 2015 21:08:49 +0200
+> > Gregor Jasny <gjasny@googlemail.com> escreveu:
+> >
+> >> Hello,
+> >>
+> >> It's already more than half a year since the last v4l-utils release. Do
+> >> you have any pending commits or objections? If no one vetos I'd like to
+> >> release this weekend.
+> >
+> > There is are a additions I'd like to add to v4l-utils:
+> >
+> > 1) on DVB, ioctls may fail with -EAGAIN. Some parts of the libdvbv5 don't
+> > handle it well. I made one quick hack for it, but didn't have time to
+> > add a timeout to avoid an endless loop. The patch is simple. I just need
+> > some time to do that;
+> >
+> > 2) The Media Controller control util (media-ctl) doesn't support DVB.
+> >
+> > The patchset adding DVB support on media-ctl is ready, and I'm merging
+> > right now, and matches what's there at Kernel version 4.1-rc1 and upper.
+> >
+> > Yet, Laurent and Sakari want to do some changes at the Kernel API, before
+> > setting it into a stone at Kernel v 4.1 release.
+> >
+> > This has to happen on the next 4 weeks.
+> >
+> > So, I suggest to postpone the release of 1.8.0 until the end of this month.
+> 
+> I'd like to release v4l-utils 1.8.0 during the upcoming weekend. Please 
+> postpone any disruptive fixes until the release has been tagged.
 
-OK, but from the existing implementation of suspend/resume callbacks, I
-read that the clocks as well as the IP block is powered off. Is part of
-the logic always-on ?
+OK.
 
-> However, it is true the wakeup mechanism is not realized on hix5hd2 yet.
+There was one patch there adding support for DVB at the Media Controller
+part based on the old approach. As we decided to use a different
+approach ("MC next generation"), I reverted the change, as we won't
+want that change to go to the distros. It is not actually a big deal,
+as there's no released Kernel using the old approach, and the code in
+question is only triggered by certain types of defines that will never
+be found. Yet, I prefer not having an API support on a non-development
+branch for something that will never be mainstream.
 
-OK, then I assume you can add the right APIs(enable_irq_wake and
-friends) when you add that feature.
+Besides of such change, I think the remaining stuff there are OK for
+a new release.
 
-> I am fine with either using IRQF_NO_SUSPEND or not.
->
-
-No using IRQF_NO_SUSPEND for wakeup is simply wrong and hence this patch
-series removes all those misuse. If you need it as wakeup, then you need
-to use right APIs for that. Since I don't see any support for wakeup in
-this driver I decided to just remove the flag. Please feel free to add
-the support making use of right APIs.
+After the release of 1.8.x, I'll likely be merging a test application
+to allow checking the new API on the next development branch, at
+contrib/test.
 
 Regards,
-Sudeep
+Mauro
