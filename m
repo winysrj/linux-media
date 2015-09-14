@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:32676 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266AbbIKJhb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 05:37:31 -0400
-Subject: Re: [PATCH 08/18] [media] s5c73m3: Export OF module alias information
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-References: <1440054451-1223-1-git-send-email-javier@osg.samsung.com>
- <1440054451-1223-9-git-send-email-javier@osg.samsung.com>
- <55F22C24.1070407@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:35990 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751451AbbINMWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2015 08:22:05 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <55F2A0D3.5080903@samsung.com>
-Date: Fri, 11 Sep 2015 11:37:23 +0200
-MIME-version: 1.0
-In-reply-to: <55F22C24.1070407@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH v2 0/2] [media] Fix race between graph enumeration and entities registration
+Date: Mon, 14 Sep 2015 14:21:39 +0200
+Message-Id: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2015 03:19 AM, Javier Martinez Canillas wrote:
-> Hello,
->
-> On 08/20/2015 09:07 AM, Javier Martinez Canillas wrote:
->> The SPI core always reports the MODALIAS uevent as "spi:<modalias>"
->> regardless of the mechanism that was used to register the device
->> (i.e: OF or board code) and the table that is used later to match
->> the driver with the device (i.e: SPI id table or OF match table).
->>
->> So drivers needs to export the SPI id table and this be built into
->> the module or udev won't have the necessary information to autoload
->> the needed driver module when the device is added.
->>
->> But this means that OF-only drivers needs to have both OF and SPI id
->> tables that have to be kept in sync and also the dev node compatible
->> manufacturer prefix is stripped when reporting the MODALIAS. Which can
->> lead to issues if two vendors use the same SPI device name for example.
->>
->> To avoid the above, the SPI core behavior may be changed in the future
->> to not require an SPI device table for OF-only drivers and report the
->> OF module alias. So, it's better to also export the OF table even when
->> is unused now to prevent breaking module loading when the core changes.
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->> ---
->>
->>  drivers/media/i2c/s5c73m3/s5c73m3-spi.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
->> index fa4a5ebda6b2..9983635ec253 100644
->> --- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
->> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
->> @@ -31,6 +31,7 @@ static const struct of_device_id s5c73m3_spi_ids[] = {
->>  	{ .compatible = "samsung,s5c73m3" },
->>  	{ }
->>  };
->> +MODULE_DEVICE_TABLE(of, s5c73m3_spi_ids;);
->>  
->>  enum spi_direction {
->>  	SPI_DIR_RX,
->>
-> Any comments about this patch?
->
-> Best regards,
-Ups, forgot about it.
+Hello,
 
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+The Media Controller framework has an issue in which the media device node
+is registered before all the media entities and pads links are created so
+if user-space tries to enumerate the graph too early, it may get a partial
+graph since not everything has been registered yet.
 
-Regards
-Andrzej
+This series fixes the issue by separate the media device registration from
+the initialization so drives can first initialize the media device, create
+the graph and then finally register the media device node once is finished.
+The solution was suggested by Sakari Ailus.
+
+This is the second version of the series that fixes issues pointed out by
+Sakari Ailus. The first version was [0].
+
+Patch #1 adds a check to the media_device_unregister() function to know if
+the media device has been registed yet so calling it will be safe and the
+cleanup functions of the drivers won't need to be changed in case register
+failed.
+
+Patch #2 does the init and registration split, changing all the drivers to
+make the change atomic and also adds a cleanup function for media devices.
+
+The patches are on top of Mauro's "[PATCH v8 00/55] MC next generation" [1]
+but is not a dependency for that series, it was only be based on that patch
+series to avoid conflicts with in-flight patches.
+
+The patches have been tested on an OMAP3 IGEPv2 board that has a OMAP3 ISP
+device and an Exynos5800 Chromebook with a built-in UVC camera.
+
+[0]: https://lkml.org/lkml/2015/9/10/311
+[1]: http://permalink.gmane.org/gmane.linux.drivers.driver-project.devel/74515
+
+Best regards,
+Javier
+
+Changes in v2:
+- Reword the documentation for media_device_unregister(). Suggested by Sakari.
+- Added Sakari's Acked-by tag for patch #1.
+- Change media_device_init() to return void instead of an error.
+  Suggested by Sakari Ailus.
+- Remove the error messages when media_device_register() fails.
+  Suggested by Sakari Ailus.
+- Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
+
+Javier Martinez Canillas (2):
+  [media] media-device: check before unregister if mdev was registered
+  [media] media-device: split media initialization and registration
+
+ drivers/media/common/siano/smsdvb-main.c      |  1 +
+ drivers/media/media-device.c                  | 43 ++++++++++++++++++++++-----
+ drivers/media/platform/exynos4-is/media-dev.c | 15 +++++-----
+ drivers/media/platform/omap3isp/isp.c         | 14 ++++-----
+ drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++----
+ drivers/media/platform/vsp1/vsp1_drv.c        | 12 ++++----
+ drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++-----
+ drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++---------
+ drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 +++++++++----------
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 +++++++-------
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++-------
+ drivers/media/usb/siano/smsusb.c              |  5 ++--
+ drivers/media/usb/uvc/uvc_driver.c            | 10 +++++--
+ include/media/media-device.h                  |  2 ++
+ 14 files changed, 136 insertions(+), 97 deletions(-)
+
+-- 
+2.4.3
 
