@@ -1,63 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35434 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:36000 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752788AbbIJSdl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2015 14:33:41 -0400
-Subject: Re: [PATCH 2/2] [media] media-device: split media initialization and
- registration
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-kernel@vger.kernel.org
-References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
- <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
- <55F1C04C.1040906@linux.intel.com>
-Cc: Luis de Bethencourt <luis@debethencourt.com>,
-	linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>
+	id S1754176AbbINMWH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2015 08:22:07 -0400
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <55F1CCFC.4080604@osg.samsung.com>
-Date: Thu, 10 Sep 2015 20:33:32 +0200
-MIME-Version: 1.0
-In-Reply-To: <55F1C04C.1040906@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v2 1/2] [media] media-device: check before unregister if mdev was registered
+Date: Mon, 14 Sep 2015 14:21:40 +0200
+Message-Id: <1442233301-25181-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
+References: <1442233301-25181-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Most media functions that unregister, check if the corresponding register
+function succeed before. So these functions can safely be called even if a
+registration was never made or the component as already been unregistered.
 
-On 09/10/2015 07:39 PM, Sakari Ailus wrote:
-> Javier Martinez Canillas wrote:
->> Also, add a media_entity_cleanup() function that will destroy the
->> graph_mutex that is initialized in media_entity_init().
-> 
-> media_device_init() and media_device_cleanup()?
->
+Add the same check to media_device_unregister() function for consistency.
 
-Right, sorry about that. I'll fix it.
+This will also allow to split the media_device_register() function in an
+initialization and registration functions without the need to change the
+generic cleanup functions and error code paths for all the media drivers.
 
-Thanks!
+Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+---
+
+Changes in v2:
+- Reword the documentation for media_device_unregister(). Suggested by Sakari.
+- Added Sakari's Acked-by tag for patch #1.
+
+ drivers/media/media-device.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1312e93ebd6e..47d09ffe6a9b 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -574,6 +574,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+  * media_device_unregister - unregister a media device
+  * @mdev:	The media device
+  *
++ * It is safe to call this function on an unregistered
++ * (but initialised) media device.
+  */
+ void media_device_unregister(struct media_device *mdev)
+ {
+@@ -582,6 +584,10 @@ void media_device_unregister(struct media_device *mdev)
+ 	struct media_link *link, *tmp_link;
+ 	struct media_interface *intf, *tmp_intf;
  
-Best regards,
++	/* Check if mdev was ever registered at all */
++	if (!media_devnode_is_registered(&mdev->devnode))
++		return;
++
+ 	/* Remove interface links from the media device */
+ 	list_for_each_entry_safe(link, tmp_link, &mdev->links,
+ 				 graph_obj.list) {
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.3
+
