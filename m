@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bgl-iport-1.cisco.com ([72.163.197.25]:34056 "EHLO
-	bgl-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756396AbbIVO1e (ORCPT
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:34228 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345AbbINJWb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 10:27:34 -0400
-From: Prashant Laddha <prladdha@cisco.com>
-To: linux-media@vger.kernel.org
+	Mon, 14 Sep 2015 05:22:31 -0400
+Received: by igcpb10 with SMTP id pb10so85497886igc.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 02:22:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1441534308-24662-1-git-send-email-geert@linux-m68k.org>
+References: <1441534308-24662-1-git-send-email-geert@linux-m68k.org>
+Date: Mon, 14 Sep 2015 12:22:30 +0300
+Message-ID: <CALi4nhoZZGeQHww8tqip2HuoaFUzd9c4mR=v3HdNK1nh86UzdQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] VIDEO_RENESAS_JPU should depend on HAS_DMA
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prashant Laddha <prladdha@cisco.com>
-Subject: [RFC v2 2/4] vivid: add support for reduced fps in video out
-Date: Tue, 22 Sep 2015 19:57:29 +0530
-Message-Id: <1442932051-24972-3-git-send-email-prladdha@cisco.com>
-In-Reply-To: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
-References: <1442932051-24972-1-git-send-email-prladdha@cisco.com>
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If reduced fps flag is set then check if other necessary conditions
-are true for the given bt timing. If yes, then reduce the frame rate.
-For vivid transmitter, timeperframe_vid_out controls the frame rate.
-Adjusting the timeperframe_vid_out by scaling down pixel clock by
-factor of 1000 / 1001.
+Hi!
+Thanks for patch.
 
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Prashant Laddha <prladdha@cisco.com>
----
- drivers/media/platform/vivid/vivid-vid-out.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+On Sun, Sep 6, 2015 at 1:11 PM, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> If NO_DMA=y:
+>
+>     warning: (VIDEO_STI_BDISP && VIDEO_RENESAS_JPU && VIDEO_DM365_VPFE && VIDEO_OMAP4) selects VIDEOBUF2_DMA_CONTIG which has unmet direct dependencies (MEDIA_SUPPORT && HAS_DMA)
+>
+>     drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+>     drivers/media/v4l2-core/videobuf2-dma-contig.c:207: error: implicit declaration of function ‘dma_mmap_coherent’
+>     drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+>     drivers/media/v4l2-core/videobuf2-dma-contig.c:390: error: implicit declaration of function ‘dma_get_sgtable’
+>
+> VIDEO_RENESAS_JPU selects VIDEOBUF2_DMA_CONTIG, which bypasses its
+> dependency on HAS_DMA.  Make VIDEO_RENESAS_JPU depend on HAS_DMA to fix
+> this.
+>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> ---
+>  drivers/media/platform/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index dc75694ac12d2d57..ccbc9742cb7aeca4 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -233,7 +233,7 @@ config VIDEO_SH_VEU
+>
+>  config VIDEO_RENESAS_JPU
+>         tristate "Renesas JPEG Processing Unit"
+> -       depends on VIDEO_DEV && VIDEO_V4L2
+> +       depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+>         depends on ARCH_SHMOBILE || COMPILE_TEST
+>         select VIDEOBUF2_DMA_CONTIG
+>         select V4L2_MEM2MEM_DEV
+> --
+> 1.9.1
+>
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index c404e27..e860347 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -220,6 +220,7 @@ void vivid_update_format_out(struct vivid_dev *dev)
- {
- 	struct v4l2_bt_timings *bt = &dev->dv_timings_out.bt;
- 	unsigned size, p;
-+	u64 pixelclock;
- 
- 	switch (dev->output_type[dev->output]) {
- 	case SVID:
-@@ -241,8 +242,14 @@ void vivid_update_format_out(struct vivid_dev *dev)
- 		dev->sink_rect.width = bt->width;
- 		dev->sink_rect.height = bt->height;
- 		size = V4L2_DV_BT_FRAME_WIDTH(bt) * V4L2_DV_BT_FRAME_HEIGHT(bt);
-+
-+		if (can_reduce_fps(bt) && (bt->flags & V4L2_DV_FL_REDUCED_FPS))
-+			pixelclock = div_u64(bt->pixelclock * 1000, 1001);
-+		else
-+			pixelclock = bt->pixelclock;
-+
- 		dev->timeperframe_vid_out = (struct v4l2_fract) {
--			size / 100, (u32)bt->pixelclock / 100
-+			size / 100, (u32)pixelclock / 100
- 		};
- 		if (bt->interlaced)
- 			dev->field_out = V4L2_FIELD_ALTERNATE;
+Acked-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+
+
+
 -- 
-1.9.1
-
+W.B.R, Mikhail.
