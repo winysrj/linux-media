@@ -1,372 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60470 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751275AbbIRIFz (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55731 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751924AbbINIuR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 04:05:55 -0400
-Message-ID: <55FBC5B2.10808@xs4all.nl>
-Date: Fri, 18 Sep 2015 10:05:06 +0200
+	Mon, 14 Sep 2015 04:50:17 -0400
+Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
+	by tschai.lan (Postfix) with ESMTPSA id 9843D2A0095
+	for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 10:49:01 +0200 (CEST)
+Message-ID: <55F68A24.2020002@xs4all.nl>
+Date: Mon, 14 Sep 2015 10:49:40 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] [media] v4l2: introduce v4l2_timeval
-References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <1442524780-781677-8-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442524780-781677-8-git-send-email-arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Subject: Re: cron job: media_tree daily build: ERRORS
+References: <20150914023220.19C4C2A009D@tschai.lan>
+In-Reply-To: <20150914023220.19C4C2A009D@tschai.lan>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/15 23:19, Arnd Bergmann wrote:
-> The v4l2 API uses a 'struct timeval' to communicate time stamps to user
-> space. This is broken on 32-bit architectures as soon as we have a C library
-> that defines time_t as 64 bit, which then changes the structure layout of
-> struct v4l2_buffer.
-> 
-> Since existing user space source code relies on the type to be 'struct
-> timeva' and we want to preserve compile-time compatibility when moving
+I've fixed the errors reported here (the usual fall-out after a new
+rc1 is merged).
 
-s/timeva/timeval/
+However, 4.3-rc1 makes some substantial changes to the memory handling
+of vb2 introducing a new file mm/frame_vector.c.
 
-> to a new libc, we cannot make user-visible changes to the header file.
-> 
-> In this patch, we change the type of the timestamp to 'struct v4l2_timeval'
-
-Don't we need a kernel-wide timeval64? Rather than adding a v4l2-specific
-struct?
-
-> as a preparation for a follow-up that adds API compatiblity for both
-> 32-bit and 64-bit time_t. This patch should have no impact on generated
-> code in either user space or kernel.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c      |  2 +-
->  drivers/media/pci/meye/meye.h              |  2 +-
->  drivers/media/pci/zoran/zoran.h            |  2 +-
->  drivers/media/platform/coda/coda.h         |  2 +-
->  drivers/media/platform/omap/omap_vout.c    |  4 ++--
->  drivers/media/platform/omap3isp/ispstat.c  |  3 ++-
->  drivers/media/platform/omap3isp/ispstat.h  |  2 +-
->  drivers/media/platform/vim2m.c             |  2 +-
->  drivers/media/platform/vivid/vivid-ctrls.c |  2 +-
->  drivers/media/usb/cpia2/cpia2.h            |  2 +-
->  drivers/media/usb/cpia2/cpia2_v4l.c        |  2 +-
->  drivers/media/usb/gspca/gspca.c            |  2 +-
->  drivers/media/usb/usbvision/usbvision.h    |  2 +-
->  drivers/media/v4l2-core/v4l2-common.c      |  6 +++---
->  include/media/v4l2-common.h                |  2 +-
->  include/media/videobuf-core.h              |  2 +-
->  include/trace/events/v4l2.h                | 12 ++++++++++--
->  include/uapi/linux/videodev2.h             | 17 +++++++++++++++++
->  18 files changed, 47 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 15a4ebc2844d..b0ed8d799c14 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -3585,7 +3585,7 @@ static void
->  bttv_irq_wakeup_video(struct bttv *btv, struct bttv_buffer_set *wakeup,
->  		      struct bttv_buffer_set *curr, unsigned int state)
->  {
-> -	struct timeval ts;
-> +	struct v4l2_timeval ts;
->  
->  	v4l2_get_timestamp(&ts);
->  
-> diff --git a/drivers/media/pci/meye/meye.h b/drivers/media/pci/meye/meye.h
-> index 751be5e533c7..a06aa5ba9abc 100644
-> --- a/drivers/media/pci/meye/meye.h
-> +++ b/drivers/media/pci/meye/meye.h
-> @@ -281,7 +281,7 @@
->  struct meye_grab_buffer {
->  	int state;			/* state of buffer */
->  	unsigned long size;		/* size of jpg frame */
-> -	struct timeval timestamp;	/* timestamp */
-> +	struct v4l2_timeval timestamp;	/* timestamp */
->  	unsigned long sequence;		/* sequence number */
->  };
->  
-> diff --git a/drivers/media/pci/zoran/zoran.h b/drivers/media/pci/zoran/zoran.h
-> index 4e7db8939c2b..9a9f782cede9 100644
-> --- a/drivers/media/pci/zoran/zoran.h
-> +++ b/drivers/media/pci/zoran/zoran.h
-> @@ -39,7 +39,7 @@ struct zoran_sync {
->  	unsigned long frame;	/* number of buffer that has been free'd */
->  	unsigned long length;	/* number of code bytes in buffer (capture only) */
->  	unsigned long seq;	/* frame sequence number */
-> -	struct timeval timestamp;	/* timestamp */
-> +	struct v4l2_timeval timestamp;	/* timestamp */
->  };
->  
->  
-> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-> index 59b2af9c7749..fa1e15a757cd 100644
-> --- a/drivers/media/platform/coda/coda.h
-> +++ b/drivers/media/platform/coda/coda.h
-> @@ -138,7 +138,7 @@ struct coda_buffer_meta {
->  	struct list_head	list;
->  	u32			sequence;
->  	struct v4l2_timecode	timecode;
-> -	struct timeval		timestamp;
-> +	struct v4l2_timeval	timestamp;
->  	u32			start;
->  	u32			end;
->  };
-> diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-> index 70c28d19ea04..974a238a86fe 100644
-> --- a/drivers/media/platform/omap/omap_vout.c
-> +++ b/drivers/media/platform/omap/omap_vout.c
-> @@ -513,7 +513,7 @@ static int omapvid_apply_changes(struct omap_vout_device *vout)
->  }
->  
->  static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
-> -		unsigned int irqstatus, struct timeval timevalue)
-> +		unsigned int irqstatus, struct v4l2_timeval timevalue)
->  {
->  	u32 fid;
->  
-> @@ -557,7 +557,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
->  	int ret, fid, mgr_id;
->  	u32 addr, irq;
->  	struct omap_overlay *ovl;
-> -	struct timeval timevalue;
-> +	struct v4l2_timeval timevalue;
->  	struct omapvideo_info *ovid;
->  	struct omap_dss_device *cur_display;
->  	struct omap_vout_device *vout = (struct omap_vout_device *)arg;
-> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-> index 94d4c295d3d0..fa96e330c563 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.c
-> +++ b/drivers/media/platform/omap3isp/ispstat.c
-> @@ -496,7 +496,8 @@ int omap3isp_stat_request_statistics(struct ispstat *stat,
->  		return PTR_ERR(buf);
->  	}
->  
-> -	data->ts = buf->ts;
-> +	data->ts.tv_sec = buf->ts.tv_sec;
-> +	data->ts.tv_usec = buf->ts.tv_usec;
->  	data->config_counter = buf->config_counter;
->  	data->frame_number = buf->frame_number;
->  	data->buf_size = buf->buf_size;
-> diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
-> index 6d9b0244f320..7b4f136567a3 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.h
-> +++ b/drivers/media/platform/omap3isp/ispstat.h
-> @@ -39,7 +39,7 @@ struct ispstat_buffer {
->  	struct sg_table sgt;
->  	void *virt_addr;
->  	dma_addr_t dma_addr;
-> -	struct timeval ts;
-> +	struct v4l2_timeval ts;
->  	u32 buf_size;
->  	u32 frame_number;
->  	u16 config_counter;
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index 295fde5fdb75..df5daac6d099 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -235,7 +235,7 @@ static int device_process(struct vim2m_ctx *ctx,
->  	in_vb->v4l2_buf.sequence = q_data->sequence++;
->  	memcpy(&out_vb->v4l2_buf.timestamp,
->  			&in_vb->v4l2_buf.timestamp,
-> -			sizeof(struct timeval));
-> +			sizeof(struct v4l2_timeval));
->  	if (in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
->  		memcpy(&out_vb->v4l2_buf.timecode, &in_vb->v4l2_buf.timecode,
->  			sizeof(struct v4l2_timecode));
-
-See https://patchwork.linuxtv.org/patch/31405/
-
-I'll merge that one for 4.4 very soon.
-
-> diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
-> index 339c8b7e53c8..065f3d6c2409 100644
-> --- a/drivers/media/platform/vivid/vivid-ctrls.c
-> +++ b/drivers/media/platform/vivid/vivid-ctrls.c
-> @@ -935,7 +935,7 @@ static const struct v4l2_ctrl_config vivid_ctrl_has_scaler_out = {
->  static int vivid_streaming_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
->  	struct vivid_dev *dev = container_of(ctrl->handler, struct vivid_dev, ctrl_hdl_streaming);
-> -	struct timeval tv;
-> +	struct v4l2_timeval tv;
->  
->  	switch (ctrl->id) {
->  	case VIVID_CID_DQBUF_ERROR:
-> diff --git a/drivers/media/usb/cpia2/cpia2.h b/drivers/media/usb/cpia2/cpia2.h
-> index cdef677d57ec..3e7c523784e7 100644
-> --- a/drivers/media/usb/cpia2/cpia2.h
-> +++ b/drivers/media/usb/cpia2/cpia2.h
-> @@ -354,7 +354,7 @@ struct cpia2_sbuf {
->  };
->  
->  struct framebuf {
-> -	struct timeval timestamp;
-> +	struct v4l2_timeval timestamp;
->  	unsigned long seq;
->  	int num;
->  	int length;
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-> index 9caea8344547..ce50d7ef4da7 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -892,7 +892,7 @@ static int find_earliest_filled_buffer(struct camera_data *cam)
->  				found = i;
->  			} else {
->  				/* find which buffer is earlier */
-> -				struct timeval *tv1, *tv2;
-> +				struct v4l2_timeval *tv1, *tv2;
->  				tv1 = &cam->buffers[i].timestamp;
->  				tv2 = &cam->buffers[found].timestamp;
->  				if(tv1->tv_sec < tv2->tv_sec ||
-> diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-> index af5cd8213e8b..c977937da9c4 100644
-> --- a/drivers/media/usb/gspca/gspca.c
-> +++ b/drivers/media/usb/gspca/gspca.c
-> @@ -1898,7 +1898,7 @@ static ssize_t dev_read(struct file *file, char __user *data,
->  	struct gspca_dev *gspca_dev = video_drvdata(file);
->  	struct gspca_frame *frame;
->  	struct v4l2_buffer v4l2_buf;
-> -	struct timeval timestamp;
-> +	struct v4l2_timeval timestamp;
->  	int n, ret, ret2;
->  
->  	PDEBUG(D_FRAM, "read (%zd)", count);
-> diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
-> index 4f2e4fde38f2..512de31613df 100644
-> --- a/drivers/media/usb/usbvision/usbvision.h
-> +++ b/drivers/media/usb/usbvision/usbvision.h
-> @@ -320,7 +320,7 @@ struct usbvision_frame {
->  	long bytes_read;				/* amount of scanlength that has been read from data */
->  	struct usbvision_v4l2_format_st v4l2_format;	/* format the user needs*/
->  	int v4l2_linesize;				/* bytes for one videoline*/
-> -	struct timeval timestamp;
-> +	struct v4l2_timeval timestamp;
->  	int sequence;					/* How many video frames we send to user */
->  };
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 5b808500e7e7..589fab615f21 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -396,11 +396,11 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  }
->  EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
->  
-> -void v4l2_get_timestamp(struct timeval *tv)
-> +void v4l2_get_timestamp(struct v4l2_timeval *tv)
->  {
-> -	struct timespec ts;
-> +	struct timespec64 ts;
->  
-> -	ktime_get_ts(&ts);
-> +	ktime_get_ts64(&ts);
->  	tv->tv_sec = ts.tv_sec;
->  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->  }
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1cc0c5ba16b3..6e77d889c3f8 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -187,6 +187,6 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  		const struct v4l2_discrete_probe *probe,
->  		s32 width, s32 height);
->  
-> -void v4l2_get_timestamp(struct timeval *tv);
-> +void v4l2_get_timestamp(struct v4l2_timeval *tv);
->  
->  #endif /* V4L2_COMMON_H_ */
-> diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
-> index d760aa73ebbb..6381338a9588 100644
-> --- a/include/media/videobuf-core.h
-> +++ b/include/media/videobuf-core.h
-> @@ -80,7 +80,7 @@ struct videobuf_buffer {
->  	struct list_head        queue;
->  	wait_queue_head_t       done;
->  	unsigned int            field_count;
-> -	struct timeval          ts;
-> +	struct v4l2_timeval     ts;
->  
->  	/* Memory type */
->  	enum v4l2_memory        memory;
-> diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-> index dbf017bfddd9..a88be48dc473 100644
-> --- a/include/trace/events/v4l2.h
-> +++ b/include/trace/events/v4l2.h
-> @@ -6,6 +6,14 @@
->  
->  #include <linux/tracepoint.h>
->  
-> +#ifndef v4l2_timeval_to_ns
-> +#define v4l2_timeval_to_ns v4l2_timeval_to_ns
-> +static inline u64 v4l2_timeval_to_ns(struct v4l2_timeval *tv)
-> +{
-> +	return (u64)tv->tv_sec * NSEC_PER_SEC + tv->tv_usec * NSEC_PER_USEC;
-> +}
-> +#endif
-> +
->  /* Enums require being exported to userspace, for user tool parsing */
->  #undef EM
->  #undef EMe
-> @@ -126,7 +134,7 @@ DECLARE_EVENT_CLASS(v4l2_event_class,
->  		__entry->bytesused = buf->bytesused;
->  		__entry->flags = buf->flags;
->  		__entry->field = buf->field;
-> -		__entry->timestamp = timeval_to_ns(&buf->timestamp);
-> +		__entry->timestamp = v4l2_timeval_to_ns(&buf->timestamp);
->  		__entry->timecode_type = buf->timecode.type;
->  		__entry->timecode_flags = buf->timecode.flags;
->  		__entry->timecode_frames = buf->timecode.frames;
-> @@ -211,7 +219,7 @@ DECLARE_EVENT_CLASS(vb2_event_class,
->  		__entry->bytesused = vb->v4l2_planes[0].bytesused;
->  		__entry->flags = vb->v4l2_buf.flags;
->  		__entry->field = vb->v4l2_buf.field;
-> -		__entry->timestamp = timeval_to_ns(&vb->v4l2_buf.timestamp);
-> +		__entry->timestamp = v4l2_timeval_to_ns(&vb->v4l2_buf.timestamp);
->  		__entry->timecode_type = vb->v4l2_buf.timecode.type;
->  		__entry->timecode_flags = vb->v4l2_buf.timecode.flags;
->  		__entry->timecode_frames = vb->v4l2_buf.timecode.frames;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 3e2c497c31fd..450b3249ba30 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -803,6 +803,19 @@ struct v4l2_plane {
->  	__u32			reserved[11];
->  };
->  
-> +#ifdef __KERNEL__
-> +/*
-> + * This is used for the in-kernel version of v4l2_buffer, as we are
-> + * migrating away from using time_t based structures in the kernel.
-> + * User space might see this defined either using 32-bit or 64-bit
-> + * time_t, so we have to convert it when accessing user data.
-> + */
-> +struct v4l2_timeval {
-> +	long tv_sec;
-> +	long tv_usec;
-> +};
-> +#endif
-> +
->  /**
->   * struct v4l2_buffer - video buffer info
->   * @index:	id number of the buffer
-> @@ -839,7 +852,11 @@ struct v4l2_buffer {
->  	__u32			bytesused;
->  	__u32			flags;
->  	__u32			field;
-> +#ifdef __KERNEL__
-> +	struct v4l2_timeval	timestamp;
-> +#else
->  	struct timeval		timestamp;
-> +#endif
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
->  
-> 
+I do have a media_build patch that pulls that in for the compat build, but it
+doesn't compile yet. I'll see if I can look at this on Wednesday. This could
+turn out to be a major problem when it comes to the compat build.
 
 Regards,
 
 	Hans
+
+On 09/14/15 04:32, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:		Mon Sep 14 04:00:33 CEST 2015
+> git branch:	test
+> git hash:	9ddf9071ea17b83954358b2dac42b34e5857a9af
+> gcc version:	i686-linux-gcc (GCC) 5.1.0
+> sparse version:	v0.5.0-51-ga53cea2
+> smatch version:	0.4.1-3153-g7d56ab3
+> host hardware:	x86_64
+> host os:	4.0.0-3.slh.1-amd64
+> 
+> linux-git-arm-at91: ERRORS
+> linux-git-arm-davinci: ERRORS
+> linux-git-arm-exynos: ERRORS
+> linux-git-arm-mx: ERRORS
+> linux-git-arm-omap: ERRORS
+> linux-git-arm-omap1: ERRORS
+> linux-git-arm-pxa: ERRORS
+> linux-git-blackfin-bf561: ERRORS
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: ERRORS
+> linux-git-powerpc64: OK
+> linux-git-sh: ERRORS
+> linux-git-x86_64: OK
+> linux-2.6.32.27-i686: ERRORS
+> linux-2.6.33.7-i686: ERRORS
+> linux-2.6.34.7-i686: ERRORS
+> linux-2.6.35.9-i686: ERRORS
+> linux-2.6.36.4-i686: ERRORS
+> linux-2.6.37.6-i686: ERRORS
+> linux-2.6.38.8-i686: ERRORS
+> linux-2.6.39.4-i686: ERRORS
+> linux-3.0.60-i686: ERRORS
+> linux-3.1.10-i686: ERRORS
+> linux-3.2.37-i686: ERRORS
+> linux-3.3.8-i686: ERRORS
+> linux-3.4.27-i686: ERRORS
+> linux-3.5.7-i686: ERRORS
+> linux-3.6.11-i686: ERRORS
+> linux-3.7.4-i686: ERRORS
+> linux-3.8-i686: ERRORS
+> linux-3.9.2-i686: ERRORS
+> linux-3.10.1-i686: OK
+> linux-3.11.1-i686: OK
+> linux-3.12.23-i686: OK
+> linux-3.13.11-i686: ERRORS
+> linux-3.14.9-i686: ERRORS
+> linux-3.15.2-i686: ERRORS
+> linux-3.16.7-i686: ERRORS
+> linux-3.17.8-i686: OK
+> linux-3.18.7-i686: OK
+> linux-3.19-i686: OK
+> linux-4.0-i686: OK
+> linux-4.1.1-i686: OK
+> linux-4.2-i686: OK
+> linux-4.3-rc1-i686: OK
+> linux-2.6.32.27-x86_64: ERRORS
+> linux-2.6.33.7-x86_64: ERRORS
+> linux-2.6.34.7-x86_64: ERRORS
+> linux-2.6.35.9-x86_64: ERRORS
+> linux-2.6.36.4-x86_64: ERRORS
+> linux-2.6.37.6-x86_64: ERRORS
+> linux-2.6.38.8-x86_64: ERRORS
+> linux-2.6.39.4-x86_64: ERRORS
+> linux-3.0.60-x86_64: ERRORS
+> linux-3.1.10-x86_64: ERRORS
+> linux-3.2.37-x86_64: ERRORS
+> linux-3.3.8-x86_64: ERRORS
+> linux-3.4.27-x86_64: ERRORS
+> linux-3.5.7-x86_64: ERRORS
+> linux-3.6.11-x86_64: ERRORS
+> linux-3.7.4-x86_64: ERRORS
+> linux-3.8-x86_64: ERRORS
+> linux-3.9.2-x86_64: ERRORS
+> linux-3.10.1-x86_64: OK
+> linux-3.11.1-x86_64: OK
+> linux-3.12.23-x86_64: OK
+> linux-3.13.11-x86_64: ERRORS
+> linux-3.14.9-x86_64: ERRORS
+> linux-3.15.2-x86_64: ERRORS
+> linux-3.16.7-x86_64: ERRORS
+> linux-3.17.8-x86_64: OK
+> linux-3.18.7-x86_64: OK
+> linux-3.19-x86_64: OK
+> linux-4.0-x86_64: OK
+> linux-4.1.1-x86_64: OK
+> linux-4.2-x86_64: OK
+> linux-4.3-rc1-x86_64: OK
+> apps: OK
+> spec-git: OK
+> sparse: ERRORS
+> ABI WARNING: change for arm-at91
+> ABI WARNING: change for arm-davinci
+> ABI WARNING: change for arm-exynos
+> ABI WARNING: change for arm-mx
+> ABI WARNING: change for arm-omap
+> ABI WARNING: change for arm-omap1
+> ABI WARNING: change for arm-pxa
+> ABI WARNING: change for blackfin-bf561
+> ABI WARNING: change for mips
+> ABI WARNING: change for sh
+> smatch: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
