@@ -1,230 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52349 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755501AbbIMU53 (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:34113 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127AbbINPF0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:29 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 27/32] v4l: vsp1: Don't validate links when the userspace API is disabled
-Date: Sun, 13 Sep 2015 23:57:05 +0300
-Message-Id: <1442177830-24536-28-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 14 Sep 2015 11:05:26 -0400
+Received: by padhy16 with SMTP id hy16so146500374pad.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 08:05:26 -0700 (PDT)
+Subject: Re: [PATCH][resend] rc: gpio-ir-recv: allow flush space on idle
+To: Sean Young <sean@mess.org>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <20150914100044.GA21149@gofer.mess.org> <55F6DAE2.6080901@nelint.com>
+ <20150914145436.GA23973@gofer.mess.org>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+From: Eric Nelson <eric@nelint.com>
+Message-ID: <55F6E234.5050502@nelint.com>
+Date: Mon, 14 Sep 2015 08:05:24 -0700
+MIME-Version: 1.0
+In-Reply-To: <20150914145436.GA23973@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pipeline is configured internally by the driver when the
-userspace API is disabled its configuration can be trusted and link
-validation isn't needed.
+Thanks again Sean,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h        |  2 ++
- drivers/media/platform/vsp1/vsp1_bru.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_drv.c    | 10 ++++++++++
- drivers/media/platform/vsp1/vsp1_entity.c | 11 +++--------
- drivers/media/platform/vsp1/vsp1_entity.h |  5 ++++-
- drivers/media/platform/vsp1/vsp1_hsit.c   |  2 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 +-
- 12 files changed, 27 insertions(+), 17 deletions(-)
+On 09/14/2015 07:54 AM, Sean Young wrote:
+> On Mon, Sep 14, 2015 at 07:34:10AM -0700, Eric Nelson wrote:
+>> Thanks Shawn,
+>>
+>> On 09/14/2015 03:00 AM, Sean Young wrote:
+>>> On Fri, Sep 11, 2015 at 07:00:24AM -0700, Eric Nelson wrote:
+>>>> Many decoders require a trailing space (period without IR illumination)
+>>>> to be delivered before completing a decode.
+>>>>
+>>>> Since the gpio-ir-recv driver only delivers events on gpio transitions,
+>>>> a single IR symbol (caused by a quick touch on an IR remote) will not
+>>>> be properly decoded without the use of a timer to flush the tail end
+>>>> state of the IR receiver.
+>>>
+>>> This is a problem other IR drivers suffer from too. It might be better
+>>> to send a IR timeout event like st_rc_send_lirc_timeout() in st_rc.c,
+>>> with the duration set to what the timeout was. That is what irraw 
+>>> timeouts are for; much better than fake transitions.
+>>>
+>>
+>> If I'm understanding this correctly, this would require modification
+>> of each decoder to handle what seems to be a special case regarding
+>> the GPIO IR driver (which needs an edge to trigger an interrupt).
+> 
+> No, this is not a special case. Many drivers do have extra code to generate
+> some sort of end-of-signal message: redrat3; igorplugusb; st_rc. They don't
+> handle it consistently but this should be fixed.
+> 
+> Secondly, the decoders already handle it. A timeout event matches 
+> is_timing_event(), so it's processed by the decoders. The duration should 
+> be set correctly.
+> 
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 791d24c2c8d1..6102ade125bb 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -82,6 +82,8 @@ struct vsp1_device {
- 
- 	struct v4l2_device v4l2_dev;
- 	struct media_device media_dev;
-+
-+	struct media_entity_operations media_ops;
- };
- 
- int vsp1_device_get(struct vsp1_device *vsp1);
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 2d31284dfc3f..99b742ff53c9 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -424,7 +424,7 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 	subdev = &bru->entity.subdev;
- 	v4l2_subdev_init(subdev, &bru_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 5a18f69c90c2..fb9c8f59e3b0 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -21,6 +21,8 @@
- #include <linux/platform_device.h>
- #include <linux/videodev2.h>
- 
-+#include <media/v4l2-subdev.h>
-+
- #include "vsp1.h"
- #include "vsp1_bru.h"
- #include "vsp1_hsit.h"
-@@ -217,6 +219,14 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		return ret;
- 	}
- 
-+	vsp1->media_ops.link_setup = vsp1_entity_link_setup;
-+	/* Don't perform link validation when the userspace API is disabled as
-+	 * the pipeline is configured internally by the driver in that case, and
-+	 * its configuration can thus be trusted.
-+	 */
-+	if (vsp1->info->uapi)
-+		vsp1->media_ops.link_validate = v4l2_subdev_link_validate;
-+
- 	vdev->mdev = mdev;
- 	ret = v4l2_device_register(vsp1->dev, vdev);
- 	if (ret < 0) {
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 7068ba1e89e9..79e05b76d6e3 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -131,9 +131,9 @@ const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops = {
-  * Media Operations
-  */
- 
--static int vsp1_entity_link_setup(struct media_entity *entity,
--				  const struct media_pad *local,
--				  const struct media_pad *remote, u32 flags)
-+int vsp1_entity_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags)
- {
- 	struct vsp1_entity *source;
- 
-@@ -158,11 +158,6 @@ static int vsp1_entity_link_setup(struct media_entity *entity,
- 	return 0;
- }
- 
--const struct media_entity_operations vsp1_media_ops = {
--	.link_setup = vsp1_entity_link_setup,
--	.link_validate = v4l2_subdev_link_validate,
--};
--
- /* -----------------------------------------------------------------------------
-  * Initialization
-  */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 360a2e668ac2..83570dfde8ec 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -86,7 +86,10 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- void vsp1_entity_destroy(struct vsp1_entity *entity);
- 
- extern const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops;
--extern const struct media_entity_operations vsp1_media_ops;
-+
-+int vsp1_entity_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags);
- 
- struct v4l2_mbus_framefmt *
- vsp1_entity_get_pad_format(struct vsp1_entity *entity,
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index 8ffb817ae525..c1087cff31a0 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -203,7 +203,7 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
- 	subdev = &hsit->entity.subdev;
- 	v4l2_subdev_init(subdev, &hsit_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
- 		 dev_name(vsp1->dev), inverse ? "hsi" : "hst");
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index b868bce08982..b8e73d32d14d 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -223,7 +223,7 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
- 	subdev = &lif->entity.subdev;
- 	v4l2_subdev_init(subdev, &lif_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 9e33caa9c616..4b89095e7b5f 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -237,7 +237,7 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
- 	subdev = &lut->entity.subdev;
- 	v4l2_subdev_init(subdev, &lut_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 7ccec87b1139..56177628a17c 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -245,7 +245,7 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &rpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &rpf_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
- 		 dev_name(vsp1->dev), index);
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 4e1db5a3c928..cc09efbfb24f 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -363,7 +363,7 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
- 	subdev = &sru->entity.subdev;
- 	v4l2_subdev_init(subdev, &sru_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s sru",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 27ad07466ebd..bba67770cf95 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -338,7 +338,7 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &uds->entity.subdev;
- 	v4l2_subdev_init(subdev, &uds_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
- 		 dev_name(vsp1->dev), index);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 6212fc714a7c..7d06e84bcb9f 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -243,7 +243,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &wpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &wpf_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
- 		 dev_name(vsp1->dev), index);
--- 
-2.4.6
+I think I did misunderstand you.
+
+You're suggesting that I re-work the patch to gpio-ir-recv.c to
+produce a timeout instead of an edge. Is that right?
+
+>> Isn't it better to have the device interface handle this in one place?
+> 
+>>>> This patch adds an optional device tree node "flush-ms" which, if
+>>>> present, will use a jiffie-based timer to complete the last pulse
+>>>> stream and allow decode.
+>>>
+>>> A common value for this is 100ms, I'm not sure what use it has to have
+>>> it configurable. It's nice to have it exposed in rc_dev->timeout.
+>>>
+>>
+>> I'm enough of a n00b regarding the details of the various decoders
+>> not to know that...
+>>
+>> I looked through the couple of decoders my customer was using (NEC and
+>> RC6) and came up with a value of 100ms though...
+>>
+>> Implementing this through DT and having the default as 0 (disabled)
+>> provides an interim solution if the choice is made to change each of
+>> the decoders, since I would expect that to take a while and a bunch of
+>> remote control devices for testing.
+> 
+> Many other drivers use 100ms just fine and I don't remember ever seeing
+> any bug reports on that.
+> 
+
+So you'd like to see this as a constant?
+
+Please advise,
+
+
+Eric
 
