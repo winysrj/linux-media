@@ -1,112 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:55537 "EHLO mout.gmx.net"
+Received: from gofer.mess.org ([80.229.237.210]:56130 "EHLO gofer.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087AbbIRJpb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 05:45:31 -0400
-Date: Fri, 18 Sep 2015 11:44:45 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3] media: atmel-isi: parse the DT parameters for
- vsync/hsync/pixclock polarity
-In-Reply-To: <55FBD76C.1040303@atmel.com>
-Message-ID: <Pine.LNX.4.64.1509181144170.15589@axis700.grange>
-References: <1438681069-16981-1-git-send-email-josh.wu@atmel.com>
- <3317317.RTpCstaHHn@avalon> <55FBD76C.1040303@atmel.com>
+	id S1754172AbbINOyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2015 10:54:40 -0400
+Date: Mon, 14 Sep 2015 15:54:37 +0100
+From: Sean Young <sean@mess.org>
+To: Eric Nelson <eric@nelint.com>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+Subject: Re: [PATCH][resend] rc: gpio-ir-recv: allow flush space on idle
+Message-ID: <20150914145436.GA23973@gofer.mess.org>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <20150914100044.GA21149@gofer.mess.org>
+ <55F6DAE2.6080901@nelint.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55F6DAE2.6080901@nelint.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
-
-Patch handling is on my todo for the coming weekend...
-
-Thanks
-Guennadi
-
-On Fri, 18 Sep 2015, Nicolas Ferre wrote:
-
-> Le 04/08/2015 13:22, Laurent Pinchart a écrit :
-> > Hi Josh,
+On Mon, Sep 14, 2015 at 07:34:10AM -0700, Eric Nelson wrote:
+> Thanks Shawn,
+> 
+> On 09/14/2015 03:00 AM, Sean Young wrote:
+> > On Fri, Sep 11, 2015 at 07:00:24AM -0700, Eric Nelson wrote:
+> >> Many decoders require a trailing space (period without IR illumination)
+> >> to be delivered before completing a decode.
+> >>
+> >> Since the gpio-ir-recv driver only delivers events on gpio transitions,
+> >> a single IR symbol (caused by a quick touch on an IR remote) will not
+> >> be properly decoded without the use of a timer to flush the tail end
+> >> state of the IR receiver.
 > > 
-> > Thank you for the patch.
-> > 
-> > On Tuesday 04 August 2015 17:37:49 Josh Wu wrote:
-> >> This patch will get the DT parameters of vsync/hsync/pixclock polarity, and
-> >> pass to driver.
-> >>
-> >> Also add a debug information for test purpose.
-> >>
-> >> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > 
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Guennadi, Mauro,
-> 
-> I don't see this patch in Linux-next and I'm not so used to
-> http://git.linuxtv.org but didn't find it either.
-> 
-> Well in fact it's just a lengthy version of "ping" ;-)
-> 
-> Bye,
-> 
-> >> ---
-> >>
-> >> Changes in v3:
-> >> - add embedded sync dt property support.
-> >>
-> >> Changes in v2:
-> >> - rewrite the debug message and add pix clock polarity setup thanks to
-> >>   Laurent.
-> >> - update the commit log.
-> >>
-> >>  drivers/media/platform/soc_camera/atmel-isi.c | 15 +++++++++++++++
-> >>  1 file changed, 15 insertions(+)
-> >>
-> >> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
-> >> b/drivers/media/platform/soc_camera/atmel-isi.c index fead841..4efc939
-> >> 100644
-> >> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> >> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> >> @@ -1061,6 +1061,11 @@ static int isi_camera_set_bus_param(struct
-> >> soc_camera_device *icd) if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
-> >>  		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
-> >>
-> >> +	dev_dbg(icd->parent, "vsync active %s, hsync active %s, sampling on pix
-> >> clock %s edge\n", +		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" :
-> >> "high",
-> >> +		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
-> >> +		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "falling" : "rising");
-> >> +
-> >>  	if (isi->pdata.has_emb_sync)
-> >>  		cfg1 |= ISI_CFG1_EMB_SYNC;
-> >>  	if (isi->pdata.full_mode)
-> >> @@ -1148,6 +1153,16 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
-> >>  		return -EINVAL;
-> >>  	}
-> >>
-> >> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-> >> +		isi->pdata.hsync_act_low = true;
-> >> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-> >> +		isi->pdata.vsync_act_low = true;
-> >> +	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
-> >> +		isi->pdata.pclk_act_falling = true;
-> >> +
-> >> +	if (ep.bus_type == V4L2_MBUS_BT656)
-> >> +		isi->pdata.has_emb_sync = true;
-> >> +
-> >>  	return 0;
-> >>  }
+> > This is a problem other IR drivers suffer from too. It might be better
+> > to send a IR timeout event like st_rc_send_lirc_timeout() in st_rc.c,
+> > with the duration set to what the timeout was. That is what irraw 
+> > timeouts are for; much better than fake transitions.
 > > 
 > 
+> If I'm understanding this correctly, this would require modification
+> of each decoder to handle what seems to be a special case regarding
+> the GPIO IR driver (which needs an edge to trigger an interrupt).
+
+No, this is not a special case. Many drivers do have extra code to generate
+some sort of end-of-signal message: redrat3; igorplugusb; st_rc. They don't
+handle it consistently but this should be fixed.
+
+Secondly, the decoders already handle it. A timeout event matches 
+is_timing_event(), so it's processed by the decoders. The duration should 
+be set correctly.
+
+> Isn't it better to have the device interface handle this in one place?
+
+> >> This patch adds an optional device tree node "flush-ms" which, if
+> >> present, will use a jiffie-based timer to complete the last pulse
+> >> stream and allow decode.
+> > 
+> > A common value for this is 100ms, I'm not sure what use it has to have
+> > it configurable. It's nice to have it exposed in rc_dev->timeout.
+> > 
 > 
-> -- 
-> Nicolas Ferre
+> I'm enough of a n00b regarding the details of the various decoders
+> not to know that...
 > 
+> I looked through the couple of decoders my customer was using (NEC and
+> RC6) and came up with a value of 100ms though...
+> 
+> Implementing this through DT and having the default as 0 (disabled)
+> provides an interim solution if the choice is made to change each of
+> the decoders, since I would expect that to take a while and a bunch of
+> remote control devices for testing.
+
+Many other drivers use 100ms just fine and I don't remember ever seeing
+any bug reports on that.
+
+
+Sean
