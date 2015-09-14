@@ -1,95 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:50378 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbbIFLrG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 07:47:06 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq functions
-Date: Sun,  6 Sep 2015 13:42:12 +0200
-Message-Id: <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:33196 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858AbbINOeN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Sep 2015 10:34:13 -0400
+Received: by pacex6 with SMTP id ex6so146243086pac.0
+        for <linux-media@vger.kernel.org>; Mon, 14 Sep 2015 07:34:13 -0700 (PDT)
+Subject: Re: [PATCH][resend] rc: gpio-ir-recv: allow flush space on idle
+To: Sean Young <sean@mess.org>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <20150914100044.GA21149@gofer.mess.org>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+From: Eric Nelson <eric@nelint.com>
+Message-ID: <55F6DAE2.6080901@nelint.com>
+Date: Mon, 14 Sep 2015 07:34:10 -0700
+MIME-Version: 1.0
+In-Reply-To: <20150914100044.GA21149@gofer.mess.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This moves the dma irq handling functions up in the source file, so that
-they are available before DMA preparation functions. It prepares the
-conversion to DMA engine, where the descriptors are populated with these
-functions as callbacks.
+Thanks Shawn,
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
-Since v1: fixed prototypes change
-Since v4: refixed prototypes change
----
- drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
- 1 file changed, 24 insertions(+), 18 deletions(-)
+On 09/14/2015 03:00 AM, Sean Young wrote:
+> On Fri, Sep 11, 2015 at 07:00:24AM -0700, Eric Nelson wrote:
+>> Many decoders require a trailing space (period without IR illumination)
+>> to be delivered before completing a decode.
+>>
+>> Since the gpio-ir-recv driver only delivers events on gpio transitions,
+>> a single IR symbol (caused by a quick touch on an IR remote) will not
+>> be properly decoded without the use of a timer to flush the tail end
+>> state of the IR receiver.
+> 
+> This is a problem other IR drivers suffer from too. It might be better
+> to send a IR timeout event like st_rc_send_lirc_timeout() in st_rc.c,
+> with the duration set to what the timeout was. That is what irraw 
+> timeouts are for; much better than fake transitions.
+> 
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index db041a5ed444..bb7054221a86 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
- 	return i + 1;
- }
- 
-+static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
-+			       enum pxa_camera_active_dma act_dma);
-+
-+static void pxa_camera_dma_irq_y(int channel, void *data)
-+{
-+	struct pxa_camera_dev *pcdev = data;
-+
-+	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
-+}
-+
-+static void pxa_camera_dma_irq_u(int channel, void *data)
-+{
-+	struct pxa_camera_dev *pcdev = data;
-+
-+	pxa_camera_dma_irq(channel, pcdev, DMA_U);
-+}
-+
-+static void pxa_camera_dma_irq_v(int channel, void *data)
-+{
-+	struct pxa_camera_dev *pcdev = data;
-+
-+	pxa_camera_dma_irq(channel, pcdev, DMA_V);
-+}
-+
- /**
-  * pxa_init_dma_channel - init dma descriptors
-  * @pcdev: pxa camera device
-@@ -802,24 +826,6 @@ out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
--static void pxa_camera_dma_irq_y(int channel, void *data)
--{
--	struct pxa_camera_dev *pcdev = data;
--	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
--}
--
--static void pxa_camera_dma_irq_u(int channel, void *data)
--{
--	struct pxa_camera_dev *pcdev = data;
--	pxa_camera_dma_irq(channel, pcdev, DMA_U);
--}
--
--static void pxa_camera_dma_irq_v(int channel, void *data)
--{
--	struct pxa_camera_dev *pcdev = data;
--	pxa_camera_dma_irq(channel, pcdev, DMA_V);
--}
--
- static struct videobuf_queue_ops pxa_videobuf_ops = {
- 	.buf_setup      = pxa_videobuf_setup,
- 	.buf_prepare    = pxa_videobuf_prepare,
--- 
-2.1.4
+If I'm understanding this correctly, this would require modification
+of each decoder to handle what seems to be a special case regarding
+the GPIO IR driver (which needs an edge to trigger an interrupt).
 
+Isn't it better to have the device interface handle this in one place?
+
+>> This patch adds an optional device tree node "flush-ms" which, if
+>> present, will use a jiffie-based timer to complete the last pulse
+>> stream and allow decode.
+> 
+> A common value for this is 100ms, I'm not sure what use it has to have
+> it configurable. It's nice to have it exposed in rc_dev->timeout.
+> 
+
+I'm enough of a n00b regarding the details of the various decoders
+not to know that...
+
+I looked through the couple of decoders my customer was using (NEC and
+RC6) and came up with a value of 100ms though...
+
+Implementing this through DT and having the default as 0 (disabled)
+provides an interim solution if the choice is made to change each of
+the decoders, since I would expect that to take a while and a bunch of
+remote control devices for testing.
+
+Regards,
+
+
+Eric
