@@ -1,54 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59761 "EHLO mx1.redhat.com"
+Received: from mail.saftware.de ([83.141.3.46]:42942 "EHLO mail.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751209AbbIIIaQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2015 04:30:16 -0400
-Subject: Re: [PATCH v1] media: uvcvideo: handle urb completion in a work queue
-To: Alan Stern <stern@rowland.harvard.edu>
-References: <Pine.LNX.4.44L0.1509081035070.1533-100000@iolanthe.rowland.org>
-Cc: Mian Yousaf Kaukab <yousaf.kaukab@intel.com>,
-	laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	mchehab@osg.samsung.com, linux-usb@vger.kernel.org
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <55EFEE14.5050100@redhat.com>
-Date: Wed, 9 Sep 2015 10:30:12 +0200
+	id S1751465AbbIOSC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2015 14:02:58 -0400
+Subject: Re: [PATCH 1/7] [media] dvb: use ktime_t for internal timeout
+To: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+ <1442332148-488079-2-git-send-email-arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+From: Andreas Oberritter <obi@saftware.de>
+Message-ID: <55F85B97.8000700@saftware.de>
+Date: Tue, 15 Sep 2015 19:55:35 +0200
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.44L0.1509081035070.1533-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1442332148-488079-2-git-send-email-arnd@arndb.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello Arnd,
 
-On 08-09-15 16:36, Alan Stern wrote:
-> On Tue, 8 Sep 2015, Hans de Goede wrote:
->
->> Hi,
->>
->> On 09/07/2015 06:23 PM, Mian Yousaf Kaukab wrote:
->>> urb completion callback is executed in host controllers interrupt
->>> context. To keep preempt disable time short, add urbs to a list on
->>> completion and schedule work to process the list.
->>>
->>> Moreover, save timestamp and sof number in the urb completion callback
->>> to avoid any delays.
->>
->> Erm, I thought that we had already moved to using threaded interrupt
->> handling for the urb completion a while (1-2 years ?) back. Is this then
->> still needed ?
->
-> We moved to handling URB completions in a tasklet, not a threaded
-> handler.
+On 15.09.2015 17:49, Arnd Bergmann wrote:
+> The dvb demuxer code uses a 'struct timespec' to pass a timeout
+> as absolute time. This will cause problems on 32-bit architectures
+> in 2038 when time_t overflows, and it is racy with a concurrent
+> settimeofday() call.
+> 
+> This patch changes the code to use ktime_get() instead, using
+> the monotonic time base to avoid both the race and the overflow.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/dvb-core/demux.h     |  2 +-
+>  drivers/media/dvb-core/dmxdev.c    |  2 +-
+>  drivers/media/dvb-core/dvb_demux.c | 17 ++++++-----------
+>  drivers/media/dvb-core/dvb_demux.h |  4 ++--
+>  drivers/media/dvb-core/dvb_net.c   |  2 +-
+>  5 files changed, 11 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+> index 833191bcd810..d8e2b1213bef 100644
+> --- a/drivers/media/dvb-core/demux.h
+> +++ b/drivers/media/dvb-core/demux.h
+> @@ -92,7 +92,7 @@ struct dmx_ts_feed {
+>  		    int type,
+>  		    enum dmx_ts_pes pes_type,
+>  		    size_t circular_buffer_size,
+> -		    struct timespec timeout);
+> +		    ktime_t timeout);
+>  	int (*start_filtering) (struct dmx_ts_feed* feed);
+>  	int (*stop_filtering) (struct dmx_ts_feed* feed);
+>  };
+> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+> index d0e3f9d85f34..0d20b379eeec 100644
+> --- a/drivers/media/dvb-core/dmxdev.c
+> +++ b/drivers/media/dvb-core/dmxdev.c
+> @@ -558,7 +558,7 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
+>  				 struct dmxdev_filter *filter,
+>  				 struct dmxdev_feed *feed)
+>  {
+> -	struct timespec timeout = { 0 };
+> +	ktime_t timeout = ktime_set(0, 0);
+>  	struct dmx_pes_filter_params *para = &filter->params.pes;
+>  	dmx_output_t otype;
+>  	int ret;
+> diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+> index 6c7ff0cdcd32..d83dd0eb5757 100644
+> --- a/drivers/media/dvb-core/dvb_demux.c
+> +++ b/drivers/media/dvb-core/dvb_demux.c
+> @@ -399,28 +399,23 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
+>  	int dvr_done = 0;
+>  
+>  	if (dvb_demux_speedcheck) {
+> -		struct timespec cur_time, delta_time;
+> +		ktime_t cur_time;
+>  		u64 speed_bytes, speed_timedelta;
+>  
+>  		demux->speed_pkts_cnt++;
+>  
+>  		/* show speed every SPEED_PKTS_INTERVAL packets */
+>  		if (!(demux->speed_pkts_cnt % SPEED_PKTS_INTERVAL)) {
+> -			cur_time = current_kernel_time();
+> +			cur_time = ktime_get();
+>  
+> -			if (demux->speed_last_time.tv_sec != 0 &&
+> -					demux->speed_last_time.tv_nsec != 0) {
+> -				delta_time = timespec_sub(cur_time,
+> -						demux->speed_last_time);
+> +			if (ktime_to_ns(demux->speed_last_time) == 0) {
 
-Right.
-
-> (Similar idea, though.)  And the change was made in only one
-> or two HCDs, not in all of them.
-
-Ah, I was under the impression this was a core change, not a per
-hcd change.
+if ktime_to_ns does what I think it does, then you should invert the logic.
 
 Regards,
+Andreas
 
-Hans
+>  				speed_bytes = (u64)demux->speed_pkts_cnt
+>  					* 188 * 8;
+>  				/* convert to 1024 basis */
+>  				speed_bytes = 1000 * div64_u64(speed_bytes,
+>  						1024);
+> -				speed_timedelta =
+> -					(u64)timespec_to_ns(&delta_time);
+> -				speed_timedelta = div64_u64(speed_timedelta,
+> -						1000000); /* nsec -> usec */
+> +				speed_timedelta = ktime_ms_delta(cur_time,
+> +							demux->speed_last_time);
+>  				printk(KERN_INFO "TS speed %llu Kbits/sec \n",
+>  						div64_u64(speed_bytes,
+>  							speed_timedelta));
+> @@ -667,7 +662,7 @@ out:
+>  
+>  static int dmx_ts_feed_set(struct dmx_ts_feed *ts_feed, u16 pid, int ts_type,
+>  			   enum dmx_ts_pes pes_type,
+> -			   size_t circular_buffer_size, struct timespec timeout)
+> +			   size_t circular_buffer_size, ktime_t timeout)
+>  {
+>  	struct dvb_demux_feed *feed = (struct dvb_demux_feed *)ts_feed;
+>  	struct dvb_demux *demux = feed->demux;
+> diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+> index ae7fc33c3231..5ed3cab4ad28 100644
+> --- a/drivers/media/dvb-core/dvb_demux.h
+> +++ b/drivers/media/dvb-core/dvb_demux.h
+> @@ -83,7 +83,7 @@ struct dvb_demux_feed {
+>  	u8 *buffer;
+>  	int buffer_size;
+>  
+> -	struct timespec timeout;
+> +	ktime_t timeout;
+>  	struct dvb_demux_filter *filter;
+>  
+>  	int ts_type;
+> @@ -134,7 +134,7 @@ struct dvb_demux {
+>  
+>  	uint8_t *cnt_storage; /* for TS continuity check */
+>  
+> -	struct timespec speed_last_time; /* for TS speed check */
+> +	ktime_t speed_last_time; /* for TS speed check */
+>  	uint32_t speed_pkts_cnt; /* for TS speed check */
+>  };
+>  
+> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+> index b81e026edab3..df3ba15c007e 100644
+> --- a/drivers/media/dvb-core/dvb_net.c
+> +++ b/drivers/media/dvb-core/dvb_net.c
+> @@ -998,7 +998,7 @@ static int dvb_net_feed_start(struct net_device *dev)
+>  		netdev_dbg(dev, "start filtering\n");
+>  		priv->secfeed->start_filtering(priv->secfeed);
+>  	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
+> -		struct timespec timeout = { 0, 10000000 }; // 10 msec
+> +		ktime_t timeout = ns_to_ktime(10 * NSEC_PER_MSEC);
+>  
+>  		/* we have payloads encapsulated in TS */
+>  		netdev_dbg(dev, "alloc tsfeed\n");
+> 
+
