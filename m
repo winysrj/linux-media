@@ -1,117 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:57928 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752336AbbINPfg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Sep 2015 11:35:36 -0400
-Date: Mon, 14 Sep 2015 16:35:32 +0100
-From: Sean Young <sean@mess.org>
-To: Eric Nelson <eric@nelint.com>
-Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
-	heiko@sntech.de, devicetree@vger.kernel.org,
-	otavio@ossystems.com.br
-Subject: Re: [PATCH][resend] rc: gpio-ir-recv: allow flush space on idle
-Message-ID: <20150914153532.GA24422@gofer.mess.org>
-References: <1441980024-1944-1-git-send-email-eric@nelint.com>
- <20150914100044.GA21149@gofer.mess.org>
- <55F6DAE2.6080901@nelint.com>
- <20150914145436.GA23973@gofer.mess.org>
- <55F6E234.5050502@nelint.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <55F6E234.5050502@nelint.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:55970 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753375AbbIOPtf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2015 11:49:35 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/7] [media] dvb: use ktime_t for internal timeout
+Date: Tue, 15 Sep 2015 17:49:02 +0200
+Message-Id: <1442332148-488079-2-git-send-email-arnd@arndb.de>
+In-Reply-To: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 14, 2015 at 08:05:24AM -0700, Eric Nelson wrote:
-> Thanks again Sean,
-> 
-> On 09/14/2015 07:54 AM, Sean Young wrote:
-> > On Mon, Sep 14, 2015 at 07:34:10AM -0700, Eric Nelson wrote:
-> >> Thanks Shawn,
-> >>
-> >> On 09/14/2015 03:00 AM, Sean Young wrote:
-> >>> On Fri, Sep 11, 2015 at 07:00:24AM -0700, Eric Nelson wrote:
-> >>>> Many decoders require a trailing space (period without IR illumination)
-> >>>> to be delivered before completing a decode.
-> >>>>
-> >>>> Since the gpio-ir-recv driver only delivers events on gpio transitions,
-> >>>> a single IR symbol (caused by a quick touch on an IR remote) will not
-> >>>> be properly decoded without the use of a timer to flush the tail end
-> >>>> state of the IR receiver.
-> >>>
-> >>> This is a problem other IR drivers suffer from too. It might be better
-> >>> to send a IR timeout event like st_rc_send_lirc_timeout() in st_rc.c,
-> >>> with the duration set to what the timeout was. That is what irraw 
-> >>> timeouts are for; much better than fake transitions.
-> >>>
-> >>
-> >> If I'm understanding this correctly, this would require modification
-> >> of each decoder to handle what seems to be a special case regarding
-> >> the GPIO IR driver (which needs an edge to trigger an interrupt).
-> > 
-> > No, this is not a special case. Many drivers do have extra code to generate
-> > some sort of end-of-signal message: redrat3; igorplugusb; st_rc. They don't
-> > handle it consistently but this should be fixed.
-> > 
-> > Secondly, the decoders already handle it. A timeout event matches 
-> > is_timing_event(), so it's processed by the decoders. The duration should 
-> > be set correctly.
-> > 
-> 
-> I think I did misunderstand you.
-> 
-> You're suggesting that I re-work the patch to gpio-ir-recv.c to
-> produce a timeout instead of an edge. Is that right?
+The dvb demuxer code uses a 'struct timespec' to pass a timeout
+as absolute time. This will cause problems on 32-bit architectures
+in 2038 when time_t overflows, and it is racy with a concurrent
+settimeofday() call.
 
-Yes, that's right.
+This patch changes the code to use ktime_get() instead, using
+the monotonic time base to avoid both the race and the overflow.
 
-I'm thinking about patches the other drivers that don't do this and to test
-all drivers that they always output "[pulse space].. pulse timeout". At least
-for the hardware I've got.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/dvb-core/demux.h     |  2 +-
+ drivers/media/dvb-core/dmxdev.c    |  2 +-
+ drivers/media/dvb-core/dvb_demux.c | 17 ++++++-----------
+ drivers/media/dvb-core/dvb_demux.h |  4 ++--
+ drivers/media/dvb-core/dvb_net.c   |  2 +-
+ 5 files changed, 11 insertions(+), 16 deletions(-)
 
-> >> Isn't it better to have the device interface handle this in one place?
-> > 
-> >>>> This patch adds an optional device tree node "flush-ms" which, if
-> >>>> present, will use a jiffie-based timer to complete the last pulse
-> >>>> stream and allow decode.
-> >>>
-> >>> A common value for this is 100ms, I'm not sure what use it has to have
-> >>> it configurable. It's nice to have it exposed in rc_dev->timeout.
-> >>>
-> >>
-> >> I'm enough of a n00b regarding the details of the various decoders
-> >> not to know that...
-> >>
-> >> I looked through the couple of decoders my customer was using (NEC and
-> >> RC6) and came up with a value of 100ms though...
-> >>
-> >> Implementing this through DT and having the default as 0 (disabled)
-> >> provides an interim solution if the choice is made to change each of
-> >> the decoders, since I would expect that to take a while and a bunch of
-> >> remote control devices for testing.
-> > 
-> > Many other drivers use 100ms just fine and I don't remember ever seeing
-> > any bug reports on that.
-> > 
-> 
-> So you'd like to see this as a constant?
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index 833191bcd810..d8e2b1213bef 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -92,7 +92,7 @@ struct dmx_ts_feed {
+ 		    int type,
+ 		    enum dmx_ts_pes pes_type,
+ 		    size_t circular_buffer_size,
+-		    struct timespec timeout);
++		    ktime_t timeout);
+ 	int (*start_filtering) (struct dmx_ts_feed* feed);
+ 	int (*stop_filtering) (struct dmx_ts_feed* feed);
+ };
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index d0e3f9d85f34..0d20b379eeec 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -558,7 +558,7 @@ static int dvb_dmxdev_start_feed(struct dmxdev *dmxdev,
+ 				 struct dmxdev_filter *filter,
+ 				 struct dmxdev_feed *feed)
+ {
+-	struct timespec timeout = { 0 };
++	ktime_t timeout = ktime_set(0, 0);
+ 	struct dmx_pes_filter_params *para = &filter->params.pes;
+ 	dmx_output_t otype;
+ 	int ret;
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 6c7ff0cdcd32..d83dd0eb5757 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -399,28 +399,23 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
+ 	int dvr_done = 0;
+ 
+ 	if (dvb_demux_speedcheck) {
+-		struct timespec cur_time, delta_time;
++		ktime_t cur_time;
+ 		u64 speed_bytes, speed_timedelta;
+ 
+ 		demux->speed_pkts_cnt++;
+ 
+ 		/* show speed every SPEED_PKTS_INTERVAL packets */
+ 		if (!(demux->speed_pkts_cnt % SPEED_PKTS_INTERVAL)) {
+-			cur_time = current_kernel_time();
++			cur_time = ktime_get();
+ 
+-			if (demux->speed_last_time.tv_sec != 0 &&
+-					demux->speed_last_time.tv_nsec != 0) {
+-				delta_time = timespec_sub(cur_time,
+-						demux->speed_last_time);
++			if (ktime_to_ns(demux->speed_last_time) == 0) {
+ 				speed_bytes = (u64)demux->speed_pkts_cnt
+ 					* 188 * 8;
+ 				/* convert to 1024 basis */
+ 				speed_bytes = 1000 * div64_u64(speed_bytes,
+ 						1024);
+-				speed_timedelta =
+-					(u64)timespec_to_ns(&delta_time);
+-				speed_timedelta = div64_u64(speed_timedelta,
+-						1000000); /* nsec -> usec */
++				speed_timedelta = ktime_ms_delta(cur_time,
++							demux->speed_last_time);
+ 				printk(KERN_INFO "TS speed %llu Kbits/sec \n",
+ 						div64_u64(speed_bytes,
+ 							speed_timedelta));
+@@ -667,7 +662,7 @@ out:
+ 
+ static int dmx_ts_feed_set(struct dmx_ts_feed *ts_feed, u16 pid, int ts_type,
+ 			   enum dmx_ts_pes pes_type,
+-			   size_t circular_buffer_size, struct timespec timeout)
++			   size_t circular_buffer_size, ktime_t timeout)
+ {
+ 	struct dvb_demux_feed *feed = (struct dvb_demux_feed *)ts_feed;
+ 	struct dvb_demux *demux = feed->demux;
+diff --git a/drivers/media/dvb-core/dvb_demux.h b/drivers/media/dvb-core/dvb_demux.h
+index ae7fc33c3231..5ed3cab4ad28 100644
+--- a/drivers/media/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb-core/dvb_demux.h
+@@ -83,7 +83,7 @@ struct dvb_demux_feed {
+ 	u8 *buffer;
+ 	int buffer_size;
+ 
+-	struct timespec timeout;
++	ktime_t timeout;
+ 	struct dvb_demux_filter *filter;
+ 
+ 	int ts_type;
+@@ -134,7 +134,7 @@ struct dvb_demux {
+ 
+ 	uint8_t *cnt_storage; /* for TS continuity check */
+ 
+-	struct timespec speed_last_time; /* for TS speed check */
++	ktime_t speed_last_time; /* for TS speed check */
+ 	uint32_t speed_pkts_cnt; /* for TS speed check */
+ };
+ 
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index b81e026edab3..df3ba15c007e 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -998,7 +998,7 @@ static int dvb_net_feed_start(struct net_device *dev)
+ 		netdev_dbg(dev, "start filtering\n");
+ 		priv->secfeed->start_filtering(priv->secfeed);
+ 	} else if (priv->feedtype == DVB_NET_FEEDTYPE_ULE) {
+-		struct timespec timeout = { 0, 10000000 }; // 10 msec
++		ktime_t timeout = ns_to_ktime(10 * NSEC_PER_MSEC);
+ 
+ 		/* we have payloads encapsulated in TS */
+ 		netdev_dbg(dev, "alloc tsfeed\n");
+-- 
+2.1.0.rc2
 
-The way this can be configured with other drivers is using the ioctl 
-LIRC_SET_REC_TIMEOUT, I'm not sure we need a new method for this in
-device tree.
-
-So you could either just have a default of 100ms; or in addition you can
-simply set the min_timeout and max_timeout on rcdev; give rcdev a default
-and then read the value of rcdev->timeout whenever a timeout is necessary.
-
-See how ite-cir.c does it for example.
-
-Actually it might be good to have #define IR_DEFAULT_TIMEOUT MS_TO_NS(100)
-in include/media/rc-core.h
-
-
-Sean
