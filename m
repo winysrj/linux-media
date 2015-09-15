@@ -1,105 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:36635 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519AbbIAKs2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 06:48:28 -0400
-Received: by wibz8 with SMTP id z8so27571515wib.1
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 03:48:27 -0700 (PDT)
-From: Peter Griffin <peter.griffin@linaro.org>
-To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com, mchehab@osg.samsung.com
-Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
-Subject: [PATCH v4 4/6] [media] c8sectpfe: Update binding to reset-gpio
-Date: Tue,  1 Sep 2015 11:48:12 +0100
-Message-Id: <1441104494-10468-5-git-send-email-peter.griffin@linaro.org>
-In-Reply-To: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
-References: <1441104494-10468-1-git-send-email-peter.griffin@linaro.org>
+Received: from lists.s-osg.org ([54.187.51.154]:36214 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754938AbbIOJdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Sep 2015 05:33:22 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH v3 0/2] [media] Fix race between graph enumeration and entities registration
+Date: Tue, 15 Sep 2015 11:33:00 +0200
+Message-Id: <1442309582-18168-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-reset-gpio is more clear than rst-gpio.
+Hello,
 
-This change has been done as one atomic commit but it
-does breaks compatability with older dtbs.
+The Media Controller framework has an issue in which the media device node
+is registered before all the media entities and pads links are created so
+if user-space tries to enumerate the graph too early, it may get a partial
+graph since not everything has been registered yet.
 
-Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-Acked-by: Lee Jones <lee.jones@linaro.org>
----
- Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
- arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+This series fixes the issue by separate the media device registration from
+the initialization so drives can first initialize the media device, create
+the graph and then finally register the media device node once is finished.
+The solution was suggested by Sakari Ailus.
 
-diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-index d4def76..84ae9d1 100644
---- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-+++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-@@ -35,7 +35,7 @@ Required properties (tsin (child) node):
- 
- - tsin-num	: tsin id of the InputBlock (must be between 0 to 6)
- - i2c-bus	: phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
--- rst-gpio	: reset gpio for this tsin channel.
-+- reset-gpio	: reset gpio for this tsin channel.
- 
- Optional properties (tsin (child) node):
- 
-@@ -75,7 +75,7 @@ Example:
- 			tsin-num		= <0>;
- 			serial-not-parallel;
- 			i2c-bus			= <&ssc2>;
--			rst-gpio		= <&pio15 4 0>;
-+			reset-gpio		= <&pio15 4 GPIO_ACTIVE_HIGH>;
- 			dvb-card		= <STV0367_TDA18212_NIMA_1>;
- 		};
- 
-@@ -83,7 +83,7 @@ Example:
- 			tsin-num		= <3>;
- 			serial-not-parallel;
- 			i2c-bus			= <&ssc3>;
--			rst-gpio		= <&pio15 7 0>;
-+			reset-gpio		= <&pio15 7 GPIO_ACTIVE_HIGH>;
- 			dvb-card		= <STV0367_TDA18212_NIMB_1>;
- 		};
- 	};
-diff --git a/arch/arm/boot/dts/stihxxx-b2120.dtsi b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-index f9fca10..b940934 100644
---- a/arch/arm/boot/dts/stihxxx-b2120.dtsi
-+++ b/arch/arm/boot/dts/stihxxx-b2120.dtsi
-@@ -6,8 +6,8 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--
- #include <dt-bindings/clock/stih407-clks.h>
-+#include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/media/c8sectpfe.h>
- / {
- 	soc {
-@@ -116,7 +116,7 @@
- 				tsin-num	= <0>;
- 				serial-not-parallel;
- 				i2c-bus		= <&ssc2>;
--				rst-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
-+				reset-gpio	= <&pio15 4 GPIO_ACTIVE_HIGH>;
- 				dvb-card	= <STV0367_TDA18212_NIMA_1>;
- 			};
- 		};
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index 3a91093..e19c6b4 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -822,7 +822,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
- 		}
- 		of_node_put(i2c_bus);
- 
--		tsin->rst_gpio = of_get_named_gpio(child, "rst-gpio", 0);
-+		tsin->rst_gpio = of_get_named_gpio(child, "reset-gpio", 0);
- 
- 		ret = gpio_is_valid(tsin->rst_gpio);
- 		if (!ret) {
+This is the third version of the series that fixes issues pointed out by
+Sakari Ailus. The first version was [0] and the second version was [1].
+
+Patch #1 adds a check to the media_device_unregister() function to know if
+the media device has been registed yet so calling it will be safe and the
+cleanup functions of the drivers won't need to be changed in case register
+failed.
+
+Patch #2 does the init and registration split, changing all the drivers to
+make the change atomic and also adds a cleanup function for media devices.
+
+The patches are on top of Mauro's "[PATCH v8 00/55] MC next generation" [2]
+but is not a dependency for that series, it was only be based on that patch
+series to avoid conflicts with in-flight patches.
+
+The patches have been tested on an OMAP3 IGEPv2 board that has a OMAP3 ISP
+device and an Exynos5800 Chromebook with a built-in UVC camera.
+
+[0]: https://lkml.org/lkml/2015/9/10/311
+[1]: https://lkml.org/lkml/2015/9/14/276
+[2]: http://permalink.gmane.org/gmane.linux.drivers.driver-project.devel/74515
+
+Best regards,
+Javier
+
+Changes in v3:
+- Replace the WARN_ON() in media_device_init() for a BUG_ON().
+  Suggested by Sakari Ailus.
+
+Changes in v2:
+- Reword the documentation for media_device_unregister(). Suggested by Sakari.
+- Added Sakari's Acked-by tag for patch #1.
+- Change media_device_init() to return void instead of an error.
+  Suggested by Sakari Ailus.
+- Remove the error messages when media_device_register() fails.
+  Suggested by Sakari Ailus.
+- Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
+
+Javier Martinez Canillas (2):
+  [media] media-device: check before unregister if mdev was registered
+  [media] media-device: split media initialization and registration
+
+ drivers/media/common/siano/smsdvb-main.c      |  1 +
+ drivers/media/media-device.c                  | 42 +++++++++++++++++++++++----
+ drivers/media/platform/exynos4-is/media-dev.c | 15 +++++-----
+ drivers/media/platform/omap3isp/isp.c         | 14 ++++-----
+ drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++----
+ drivers/media/platform/vsp1/vsp1_drv.c        | 12 ++++----
+ drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++-----
+ drivers/media/usb/au0828/au0828-core.c        | 27 +++++++++--------
+ drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 +++++++++----------
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 ++++++++-------
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++-------
+ drivers/media/usb/siano/smsusb.c              |  5 ++--
+ drivers/media/usb/uvc/uvc_driver.c            | 10 +++++--
+ include/media/media-device.h                  |  2 ++
+ 14 files changed, 137 insertions(+), 95 deletions(-)
+
 -- 
-1.9.1
+2.4.3
 
