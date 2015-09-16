@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:54758 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.131]:57706 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754667AbbIOPte (ORCPT
+	with ESMTP id S1751179AbbIPH4j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:49:34 -0400
+	Wed, 16 Sep 2015 03:56:39 -0400
 From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	y2038@lists.linaro.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 0/7] [media] y2038 conversion for subsystem
-Date: Tue, 15 Sep 2015 17:49:01 +0200
-Message-Id: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH 6/7] [RFC] [media]: v4l2: introduce v4l2_timeval
+Date: Wed, 16 Sep 2015 09:56:21 +0200
+Message-ID: <7758607.pJFdek7ljg@wuerfel>
+In-Reply-To: <55F91162.8030002@xs4all.nl>
+References: <1442332148-488079-1-git-send-email-arnd@arndb.de> <2432018.5rA5LXfiBo@wuerfel> <55F91162.8030002@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+On Wednesday 16 September 2015 08:51:14 Hans Verkuil wrote:
 
-This is a conversion of all subsystem-wide v4l2 code to avoid the
-use of types based on time_t. The first five patches should all
-be harmless and obvious, so they can get applied for 4.3 after
-normal review.
+> > a) Similar to my first attempt, define a new struct v4l2_timeval, but
+> >    only use it when building with a y2038-aware libc, so we don't break
+> >    existing environments:
+> > 
+> > 	/* some compile-time conditional that we first need to agree on with libc */
+> > 	#if __BITS_PER_TIME_T > __BITS_PER_LONG
+> > 	struct v4l2_timeval { long tv_sec; long tv_usec; }
+> > 	#else
+> > 	#define v4l2_timeval timeval
+> > 	#endif
+> > 
+> >    This means that any user space that currently assumes the timestamp
+> >    member to be a 'struct timeval' has to be changed to access the members
+> >    individually, or get a build error.
+> >    The __BITS_PER_TIME_T trick has to be used in a couple of other subsystems
+> >    too, as some of them have no other way to identify an interface
+> 
+> I don't like this as this means some applications will compile on 64 bit or
+> with a non-y2038-aware libc, but fail on a 32-bit with y2038-aware libc. This
+> will be confusing and it may take a long time before the application developer
+> discovers this.
 
-The last two patches are marked RFC for now because their possible
-impact on the user space ABI and to decide if this is the best
-approach or whether we should instead introduce extra code in
-the kernel to handle modified user space.
+Right.
 
-There are a few device drivers beyond this series that rely on
-time_t/timeval/timespec internally, but they are all easy to fix
-and can be taken care of later.
+> > b) Keep the header file unchanged, but deal with both formats of v4l2_buffer
+> >    in the kernel. Fortunately, all ioctls that pass a v4l2_buffer have
+> >    properly defined command codes, and it does not get passed using a
+> >    read/write style interface. This means we move the v4l2_buffer32
+> >    handling from v4l2-compat-ioctl32.c to v4l2-ioctl.c and add an in-kernel
+> >    v4l2_buffer64 that matches the 64-bit variant of v4l2_buffer.
+> >    This way, user space can use either definition of time_t, and the
+> >    kernel will just handle them natively.
+> >    This is going to be the most common way to handle y2038 compatibility
+> >    in device drivers, and it has the additional advantage of simplifying
+> >    the compat path.
+> 
+> This would work.
+
+Ok. So the only downside I can think of for this is that it uses a slightly
+less efficient format with additional padding in it. The kernel side will
+be a little ugly as I'm trying to avoid defining a generic timeval64
+structure (the generic syscalls should not need one), but I'll try to
+implement it first to see how it ends up.
+
+> > c) As you describe above, introduce a new v4l2_buffer replacement with
+> >    a different layout that does not reference timeval. For this case, I
+> >    would recommend using a single 64-bit nanosecond timestamp that can
+> >    be generated using ktime_get_ns().
+> >    However, to avoid ambiguity with the user space definition of struct
+> >    timeval, we still have to hide the existing 'struct v4l2_buffer' from
+> >    y2038-aware user space by enclosing it in '#if __BITS_PER_TIME_T > 
+> >    __BITS_PER_LONG' or similar.
+> 
+> Right, and if we do that we still have the problem I describe under a). So we
+> would need to implement b) regardless.
+> 
+> In other words, choosing c) doesn't depend on y2038 and it should be decided
+> on its own merits.
+> 
+> I've proposed this as a topic to the media workshop we'll have during the Linux
+> Kernel Summit.
+
+Thanks, good idea. I'll be at the kernel summit, but don't plan to attend
+the media workshop otherwise. If you let me know about the schedule, I can
+come to this session (or ping me on IRC or hangout when it starts).
 
 	Arnd
-
-Arnd Bergmann (7):
-  [media] dvb: use ktime_t for internal timeout
-  [media] dvb: remove unused systime() function
-  [media] dvb: don't use 'time_t' in event ioctl
-  [media] exynos4-is: use monotonic timestamps as advertized
-  [media] use v4l2_get_timestamp where possible
-  [RFC] [media]: v4l2: introduce v4l2_timeval
-  [RFC] [media] introduce v4l2_timespec type for timestamps
-
- drivers/media/dvb-core/demux.h                   |  2 +-
- drivers/media/dvb-core/dmxdev.c                  |  2 +-
- drivers/media/dvb-core/dvb_demux.c               | 17 ++++++-----------
- drivers/media/dvb-core/dvb_demux.h               |  4 ++--
- drivers/media/dvb-core/dvb_net.c                 |  2 +-
- drivers/media/dvb-frontends/dibx000_common.c     | 10 ----------
- drivers/media/dvb-frontends/dibx000_common.h     |  2 --
- drivers/media/pci/bt8xx/bttv-driver.c            |  7 ++-----
- drivers/media/pci/cx18/cx18-mailbox.c            |  2 +-
- drivers/media/pci/meye/meye.h                    |  2 +-
- drivers/media/pci/zoran/zoran.h                  |  2 +-
- drivers/media/platform/coda/coda.h               |  2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c |  8 +-------
- drivers/media/platform/exynos4-is/fimc-lite.c    |  7 +------
- drivers/media/platform/omap/omap_vout.c          |  4 ++--
- drivers/media/platform/omap3isp/ispstat.c        |  5 ++---
- drivers/media/platform/omap3isp/ispstat.h        |  2 +-
- drivers/media/platform/s3c-camif/camif-capture.c |  8 +-------
- drivers/media/platform/vim2m.c                   |  2 +-
- drivers/media/platform/vivid/vivid-ctrls.c       |  2 +-
- drivers/media/usb/cpia2/cpia2.h                  |  2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c              |  2 +-
- drivers/media/usb/gspca/gspca.c                  |  6 +++---
- drivers/media/usb/usbvision/usbvision.h          |  2 +-
- drivers/media/v4l2-core/v4l2-common.c            |  6 +++---
- drivers/media/v4l2-core/v4l2-event.c             | 20 +++++++++++++-------
- drivers/staging/media/omap4iss/iss_video.c       |  5 +----
- include/media/v4l2-common.h                      |  2 +-
- include/media/videobuf-core.h                    |  2 +-
- include/trace/events/v4l2.h                      | 12 ++++++++++--
- include/uapi/linux/dvb/video.h                   |  3 ++-
- include/uapi/linux/omap3isp.h                    |  2 +-
- include/uapi/linux/videodev2.h                   | 16 ++++++++++++++--
- 33 files changed, 79 insertions(+), 93 deletions(-)
-
--- 
-2.1.0.rc2
-
