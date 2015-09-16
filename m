@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40850 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754395AbbIHKfz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 06:35:55 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 02/11] vb2: Move buffer cache synchronisation to prepare from queue
-Date: Tue,  8 Sep 2015 13:33:46 +0300
-Message-Id: <1441708435-12736-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37736 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752328AbbIPW6Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2015 18:58:24 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
+Subject: [Patch] media: v4l2-ctrls: Fix 64bit support in get_ctrl()
+Date: Wed, 16 Sep 2015 17:58:19 -0500
+Message-ID: <1442444299-25054-1-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer cache should be synchronised in buffer preparation, not when
-the buffer is queued to the device. Fix this.
+When trying to use v4l2_ctrl_g_ctrl_int64() to retrieve a
+V4L2_CTRL_TYPE_INTEGER64 type value the internal helper function
+get_ctrl() would prematurely exits because for this control type
+the 'is_int' flag is not set. This would result in v4l2_ctrl_g_ctrl_int64
+always returning 0.
 
-Mmap buffers do not need cache synchronisation since they are always
-coherent.
+This patch extend the condition check to allow V4L2_CTRL_TYPE_INTEGER64
+type to continue processing instead of exiting.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index af6a23a..64fce4d 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1636,10 +1636,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6b7dcc1b77d..989919c44c2f 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2884,7 +2884,7 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
+ 	 * cur_to_user() calls below would need to be modified not to access
+ 	 * userspace memory when called from get_ctrl().
+ 	 */
+-	if (!ctrl->is_int)
++	if (!ctrl->is_int && ctrl->type != V4L2_CTRL_TYPE_INTEGER64)
+ 		return -EINVAL;
  
- 	trace_vb2_buf_queue(q, vb);
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
--
- 	call_void_vb_qop(vb, buf_queue, vb);
- }
- 
-@@ -1694,11 +1690,19 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		ret = -EINVAL;
- 	}
- 
--	if (ret)
-+	if (ret) {
- 		dprintk(1, "buffer preparation failed: %d\n", ret);
--	vb->state = ret ? VB2_BUF_STATE_DEQUEUED : VB2_BUF_STATE_PREPARED;
-+		vb->state = VB2_BUF_STATE_DEQUEUED;
-+		return ret;
-+	}
- 
--	return ret;
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
-+
-+	vb->state = VB2_BUF_STATE_PREPARED;
-+
-+	return 0;
- }
- 
- static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
 -- 
-2.1.0.231.g7484e3b
+1.8.5.1
 
