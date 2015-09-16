@@ -1,96 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49884 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342AbbIAV7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 17:59:54 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv4 00/13] SDR transmitter API
-Date: Wed,  2 Sep 2015 00:59:16 +0300
-Message-Id: <1441144769-29211-1-git-send-email-crope@iki.fi>
+Received: from userp1040.oracle.com ([156.151.31.81]:38326 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689AbbIPP7i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2015 11:59:38 -0400
+Date: Wed, 16 Sep 2015 18:59:29 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] vivid: add support for radio receivers and transmitters
+Message-ID: <20150916155928.GA9735@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4:
-* new "DocBook: add SDR specific info to G_MODULATOR / S_MODULATOR"
-* changed "DocBook: add modulator type field"
-* changed "hackrf: add support for transmitter"
-* dropped "DocBook: fix S_FREQUENCY => G_FREQUENCY"
-* changed "DocBook: add tuner types SDR and RF for G_TUNER / S_TUNER" => "DocBook: add SDR specific info to G_TUNER / S_TUNER"
-*
+Hello Hans Verkuil,
 
-v3:
-* some documentation addons
+The patch 55d58e989856: "[media] vivid: add support for radio
+receivers and transmitters" from Aug 25, 2014, leads to the following
+static checker warning:
 
-* added type field to v4l2 modulator struct
+	drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate()
+	error: buffer overflow 'rds->psname' 9 <= 43
 
-* hackrf: fix querycap capabilities
+drivers/media/platform/vivid/vivid-rds-gen.c
+   63          for (grp = 0; grp < VIVID_RDS_GEN_GROUPS; grp++, data += VIVID_RDS_GEN_BLKS_PER_GRP) {
 
-* hackrf: remove another v4l2_device struct
+VIVID_RDS_GEN_GROUPS is 57.
 
-* hackrf: fix / moved RX/TX busy check to start streaming
+    64                  data[0].lsb = rds->picode & 0xff;
+    65                  data[0].msb = rds->picode >> 8;
+    66                  data[0].block = V4L2_RDS_BLOCK_A | (V4L2_RDS_BLOCK_A << 3);
+    67                  data[1].lsb = rds->pty << 5;
+    68                  data[1].msb = (rds->pty >> 3) | (rds->tp << 2);
+    69                  data[1].block = V4L2_RDS_BLOCK_B | (V4L2_RDS_BLOCK_B << 3);
+    70                  data[3].block = V4L2_RDS_BLOCK_D | (V4L2_RDS_BLOCK_D << 3);
+    71  
+    72                  switch (grp) {
+    73                  case 0 ... 3:
+    74                  case 22 ... 25:
+    75                  case 44 ... 47: /* Group 0B */
+    76                          data[1].lsb |= (rds->ta << 4) | (rds->ms << 3);
+    77                          data[1].lsb |= vivid_get_di(rds, grp % 22);
+    78                          data[1].msb |= 1 << 3;
+    79                          data[2].lsb = rds->picode & 0xff;
+    80                          data[2].msb = rds->picode >> 8;
+    81                          data[2].block = V4L2_RDS_BLOCK_C_ALT | (V4L2_RDS_BLOCK_C_ALT << 3);
+    82                          data[3].lsb = rds->psname[2 * (grp % 22) + 1];
+    83                          data[3].msb = rds->psname[2 * (grp % 22)];
 
-* hackrf: some other minor changes
+These two are maybe cut and paste from ->radiotext[]?
 
-Those fixes were the ones Hans pointed out, thanks. Some documentation is still TODO.
+    84                          break;
+    85                  case 4 ... 19:
+    86                  case 26 ... 41: /* Group 2A */
+    87                          data[1].lsb |= (grp - 4) % 22;
+    88                          data[1].msb |= 4 << 3;
+    89                          data[2].msb = rds->radiotext[4 * ((grp - 4) % 22)];
+    90                          data[2].lsb = rds->radiotext[4 * ((grp - 4) % 22) + 1];
 
-Passes v4l2-compliance otherwise than new modulator type field.
+It doesn't like these either though...
 
-Output ioctls:
-fail: v4l2-test-input-output.cpp(576): non-zero reserved fields
-fail: v4l2-test-input-output.cpp(640): invalid modulator 0
-test VIDIOC_G/S_MODULATOR: FAIL
-fail: v4l2-test-input-output.cpp(729): could get frequency for invalid modulator 0
-test VIDIOC_G/S_FREQUENCY: FAIL
+    91                          data[2].block = V4L2_RDS_BLOCK_C | (V4L2_RDS_BLOCK_C << 3);
+    92                          data[3].msb = rds->radiotext[4 * ((grp - 4) % 22) + 2];
+    93                          data[3].lsb = rds->radiotext[4 * ((grp - 4) % 22) + 3];
+    94                          break;
 
+drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
+drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
+drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
+drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
+drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
+drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
 
-v2:
-* Allow device open even another device node is active. This means you
-could use transmitter device even receiver is active and other way
-around, just streaming is blocked to single node.
-
-* Removed V4L2_CID_RF_TUNER_RF_GAIN_AUTO control as it was not used.
-
-* Changed RF gain documentation.
-
-
-Antti Palosaari (13):
-  v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
-  v4l2: add RF gain control
-  DocBook: document tuner RF gain control
-  v4l2: add support for SDR transmitter
-  DocBook: document SDR transmitter
-  v4l: add type field to v4l2_modulator struct
-  DocBook: add modulator type field
-  hackrf: add control for RF amplifier
-  hackrf: switch to single function which configures everything
-  hackrf: add support for transmitter
-  hackrf: do not set human readable name for formats
-  DocBook: add SDR specific info to G_TUNER / S_TUNER
-  DocBook: add SDR specific info to G_MODULATOR / S_MODULATOR
-
- Documentation/DocBook/media/v4l/compat.xml         |   20 +
- Documentation/DocBook/media/v4l/controls.xml       |   14 +
- Documentation/DocBook/media/v4l/dev-sdr.xml        |   32 +-
- Documentation/DocBook/media/v4l/io.xml             |   10 +-
- Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +-
- Documentation/DocBook/media/v4l/v4l2.xml           |    9 +
- Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |    2 +-
- .../DocBook/media/v4l/vidioc-g-modulator.xml       |   17 +-
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   19 +
- .../DocBook/media/v4l/vidioc-querycap.xml          |    6 +
- drivers/media/usb/hackrf/hackrf.c                  | 1091 ++++++++++++++------
- drivers/media/v4l2-core/v4l2-ctrls.c               |    2 +
- drivers/media/v4l2-core/v4l2-dev.c                 |   14 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |   49 +-
- drivers/media/v4l2-core/videobuf-core.c            |    4 +-
- include/media/v4l2-ioctl.h                         |    8 +
- include/trace/events/v4l2.h                        |    1 +
- include/uapi/linux/v4l2-controls.h                 |    1 +
- include/uapi/linux/videodev2.h                     |   13 +-
- 19 files changed, 954 insertions(+), 360 deletions(-)
-
--- 
-http://palosaari.fi/
-
+regards,
+dan carpenter
