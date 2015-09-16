@@ -1,75 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34363 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750804AbbIKOUE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 10:20:04 -0400
-Message-ID: <55F2E2CB.9010504@xs4all.nl>
-Date: Fri, 11 Sep 2015 16:18:51 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 51/55] [media] remove interface links at media_entity_unregister()
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <ce03152d3a7f156ff3fe9a3ff15a8d9530e0307a.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ce03152d3a7f156ff3fe9a3ff15a8d9530e0307a.1441540862.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:37897 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752743AbbIPXzO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Sep 2015 19:55:14 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] go7007: Fix returned errno code in gen_mjpeghdr_to_package()
+Date: Thu, 17 Sep 2015 01:55:04 +0200
+Message-Id: <1442447704-3355-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> Interface links connected to an entity should be removed
-> before being able of removing the entity.
+The driver is using -1 instead of the -ENOMEM defined macro to specify
+that a buffer allocation failed. Since the error number is propagated,
+the caller will get a -EPERM which is the wrong error condition.
 
-I'd replace that with:
+Also, the smatch tool complains with the following warning:
 
-...before the entity itself can be removed.
+gen_mjpeghdr_to_package() warn: returning -1 instead of -ENOMEM is sloppy
 
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
 
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 96a476eeb16e..7c37aeab05bb 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -638,14 +638,30 @@ void media_device_unregister_entity(struct media_entity *entity)
->  		return;
->  
->  	spin_lock(&mdev->lock);
-> +
-> +	/* Remove interface links with this entity on it */
-> +	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
-> +		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
+ drivers/media/usb/go7007/go7007-fw.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I honestly think that the media_type() check can be removed. I think I
-mentioned it before. Not important enough to withhold the Ack, though.
-
-> +		    && link->entity == entity) {
-> +			media_gobj_remove(&link->graph_obj);
-> +			kfree(link);
-> +		}
-> +	}
-> +
-> +	/* Remove all data links that belong to this entity */
->  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
->  		media_gobj_remove(&link->graph_obj);
->  		list_del(&link->list);
->  		kfree(link);
->  	}
-> +
-> +	/* Remove all pads that belong to this entity */
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_remove(&entity->pads[i].graph_obj);
-> +
-> +	/* Remove the entity */
->  	media_gobj_remove(&entity->graph_obj);
-> +
->  	spin_unlock(&mdev->lock);
->  	entity->graph_obj.mdev = NULL;
->  }
-> 
+diff --git a/drivers/media/usb/go7007/go7007-fw.c b/drivers/media/usb/go7007/go7007-fw.c
+index 5f4c9b9e899a..60bf5f0644d1 100644
+--- a/drivers/media/usb/go7007/go7007-fw.c
++++ b/drivers/media/usb/go7007/go7007-fw.c
+@@ -379,7 +379,7 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
+ 
+ 	buf = kzalloc(4096, GFP_KERNEL);
+ 	if (buf == NULL)
+-		return -1;
++		return -ENOMEM;
+ 
+ 	for (i = 1; i < 32; ++i) {
+ 		mjpeg_frame_header(go, buf + size, i);
+@@ -646,7 +646,7 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
+ 
+ 	buf = kzalloc(5120, GFP_KERNEL);
+ 	if (buf == NULL)
+-		return -1;
++		return -ENOMEM;
+ 
+ 	framelen[0] = mpeg1_frame_header(go, buf, 0, 1, PFRAME);
+ 	if (go->interlace_coding)
+@@ -832,7 +832,7 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
+ 
+ 	buf = kzalloc(5120, GFP_KERNEL);
+ 	if (buf == NULL)
+-		return -1;
++		return -ENOMEM;
+ 
+ 	framelen[0] = mpeg4_frame_header(go, buf, 0, PFRAME);
+ 	i = 368;
+-- 
+2.4.3
 
