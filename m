@@ -1,99 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:35934 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755002AbbIWOug (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:36044 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbbIQIa2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2015 10:50:36 -0400
-Received: by pacgz1 with SMTP id gz1so8420556pac.3
-        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2015 07:50:36 -0700 (PDT)
-Message-ID: <5602BC35.8090105@linaro.org>
-Date: Wed, 23 Sep 2015 07:50:29 -0700
-From: zhangfei <zhangfei.gao@linaro.org>
+	Thu, 17 Sep 2015 04:30:28 -0400
+Received: by lanb10 with SMTP id b10so6529028lan.3
+        for <linux-media@vger.kernel.org>; Thu, 17 Sep 2015 01:30:26 -0700 (PDT)
 MIME-Version: 1.0
-To: Sudeep Holla <sudeep.holla@arm.com>,
-	"linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Guoxiong Yan <yanguoxiong@huawei.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 15/17] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com> <1442850433-5903-16-git-send-email-sudeep.holla@arm.com> <5602B6A1.2090309@linaro.org> <5602B93B.7040108@arm.com>
-In-Reply-To: <5602B93B.7040108@arm.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <55F95CD9.80802@xs4all.nl>
+References: <55F95CD9.80802@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 17 Sep 2015 10:30:06 +0200
+Message-ID: <CAPybu_3ZMj_cLsH=GGQU=eqpX+-A1eRniO8M_fomXo8oA6YT5g@mail.gmail.com>
+Subject: Re: [RFC PATCH] v4l2-ctrls: fix NEXT_COMPOUND support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Hans
+
+I tried this patch on my platform and v4l2compliance now works ok.
+
+I would suggest to add this definition to the userland header for clarity
+
+#define V4L2_CTRL_FLAG_NEXT_COMPOUND_OR_ARRAY V4L2_CTRL_FLAG_NEXT_COMPOUND
 
 
-On 09/23/2015 07:37 AM, Sudeep Holla wrote:
->
->
-> On 23/09/15 15:26, zhangfei wrote:
->>
->>
->> On 09/21/2015 08:47 AM, Sudeep Holla wrote:
->>> This driver doesn't claim the IR transmitter to be wakeup source. It
->>> even disables the clock and the IR during suspend-resume cycle.
->>>
->>> This patch removes yet another misuse of IRQF_NO_SUSPEND.
->>>
->>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>> Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
->>> Cc: Patrice Chotard <patrice.chotard@st.com>
->>> Cc: Fabio Estevam <fabio.estevam@freescale.com>
->>> Cc: Guoxiong Yan <yanguoxiong@huawei.com>
->>> Cc: linux-media@vger.kernel.org
->>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Thanks!
 
-Acked-by: Zhangfei Gao <zhangfei.gao@linaro.org>
+On Wed, Sep 16, 2015 at 2:13 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Ricardo reported a problem in v4l2-compliance if an integer control was used in
+> an array. It turned out to be a problem in the implementation of NEXT_COMPOUND
+> that didn't match arrays as being compound controls.
+>
+> I also did some DocBook updates. The final version of this patch will split off
+> the docbook changes in a separate patch (or patches).
+>
+> Ricardo, can you test this?
+>
+> In order to be able to use integer controls in an array we also need a new field in
+> the union in struct v4l2_ext_control: __s32 __user *p_s32.
+>
+> Ricardo, please test this thoroughly. I've never tested INTEGER arrays before, so
+> I'm not sure if there are no hidden surprises somewhere.
+>
+> Regards,
+>
+>         Hans
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> index c5bdbfc..842536a 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> @@ -200,6 +200,13 @@ Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry
+>           </row>
+>           <row>
+>             <entry></entry>
+> +           <entry>__u32 *</entry>
+> +           <entry><structfield>p_u32</structfield></entry>
+> +           <entry>A pointer to a matrix control of unsigned 32-bit values.
+> +Valid if this control is of type <constant>V4L2_CTRL_TYPE_U32</constant>.</entry>
+> +         </row>
+> +         <row>
+> +           <entry></entry>
+>             <entry>void *</entry>
+>             <entry><structfield>ptr</structfield></entry>
+>             <entry>A pointer to a compound type which can be an N-dimensional array and/or a
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> index 6ec39c6..8246b30 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+> @@ -101,8 +101,9 @@ prematurely end the enumeration).</para></footnote></para>
+>  next supported non-compound control, or <errorcode>EINVAL</errorcode>
+>  if there is none. In addition, the <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant>
+>  flag can be specified to enumerate all compound controls (i.e. controls
+> -with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant>). Specify both
+> -<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
+> +with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant> and/or array
+> +control, in other words controls that contain more than one value).i
+> +Specify both <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
+>  <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant> in order to enumerate
+>  all controls, compound or not. Drivers which do not support these flags yet
+>  always return <errorcode>EINVAL</errorcode>.</para>
+> @@ -422,7 +423,7 @@ the array to zero.</entry>
+>             <entry>any</entry>
+>             <entry>An integer-valued control ranging from minimum to
+>  maximum inclusive. The step value indicates the increment between
+> -values which are actually different on the hardware.</entry>
+> +values.</entry>
+>           </row>
+>           <row>
+>             <entry><constant>V4L2_CTRL_TYPE_BOOLEAN</constant></entry>
+> @@ -518,7 +519,7 @@ Older drivers which do not support this feature return an
+>             <entry>any</entry>
+>             <entry>An unsigned 8-bit valued control ranging from minimum to
+>  maximum inclusive. The step value indicates the increment between
+> -values which are actually different on the hardware.
+> +values.
+>  </entry>
+>           </row>
+>           <row>
+> @@ -528,7 +529,17 @@ values which are actually different on the hardware.
+>             <entry>any</entry>
+>             <entry>An unsigned 16-bit valued control ranging from minimum to
+>  maximum inclusive. The step value indicates the increment between
+> -values which are actually different on the hardware.
+> +values.
+> +</entry>
+> +         </row>
+> +         <row>
+> +           <entry><constant>V4L2_CTRL_TYPE_U32</constant></entry>
+> +           <entry>any</entry>
+> +           <entry>any</entry>
+> +           <entry>any</entry>
+> +           <entry>An unsigned 32-bit valued control ranging from minimum to
+> +maximum inclusive. The step value indicates the increment between
+> +values.
+>  </entry>
+>           </row>
+>         </tbody>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index b6b7dcc..d5de70e 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -2498,7 +2498,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+>                         /* We found a control with the given ID, so just get
+>                            the next valid one in the list. */
+>                         list_for_each_entry_continue(ref, &hdl->ctrl_refs, node) {
+> -                               is_compound =
+> +                               is_compound = ref->ctrl->is_array ||
+>                                         ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
+>                                 if (id < ref->ctrl->id &&
+>                                     (is_compound & mask) == match)
+> @@ -2512,7 +2512,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+>                            is one, otherwise the first 'if' above would have
+>                            been true. */
+>                         list_for_each_entry(ref, &hdl->ctrl_refs, node) {
+> -                               is_compound =
+> +                               is_compound = ref->ctrl->is_array ||
+>                                         ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
+>                                 if (id < ref->ctrl->id &&
+>                                     (is_compound & mask) == match)
 
->>> ---
->>>    drivers/media/rc/ir-hix5hd2.c | 2 +-
->>>    1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/rc/ir-hix5hd2.c
->>> b/drivers/media/rc/ir-hix5hd2.c
->>> index 1c087cb76815..d0549fba711c 100644
->>> --- a/drivers/media/rc/ir-hix5hd2.c
->>> +++ b/drivers/media/rc/ir-hix5hd2.c
->>> @@ -257,7 +257,7 @@ static int hix5hd2_ir_probe(struct
->>> platform_device *pdev)
->>>            goto clkerr;
->>>
->>>        if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
->>> -                 IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
->>> +                 0, pdev->name, priv) < 0) {
->>>            dev_err(dev, "IRQ %d register failed\n", priv->irq);
->>>            ret = -EINVAL;
->>>            goto regerr;
->>>
->>
->> ir is wakeup source for hix5hd2, so we use IRQF_NO_SUSPEND.
->
-> OK, but from the existing implementation of suspend/resume callbacks, I
-> read that the clocks as well as the IP block is powered off. Is part of
-> the logic always-on ?
->
->> However, it is true the wakeup mechanism is not realized on hix5hd2 yet.
->
-> OK, then I assume you can add the right APIs(enable_irq_wake and
-> friends) when you add that feature.
->
->> I am fine with either using IRQF_NO_SUSPEND or not.
->>
->
-> No using IRQF_NO_SUSPEND for wakeup is simply wrong and hence this patch
-> series removes all those misuse. If you need it as wakeup, then you need
-> to use right APIs for that. Since I don't see any support for wakeup in
-> this driver I decided to just remove the flag. Please feel free to add
-> the support making use of right APIs.
 
-Thanks Sudeep for the kind info.
-Yes, you are right.
 
-Thanks
+-- 
+Ricardo Ribalda
