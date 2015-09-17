@@ -1,77 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:36601 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757011AbbI1IwT (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:52291 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992AbbIQVUZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Sep 2015 04:52:19 -0400
-Subject: Re: [PATCH 4/4] ARM64: dts: exynos5433: add jpeg node
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Thu, 17 Sep 2015 17:20:25 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
- <1442586060-23657-5-git-send-email-andrzej.p@samsung.com>
- <55FFD2D2.1010508@xs4all.nl> <55FFD4FF.6090306@samsung.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-ID: <5608FFBD.1030306@samsung.com>
-Date: Mon, 28 Sep 2015 17:52:13 +0900
-MIME-Version: 1.0
-In-Reply-To: <55FFD4FF.6090306@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v2 3/9] [media] dvb: don't use 'time_t' in event ioctl
+Date: Thu, 17 Sep 2015 23:19:34 +0200
+Message-Id: <1442524780-781677-4-git-send-email-arnd@arndb.de>
+In-Reply-To: <1442524780-781677-1-git-send-email-arnd@arndb.de>
+References: <1442524780-781677-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 21.09.2015 o 18:59, Andrzej Pietrasiewicz pisze:
-> Hi Hans,
-> 
-> W dniu 21.09.2015 o 11:50, Hans Verkuil pisze:
->> On 18-09-15 16:21, Andrzej Pietrasiewicz wrote:
->>> From: Marek Szyprowski <m.szyprowski@samsung.com>
->>>
->>> Add Exynos 5433 jpeg h/w codec node.
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
->>> ---
->>>   arch/arm64/boot/dts/exynos/exynos5433.dtsi | 21 +++++++++++++++++++++
->>>   1 file changed, 21 insertions(+)
->>>
->>> diff --git a/arch/arm64/boot/dts/exynos/exynos5433.dtsi
->>> b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
->>
->> This dtsi file doesn't exist in the media-git tree. What is the story
->> here?
->>
->> Should this go through a different subsystem?
->>
->> I think the media subsystem can take patches 1-3 and whoever does DT
->> patches can
->> take this patch, right?
->>
-> 
-> The cover letter explains that the series is rebased onto Mauro's
-> master with Kukjin's branch merged. The latter does contain
-> the exynos5433.dtsi. That said, yes, taking patches 1-3 in
-> media subsystem and leaving DT patch to someone else is the
-> way to go.
+'struct video_event' is used for the VIDEO_GET_EVENT ioctl, implemented
+by drivers/media/pci/ivtv/ivtv-ioctl.c and
+drivers/media/pci/ttpci/av7110_av.c. The structure contains a 'time_t',
+which will be redefined in the future to be 64-bit wide, causing an
+incompatible ABI change for this ioctl.
 
-Although Kukjin picked Exynos 5433 ARM64 patches but they were not
-accepted upstream by arm-soc. He rolled it for few releases but:
-1. Reason for not accepting by arm-soc was not resolved - there is no DTS.
-2. Kukjin did not rebase the branch for 4.4... which maybe means that he
-wants to drop it?
-3. Anyone (but me...) can send Galaxy Note4 (Exynos5433) DTS file based
-on sources on opensource.samsung.com. The DTS there is for 32-bit but it
-can be probably easily adjusted for ARM64.
+As it turns out, neither of the drivers currently sets the timestamp
+field, and it is presumably useless anyway because of the limited
+resolutions (no sub-second times). This means we can simply change
+the structure definition to use a 'long' instead of 'time_t' and
+remain compatible with all existing user space binaries when time_t
+gets changed.
 
-All of this means that Device Tree support for this driver can't be
-merged now and effort for mainlining 5433 may be unfortunately wasted...
+If anybody ever starts using this field, they have to make sure not
+to use 1970 based seconds in there, as those overflow in 2038.
 
-Best regards,
-Krzysztof
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/uapi/linux/dvb/video.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/dvb/video.h b/include/uapi/linux/dvb/video.h
+index d3d14a59d2d5..6c7f9298d7c2 100644
+--- a/include/uapi/linux/dvb/video.h
++++ b/include/uapi/linux/dvb/video.h
+@@ -135,7 +135,8 @@ struct video_event {
+ #define VIDEO_EVENT_FRAME_RATE_CHANGED	2
+ #define VIDEO_EVENT_DECODER_STOPPED 	3
+ #define VIDEO_EVENT_VSYNC 		4
+-	__kernel_time_t timestamp;
++	/* unused, make sure to use atomic time for y2038 if it ever gets used */
++	long timestamp;
+ 	union {
+ 		video_size_t size;
+ 		unsigned int frame_rate;	/* in frames per 1000sec */
+-- 
+2.1.0.rc2
+
