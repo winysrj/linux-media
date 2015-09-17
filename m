@@ -1,59 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:34108 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757161AbbICXQh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Sep 2015 19:16:37 -0400
-Received: by lbbmp1 with SMTP id mp1so2394315lbb.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Sep 2015 16:16:36 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 2/3] ml86v7667: implement g_std() method
-Date: Fri, 04 Sep 2015 02:16:34 +0300
-Message-ID: <1725998.gULFgFImHk@wasted.cogentembedded.com>
-In-Reply-To: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
-References: <6015647.cjLjRfTWc7@wasted.cogentembedded.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mout.kundenserver.de ([212.227.17.10]:51995 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582AbbIQVUV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2015 17:20:21 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v2 2/9] [media] dvb: remove unused systime() function
+Date: Thu, 17 Sep 2015 23:19:33 +0200
+Message-Id: <1442524780-781677-3-git-send-email-arnd@arndb.de>
+In-Reply-To: <1442524780-781677-1-git-send-email-arnd@arndb.de>
+References: <1442524780-781677-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver was written with the 'soc_camera' use in mind, however the g_std()
-video method was forgotten. Implement it at last...
+The systime function uses struct timespec, which we want to stop
+using in the kernel because it overflows in 2038. Fortunately,
+this use in dibx000_common is in a function that is never called,
+so we can just remove it.
 
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/i2c/ml86v7667.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/dvb-frontends/dibx000_common.c | 10 ----------
+ drivers/media/dvb-frontends/dibx000_common.h |  2 --
+ 2 files changed, 12 deletions(-)
 
-Index: media_tree/drivers/media/i2c/ml86v7667.c
-===================================================================
---- media_tree.orig/drivers/media/i2c/ml86v7667.c
-+++ media_tree/drivers/media/i2c/ml86v7667.c
-@@ -233,6 +233,15 @@ static int ml86v7667_g_mbus_config(struc
- 	return 0;
+diff --git a/drivers/media/dvb-frontends/dibx000_common.c b/drivers/media/dvb-frontends/dibx000_common.c
+index 43be7238311e..79cb007b401f 100644
+--- a/drivers/media/dvb-frontends/dibx000_common.c
++++ b/drivers/media/dvb-frontends/dibx000_common.c
+@@ -500,16 +500,6 @@ void dibx000_exit_i2c_master(struct dibx000_i2c_master *mst)
  }
+ EXPORT_SYMBOL(dibx000_exit_i2c_master);
  
-+static int ml86v7667_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
-+{
-+	struct ml86v7667_priv *priv = to_ml86v7667(sd);
-+
-+	*std = priv->std;
-+
-+	return 0;
-+}
-+
- static int ml86v7667_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- {
- 	struct ml86v7667_priv *priv = to_ml86v7667(sd);
-@@ -282,6 +291,7 @@ static const struct v4l2_ctrl_ops ml86v7
- };
+-
+-u32 systime(void)
+-{
+-	struct timespec t;
+-
+-	t = current_kernel_time();
+-	return (t.tv_sec * 10000) + (t.tv_nsec / 100000);
+-}
+-EXPORT_SYMBOL(systime);
+-
+ MODULE_AUTHOR("Patrick Boettcher <pboettcher@dibcom.fr>");
+ MODULE_DESCRIPTION("Common function the DiBcom demodulator family");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/dibx000_common.h b/drivers/media/dvb-frontends/dibx000_common.h
+index b538e0555c95..61f4152f24ee 100644
+--- a/drivers/media/dvb-frontends/dibx000_common.h
++++ b/drivers/media/dvb-frontends/dibx000_common.h
+@@ -47,8 +47,6 @@ extern void dibx000_exit_i2c_master(struct dibx000_i2c_master *mst);
+ extern void dibx000_reset_i2c_master(struct dibx000_i2c_master *mst);
+ extern int dibx000_i2c_set_speed(struct i2c_adapter *i2c_adap, u16 speed);
  
- static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
-+	.g_std = ml86v7667_g_std,
- 	.s_std = ml86v7667_s_std,
- 	.querystd = ml86v7667_querystd,
- 	.g_input_status = ml86v7667_g_input_status,
+-extern u32 systime(void);
+-
+ #define BAND_LBAND 0x01
+ #define BAND_UHF   0x02
+ #define BAND_VHF   0x04
+-- 
+2.1.0.rc2
 
