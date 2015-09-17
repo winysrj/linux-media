@@ -1,122 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:36036 "EHLO gofer.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754663AbbIWN0o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2015 09:26:44 -0400
-Date: Wed, 23 Sep 2015 14:26:40 +0100
-From: Sean Young <sean@mess.org>
-To: Eric Nelson <eric@nelint.com>
-Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
-	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
-	heiko@sntech.de, devicetree@vger.kernel.org,
-	otavio@ossystems.com.br
-Subject: Re: [PATCH V2 2/2] rc: gpio-ir-recv: add timeout on idle
-Message-ID: <20150923132640.GA10104@gofer.mess.org>
-References: <1441980024-1944-1-git-send-email-eric@nelint.com>
- <1442862524-3694-1-git-send-email-eric@nelint.com>
- <1442862524-3694-3-git-send-email-eric@nelint.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44526 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751806AbbIQNRs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Sep 2015 09:17:48 -0400
+Message-ID: <55FABD50.8050900@xs4all.nl>
+Date: Thu, 17 Sep 2015 15:17:04 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1442862524-3694-3-git-send-email-eric@nelint.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 06/10] usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com> <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com> <55E978DA.1040604@xs4all.nl>
+In-Reply-To: <55E978DA.1040604@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 21, 2015 at 12:08:44PM -0700, Eric Nelson wrote:
-> Many decoders require a trailing space (period without IR illumination)
-> to be delivered before completing a decode.
+On 09/04/15 12:56, Hans Verkuil wrote:
+> Laurent, can you review this?
+
+Ping! If I have an Ack on Monday at the latest, then I can make a pull request
+for this series before I leave for 2 1/2 weeks.
+
+Regards,
+
+	Hans
+
 > 
-> Since the gpio-ir-recv driver only delivers events on gpio transitions,
-> a single IR symbol (caused by a quick touch on an IR remote) will not
-> be properly decoded without the use of a timer to flush the tail end
-> state of the IR receiver.
+> Regards,
 > 
-> This patch initializes and uses a timer and the timeout field of rcdev
-> to complete the stream and allow decode.
+> 	Hans
 > 
-> The timeout can be overridden through the use of the LIRC_SET_REC_TIMEOUT
-> ioctl.
-
-Thanks, this is much nicer.
-
-> Signed-off-by: Eric Nelson <eric@nelint.com>
-> ---
->  drivers/media/rc/gpio-ir-recv.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
+> On 08/21/2015 03:19 PM, Ricardo Ribalda Delgado wrote:
+>> This driver does not use the control infrastructure.
+>> Add support for the new field which on structure
+>>  v4l2_ext_controls
+>>
+>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_v4l2.c | 14 +++++++++++++-
+>>  1 file changed, 13 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+>> index 2764f43607c1..e6d3a1bcfa2f 100644
+>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -980,6 +980,7 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>>  	struct uvc_fh *handle = fh;
+>>  	struct uvc_video_chain *chain = handle->chain;
+>>  	struct v4l2_ext_control *ctrl = ctrls->controls;
+>> +	struct v4l2_queryctrl qc;
+>>  	unsigned int i;
+>>  	int ret;
+>>  
+>> @@ -988,7 +989,14 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>>  		return ret;
+>>  
+>>  	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+>> -		ret = uvc_ctrl_get(chain, ctrl);
+>> +		if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+>> +			qc.id = ctrl->id;
+>> +			ret = uvc_query_v4l2_ctrl(chain, &qc);
+>> +			if (!ret)
+>> +				ctrl->value = qc.default_value;
+>> +		} else
+>> +			ret = uvc_ctrl_get(chain, ctrl);
+>> +
+>>  		if (ret < 0) {
+>>  			uvc_ctrl_rollback(handle);
+>>  			ctrls->error_idx = i;
+>> @@ -1010,6 +1018,10 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>>  	unsigned int i;
+>>  	int ret;
+>>  
+>> +	/* Default value cannot be changed */
+>> +	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+>> +		return -EINVAL;
+>> +
+>>  	ret = uvc_ctrl_begin(chain);
+>>  	if (ret < 0)
+>>  		return ret;
+>>
 > 
-> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-> index 7dbc9ca..d3b216a 100644
-> --- a/drivers/media/rc/gpio-ir-recv.c
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -30,6 +30,7 @@ struct gpio_rc_dev {
->  	struct rc_dev *rcdev;
->  	int gpio_nr;
->  	bool active_low;
-> +	struct timer_list flush_timer;
->  };
->  
->  #ifdef CONFIG_OF
-> @@ -93,12 +94,26 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
->  	if (rc < 0)
->  		goto err_get_value;
->  
-> +	mod_timer(&gpio_dev->flush_timer,
-> +		  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
-> +
->  	ir_raw_event_handle(gpio_dev->rcdev);
->  
->  err_get_value:
->  	return IRQ_HANDLED;
->  }
->  
-> +static void flush_timer(unsigned long arg)
-> +{
-> +	struct gpio_rc_dev *gpio_dev = (struct gpio_rc_dev *)arg;
-> +	DEFINE_IR_RAW_EVENT(ev);
-> +
-> +	ev.timeout = true;
-> +	ev.duration =  gpio_dev->rcdev->timeout;
-
-Nitpick: two spaces, checkpatch would have found this.
-
-> +	ir_raw_event_store(gpio_dev->rcdev, &ev);
-> +	ir_raw_event_handle(gpio_dev->rcdev);
-> +}
-> +
->  static int gpio_ir_recv_probe(struct platform_device *pdev)
->  {
->  	struct gpio_rc_dev *gpio_dev;
-> @@ -144,6 +159,9 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
->  	rcdev->input_id.version = 0x0100;
->  	rcdev->dev.parent = &pdev->dev;
->  	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
-> +	rcdev->min_timeout = 1;
-> +	rcdev->timeout = IR_DEFAULT_TIMEOUT;
-> +	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
->  	if (pdata->allowed_protos)
->  		rcdev->allowed_protocols = pdata->allowed_protos;
->  	else
-> @@ -154,6 +172,10 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
->  	gpio_dev->gpio_nr = pdata->gpio_nr;
->  	gpio_dev->active_low = pdata->active_low;
->  
-> +	init_timer(&gpio_dev->flush_timer);
-> +	gpio_dev->flush_timer.function = flush_timer;
-> +	gpio_dev->flush_timer.data = (unsigned long)gpio_dev;
-
-
-You could use "setup_timer(&gpio_dev->flush_timer, flush_timer, (unsigned long)gpio_dev);" here.
-
-
-> +
->  	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
->  	if (rc < 0)
->  		goto err_gpio_request;
-
-You'll need a "del_timer_sync(&gpio_dev->flush_timer);" in 
-gpio_ir_recv_remove() or you'll have a race on remove.
-
-
-Sean
