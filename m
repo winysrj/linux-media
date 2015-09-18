@@ -1,78 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34028 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752926AbbIVJB4 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42302 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753314AbbIRJ23 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 05:01:56 -0400
-Received: from [10.61.217.18] (unknown [173.38.220.33])
-	by tschai.lan (Postfix) with ESMTPSA id D0D832A008E
-	for <linux-media@vger.kernel.org>; Tue, 22 Sep 2015 11:00:29 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Fri, 18 Sep 2015 05:28:29 -0400
+Message-ID: <55FBD90C.3020301@xs4all.nl>
+Date: Fri, 18 Sep 2015 11:27:40 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.4] More fixes/enhancements
-Message-ID: <560118FF.3060301@xs4all.nl>
-Date: Tue, 22 Sep 2015 11:01:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v2 7/9] [media] v4l2: introduce v4l2_timeval
+References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <1442524780-781677-8-git-send-email-arnd@arndb.de> <55FBC5B2.10808@xs4all.nl> <8200227.6XAMdOOJfW@wuerfel>
+In-Reply-To: <8200227.6XAMdOOJfW@wuerfel>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More fixes and enhancements.
+On 09/18/15 11:09, Arnd Bergmann wrote:
+> On Friday 18 September 2015 10:05:06 Hans Verkuil wrote:
+>> On 09/17/15 23:19, Arnd Bergmann wrote:
+>>> The v4l2 API uses a 'struct timeval' to communicate time stamps to user
+>>> space. This is broken on 32-bit architectures as soon as we have a C library
+>>> that defines time_t as 64 bit, which then changes the structure layout of
+>>> struct v4l2_buffer.
+>>>
+>>> Since existing user space source code relies on the type to be 'struct
+>>> timeva' and we want to preserve compile-time compatibility when moving
+>>
+>> s/timeva/timeval/
+> 
+> Fixed
+> 
+>>> to a new libc, we cannot make user-visible changes to the header file.
+>>>
+>>> In this patch, we change the type of the timestamp to 'struct v4l2_timeval'
+>>
+>> Don't we need a kernel-wide timeval64? Rather than adding a v4l2-specific
+>> struct?
+> 
+> I still hope to avoid doing that. All in-kernel users should be changed to
+> use timespec64 or ktime_t, which are always more efficient and accurate.
+> 
+> For the system call interface, all timeval APIs are deprecated and have
+> replacements using timespec64 (e.g. clock_gettime() replaces gettimeofday).
+> 
+> Only a handful of ioctls pass timeval, and so far my impression is that
+> we are better off handling each one separately. The total amount of code
+> we need to add this way should be less than if we have to duplicate all
+> common code functions that today operate on timeval and can eventually
+> get removed.
 
-Note the v4l2-ctrls fix that has a CC to stable for 3.17 and up.
+Ah, OK. Got it.
+
+I think this is dependent on the upcoming media workshop next month. If we
+decide to redesign v4l2_buffer anyway, then we can avoid timeval completely.
+And the only place where we would need to convert it in the compat code
+hidden in the v4l2 core (likely v4l2-ioctl.c).
+
+I am not really keen on having v4l2_timeval in all these drivers. I would
+have to check them anyway since I suspect that in several drivers the local
+timeval variable can be avoided by rewriting that part of the driver.
+
+Personally I am in favor of a redesigned v4l2_buffer: it's awkward to use
+with multiplanar formats, there is cruft in there that can be removed (timecode),
+and there is little space for additions (HW-specific timecodes, more buffer
+meta data, etc).
+
+We'll see.
 
 Regards,
 
 	Hans
 
-The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
-
-  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.4c
-
-for you to fetch changes up to c8e88d026d67d33c427a9083a7762527a6b80d1c:
-
-  media: v4l2-ctrls: Fix 64bit support in get_ctrl() (2015-09-22 10:23:37 +0200)
-
-----------------------------------------------------------------
-Andrzej Pietrasiewicz (2):
-      s5p-jpeg: add support for 5433
-      MAINTAINERS: add exynos jpeg codec maintainers
-
-Benoit Parrot (1):
-      media: v4l2-ctrls: Fix 64bit support in get_ctrl()
-
-Hans Verkuil (1):
-      cobalt: fix Kconfig dependency
-
-Javier Martinez Canillas (1):
-      tvp5150: add support for asynchronous probing
-
-Joe Perches (1):
-      s5p-mfc: Correct misuse of %0x<decimal>
-
-Luis de Bethencourt (1):
-      cx25821, cx88, tm6000: use SNDRV_DEFAULT_ENABLE_PNP
-
-Marek Szyprowski (1):
-      s5p-jpeg: generalize clocks handling
-
- Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt |   3 +-
- MAINTAINERS                                                   |   8 ++
- drivers/media/i2c/tvp5150.c                                   |  14 ++-
- drivers/media/pci/cobalt/Kconfig                              |   2 +-
- drivers/media/pci/cx25821/cx25821-alsa.c                      |   2 +-
- drivers/media/pci/cx88/cx88-alsa.c                            |   2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c                   | 444 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------
- drivers/media/platform/s5p-jpeg/jpeg-core.h                   |  41 ++++++-
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c             |  80 ++++++++++---
- drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h             |  11 +-
- drivers/media/platform/s5p-jpeg/jpeg-regs.h                   |  85 +++++++++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c               |   2 +-
- drivers/media/usb/tm6000/tm6000-alsa.c                        |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c                          |   6 +-
- 14 files changed, 586 insertions(+), 116 deletions(-)
+> 
+>>> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+>>> index 295fde5fdb75..df5daac6d099 100644
+>>> --- a/drivers/media/platform/vim2m.c
+>>> +++ b/drivers/media/platform/vim2m.c
+>>> @@ -235,7 +235,7 @@ static int device_process(struct vim2m_ctx *ctx,
+>>>  	in_vb->v4l2_buf.sequence = q_data->sequence++;
+>>>  	memcpy(&out_vb->v4l2_buf.timestamp,
+>>>  			&in_vb->v4l2_buf.timestamp,
+>>> -			sizeof(struct timeval));
+>>> +			sizeof(struct v4l2_timeval));
+>>>  	if (in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
+>>>  		memcpy(&out_vb->v4l2_buf.timecode, &in_vb->v4l2_buf.timecode,
+>>>  			sizeof(struct v4l2_timecode));
+>>
+>> See https://patchwork.linuxtv.org/patch/31405/
+>>
+>> I'll merge that one for 4.4 very soon.
+> 
+> Ok.
+> 
+> 	Arnd
+> 
