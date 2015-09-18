@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:36598 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbbIAW3G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 18:29:06 -0400
-Received: by lanb10 with SMTP id b10so9654626lan.3
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 15:29:03 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: g.liakhovetski@gmx.de, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2] rcar_vin: propagate querystd() error upstream
-Date: Wed, 02 Sep 2015 01:29:01 +0300
-Message-ID: <2328024.JIhFUGC0u1@wasted.cogentembedded.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50124 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752160AbbIRJxR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Sep 2015 05:53:17 -0400
+Message-ID: <55FBDEDC.8040204@xs4all.nl>
+Date: Fri, 18 Sep 2015 11:52:28 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	y2038@lists.linaro.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH v2 7/9] [media] v4l2: introduce v4l2_timeval
+References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <8200227.6XAMdOOJfW@wuerfel> <55FBD90C.3020301@xs4all.nl> <9019880.VVdOR6WRt1@wuerfel>
+In-Reply-To: <9019880.VVdOR6WRt1@wuerfel>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rcar_vin_set_fmt() defaults to  PAL when the subdevice's querystd() method call
-fails (e.g. due to I2C error).  This doesn't work very well when a camera being
-used  outputs NTSC which has different order of fields and resolution.  Let  us
-stop  pretending and return the actual error except  when the querystd() method
-is not implemented,  in which case  we'll have  to set the 'field' variable  to
-V4L2_FIELD_NONE.
+On 09/18/15 11:43, Arnd Bergmann wrote:
+> On Friday 18 September 2015 11:27:40 Hans Verkuil wrote:
+>> Ah, OK. Got it.
+>>
+>> I think this is dependent on the upcoming media workshop next month. If we
+>> decide to redesign v4l2_buffer anyway, then we can avoid timeval completely.
+>> And the only place where we would need to convert it in the compat code
+>> hidden in the v4l2 core (likely v4l2-ioctl.c).
+> 
+> Ah, I think I understood the idea now, I missed that earlier when you mention
+> the idea.
+> 
+> So what you are saying here is that you could come up with a new unambiguous
+> (using only __u32 and __u64 types and no pointers) format that gets exposed
+> to a new set of ioctls, and then change the handling of the existing three
+> formats (native 64-bit, traditional 32-bit, and 32-bit with 64-bit time_t)
+> so they get converted into the new format by the common ioctl handling code?
 
-Note that doing this would prevent video capture on at least Renesas Henninger/
-Porter boards where I2C seems particularly buggy.
+Right. Drivers only see the new struct, and only v4l2-ioctl.c (and possible
+v4l2-compat-ioctl32.c) see the old ones.
 
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+BTW, I will probably pick up patches 4 and 6 for 4.4. That should help a bit.
 
----
-The patch is against the 'media_tree.git' repo's 'fixes' branch.
+Regards,
 
-Changes in version 2:
-- filter out -ENOIOCTLCMD error code and default 'field' to V4L2_FIELD_NONE in
-  that case.
+	Hans
 
- drivers/media/platform/soc_camera/rcar_vin.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
-
-Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-===================================================================
---- media_tree.orig/drivers/media/platform/soc_camera/rcar_vin.c
-+++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1591,11 +1591,15 @@ static int rcar_vin_set_fmt(struct soc_c
- 	case V4L2_FIELD_INTERLACED:
- 		/* Query for standard if not explicitly mentioned _TB/_BT */
- 		ret = v4l2_subdev_call(sd, video, querystd, &std);
--		if (ret < 0)
--			std = V4L2_STD_625_50;
--
--		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
--						V4L2_FIELD_INTERLACED_BT;
-+		if (ret == -ENOIOCTLCMD) {
-+			field = V4L2_FIELD_NONE;
-+		} else if (ret < 0) {
-+			return ret;
-+		} else {
-+			field = std & V4L2_STD_625_50 ?
-+				V4L2_FIELD_INTERLACED_TB :
-+				V4L2_FIELD_INTERLACED_BT;
-+		}
- 		break;
- 	}
- 
-
+>> I am not really keen on having v4l2_timeval in all these drivers. I would
+>> have to check them anyway since I suspect that in several drivers the local
+>> timeval variable can be avoided by rewriting that part of the driver.
+> 
+> I've tried to do that for all the drivers where I could find an easy solution
+> in patch 6/9, but I'm sure you can do it for a couple more.
+> 
+> We could also do a lightweight redesign and use 'timespec64' internally
+> in all the drivers and then convert that to 'timeval' or the 64-bit
+> format of that in the ioctl handler. This is also something I tried at
+> some point but then found it a bit more intuitive to leave the normal ioctl
+> path alone and have an explicit type.
+> 
+>> Personally I am in favor of a redesigned v4l2_buffer: it's awkward to use
+>> with multiplanar formats, there is cruft in there that can be removed (timecode),
+>> and there is little space for additions (HW-specific timecodes, more buffer
+>> meta data, etc).
+>>
+>> We'll see.
+> 
+> Ok.
+> 
+> 	Arnd
+> 
