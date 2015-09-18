@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41442 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752111AbbIILhV (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:30288 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109AbbIROan (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Sep 2015 07:37:21 -0400
-Message-ID: <55F019D2.7040907@xs4all.nl>
-Date: Wed, 09 Sep 2015 13:36:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] [media] media-device: use unsigned ints on some places
-References: <cover.1441798267.git.mchehab@osg.samsung.com> <b1205852042ddb1aff6a53077e7e28d75fcb02c0.1441798267.git.mchehab@osg.samsung.com>
-In-Reply-To: <b1205852042ddb1aff6a53077e7e28d75fcb02c0.1441798267.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Sep 2015 10:30:43 -0400
+Message-id: <55FC2010.3060007@samsung.com>
+Date: Fri, 18 Sep 2015 16:30:40 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Cc: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH 3/4] MAINTAINERS: add exynos jpeg codec maintainers
+References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
+ <1442586060-23657-4-git-send-email-andrzej.p@samsung.com>
+In-reply-to: <1442586060-23657-4-git-send-email-andrzej.p@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/09/15 13:32, Mauro Carvalho Chehab wrote:
-> The entity->num_pads are defined as u16. So, better to use an
-> unsigned int, as this prevents additional warnings when W=2
-> (or W=1 on some architectures).
-> 
-> The "i" counter at __media_device_get_topology() is also a
-> monotonic counter that should never be below zero. So,
-> make it unsigned too.
-> 
-> Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 09/18/2015 04:20 PM, Andrzej Pietrasiewicz wrote:
+> Add Andrzej Pietrasiewicz and Jacek Anaszewski
+> as maintainers of drivers/media/platform/s5p-jpeg.
+>
+> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> ---
+>   MAINTAINERS | 8 ++++++++
+>   1 file changed, 8 insertions(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 8133cef..ee9240b 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1452,6 +1452,14 @@ L:	linux-media@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/media/platform/s5p-tv/
+>
+> +ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
+> +M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> +M:	Jacek Anaszewski <j.anaszewski@samsung.com>
+> +L:	linux-arm-kernel@lists.infradead.org
+> +L:	linux-media@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/media/platform/s5p-jpeg/
+> +
+>   ARM/SHMOBILE ARM ARCHITECTURE
+>   M:	Simon Horman <horms@verge.net.au>
+>   M:	Magnus Damm <magnus.damm@gmail.com>
+>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Jacek Anaszewski <j.anaszewski@samsung.com>
 
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 13987710e5bc..1312e93ebd6e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -243,7 +243,8 @@ static long __media_device_get_topology(struct media_device *mdev,
->  	struct media_v2_interface uintf;
->  	struct media_v2_pad upad;
->  	struct media_v2_link ulink;
-> -	int ret = 0, i;
-> +	int ret = 0;
-> +	unsigned int i;
->  
->  	topo->topology_version = mdev->topology_version;
->  
-> @@ -613,7 +614,7 @@ EXPORT_SYMBOL_GPL(media_device_unregister);
->  int __must_check media_device_register_entity(struct media_device *mdev,
->  					      struct media_entity *entity)
->  {
-> -	int i;
-> +	unsigned int i;
->  
->  	if (entity->function == MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN ||
->  	    entity->function == MEDIA_ENT_F_UNKNOWN)
-> @@ -650,9 +651,9 @@ EXPORT_SYMBOL_GPL(media_device_register_entity);
->   */
->  void media_device_unregister_entity(struct media_entity *entity)
->  {
-> -	int i;
->  	struct media_device *mdev = entity->graph_obj.mdev;
->  	struct media_link *link, *tmp;
-> +	unsigned int i;
->  
->  	if (mdev == NULL)
->  		return;
-> 
+-- 
+Best Regards,
+Jacek Anaszewski
