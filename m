@@ -1,73 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:16764 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757670AbbIVMUp (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:13742 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751992AbbIRLOG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 08:20:45 -0400
-Date: Tue, 22 Sep 2015 14:20:35 +0200
-From: Thierry Reding <treding@nvidia.com>
-To: Bryan Wu <pengw@nvidia.com>
-CC: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>
-Subject: Re: [PATCH 3/3] Documentation: DT bindings: add VI and CSI bindings
-Message-ID: <20150922122033.GD1417@ulmo.nvidia.com>
-References: <1442861755-22743-1-git-send-email-pengw@nvidia.com>
- <1442861755-22743-4-git-send-email-pengw@nvidia.com>
+	Fri, 18 Sep 2015 07:14:06 -0400
+Subject: Re: [PATCH v3] media: atmel-isi: parse the DT parameters for
+ vsync/hsync/pixclock polarity
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>
+References: <1438681069-16981-1-git-send-email-josh.wu@atmel.com>
+ <3317317.RTpCstaHHn@avalon> <55FBD76C.1040303@atmel.com>
+ <Pine.LNX.4.64.1509181144170.15589@axis700.grange>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <55FBF1F7.1090904@atmel.com>
+Date: Fri, 18 Sep 2015 19:13:59 +0800
 MIME-Version: 1.0
-In-Reply-To: <1442861755-22743-4-git-send-email-pengw@nvidia.com>
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="JgQwtEuHJzHdouWu"
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1509181144170.15589@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---JgQwtEuHJzHdouWu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi, Guennadi
 
-On Mon, Sep 21, 2015 at 11:55:55AM -0700, Bryan Wu wrote:
-> Signed-off-by: Bryan Wu <pengw@nvidia.com>
-> ---
->  .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 +++++++++++++++=
-+++++-
->  1 file changed, 205 insertions(+), 6 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.=
-txt b/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt
-[...]
-> +  - ports: 2 ports presenting 2 channels of CSI. Each port has 2 endpoin=
-ts:
-> +    one connects to sensor device tree node as input and the other one c=
-onnects
-> +    to VI endpoint.
+On 9/18/2015 5:44 PM, Guennadi Liakhovetski wrote:
+> Hi Nicolas,
+>
+> Patch handling is on my todo for the coming weekend...
 
-It looks to me like we'll only need the first of these endpoints. The
-connection to the VI is implied. Even more so if the CSI nodes are moved
-into the VI node as children (which I really think they should be).
+Beside this patch, Atmel-isi still have server other patches in the 
+patchwork for a long time. So some patch may need to rebase.
 
-Thierry
+Just for your convenience I create a branch here: 
+https://github.com/JoshWu/linux-at91/commits/atmel-isi-v4.3,
+which collected all the Atmel-isi patches that still not merged. You can 
+take it as a reference.
 
---JgQwtEuHJzHdouWu
-Content-Type: application/pgp-signature; name="signature.asc"
+Of cause, if you want I can sent out a pull request for it. thanks.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Best Regards,
+Josh Wu
+>
+> Thanks
+> Guennadi
+>
+> On Fri, 18 Sep 2015, Nicolas Ferre wrote:
+>
+>> Le 04/08/2015 13:22, Laurent Pinchart a écrit :
+>>> Hi Josh,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> On Tuesday 04 August 2015 17:37:49 Josh Wu wrote:
+>>>> This patch will get the DT parameters of vsync/hsync/pixclock polarity, and
+>>>> pass to driver.
+>>>>
+>>>> Also add a debug information for test purpose.
+>>>>
+>>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Guennadi, Mauro,
+>>
+>> I don't see this patch in Linux-next and I'm not so used to
+>> http://git.linuxtv.org but didn't find it either.
+>>
+>> Well in fact it's just a lengthy version of "ping" ;-)
+>>
+>> Bye,
+>>
+>>>> ---
+>>>>
+>>>> Changes in v3:
+>>>> - add embedded sync dt property support.
+>>>>
+>>>> Changes in v2:
+>>>> - rewrite the debug message and add pix clock polarity setup thanks to
+>>>>    Laurent.
+>>>> - update the commit log.
+>>>>
+>>>>   drivers/media/platform/soc_camera/atmel-isi.c | 15 +++++++++++++++
+>>>>   1 file changed, 15 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>> b/drivers/media/platform/soc_camera/atmel-isi.c index fead841..4efc939
+>>>> 100644
+>>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>>>> @@ -1061,6 +1061,11 @@ static int isi_camera_set_bus_param(struct
+>>>> soc_camera_device *icd) if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+>>>>   		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
+>>>>
+>>>> +	dev_dbg(icd->parent, "vsync active %s, hsync active %s, sampling on pix
+>>>> clock %s edge\n", +		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" :
+>>>> "high",
+>>>> +		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
+>>>> +		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "falling" : "rising");
+>>>> +
+>>>>   	if (isi->pdata.has_emb_sync)
+>>>>   		cfg1 |= ISI_CFG1_EMB_SYNC;
+>>>>   	if (isi->pdata.full_mode)
+>>>> @@ -1148,6 +1153,16 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
+>>>>   		return -EINVAL;
+>>>>   	}
+>>>>
+>>>> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+>>>> +		isi->pdata.hsync_act_low = true;
+>>>> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+>>>> +		isi->pdata.vsync_act_low = true;
+>>>> +	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+>>>> +		isi->pdata.pclk_act_falling = true;
+>>>> +
+>>>> +	if (ep.bus_type == V4L2_MBUS_BT656)
+>>>> +		isi->pdata.has_emb_sync = true;
+>>>> +
+>>>>   	return 0;
+>>>>   }
+>>
+>> -- 
+>> Nicolas Ferre
+>>
 
-iQIcBAABCAAGBQJWAUeRAAoJEN0jrNd/PrOhwlQP/RKYToDpkzkJHtrvleX3nlpq
-2ar+pG8eiXraUpre+RTF1Xd3CHJH7kw6V+mb1bOHQy/iRPEAquOPz8iFww0hWF1X
-OUGTAd0VbBCVnyb8lF8SV9h7s1UavsTlKq1maYNMSBSplt4r2s1y8cfFo7+rm7K8
-DuNsS2vzoDeANZP75sPVFYYnQd8FMvPDNVxNSlvDVeeo8ElhyRvdhvXw0TEnO/b7
-DKpo3J7QENtVWMfff3FgEhWK5fot152E0ljayhDL+oBjDrpqBcCggeI/oQ8T7E5D
-/CGXgV06SJR2VbLT79P4g9VTvfAXooRlJLKJ8xeaQmWvB2CsBNk8uYsSZImBU9n9
-vSMvyFXuSc+TBH3P8cXvckP4zPWPsm8dXQY5K96TCUXqsO9AZ7xj0iJBamJabc4V
-Cps6woLHAUfTEDcxssEBKbOJGQ0Wktb3cNtw9J96VaEsAt6IAll6I/JTTzcGp/Ne
-0qxVQv0uMJgOlYjXsvOJQcQdkk87yxFMhmMdiTMgBh/qSIaCRkrIkI4VLXXk/QIn
-5qK6G+9HO2qr1RQ81iS0JTpsK4CzZCcfPNOegFXcKPtQGBVuXB3XoXIhaRN38A34
-yo5K1wsT/n/xZ5QirlO+hDLs8E6dtQxbd6vDuL+lgaexqxA4cqU6xNNOeDoNxyco
-bn3GWVckLFjwmnIkchTJ
-=bVL/
------END PGP SIGNATURE-----
-
---JgQwtEuHJzHdouWu--
