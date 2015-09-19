@@ -1,129 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54600 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890AbbIFMDy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 08:03:54 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH v8 23/55] [media] media: add support to link interfaces and entities
-Date: Sun,  6 Sep 2015 09:02:52 -0300
-Message-Id: <adb8afe6108077d3e464eade5307da88e324e72d.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-In-Reply-To: <cf99e5eca15f107a14b02dad55fb812525345627.1440902901.git.mchehab@osg.samsung.com>
-References: <cf99e5eca15f107a14b02dad55fb812525345627.1440902901.git.mchehab@osg.samsung.com>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:33791 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219AbbISVsQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Sep 2015 17:48:16 -0400
+Received: by lamp12 with SMTP id p12so47364956lam.0
+        for <linux-media@vger.kernel.org>; Sat, 19 Sep 2015 14:48:14 -0700 (PDT)
+Subject: Re: Terratec H7 Rev. 4 is DVBSky
+To: Erik Andresen <erik@vontaene.de>, linux-media@vger.kernel.org
+References: <55F2ED67.3030306@vontaene.de> <55FDD604.1040003@gmail.com>
+From: =?UTF-8?Q?Roger_M=c3=a5rtensson?= <roger.martensson@gmail.com>
+Message-ID: <55FDD817.6090904@gmail.com>
+Date: Sat, 19 Sep 2015 23:48:07 +0200
+MIME-Version: 1.0
+In-Reply-To: <55FDD604.1040003@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we have a new graph object called "interfaces", we
-need to be able to link them to the entities.
-
-Add a linked list to the interfaces to allow them to be
-linked to the entities.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index f9c6c2a81903..8e17272936c9 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -869,6 +869,7 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
- 
- 	intf->type = type;
- 	intf->flags = flags;
-+	INIT_LIST_HEAD(&intf->links);
- 
- 	devnode->major = major;
- 	devnode->minor = minor;
-@@ -886,3 +887,40 @@ void media_devnode_remove(struct media_intf_devnode *devnode)
- 	kfree(devnode);
- }
- EXPORT_SYMBOL_GPL(media_devnode_remove);
-+
-+struct media_link *media_create_intf_link(struct media_entity *entity,
-+					    struct media_interface *intf,
-+					    u32 flags)
-+{
-+	struct media_link *link;
-+
-+	link = media_add_link(&intf->links);
-+	if (link == NULL)
-+		return NULL;
-+
-+	link->intf = intf;
-+	link->entity = entity;
-+	link->flags = flags;
-+
-+	/* Initialize graph object embedded at the new link */
-+	media_gobj_init(intf->graph_obj.mdev, MEDIA_GRAPH_LINK,
-+			&link->graph_obj);
-+
-+	return link;
-+}
-+EXPORT_SYMBOL_GPL(media_create_intf_link);
-+
-+
-+static void __media_remove_intf_link(struct media_link *link)
-+{
-+	media_gobj_remove(&link->graph_obj);
-+	kfree(link);
-+}
-+
-+void media_remove_intf_link(struct media_link *link)
-+{
-+	mutex_lock(&link->graph_obj.mdev->graph_mutex);
-+	__media_remove_intf_link(link);
-+	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_remove_intf_link);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 6015e996f213..f67c01419268 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -78,10 +78,12 @@ struct media_link {
- 	union {
- 		struct media_gobj *gobj0;
- 		struct media_pad *source;
-+		struct media_interface *intf;
- 	};
- 	union {
- 		struct media_gobj *gobj1;
- 		struct media_pad *sink;
-+		struct media_entity *entity;
- 	};
- 	struct media_link *reverse;	/* Link in the reverse direction */
- 	unsigned long flags;		/* Link flags (MEDIA_LNK_FL_*) */
-@@ -154,6 +156,7 @@ struct media_entity {
-  * struct media_intf_devnode - Define a Kernel API interface
-  *
-  * @graph_obj:		embedded graph object
-+ * @links:		List of links pointing to graph entities
-  * @type:		Type of the interface as defined at the
-  *			uapi/media/media.h header, e. g.
-  *			MEDIA_INTF_T_*
-@@ -161,6 +164,7 @@ struct media_entity {
-  */
- struct media_interface {
- 	struct media_gobj		graph_obj;
-+	struct list_head		links;
- 	u32				type;
- 	u32				flags;
- };
-@@ -283,6 +287,11 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
- 						u32 major, u32 minor,
- 						gfp_t gfp_flags);
- void media_devnode_remove(struct media_intf_devnode *devnode);
-+struct media_link *media_create_intf_link(struct media_entity *entity,
-+					    struct media_interface *intf,
-+					    u32 flags);
-+void media_remove_intf_link(struct media_link *link);
-+
- #define media_entity_call(entity, operation, args...)			\
- 	(((entity)->ops && (entity)->ops->operation) ?			\
- 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
--- 
-2.4.3
-
+Den 2015-09-19 kl. 23:39, skrev Roger Mårtensson:
+> Den 2015-09-11 kl. 17:04, skrev Erik Andresen:
+>> Hi,
+>>
+>> I recently got a Terratec H7 in Revision 4 and turned out that it is not
+>> just a new revision, but a new product with USB ProductID 0x10a5.
+>> Previous revisions have been AZ6007, but this revision does not work
+>> with this driver [1].
+>>
+>> Output of lsusb (extended output attached):
+>> Bus 001 Device 011: ID 0ccd:10a5 TerraTec Electronic GmbH
+>>
+>> The revision 4 seems to a DVBSky variant, adding its Product ID to
+>> dvbsky.c with the attached patch enabled me to scan for channels and
+>> watch DVB-C and DVB-T.
+>>
+>> greetings,
+>> Erik
+>>
+>> [1] 
+>> https://www.mail-archive.com/linux-media@vger.kernel.org/msg70934.html
+> Do I feel lucky or what..
+> Just got my H7 devices delivered and noticed the lack of supported 
+> driver and some quick searches gave me this e-mail.
+> Maybe should take a trip to the race track. :)
+>
+> I have tried this driver and it works wonderfully. I have noticed a 
+> freeze or two when handling the device (powering off, ripping USB etc) 
+> but I'm not sure it is the driver that is causing this.
+>
+> I do notice something weird. The remote doesn't seem to work.
+> Found /sys/class/rc/rc0/ (/dev/input/event14) with:
+>         Driver dvb_usb_dvbsky, table rc-tt-1500
+>         Supported protocols: RC-5
+>         Enabled protocols:
+>         Name: Terratec H7 Rev.4
+>         bus: 3, vendor/product: 0ccd:10a5, version: 0x0000
+>         Repeat delay = 500 ms, repeat period = 125 ms
+>
+> I'm not able to enable any protocols. Nothing happens when running 
+> ir-keytable with "-p rc-5". Nothing shows in the row "Enabled 
+> protocols" and nothing happens when testing with "ir-keytable -t".
+>
+> I've tested on a Ubuntu 14.04 (Mythbuntu) with Linux Kernel 4.2 that I 
+> have to compile myself. (Don't know in which kernel dvbsky was released)
+> Tested using both Kaffeine and MythTV and it works like a charm (with 
+> the exception of missing IR).
+> I tested using DVB-C with CI for encrypted channels
+One more this..
+Is there a possibility that Signal strength support could be added to 
+the driver?
+MythTV uses this and I think Kaffeine also uses it (not sure). Currently 
+the logs are filling up with "Operation not supported".
 
