@@ -1,83 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.246]:7291 "EHLO
-	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752436AbbIRK7g (ORCPT
+Received: from mx1.polytechnique.org ([129.104.30.34]:48661 "EHLO
+	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313AbbITOWq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 06:59:36 -0400
-Subject: Re: [PATCH] media: soc-camera: increase the length of clk_name on
- soc_of_bind()
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1438685469-12230-1-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1508301604030.29683@axis700.grange>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sun, 20 Sep 2015 10:22:46 -0400
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+To: Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-From: Josh Wu <josh.wu@atmel.com>
-Message-ID: <55FBEE91.9010603@atmel.com>
-Date: Fri, 18 Sep 2015 18:59:29 +0800
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1508301604030.29683@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	kernel@stlinux.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: [PATCH 2/2] [media] c8sectpfe: forward err instead of returning an uninitialized variable
+Date: Sun, 20 Sep 2015 16:14:07 +0200
+Message-Id: <1442758447-1474-2-git-send-email-nicolas.iooss_linux@m4x.org>
+In-Reply-To: <1442758447-1474-1-git-send-email-nicolas.iooss_linux@m4x.org>
+References: <1442758447-1474-1-git-send-email-nicolas.iooss_linux@m4x.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+When load_c8sectpfe_fw_step1() tests whether the return value of
+request_firmware_nowait(), stored in variable err, indicates an error,
+it then returns the value hold by uninitialized variable ret, which
+seems incorrect.
 
-On 8/30/2015 10:06 PM, Guennadi Liakhovetski wrote:
-> Hi Josh,
->
-> Sorry, I missed the 4.3 merge cycle, but isn't this patch a fix? Isn't it
-> fixing soc-camera / atmel-isi on a specific platform, where the clock name
-> is longer, than currently supported? Is this platform in the mainline and
-> its current camera support is broken because of this?
+Fix this by forwarding the error returned by request_firmware_nowait()
+to the caller of load_c8sectpfe_fw_step1().
 
-I missed your email, so sorry for the late reply.
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+---
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-yes, it will break the detect flow if the i2c camera is loaded as module.
-
->   In such a case we
-> could still push it in for 4.3
-
-So it is a fix, it is great if this one can still go into 4.3.
-
-Best Regards,
-Josh Wu
->
-> Thanks
-> Guennadi
->
-> On Tue, 4 Aug 2015, Josh Wu wrote:
->
->> Since in soc_of_bind() it may use the of node's full name as the clk_name,
->> and this full name may be longer than 32 characters, take at91 i2c sensor
->> as an example, length is 34 bytes:
->>     /ahb/apb/i2c@f8028000/camera@0x30
->>
->> So this patch increase the clk_name[] array size to 64. It seems big
->> enough so far.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->>   drivers/media/platform/soc_camera/soc_camera.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
->> index d708df4..fcf3e97 100644
->> --- a/drivers/media/platform/soc_camera/soc_camera.c
->> +++ b/drivers/media/platform/soc_camera/soc_camera.c
->> @@ -1621,7 +1621,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
->>   	struct soc_camera_async_client *sasc;
->>   	struct soc_of_info *info;
->>   	struct i2c_client *client;
->> -	char clk_name[V4L2_SUBDEV_NAME_SIZE];
->> +	char clk_name[V4L2_SUBDEV_NAME_SIZE + 32];
->>   	int ret;
->>   
->>   	/* allocate a new subdev and add match info to it */
->> -- 
->> 1.9.1
->>
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index a424339b18bc..c25a1172bcf5 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -1192,7 +1192,6 @@ err:
+ 
+ static int load_c8sectpfe_fw_step1(struct c8sectpfei *fei)
+ {
+-	int ret;
+ 	int err;
+ 
+ 	dev_info(fei->dev, "Loading firmware: %s\n", FIRMWARE_MEMDMA);
+@@ -1207,7 +1206,7 @@ static int load_c8sectpfe_fw_step1(struct c8sectpfei *fei)
+ 	if (err) {
+ 		dev_err(fei->dev, "request_firmware_nowait err: %d.\n", err);
+ 		complete_all(&fei->fw_ack);
+-		return ret;
++		return err;
+ 	}
+ 
+ 	return 0;
+-- 
+2.5.2
 
