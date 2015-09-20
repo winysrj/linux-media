@@ -1,38 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40850 "EHLO mga02.intel.com"
+Received: from mout.gmx.net ([212.227.17.20]:53479 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754239AbbIHKfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 06:35:54 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 00/11] vb2: Handle user cache hints, allow drivers to choose cache coherency
-Date: Tue,  8 Sep 2015 13:33:44 +0300
-Message-Id: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1753405AbbITRKq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Sep 2015 13:10:46 -0400
+Received: from axis700.grange ([87.79.255.48]) by mail.gmx.com (mrgmx101) with
+ ESMTPSA (Nemesis) id 0ME33j-1ZMv1f1WRz-00HOCT for
+ <linux-media@vger.kernel.org>; Sun, 20 Sep 2015 19:10:44 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 4021840BD9
+	for <linux-media@vger.kernel.org>; Sun, 20 Sep 2015 19:10:42 +0200 (CEST)
+Date: Sun, 20 Sep 2015 19:10:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: 4.4 batch #1
+Message-ID: <Pine.LNX.4.64.1509201853320.30819@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+Hi Mauro,
 
-This RFC patchset achieves two main objectives:
+I missed the 4.3 cycle completely, so, this should clean up my backlog. 
+There are still PXA patches outstanding, but Robert wanted to work a bit 
+more on them.
 
-1. Respects cache flags passed from the user space. As no driver nor
-videobuf2 has (ever?) implemented them, the two flags are replaced by a
-single one (V4L2_BUF_FLAG_NO_CACHE_SYNC) and the two old flags are
-deprecated. This is done since a single flag provides the driver with
-enough information on what to do. (See more info in patch 4.)
+The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
 
-2. Allows a driver using videobuf2 dma-contig memory type to choose
-whether it prefers coherent or non-coherent CPU access to buffer memory
-for MMAP and USERPTR buffers. This could be later extended to be specified
-by the user, and per buffer if needed.
+  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
 
-Only dma-contig memory type is changed but the same could be done to
-dma-sg as well. I can add it to the set if people are happy with the
-changes to dma-contig.
+are available in the git repository at:
 
--- 
-Kind regards,
-Sakari
 
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.4-1
+
+for you to fetch changes up to 8cf27580b31fd81031e8cd3b54008236dc7193c1:
+
+  atmel-isi: parse the DT parameters for vsync/hsync/pixclock polarity (2015-09-20 18:30:28 +0200)
+
+----------------------------------------------------------------
+Geert Uytterhoeven (2):
+      rcar_vin: Remove obsolete r8a779x-vin platform_device_id entries
+      atmel-isi: Protect PM-only functions to kill warning
+
+Josh Wu (6):
+      soc-camera: increase the length of clk_name on soc_of_bind()
+      atmel-isi: increase timeout to disable/enable isi
+      atmel-isi: setup the ISI_CFG2 register directly
+      atmel-isi: move configure_geometry() to start_streaming()
+      atmel-isi: add sanity check for supported formats in try/set_fmt()
+      atmel-isi: parse the DT parameters for vsync/hsync/pixclock polarity
+
+Laurent Pinchart (3):
+      v4l: atmel-isi: Simplify error handling during DT parsing
+      v4l: atmel-isi: Remove support for platform data
+      v4l: atmel-isi: Remove unused platform data fields
+
+Sergei Shtylyov (2):
+      rcar_vin: propagate querystd() error upstream
+      rcar_vin: call g_std() instead of querystd()
+
+ drivers/media/platform/soc_camera/atmel-isi.c      | 125 +++++++++++----------
+ .../media/platform/soc_camera}/atmel-isi.h         |   7 +-
+ drivers/media/platform/soc_camera/rcar_vin.c       |  20 ++--
+ drivers/media/platform/soc_camera/soc_camera.c     |   2 +-
+ 4 files changed, 79 insertions(+), 75 deletions(-)
+ rename {include/media => drivers/media/platform/soc_camera}/atmel-isi.h (95%)
+
+Thanks
+Guennadi
