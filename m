@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:34399 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752069AbbIUIV0 (ORCPT
+Received: from hl140.dinaserver.com ([82.98.160.94]:47565 "EHLO
+	hl140.dinaserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932444AbbIUQuQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Sep 2015 04:21:26 -0400
-Received: by ykdg206 with SMTP id g206so95756173ykd.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2015 01:21:25 -0700 (PDT)
+	Mon, 21 Sep 2015 12:50:16 -0400
+To: linux-media <linux-media@vger.kernel.org>
+Cc: =?UTF-8?Q?Germ=c3=a1n_Villar?= <german@by.com.es>,
+	=?UTF-8?Q?Antonio_P=c3=a9rez_Barrero?= <antonioperez@by.com.es>
+From: Javier Martin <javiermartin@by.com.es>
+Subject: RFC: ov5640 kernel driver.
+Message-ID: <5600334B.4090507@by.com.es>
+Date: Mon, 21 Sep 2015 18:41:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <201509201655.YWNNEnBb%fengguang.wu@intel.com>
-References: <201509201655.YWNNEnBb%fengguang.wu@intel.com>
-Date: Mon, 21 Sep 2015 10:21:25 +0200
-Message-ID: <CABxcv=kxojA4Tuv-Vas8KkAh8SUJ-cbM8rPW3Auk7H6RP9aAxA@mail.gmail.com>
-Subject: Re: drivers/media/pci/netup_unidvb/netup_unidvb_core.c:417:18: error:
- too many arguments to function 'horus3a_attach'
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
+we want to a v4l2 driver for the ov5640 sensor from Omnivision.
 
-On Sun, Sep 20, 2015 at 10:56 AM, kbuild test robot
-<fengguang.wu@intel.com> wrote:
-> Hi Kozlov,
->
-> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> head:   99bc7215bc60f6cd414cf1b85cd9d52cc596cccb
-> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
-> date:   6 weeks ago
-> config: i386-randconfig-b0-09201649 (attached as .config)
-> reproduce:
->   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
->   # save the attached .config to linux build tree
->   make ARCH=i386
->
-> All error/warnings (new ones prefixed by >>):
->
->    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
->    drivers/media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
->          struct i2c_adapter *i2c)
->
+AFAIK, there was an attempt in the past to mainline that driver [1] but 
+it didn't make it in the end.
 
-I had already posted a patch to fix this issue about a week ago:
+Some people were asking for the code for the ov5640 and the ov5642 to be 
+merged [2] as well but IMHO both sensors are not that similar so that 
+it's worth a common driver.
 
-https://patchwork.linuxtv.org/patch/31401/
+The approach we had in mind so far was creating a new, independent, 
+v4l2-subdev driver for the ov5640 with mbus support.
 
-Best regards,
-Javier
+I've found several sources out there with code for the ov5640 but, 
+surprisingly, few attempts to mainline it. I would whether it is just 
+people didn't take the effort or there was something wrong with the code.
+
+Has anyone got some comments/advices on this before we start coding? Is 
+anyone already working on this and maybe we can collaborate instead of 
+having two forks of the same driver?
+
+Regards,
+Javier.
+
+[1] https://lwn.net/Articles/470643/
+[2] http://www.spinics.net/lists/linux-omap/msg69611.html
