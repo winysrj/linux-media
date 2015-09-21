@@ -1,65 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:50404 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817AbbIOPtc (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:25835 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655AbbIUJ7a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:49:32 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
+	Mon, 21 Sep 2015 05:59:30 -0400
+Subject: Re: [PATCH 4/4] ARM64: dts: exynos5433: add jpeg node
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
+ <1442586060-23657-5-git-send-email-andrzej.p@samsung.com>
+ <55FFD2D2.1010508@xs4all.nl>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 4/7] [media] exynos4-is: use monotonic timestamps as advertized
-Date: Tue, 15 Sep 2015 17:49:05 +0200
-Message-Id: <1442332148-488079-5-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442332148-488079-1-git-send-email-arnd@arndb.de>
-References: <1442332148-488079-1-git-send-email-arnd@arndb.de>
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <55FFD4FF.6090306@samsung.com>
+Date: Mon, 21 Sep 2015 11:59:27 +0200
+MIME-version: 1.0
+In-reply-to: <55FFD2D2.1010508@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The exynos4 fimc capture driver claims to use monotonic
-timestamps but calls ktime_get_real_ts(). This is both
-an incorrect API use, and a bad idea because of the y2038
-problem and the fact that the wall clock time is not reliable
-for timestamps across suspend or settimeofday().
+Hi Hans,
 
-This changes the driver to use the normal v4l2_get_timestamp()
-function like all other drivers.
+W dniu 21.09.2015 o 11:50, Hans Verkuil pisze:
+> On 18-09-15 16:21, Andrzej Pietrasiewicz wrote:
+>> From: Marek Szyprowski <m.szyprowski@samsung.com>
+>>
+>> Add Exynos 5433 jpeg h/w codec node.
+>>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+>> ---
+>>   arch/arm64/boot/dts/exynos/exynos5433.dtsi | 21 +++++++++++++++++++++
+>>   1 file changed, 21 insertions(+)
+>>
+>> diff --git a/arch/arm64/boot/dts/exynos/exynos5433.dtsi b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
+>
+> This dtsi file doesn't exist in the media-git tree. What is the story here?
+>
+> Should this go through a different subsystem?
+>
+> I think the media subsystem can take patches 1-3 and whoever does DT patches can
+> take this patch, right?
+>
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/exynos4-is/fimc-capture.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+The cover letter explains that the series is rebased onto Mauro's
+master with Kukjin's branch merged. The latter does contain
+the exynos5433.dtsi. That said, yes, taking patches 1-3 in
+media subsystem and leaving DT patch to someone else is the
+way to go.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index cfebf292e15a..776ea6d78d03 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -183,8 +183,6 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, int deq_buf)
- 	struct v4l2_subdev *csis = p->subdevs[IDX_CSIS];
- 	struct fimc_frame *f = &cap->ctx->d_frame;
- 	struct fimc_vid_buffer *v_buf;
--	struct timeval *tv;
--	struct timespec ts;
- 
- 	if (test_and_clear_bit(ST_CAPT_SHUT, &fimc->state)) {
- 		wake_up(&fimc->irq_queue);
-@@ -193,13 +191,9 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, int deq_buf)
- 
- 	if (!list_empty(&cap->active_buf_q) &&
- 	    test_bit(ST_CAPT_RUN, &fimc->state) && deq_buf) {
--		ktime_get_real_ts(&ts);
--
- 		v_buf = fimc_active_queue_pop(cap);
- 
--		tv = &v_buf->vb.v4l2_buf.timestamp;
--		tv->tv_sec = ts.tv_sec;
--		tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-+		v4l2_get_timestamp(&v_buf->vb.v4l2_buf.timestamp);
- 		v_buf->vb.v4l2_buf.sequence = cap->frame_count++;
- 
- 		vb2_buffer_done(&v_buf->vb, VB2_BUF_STATE_DONE);
--- 
-2.1.0.rc2
-
+Andrzej
