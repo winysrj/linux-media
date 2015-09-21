@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755445AbbIMU5W (ORCPT
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:34399 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069AbbIUIV0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:22 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 16/32] v4l: vsp1: Document the vsp1_pipeline structure
-Date: Sun, 13 Sep 2015 23:56:54 +0300
-Message-Id: <1442177830-24536-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 21 Sep 2015 04:21:26 -0400
+Received: by ykdg206 with SMTP id g206so95756173ykd.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2015 01:21:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201509201655.YWNNEnBb%fengguang.wu@intel.com>
+References: <201509201655.YWNNEnBb%fengguang.wu@intel.com>
+Date: Mon, 21 Sep 2015 10:21:25 +0200
+Message-ID: <CABxcv=kxojA4Tuv-Vas8KkAh8SUJ-cbM8rPW3Auk7H6RP9aAxA@mail.gmail.com>
+Subject: Re: drivers/media/pci/netup_unidvb/netup_unidvb_core.c:417:18: error:
+ too many arguments to function 'horus3a_attach'
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.h | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+Hello,
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 8553d5a03aa3..9c8ded1c29f6 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -29,9 +29,23 @@ enum vsp1_pipeline_state {
- 
- /*
-  * struct vsp1_pipeline - A VSP1 hardware pipeline
-- * @media: the media pipeline
-+ * @pipe: the media pipeline
-  * @irqlock: protects the pipeline state
-+ * @state: current state
-+ * @wq: work queue to wait for state change completion
-+ * @frame_end: frame end interrupt handler
-  * @lock: protects the pipeline use count and stream count
-+ * @use_count: number of video nodes using the pipeline
-+ * @stream_count: number of streaming video nodes
-+ * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
-+ * @num_inputs: number of RPFs
-+ * @inputs: array of RPFs in the pipeline
-+ * @output: WPF at the output of the pipeline
-+ * @bru: BRU entity, if present
-+ * @lif: LIF entity, if present
-+ * @uds: UDS entity, if present
-+ * @uds_input: entity at the input of the UDS, if the UDS is present
-+ * @entities: list of entities in the pipeline
-  */
- struct vsp1_pipeline {
- 	struct media_pipeline pipe;
--- 
-2.4.6
+On Sun, Sep 20, 2015 at 10:56 AM, kbuild test robot
+<fengguang.wu@intel.com> wrote:
+> Hi Kozlov,
+>
+> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
+>
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> head:   99bc7215bc60f6cd414cf1b85cd9d52cc596cccb
+> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
+> date:   6 weeks ago
+> config: i386-randconfig-b0-09201649 (attached as .config)
+> reproduce:
+>   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
+>   # save the attached .config to linux build tree
+>   make ARCH=i386
+>
+> All error/warnings (new ones prefixed by >>):
+>
+>    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
+>    drivers/media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
+>          struct i2c_adapter *i2c)
+>
 
+I had already posted a patch to fix this issue about a week ago:
+
+https://patchwork.linuxtv.org/patch/31401/
+
+Best regards,
+Javier
