@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20979 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbbIROWC (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.246]:19331 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755657AbbIUBdQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 10:22:02 -0400
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 3/4] MAINTAINERS: add exynos jpeg codec maintainers
-Date: Fri, 18 Sep 2015 16:20:59 +0200
-Message-id: <1442586060-23657-4-git-send-email-andrzej.p@samsung.com>
-In-reply-to: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
-References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
+	Sun, 20 Sep 2015 21:33:16 -0400
+Subject: Re: [PATCH 0/4] atmel-isi: Remove platform data support
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1438420976-7899-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1509201715180.30819@axis700.grange>
+CC: <linux-media@vger.kernel.org>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <55FF5E56.8010009@atmel.com>
+Date: Mon, 21 Sep 2015 09:33:10 +0800
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1509201715180.30819@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Andrzej Pietrasiewicz and Jacek Anaszewski
-as maintainers of drivers/media/platform/s5p-jpeg.
+Hi, Guennadi
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On 9/20/2015 11:25 PM, Guennadi Liakhovetski wrote:
+> Hi Laurent, Josh,
+>
+> It's ok not to CC me immediately if it's expected, that patches will be
+> further forwarded (by Josh in this case) to me. And it helps, that Josh
+> has collected all Atmel ISI patches in a git tree branch - thanks! But,
+> please make sure, that all patches also appear in my mailbox at least
+> once, especially if they are (even trivially) modified - like in this
+> case, where patches 2 and 3 have been merged into 1.
+yes, got it. I will make sure of that in future. Thanks for the remind.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 8133cef..ee9240b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1452,6 +1452,14 @@ L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/platform/s5p-tv/
- 
-+ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
-+M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-+M:	Jacek Anaszewski <j.anaszewski@samsung.com>
-+L:	linux-arm-kernel@lists.infradead.org
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/s5p-jpeg/
-+
- ARM/SHMOBILE ARM ARCHITECTURE
- M:	Simon Horman <horms@verge.net.au>
- M:	Magnus Damm <magnus.damm@gmail.com>
--- 
-1.9.1
+Best Regards,
+Josh Wu
+>
+> Thanks
+> Guennadi
+>
+> On Sat, 1 Aug 2015, Laurent Pinchart wrote:
+>
+>> Hello,
+>>
+>> While reviewing patches for the atmel-isi I noticed a couple of small issues
+>> with the driver. Here's a patch series to fix them, the main change being the
+>> removal of platform data support now that all users have migrated to DT.
+>>
+>> The patches have been compile-tested only. Josh, would you be able to test
+>> them on hardware ?
+>>
+>> Laurent Pinchart (4):
+>>    v4l: atmel-isi: Simplify error handling during DT parsing
+>>    v4l: atmel-isi: Remove unused variable
+>>    v4l: atmel-isi: Remove support for platform data
+>>    v4l: atmel-isi: Remove unused platform data fields
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c |  40 ++------
+>>   drivers/media/platform/soc_camera/atmel-isi.h | 126 +++++++++++++++++++++++++
+>>   include/media/atmel-isi.h                     | 131 --------------------------
+>>   3 files changed, 136 insertions(+), 161 deletions(-)
+>>   create mode 100644 drivers/media/platform/soc_camera/atmel-isi.h
+>>   delete mode 100644 include/media/atmel-isi.h
+>>
+>> -- 
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 
