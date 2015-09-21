@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36998 "EHLO mail.kapsi.fi"
+Received: from foss.arm.com ([217.140.101.70]:54087 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751787AbbIAV7z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 17:59:55 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 13/13] DocBook: add SDR specific info to G_MODULATOR / S_MODULATOR
-Date: Wed,  2 Sep 2015 00:59:29 +0300
-Message-Id: <1441144769-29211-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
-References: <1441144769-29211-1-git-send-email-crope@iki.fi>
+	id S932893AbbIUPsc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 11:48:32 -0400
+From: Sudeep Holla <sudeep.holla@arm.com>
+To: linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Zhangfei Gao <zhangfei.gao@linaro.org>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Guoxiong Yan <yanguoxiong@huawei.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 15/17] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
+Date: Mon, 21 Sep 2015 16:47:11 +0100
+Message-Id: <1442850433-5903-16-git-send-email-sudeep.holla@arm.com>
+In-Reply-To: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add SDR specific notes to G_MODULATOR / S_MODULATOR documentation.
+This driver doesn't claim the IR transmitter to be wakeup source. It
+even disables the clock and the IR during suspend-resume cycle.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+This patch removes yet another misuse of IRQF_NO_SUSPEND.
+
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
+Cc: Patrice Chotard <patrice.chotard@st.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Guoxiong Yan <yanguoxiong@huawei.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- Documentation/DocBook/media/v4l/vidioc-g-modulator.xml | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/rc/ir-hix5hd2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-index 80167fc..affb694 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-@@ -78,6 +78,15 @@ different audio modulation if the request cannot be satisfied. However
- this is a write-only ioctl, it does not return the actual audio
- modulation selected.</para>
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index 1c087cb76815..d0549fba711c 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -257,7 +257,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 		goto clkerr;
  
-+    <para><link linkend="sdr">SDR</link> specific modulator types are
-+<constant>V4L2_TUNER_SDR</constant> and <constant>V4L2_TUNER_RF</constant>.
-+Valid fields for these modulator types are <structfield>index</structfield>,
-+<structfield>name</structfield>, <structfield>capability</structfield>,
-+<structfield>rangelow</structfield>, <structfield>rangehigh</structfield>
-+and <structfield>type</structfield>. All the rest fields must be
-+initialized to zero by both application and driver.
-+Term modulator means SDR transmitter on this context.</para>
-+
-     <para>To change the radio frequency the &VIDIOC-S-FREQUENCY; ioctl
- is available.</para>
- 
+ 	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
+-			     IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
++			     0, pdev->name, priv) < 0) {
+ 		dev_err(dev, "IRQ %d register failed\n", priv->irq);
+ 		ret = -EINVAL;
+ 		goto regerr;
 -- 
-http://palosaari.fi/
+1.9.1
 
