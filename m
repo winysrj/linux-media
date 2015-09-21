@@ -1,76 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35402 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:38359 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750819AbbIJRf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2015 13:35:58 -0400
-Subject: Re: [PATCH 1/2] [media] media-device: check before unregister if mdev
- was registered
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-kernel@vger.kernel.org
-References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
- <1441890195-11650-2-git-send-email-javier@osg.samsung.com>
- <55F1BAA8.3030107@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <55F1BF7A.4000901@osg.samsung.com>
-Date: Thu, 10 Sep 2015 19:35:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <55F1BAA8.3030107@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	id S1756101AbbIUQBM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 12:01:12 -0400
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	linux-media@vger.kernel.org,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+Subject: [PATCH] [media] cx25821, cx88, tm6000: use SNDRV_DEFAULT_ENABLE_PNP
+Date: Mon, 21 Sep 2015 17:00:41 +0100
+Message-Id: <1442851241-31278-1-git-send-email-luisbg@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Instead of manually initializing the bool array enable, use the
+SNDRV_DEFAULT_ENABLE_PNP macro. As most drivers do.
 
-Thanks a lot for your feedback.
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+---
 
-On 09/10/2015 07:15 PM, Sakari Ailus wrote:
-> Javier Martinez Canillas wrote:
->> Most media functions that unregister, check if the corresponding register
->> function succeed before. So these functions can safely be called even if a
->> registration was never made or the component as already been unregistered.
->>
->> Add the same check to media_device_unregister() function for consistency.
->>
->> This will also allow to split the media_device_register() function in an
->> initialization and registration functions without the need to change the
->> generic cleanup functions and error code paths for all the media drivers.
->>
->> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->> ---
->>
->>  drivers/media/media-device.c | 6 ++++++
->>  1 file changed, 6 insertions(+)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 1312e93ebd6e..745defb34b33 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -574,6 +574,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
->>   * media_device_unregister - unregister a media device
->>   * @mdev:	The media device
->>   *
->> + * If the media device has never been registered this function will
->> + * return immediately.
-> 
-> I'd say "It is safe to call this function on an unregistered (but
-> initialised) media device.". Up to you.
->
+Hi,
 
-Ok, I copied that message from media_device_unregister_entity() with
-s/entity/media device so the kernel doc would be consistent but I don't
-mind to change to your suggested message since looks more clear to me.
+I don't see any good reason to use = 1 instead of = SNDRV_DEFAULT_ENABLE_PNP.
+Semantically it is the same, and I don't find a purpose to explicitely set the
+first element of the array separately.
+
+The proposed patch makes these drivers consistent with the rest and more
+readable. In a related note, maybe the dummy driver in sound/drivers/dummy.c
+should be updated as well.
+
+I can split this below fix into a patch per driver if that's better.
+
+Thanks,
+Luis
+
+ drivers/media/pci/cx25821/cx25821-alsa.c | 2 +-
+ drivers/media/pci/cx88/cx88-alsa.c       | 2 +-
+ drivers/media/usb/tm6000/tm6000-alsa.c   | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
+index 24f964b..b602eba 100644
+--- a/drivers/media/pci/cx25821/cx25821-alsa.c
++++ b/drivers/media/pci/cx25821/cx25821-alsa.c
+@@ -102,7 +102,7 @@ struct cx25821_audio_dev {
  
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-
-Thanks!
-
-Best regards,
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
+ static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
+-static bool enable[SNDRV_CARDS] = { 1, [1 ... (SNDRV_CARDS - 1)] = 1 };
++static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
+ 
+ module_param_array(enable, bool, NULL, 0444);
+ MODULE_PARM_DESC(enable, "Enable cx25821 soundcard. default enabled.");
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 7f8dc60..57ddf8a 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -101,7 +101,7 @@ typedef struct cx88_audio_dev snd_cx88_card_t;
+ 
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
+ static const char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;	/* ID for this card */
+-static bool enable[SNDRV_CARDS] = {1, [1 ... (SNDRV_CARDS - 1)] = 1};
++static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
+ 
+ module_param_array(enable, bool, NULL, 0444);
+ MODULE_PARM_DESC(enable, "Enable cx88x soundcard. default enabled.");
+diff --git a/drivers/media/usb/tm6000/tm6000-alsa.c b/drivers/media/usb/tm6000/tm6000-alsa.c
+index 74e5697..e21c7aa 100644
+--- a/drivers/media/usb/tm6000/tm6000-alsa.c
++++ b/drivers/media/usb/tm6000/tm6000-alsa.c
+@@ -42,7 +42,7 @@
+ 
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
+ 
+-static bool enable[SNDRV_CARDS] = {1, [1 ... (SNDRV_CARDS - 1)] = 1};
++static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
+ 
+ module_param_array(enable, bool, NULL, 0444);
+ MODULE_PARM_DESC(enable, "Enable tm6000x soundcard. default enabled.");
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.6
+
