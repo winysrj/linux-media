@@ -1,4964 +1,4233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:34967 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933738AbbIVNbE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 09:31:04 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NV202WA4YV4DC50@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Sep 2015 22:30:40 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v5 4/8] media: videobuf2: Restructure vb2_buffer (3/3)
-Date: Tue, 22 Sep 2015 22:30:32 +0900
-Message-id: <1442928636-3589-5-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1442928636-3589-1-git-send-email-jh1009.sung@samsung.com>
-References: <1442928636-3589-1-git-send-email-jh1009.sung@samsung.com>
+Received: from mga14.intel.com ([192.55.52.115]:23385 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752012AbbIUEza (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 00:55:30 -0400
+Date: Mon, 21 Sep 2015 12:54:46 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Florian Echtler <floe@butterbrot.org>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: ERROR: "vb2_ops_wait_finish" [drivers/input/touchscreen/sur40.ko]
+ undefined!
+Message-ID: <201509211244.P3XtXohK%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="dDRMvlgZJXvWKvBx"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modify all device drivers related with previous change that
-restructures vb2_buffer for common use.
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Florian,
+
+FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+head:   1f93e4a96c9109378204c147b3eec0d0e8100fde
+commit: e831cd251fb91d6c25352d322743db0d17ea11dd [media] add raw video stream support for Samsung SUR40
+date:   6 months ago
+config: i386-randconfig-c0-09211007 (attached as .config)
+reproduce:
+  git checkout e831cd251fb91d6c25352d322743db0d17ea11dd
+  # save the attached .config to linux build tree
+  make ARCH=i386 
+
+All error/warnings (new ones prefixed by >>):
+
+>> ERROR: "vb2_ops_wait_finish" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ops_wait_prepare" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_fop_release" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "v4l2_fh_open" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_fop_mmap" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "video_ioctl2" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_fop_poll" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_fop_read" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_streamoff" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_streamon" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_create_bufs" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_dqbuf" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_expbuf" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_qbuf" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_querybuf" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_ioctl_reqbufs" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "__video_register_device" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "video_device_release_empty" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_dma_sg_init_ctx" [drivers/input/touchscreen/sur40.ko] undefined!
+>> ERROR: "vb2_queue_init" [drivers/input/touchscreen/sur40.ko] undefined!
+
 ---
- drivers/media/platform/am437x/am437x-vpfe.c        |   35 +++---
- drivers/media/platform/am437x/am437x-vpfe.h        |    3 +-
- drivers/media/platform/blackfin/bfin_capture.c     |   34 +++--
- drivers/media/platform/coda/coda-bit.c             |  133 ++++++++++----------
- drivers/media/platform/coda/coda-common.c          |   21 ++--
- drivers/media/platform/coda/coda-jpeg.c            |    6 +-
- drivers/media/platform/coda/coda.h                 |    6 +-
- drivers/media/platform/coda/trace.h                |   16 +--
- drivers/media/platform/davinci/vpbe_display.c      |   31 +++--
- drivers/media/platform/davinci/vpif_capture.c      |   30 +++--
- drivers/media/platform/davinci/vpif_capture.h      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |   28 +++--
- drivers/media/platform/davinci/vpif_display.h      |    2 +-
- drivers/media/platform/exynos-gsc/gsc-core.h       |    2 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |   23 ++--
- drivers/media/platform/exynos4-is/fimc-capture.c   |   22 ++--
- drivers/media/platform/exynos4-is/fimc-core.h      |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |   13 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |   15 +--
- drivers/media/platform/exynos4-is/fimc-lite.h      |    2 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |   19 +--
- drivers/media/platform/m2m-deinterlace.c           |   23 ++--
- drivers/media/platform/marvell-ccic/mcam-core.c    |   43 ++++---
- drivers/media/platform/mx2_emmaprp.c               |   15 +--
- drivers/media/platform/omap3isp/ispvideo.c         |   25 ++--
- drivers/media/platform/omap3isp/ispvideo.h         |    2 +-
- drivers/media/platform/rcar_jpu.c                  |   59 +++++----
- drivers/media/platform/s3c-camif/camif-capture.c   |   15 +--
- drivers/media/platform/s3c-camif/camif-core.h      |    2 +-
- drivers/media/platform/s5p-g2d/g2d.c               |   15 +--
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |   30 ++---
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   78 ++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   15 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   58 +++++----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |   46 +++----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   33 ++---
- drivers/media/platform/s5p-tv/mixer.h              |    2 +-
- drivers/media/platform/s5p-tv/mixer_grp_layer.c    |    2 +-
- drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c        |   11 +-
- drivers/media/platform/s5p-tv/mixer_vp_layer.c     |    5 +-
- drivers/media/platform/sh_veu.c                    |   19 +--
- drivers/media/platform/sh_vou.c                    |   26 ++--
- drivers/media/platform/soc_camera/atmel-isi.c      |   26 ++--
- drivers/media/platform/soc_camera/mx2_camera.c     |   19 +--
- drivers/media/platform/soc_camera/mx3_camera.c     |   27 ++--
- drivers/media/platform/soc_camera/rcar_vin.c       |   45 +++----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   57 +++++----
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |   23 ++--
- drivers/media/platform/ti-vpe/vpe.c                |   40 +++---
- drivers/media/platform/vim2m.c                     |   52 ++++----
- drivers/media/platform/vivid/vivid-core.h          |    2 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c   |   73 ++++++-----
- drivers/media/platform/vivid/vivid-kthread-out.c   |   34 ++---
- drivers/media/platform/vivid/vivid-sdr-cap.c       |   44 ++++---
- drivers/media/platform/vivid/vivid-vbi-cap.c       |   45 ++++---
- drivers/media/platform/vivid/vivid-vbi-out.c       |   18 ++-
- drivers/media/platform/vivid/vivid-vid-cap.c       |   15 ++-
- drivers/media/platform/vivid/vivid-vid-out.c       |   15 ++-
- drivers/media/platform/vsp1/vsp1_rpf.c             |    4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |   18 +--
- drivers/media/platform/vsp1/vsp1_video.h           |    6 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |    4 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |   24 ++--
- 66 files changed, 856 insertions(+), 710 deletions(-)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index c8447fa..488d275 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -307,7 +307,8 @@ static inline struct vpfe_device *to_vpfe(struct vpfe_ccdc *ccdc)
- 	return container_of(ccdc, struct vpfe_device, ccdc);
- }
- 
--static inline struct vpfe_cap_buffer *to_vpfe_buffer(struct vb2_buffer *vb)
-+static inline
-+struct vpfe_cap_buffer *to_vpfe_buffer(struct vb2_v4l2_buffer *vb)
- {
- 	return container_of(vb, struct vpfe_cap_buffer, vb);
- }
-@@ -1257,14 +1258,14 @@ static inline void vpfe_schedule_next_buffer(struct vpfe_device *vpfe)
- 	list_del(&vpfe->next_frm->list);
- 
- 	vpfe_set_sdr_addr(&vpfe->ccdc,
--		       vb2_dma_contig_plane_dma_addr(&vpfe->next_frm->vb, 0));
-+	       vb2_dma_contig_plane_dma_addr(&vpfe->next_frm->vb.vb2_buf, 0));
- }
- 
- static inline void vpfe_schedule_bottom_field(struct vpfe_device *vpfe)
- {
- 	unsigned long addr;
- 
--	addr = vb2_dma_contig_plane_dma_addr(&vpfe->next_frm->vb, 0) +
-+	addr = vb2_dma_contig_plane_dma_addr(&vpfe->next_frm->vb.vb2_buf, 0) +
- 					vpfe->field_off;
- 
- 	vpfe_set_sdr_addr(&vpfe->ccdc, addr);
-@@ -1280,10 +1281,10 @@ static inline void vpfe_schedule_bottom_field(struct vpfe_device *vpfe)
-  */
- static inline void vpfe_process_buffer_complete(struct vpfe_device *vpfe)
- {
--	v4l2_get_timestamp(&vpfe->cur_frm->vb.v4l2_buf.timestamp);
--	vpfe->cur_frm->vb.v4l2_buf.field = vpfe->fmt.fmt.pix.field;
--	vpfe->cur_frm->vb.v4l2_buf.sequence = vpfe->sequence++;
--	vb2_buffer_done(&vpfe->cur_frm->vb, VB2_BUF_STATE_DONE);
-+	v4l2_get_timestamp(&vpfe->cur_frm->vb.timestamp);
-+	vpfe->cur_frm->vb.field = vpfe->fmt.fmt.pix.field;
-+	vpfe->cur_frm->vb.sequence = vpfe->sequence++;
-+	vb2_buffer_done(&vpfe->cur_frm->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	vpfe->cur_frm = vpfe->next_frm;
- }
- 
-@@ -1942,6 +1943,7 @@ static int vpfe_queue_setup(struct vb2_queue *vq,
-  */
- static int vpfe_buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vpfe_device *vpfe = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	vb2_set_plane_payload(vb, 0, vpfe->fmt.fmt.pix.sizeimage);
-@@ -1949,7 +1951,7 @@ static int vpfe_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
- 		return -EINVAL;
- 
--	vb->v4l2_buf.field = vpfe->fmt.fmt.pix.field;
-+	vbuf->field = vpfe->fmt.fmt.pix.field;
- 
- 	return 0;
- }
-@@ -1960,8 +1962,9 @@ static int vpfe_buffer_prepare(struct vb2_buffer *vb)
-  */
- static void vpfe_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vpfe_device *vpfe = vb2_get_drv_priv(vb->vb2_queue);
--	struct vpfe_cap_buffer *buf = to_vpfe_buffer(vb);
-+	struct vpfe_cap_buffer *buf = to_vpfe_buffer(vbuf);
- 	unsigned long flags = 0;
- 
- 	/* add the buffer to the DMA queue */
-@@ -2006,7 +2009,7 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	list_del(&vpfe->cur_frm->list);
- 	spin_unlock_irqrestore(&vpfe->dma_queue_lock, flags);
- 
--	addr = vb2_dma_contig_plane_dma_addr(&vpfe->cur_frm->vb, 0);
-+	addr = vb2_dma_contig_plane_dma_addr(&vpfe->cur_frm->vb.vb2_buf, 0);
- 
- 	vpfe_set_sdr_addr(&vpfe->ccdc, (unsigned long)(addr));
- 
-@@ -2023,7 +2026,7 @@ static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
- err:
- 	list_for_each_entry_safe(buf, tmp, &vpfe->dma_queue, list) {
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
- 	}
- 
- 	return ret;
-@@ -2055,13 +2058,14 @@ static void vpfe_stop_streaming(struct vb2_queue *vq)
- 	/* release all active buffers */
- 	spin_lock_irqsave(&vpfe->dma_queue_lock, flags);
- 	if (vpfe->cur_frm == vpfe->next_frm) {
--		vb2_buffer_done(&vpfe->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&vpfe->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	} else {
- 		if (vpfe->cur_frm != NULL)
--			vb2_buffer_done(&vpfe->cur_frm->vb,
-+			vb2_buffer_done(&vpfe->cur_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 		if (vpfe->next_frm != NULL)
--			vb2_buffer_done(&vpfe->next_frm->vb,
-+			vb2_buffer_done(&vpfe->next_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 	}
- 
-@@ -2069,7 +2073,8 @@ static void vpfe_stop_streaming(struct vb2_queue *vq)
- 		vpfe->next_frm = list_entry(vpfe->dma_queue.next,
- 						struct vpfe_cap_buffer, list);
- 		list_del(&vpfe->next_frm->list);
--		vb2_buffer_done(&vpfe->next_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&vpfe->next_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irqrestore(&vpfe->dma_queue_lock, flags);
- }
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.h b/drivers/media/platform/am437x/am437x-vpfe.h
-index 5bfb356..777bf97 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.h
-+++ b/drivers/media/platform/am437x/am437x-vpfe.h
-@@ -31,6 +31,7 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-v4l2.h>
- #include <media/videobuf2-dma-contig.h>
- 
- #include "am437x-vpfe_regs.h"
-@@ -104,7 +105,7 @@ struct vpfe_config {
- };
- 
- struct vpfe_cap_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
- 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index b7e70fb..db059eb 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -54,7 +54,7 @@ struct bcap_format {
- };
- 
- struct bcap_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
- 
-@@ -149,7 +149,7 @@ static const struct bcap_format bcap_formats[] = {
- 
- static irqreturn_t bcap_isr(int irq, void *dev_id);
- 
--static struct bcap_buffer *to_bcap_vb(struct vb2_buffer *vb)
-+static struct bcap_buffer *to_bcap_vb(struct vb2_v4l2_buffer *vb)
- {
- 	return container_of(vb, struct bcap_buffer, vb);
- }
-@@ -223,6 +223,7 @@ static int bcap_queue_setup(struct vb2_queue *vq,
- 
- static int bcap_buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long size = bcap_dev->fmt.sizeimage;
- 
-@@ -233,15 +234,16 @@ static int bcap_buffer_prepare(struct vb2_buffer *vb)
- 	}
- 	vb2_set_plane_payload(vb, 0, size);
- 
--	vb->v4l2_buf.field = bcap_dev->fmt.field;
-+	vbuf->field = bcap_dev->fmt.field;
- 
- 	return 0;
- }
- 
- static void bcap_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct bcap_buffer *buf = to_bcap_vb(vb);
-+	struct bcap_buffer *buf = to_bcap_vb(vbuf);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&bcap_dev->lock, flags);
-@@ -251,8 +253,9 @@ static void bcap_buffer_queue(struct vb2_buffer *vb)
- 
- static void bcap_buffer_cleanup(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct bcap_buffer *buf = to_bcap_vb(vb);
-+	struct bcap_buffer *buf = to_bcap_vb(vbuf);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&bcap_dev->lock, flags);
-@@ -333,7 +336,8 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- 					struct bcap_buffer, list);
- 	/* remove buffer from the dma queue */
- 	list_del_init(&bcap_dev->cur_frm->list);
--	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
-+	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb.vb2_buf,
-+						0);
- 	/* update DMA address */
- 	ppi->ops->update_addr(ppi, (unsigned long)addr);
- 	/* enable ppi */
-@@ -344,7 +348,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
- err:
- 	list_for_each_entry_safe(buf, tmp, &bcap_dev->dma_queue, list) {
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
- 	}
- 
- 	return ret;
-@@ -367,13 +371,15 @@ static void bcap_stop_streaming(struct vb2_queue *vq)
- 
- 	/* release all active buffers */
- 	if (bcap_dev->cur_frm)
--		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&bcap_dev->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 
- 	while (!list_empty(&bcap_dev->dma_queue)) {
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 						struct bcap_buffer, list);
- 		list_del_init(&bcap_dev->cur_frm->list);
--		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&bcap_dev->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	}
- }
- 
-@@ -392,18 +398,19 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- {
- 	struct ppi_if *ppi = dev_id;
- 	struct bcap_device *bcap_dev = ppi->priv;
--	struct vb2_buffer *vb = &bcap_dev->cur_frm->vb;
-+	struct vb2_v4l2_buffer *vbuf = &bcap_dev->cur_frm->vb;
-+	struct vb2_buffer *vb = &vbuf->vb2_buf;
- 	dma_addr_t addr;
- 
- 	spin_lock(&bcap_dev->lock);
- 
- 	if (!list_empty(&bcap_dev->dma_queue)) {
--		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
-+		v4l2_get_timestamp(&vbuf->timestamp);
- 		if (ppi->err) {
- 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- 			ppi->err = false;
- 		} else {
--			vb->v4l2_buf.sequence = bcap_dev->sequence++;
-+			vbuf->sequence = bcap_dev->sequence++;
- 			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 		}
- 		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
-@@ -420,7 +427,8 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- 	if (bcap_dev->stop) {
- 		complete(&bcap_dev->comp);
- 	} else {
--		addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
-+		addr = vb2_dma_contig_plane_dma_addr(
-+				&bcap_dev->cur_frm->vb.vb2_buf, 0);
- 		ppi->ops->update_addr(ppi, (unsigned long)addr);
- 		ppi->ops->start(ppi);
- 	}
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index cd41d49..654e964 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -179,31 +179,32 @@ static void coda_kfifo_sync_to_device_write(struct coda_ctx *ctx)
- }
- 
- static int coda_bitstream_queue(struct coda_ctx *ctx,
--				struct vb2_buffer *src_buf)
-+				struct vb2_v4l2_buffer *src_buf)
- {
--	u32 src_size = vb2_get_plane_payload(src_buf, 0);
-+	u32 src_size = vb2_get_plane_payload(&src_buf->vb2_buf, 0);
- 	u32 n;
- 
--	n = kfifo_in(&ctx->bitstream_fifo, vb2_plane_vaddr(src_buf, 0),
--		     src_size);
-+	n = kfifo_in(&ctx->bitstream_fifo,
-+			vb2_plane_vaddr(&src_buf->vb2_buf, 0), src_size);
- 	if (n < src_size)
- 		return -ENOSPC;
- 
--	src_buf->v4l2_buf.sequence = ctx->qsequence++;
-+	src_buf->sequence = ctx->qsequence++;
- 
- 	return 0;
- }
- 
- static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
--				     struct vb2_buffer *src_buf)
-+				     struct vb2_v4l2_buffer *src_buf)
- {
- 	int ret;
- 
- 	if (coda_get_bitstream_payload(ctx) +
--	    vb2_get_plane_payload(src_buf, 0) + 512 >= ctx->bitstream.size)
-+	    vb2_get_plane_payload(&src_buf->vb2_buf, 0) + 512 >=
-+	    ctx->bitstream.size)
- 		return false;
- 
--	if (vb2_plane_vaddr(src_buf, 0) == NULL) {
-+	if (vb2_plane_vaddr(&src_buf->vb2_buf, 0) == NULL) {
- 		v4l2_err(&ctx->dev->v4l2_dev, "trying to queue empty buffer\n");
- 		return true;
- 	}
-@@ -224,7 +225,7 @@ static bool coda_bitstream_try_queue(struct coda_ctx *ctx,
- 
- void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- {
--	struct vb2_buffer *src_buf;
-+	struct vb2_v4l2_buffer *src_buf;
- 	struct coda_buffer_meta *meta;
- 	unsigned long flags;
- 	u32 start;
-@@ -257,7 +258,7 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- 		}
- 
- 		/* Dump empty buffers */
--		if (!vb2_get_plane_payload(src_buf, 0)) {
-+		if (!vb2_get_plane_payload(&src_buf->vb2_buf, 0)) {
- 			src_buf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
- 			v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 			continue;
-@@ -276,9 +277,9 @@ void coda_fill_bitstream(struct coda_ctx *ctx, bool streaming)
- 
- 			meta = kmalloc(sizeof(*meta), GFP_KERNEL);
- 			if (meta) {
--				meta->sequence = src_buf->v4l2_buf.sequence;
--				meta->timecode = src_buf->v4l2_buf.timecode;
--				meta->timestamp = src_buf->v4l2_buf.timestamp;
-+				meta->sequence = src_buf->sequence;
-+				meta->timecode = src_buf->timecode;
-+				meta->timestamp = src_buf->timestamp;
- 				meta->start = start;
- 				meta->end = ctx->bitstream_fifo.kfifo.in &
- 					    ctx->bitstream_fifo.kfifo.mask;
-@@ -483,20 +484,21 @@ err:
- 	return ret;
- }
- 
--static int coda_encode_header(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+static int coda_encode_header(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 			      int header_code, u8 *header, int *size)
- {
-+	struct vb2_buffer *vb = &buf->vb2_buf;
- 	struct coda_dev *dev = ctx->dev;
- 	size_t bufsize;
- 	int ret;
- 	int i;
- 
- 	if (dev->devtype->product == CODA_960)
--		memset(vb2_plane_vaddr(buf, 0), 0, 64);
-+		memset(vb2_plane_vaddr(vb, 0), 0, 64);
- 
--	coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0),
-+	coda_write(dev, vb2_dma_contig_plane_dma_addr(vb, 0),
- 		   CODA_CMD_ENC_HEADER_BB_START);
--	bufsize = vb2_plane_size(buf, 0);
-+	bufsize = vb2_plane_size(vb, 0);
- 	if (dev->devtype->product == CODA_960)
- 		bufsize /= 1024;
- 	coda_write(dev, bufsize, CODA_CMD_ENC_HEADER_BB_SIZE);
-@@ -509,14 +511,14 @@ static int coda_encode_header(struct coda_ctx *ctx, struct vb2_buffer *buf,
- 
- 	if (dev->devtype->product == CODA_960) {
- 		for (i = 63; i > 0; i--)
--			if (((char *)vb2_plane_vaddr(buf, 0))[i] != 0)
-+			if (((char *)vb2_plane_vaddr(vb, 0))[i] != 0)
- 				break;
- 		*size = i + 1;
- 	} else {
- 		*size = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->reg_idx)) -
- 			coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
- 	}
--	memcpy(header, vb2_plane_vaddr(buf, 0), *size);
-+	memcpy(header, vb2_plane_vaddr(vb, 0), *size);
- 
- 	return 0;
- }
-@@ -799,7 +801,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
- 	struct coda_q_data *q_data_src, *q_data_dst;
- 	u32 bitstream_buf, bitstream_size;
--	struct vb2_buffer *buf;
-+	struct vb2_v4l2_buffer *buf;
- 	int gamma, ret, value;
- 	u32 dst_fourcc;
- 	int num_fb;
-@@ -810,7 +812,7 @@ static int coda_start_encoding(struct coda_ctx *ctx)
- 	dst_fourcc = q_data_dst->fourcc;
- 
- 	buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
--	bitstream_buf = vb2_dma_contig_plane_dma_addr(buf, 0);
-+	bitstream_buf = vb2_dma_contig_plane_dma_addr(&buf->vb2_buf, 0);
- 	bitstream_size = q_data_dst->sizeimage;
- 
- 	if (!coda_is_initialized(dev)) {
-@@ -1185,7 +1187,7 @@ out:
- static int coda_prepare_encode(struct coda_ctx *ctx)
- {
- 	struct coda_q_data *q_data_src, *q_data_dst;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	struct coda_dev *dev = ctx->dev;
- 	int force_ipicture;
- 	int quant_param = 0;
-@@ -1200,8 +1202,8 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
- 	dst_fourcc = q_data_dst->fourcc;
- 
--	src_buf->v4l2_buf.sequence = ctx->osequence;
--	dst_buf->v4l2_buf.sequence = ctx->osequence;
-+	src_buf->sequence = ctx->osequence;
-+	dst_buf->sequence = ctx->osequence;
- 	ctx->osequence++;
- 
- 	/*
-@@ -1209,12 +1211,12 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	 * frame as IDR. This is a problem for some decoders that can't
- 	 * recover when a frame is lost.
- 	 */
--	if (src_buf->v4l2_buf.sequence % ctx->params.gop_size) {
--		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
--		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
-+	if (src_buf->sequence % ctx->params.gop_size) {
-+		src_buf->flags |= V4L2_BUF_FLAG_PFRAME;
-+		src_buf->flags &= ~V4L2_BUF_FLAG_KEYFRAME;
- 	} else {
--		src_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
--		src_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
-+		src_buf->flags |= V4L2_BUF_FLAG_KEYFRAME;
-+		src_buf->flags &= ~V4L2_BUF_FLAG_PFRAME;
- 	}
- 
- 	if (dev->devtype->product == CODA_960)
-@@ -1224,9 +1226,9 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 	 * Copy headers at the beginning of the first frame for H.264 only.
- 	 * In MPEG4 they are already copied by the coda.
- 	 */
--	if (src_buf->v4l2_buf.sequence == 0) {
-+	if (src_buf->sequence == 0) {
- 		pic_stream_buffer_addr =
--			vb2_dma_contig_plane_dma_addr(dst_buf, 0) +
-+			vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0) +
- 			ctx->vpu_header_size[0] +
- 			ctx->vpu_header_size[1] +
- 			ctx->vpu_header_size[2];
-@@ -1234,20 +1236,21 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 			ctx->vpu_header_size[0] -
- 			ctx->vpu_header_size[1] -
- 			ctx->vpu_header_size[2];
--		memcpy(vb2_plane_vaddr(dst_buf, 0),
-+		memcpy(vb2_plane_vaddr(&dst_buf->vb2_buf, 0),
- 		       &ctx->vpu_header[0][0], ctx->vpu_header_size[0]);
--		memcpy(vb2_plane_vaddr(dst_buf, 0) + ctx->vpu_header_size[0],
--		       &ctx->vpu_header[1][0], ctx->vpu_header_size[1]);
--		memcpy(vb2_plane_vaddr(dst_buf, 0) + ctx->vpu_header_size[0] +
--			ctx->vpu_header_size[1], &ctx->vpu_header[2][0],
--			ctx->vpu_header_size[2]);
-+		memcpy(vb2_plane_vaddr(&dst_buf->vb2_buf, 0)
-+			+ ctx->vpu_header_size[0], &ctx->vpu_header[1][0],
-+			ctx->vpu_header_size[1]);
-+		memcpy(vb2_plane_vaddr(&dst_buf->vb2_buf, 0)
-+			+ ctx->vpu_header_size[0] + ctx->vpu_header_size[1],
-+			&ctx->vpu_header[2][0], ctx->vpu_header_size[2]);
- 	} else {
- 		pic_stream_buffer_addr =
--			vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-+			vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
- 		pic_stream_buffer_size = q_data_dst->sizeimage;
- 	}
- 
--	if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) {
-+	if (src_buf->flags & V4L2_BUF_FLAG_KEYFRAME) {
- 		force_ipicture = 1;
- 		switch (dst_fourcc) {
- 		case V4L2_PIX_FMT_H264:
-@@ -1324,7 +1327,7 @@ static int coda_prepare_encode(struct coda_ctx *ctx)
- 
- static void coda_finish_encode(struct coda_ctx *ctx)
- {
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	struct coda_dev *dev = ctx->dev;
- 	u32 wr_ptr, start_ptr;
- 
-@@ -1338,13 +1341,13 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->reg_idx));
- 
- 	/* Calculate bytesused field */
--	if (dst_buf->v4l2_buf.sequence == 0) {
--		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr +
-+	if (dst_buf->sequence == 0) {
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0,
- 					ctx->vpu_header_size[0] +
- 					ctx->vpu_header_size[1] +
- 					ctx->vpu_header_size[2]);
- 	} else {
--		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr);
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, wr_ptr - start_ptr);
- 	}
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev, "frame size = %u\n",
-@@ -1354,18 +1357,18 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 	coda_read(dev, CODA_RET_ENC_PIC_FLAG);
- 
- 	if (coda_read(dev, CODA_RET_ENC_PIC_TYPE) == 0) {
--		dst_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_PFRAME;
-+		dst_buf->flags |= V4L2_BUF_FLAG_KEYFRAME;
-+		dst_buf->flags &= ~V4L2_BUF_FLAG_PFRAME;
- 	} else {
--		dst_buf->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
-+		dst_buf->flags |= V4L2_BUF_FLAG_PFRAME;
-+		dst_buf->flags &= ~V4L2_BUF_FLAG_KEYFRAME;
- 	}
- 
--	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
--	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_buf->v4l2_buf.flags |=
--		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
-+	dst_buf->timestamp = src_buf->timestamp;
-+	dst_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->flags |=
-+		src_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->timecode = src_buf->timecode;
- 
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 
-@@ -1378,8 +1381,8 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 		"job finished: encoding frame (%d) (%s)\n",
--		dst_buf->v4l2_buf.sequence,
--		(dst_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) ?
-+		dst_buf->sequence,
-+		(dst_buf->flags & V4L2_BUF_FLAG_KEYFRAME) ?
- 		"KEYFRAME" : "PFRAME");
- }
- 
-@@ -1716,7 +1719,7 @@ static int coda_start_decoding(struct coda_ctx *ctx)
- 
- static int coda_prepare_decode(struct coda_ctx *ctx)
- {
--	struct vb2_buffer *dst_buf;
-+	struct vb2_v4l2_buffer *dst_buf;
- 	struct coda_dev *dev = ctx->dev;
- 	struct coda_q_data *q_data_dst;
- 	struct coda_buffer_meta *meta;
-@@ -1763,7 +1766,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
- 		 * well as the rotator buffer output.
- 		 * ROT_INDEX needs to be < 0x40, but > ctx->num_internal_frames.
- 		 */
--		coda_write(dev, CODA_MAX_FRAMEBUFFERS + dst_buf->v4l2_buf.index,
-+		coda_write(dev, CODA_MAX_FRAMEBUFFERS + dst_buf->vb2_buf.index,
- 				CODA9_CMD_DEC_PIC_ROT_INDEX);
- 
- 		reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
-@@ -1838,7 +1841,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	struct coda_dev *dev = ctx->dev;
- 	struct coda_q_data *q_data_src;
- 	struct coda_q_data *q_data_dst;
--	struct vb2_buffer *dst_buf;
-+	struct vb2_v4l2_buffer *dst_buf;
- 	struct coda_buffer_meta *meta;
- 	unsigned long payload;
- 	unsigned long flags;
-@@ -2029,15 +2032,15 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 	if (ctx->display_idx >= 0 &&
- 	    ctx->display_idx < ctx->num_internal_frames) {
- 		dst_buf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
--		dst_buf->v4l2_buf.sequence = ctx->osequence++;
-+		dst_buf->sequence = ctx->osequence++;
- 
--		dst_buf->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_KEYFRAME |
-+		dst_buf->flags &= ~(V4L2_BUF_FLAG_KEYFRAME |
- 					     V4L2_BUF_FLAG_PFRAME |
- 					     V4L2_BUF_FLAG_BFRAME);
--		dst_buf->v4l2_buf.flags |= ctx->frame_types[ctx->display_idx];
-+		dst_buf->flags |= ctx->frame_types[ctx->display_idx];
- 		meta = &ctx->frame_metas[ctx->display_idx];
--		dst_buf->v4l2_buf.timecode = meta->timecode;
--		dst_buf->v4l2_buf.timestamp = meta->timestamp;
-+		dst_buf->timecode = meta->timecode;
-+		dst_buf->timestamp = meta->timestamp;
- 
- 		trace_coda_dec_rot_done(ctx, dst_buf, meta);
- 
-@@ -2052,15 +2055,15 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 			payload = width * height * 2;
- 			break;
- 		}
--		vb2_set_plane_payload(dst_buf, 0, payload);
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
- 
- 		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
- 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
- 			"job finished: decoding frame (%d) (%s)\n",
--			dst_buf->v4l2_buf.sequence,
--			(dst_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) ?
-+			dst_buf->sequence,
-+			(dst_buf->flags & V4L2_BUF_FLAG_KEYFRAME) ?
- 			"KEYFRAME" : "PFRAME");
- 	} else {
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 998fe66..60336ee 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -84,9 +84,9 @@ unsigned int coda_read(struct coda_dev *dev, u32 reg)
- }
- 
- void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
--		     struct vb2_buffer *buf, unsigned int reg_y)
-+		     struct vb2_v4l2_buffer *buf, unsigned int reg_y)
- {
--	u32 base_y = vb2_dma_contig_plane_dma_addr(buf, 0);
-+	u32 base_y = vb2_dma_contig_plane_dma_addr(&buf->vb2_buf, 0);
- 	u32 base_cb, base_cr;
- 
- 	switch (q_data->fourcc) {
-@@ -684,17 +684,17 @@ static int coda_qbuf(struct file *file, void *priv,
- }
- 
- static bool coda_buf_is_end_of_stream(struct coda_ctx *ctx,
--				      struct vb2_buffer *buf)
-+				      struct vb2_v4l2_buffer *buf)
- {
- 	struct vb2_queue *src_vq;
- 
- 	src_vq = v4l2_m2m_get_vq(ctx->fh.m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
- 
- 	return ((ctx->bit_stream_param & CODA_BIT_STREAM_END_FLAG) &&
--		(buf->v4l2_buf.sequence == (ctx->qsequence - 1)));
-+		(buf->sequence == (ctx->qsequence - 1)));
- }
- 
--void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		       enum vb2_buffer_state state)
- {
- 	const struct v4l2_event eos_event = {
-@@ -702,7 +702,7 @@ void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
- 	};
- 
- 	if (coda_buf_is_end_of_stream(ctx, buf)) {
--		buf->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
-+		buf->flags |= V4L2_BUF_FLAG_LAST;
- 
- 		v4l2_event_queue_fh(&ctx->fh, &eos_event);
- 	}
-@@ -1175,6 +1175,7 @@ static int coda_buf_prepare(struct vb2_buffer *vb)
- 
- static void coda_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct coda_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct coda_q_data *q_data;
-@@ -1193,12 +1194,12 @@ static void coda_buf_queue(struct vb2_buffer *vb)
- 		if (vb2_get_plane_payload(vb, 0) == 0)
- 			coda_bit_stream_end_flag(ctx);
- 		mutex_lock(&ctx->bitstream_mutex);
--		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- 		if (vb2_is_streaming(vb->vb2_queue))
- 			coda_fill_bitstream(ctx, true);
- 		mutex_unlock(&ctx->bitstream_mutex);
- 	} else {
--		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- 	}
- }
- 
-@@ -1247,7 +1248,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
- 	struct coda_q_data *q_data_src, *q_data_dst;
--	struct vb2_buffer *buf;
-+	struct vb2_v4l2_buffer *buf;
- 	int ret = 0;
- 
- 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-@@ -1338,7 +1339,7 @@ static void coda_stop_streaming(struct vb2_queue *q)
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
- 	struct coda_dev *dev = ctx->dev;
--	struct vb2_buffer *buf;
-+	struct vb2_v4l2_buffer *buf;
- 	unsigned long flags;
- 	bool stop;
- 
-diff --git a/drivers/media/platform/coda/coda-jpeg.c b/drivers/media/platform/coda/coda-jpeg.c
-index 11e734b..96cd42a 100644
---- a/drivers/media/platform/coda/coda-jpeg.c
-+++ b/drivers/media/platform/coda/coda-jpeg.c
-@@ -178,12 +178,12 @@ int coda_jpeg_write_tables(struct coda_ctx *ctx)
- 	return 0;
- }
- 
--bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb)
-+bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_v4l2_buffer *vb)
- {
--	void *vaddr = vb2_plane_vaddr(vb, 0);
-+	void *vaddr = vb2_plane_vaddr(&vb->vb2_buf, 0);
- 	u16 soi = be16_to_cpup((__be16 *)vaddr);
- 	u16 eoi = be16_to_cpup((__be16 *)(vaddr +
--					  vb2_get_plane_payload(vb, 0) - 2));
-+			  vb2_get_plane_payload(&vb->vb2_buf, 0) - 2));
- 
- 	return soi == SOI_MARKER && eoi == EOI_MARKER;
- }
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index feb9671..96532b0 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -243,7 +243,7 @@ extern int coda_debug;
- void coda_write(struct coda_dev *dev, u32 data, u32 reg);
- unsigned int coda_read(struct coda_dev *dev, u32 reg);
- void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
--		     struct vb2_buffer *buf, unsigned int reg_y);
-+		     struct vb2_v4l2_buffer *buf, unsigned int reg_y);
- 
- int coda_alloc_aux_buf(struct coda_dev *dev, struct coda_aux_buf *buf,
- 		       size_t size, const char *name, struct dentry *parent);
-@@ -284,12 +284,12 @@ static inline unsigned int coda_get_bitstream_payload(struct coda_ctx *ctx)
- 
- void coda_bit_stream_end_flag(struct coda_ctx *ctx);
- 
--void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+void coda_m2m_buf_done(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		       enum vb2_buffer_state state);
- 
- int coda_h264_padding(int size, char *p);
- 
--bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_buffer *vb);
-+bool coda_jpeg_check_buffer(struct coda_ctx *ctx, struct vb2_v4l2_buffer *vb);
- int coda_jpeg_write_tables(struct coda_ctx *ctx);
- void coda_set_jpeg_compression_quality(struct coda_ctx *ctx, int quality);
- 
-diff --git a/drivers/media/platform/coda/trace.h b/drivers/media/platform/coda/trace.h
-index 9db6a66..f20666a 100644
---- a/drivers/media/platform/coda/trace.h
-+++ b/drivers/media/platform/coda/trace.h
-@@ -49,7 +49,7 @@ TRACE_EVENT(coda_bit_done,
- );
- 
- DECLARE_EVENT_CLASS(coda_buf_class,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf),
- 
- 	TP_ARGS(ctx, buf),
- 
-@@ -61,7 +61,7 @@ DECLARE_EVENT_CLASS(coda_buf_class,
- 
- 	TP_fast_assign(
- 		__entry->minor = ctx->fh.vdev->minor;
--		__entry->index = buf->v4l2_buf.index;
-+		__entry->index = buf->vb2_buf.index;
- 		__entry->ctx = ctx->idx;
- 	),
- 
-@@ -70,17 +70,17 @@ DECLARE_EVENT_CLASS(coda_buf_class,
- );
- 
- DEFINE_EVENT(coda_buf_class, coda_enc_pic_run,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf),
- 	TP_ARGS(ctx, buf)
- );
- 
- DEFINE_EVENT(coda_buf_class, coda_enc_pic_done,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf),
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf),
- 	TP_ARGS(ctx, buf)
- );
- 
- DECLARE_EVENT_CLASS(coda_buf_meta_class,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		 struct coda_buffer_meta *meta),
- 
- 	TP_ARGS(ctx, buf, meta),
-@@ -95,7 +95,7 @@ DECLARE_EVENT_CLASS(coda_buf_meta_class,
- 
- 	TP_fast_assign(
- 		__entry->minor = ctx->fh.vdev->minor;
--		__entry->index = buf->v4l2_buf.index;
-+		__entry->index = buf->vb2_buf.index;
- 		__entry->start = meta->start;
- 		__entry->end = meta->end;
- 		__entry->ctx = ctx->idx;
-@@ -107,7 +107,7 @@ DECLARE_EVENT_CLASS(coda_buf_meta_class,
- );
- 
- DEFINE_EVENT(coda_buf_meta_class, coda_bit_queue,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		 struct coda_buffer_meta *meta),
- 	TP_ARGS(ctx, buf, meta)
- );
-@@ -146,7 +146,7 @@ DEFINE_EVENT(coda_meta_class, coda_dec_pic_done,
- );
- 
- DEFINE_EVENT(coda_buf_meta_class, coda_dec_rot_done,
--	TP_PROTO(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+	TP_PROTO(struct coda_ctx *ctx, struct vb2_v4l2_buffer *buf,
- 		 struct coda_buffer_meta *meta),
- 	TP_ARGS(ctx, buf, meta)
- );
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index f69cdd7..39f8ccf 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -74,8 +74,8 @@ static void vpbe_isr_even_field(struct vpbe_display *disp_obj,
- 	if (layer->cur_frm == layer->next_frm)
- 		return;
- 
--	v4l2_get_timestamp(&layer->cur_frm->vb.v4l2_buf.timestamp);
--	vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_DONE);
-+	v4l2_get_timestamp(&layer->cur_frm->vb.timestamp);
-+	vb2_buffer_done(&layer->cur_frm->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	/* Make cur_frm pointing to next_frm */
- 	layer->cur_frm = layer->next_frm;
- }
-@@ -104,8 +104,8 @@ static void vpbe_isr_odd_field(struct vpbe_display *disp_obj,
- 	list_del(&layer->next_frm->list);
- 	spin_unlock(&disp_obj->dma_queue_lock);
- 	/* Mark state of the frame to active */
--	layer->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
--	addr = vb2_dma_contig_plane_dma_addr(&layer->next_frm->vb, 0);
-+	layer->next_frm->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
-+	addr = vb2_dma_contig_plane_dma_addr(&layer->next_frm->vb.vb2_buf, 0);
- 	osd_device->ops.start_layer(osd_device,
- 			layer->layer_info.id,
- 			addr,
-@@ -259,8 +259,9 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-  */
- static void vpbe_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	/* Get the file handle object and layer object */
--	struct vpbe_disp_buffer *buf = container_of(vb,
-+	struct vpbe_disp_buffer *buf = container_of(vbuf,
- 				struct vpbe_disp_buffer, vb);
- 	struct vpbe_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vpbe_display *disp = layer->disp_dev;
-@@ -290,7 +291,7 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Remove buffer from the buffer queue */
- 	list_del(&layer->cur_frm->list);
- 	/* Mark state of the current frame to active */
--	layer->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
-+	layer->cur_frm->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
- 	/* Initialize field_id and started member */
- 	layer->field_id = 0;
- 
-@@ -299,10 +300,12 @@ static int vpbe_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	if (ret < 0) {
- 		struct vpbe_disp_buffer *buf, *tmp;
- 
--		vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_QUEUED);
- 		list_for_each_entry_safe(buf, tmp, &layer->dma_queue, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 
- 		return ret;
-@@ -332,13 +335,14 @@ static void vpbe_stop_streaming(struct vb2_queue *vq)
- 	/* release all active buffers */
- 	spin_lock_irqsave(&disp->dma_queue_lock, flags);
- 	if (layer->cur_frm == layer->next_frm) {
--		vb2_buffer_done(&layer->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	} else {
- 		if (layer->cur_frm != NULL)
--			vb2_buffer_done(&layer->cur_frm->vb,
-+			vb2_buffer_done(&layer->cur_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 		if (layer->next_frm != NULL)
--			vb2_buffer_done(&layer->next_frm->vb,
-+			vb2_buffer_done(&layer->next_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 	}
- 
-@@ -346,7 +350,8 @@ static void vpbe_stop_streaming(struct vb2_queue *vq)
- 		layer->next_frm = list_entry(layer->dma_queue.next,
- 						struct vpbe_disp_buffer, list);
- 		list_del(&layer->next_frm->list);
--		vb2_buffer_done(&layer->next_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&layer->next_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irqrestore(&disp->dma_queue_lock, flags);
- }
-@@ -383,7 +388,7 @@ static int vpbe_set_osd_display_params(struct vpbe_display *disp_dev,
- 	unsigned long addr;
- 	int ret;
- 
--	addr = vb2_dma_contig_plane_dma_addr(&layer->cur_frm->vb, 0);
-+	addr = vb2_dma_contig_plane_dma_addr(&layer->cur_frm->vb.vb2_buf, 0);
- 	/* Set address in the display registers */
- 	osd_device->ops.start_layer(osd_device,
- 				    layer->layer_info.id,
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index a5f5481..b29bb64 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -57,7 +57,8 @@ static u8 channel_first_int[VPIF_NUMBER_OF_OBJECTS][2] = { {1, 1} };
- /* Is set to 1 in case of SDTV formats, 2 in case of HDTV formats. */
- static int ycmux_mode;
- 
--static inline struct vpif_cap_buffer *to_vpif_buffer(struct vb2_buffer *vb)
-+static inline
-+struct vpif_cap_buffer *to_vpif_buffer(struct vb2_v4l2_buffer *vb)
- {
- 	return container_of(vb, struct vpif_cap_buffer, vb);
- }
-@@ -72,6 +73,7 @@ static inline struct vpif_cap_buffer *to_vpif_buffer(struct vb2_buffer *vb)
-  */
- static int vpif_buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vb2_queue *q = vb->vb2_queue;
- 	struct channel_obj *ch = vb2_get_drv_priv(q);
- 	struct common_obj *common;
-@@ -85,7 +87,7 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
- 		return -EINVAL;
- 
--	vb->v4l2_buf.field = common->fmt.fmt.pix.field;
-+	vbuf->field = common->fmt.fmt.pix.field;
- 
- 	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	if (!IS_ALIGNED((addr + common->ytop_off), 8) ||
-@@ -145,8 +147,9 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
-  */
- static void vpif_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct channel_obj *ch = vb2_get_drv_priv(vb->vb2_queue);
--	struct vpif_cap_buffer *buf = to_vpif_buffer(vb);
-+	struct vpif_cap_buffer *buf = to_vpif_buffer(vbuf);
- 	struct common_obj *common;
- 	unsigned long flags;
- 
-@@ -214,7 +217,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	list_del(&common->cur_frm->list);
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- 
--	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb, 0);
-+	addr = vb2_dma_contig_plane_dma_addr(&common->cur_frm->vb.vb2_buf, 0);
- 
- 	common->set_addr(addr + common->ytop_off,
- 			 addr + common->ybtm_off,
-@@ -243,7 +246,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- err:
- 	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
- 	}
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- 
-@@ -286,13 +289,14 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 	/* release all active buffers */
- 	spin_lock_irqsave(&common->irqlock, flags);
- 	if (common->cur_frm == common->next_frm) {
--		vb2_buffer_done(&common->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	} else {
- 		if (common->cur_frm != NULL)
--			vb2_buffer_done(&common->cur_frm->vb,
-+			vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 		if (common->next_frm != NULL)
--			vb2_buffer_done(&common->next_frm->vb,
-+			vb2_buffer_done(&common->next_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 	}
- 
-@@ -300,7 +304,8 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		common->next_frm = list_entry(common->dma_queue.next,
- 						struct vpif_cap_buffer, list);
- 		list_del(&common->next_frm->list);
--		vb2_buffer_done(&common->next_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&common->next_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
-@@ -325,9 +330,8 @@ static struct vb2_ops video_qops = {
-  */
- static void vpif_process_buffer_complete(struct common_obj *common)
- {
--	v4l2_get_timestamp(&common->cur_frm->vb.v4l2_buf.timestamp);
--	vb2_buffer_done(&common->cur_frm->vb,
--					    VB2_BUF_STATE_DONE);
-+	v4l2_get_timestamp(&common->cur_frm->vb.timestamp);
-+	vb2_buffer_done(&common->cur_frm->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	/* Make curFrm pointing to nextFrm */
- 	common->cur_frm = common->next_frm;
- }
-@@ -350,7 +354,7 @@ static void vpif_schedule_next_buffer(struct common_obj *common)
- 	/* Remove that buffer from the buffer queue */
- 	list_del(&common->next_frm->list);
- 	spin_unlock(&common->irqlock);
--	addr = vb2_dma_contig_plane_dma_addr(&common->next_frm->vb, 0);
-+	addr = vb2_dma_contig_plane_dma_addr(&common->next_frm->vb.vb2_buf, 0);
- 
- 	/* Set top and bottom field addresses in VPIF registers */
- 	common->set_addr(addr + common->ytop_off,
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 8b8a663..4a76009 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -52,7 +52,7 @@ struct video_obj {
- };
- 
- struct vpif_cap_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
- 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 682e5d5..85a3641 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -77,7 +77,7 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
- 		return -EINVAL;
- 
--	vb->v4l2_buf.field = common->fmt.fmt.pix.field;
-+	vb->field = common->fmt.fmt.pix.field;
- 
- 	if (vb->vb2_queue->type != V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
- 		unsigned long addr = vb2_dma_contig_plane_dma_addr(vb, 0);
-@@ -229,7 +229,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- err:
- 	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
- 	}
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- 
-@@ -264,13 +264,14 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 	/* release all active buffers */
- 	spin_lock_irqsave(&common->irqlock, flags);
- 	if (common->cur_frm == common->next_frm) {
--		vb2_buffer_done(&common->cur_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	} else {
- 		if (common->cur_frm != NULL)
--			vb2_buffer_done(&common->cur_frm->vb,
-+			vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 		if (common->next_frm != NULL)
--			vb2_buffer_done(&common->next_frm->vb,
-+			vb2_buffer_done(&common->next_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 	}
- 
-@@ -278,7 +279,8 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		common->next_frm = list_entry(common->dma_queue.next,
- 						struct vpif_disp_buffer, list);
- 		list_del(&common->next_frm->list);
--		vb2_buffer_done(&common->next_frm->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&common->next_frm->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irqrestore(&common->irqlock, flags);
- }
-@@ -324,10 +326,10 @@ static void process_interlaced_mode(int fid, struct common_obj *common)
- 		/* one frame is displayed If next frame is
- 		 *  available, release cur_frm and move on */
- 		/* Copy frame display time */
--		v4l2_get_timestamp(&common->cur_frm->vb.v4l2_buf.timestamp);
-+		v4l2_get_timestamp(&common->cur_frm->vb.timestamp);
- 		/* Change status of the cur_frm */
--		vb2_buffer_done(&common->cur_frm->vb,
--					    VB2_BUF_STATE_DONE);
-+		vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
-+					VB2_BUF_STATE_DONE);
- 		/* Make cur_frm pointing to next_frm */
- 		common->cur_frm = common->next_frm;
- 
-@@ -380,10 +382,10 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
- 			if (!channel_first_int[i][channel_id]) {
- 				/* Mark status of the cur_frm to
- 				 * done and unlock semaphore on it */
--				v4l2_get_timestamp(&common->cur_frm->vb.
--						   v4l2_buf.timestamp);
--				vb2_buffer_done(&common->cur_frm->vb,
--					    VB2_BUF_STATE_DONE);
-+				v4l2_get_timestamp(
-+					&common->cur_frm->vb.timestamp);
-+				vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
-+						VB2_BUF_STATE_DONE);
- 				/* Make cur_frm pointing to next_frm */
- 				common->cur_frm = common->next_frm;
- 			}
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index 849e0e3..e7a1723 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -62,7 +62,7 @@ struct video_obj {
- };
- 
- struct vpif_disp_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
- 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index 769ff50..e93a233 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -136,7 +136,7 @@ struct gsc_fmt {
-  * @idx : index of G-Scaler input buffer
-  */
- struct gsc_input_buf {
--	struct vb2_buffer	vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head	list;
- 	int			idx;
- };
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index d5cffef..59d134d 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -77,7 +77,7 @@ static void gsc_m2m_stop_streaming(struct vb2_queue *q)
- 
- void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- {
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 
- 	if (!ctx || !ctx->m2m_ctx)
- 		return;
-@@ -86,11 +86,11 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
- 
- 	if (src_vb && dst_vb) {
--		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
--		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
--		dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--		dst_vb->v4l2_buf.flags |=
--			src_vb->v4l2_buf.flags
-+		dst_vb->timestamp = src_vb->timestamp;
-+		dst_vb->timecode = src_vb->timecode;
-+		dst_vb->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		dst_vb->flags |=
-+			src_vb->flags
- 			& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 		v4l2_m2m_buf_done(src_vb, vb_state);
-@@ -109,23 +109,23 @@ static void gsc_m2m_job_abort(void *priv)
- static int gsc_get_bufs(struct gsc_ctx *ctx)
- {
- 	struct gsc_frame *s_frame, *d_frame;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	int ret;
- 
- 	s_frame = &ctx->s_frame;
- 	d_frame = &ctx->d_frame;
- 
- 	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
--	ret = gsc_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
-+	ret = gsc_prepare_addr(ctx, &src_vb->vb2_buf, s_frame, &s_frame->addr);
- 	if (ret)
- 		return ret;
- 
- 	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
--	ret = gsc_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
-+	ret = gsc_prepare_addr(ctx, &dst_vb->vb2_buf, d_frame, &d_frame->addr);
- 	if (ret)
- 		return ret;
- 
--	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->timestamp = src_vb->timestamp;
- 
- 	return 0;
- }
-@@ -255,12 +255,13 @@ static int gsc_m2m_buf_prepare(struct vb2_buffer *vb)
- 
- static void gsc_m2m_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct gsc_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	pr_debug("ctx: %p, ctx->state: 0x%x", ctx, ctx->state);
- 
- 	if (ctx->m2m_ctx)
--		v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
-+		v4l2_m2m_buf_queue(ctx->m2m_ctx, vbuf);
- }
- 
- static struct vb2_ops gsc_m2m_qops = {
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index d0ceae3..84b9817 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -103,7 +103,7 @@ static int fimc_capture_state_cleanup(struct fimc_dev *fimc, bool suspend)
- 	/* Release unused buffers */
- 	while (!suspend && !list_empty(&cap->pending_buf_q)) {
- 		buf = fimc_pending_queue_pop(cap);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 	/* If suspending put unused buffers onto pending queue */
- 	while (!list_empty(&cap->active_buf_q)) {
-@@ -111,7 +111,7 @@ static int fimc_capture_state_cleanup(struct fimc_dev *fimc, bool suspend)
- 		if (suspend)
- 			fimc_pending_queue_add(cap, buf);
- 		else
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	fimc_hw_reset(fimc);
-@@ -197,12 +197,12 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, int deq_buf)
- 
- 		v_buf = fimc_active_queue_pop(cap);
- 
--		tv = &v_buf->vb.v4l2_buf.timestamp;
-+		tv = &v_buf->vb.timestamp;
- 		tv->tv_sec = ts.tv_sec;
- 		tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
--		v_buf->vb.v4l2_buf.sequence = cap->frame_count++;
-+		v_buf->vb.sequence = cap->frame_count++;
- 
--		vb2_buffer_done(&v_buf->vb, VB2_BUF_STATE_DONE);
-+		vb2_buffer_done(&v_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 
- 	if (!list_empty(&cap->pending_buf_q)) {
-@@ -233,7 +233,7 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc, int deq_buf)
- 		list_for_each_entry(v_buf, &cap->active_buf_q, list) {
- 			if (v_buf->index != index)
- 				continue;
--			vaddr = vb2_plane_vaddr(&v_buf->vb, plane);
-+			vaddr = vb2_plane_vaddr(&v_buf->vb.vb2_buf, plane);
- 			v4l2_subdev_call(csis, video, s_rx_buffer,
- 					 vaddr, &size);
- 			break;
-@@ -338,7 +338,7 @@ int fimc_capture_resume(struct fimc_dev *fimc)
- 		if (list_empty(&vid_cap->pending_buf_q))
- 			break;
- 		buf = fimc_pending_queue_pop(vid_cap);
--		buffer_queue(&buf->vb);
-+		buffer_queue(&buf->vb.vb2_buf);
- 	}
- 	return 0;
- 
-@@ -410,8 +410,9 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 
- static void buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct fimc_vid_buffer *buf
--		= container_of(vb, struct fimc_vid_buffer, vb);
-+		= container_of(vbuf, struct fimc_vid_buffer, vb);
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
-@@ -420,7 +421,7 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	int min_bufs;
- 
- 	spin_lock_irqsave(&fimc->slock, flags);
--	fimc_prepare_addr(ctx, &buf->vb, &ctx->d_frame, &buf->paddr);
-+	fimc_prepare_addr(ctx, &buf->vb.vb2_buf, &ctx->d_frame, &buf->paddr);
- 
- 	if (!test_bit(ST_CAPT_SUSPENDED, &fimc->state) &&
- 	    !test_bit(ST_CAPT_STREAM, &fimc->state) &&
-@@ -1472,7 +1473,8 @@ void fimc_sensor_notify(struct v4l2_subdev *sd, unsigned int notification,
- 		if (!list_empty(&fimc->vid_cap.active_buf_q)) {
- 			buf = list_entry(fimc->vid_cap.active_buf_q.next,
- 					 struct fimc_vid_buffer, list);
--			vb2_set_plane_payload(&buf->vb, 0, *((u32 *)arg));
-+			vb2_set_plane_payload(&buf->vb.vb2_buf, 0,
-+					      *((u32 *)arg));
- 		}
- 		fimc_capture_irq_handler(fimc, 1);
- 		fimc_deactivate_capture(fimc);
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
-index ccb5d91..d336fa2 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.h
-+++ b/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -224,7 +224,7 @@ struct fimc_addr {
-  * @index: buffer index for the output DMA engine
-  */
- struct fimc_vid_buffer {
--	struct vb2_buffer	vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head	list;
- 	struct fimc_addr	paddr;
- 	int			index;
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index 195f9b5..bacc3a3 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -194,10 +194,11 @@ static int isp_video_capture_buffer_prepare(struct vb2_buffer *vb)
- 
- static void isp_video_capture_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct fimc_isp *isp = vb2_get_drv_priv(vb->vb2_queue);
- 	struct fimc_is_video *video = &isp->video_capture;
- 	struct fimc_is *is = fimc_isp_to_is(isp);
--	struct isp_video_buf *ivb = to_isp_video_buf(vb);
-+	struct isp_video_buf *ivb = to_isp_video_buf(vbuf);
- 	unsigned long flags;
- 	unsigned int i;
- 
-@@ -220,7 +221,7 @@ static void isp_video_capture_buffer_queue(struct vb2_buffer *vb)
- 
- 			isp_dbg(2, &video->ve.vdev,
- 				"dma_buf %pad (%d/%d/%d) addr: %pad\n",
--				&buf_index, ivb->index, i, vb->v4l2_buf.index,
-+				&buf_index, ivb->index, i, vb->index,
- 				&ivb->dma_addr[i]);
- 		}
- 
-@@ -242,7 +243,7 @@ static void isp_video_capture_buffer_queue(struct vb2_buffer *vb)
- void fimc_isp_video_irq_handler(struct fimc_is *is)
- {
- 	struct fimc_is_video *video = &is->isp.video_capture;
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	int buf_index;
- 
- 	/* TODO: Ensure the DMA is really stopped in stop_streaming callback */
-@@ -250,10 +251,10 @@ void fimc_isp_video_irq_handler(struct fimc_is *is)
- 		return;
- 
- 	buf_index = (is->i2h_cmd.args[1] - 1) % video->buf_count;
--	vb = &video->buffers[buf_index]->vb;
-+	vbuf = &video->buffers[buf_index]->vb;
- 
--	v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
--	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+	v4l2_get_timestamp(&vbuf->timestamp);
-+	vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
- 
- 	video->buf_mask &= ~BIT(buf_index);
- 	fimc_is_hw_set_isp_buf_mask(is, video->buf_mask);
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
-index ad9908b..c2d25df 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.h
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.h
-@@ -102,7 +102,7 @@ struct fimc_isp_ctrls {
- };
- 
- struct isp_video_buf {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	dma_addr_t dma_addr[FIMC_ISP_MAX_PLANES];
- 	unsigned int index;
- };
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 7e37c9a..04c245b 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -200,7 +200,7 @@ static int fimc_lite_reinit(struct fimc_lite *fimc, bool suspend)
- 	/* Release unused buffers */
- 	while (!suspend && !list_empty(&fimc->pending_buf_q)) {
- 		buf = fimc_lite_pending_queue_pop(fimc);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 	/* If suspending put unused buffers onto pending queue */
- 	while (!list_empty(&fimc->active_buf_q)) {
-@@ -208,7 +208,7 @@ static int fimc_lite_reinit(struct fimc_lite *fimc, bool suspend)
- 		if (suspend)
- 			fimc_lite_pending_queue_add(fimc, buf);
- 		else
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	spin_unlock_irqrestore(&fimc->slock, flags);
-@@ -295,12 +295,12 @@ static irqreturn_t flite_irq_handler(int irq, void *priv)
- 	    !list_empty(&fimc->active_buf_q)) {
- 		vbuf = fimc_lite_active_queue_pop(fimc);
- 		ktime_get_ts(&ts);
--		tv = &vbuf->vb.v4l2_buf.timestamp;
-+		tv = &vbuf->vb.timestamp;
- 		tv->tv_sec = ts.tv_sec;
- 		tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
--		vbuf->vb.v4l2_buf.sequence = fimc->frame_count++;
-+		vbuf->vb.sequence = fimc->frame_count++;
- 		flite_hw_mask_dma_buffer(fimc, vbuf->index);
--		vb2_buffer_done(&vbuf->vb, VB2_BUF_STATE_DONE);
-+		vb2_buffer_done(&vbuf->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 
- 	if (test_bit(ST_FLITE_CONFIG, &fimc->state))
-@@ -422,8 +422,9 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 
- static void buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct flite_buffer *buf
--		= container_of(vb, struct flite_buffer, vb);
-+		= container_of(vbuf, struct flite_buffer, vb);
- 	struct fimc_lite *fimc = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long flags;
- 
-@@ -1637,7 +1638,7 @@ static int fimc_lite_resume(struct device *dev)
- 		if (list_empty(&fimc->pending_buf_q))
- 			break;
- 		buf = fimc_lite_pending_queue_pop(fimc);
--		buffer_queue(&buf->vb);
-+		buffer_queue(&buf->vb.vb2_buf);
- 	}
- 	return 0;
- }
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
-index 7e4c708..b302305 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.h
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.h
-@@ -100,7 +100,7 @@ struct flite_frame {
-  * @index: DMA start address register's index
-  */
- struct flite_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- 	dma_addr_t paddr;
- 	unsigned short index;
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-index 07bfddb..79b8a3b 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -42,7 +42,7 @@ static unsigned int get_m2m_fmt_flags(unsigned int stream_type)
- 
- void fimc_m2m_job_finish(struct fimc_ctx *ctx, int vb_state)
- {
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 
- 	if (!ctx || !ctx->fh.m2m_ctx)
- 		return;
-@@ -99,7 +99,7 @@ static void stop_streaming(struct vb2_queue *q)
- 
- static void fimc_device_run(void *priv)
- {
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_frame *sf, *df;
- 	struct fimc_dev *fimc;
-@@ -123,19 +123,19 @@ static void fimc_device_run(void *priv)
- 	}
- 
- 	src_vb = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
--	ret = fimc_prepare_addr(ctx, src_vb, sf, &sf->paddr);
-+	ret = fimc_prepare_addr(ctx, &src_vb->vb2_buf, sf, &sf->paddr);
- 	if (ret)
- 		goto dma_unlock;
- 
- 	dst_vb = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
--	ret = fimc_prepare_addr(ctx, dst_vb, df, &df->paddr);
-+	ret = fimc_prepare_addr(ctx, &dst_vb->vb2_buf, df, &df->paddr);
- 	if (ret)
- 		goto dma_unlock;
- 
--	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
--	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_vb->v4l2_buf.flags |=
--		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->timestamp = src_vb->timestamp;
-+	dst_vb->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->flags |=
-+		src_vb->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	/* Reconfigure hardware if the context has changed. */
- 	if (fimc->m2m.ctx != ctx) {
-@@ -220,8 +220,9 @@ static int fimc_buf_prepare(struct vb2_buffer *vb)
- 
- static void fimc_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
--	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static struct vb2_ops fimc_qops = {
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index c07f367..bdd8f11 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -200,18 +200,18 @@ static void dma_callback(void *data)
- {
- 	struct deinterlace_ctx *curr_ctx = data;
- 	struct deinterlace_dev *pcdev = curr_ctx->dev;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 
- 	atomic_set(&pcdev->busy, 0);
- 
- 	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
- 	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
--	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
--	dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_vb->v4l2_buf.flags |=
--		src_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-+	dst_vb->timestamp = src_vb->timestamp;
-+	dst_vb->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->flags |=
-+		src_vb->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_vb->timecode = src_vb->timecode;
- 
- 	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-@@ -225,7 +225,7 @@ static void deinterlace_issue_dma(struct deinterlace_ctx *ctx, int op,
- 				  int do_callback)
- {
- 	struct deinterlace_q_data *s_q_data;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	struct deinterlace_dev *pcdev = ctx->dev;
- 	struct dma_chan *chan = pcdev->dma_chan;
- 	struct dma_device *dmadev = chan->device;
-@@ -243,8 +243,9 @@ static void deinterlace_issue_dma(struct deinterlace_ctx *ctx, int op,
- 	s_height = s_q_data->height;
- 	s_size = s_width * s_height;
- 
--	p_in = (dma_addr_t)vb2_dma_contig_plane_dma_addr(src_buf, 0);
--	p_out = (dma_addr_t)vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-+	p_in = (dma_addr_t)vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
-+	p_out = (dma_addr_t)vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf,
-+							  0);
- 	if (!p_in || !p_out) {
- 		v4l2_err(&pcdev->v4l2_dev,
- 			 "Acquiring kernel pointers to buffers failed\n");
-@@ -849,8 +850,10 @@ static int deinterlace_buf_prepare(struct vb2_buffer *vb)
- 
- static void deinterlace_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct deinterlace_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
--	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
-+
-+	v4l2_m2m_buf_queue(ctx->m2m_ctx, vbuf);
- }
- 
- static struct vb2_ops deinterlace_qops = {
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 5e2b4df..1d95842 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -201,18 +201,18 @@ struct mcam_dma_desc {
- 
- /*
-  * Our buffer type for working with videobuf2.  Note that the vb2
-- * developers have decreed that struct vb2_buffer must be at the
-+ * developers have decreed that struct vb2_v4l2_buffer must be at the
-  * beginning of this structure.
-  */
- struct mcam_vb_buffer {
--	struct vb2_buffer vb_buf;
-+	struct vb2_v4l2_buffer vb_buf;
- 	struct list_head queue;
- 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
- 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
- 	int dma_desc_nent;		/* Number of mapped descriptors */
- };
- 
--static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
-+static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_v4l2_buffer *vb)
- {
- 	return container_of(vb, struct mcam_vb_buffer, vb_buf);
- }
-@@ -221,14 +221,14 @@ static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
-  * Hand a completed buffer back to user space.
-  */
- static void mcam_buffer_done(struct mcam_camera *cam, int frame,
--		struct vb2_buffer *vbuf)
-+		struct vb2_v4l2_buffer *vbuf)
- {
--	vbuf->v4l2_buf.bytesused = cam->pix_format.sizeimage;
--	vbuf->v4l2_buf.sequence = cam->buf_seq[frame];
--	vbuf->v4l2_buf.field = V4L2_FIELD_NONE;
--	v4l2_get_timestamp(&vbuf->v4l2_buf.timestamp);
--	vb2_set_plane_payload(vbuf, 0, cam->pix_format.sizeimage);
--	vb2_buffer_done(vbuf, VB2_BUF_STATE_DONE);
-+	vbuf->vb2_buf.planes[0].bytesused = cam->pix_format.sizeimage;
-+	vbuf->sequence = cam->buf_seq[frame];
-+	vbuf->field = V4L2_FIELD_NONE;
-+	v4l2_get_timestamp(&vbuf->timestamp);
-+	vb2_set_plane_payload(&vbuf->vb2_buf, 0, cam->pix_format.sizeimage);
-+	vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
- }
- 
- 
-@@ -482,7 +482,8 @@ static void mcam_frame_tasklet(unsigned long data)
- 		 * Drop the lock during the big copy.  This *should* be safe...
- 		 */
- 		spin_unlock_irqrestore(&cam->dev_lock, flags);
--		memcpy(vb2_plane_vaddr(&buf->vb_buf, 0), cam->dma_bufs[bufno],
-+		memcpy(vb2_plane_vaddr(&buf->vb_buf.vb2_buf, 0),
-+				cam->dma_bufs[bufno],
- 				cam->pix_format.sizeimage);
- 		mcam_buffer_done(cam, bufno, &buf->vb_buf);
- 		spin_lock_irqsave(&cam->dev_lock, flags);
-@@ -548,7 +549,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- {
- 	struct mcam_vb_buffer *buf;
- 	dma_addr_t dma_handle;
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vb;
- 
- 	/*
- 	 * If there are no available buffers, go into single mode
-@@ -570,7 +571,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- 	cam->vb_bufs[frame] = buf;
- 	vb = &buf->vb_buf;
- 
--	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	dma_handle = vb2_dma_contig_plane_dma_addr(&vb->vb2_buf, 0);
- 	mcam_write_yuv_bases(cam, frame, dma_handle);
- }
- 
-@@ -1071,7 +1072,8 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 
- static void mcam_vb_buf_queue(struct vb2_buffer *vb)
- {
--	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct mcam_vb_buffer *mvb = vb_to_mvb(vbuf);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long flags;
- 	int start;
-@@ -1096,14 +1098,14 @@ static void mcam_vb_requeue_bufs(struct vb2_queue *vq,
- 
- 	spin_lock_irqsave(&cam->dev_lock, flags);
- 	list_for_each_entry_safe(buf, node, &cam->buffers, queue) {
--		vb2_buffer_done(&buf->vb_buf, state);
-+		vb2_buffer_done(&buf->vb_buf.vb2_buf, state);
- 		list_del(&buf->queue);
- 	}
- 	for (i = 0; i < MAX_DMA_BUFS; i++) {
- 		buf = cam->vb_bufs[i];
- 
- 		if (buf) {
--			vb2_buffer_done(&buf->vb_buf, state);
-+			vb2_buffer_done(&buf->vb_buf.vb2_buf, state);
- 			cam->vb_bufs[i] = NULL;
- 		}
- 	}
-@@ -1198,7 +1200,8 @@ static const struct vb2_ops mcam_vb2_ops = {
-  */
- static int mcam_vb_sg_buf_init(struct vb2_buffer *vb)
- {
--	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct mcam_vb_buffer *mvb = vb_to_mvb(vbuf);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
- 	int ndesc = cam->pix_format.sizeimage/PAGE_SIZE + 1;
- 
-@@ -1214,7 +1217,8 @@ static int mcam_vb_sg_buf_init(struct vb2_buffer *vb)
- 
- static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- {
--	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct mcam_vb_buffer *mvb = vb_to_mvb(vbuf);
- 	struct sg_table *sg_table = vb2_dma_sg_plane_desc(vb, 0);
- 	struct mcam_dma_desc *desc = mvb->dma_desc;
- 	struct scatterlist *sg;
-@@ -1230,8 +1234,9 @@ static int mcam_vb_sg_buf_prepare(struct vb2_buffer *vb)
- 
- static void mcam_vb_sg_buf_cleanup(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
--	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
-+	struct mcam_vb_buffer *mvb = vb_to_mvb(vbuf);
- 	int ndesc = cam->pix_format.sizeimage/PAGE_SIZE + 1;
- 
- 	dma_free_coherent(cam->dev, ndesc * sizeof(struct mcam_dma_desc),
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 87314b7..b7cea27 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -351,7 +351,7 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- {
- 	struct emmaprp_dev *pcdev = data;
- 	struct emmaprp_ctx *curr_ctx;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
- 	u32 irqst;
- 
-@@ -375,13 +375,13 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- 			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
- 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
--			dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
--			dst_vb->v4l2_buf.flags &=
-+			dst_vb->timestamp = src_vb->timestamp;
-+			dst_vb->flags &=
- 				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--			dst_vb->v4l2_buf.flags |=
--				src_vb->v4l2_buf.flags
-+			dst_vb->flags |=
-+				src_vb->flags
- 				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--			dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
-+			dst_vb->timecode = src_vb->timecode;
- 
- 			spin_lock_irqsave(&pcdev->irqlock, flags);
- 			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-@@ -742,8 +742,9 @@ static int emmaprp_buf_prepare(struct vb2_buffer *vb)
- 
- static void emmaprp_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
--	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->m2m_ctx, vbuf);
- }
- 
- static struct vb2_ops emmaprp_qops = {
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 41bb8df..786cc85 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -342,8 +342,9 @@ static int isp_video_queue_setup(struct vb2_queue *queue,
- 
- static int isp_video_buffer_prepare(struct vb2_buffer *buf)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(buf);
- 	struct isp_video_fh *vfh = vb2_get_drv_priv(buf->vb2_queue);
--	struct isp_buffer *buffer = to_isp_buffer(buf);
-+	struct isp_buffer *buffer = to_isp_buffer(vbuf);
- 	struct isp_video *video = vfh->video;
- 	dma_addr_t addr;
- 
-@@ -363,7 +364,8 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
- 		return -EINVAL;
- 	}
- 
--	vb2_set_plane_payload(&buffer->vb, 0, vfh->format.fmt.pix.sizeimage);
-+	vb2_set_plane_payload(&buffer->vb.vb2_buf, 0,
-+			      vfh->format.fmt.pix.sizeimage);
- 	buffer->dma = addr;
- 
- 	return 0;
-@@ -380,8 +382,9 @@ static int isp_video_buffer_prepare(struct vb2_buffer *buf)
-  */
- static void isp_video_buffer_queue(struct vb2_buffer *buf)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(buf);
- 	struct isp_video_fh *vfh = vb2_get_drv_priv(buf->vb2_queue);
--	struct isp_buffer *buffer = to_isp_buffer(buf);
-+	struct isp_buffer *buffer = to_isp_buffer(vbuf);
- 	struct isp_video *video = vfh->video;
- 	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
- 	enum isp_pipeline_state state;
-@@ -392,7 +395,7 @@ static void isp_video_buffer_queue(struct vb2_buffer *buf)
- 	spin_lock_irqsave(&video->irqlock, flags);
- 
- 	if (unlikely(video->error)) {
--		vb2_buffer_done(&buffer->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buffer->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&video->irqlock, flags);
- 		return;
- 	}
-@@ -464,7 +467,7 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 	list_del(&buf->irqlist);
- 	spin_unlock_irqrestore(&video->irqlock, flags);
- 
--	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
-+	v4l2_get_timestamp(&buf->vb.timestamp);
- 
- 	/* Do frame number propagation only if this is the output video node.
- 	 * Frame number either comes from the CSI receivers or it gets
-@@ -473,15 +476,15 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 	 * first, so the input number might lag behind by 1 in some cases.
- 	 */
- 	if (video == pipe->output && !pipe->do_propagation)
--		buf->vb.v4l2_buf.sequence =
-+		buf->vb.sequence =
- 			atomic_inc_return(&pipe->frame_number);
- 	else
--		buf->vb.v4l2_buf.sequence = atomic_read(&pipe->frame_number);
-+		buf->vb.sequence = atomic_read(&pipe->frame_number);
- 
- 	if (pipe->field != V4L2_FIELD_NONE)
--		buf->vb.v4l2_buf.sequence /= 2;
-+		buf->vb.sequence /= 2;
- 
--	buf->vb.v4l2_buf.field = pipe->field;
-+	buf->vb.field = pipe->field;
- 
- 	/* Report pipeline errors to userspace on the capture device side. */
- 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && pipe->error) {
-@@ -491,7 +494,7 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video)
- 		state = VB2_BUF_STATE_DONE;
- 	}
- 
--	vb2_buffer_done(&buf->vb, state);
-+	vb2_buffer_done(&buf->vb.vb2_buf, state);
- 
- 	spin_lock_irqsave(&video->irqlock, flags);
- 
-@@ -546,7 +549,7 @@ void omap3isp_video_cancel_stream(struct isp_video *video)
- 		buf = list_first_entry(&video->dmaqueue,
- 				       struct isp_buffer, irqlist);
- 		list_del(&buf->irqlist);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	video->error = true;
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 31c2445..bcf0e0a 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -122,7 +122,7 @@ static inline int isp_pipeline_ready(struct isp_pipeline *pipe)
-  * @dma: DMA address
-  */
- struct isp_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head irqlist;
- 	dma_addr_t dma;
- };
-diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-index 18e62d0..7533b9e 100644
---- a/drivers/media/platform/rcar_jpu.c
-+++ b/drivers/media/platform/rcar_jpu.c
-@@ -471,7 +471,7 @@ static const char *error_to_text[16] = {
- 	"Unknown"
- };
- 
--static struct jpu_buffer *vb2_to_jpu_buffer(struct vb2_buffer *vb)
-+static struct jpu_buffer *vb2_to_jpu_buffer(struct vb2_v4l2_buffer *vb)
- {
- 	struct v4l2_m2m_buffer *b =
- 		container_of(vb, struct v4l2_m2m_buffer, vb);
-@@ -1044,6 +1044,7 @@ static int jpu_queue_setup(struct vb2_queue *vq,
- 
- static int jpu_buf_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct jpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct jpu_q_data *q_data;
- 	unsigned int i;
-@@ -1051,9 +1052,9 @@ static int jpu_buf_prepare(struct vb2_buffer *vb)
- 	q_data = jpu_get_q_data(ctx, vb->vb2_queue->type);
- 
- 	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
--		if (vb->v4l2_buf.field == V4L2_FIELD_ANY)
--			vb->v4l2_buf.field = V4L2_FIELD_NONE;
--		if (vb->v4l2_buf.field != V4L2_FIELD_NONE) {
-+		if (vbuf->field == V4L2_FIELD_ANY)
-+			vbuf->field = V4L2_FIELD_NONE;
-+		if (vbuf->field != V4L2_FIELD_NONE) {
- 			dev_err(ctx->jpu->dev, "%s field isn't supported\n",
- 					__func__);
- 			return -EINVAL;
-@@ -1080,10 +1081,11 @@ static int jpu_buf_prepare(struct vb2_buffer *vb)
- 
- static void jpu_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct jpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	if (!ctx->encoder && V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
--		struct jpu_buffer *jpu_buf = vb2_to_jpu_buffer(vb);
-+		struct jpu_buffer *jpu_buf = vb2_to_jpu_buffer(vbuf);
- 		struct jpu_q_data *q_data, adjust;
- 		void *buffer = vb2_plane_vaddr(vb, 0);
- 		unsigned long buf_size = vb2_get_plane_payload(vb, 0);
-@@ -1117,7 +1119,7 @@ static void jpu_buf_queue(struct vb2_buffer *vb)
- 	}
- 
- 	if (ctx->fh.m2m_ctx)
--		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- 
- 	return;
- 
-@@ -1128,14 +1130,15 @@ format_error:
- 
- static void jpu_buf_finish(struct vb2_buffer *vb)
- {
--	struct jpu_buffer *jpu_buf = vb2_to_jpu_buffer(vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct jpu_buffer *jpu_buf = vb2_to_jpu_buffer(vbuf);
- 	struct jpu_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct jpu_q_data *q_data = &ctx->out_q;
- 	enum v4l2_buf_type type = vb->vb2_queue->type;
- 	u8 *buffer;
- 
- 	if (vb->state == VB2_BUF_STATE_DONE)
--		vb->v4l2_buf.sequence = jpu_get_q_data(ctx, type)->sequence++;
-+		vbuf->sequence = jpu_get_q_data(ctx, type)->sequence++;
- 
- 	if (!ctx->encoder || vb->state != VB2_BUF_STATE_DONE ||
- 	    V4L2_TYPE_IS_OUTPUT(type))
-@@ -1163,7 +1166,7 @@ static int jpu_start_streaming(struct vb2_queue *vq, unsigned count)
- static void jpu_stop_streaming(struct vb2_queue *vq)
- {
- 	struct jpu_ctx *ctx = vb2_get_drv_priv(vq);
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vb;
- 	unsigned long flags;
- 
- 	for (;;) {
-@@ -1327,7 +1330,7 @@ static const struct v4l2_file_operations jpu_fops = {
- static void jpu_cleanup(struct jpu_ctx *ctx, bool reset)
- {
- 	/* remove current buffers and finish job */
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&ctx->jpu->lock, flags);
-@@ -1353,7 +1356,7 @@ static void jpu_device_run(void *priv)
- 	struct jpu *jpu = ctx->jpu;
- 	struct jpu_buffer *jpu_buf;
- 	struct jpu_q_data *q_data;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	unsigned int w, h, bpl;
- 	unsigned char num_planes, subsampling;
- 	unsigned long flags;
-@@ -1389,10 +1392,12 @@ static void jpu_device_run(void *priv)
- 		unsigned long src_1_addr, src_2_addr, dst_addr;
- 		unsigned int redu, inft;
- 
--		dst_addr = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
--		src_1_addr = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-+		dst_addr = vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
-+		src_1_addr =
-+			vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
- 		if (num_planes > 1)
--			src_2_addr = vb2_dma_contig_plane_dma_addr(src_buf, 1);
-+			src_2_addr = vb2_dma_contig_plane_dma_addr(
-+					&src_buf->vb2_buf, 1);
- 		else
- 			src_2_addr = src_1_addr + w * h;
- 
-@@ -1453,10 +1458,12 @@ static void jpu_device_run(void *priv)
- 			return;
- 		}
- 
--		src_addr = vb2_dma_contig_plane_dma_addr(src_buf, 0);
--		dst_1_addr = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-+		src_addr = vb2_dma_contig_plane_dma_addr(&src_buf->vb2_buf, 0);
-+		dst_1_addr =
-+			vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0);
- 		if (q_data->fmtinfo->num_planes > 1)
--			dst_2_addr = vb2_dma_contig_plane_dma_addr(dst_buf, 1);
-+			dst_2_addr = vb2_dma_contig_plane_dma_addr(
-+					&dst_buf->vb2_buf, 1);
- 		else
- 			dst_2_addr = dst_1_addr + w * h;
- 
-@@ -1511,7 +1518,7 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
- {
- 	struct jpu *jpu = dev_id;
- 	struct jpu_ctx *curr_ctx;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	unsigned int int_status;
- 
- 	int_status = jpu_read(jpu, JINTS);
-@@ -1547,18 +1554,18 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
- 			unsigned long payload_size = jpu_read(jpu, JCDTCU) << 16
- 						   | jpu_read(jpu, JCDTCM) << 8
- 						   | jpu_read(jpu, JCDTCD);
--			vb2_set_plane_payload(dst_buf, 0,
-+			vb2_set_plane_payload(&dst_buf->vb2_buf, 0,
- 				payload_size + JPU_JPEG_HDR_SIZE);
- 		}
- 
--		dst_buf->v4l2_buf.field = src_buf->v4l2_buf.field;
--		dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
--		if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
--			dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--		dst_buf->v4l2_buf.flags |= src_buf->v4l2_buf.flags &
-+		dst_buf->field = src_buf->field;
-+		dst_buf->timestamp = src_buf->timestamp;
-+		if (src_buf->flags & V4L2_BUF_FLAG_TIMECODE)
-+			dst_buf->timecode = src_buf->timecode;
-+		dst_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		dst_buf->flags |= src_buf->flags &
- 					V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--		dst_buf->v4l2_buf.flags = src_buf->v4l2_buf.flags &
-+		dst_buf->flags = src_buf->flags &
- 			(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_KEYFRAME |
- 			 V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME |
- 			 V4L2_BUF_FLAG_TSTAMP_SRC_MASK);
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index bb01eaa..9df34c7 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -164,12 +164,12 @@ static int camif_reinitialize(struct camif_vp *vp)
- 	/* Release unused buffers */
- 	while (!list_empty(&vp->pending_buf_q)) {
- 		buf = camif_pending_queue_pop(vp);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	while (!list_empty(&vp->active_buf_q)) {
- 		buf = camif_active_queue_pop(vp);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	spin_unlock_irqrestore(&camif->slock, flags);
-@@ -342,11 +342,11 @@ irqreturn_t s3c_camif_irq_handler(int irq, void *priv)
- 
- 		if (!WARN_ON(vbuf == NULL)) {
- 			/* Dequeue a filled buffer */
--			tv = &vbuf->vb.v4l2_buf.timestamp;
-+			tv = &vbuf->vb.timestamp;
- 			tv->tv_sec = ts.tv_sec;
- 			tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
--			vbuf->vb.v4l2_buf.sequence = vp->frame_sequence++;
--			vb2_buffer_done(&vbuf->vb, VB2_BUF_STATE_DONE);
-+			vbuf->vb.sequence = vp->frame_sequence++;
-+			vb2_buffer_done(&vbuf->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 
- 			/* Set up an empty buffer at the DMA engine */
- 			vbuf = camif_pending_queue_pop(vp);
-@@ -496,13 +496,14 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 
- static void buffer_queue(struct vb2_buffer *vb)
- {
--	struct camif_buffer *buf = container_of(vb, struct camif_buffer, vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct camif_buffer *buf = container_of(vbuf, struct camif_buffer, vb);
- 	struct camif_vp *vp = vb2_get_drv_priv(vb->vb2_queue);
- 	struct camif_dev *camif = vp->camif;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&camif->slock, flags);
--	WARN_ON(camif_prepare_addr(vp, &buf->vb, &buf->paddr));
-+	WARN_ON(camif_prepare_addr(vp, &buf->vb.vb2_buf, &buf->paddr));
- 
- 	if (!(vp->state & ST_VP_STREAMING) && vp->active_buffers < 2) {
- 		/* Schedule an empty buffer in H/W */
-diff --git a/drivers/media/platform/s3c-camif/camif-core.h b/drivers/media/platform/s3c-camif/camif-core.h
-index 8ef6f26..adaf196 100644
---- a/drivers/media/platform/s3c-camif/camif-core.h
-+++ b/drivers/media/platform/s3c-camif/camif-core.h
-@@ -322,7 +322,7 @@ struct camif_addr {
-  * @index: an identifier of this buffer at the DMA engine
-  */
- struct camif_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- 	struct camif_addr paddr;
- 	unsigned int index;
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 81483da..4db507a 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -134,8 +134,9 @@ static int g2d_buf_prepare(struct vb2_buffer *vb)
- 
- static void g2d_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct g2d_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
--	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static struct vb2_ops g2d_qops = {
-@@ -537,7 +538,7 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- {
- 	struct g2d_dev *dev = prv;
- 	struct g2d_ctx *ctx = dev->curr;
--	struct vb2_buffer *src, *dst;
-+	struct vb2_v4l2_buffer *src, *dst;
- 
- 	g2d_clear_int(dev);
- 	clk_disable(dev->gate);
-@@ -550,11 +551,11 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 	BUG_ON(src == NULL);
- 	BUG_ON(dst == NULL);
- 
--	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
--	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
--	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst->v4l2_buf.flags |=
--		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->timecode = src->timecode;
-+	dst->timestamp = src->timestamp;
-+	dst->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->flags |=
-+		src->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 5b1861b..d742457 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2170,6 +2170,7 @@ static int s5p_jpeg_buf_prepare(struct vb2_buffer *vb)
- 
- static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	if (ctx->mode == S5P_JPEG_DECODE &&
-@@ -2193,7 +2194,7 @@ static void s5p_jpeg_buf_queue(struct vb2_buffer *vb)
- 		q_data->h = tmp.h;
- 	}
- 
--	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static int s5p_jpeg_start_streaming(struct vb2_queue *q, unsigned int count)
-@@ -2264,7 +2265,7 @@ static irqreturn_t s5p_jpeg_irq(int irq, void *dev_id)
- {
- 	struct s5p_jpeg *jpeg = dev_id;
- 	struct s5p_jpeg_ctx *curr_ctx;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	unsigned long payload_size = 0;
- 	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
- 	bool enc_jpeg_too_large = false;
-@@ -2298,15 +2299,15 @@ static irqreturn_t s5p_jpeg_irq(int irq, void *dev_id)
- 		payload_size = s5p_jpeg_compressed_size(jpeg->regs);
- 	}
- 
--	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
--	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
--	dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst_buf->v4l2_buf.flags |=
--		src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->timecode = src_buf->timecode;
-+	dst_buf->timestamp = src_buf->timestamp;
-+	dst_buf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst_buf->flags |=
-+		src_buf->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 	v4l2_m2m_buf_done(src_buf, state);
- 	if (curr_ctx->mode == S5P_JPEG_ENCODE)
--		vb2_set_plane_payload(dst_buf, 0, payload_size);
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload_size);
- 	v4l2_m2m_buf_done(dst_buf, state);
- 	v4l2_m2m_job_finish(jpeg->m2m_dev, curr_ctx->fh.m2m_ctx);
- 
-@@ -2321,7 +2322,7 @@ static irqreturn_t s5p_jpeg_irq(int irq, void *dev_id)
- static irqreturn_t exynos4_jpeg_irq(int irq, void *priv)
- {
- 	unsigned int int_status;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	struct s5p_jpeg *jpeg = priv;
- 	struct s5p_jpeg_ctx *curr_ctx;
- 	unsigned long payload_size = 0;
-@@ -2363,7 +2364,8 @@ static irqreturn_t exynos4_jpeg_irq(int irq, void *priv)
- 	if (jpeg->irq_ret == OK_ENC_OR_DEC) {
- 		if (curr_ctx->mode == S5P_JPEG_ENCODE) {
- 			payload_size = exynos4_jpeg_get_stream_size(jpeg->regs);
--			vb2_set_plane_payload(dst_vb, 0, payload_size);
-+			vb2_set_plane_payload(&dst_vb->vb2_buf,
-+					0, payload_size);
- 		}
- 		v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
- 		v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-@@ -2383,7 +2385,7 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
- {
- 	struct s5p_jpeg *jpeg = dev_id;
- 	struct s5p_jpeg_ctx *curr_ctx;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 	unsigned long payload_size = 0;
- 	enum vb2_buffer_state state = VB2_BUF_STATE_DONE;
- 	bool interrupt_timeout = false;
-@@ -2427,12 +2429,12 @@ static irqreturn_t exynos3250_jpeg_irq(int irq, void *dev_id)
- 	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->fh.m2m_ctx);
- 
--	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
--	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->timecode = src_buf->timecode;
-+	dst_buf->timestamp = src_buf->timestamp;
- 
- 	v4l2_m2m_buf_done(src_buf, state);
- 	if (curr_ctx->mode == S5P_JPEG_ENCODE)
--		vb2_set_plane_payload(dst_buf, 0, payload_size);
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload_size);
- 	v4l2_m2m_buf_done(dst_buf, state);
- 	v4l2_m2m_job_finish(jpeg->m2m_dev, curr_ctx->fh.m2m_ctx);
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index b3758b8..7b646c2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -199,22 +199,22 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- 		dst_buf = list_entry(ctx->dst_queue.next,
- 				     struct s5p_mfc_buf, list);
- 		mfc_debug(2, "Cleaning up buffer: %d\n",
--					  dst_buf->b->v4l2_buf.index);
--		vb2_set_plane_payload(dst_buf->b, 0, 0);
--		vb2_set_plane_payload(dst_buf->b, 1, 0);
-+					  dst_buf->b->vb2_buf.index);
-+		vb2_set_plane_payload(&dst_buf->b->vb2_buf, 0, 0);
-+		vb2_set_plane_payload(&dst_buf->b->vb2_buf, 1, 0);
- 		list_del(&dst_buf->list);
- 		ctx->dst_queue_cnt--;
--		dst_buf->b->v4l2_buf.sequence = (ctx->sequence++);
-+		dst_buf->b->sequence = (ctx->sequence++);
- 
- 		if (s5p_mfc_hw_call(dev->mfc_ops, get_pic_type_top, ctx) ==
- 			s5p_mfc_hw_call(dev->mfc_ops, get_pic_type_bot, ctx))
--			dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
-+			dst_buf->b->field = V4L2_FIELD_NONE;
- 		else
--			dst_buf->b->v4l2_buf.field = V4L2_FIELD_INTERLACED;
--		dst_buf->b->v4l2_buf.flags |= V4L2_BUF_FLAG_LAST;
-+			dst_buf->b->field = V4L2_FIELD_INTERLACED;
-+		dst_buf->b->flags |= V4L2_BUF_FLAG_LAST;
- 
--		ctx->dec_dst_flag &= ~(1 << dst_buf->b->v4l2_buf.index);
--		vb2_buffer_done(dst_buf->b, VB2_BUF_STATE_DONE);
-+		ctx->dec_dst_flag &= ~(1 << dst_buf->b->vb2_buf.index);
-+		vb2_buffer_done(&dst_buf->b->vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- }
- 
-@@ -235,27 +235,28 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 	   appropriate flags. */
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
--		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
--			dst_buf->b->v4l2_buf.timecode =
--						src_buf->b->v4l2_buf.timecode;
--			dst_buf->b->v4l2_buf.timestamp =
--						src_buf->b->v4l2_buf.timestamp;
--			dst_buf->b->v4l2_buf.flags &=
-+		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
-+				== dec_y_addr) {
-+			dst_buf->b->timecode =
-+						src_buf->b->timecode;
-+			dst_buf->b->timestamp =
-+						src_buf->b->timestamp;
-+			dst_buf->b->flags &=
- 				~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--			dst_buf->b->v4l2_buf.flags |=
--				src_buf->b->v4l2_buf.flags
-+			dst_buf->b->flags |=
-+				src_buf->b->flags
- 				& V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 			switch (frame_type) {
- 			case S5P_FIMV_DECODE_FRAME_I_FRAME:
--				dst_buf->b->v4l2_buf.flags |=
-+				dst_buf->b->flags |=
- 						V4L2_BUF_FLAG_KEYFRAME;
- 				break;
- 			case S5P_FIMV_DECODE_FRAME_P_FRAME:
--				dst_buf->b->v4l2_buf.flags |=
-+				dst_buf->b->flags |=
- 						V4L2_BUF_FLAG_PFRAME;
- 				break;
- 			case S5P_FIMV_DECODE_FRAME_B_FRAME:
--				dst_buf->b->v4l2_buf.flags |=
-+				dst_buf->b->flags |=
- 						V4L2_BUF_FLAG_BFRAME;
- 				break;
- 			default:
-@@ -296,25 +297,28 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
- 	 * check which videobuf does it correspond to */
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
- 		/* Check if this is the buffer we're looking for */
--		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dspl_y_addr) {
-+		if (vb2_dma_contig_plane_dma_addr(&dst_buf->b->vb2_buf, 0)
-+				== dspl_y_addr) {
- 			list_del(&dst_buf->list);
- 			ctx->dst_queue_cnt--;
--			dst_buf->b->v4l2_buf.sequence = ctx->sequence;
-+			dst_buf->b->sequence = ctx->sequence;
- 			if (s5p_mfc_hw_call(dev->mfc_ops,
- 					get_pic_type_top, ctx) ==
- 				s5p_mfc_hw_call(dev->mfc_ops,
- 					get_pic_type_bot, ctx))
--				dst_buf->b->v4l2_buf.field = V4L2_FIELD_NONE;
-+				dst_buf->b->field = V4L2_FIELD_NONE;
- 			else
--				dst_buf->b->v4l2_buf.field =
-+				dst_buf->b->field =
- 							V4L2_FIELD_INTERLACED;
--			vb2_set_plane_payload(dst_buf->b, 0, ctx->luma_size);
--			vb2_set_plane_payload(dst_buf->b, 1, ctx->chroma_size);
--			clear_bit(dst_buf->b->v4l2_buf.index,
-+			vb2_set_plane_payload(&dst_buf->b->vb2_buf, 0,
-+						ctx->luma_size);
-+			vb2_set_plane_payload(&dst_buf->b->vb2_buf, 1,
-+						ctx->chroma_size);
-+			clear_bit(dst_buf->b->vb2_buf.index,
- 							&ctx->dec_dst_flag);
- 
--			vb2_buffer_done(dst_buf->b,
--				err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-+			vb2_buffer_done(&dst_buf->b->vb2_buf, err ?
-+				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 			break;
- 		}
-@@ -395,7 +399,7 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
- 			ctx->codec_mode != S5P_MFC_CODEC_VP8_DEC &&
- 			ctx->consumed_stream + STUFF_BYTE <
--			src_buf->b->v4l2_planes[0].bytesused) {
-+			src_buf->b->vb2_buf.planes[0].bytesused) {
- 			/* Run MFC again on the same buffer */
- 			mfc_debug(2, "Running again the same buffer\n");
- 			ctx->after_packed_pb = 1;
-@@ -407,9 +411,11 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
- 			list_del(&src_buf->list);
- 			ctx->src_queue_cnt--;
- 			if (s5p_mfc_hw_call(dev->mfc_ops, err_dec, err) > 0)
--				vb2_buffer_done(src_buf->b, VB2_BUF_STATE_ERROR);
-+				vb2_buffer_done(&src_buf->b->vb2_buf,
-+						VB2_BUF_STATE_ERROR);
- 			else
--				vb2_buffer_done(src_buf->b, VB2_BUF_STATE_DONE);
-+				vb2_buffer_done(&src_buf->b->vb2_buf,
-+						VB2_BUF_STATE_DONE);
- 		}
- 	}
- leave_handle_frame:
-@@ -510,7 +516,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
- 					struct s5p_mfc_buf, list);
- 			if (s5p_mfc_hw_call(dev->mfc_ops, get_consumed_stream,
- 						dev) <
--					src_buf->b->v4l2_planes[0].bytesused)
-+					src_buf->b->vb2_buf.planes[0].bytesused)
- 				ctx->head_processed = 0;
- 			else
- 				ctx->head_processed = 1;
-@@ -551,7 +557,7 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
- 					     struct s5p_mfc_buf, list);
- 				list_del(&src_buf->list);
- 				ctx->src_queue_cnt--;
--				vb2_buffer_done(src_buf->b,
-+				vb2_buffer_done(&src_buf->b->vb2_buf,
- 						VB2_BUF_STATE_DONE);
- 			}
- 			spin_unlock_irqrestore(&dev->irqlock, flags);
-@@ -592,8 +598,8 @@ static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx,
- 									list);
- 		list_del(&mb_entry->list);
- 		ctx->dst_queue_cnt--;
--		vb2_set_plane_payload(mb_entry->b, 0, 0);
--		vb2_buffer_done(mb_entry->b, VB2_BUF_STATE_DONE);
-+		vb2_set_plane_payload(&mb_entry->b->vb2_buf, 0, 0);
-+		vb2_buffer_done(&mb_entry->b->vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 	spin_unlock(&dev->irqlock);
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 10884a7..d1a3f9b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -179,8 +179,8 @@ struct s5p_mfc_ctx;
-  * struct s5p_mfc_buf - MFC buffer
-  */
- struct s5p_mfc_buf {
-+	struct vb2_v4l2_buffer *b;
- 	struct list_head list;
--	struct vb2_buffer *b;
- 	union {
- 		struct {
- 			size_t luma;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 2fd59e7..1734775 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -945,6 +945,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 
- static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 	unsigned int i;
-@@ -964,8 +965,8 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 			mfc_err("Plane buffer (CAPTURE) is too small\n");
- 			return -EINVAL;
- 		}
--		i = vb->v4l2_buf.index;
--		ctx->dst_bufs[i].b = vb;
-+		i = vb->index;
-+		ctx->dst_bufs[i].b = vbuf;
- 		ctx->dst_bufs[i].cookie.raw.luma =
- 					vb2_dma_contig_plane_dma_addr(vb, 0);
- 		ctx->dst_bufs[i].cookie.raw.chroma =
-@@ -982,8 +983,8 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 			return -EINVAL;
- 		}
- 
--		i = vb->v4l2_buf.index;
--		ctx->src_bufs[i].b = vb;
-+		i = vb->index;
-+		ctx->src_bufs[i].b = vbuf;
- 		ctx->src_bufs[i].cookie.stream =
- 					vb2_dma_contig_plane_dma_addr(vb, 0);
- 		ctx->src_bufs_cnt++;
-@@ -1065,18 +1066,18 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 	struct s5p_mfc_buf *mfc_buf;
- 
- 	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		mfc_buf = &ctx->src_bufs[vb->v4l2_buf.index];
-+		mfc_buf = &ctx->src_bufs[vb->index];
- 		mfc_buf->flags &= ~MFC_BUF_FLAG_USED;
- 		spin_lock_irqsave(&dev->irqlock, flags);
- 		list_add_tail(&mfc_buf->list, &ctx->src_queue);
- 		ctx->src_queue_cnt++;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
--		mfc_buf = &ctx->dst_bufs[vb->v4l2_buf.index];
-+		mfc_buf = &ctx->dst_bufs[vb->index];
- 		mfc_buf->flags &= ~MFC_BUF_FLAG_USED;
- 		/* Mark destination as available for use by MFC */
- 		spin_lock_irqsave(&dev->irqlock, flags);
--		set_bit(vb->v4l2_buf.index, &ctx->dec_dst_flag);
-+		set_bit(vb->index, &ctx->dec_dst_flag);
- 		list_add_tail(&mfc_buf->list, &ctx->dst_queue);
- 		ctx->dst_queue_cnt++;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index e42014c..94868f7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -773,8 +773,8 @@ static int enc_pre_seq_start(struct s5p_mfc_ctx *ctx)
- 
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 	s5p_mfc_hw_call_void(dev->mfc_ops, set_enc_stream_buffer, ctx, dst_addr,
- 			dst_size);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
-@@ -796,10 +796,11 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
- 					struct s5p_mfc_buf, list);
- 			list_del(&dst_mb->list);
- 			ctx->dst_queue_cnt--;
--			vb2_set_plane_payload(dst_mb->b, 0,
-+			vb2_set_plane_payload(&dst_mb->b->vb2_buf, 0,
- 				s5p_mfc_hw_call(dev->mfc_ops, get_enc_strm_size,
- 						dev));
--			vb2_buffer_done(dst_mb->b, VB2_BUF_STATE_DONE);
-+			vb2_buffer_done(&dst_mb->b->vb2_buf,
-+					VB2_BUF_STATE_DONE);
- 		}
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
-@@ -831,16 +832,16 @@ static int enc_pre_frame_start(struct s5p_mfc_ctx *ctx)
- 
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
--	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
--	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
-+	src_y_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 0);
-+	src_c_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 1);
- 	s5p_mfc_hw_call_void(dev->mfc_ops, set_enc_frame_buffer, ctx,
- 							src_y_addr, src_c_addr);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 	s5p_mfc_hw_call_void(dev->mfc_ops, set_enc_stream_buffer, ctx, dst_addr,
- 			dst_size);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
-@@ -869,25 +870,29 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
- 		s5p_mfc_hw_call_void(dev->mfc_ops, get_enc_frame_buffer, ctx,
- 				&enc_y_addr, &enc_c_addr);
- 		list_for_each_entry(mb_entry, &ctx->src_queue, list) {
--			mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
--			mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
-+			mb_y_addr = vb2_dma_contig_plane_dma_addr(
-+					&mb_entry->b->vb2_buf, 0);
-+			mb_c_addr = vb2_dma_contig_plane_dma_addr(
-+					&mb_entry->b->vb2_buf, 1);
- 			if ((enc_y_addr == mb_y_addr) &&
- 						(enc_c_addr == mb_c_addr)) {
- 				list_del(&mb_entry->list);
- 				ctx->src_queue_cnt--;
--				vb2_buffer_done(mb_entry->b,
-+				vb2_buffer_done(&mb_entry->b->vb2_buf,
- 							VB2_BUF_STATE_DONE);
- 				break;
- 			}
- 		}
- 		list_for_each_entry(mb_entry, &ctx->ref_queue, list) {
--			mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
--			mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
-+			mb_y_addr = vb2_dma_contig_plane_dma_addr(
-+					&mb_entry->b->vb2_buf, 0);
-+			mb_c_addr = vb2_dma_contig_plane_dma_addr(
-+					&mb_entry->b->vb2_buf, 1);
- 			if ((enc_y_addr == mb_y_addr) &&
- 						(enc_c_addr == mb_c_addr)) {
- 				list_del(&mb_entry->list);
- 				ctx->ref_queue_cnt--;
--				vb2_buffer_done(mb_entry->b,
-+				vb2_buffer_done(&mb_entry->b->vb2_buf,
- 							VB2_BUF_STATE_DONE);
- 				break;
- 			}
-@@ -912,17 +917,17 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
- 		ctx->dst_queue_cnt--;
- 		switch (slice_type) {
- 		case S5P_FIMV_ENC_SI_SLICE_TYPE_I:
--			mb_entry->b->v4l2_buf.flags |= V4L2_BUF_FLAG_KEYFRAME;
-+			mb_entry->b->flags |= V4L2_BUF_FLAG_KEYFRAME;
- 			break;
- 		case S5P_FIMV_ENC_SI_SLICE_TYPE_P:
--			mb_entry->b->v4l2_buf.flags |= V4L2_BUF_FLAG_PFRAME;
-+			mb_entry->b->flags |= V4L2_BUF_FLAG_PFRAME;
- 			break;
- 		case S5P_FIMV_ENC_SI_SLICE_TYPE_B:
--			mb_entry->b->v4l2_buf.flags |= V4L2_BUF_FLAG_BFRAME;
-+			mb_entry->b->flags |= V4L2_BUF_FLAG_BFRAME;
- 			break;
- 		}
--		vb2_set_plane_payload(mb_entry->b, 0, strm_size);
--		vb2_buffer_done(mb_entry->b, VB2_BUF_STATE_DONE);
-+		vb2_set_plane_payload(&mb_entry->b->vb2_buf, 0, strm_size);
-+		vb2_buffer_done(&mb_entry->b->vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	if ((ctx->src_queue_cnt == 0) || (ctx->dst_queue_cnt == 0))
-@@ -1806,7 +1811,7 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
- 			return -EINVAL;
- 		}
- 		mfc_debug(2, "index: %d, plane[%d] cookie: %pad\n",
--			  vb->v4l2_buf.index, i, &dma);
-+			  vb->index, i, &dma);
- 	}
- 	return 0;
- }
-@@ -1869,6 +1874,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 
- static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vb2_queue *vq = vb->vb2_queue;
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 	unsigned int i;
-@@ -1878,8 +1884,8 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 		ret = check_vb_with_fmt(ctx->dst_fmt, vb);
- 		if (ret < 0)
- 			return ret;
--		i = vb->v4l2_buf.index;
--		ctx->dst_bufs[i].b = vb;
-+		i = vb->index;
-+		ctx->dst_bufs[i].b = vbuf;
- 		ctx->dst_bufs[i].cookie.stream =
- 					vb2_dma_contig_plane_dma_addr(vb, 0);
- 		ctx->dst_bufs_cnt++;
-@@ -1887,8 +1893,8 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 		ret = check_vb_with_fmt(ctx->src_fmt, vb);
- 		if (ret < 0)
- 			return ret;
--		i = vb->v4l2_buf.index;
--		ctx->src_bufs[i].b = vb;
-+		i = vb->index;
-+		ctx->src_bufs[i].b = vbuf;
- 		ctx->src_bufs[i].cookie.raw.luma =
- 					vb2_dma_contig_plane_dma_addr(vb, 0);
- 		ctx->src_bufs[i].cookie.raw.chroma =
-@@ -2012,7 +2018,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 		return;
- 	}
- 	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
--		mfc_buf = &ctx->dst_bufs[vb->v4l2_buf.index];
-+		mfc_buf = &ctx->dst_bufs[vb->index];
- 		mfc_buf->flags &= ~MFC_BUF_FLAG_USED;
- 		/* Mark destination as available for use by MFC */
- 		spin_lock_irqsave(&dev->irqlock, flags);
-@@ -2020,7 +2026,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 		ctx->dst_queue_cnt++;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		mfc_buf = &ctx->src_bufs[vb->v4l2_buf.index];
-+		mfc_buf = &ctx->src_bufs[vb->index];
- 		mfc_buf->flags &= ~MFC_BUF_FLAG_USED;
- 		spin_lock_irqsave(&dev->irqlock, flags);
- 		list_add_tail(&mfc_buf->list, &ctx->src_queue);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index 6402f76..873c933 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -1208,11 +1208,11 @@ static int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx, int last_frame)
- 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	temp_vb->flags |= MFC_BUF_FLAG_USED;
- 	s5p_mfc_set_dec_stream_buffer_v5(ctx,
--		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
--		ctx->consumed_stream, temp_vb->b->v4l2_planes[0].bytesused);
-+		vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0),
-+		ctx->consumed_stream, temp_vb->b->vb2_buf.planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
--	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
-+	if (temp_vb->b->vb2_buf.planes[0].bytesused == 0) {
- 		last_frame = MFC_DEC_LAST_FRAME;
- 		mfc_debug(2, "Setting ctx->state to FINISHING\n");
- 		ctx->state = MFCINST_FINISHING;
-@@ -1249,16 +1249,16 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 		src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf,
- 									list);
- 		src_mb->flags |= MFC_BUF_FLAG_USED;
--		if (src_mb->b->v4l2_planes[0].bytesused == 0) {
-+		if (src_mb->b->vb2_buf.planes[0].bytesused == 0) {
- 			/* send null frame */
- 			s5p_mfc_set_enc_frame_buffer_v5(ctx, dev->bank2,
- 								dev->bank2);
- 			ctx->state = MFCINST_FINISHING;
- 		} else {
--			src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b,
--									0);
--			src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b,
--									1);
-+			src_y_addr = vb2_dma_contig_plane_dma_addr(
-+					&src_mb->b->vb2_buf, 0);
-+			src_c_addr = vb2_dma_contig_plane_dma_addr(
-+					&src_mb->b->vb2_buf, 1);
- 			s5p_mfc_set_enc_frame_buffer_v5(ctx, src_y_addr,
- 								src_c_addr);
- 			if (src_mb->flags & MFC_BUF_FLAG_EOS)
-@@ -1267,13 +1267,13 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 	}
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
- 	dst_mb->flags |= MFC_BUF_FLAG_USED;
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 	s5p_mfc_set_enc_stream_buffer_v5(ctx, dst_addr, dst_size);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
- 	mfc_debug(2, "encoding buffer with index=%d state=%d\n",
--		  src_mb ? src_mb->b->v4l2_buf.index : -1, ctx->state);
-+		  src_mb ? src_mb->b->vb2_buf.index : -1, ctx->state);
- 	s5p_mfc_encode_one_frame_v5(ctx);
- 	return 0;
- }
-@@ -1289,10 +1289,11 @@ static void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
- 	mfc_debug(2, "Preparing to init decoding\n");
- 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	s5p_mfc_set_dec_desc_buffer(ctx);
--	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
-+	mfc_debug(2, "Header size: %d\n",
-+			temp_vb->b->vb2_buf.planes[0].bytesused);
- 	s5p_mfc_set_dec_stream_buffer_v5(ctx,
--				vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
--				0, temp_vb->b->v4l2_planes[0].bytesused);
-+			vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0),
-+			0, temp_vb->b->vb2_buf.planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
- 	s5p_mfc_init_decode_v5(ctx);
-@@ -1309,8 +1310,8 @@ static void s5p_mfc_run_init_enc(struct s5p_mfc_ctx *ctx)
- 	s5p_mfc_set_enc_ref_buffer_v5(ctx);
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 	s5p_mfc_set_enc_stream_buffer_v5(ctx, dst_addr, dst_size);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
-@@ -1342,10 +1343,11 @@ static int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
- 		return -EIO;
- 	}
- 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
--	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
-+	mfc_debug(2, "Header size: %d\n",
-+			temp_vb->b->vb2_buf.planes[0].bytesused);
- 	s5p_mfc_set_dec_stream_buffer_v5(ctx,
--				vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
--				0, temp_vb->b->v4l2_planes[0].bytesused);
-+			vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0),
-+			0, temp_vb->b->vb2_buf.planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
- 	ret = s5p_mfc_set_dec_frame_buffer_v5(ctx);
-@@ -1478,9 +1480,9 @@ static void s5p_mfc_cleanup_queue_v5(struct list_head *lh, struct vb2_queue *vq)
- 
- 	while (!list_empty(lh)) {
- 		b = list_entry(lh->next, struct s5p_mfc_buf, list);
--		for (i = 0; i < b->b->num_planes; i++)
--			vb2_set_plane_payload(b->b, i, 0);
--		vb2_buffer_done(b->b, VB2_BUF_STATE_ERROR);
-+		for (i = 0; i < b->b->vb2_buf.num_planes; i++)
-+			vb2_set_plane_payload(&b->b->vb2_buf, i, 0);
-+		vb2_buffer_done(&b->b->vb2_buf, VB2_BUF_STATE_ERROR);
- 		list_del(&b->list);
- 	}
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index e5cb30e..6e8d6c3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1562,13 +1562,13 @@ static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
- 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	temp_vb->flags |= MFC_BUF_FLAG_USED;
- 	s5p_mfc_set_dec_stream_buffer_v6(ctx,
--		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
--			ctx->consumed_stream,
--			temp_vb->b->v4l2_planes[0].bytesused);
-+		vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0),
-+		ctx->consumed_stream,
-+		temp_vb->b->vb2_buf.planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 
- 	dev->curr_ctx = ctx->num;
--	if (temp_vb->b->v4l2_planes[0].bytesused == 0) {
-+	if (temp_vb->b->vb2_buf.planes[0].bytesused == 0) {
- 		last_frame = 1;
- 		mfc_debug(2, "Setting ctx->state to FINISHING\n");
- 		ctx->state = MFCINST_FINISHING;
-@@ -1606,8 +1606,8 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 
- 	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	src_mb->flags |= MFC_BUF_FLAG_USED;
--	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
--	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
-+	src_y_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 0);
-+	src_c_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 1);
- 
- 	mfc_debug(2, "enc src y addr: 0x%08lx\n", src_y_addr);
- 	mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
-@@ -1616,8 +1616,8 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
- 	dst_mb->flags |= MFC_BUF_FLAG_USED;
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 
- 	s5p_mfc_set_enc_stream_buffer_v6(ctx, dst_addr, dst_size);
- 
-@@ -1639,10 +1639,11 @@ static inline void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 	mfc_debug(2, "Preparing to init decoding.\n");
- 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
--	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
-+	mfc_debug(2, "Header size: %d\n",
-+		temp_vb->b->vb2_buf.planes[0].bytesused);
- 	s5p_mfc_set_dec_stream_buffer_v6(ctx,
--		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), 0,
--			temp_vb->b->v4l2_planes[0].bytesused);
-+		vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0), 0,
-+		temp_vb->b->vb2_buf.planes[0].bytesused);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
- 	s5p_mfc_init_decode_v6(ctx);
-@@ -1659,8 +1660,8 @@ static inline void s5p_mfc_run_init_enc(struct s5p_mfc_ctx *ctx)
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
--	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
--	dst_size = vb2_plane_size(dst_mb->b, 0);
-+	dst_addr = vb2_dma_contig_plane_dma_addr(&dst_mb->b->vb2_buf, 0);
-+	dst_size = vb2_plane_size(&dst_mb->b->vb2_buf, 0);
- 	s5p_mfc_set_enc_stream_buffer_v6(ctx, dst_addr, dst_size);
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	dev->curr_ctx = ctx->num;
-@@ -1836,9 +1837,9 @@ static void s5p_mfc_cleanup_queue_v6(struct list_head *lh, struct vb2_queue *vq)
- 
- 	while (!list_empty(lh)) {
- 		b = list_entry(lh->next, struct s5p_mfc_buf, list);
--		for (i = 0; i < b->b->num_planes; i++)
--			vb2_set_plane_payload(b->b, i, 0);
--		vb2_buffer_done(b->b, VB2_BUF_STATE_ERROR);
-+		for (i = 0; i < b->b->vb2_buf.num_planes; i++)
-+			vb2_set_plane_payload(&b->b->vb2_buf, i, 0);
-+		vb2_buffer_done(&b->b->vb2_buf, VB2_BUF_STATE_ERROR);
- 		list_del(&b->list);
- 	}
- }
-diff --git a/drivers/media/platform/s5p-tv/mixer.h b/drivers/media/platform/s5p-tv/mixer.h
-index 855b723..42cd270 100644
---- a/drivers/media/platform/s5p-tv/mixer.h
-+++ b/drivers/media/platform/s5p-tv/mixer.h
-@@ -113,7 +113,7 @@ struct mxr_geometry {
- /** instance of a buffer */
- struct mxr_buffer {
- 	/** common v4l buffer stuff -- must be first */
--	struct vb2_buffer	vb;
-+	struct vb2_v4l2_buffer vb;
- 	/** node for layer's lists */
- 	struct list_head	list;
- };
-diff --git a/drivers/media/platform/s5p-tv/mixer_grp_layer.c b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
-index 74344c7..db3163b 100644
---- a/drivers/media/platform/s5p-tv/mixer_grp_layer.c
-+++ b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
-@@ -86,7 +86,7 @@ static void mxr_graph_buffer_set(struct mxr_layer *layer,
- 	dma_addr_t addr = 0;
- 
- 	if (buf)
--		addr = vb2_dma_contig_plane_dma_addr(&buf->vb, 0);
-+		addr = vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 0);
- 	mxr_reg_graph_buffer(layer->mdev, layer->idx, addr);
- }
- 
-diff --git a/drivers/media/platform/s5p-tv/mixer_reg.c b/drivers/media/platform/s5p-tv/mixer_reg.c
-index 5127acb..a0ec14a 100644
---- a/drivers/media/platform/s5p-tv/mixer_reg.c
-+++ b/drivers/media/platform/s5p-tv/mixer_reg.c
-@@ -279,7 +279,7 @@ static void mxr_irq_layer_handle(struct mxr_layer *layer)
- 	layer->ops.buffer_set(layer, layer->update_buf);
- 
- 	if (done && done != layer->shadow_buf)
--		vb2_buffer_done(&done->vb, VB2_BUF_STATE_DONE);
-+		vb2_buffer_done(&done->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 
- done:
- 	spin_unlock(&layer->enq_slock);
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 751f3b6..dba92b5 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -914,7 +914,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *pfmt,
- 
- static void buf_queue(struct vb2_buffer *vb)
- {
--	struct mxr_buffer *buffer = container_of(vb, struct mxr_buffer, vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct mxr_buffer *buffer = container_of(vbuf, struct mxr_buffer, vb);
- 	struct mxr_layer *layer = vb2_get_drv_priv(vb->vb2_queue);
- 	struct mxr_device *mdev = layer->mdev;
- 	unsigned long flags;
-@@ -963,11 +964,13 @@ static void mxr_watchdog(unsigned long arg)
- 	if (layer->update_buf == layer->shadow_buf)
- 		layer->update_buf = NULL;
- 	if (layer->update_buf) {
--		vb2_buffer_done(&layer->update_buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&layer->update_buf->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 		layer->update_buf = NULL;
- 	}
- 	if (layer->shadow_buf) {
--		vb2_buffer_done(&layer->shadow_buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&layer->shadow_buf->vb.vb2_buf,
-+				VB2_BUF_STATE_ERROR);
- 		layer->shadow_buf = NULL;
- 	}
- 	spin_unlock_irqrestore(&layer->enq_slock, flags);
-@@ -991,7 +994,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 	/* set all buffer to be done */
- 	list_for_each_entry_safe(buf, buf_tmp, &layer->enq_list, list) {
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	spin_unlock_irqrestore(&layer->enq_slock, flags);
-diff --git a/drivers/media/platform/s5p-tv/mixer_vp_layer.c b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
-index c9388c4..dd002a4 100644
---- a/drivers/media/platform/s5p-tv/mixer_vp_layer.c
-+++ b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
-@@ -97,9 +97,10 @@ static void mxr_vp_buffer_set(struct mxr_layer *layer,
- 		mxr_reg_vp_buffer(layer->mdev, luma_addr, chroma_addr);
- 		return;
- 	}
--	luma_addr[0] = vb2_dma_contig_plane_dma_addr(&buf->vb, 0);
-+	luma_addr[0] = vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 0);
- 	if (layer->fmt->num_subframes == 2) {
--		chroma_addr[0] = vb2_dma_contig_plane_dma_addr(&buf->vb, 1);
-+		chroma_addr[0] =
-+			vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 1);
- 	} else {
- 		/* FIXME: mxr_get_plane_size compute integer division,
- 		 * which is slow and should not be performed in interrupt */
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index f5e3eb3a..6455cb9 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -931,9 +931,10 @@ static int sh_veu_buf_prepare(struct vb2_buffer *vb)
- 
- static void sh_veu_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct sh_veu_dev *veu = vb2_get_drv_priv(vb->vb2_queue);
--	dev_dbg(veu->dev, "%s(%d)\n", __func__, vb->v4l2_buf.type);
--	v4l2_m2m_buf_queue(veu->m2m_ctx, vb);
-+	dev_dbg(veu->dev, "%s(%d)\n", __func__, vb->type);
-+	v4l2_m2m_buf_queue(veu->m2m_ctx, vbuf);
- }
- 
- static const struct vb2_ops sh_veu_qops = {
-@@ -1084,8 +1085,8 @@ static irqreturn_t sh_veu_bh(int irq, void *dev_id)
- static irqreturn_t sh_veu_isr(int irq, void *dev_id)
- {
- 	struct sh_veu_dev *veu = dev_id;
--	struct vb2_buffer *dst;
--	struct vb2_buffer *src;
-+	struct vb2_v4l2_buffer *dst;
-+	struct vb2_v4l2_buffer *src;
- 	u32 status = sh_veu_reg_read(veu, VEU_EVTR);
- 
- 	/* bundle read mode not used */
-@@ -1105,11 +1106,11 @@ static irqreturn_t sh_veu_isr(int irq, void *dev_id)
- 	if (!src || !dst)
- 		return IRQ_NONE;
- 
--	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
--	dst->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst->v4l2_buf.flags |=
--		src->v4l2_buf.flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
-+	dst->timestamp = src->timestamp;
-+	dst->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->flags |=
-+		src->flags & V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+	dst->timecode = src->timecode;
- 
- 	spin_lock(&veu->lock);
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index fe5c8ab..7967a75 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -27,6 +27,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-mediabus.h>
-+#include <media/videobuf2-v4l2.h>
- #include <media/videobuf2-dma-contig.h>
- 
- /* Mirror addresses are not available for all registers */
-@@ -62,11 +63,12 @@ enum sh_vou_status {
- #define VOU_MIN_IMAGE_HEIGHT	16
- 
- struct sh_vou_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head list;
- };
- 
--static inline struct sh_vou_buffer *to_sh_vou_buffer(struct vb2_buffer *vb2)
-+static inline struct
-+sh_vou_buffer *to_sh_vou_buffer(struct vb2_v4l2_buffer *vb2)
- {
- 	return container_of(vb2, struct sh_vou_buffer, vb);
- }
-@@ -193,11 +195,11 @@ static struct sh_vou_fmt vou_fmt[] = {
- };
- 
- static void sh_vou_schedule_next(struct sh_vou_device *vou_dev,
--				 struct vb2_buffer *vb)
-+				 struct vb2_v4l2_buffer *vbuf)
- {
- 	dma_addr_t addr1, addr2;
- 
--	addr1 = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	addr1 = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
- 	switch (vou_dev->pix.pixelformat) {
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_NV16:
-@@ -282,8 +284,9 @@ static int sh_vou_buf_prepare(struct vb2_buffer *vb)
- /* Locking: caller holds fop_lock mutex and vq->irqlock spinlock */
- static void sh_vou_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct sh_vou_device *vou_dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct sh_vou_buffer *shbuf = to_sh_vou_buffer(vb);
-+	struct sh_vou_buffer *shbuf = to_sh_vou_buffer(vbuf);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&vou_dev->lock, flags);
-@@ -302,7 +305,8 @@ static int sh_vou_start_streaming(struct vb2_queue *vq, unsigned int count)
- 					 video, s_stream, 1);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
- 		list_for_each_entry_safe(buf, node, &vou_dev->buf_list, list) {
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 			list_del(&buf->list);
- 		}
- 		vou_dev->active = NULL;
-@@ -353,7 +357,7 @@ static void sh_vou_stop_streaming(struct vb2_queue *vq)
- 	msleep(50);
- 	spin_lock_irqsave(&vou_dev->lock, flags);
- 	list_for_each_entry_safe(buf, node, &vou_dev->buf_list, list) {
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 		list_del(&buf->list);
- 	}
- 	vou_dev->active = NULL;
-@@ -1066,10 +1070,10 @@ static irqreturn_t sh_vou_isr(int irq, void *dev_id)
- 
- 	list_del(&vb->list);
- 
--	v4l2_get_timestamp(&vb->vb.v4l2_buf.timestamp);
--	vb->vb.v4l2_buf.sequence = vou_dev->sequence++;
--	vb->vb.v4l2_buf.field = V4L2_FIELD_INTERLACED;
--	vb2_buffer_done(&vb->vb, VB2_BUF_STATE_DONE);
-+	v4l2_get_timestamp(&vb->vb.timestamp);
-+	vb->vb.sequence = vou_dev->sequence++;
-+	vb->vb.field = V4L2_FIELD_INTERLACED;
-+	vb2_buffer_done(&vb->vb.vb2_buf, VB2_BUF_STATE_DONE);
- 
- 	vou_dev->active = list_entry(vou_dev->buf_list.next,
- 				     struct sh_vou_buffer, list);
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 9070172..f24f603 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -59,7 +59,7 @@ struct isi_dma_desc {
- 
- /* Frame buffer data */
- struct frame_buffer {
--	struct vb2_buffer vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct isi_dma_desc *p_dma_desc;
- 	struct list_head list;
- };
-@@ -151,13 +151,13 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
- {
- 	if (isi->active) {
--		struct vb2_buffer *vb = &isi->active->vb;
-+		struct vb2_v4l2_buffer *vbuf = &isi->active->vb;
- 		struct frame_buffer *buf = isi->active;
- 
- 		list_del_init(&buf->list);
--		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
--		vb->v4l2_buf.sequence = isi->sequence++;
--		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+		v4l2_get_timestamp(&vbuf->timestamp);
-+		vbuf->sequence = isi->sequence++;
-+		vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 
- 	if (list_empty(&isi->video_buffer_list)) {
-@@ -267,7 +267,8 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- static int buffer_init(struct vb2_buffer *vb)
- {
--	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct frame_buffer *buf = container_of(vbuf, struct frame_buffer, vb);
- 
- 	buf->p_dma_desc = NULL;
- 	INIT_LIST_HEAD(&buf->list);
-@@ -277,8 +278,9 @@ static int buffer_init(struct vb2_buffer *vb)
- 
- static int buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
-+	struct frame_buffer *buf = container_of(vbuf, struct frame_buffer, vb);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 	unsigned long size;
-@@ -292,7 +294,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 		return -EINVAL;
- 	}
- 
--	vb2_set_plane_payload(&buf->vb, 0, size);
-+	vb2_set_plane_payload(vb, 0, size);
- 
- 	if (!buf->p_dma_desc) {
- 		if (list_empty(&isi->dma_desc_head)) {
-@@ -319,10 +321,11 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 
- static void buffer_cleanup(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
--	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
-+	struct frame_buffer *buf = container_of(vbuf, struct frame_buffer, vb);
- 
- 	/* This descriptor is available now and we add to head list */
- 	if (buf->p_dma_desc)
-@@ -360,10 +363,11 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
- 
- static void buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
--	struct frame_buffer *buf = container_of(vb, struct frame_buffer, vb);
-+	struct frame_buffer *buf = container_of(vbuf, struct frame_buffer, vb);
- 	unsigned long flags = 0;
- 
- 	spin_lock_irqsave(&isi->lock, flags);
-@@ -422,7 +426,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 	/* Release all active buffers */
- 	list_for_each_entry_safe(buf, node, &isi->video_buffer_list, list) {
- 		list_del_init(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 	spin_unlock_irq(&isi->lock);
- 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 6e41335..9079196 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -225,7 +225,7 @@ struct mx2_buf_internal {
- /* buffer for one video frame */
- struct mx2_buffer {
- 	/* common v4l buffer stuff -- must be first */
--	struct vb2_buffer		vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct mx2_buf_internal		internal;
- };
- 
-@@ -530,11 +530,12 @@ out:
- 
- static void mx2_videobuf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
--	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
-+	struct mx2_buffer *buf = container_of(vbuf, struct mx2_buffer, vb);
- 	unsigned long flags;
- 
- 	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
-@@ -664,7 +665,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
- 			       internal.queue);
- 	buf->internal.bufnum = 0;
--	vb = &buf->vb;
-+	vb = &buf->vb.vb2_buf;
- 
- 	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
-@@ -673,7 +674,7 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
- 			       internal.queue);
- 	buf->internal.bufnum = 1;
--	vb = &buf->vb;
-+	vb = &buf->vb.vb2_buf;
- 
- 	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
-@@ -1307,6 +1308,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	struct mx2_buf_internal *ibuf;
- 	struct mx2_buffer *buf;
- 	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long phys;
- 
- 	ibuf = list_first_entry(&pcdev->active_bufs, struct mx2_buf_internal,
-@@ -1323,7 +1325,8 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	} else {
- 		buf = mx2_ibuf_to_buf(ibuf);
- 
--		vb = &buf->vb;
-+		vb = &buf->vb.vb2_buf;
-+		vbuf = to_vb2_v4l2_buffer(vb);
- #ifdef DEBUG
- 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
- 		if (prp->cfg.channel == 1) {
-@@ -1347,8 +1350,8 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 				vb2_get_plane_payload(vb, 0));
- 
- 		list_del_init(&buf->internal.queue);
--		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
--		vb->v4l2_buf.sequence = pcdev->frame_count;
-+		v4l2_get_timestamp(&vbuf->timestamp);
-+		vbuf->sequence = pcdev->frame_count;
- 		if (err)
- 			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- 		else
-@@ -1380,7 +1383,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 
- 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
--	vb = &buf->vb;
-+	vb = &buf->vb.vb2_buf;
- 
- 	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	mx27_update_emma_buf(pcdev, phys, bufnum);
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index ace41f5..5ea4350 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -63,7 +63,7 @@
- 
- struct mx3_camera_buffer {
- 	/* common v4l buffer stuff -- must be first */
--	struct vb2_buffer			vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head			queue;
- 
- 	/* One descriptot per scatterlist (per frame) */
-@@ -133,7 +133,7 @@ static void csi_reg_write(struct mx3_camera_dev *mx3, u32 value, off_t reg)
- 	__raw_writel(value, mx3->base + reg);
- }
- 
--static struct mx3_camera_buffer *to_mx3_vb(struct vb2_buffer *vb)
-+static struct mx3_camera_buffer *to_mx3_vb(struct vb2_v4l2_buffer *vb)
- {
- 	return container_of(vb, struct mx3_camera_buffer, vb);
- }
-@@ -151,14 +151,14 @@ static void mx3_cam_dma_done(void *arg)
- 
- 	spin_lock(&mx3_cam->lock);
- 	if (mx3_cam->active) {
--		struct vb2_buffer *vb = &mx3_cam->active->vb;
-+		struct vb2_v4l2_buffer *vb = &mx3_cam->active->vb;
- 		struct mx3_camera_buffer *buf = to_mx3_vb(vb);
- 
- 		list_del_init(&buf->queue);
--		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
--		vb->v4l2_buf.field = mx3_cam->field;
--		vb->v4l2_buf.sequence = mx3_cam->sequence++;
--		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+		v4l2_get_timestamp(&vb->timestamp);
-+		vb->field = mx3_cam->field;
-+		vb->sequence = mx3_cam->sequence++;
-+		vb2_buffer_done(&vb->vb2_buf, VB2_BUF_STATE_DONE);
- 	}
- 
- 	if (list_empty(&mx3_cam->capture)) {
-@@ -257,10 +257,11 @@ static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
- 
- static void mx3_videobuf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
--	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-+	struct mx3_camera_buffer *buf = to_mx3_vb(vbuf);
- 	struct scatterlist *sg = &buf->sg;
- 	struct dma_async_tx_descriptor *txd;
- 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
-@@ -273,7 +274,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
- 
- 	if (vb2_plane_size(vb, 0) < new_size) {
- 		dev_err(icd->parent, "Buffer #%d too small (%lu < %zu)\n",
--			vb->v4l2_buf.index, vb2_plane_size(vb, 0), new_size);
-+			vbuf->vb2_buf.index, vb2_plane_size(vb, 0), new_size);
- 		goto error;
- 	}
- 
-@@ -357,10 +358,11 @@ error:
- 
- static void mx3_videobuf_release(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
--	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-+	struct mx3_camera_buffer *buf = to_mx3_vb(vbuf);
- 	struct dma_async_tx_descriptor *txd = buf->txd;
- 	unsigned long flags;
- 
-@@ -390,10 +392,11 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
- 
- static int mx3_videobuf_init(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
--	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-+	struct mx3_camera_buffer *buf = to_mx3_vb(vbuf);
- 
- 	if (!buf->txd) {
- 		/* This is for locking debugging only */
-@@ -424,7 +427,7 @@ static void mx3_stop_streaming(struct vb2_queue *q)
- 
- 	list_for_each_entry_safe(buf, tmp, &mx3_cam->capture, queue) {
- 		list_del_init(&buf->queue);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 71dd71c..1dcf4d1 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -478,7 +478,7 @@ struct rcar_vin_priv {
- 	struct soc_camera_host		ici;
- 	struct list_head		capture;
- #define MAX_BUFFER_NUM			3
--	struct vb2_buffer		*queue_buf[MAX_BUFFER_NUM];
-+	struct vb2_v4l2_buffer		*queue_buf[MAX_BUFFER_NUM];
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 	enum v4l2_field			field;
- 	unsigned int			pdata_flags;
-@@ -492,7 +492,7 @@ struct rcar_vin_priv {
- #define is_continuous_transfer(priv)	(priv->vb_count > MAX_BUFFER_NUM)
- 
- struct rcar_vin_buffer {
--	struct vb2_buffer		vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head		list;
- };
- 
-@@ -748,7 +748,7 @@ static int rcar_vin_hw_ready(struct rcar_vin_priv *priv)
- /* Moves a buffer from the queue to the HW slots */
- static int rcar_vin_fill_hw_slot(struct rcar_vin_priv *priv)
- {
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	dma_addr_t phys_addr_top;
- 	int slot;
- 
-@@ -760,10 +760,11 @@ static int rcar_vin_fill_hw_slot(struct rcar_vin_priv *priv)
- 	if (slot < 0)
- 		return 0;
- 
--	vb = &list_entry(priv->capture.next, struct rcar_vin_buffer, list)->vb;
--	list_del_init(to_buf_list(vb));
--	priv->queue_buf[slot] = vb;
--	phys_addr_top = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	vbuf = &list_entry(priv->capture.next,
-+			struct rcar_vin_buffer, list)->vb;
-+	list_del_init(to_buf_list(vbuf));
-+	priv->queue_buf[slot] = vbuf;
-+	phys_addr_top = vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
- 	iowrite32(phys_addr_top, priv->base + VNMB_REG(slot));
- 
- 	return 1;
-@@ -771,6 +772,7 @@ static int rcar_vin_fill_hw_slot(struct rcar_vin_priv *priv)
- 
- static void rcar_vin_videobuf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
-@@ -780,7 +782,7 @@ static void rcar_vin_videobuf_queue(struct vb2_buffer *vb)
- 
- 	if (vb2_plane_size(vb, 0) < size) {
- 		dev_err(icd->parent, "Buffer #%d too small (%lu < %lu)\n",
--			vb->v4l2_buf.index, vb2_plane_size(vb, 0), size);
-+			vb->index, vb2_plane_size(vb, 0), size);
- 		goto error;
- 	}
- 
-@@ -791,14 +793,14 @@ static void rcar_vin_videobuf_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irq(&priv->lock);
- 
--	list_add_tail(to_buf_list(vb), &priv->capture);
-+	list_add_tail(to_buf_list(vbuf), &priv->capture);
- 	rcar_vin_fill_hw_slot(priv);
- 
- 	/* If we weren't running, and have enough buffers, start capturing! */
- 	if (priv->state != RUNNING && rcar_vin_hw_ready(priv)) {
- 		if (rcar_vin_setup(priv)) {
- 			/* Submit error */
--			list_del_init(to_buf_list(vb));
-+			list_del_init(to_buf_list(vbuf));
- 			spin_unlock_irq(&priv->lock);
- 			goto error;
- 		}
-@@ -854,7 +856,7 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 
- 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
- 		if (priv->queue_buf[i]) {
--			vb2_buffer_done(priv->queue_buf[i],
-+			vb2_buffer_done(&priv->queue_buf[i]->vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 			priv->queue_buf[i] = NULL;
- 		}
-@@ -862,7 +864,7 @@ static void rcar_vin_stop_streaming(struct vb2_queue *vq)
- 
- 	list_for_each_safe(buf_head, tmp, &priv->capture) {
- 		vb2_buffer_done(&list_entry(buf_head,
--					struct rcar_vin_buffer, list)->vb,
-+				struct rcar_vin_buffer, list)->vb.vb2_buf,
- 				VB2_BUF_STATE_ERROR);
- 		list_del_init(buf_head);
- 	}
-@@ -907,10 +909,11 @@ static irqreturn_t rcar_vin_irq(int irq, void *data)
- 		else
- 			slot = 0;
- 
--		priv->queue_buf[slot]->v4l2_buf.field = priv->field;
--		priv->queue_buf[slot]->v4l2_buf.sequence = priv->sequence++;
--		v4l2_get_timestamp(&priv->queue_buf[slot]->v4l2_buf.timestamp);
--		vb2_buffer_done(priv->queue_buf[slot], VB2_BUF_STATE_DONE);
-+		priv->queue_buf[slot]->field = priv->field;
-+		priv->queue_buf[slot]->sequence = priv->sequence++;
-+		v4l2_get_timestamp(&priv->queue_buf[slot]->timestamp);
-+		vb2_buffer_done(&priv->queue_buf[slot]->vb2_buf,
-+				VB2_BUF_STATE_DONE);
- 		priv->queue_buf[slot] = NULL;
- 
- 		if (priv->state != STOPPING)
-@@ -964,7 +967,7 @@ static void rcar_vin_remove_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	int i;
- 
- 	/* disable capture, disable interrupts */
-@@ -978,10 +981,10 @@ static void rcar_vin_remove_device(struct soc_camera_device *icd)
- 	/* make sure active buffer is cancelled */
- 	spin_lock_irq(&priv->lock);
- 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
--		vb = priv->queue_buf[i];
--		if (vb) {
--			list_del_init(to_buf_list(vb));
--			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+		vbuf = priv->queue_buf[i];
-+		if (vbuf) {
-+			list_del_init(to_buf_list(vbuf));
-+			vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_ERROR);
- 		}
- 	}
- 	spin_unlock_irq(&priv->lock);
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index efdeea4..1719942 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -93,7 +93,7 @@
- 
- /* per video frame buffer */
- struct sh_mobile_ceu_buffer {
--	struct vb2_buffer vb; /* v4l buffer must be first */
-+	struct vb2_v4l2_buffer vb; /* v4l buffer must be first */
- 	struct list_head queue;
- };
- 
-@@ -112,7 +112,7 @@ struct sh_mobile_ceu_dev {
- 
- 	spinlock_t lock;		/* Protects video buffer lists */
- 	struct list_head capture;
--	struct vb2_buffer *active;
-+	struct vb2_v4l2_buffer *active;
- 	struct vb2_alloc_ctx *alloc_ctx;
- 
- 	struct sh_mobile_ceu_info *pdata;
-@@ -152,9 +152,9 @@ struct sh_mobile_ceu_cam {
- 	u32 code;
- };
- 
--static struct sh_mobile_ceu_buffer *to_ceu_vb(struct vb2_buffer *vb)
-+static struct sh_mobile_ceu_buffer *to_ceu_vb(struct vb2_v4l2_buffer *vbuf)
- {
--	return container_of(vb, struct sh_mobile_ceu_buffer, vb);
-+	return container_of(vbuf, struct sh_mobile_ceu_buffer, vb);
- }
- 
- static void ceu_write(struct sh_mobile_ceu_dev *priv,
-@@ -334,7 +334,8 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- 		bottom2	= CDBCR;
- 	}
- 
--	phys_addr_top = vb2_dma_contig_plane_dma_addr(pcdev->active, 0);
-+	phys_addr_top =
-+		vb2_dma_contig_plane_dma_addr(&pcdev->active->vb2_buf, 0);
- 
- 	switch (icd->current_fmt->host_fmt->fourcc) {
- 	case V4L2_PIX_FMT_NV12:
-@@ -369,7 +370,8 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- 
- static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
- {
--	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vbuf);
- 
- 	/* Added list head initialization on alloc */
- 	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
-@@ -379,17 +381,19 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
- 
- static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
- {
--	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct soc_camera_device *icd = container_of(vb->vb2_queue,
-+			struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-+	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vbuf);
- 	unsigned long size;
- 
- 	size = icd->sizeimage;
- 
- 	if (vb2_plane_size(vb, 0) < size) {
- 		dev_err(icd->parent, "Buffer #%d too small (%lu < %lu)\n",
--			vb->v4l2_buf.index, vb2_plane_size(vb, 0), size);
-+			vb->index, vb2_plane_size(vb, 0), size);
- 		goto error;
- 	}
- 
-@@ -416,7 +420,7 @@ static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
- 		 * we are not interested in the return value of
- 		 * sh_mobile_ceu_capture here.
- 		 */
--		pcdev->active = vb;
-+		pcdev->active = vbuf;
- 		sh_mobile_ceu_capture(pcdev);
- 	}
- 	spin_unlock_irq(&pcdev->lock);
-@@ -429,14 +433,16 @@ error:
- 
- static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- {
--	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct soc_camera_device *icd = container_of(vb->vb2_queue,
-+			struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-+	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vbuf);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 
- 	spin_lock_irq(&pcdev->lock);
- 
--	if (pcdev->active == vb) {
-+	if (pcdev->active == vbuf) {
- 		/* disable capture (release DMA buffer), reset */
- 		ceu_write(pcdev, CAPSR, 1 << 16);
- 		pcdev->active = NULL;
-@@ -458,7 +464,9 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- 
- static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
- {
--	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct soc_camera_device *icd = container_of(vb->vb2_queue,
-+			struct soc_camera_device, vb2_vidq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 
-@@ -467,7 +475,7 @@ static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
- 		pcdev->buf_total);
- 
- 	/* This is for locking debugging only */
--	INIT_LIST_HEAD(&to_ceu_vb(vb)->queue);
-+	INIT_LIST_HEAD(&to_ceu_vb(vbuf)->queue);
- 	return 0;
- }
- 
-@@ -504,17 +512,17 @@ static struct vb2_ops sh_mobile_ceu_videobuf_ops = {
- static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- {
- 	struct sh_mobile_ceu_dev *pcdev = data;
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	int ret;
- 
- 	spin_lock(&pcdev->lock);
- 
--	vb = pcdev->active;
--	if (!vb)
-+	vbuf = pcdev->active;
-+	if (!vbuf)
- 		/* Stale interrupt from a released buffer */
- 		goto out;
- 
--	list_del_init(&to_ceu_vb(vb)->queue);
-+	list_del_init(&to_ceu_vb(vbuf)->queue);
- 
- 	if (!list_empty(&pcdev->capture))
- 		pcdev->active = &list_entry(pcdev->capture.next,
-@@ -523,12 +531,13 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- 		pcdev->active = NULL;
- 
- 	ret = sh_mobile_ceu_capture(pcdev);
--	v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
-+	v4l2_get_timestamp(&vbuf->timestamp);
- 	if (!ret) {
--		vb->v4l2_buf.field = pcdev->field;
--		vb->v4l2_buf.sequence = pcdev->sequence++;
-+		vbuf->field = pcdev->field;
-+		vbuf->sequence = pcdev->sequence++;
- 	}
--	vb2_buffer_done(vb, ret < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-+	vb2_buffer_done(&vbuf->vb2_buf,
-+			ret < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- out:
- 	spin_unlock(&pcdev->lock);
-@@ -633,7 +642,7 @@ static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
- 	spin_lock_irq(&pcdev->lock);
- 	if (pcdev->active) {
- 		list_del_init(&to_ceu_vb(pcdev->active)->queue);
--		vb2_buffer_done(pcdev->active, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&pcdev->active->vb2_buf, VB2_BUF_STATE_ERROR);
- 		pcdev->active = NULL;
- 	}
- 	spin_unlock_irq(&pcdev->lock);
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-index df61355..62b9842 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-@@ -180,7 +180,7 @@ static struct bdisp_frame *ctx_get_frame(struct bdisp_ctx *ctx,
- 
- static void bdisp_job_finish(struct bdisp_ctx *ctx, int vb_state)
- {
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 
- 	if (WARN(!ctx || !ctx->fh.m2m_ctx, "Null hardware context\n"))
- 		return;
-@@ -191,10 +191,10 @@ static void bdisp_job_finish(struct bdisp_ctx *ctx, int vb_state)
- 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 
- 	if (src_vb && dst_vb) {
--		dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
--		dst_vb->v4l2_buf.timecode = src_vb->v4l2_buf.timecode;
--		dst_vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--		dst_vb->v4l2_buf.flags |= src_vb->v4l2_buf.flags &
-+		dst_vb->timestamp = src_vb->timestamp;
-+		dst_vb->timecode = src_vb->timecode;
-+		dst_vb->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		dst_vb->flags |= src_vb->flags &
- 					  V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 
- 		v4l2_m2m_buf_done(src_vb, vb_state);
-@@ -281,23 +281,23 @@ static int bdisp_get_addr(struct bdisp_ctx *ctx, struct vb2_buffer *vb,
- static int bdisp_get_bufs(struct bdisp_ctx *ctx)
- {
- 	struct bdisp_frame *src, *dst;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	int ret;
- 
- 	src = &ctx->src;
- 	dst = &ctx->dst;
- 
- 	src_vb = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
--	ret = bdisp_get_addr(ctx, src_vb, src, src->paddr);
-+	ret = bdisp_get_addr(ctx, &src_vb->vb2_buf, src, src->paddr);
- 	if (ret)
- 		return ret;
- 
- 	dst_vb = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
--	ret = bdisp_get_addr(ctx, dst_vb, dst, dst->paddr);
-+	ret = bdisp_get_addr(ctx, &dst_vb->vb2_buf, dst, dst->paddr);
- 	if (ret)
- 		return ret;
- 
--	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+	dst_vb->timestamp = src_vb->timestamp;
- 
- 	return 0;
- }
-@@ -483,6 +483,7 @@ static int bdisp_buf_prepare(struct vb2_buffer *vb)
- 
- static void bdisp_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct bdisp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
- 	/* return to V4L2 any 0-size buffer so it can be dequeued by user */
-@@ -493,13 +494,13 @@ static void bdisp_buf_queue(struct vb2_buffer *vb)
- 	}
- 
- 	if (ctx->fh.m2m_ctx)
--		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+		v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static int bdisp_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct bdisp_ctx *ctx = q->drv_priv;
--	struct vb2_buffer *buf;
-+	struct vb2_v4l2_buffer *buf;
- 	int ret = pm_runtime_get_sync(ctx->bdisp_dev->dev);
- 
- 	if (ret < 0) {
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index d82c2f2..4902453 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -384,8 +384,8 @@ struct vpe_ctx {
- 	unsigned int		bufs_completed;		/* bufs done in this batch */
- 
- 	struct vpe_q_data	q_data[2];		/* src & dst queue data */
--	struct vb2_buffer	*src_vbs[VPE_MAX_SRC_BUFS];
--	struct vb2_buffer	*dst_vb;
-+	struct vb2_v4l2_buffer	*src_vbs[VPE_MAX_SRC_BUFS];
-+	struct vb2_v4l2_buffer	*dst_vb;
- 
- 	dma_addr_t		mv_buf_dma[2];		/* dma addrs of motion vector in/out bufs */
- 	void			*mv_buf[2];		/* virtual addrs of motion vector bufs */
-@@ -988,7 +988,7 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
- {
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_DST];
- 	const struct vpe_port_data *p_data = &port_data[port];
--	struct vb2_buffer *vb = ctx->dst_vb;
-+	struct vb2_buffer *vb = &ctx->dst_vb->vb2_buf;
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = !ctx->src_mv_buf_selector;
-@@ -1025,11 +1025,12 @@ static void add_in_dtd(struct vpe_ctx *ctx, int port)
- {
- 	struct vpe_q_data *q_data = &ctx->q_data[Q_DATA_SRC];
- 	const struct vpe_port_data *p_data = &port_data[port];
--	struct vb2_buffer *vb = ctx->src_vbs[p_data->vb_index];
-+	struct vb2_buffer *vb = &ctx->src_vbs[p_data->vb_index]->vb2_buf;
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vpe_fmt *fmt = q_data->fmt;
- 	const struct vpdma_data_format *vpdma_fmt;
- 	int mv_buf_selector = ctx->src_mv_buf_selector;
--	int field = vb->v4l2_buf.field == V4L2_FIELD_BOTTOM;
-+	int field = vbuf->field == V4L2_FIELD_BOTTOM;
- 	int frame_width, frame_height;
- 	dma_addr_t dma_addr;
- 	u32 flags = 0;
-@@ -1222,8 +1223,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	struct vpe_dev *dev = (struct vpe_dev *)data;
- 	struct vpe_ctx *ctx;
- 	struct vpe_q_data *d_q_data;
--	struct vb2_buffer *s_vb, *d_vb;
--	struct v4l2_buffer *s_buf, *d_buf;
-+	struct vb2_v4l2_buffer *s_vb, *d_vb;
- 	unsigned long flags;
- 	u32 irqst0, irqst1;
- 
-@@ -1286,20 +1286,18 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 
- 	s_vb = ctx->src_vbs[0];
- 	d_vb = ctx->dst_vb;
--	s_buf = &s_vb->v4l2_buf;
--	d_buf = &d_vb->v4l2_buf;
- 
--	d_buf->flags = s_buf->flags;
-+	d_vb->flags = s_vb->flags;
-+	d_vb->timestamp = s_vb->timestamp;
- 
--	d_buf->timestamp = s_buf->timestamp;
--	if (s_buf->flags & V4L2_BUF_FLAG_TIMECODE)
--		d_buf->timecode = s_buf->timecode;
-+	if (s_vb->flags & V4L2_BUF_FLAG_TIMECODE)
-+		d_vb->timecode = s_vb->timecode;
- 
--	d_buf->sequence = ctx->sequence;
-+	d_vb->sequence = ctx->sequence;
- 
- 	d_q_data = &ctx->q_data[Q_DATA_DST];
- 	if (d_q_data->flags & Q_DATA_INTERLACED) {
--		d_buf->field = ctx->field;
-+		d_vb->field = ctx->field;
- 		if (ctx->field == V4L2_FIELD_BOTTOM) {
- 			ctx->sequence++;
- 			ctx->field = V4L2_FIELD_TOP;
-@@ -1308,7 +1306,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 			ctx->field = V4L2_FIELD_BOTTOM;
- 		}
- 	} else {
--		d_buf->field = V4L2_FIELD_NONE;
-+		d_vb->field = V4L2_FIELD_NONE;
- 		ctx->sequence++;
- 	}
- 
-@@ -1825,6 +1823,7 @@ static int vpe_queue_setup(struct vb2_queue *vq,
- 
- static int vpe_buf_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vpe_q_data *q_data;
- 	int i, num_planes;
-@@ -1836,10 +1835,10 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
- 
- 	if (vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		if (!(q_data->flags & Q_DATA_INTERLACED)) {
--			vb->v4l2_buf.field = V4L2_FIELD_NONE;
-+			vbuf->field = V4L2_FIELD_NONE;
- 		} else {
--			if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
--					vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
-+			if (vbuf->field != V4L2_FIELD_TOP &&
-+					vbuf->field != V4L2_FIELD_BOTTOM)
- 				return -EINVAL;
- 		}
- 	}
-@@ -1862,9 +1861,10 @@ static int vpe_buf_prepare(struct vb2_buffer *vb)
- 
- static void vpe_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vpe_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
--	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static int vpe_start_streaming(struct vb2_queue *q, unsigned int count)
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index 295fde5..f2d38b9 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -197,8 +197,8 @@ static struct vim2m_q_data *get_q_data(struct vim2m_ctx *ctx,
- 
- 
- static int device_process(struct vim2m_ctx *ctx,
--			  struct vb2_buffer *in_vb,
--			  struct vb2_buffer *out_vb)
-+			  struct vb2_v4l2_buffer *in_vb,
-+			  struct vb2_v4l2_buffer *out_vb)
- {
- 	struct vim2m_dev *dev = ctx->dev;
- 	struct vim2m_q_data *q_data;
-@@ -213,15 +213,16 @@ static int device_process(struct vim2m_ctx *ctx,
- 	height	= q_data->height;
- 	bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
- 
--	p_in = vb2_plane_vaddr(in_vb, 0);
--	p_out = vb2_plane_vaddr(out_vb, 0);
-+	p_in = vb2_plane_vaddr(&in_vb->vb2_buf, 0);
-+	p_out = vb2_plane_vaddr(&out_vb->vb2_buf, 0);
- 	if (!p_in || !p_out) {
- 		v4l2_err(&dev->v4l2_dev,
- 			 "Acquiring kernel pointers to buffers failed\n");
- 		return -EFAULT;
- 	}
- 
--	if (vb2_plane_size(in_vb, 0) > vb2_plane_size(out_vb, 0)) {
-+	if (vb2_plane_size(&in_vb->vb2_buf, 0) >
-+			vb2_plane_size(&out_vb->vb2_buf, 0)) {
- 		v4l2_err(&dev->v4l2_dev, "Output buffer is too small\n");
- 		return -EINVAL;
- 	}
-@@ -231,16 +232,17 @@ static int device_process(struct vim2m_ctx *ctx,
- 	bytes_left = bytesperline - tile_w * MEM2MEM_NUM_TILES;
- 	w = 0;
- 
--	out_vb->v4l2_buf.sequence = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
--	in_vb->v4l2_buf.sequence = q_data->sequence++;
--	memcpy(&out_vb->v4l2_buf.timestamp,
--			&in_vb->v4l2_buf.timestamp,
-+	out_vb->sequence =
-+		get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE)->sequence++;
-+	in_vb->sequence = q_data->sequence++;
-+	memcpy(&out_vb->timestamp,
-+			&in_vb->timestamp,
- 			sizeof(struct timeval));
--	if (in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
--		memcpy(&out_vb->v4l2_buf.timecode, &in_vb->v4l2_buf.timecode,
-+	if (in_vb->flags & V4L2_BUF_FLAG_TIMECODE)
-+		memcpy(&out_vb->timecode, &in_vb->timecode,
- 			sizeof(struct v4l2_timecode));
--	out_vb->v4l2_buf.field = in_vb->v4l2_buf.field;
--	out_vb->v4l2_buf.flags = in_vb->v4l2_buf.flags &
-+	out_vb->field = in_vb->field;
-+	out_vb->flags = in_vb->flags &
- 		(V4L2_BUF_FLAG_TIMECODE |
- 		 V4L2_BUF_FLAG_KEYFRAME |
- 		 V4L2_BUF_FLAG_PFRAME |
-@@ -374,7 +376,7 @@ static void device_run(void *priv)
- {
- 	struct vim2m_ctx *ctx = priv;
- 	struct vim2m_dev *dev = ctx->dev;
--	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *src_buf, *dst_buf;
- 
- 	src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
- 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
-@@ -389,7 +391,7 @@ static void device_isr(unsigned long priv)
- {
- 	struct vim2m_dev *vim2m_dev = (struct vim2m_dev *)priv;
- 	struct vim2m_ctx *curr_ctx;
--	struct vb2_buffer *src_vb, *dst_vb;
-+	struct vb2_v4l2_buffer *src_vb, *dst_vb;
- 	unsigned long flags;
- 
- 	curr_ctx = v4l2_m2m_get_curr_priv(vim2m_dev->m2m_dev);
-@@ -747,6 +749,7 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
- 
- static int vim2m_buf_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vim2m_q_data *q_data;
- 
-@@ -754,9 +757,9 @@ static int vim2m_buf_prepare(struct vb2_buffer *vb)
- 
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
- 	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
--		if (vb->v4l2_buf.field == V4L2_FIELD_ANY)
--			vb->v4l2_buf.field = V4L2_FIELD_NONE;
--		if (vb->v4l2_buf.field != V4L2_FIELD_NONE) {
-+		if (vbuf->field == V4L2_FIELD_ANY)
-+			vbuf->field = V4L2_FIELD_NONE;
-+		if (vbuf->field != V4L2_FIELD_NONE) {
- 			dprintk(ctx->dev, "%s field isn't supported\n",
- 					__func__);
- 			return -EINVAL;
-@@ -776,9 +779,10 @@ static int vim2m_buf_prepare(struct vb2_buffer *vb)
- 
- static void vim2m_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
- 
--	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vb);
-+	v4l2_m2m_buf_queue(ctx->fh.m2m_ctx, vbuf);
- }
- 
- static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
-@@ -793,18 +797,18 @@ static int vim2m_start_streaming(struct vb2_queue *q, unsigned count)
- static void vim2m_stop_streaming(struct vb2_queue *q)
- {
- 	struct vim2m_ctx *ctx = vb2_get_drv_priv(q);
--	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 	unsigned long flags;
- 
- 	for (;;) {
- 		if (V4L2_TYPE_IS_OUTPUT(q->type))
--			vb = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+			vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
- 		else
--			vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
--		if (vb == NULL)
-+			vbuf = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+		if (vbuf == NULL)
- 			return;
- 		spin_lock_irqsave(&ctx->dev->irqlock, flags);
--		v4l2_m2m_buf_done(vb, VB2_BUF_STATE_ERROR);
-+		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_ERROR);
- 		spin_unlock_irqrestore(&ctx->dev->irqlock, flags);
- 	}
- }
-diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
-index 5f1b1da..b039103 100644
---- a/drivers/media/platform/vivid/vivid-core.h
-+++ b/drivers/media/platform/vivid/vivid-core.h
-@@ -93,7 +93,7 @@ extern struct vivid_fmt vivid_formats[];
- /* buffer for one video frame */
- struct vivid_buffer {
- 	/* common v4l buffer stuff -- must be first */
--	struct vb2_buffer	vb;
-+	struct vb2_v4l2_buffer vb;
- 	struct list_head	list;
- };
- 
-diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-index 1727f54..83cc6d3 100644
---- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-@@ -236,8 +236,8 @@ static void *plane_vaddr(struct tpg_data *tpg, struct vivid_buffer *buf,
- 	void *vbuf;
- 
- 	if (p == 0 || tpg_g_buffers(tpg) > 1)
--		return vb2_plane_vaddr(&buf->vb, p);
--	vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+		return vb2_plane_vaddr(&buf->vb.vb2_buf, p);
-+	vbuf = vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 	for (i = 0; i < p; i++)
- 		vbuf += bpl[i] * h / tpg->vdownsampling[i];
- 	return vbuf;
-@@ -246,7 +246,7 @@ static void *plane_vaddr(struct tpg_data *tpg, struct vivid_buffer *buf,
- static int vivid_copy_buffer(struct vivid_dev *dev, unsigned p, u8 *vcapbuf,
- 		struct vivid_buffer *vid_cap_buf)
- {
--	bool blank = dev->must_blank[vid_cap_buf->vb.v4l2_buf.index];
-+	bool blank = dev->must_blank[vid_cap_buf->vb.vb2_buf.index];
- 	struct tpg_data *tpg = &dev->tpg;
- 	struct vivid_buffer *vid_out_buf = NULL;
- 	unsigned vdiv = dev->fmt_out->vdownsampling[p];
-@@ -283,12 +283,12 @@ static int vivid_copy_buffer(struct vivid_dev *dev, unsigned p, u8 *vcapbuf,
- 	if (vid_out_buf == NULL)
- 		return -ENODATA;
- 
--	vid_cap_buf->vb.v4l2_buf.field = vid_out_buf->vb.v4l2_buf.field;
-+	vid_cap_buf->vb.field = vid_out_buf->vb.field;
- 
- 	voutbuf = plane_vaddr(tpg, vid_out_buf, p,
- 			      dev->bytesperline_out, dev->fmt_out_rect.height);
- 	if (p < dev->fmt_out->buffers)
--		voutbuf += vid_out_buf->vb.v4l2_planes[p].data_offset;
-+		voutbuf += vid_out_buf->vb.vb2_buf.planes[p].data_offset;
- 	voutbuf += tpg_hdiv(tpg, p, dev->loop_vid_out.left) +
- 		(dev->loop_vid_out.top / vdiv) * stride_out;
- 	vcapbuf += tpg_hdiv(tpg, p, dev->compose_cap.left) +
-@@ -429,17 +429,19 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 	bool is_loop = false;
- 
- 	if (dev->loop_video && dev->can_loop_video &&
--	    ((vivid_is_svid_cap(dev) && !VIVID_INVALID_SIGNAL(dev->std_signal_mode)) ||
--	     (vivid_is_hdmi_cap(dev) && !VIVID_INVALID_SIGNAL(dev->dv_timings_signal_mode))))
-+		((vivid_is_svid_cap(dev) &&
-+		!VIVID_INVALID_SIGNAL(dev->std_signal_mode)) ||
-+		(vivid_is_hdmi_cap(dev) &&
-+		!VIVID_INVALID_SIGNAL(dev->dv_timings_signal_mode))))
- 		is_loop = true;
- 
--	buf->vb.v4l2_buf.sequence = dev->vid_cap_seq_count;
-+	buf->vb.sequence = dev->vid_cap_seq_count;
- 	/*
- 	 * Take the timestamp now if the timestamp source is set to
- 	 * "Start of Exposure".
- 	 */
- 	if (dev->tstamp_src_is_soe)
--		v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
-+		v4l2_get_timestamp(&buf->vb.timestamp);
- 	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
- 		/*
- 		 * 60 Hz standards start with the bottom field, 50 Hz standards
-@@ -447,19 +449,19 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		 * then the field is TOP for 50 Hz and BOTTOM for 60 Hz
- 		 * standards.
- 		 */
--		buf->vb.v4l2_buf.field = ((dev->vid_cap_seq_count & 1) ^ is_60hz) ?
-+		buf->vb.field = ((dev->vid_cap_seq_count & 1) ^ is_60hz) ?
- 			V4L2_FIELD_BOTTOM : V4L2_FIELD_TOP;
- 		/*
- 		 * The sequence counter counts frames, not fields. So divide
- 		 * by two.
- 		 */
--		buf->vb.v4l2_buf.sequence /= 2;
-+		buf->vb.sequence /= 2;
- 	} else {
--		buf->vb.v4l2_buf.field = dev->field_cap;
-+		buf->vb.field = dev->field_cap;
- 	}
--	tpg_s_field(tpg, buf->vb.v4l2_buf.field,
-+	tpg_s_field(tpg, buf->vb.field,
- 		    dev->field_cap == V4L2_FIELD_ALTERNATE);
--	tpg_s_perc_fill_blank(tpg, dev->must_blank[buf->vb.v4l2_buf.index]);
-+	tpg_s_perc_fill_blank(tpg, dev->must_blank[buf->vb.vb2_buf.index]);
- 
- 	vivid_precalc_copy_rects(dev);
- 
-@@ -479,13 +481,16 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		}
- 		tpg_calc_text_basep(tpg, basep, p, vbuf);
- 		if (!is_loop || vivid_copy_buffer(dev, p, vbuf, buf))
--			tpg_fill_plane_buffer(tpg, vivid_get_std_cap(dev), p, vbuf);
-+			tpg_fill_plane_buffer(tpg, vivid_get_std_cap(dev),
-+					p, vbuf);
- 	}
--	dev->must_blank[buf->vb.v4l2_buf.index] = false;
-+	dev->must_blank[buf->vb.vb2_buf.index] = false;
- 
- 	/* Updates stream time, only update at the start of a new frame. */
--	if (dev->field_cap != V4L2_FIELD_ALTERNATE || (buf->vb.v4l2_buf.sequence & 1) == 0)
--		dev->ms_vid_cap = jiffies_to_msecs(jiffies - dev->jiffies_vid_cap);
-+	if (dev->field_cap != V4L2_FIELD_ALTERNATE ||
-+			(buf->vb.sequence & 1) == 0)
-+		dev->ms_vid_cap =
-+			jiffies_to_msecs(jiffies - dev->jiffies_vid_cap);
- 
- 	ms = dev->ms_vid_cap;
- 	if (dev->osd_mode <= 1) {
-@@ -494,9 +499,9 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 				(ms / (60 * 1000)) % 60,
- 				(ms / 1000) % 60,
- 				ms % 1000,
--				buf->vb.v4l2_buf.sequence,
-+				buf->vb.sequence,
- 				(dev->field_cap == V4L2_FIELD_ALTERNATE) ?
--					(buf->vb.v4l2_buf.field == V4L2_FIELD_TOP ?
-+					(buf->vb.field == V4L2_FIELD_TOP ?
- 					 " top" : " bottom") : "");
- 		tpg_gen_text(tpg, basep, line++ * line_height, 16, str);
- 	}
-@@ -553,8 +558,8 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
- 	 * the timestamp now.
- 	 */
- 	if (!dev->tstamp_src_is_soe)
--		v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
--	buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
-+		v4l2_get_timestamp(&buf->vb.timestamp);
-+	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
- }
- 
- /*
-@@ -600,7 +605,7 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
- 	struct tpg_data *tpg = &dev->tpg;
- 	unsigned pixsize = tpg_g_twopixelsize(tpg, 0) / 2;
- 	void *vbase = dev->fb_vbase_cap;
--	void *vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+	void *vbuf = vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 	unsigned img_width = dev->compose_cap.width;
- 	unsigned img_height = dev->compose_cap.height;
- 	unsigned stride = tpg->bytesperline[0];
-@@ -616,7 +621,7 @@ static void vivid_overlay(struct vivid_dev *dev, struct vivid_buffer *buf)
- 		return;
- 	if ((dev->overlay_cap_field == V4L2_FIELD_TOP ||
- 	     dev->overlay_cap_field == V4L2_FIELD_BOTTOM) &&
--	    dev->overlay_cap_field != buf->vb.v4l2_buf.field)
-+	    dev->overlay_cap_field != buf->vb.field)
- 		return;
- 
- 	vbuf += dev->compose_cap.left * pixsize + dev->compose_cap.top * stride;
-@@ -699,17 +704,17 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 		/* Fill buffer */
- 		vivid_fillbuff(dev, vid_cap_buf);
- 		dprintk(dev, 1, "filled buffer %d\n",
--			vid_cap_buf->vb.v4l2_buf.index);
-+			vid_cap_buf->vb.vb2_buf.index);
- 
- 		/* Handle overlay */
- 		if (dev->overlay_cap_owner && dev->fb_cap.base &&
--				dev->fb_cap.fmt.pixelformat == dev->fmt_cap->fourcc)
-+			dev->fb_cap.fmt.pixelformat == dev->fmt_cap->fourcc)
- 			vivid_overlay(dev, vid_cap_buf);
- 
--		vb2_buffer_done(&vid_cap_buf->vb, dev->dqbuf_error ?
-+		vb2_buffer_done(&vid_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vid_cap buffer %d done\n",
--				vid_cap_buf->vb.v4l2_buf.index);
-+				vid_cap_buf->vb.vb2_buf.index);
- 	}
- 
- 	if (vbi_cap_buf) {
-@@ -717,10 +722,10 @@ static void vivid_thread_vid_cap_tick(struct vivid_dev *dev, int dropped_bufs)
- 			vivid_sliced_vbi_cap_process(dev, vbi_cap_buf);
- 		else
- 			vivid_raw_vbi_cap_process(dev, vbi_cap_buf);
--		vb2_buffer_done(&vbi_cap_buf->vb, dev->dqbuf_error ?
-+		vb2_buffer_done(&vbi_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vbi_cap %d done\n",
--				vbi_cap_buf->vb.v4l2_buf.index);
-+				vbi_cap_buf->vb.vb2_buf.index);
- 	}
- 	dev->dqbuf_error = false;
- 
-@@ -884,9 +889,9 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
- 			buf = list_entry(dev->vid_cap_active.next,
- 					 struct vivid_buffer, list);
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 			dprintk(dev, 2, "vid_cap buffer %d done\n",
--				buf->vb.v4l2_buf.index);
-+				buf->vb.vb2_buf.index);
- 		}
- 	}
- 
-@@ -897,9 +902,9 @@ void vivid_stop_generating_vid_cap(struct vivid_dev *dev, bool *pstreaming)
- 			buf = list_entry(dev->vbi_cap_active.next,
- 					 struct vivid_buffer, list);
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 			dprintk(dev, 2, "vbi_cap buffer %d done\n",
--				buf->vb.v4l2_buf.index);
-+				buf->vb.vb2_buf.index);
- 		}
- 	}
- 
-diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-index d9f36cc..c2c46dc 100644
---- a/drivers/media/platform/vivid/vivid-kthread-out.c
-+++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-@@ -87,33 +87,33 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
- 		return;
- 
- 	if (vid_out_buf) {
--		vid_out_buf->vb.v4l2_buf.sequence = dev->vid_out_seq_count;
-+		vid_out_buf->vb.sequence = dev->vid_out_seq_count;
- 		if (dev->field_out == V4L2_FIELD_ALTERNATE) {
- 			/*
--			 * The sequence counter counts frames, not fields. So divide
--			 * by two.
-+			 * The sequence counter counts frames, not fields.
-+			 * So divide by two.
- 			 */
--			vid_out_buf->vb.v4l2_buf.sequence /= 2;
-+			vid_out_buf->vb.sequence /= 2;
- 		}
--		v4l2_get_timestamp(&vid_out_buf->vb.v4l2_buf.timestamp);
--		vid_out_buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
--		vb2_buffer_done(&vid_out_buf->vb, dev->dqbuf_error ?
-+		v4l2_get_timestamp(&vid_out_buf->vb.timestamp);
-+		vid_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-+		vb2_buffer_done(&vid_out_buf->vb.vb2_buf, dev->dqbuf_error ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vid_out buffer %d done\n",
--			vid_out_buf->vb.v4l2_buf.index);
-+			vid_out_buf->vb.vb2_buf.index);
- 	}
- 
- 	if (vbi_out_buf) {
- 		if (dev->stream_sliced_vbi_out)
- 			vivid_sliced_vbi_out_process(dev, vbi_out_buf);
- 
--		vbi_out_buf->vb.v4l2_buf.sequence = dev->vbi_out_seq_count;
--		v4l2_get_timestamp(&vbi_out_buf->vb.v4l2_buf.timestamp);
--		vbi_out_buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
--		vb2_buffer_done(&vbi_out_buf->vb, dev->dqbuf_error ?
-+		vbi_out_buf->vb.sequence = dev->vbi_out_seq_count;
-+		v4l2_get_timestamp(&vbi_out_buf->vb.timestamp);
-+		vbi_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-+		vb2_buffer_done(&vbi_out_buf->vb.vb2_buf, dev->dqbuf_error ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dprintk(dev, 2, "vbi_out buffer %d done\n",
--			vbi_out_buf->vb.v4l2_buf.index);
-+			vbi_out_buf->vb.vb2_buf.index);
- 	}
- 	dev->dqbuf_error = false;
- }
-@@ -274,9 +274,9 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
- 			buf = list_entry(dev->vid_out_active.next,
- 					 struct vivid_buffer, list);
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 			dprintk(dev, 2, "vid_out buffer %d done\n",
--				buf->vb.v4l2_buf.index);
-+				buf->vb.vb2_buf.index);
- 		}
- 	}
- 
-@@ -287,9 +287,9 @@ void vivid_stop_generating_vid_out(struct vivid_dev *dev, bool *pstreaming)
- 			buf = list_entry(dev->vbi_out_active.next,
- 					 struct vivid_buffer, list);
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 			dprintk(dev, 2, "vbi_out buffer %d done\n",
--				buf->vb.v4l2_buf.index);
-+				buf->vb.vb2_buf.index);
- 		}
- 	}
- 
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index d2f2188..bdc9f33 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -114,11 +114,11 @@ static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
- 	spin_unlock(&dev->slock);
- 
- 	if (sdr_cap_buf) {
--		sdr_cap_buf->vb.v4l2_buf.sequence = dev->sdr_cap_seq_count;
-+		sdr_cap_buf->vb.sequence = dev->sdr_cap_seq_count;
- 		vivid_sdr_cap_process(dev, sdr_cap_buf);
--		v4l2_get_timestamp(&sdr_cap_buf->vb.v4l2_buf.timestamp);
--		sdr_cap_buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
--		vb2_buffer_done(&sdr_cap_buf->vb, dev->dqbuf_error ?
-+		v4l2_get_timestamp(&sdr_cap_buf->vb.timestamp);
-+		sdr_cap_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-+		vb2_buffer_done(&sdr_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
- 				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 		dev->dqbuf_error = false;
- 	}
-@@ -161,7 +161,8 @@ static int vivid_thread_sdr_cap(void *data)
- 		/* Calculate the number of jiffies since we started streaming */
- 		jiffies_since_start = cur_jiffies - dev->jiffies_sdr_cap;
- 		/* Get the number of buffers streamed since the start */
--		buffers_since_start = (u64)jiffies_since_start * dev->sdr_adc_freq +
-+		buffers_since_start =
-+			(u64)jiffies_since_start * dev->sdr_adc_freq +
- 				      (HZ * SDR_CAP_SAMPLES_PER_BUF) / 2;
- 		do_div(buffers_since_start, HZ * SDR_CAP_SAMPLES_PER_BUF);
- 
-@@ -176,7 +177,8 @@ static int vivid_thread_sdr_cap(void *data)
- 			dev->sdr_cap_seq_offset = buffers_since_start;
- 			buffers_since_start = 0;
- 		}
--		dev->sdr_cap_seq_count = buffers_since_start + dev->sdr_cap_seq_offset;
-+		dev->sdr_cap_seq_count =
-+			buffers_since_start + dev->sdr_cap_seq_offset;
- 
- 		vivid_thread_sdr_cap_tick(dev);
- 		mutex_unlock(&dev->mutex);
-@@ -247,8 +249,9 @@ static int sdr_cap_buf_prepare(struct vb2_buffer *vb)
- 
- static void sdr_cap_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+	struct vivid_buffer *buf = container_of(vbuf, struct vivid_buffer, vb);
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
-@@ -282,7 +285,8 @@ static int sdr_cap_start_streaming(struct vb2_queue *vq, unsigned count)
- 
- 		list_for_each_entry_safe(buf, tmp, &dev->sdr_cap_active, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 	}
- 	return err;
-@@ -299,9 +303,10 @@ static void sdr_cap_stop_streaming(struct vb2_queue *vq)
- 	while (!list_empty(&dev->sdr_cap_active)) {
- 		struct vivid_buffer *buf;
- 
--		buf = list_entry(dev->sdr_cap_active.next, struct vivid_buffer, list);
-+		buf = list_entry(dev->sdr_cap_active.next,
-+				struct vivid_buffer, list);
- 		list_del(&buf->list);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	/* shutdown control thread */
-@@ -321,7 +326,8 @@ const struct vb2_ops vivid_sdr_cap_qops = {
- 	.wait_finish		= vb2_ops_wait_finish,
- };
- 
--int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency_band *band)
-+int vivid_sdr_enum_freq_bands(struct file *file, void *fh,
-+		struct v4l2_frequency_band *band)
- {
- 	switch (band->tuner) {
- 	case 0:
-@@ -339,7 +345,8 @@ int vivid_sdr_enum_freq_bands(struct file *file, void *fh, struct v4l2_frequency
- 	}
- }
- 
--int vivid_sdr_g_frequency(struct file *file, void *fh, struct v4l2_frequency *vf)
-+int vivid_sdr_g_frequency(struct file *file, void *fh,
-+		struct v4l2_frequency *vf)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
- 
-@@ -357,7 +364,8 @@ int vivid_sdr_g_frequency(struct file *file, void *fh, struct v4l2_frequency *vf
- 	}
- }
- 
--int vivid_sdr_s_frequency(struct file *file, void *fh, const struct v4l2_frequency *vf)
-+int vivid_sdr_s_frequency(struct file *file, void *fh,
-+		const struct v4l2_frequency *vf)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
- 	unsigned freq = vf->frequency;
-@@ -403,14 +411,16 @@ int vivid_sdr_g_tuner(struct file *file, void *fh, struct v4l2_tuner *vt)
- 	case 0:
- 		strlcpy(vt->name, "ADC", sizeof(vt->name));
- 		vt->type = V4L2_TUNER_ADC;
--		vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		vt->capability =
-+			V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
- 		vt->rangelow = bands_adc[0].rangelow;
- 		vt->rangehigh = bands_adc[2].rangehigh;
- 		return 0;
- 	case 1:
- 		strlcpy(vt->name, "RF", sizeof(vt->name));
- 		vt->type = V4L2_TUNER_RF;
--		vt->capability = V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
-+		vt->capability =
-+			V4L2_TUNER_CAP_1HZ | V4L2_TUNER_CAP_FREQ_BANDS;
- 		vt->rangelow = bands_fm[0].rangelow;
- 		vt->rangehigh = bands_fm[0].rangehigh;
- 		return 0;
-@@ -491,9 +501,9 @@ int vidioc_try_fmt_sdr_cap(struct file *file, void *fh, struct v4l2_format *f)
- 
- void vivid_sdr_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- {
--	u8 *vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+	u8 *vbuf = vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 	unsigned long i;
--	unsigned long plane_size = vb2_plane_size(&buf->vb, 0);
-+	unsigned long plane_size = vb2_plane_size(&buf->vb.vb2_buf, 0);
- 	s32 src_phase_step;
- 	s32 mod_phase_step;
- 	s32 fixp_i;
-diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-index ef81b01..2993149 100644
---- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-@@ -94,36 +94,38 @@ static void vivid_g_fmt_vbi_cap(struct vivid_dev *dev, struct v4l2_vbi_format *v
- void vivid_raw_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
- {
- 	struct v4l2_vbi_format vbi;
--	u8 *vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+	u8 *vbuf = vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 
- 	vivid_g_fmt_vbi_cap(dev, &vbi);
--	buf->vb.v4l2_buf.sequence = dev->vbi_cap_seq_count;
-+	buf->vb.sequence = dev->vbi_cap_seq_count;
- 	if (dev->field_cap == V4L2_FIELD_ALTERNATE)
--		buf->vb.v4l2_buf.sequence /= 2;
-+		buf->vb.sequence /= 2;
- 
--	vivid_sliced_vbi_cap_fill(dev, buf->vb.v4l2_buf.sequence);
-+	vivid_sliced_vbi_cap_fill(dev, buf->vb.sequence);
- 
--	memset(vbuf, 0x10, vb2_plane_size(&buf->vb, 0));
-+	memset(vbuf, 0x10, vb2_plane_size(&buf->vb.vb2_buf, 0));
- 
- 	if (!VIVID_INVALID_SIGNAL(dev->std_signal_mode))
- 		vivid_vbi_gen_raw(&dev->vbi_gen, &vbi, vbuf);
- 
--	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
--	buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
-+	v4l2_get_timestamp(&buf->vb.timestamp);
-+	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
- }
- 
- 
--void vivid_sliced_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
-+void vivid_sliced_vbi_cap_process(struct vivid_dev *dev,
-+			struct vivid_buffer *buf)
- {
--	struct v4l2_sliced_vbi_data *vbuf = vb2_plane_vaddr(&buf->vb, 0);
-+	struct v4l2_sliced_vbi_data *vbuf =
-+			vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
- 
--	buf->vb.v4l2_buf.sequence = dev->vbi_cap_seq_count;
-+	buf->vb.sequence = dev->vbi_cap_seq_count;
- 	if (dev->field_cap == V4L2_FIELD_ALTERNATE)
--		buf->vb.v4l2_buf.sequence /= 2;
-+		buf->vb.sequence /= 2;
- 
--	vivid_sliced_vbi_cap_fill(dev, buf->vb.v4l2_buf.sequence);
-+	vivid_sliced_vbi_cap_fill(dev, buf->vb.sequence);
- 
--	memset(vbuf, 0, vb2_plane_size(&buf->vb, 0));
-+	memset(vbuf, 0, vb2_plane_size(&buf->vb.vb2_buf, 0));
- 	if (!VIVID_INVALID_SIGNAL(dev->std_signal_mode)) {
- 		unsigned i;
- 
-@@ -131,13 +133,14 @@ void vivid_sliced_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *bu
- 			vbuf[i] = dev->vbi_gen.data[i];
- 	}
- 
--	v4l2_get_timestamp(&buf->vb.v4l2_buf.timestamp);
--	buf->vb.v4l2_buf.timestamp.tv_sec += dev->time_wrap_offset;
-+	v4l2_get_timestamp(&buf->vb.timestamp);
-+	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
- }
- 
--static int vbi_cap_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
--		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+static int vbi_cap_queue_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *fmt,
-+			unsigned *nbuffers, unsigned *nplanes,
-+			unsigned sizes[], void *alloc_ctxs[])
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vq);
- 	bool is_60hz = dev->std_cap & V4L2_STD_525_60;
-@@ -187,8 +190,9 @@ static int vbi_cap_buf_prepare(struct vb2_buffer *vb)
- 
- static void vbi_cap_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+	struct vivid_buffer *buf = container_of(vbuf, struct vivid_buffer, vb);
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
-@@ -215,7 +219,8 @@ static int vbi_cap_start_streaming(struct vb2_queue *vq, unsigned count)
- 
- 		list_for_each_entry_safe(buf, tmp, &dev->vbi_cap_active, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 	}
- 	return err;
-diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
-index 4e4c70e..91c1688 100644
---- a/drivers/media/platform/vivid/vivid-vbi-out.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-out.c
-@@ -79,8 +79,9 @@ static int vbi_out_buf_prepare(struct vb2_buffer *vb)
- 
- static void vbi_out_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+	struct vivid_buffer *buf = container_of(vbuf, struct vivid_buffer, vb);
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
-@@ -107,7 +108,8 @@ static int vbi_out_start_streaming(struct vb2_queue *vq, unsigned count)
- 
- 		list_for_each_entry_safe(buf, tmp, &dev->vbi_out_active, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 	}
- 	return err;
-@@ -201,7 +203,8 @@ int vidioc_try_fmt_sliced_vbi_out(struct file *file, void *fh, struct v4l2_forma
- 	return 0;
- }
- 
--int vidioc_s_fmt_sliced_vbi_out(struct file *file, void *fh, struct v4l2_format *fmt)
-+int vidioc_s_fmt_sliced_vbi_out(struct file *file, void *fh,
-+		struct v4l2_format *fmt)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
- 	struct v4l2_sliced_vbi_format *vbi = &fmt->fmt.sliced;
-@@ -217,10 +220,13 @@ int vidioc_s_fmt_sliced_vbi_out(struct file *file, void *fh, struct v4l2_format
- 	return 0;
- }
- 
--void vivid_sliced_vbi_out_process(struct vivid_dev *dev, struct vivid_buffer *buf)
-+void vivid_sliced_vbi_out_process(struct vivid_dev *dev,
-+		struct vivid_buffer *buf)
- {
--	struct v4l2_sliced_vbi_data *vbi = vb2_plane_vaddr(&buf->vb, 0);
--	unsigned elems = vb2_get_plane_payload(&buf->vb, 0) / sizeof(*vbi);
-+	struct v4l2_sliced_vbi_data *vbi =
-+		vb2_plane_vaddr(&buf->vb.vb2_buf, 0);
-+	unsigned elems =
-+		vb2_get_plane_payload(&buf->vb.vb2_buf, 0) / sizeof(*vbi);
- 
- 	dev->vbi_out_have_cc[0] = false;
- 	dev->vbi_out_have_cc[1] = false;
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index ed0b878..2497107 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -198,7 +198,7 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
- 		}
- 
- 		vb2_set_plane_payload(vb, p, size);
--		vb->v4l2_planes[p].data_offset = dev->fmt_cap->data_offset[p];
-+		vb->planes[p].data_offset = dev->fmt_cap->data_offset[p];
- 	}
- 
- 	return 0;
-@@ -206,10 +206,11 @@ static int vid_cap_buf_prepare(struct vb2_buffer *vb)
- 
- static void vid_cap_buf_finish(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct v4l2_timecode *tc = &vb->v4l2_buf.timecode;
-+	struct v4l2_timecode *tc = &vbuf->timecode;
- 	unsigned fps = 25;
--	unsigned seq = vb->v4l2_buf.sequence;
-+	unsigned seq = vbuf->sequence;
- 
- 	if (!vivid_is_sdtv_cap(dev))
- 		return;
-@@ -218,7 +219,7 @@ static void vid_cap_buf_finish(struct vb2_buffer *vb)
- 	 * Set the timecode. Rarely used, so it is interesting to
- 	 * test this.
- 	 */
--	vb->v4l2_buf.flags |= V4L2_BUF_FLAG_TIMECODE;
-+	vbuf->flags |= V4L2_BUF_FLAG_TIMECODE;
- 	if (dev->std_cap & V4L2_STD_525_60)
- 		fps = 30;
- 	tc->type = (fps == 30) ? V4L2_TC_TYPE_30FPS : V4L2_TC_TYPE_25FPS;
-@@ -231,8 +232,9 @@ static void vid_cap_buf_finish(struct vb2_buffer *vb)
- 
- static void vid_cap_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+	struct vivid_buffer *buf = container_of(vbuf, struct vivid_buffer, vb);
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
-@@ -268,7 +270,8 @@ static int vid_cap_start_streaming(struct vb2_queue *vq, unsigned count)
- 
- 		list_for_each_entry_safe(buf, tmp, &dev->vid_cap_active, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 	}
- 	return err;
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index c404e27..376f865 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -109,6 +109,7 @@ static int vid_out_queue_setup(struct vb2_queue *vq, const struct v4l2_format *f
- 
- static int vid_out_buf_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
- 	unsigned long size;
- 	unsigned planes;
-@@ -131,14 +132,14 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
- 	}
- 
- 	if (dev->field_out != V4L2_FIELD_ALTERNATE)
--		vb->v4l2_buf.field = dev->field_out;
--	else if (vb->v4l2_buf.field != V4L2_FIELD_TOP &&
--		 vb->v4l2_buf.field != V4L2_FIELD_BOTTOM)
-+		vbuf->field = dev->field_out;
-+	else if (vbuf->field != V4L2_FIELD_TOP &&
-+		 vbuf->field != V4L2_FIELD_BOTTOM)
- 		return -EINVAL;
- 
- 	for (p = 0; p < planes; p++) {
- 		size = dev->bytesperline_out[p] * dev->fmt_out_rect.height +
--			vb->v4l2_planes[p].data_offset;
-+			vb->planes[p].data_offset;
- 
- 		if (vb2_get_plane_payload(vb, p) < size) {
- 			dprintk(dev, 1, "%s the payload is too small for plane %u (%lu < %lu)\n",
-@@ -152,8 +153,9 @@ static int vid_out_buf_prepare(struct vb2_buffer *vb)
- 
- static void vid_out_buf_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vivid_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	struct vivid_buffer *buf = container_of(vb, struct vivid_buffer, vb);
-+	struct vivid_buffer *buf = container_of(vbuf, struct vivid_buffer, vb);
- 
- 	dprintk(dev, 1, "%s\n", __func__);
- 
-@@ -186,7 +188,8 @@ static int vid_out_start_streaming(struct vb2_queue *vq, unsigned count)
- 
- 		list_for_each_entry_safe(buf, tmp, &dev->vid_out_active, list) {
- 			list_del(&buf->list);
--			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_QUEUED);
-+			vb2_buffer_done(&buf->vb.vb2_buf,
-+					VB2_BUF_STATE_QUEUED);
- 		}
- 	}
- 	return err;
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 3294529..cd5248a 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -200,10 +200,10 @@ static void rpf_vdev_queue(struct vsp1_video *video,
- 
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
- 		       buf->addr[0] + rpf->offsets[0]);
--	if (buf->buf.num_planes > 1)
-+	if (buf->buf.vb2_buf.num_planes > 1)
- 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
- 			       buf->addr[1] + rpf->offsets[1]);
--	if (buf->buf.num_planes > 2)
-+	if (buf->buf.vb2_buf.num_planes > 2)
- 		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
- 			       buf->addr[2] + rpf->offsets[1]);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index dfd45c7..13e4fdc 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -610,11 +610,11 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 
- 	spin_unlock_irqrestore(&video->irqlock, flags);
- 
--	done->buf.v4l2_buf.sequence = video->sequence++;
--	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
--	for (i = 0; i < done->buf.num_planes; ++i)
--		vb2_set_plane_payload(&done->buf, i, done->length[i]);
--	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
-+	done->buf.sequence = video->sequence++;
-+	v4l2_get_timestamp(&done->buf.timestamp);
-+	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
-+		vb2_set_plane_payload(&done->buf.vb2_buf, i, done->length[i]);
-+	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
- 
- 	return next;
- }
-@@ -820,8 +820,9 @@ vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
--	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
-+	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vbuf);
- 	const struct v4l2_pix_format_mplane *format = &video->format;
- 	unsigned int i;
- 
-@@ -841,9 +842,10 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- 
- static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
--	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
-+	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vbuf);
- 	unsigned long flags;
- 	bool empty;
- 
-@@ -954,7 +956,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 	/* Remove all buffers from the IRQ queue. */
- 	spin_lock_irqsave(&video->irqlock, flags);
- 	list_for_each_entry(buffer, &video->irqqueue, queue)
--		vb2_buffer_done(&buffer->buf, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buffer->buf.vb2_buf, VB2_BUF_STATE_ERROR);
- 	INIT_LIST_HEAD(&video->irqqueue);
- 	spin_unlock_irqrestore(&video->irqlock, flags);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index d808301..a929aa8 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -94,7 +94,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- }
- 
- struct vsp1_video_buffer {
--	struct vb2_buffer buf;
-+	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
- 
- 	dma_addr_t addr[3];
-@@ -102,9 +102,9 @@ struct vsp1_video_buffer {
- };
- 
- static inline struct vsp1_video_buffer *
--to_vsp1_video_buffer(struct vb2_buffer *vb)
-+to_vsp1_video_buffer(struct vb2_v4l2_buffer *vbuf)
- {
--	return container_of(vb, struct vsp1_video_buffer, buf);
-+	return container_of(vbuf, struct vsp1_video_buffer, buf);
- }
- 
- struct vsp1_video_operations {
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 1d2b3a2..95b62f4 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -201,9 +201,9 @@ static void wpf_vdev_queue(struct vsp1_video *video,
- 	struct vsp1_rwpf *wpf = container_of(video, struct vsp1_rwpf, video);
- 
- 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
--	if (buf->buf.num_planes > 1)
-+	if (buf->buf.vb2_buf.num_planes > 1)
- 		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, buf->addr[1]);
--	if (buf->buf.num_planes > 2)
-+	if (buf->buf.vb2_buf.num_planes > 2)
- 		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, buf->addr[2]);
- }
- 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index d9dcd4b..5af66c2 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -285,7 +285,7 @@ done:
-  * @dma: DMA channel that uses the buffer
-  */
- struct xvip_dma_buffer {
--	struct vb2_buffer buf;
-+	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
- 	struct xvip_dma *dma;
- };
-@@ -301,11 +301,11 @@ static void xvip_dma_complete(void *param)
- 	list_del(&buf->queue);
- 	spin_unlock(&dma->queued_lock);
- 
--	buf->buf.v4l2_buf.field = V4L2_FIELD_NONE;
--	buf->buf.v4l2_buf.sequence = dma->sequence++;
--	v4l2_get_timestamp(&buf->buf.v4l2_buf.timestamp);
--	vb2_set_plane_payload(&buf->buf, 0, dma->format.sizeimage);
--	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
-+	buf->buf.field = V4L2_FIELD_NONE;
-+	buf->buf.sequence = dma->sequence++;
-+	v4l2_get_timestamp(&buf->buf.timestamp);
-+	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, dma->format.sizeimage);
-+	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
- }
- 
- static int
-@@ -329,8 +329,9 @@ xvip_dma_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 
- static int xvip_dma_buffer_prepare(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct xvip_dma *dma = vb2_get_drv_priv(vb->vb2_queue);
--	struct xvip_dma_buffer *buf = to_xvip_dma_buffer(vb);
-+	struct xvip_dma_buffer *buf = to_xvip_dma_buffer(vbuf);
- 
- 	buf->dma = dma;
- 
-@@ -339,8 +340,9 @@ static int xvip_dma_buffer_prepare(struct vb2_buffer *vb)
- 
- static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct xvip_dma *dma = vb2_get_drv_priv(vb->vb2_queue);
--	struct xvip_dma_buffer *buf = to_xvip_dma_buffer(vb);
-+	struct xvip_dma_buffer *buf = to_xvip_dma_buffer(vbuf);
- 	struct dma_async_tx_descriptor *desc;
- 	dma_addr_t addr = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	u32 flags;
-@@ -367,7 +369,7 @@ static void xvip_dma_buffer_queue(struct vb2_buffer *vb)
- 	desc = dmaengine_prep_interleaved_dma(dma->dma, &dma->xt, flags);
- 	if (!desc) {
- 		dev_err(dma->xdev->dev, "Failed to prepare DMA transfer\n");
--		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_ERROR);
- 		return;
- 	}
- 	desc->callback = xvip_dma_complete;
-@@ -434,7 +436,7 @@ error:
- 	/* Give back all queued buffers to videobuf2. */
- 	spin_lock_irq(&dma->queued_lock);
- 	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
--		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_QUEUED);
-+		vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_QUEUED);
- 		list_del(&buf->queue);
- 	}
- 	spin_unlock_irq(&dma->queued_lock);
-@@ -461,7 +463,7 @@ static void xvip_dma_stop_streaming(struct vb2_queue *vq)
- 	/* Give back all queued buffers to videobuf2. */
- 	spin_lock_irq(&dma->queued_lock);
- 	list_for_each_entry_safe(buf, nbuf, &dma->queued_bufs, queue) {
--		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_ERROR);
-+		vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_ERROR);
- 		list_del(&buf->queue);
- 	}
- 	spin_unlock_irq(&dma->queued_lock);
--- 
-1.7.9.5
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=".config"
 
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/i386 4.0.0-rc1 Kernel Configuration
+#
+# CONFIG_64BIT is not set
+CONFIG_X86_32=y
+CONFIG_X86=y
+CONFIG_INSTRUCTION_DECODER=y
+CONFIG_PERF_EVENTS_INTEL_UNCORE=y
+CONFIG_OUTPUT_FORMAT="elf32-i386"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+CONFIG_MMU=y
+CONFIG_NEED_SG_DMA_LENGTH=y
+CONFIG_GENERIC_ISA_DMA=y
+CONFIG_GENERIC_BUG=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_HAS_CPU_RELAX=y
+CONFIG_ARCH_HAS_CACHE_LINE_SIZE=y
+CONFIG_HAVE_SETUP_PER_CPU_AREA=y
+CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK=y
+CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK=y
+CONFIG_ARCH_HIBERNATION_POSSIBLE=y
+CONFIG_ARCH_SUSPEND_POSSIBLE=y
+CONFIG_ARCH_WANT_HUGE_PMD_SHARE=y
+CONFIG_ARCH_WANT_GENERAL_HUGETLB=y
+# CONFIG_ZONE_DMA32 is not set
+# CONFIG_AUDIT_ARCH is not set
+CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=y
+CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
+CONFIG_X86_32_SMP=y
+CONFIG_X86_HT=y
+CONFIG_X86_32_LAZY_GS=y
+CONFIG_ARCH_HWEIGHT_CFLAGS="-fcall-saved-ecx -fcall-saved-edx"
+CONFIG_ARCH_SUPPORTS_UPROBES=y
+CONFIG_FIX_EARLYCON_MEM=y
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_IRQ_WORK=y
+CONFIG_BUILDTIME_EXTABLE_SORT=y
+
+#
+# General setup
+#
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_CROSS_COMPILE=""
+# CONFIG_COMPILE_TEST is not set
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_HAVE_KERNEL_GZIP=y
+CONFIG_HAVE_KERNEL_BZIP2=y
+CONFIG_HAVE_KERNEL_LZMA=y
+CONFIG_HAVE_KERNEL_XZ=y
+CONFIG_HAVE_KERNEL_LZO=y
+CONFIG_HAVE_KERNEL_LZ4=y
+# CONFIG_KERNEL_GZIP is not set
+# CONFIG_KERNEL_BZIP2 is not set
+# CONFIG_KERNEL_LZMA is not set
+# CONFIG_KERNEL_XZ is not set
+CONFIG_KERNEL_LZO=y
+# CONFIG_KERNEL_LZ4 is not set
+CONFIG_DEFAULT_HOSTNAME="(none)"
+# CONFIG_SWAP is not set
+# CONFIG_SYSVIPC is not set
+CONFIG_POSIX_MQUEUE=y
+CONFIG_POSIX_MQUEUE_SYSCTL=y
+CONFIG_CROSS_MEMORY_ATTACH=y
+CONFIG_FHANDLE=y
+# CONFIG_USELIB is not set
+# CONFIG_AUDIT is not set
+CONFIG_HAVE_ARCH_AUDITSYSCALL=y
+
+#
+# IRQ subsystem
+#
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_GENERIC_IRQ_SHOW=y
+CONFIG_GENERIC_IRQ_LEGACY_ALLOC_HWIRQ=y
+CONFIG_GENERIC_PENDING_IRQ=y
+CONFIG_IRQ_DOMAIN=y
+CONFIG_IRQ_DOMAIN_DEBUG=y
+CONFIG_IRQ_FORCED_THREADING=y
+CONFIG_SPARSE_IRQ=y
+CONFIG_CLOCKSOURCE_WATCHDOG=y
+CONFIG_ARCH_CLOCKSOURCE_DATA=y
+CONFIG_CLOCKSOURCE_VALIDATE_LAST_CYCLE=y
+CONFIG_GENERIC_TIME_VSYSCALL=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
+CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+
+#
+# Timers subsystem
+#
+CONFIG_TICK_ONESHOT=y
+CONFIG_HZ_PERIODIC=y
+# CONFIG_NO_HZ_IDLE is not set
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+
+#
+# CPU/Task time and stats accounting
+#
+CONFIG_TICK_CPU_ACCOUNTING=y
+# CONFIG_IRQ_TIME_ACCOUNTING is not set
+# CONFIG_BSD_PROCESS_ACCT is not set
+CONFIG_TASKSTATS=y
+CONFIG_TASK_DELAY_ACCT=y
+CONFIG_TASK_XACCT=y
+CONFIG_TASK_IO_ACCOUNTING=y
+
+#
+# RCU Subsystem
+#
+CONFIG_TREE_RCU=y
+CONFIG_SRCU=y
+# CONFIG_TASKS_RCU is not set
+CONFIG_RCU_STALL_COMMON=y
+CONFIG_RCU_FANOUT=32
+CONFIG_RCU_FANOUT_LEAF=16
+# CONFIG_RCU_FANOUT_EXACT is not set
+# CONFIG_TREE_RCU_TRACE is not set
+CONFIG_RCU_KTHREAD_PRIO=0
+CONFIG_RCU_NOCB_CPU=y
+# CONFIG_RCU_NOCB_CPU_NONE is not set
+CONFIG_RCU_NOCB_CPU_ZERO=y
+# CONFIG_RCU_NOCB_CPU_ALL is not set
+CONFIG_BUILD_BIN2C=y
+CONFIG_IKCONFIG=y
+# CONFIG_IKCONFIG_PROC is not set
+CONFIG_LOG_BUF_SHIFT=17
+CONFIG_LOG_CPU_MAX_BUF_SHIFT=12
+CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_DEBUG=y
+CONFIG_CGROUP_FREEZER=y
+CONFIG_CGROUP_DEVICE=y
+# CONFIG_CPUSETS is not set
+# CONFIG_CGROUP_CPUACCT is not set
+# CONFIG_MEMCG is not set
+CONFIG_CGROUP_PERF=y
+CONFIG_CGROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+# CONFIG_CFS_BANDWIDTH is not set
+CONFIG_RT_GROUP_SCHED=y
+CONFIG_BLK_CGROUP=y
+CONFIG_DEBUG_BLK_CGROUP=y
+# CONFIG_CHECKPOINT_RESTORE is not set
+# CONFIG_NAMESPACES is not set
+CONFIG_SCHED_AUTOGROUP=y
+# CONFIG_SYSFS_DEPRECATED is not set
+CONFIG_RELAY=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_RD_GZIP=y
+CONFIG_RD_BZIP2=y
+CONFIG_RD_LZMA=y
+CONFIG_RD_XZ=y
+CONFIG_RD_LZO=y
+CONFIG_RD_LZ4=y
+# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+CONFIG_SYSCTL=y
+CONFIG_ANON_INODES=y
+CONFIG_HAVE_UID16=y
+CONFIG_SYSCTL_EXCEPTION_TRACE=y
+CONFIG_HAVE_PCSPKR_PLATFORM=y
+CONFIG_BPF=y
+CONFIG_EXPERT=y
+# CONFIG_UID16 is not set
+# CONFIG_SGETMASK_SYSCALL is not set
+CONFIG_SYSFS_SYSCALL=y
+# CONFIG_SYSCTL_SYSCALL is not set
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_PCSPKR_PLATFORM=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_BPF_SYSCALL=y
+# CONFIG_SHMEM is not set
+CONFIG_AIO=y
+# CONFIG_ADVISE_SYSCALLS is not set
+CONFIG_PCI_QUIRKS=y
+# CONFIG_EMBEDDED is not set
+CONFIG_HAVE_PERF_EVENTS=y
+CONFIG_PERF_USE_VMALLOC=y
+
+#
+# Kernel Performance Events And Counters
+#
+CONFIG_PERF_EVENTS=y
+CONFIG_DEBUG_PERF_USE_VMALLOC=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_COMPAT_BRK=y
+# CONFIG_SLAB is not set
+# CONFIG_SLUB is not set
+CONFIG_SLOB=y
+CONFIG_SYSTEM_TRUSTED_KEYRING=y
+# CONFIG_PROFILING is not set
+CONFIG_TRACEPOINTS=y
+CONFIG_HAVE_OPROFILE=y
+CONFIG_OPROFILE_NMI_TIMER=y
+CONFIG_KPROBES=y
+# CONFIG_JUMP_LABEL is not set
+CONFIG_OPTPROBES=y
+CONFIG_UPROBES=y
+# CONFIG_HAVE_64BIT_ALIGNED_ACCESS is not set
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y
+CONFIG_ARCH_USE_BUILTIN_BSWAP=y
+CONFIG_KRETPROBES=y
+CONFIG_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_IOREMAP_PROT=y
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+CONFIG_HAVE_OPTPROBES=y
+CONFIG_HAVE_KPROBES_ON_FTRACE=y
+CONFIG_HAVE_ARCH_TRACEHOOK=y
+CONFIG_HAVE_DMA_ATTRS=y
+CONFIG_HAVE_DMA_CONTIGUOUS=y
+CONFIG_GENERIC_SMP_IDLE_THREAD=y
+CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
+CONFIG_HAVE_DMA_API_DEBUG=y
+CONFIG_HAVE_HW_BREAKPOINT=y
+CONFIG_HAVE_MIXED_BREAKPOINTS_REGS=y
+CONFIG_HAVE_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_PERF_EVENTS_NMI=y
+CONFIG_HAVE_PERF_REGS=y
+CONFIG_HAVE_PERF_USER_STACK_DUMP=y
+CONFIG_HAVE_ARCH_JUMP_LABEL=y
+CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
+CONFIG_HAVE_CMPXCHG_LOCAL=y
+CONFIG_HAVE_CMPXCHG_DOUBLE=y
+CONFIG_ARCH_WANT_IPC_PARSE_VERSION=y
+CONFIG_HAVE_ARCH_SECCOMP_FILTER=y
+CONFIG_HAVE_CC_STACKPROTECTOR=y
+# CONFIG_CC_STACKPROTECTOR is not set
+CONFIG_CC_STACKPROTECTOR_NONE=y
+# CONFIG_CC_STACKPROTECTOR_REGULAR is not set
+# CONFIG_CC_STACKPROTECTOR_STRONG is not set
+CONFIG_HAVE_IRQ_TIME_ACCOUNTING=y
+CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE=y
+CONFIG_MODULES_USE_ELF_REL=y
+CONFIG_CLONE_BACKWARDS=y
+CONFIG_OLD_SIGSUSPEND3=y
+CONFIG_OLD_SIGACTION=y
+
+#
+# GCOV-based kernel profiling
+#
+# CONFIG_GCOV_KERNEL is not set
+CONFIG_ARCH_HAS_GCOV_PROFILE_ALL=y
+CONFIG_HAVE_GENERIC_DMA_COHERENT=y
+CONFIG_RT_MUTEXES=y
+CONFIG_BASE_SMALL=0
+CONFIG_MODULES=y
+# CONFIG_MODULE_FORCE_LOAD is not set
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+# CONFIG_MODVERSIONS is not set
+# CONFIG_MODULE_SRCVERSION_ALL is not set
+# CONFIG_MODULE_SIG is not set
+# CONFIG_MODULE_COMPRESS is not set
+CONFIG_STOP_MACHINE=y
+CONFIG_BLOCK=y
+CONFIG_LBDAF=y
+CONFIG_BLK_DEV_BSG=y
+CONFIG_BLK_DEV_BSGLIB=y
+CONFIG_BLK_DEV_INTEGRITY=y
+CONFIG_BLK_DEV_THROTTLING=y
+# CONFIG_BLK_CMDLINE_PARSER is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_EFI_PARTITION=y
+
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+# CONFIG_IOSCHED_DEADLINE is not set
+# CONFIG_IOSCHED_CFQ is not set
+CONFIG_DEFAULT_NOOP=y
+CONFIG_DEFAULT_IOSCHED="noop"
+CONFIG_PREEMPT_NOTIFIERS=y
+CONFIG_ASN1=y
+CONFIG_UNINLINE_SPIN_UNLOCK=y
+CONFIG_ARCH_SUPPORTS_ATOMIC_RMW=y
+CONFIG_RWSEM_SPIN_ON_OWNER=y
+CONFIG_LOCK_SPIN_ON_OWNER=y
+CONFIG_ARCH_USE_QUEUE_RWLOCK=y
+CONFIG_QUEUE_RWLOCK=y
+CONFIG_FREEZER=y
+
+#
+# Processor type and features
+#
+CONFIG_ZONE_DMA=y
+CONFIG_SMP=y
+CONFIG_X86_FEATURE_NAMES=y
+# CONFIG_X86_MPPARSE is not set
+CONFIG_X86_BIGSMP=y
+# CONFIG_X86_EXTENDED_PLATFORM is not set
+# CONFIG_X86_INTEL_LPSS is not set
+# CONFIG_X86_AMD_PLATFORM_DEVICE is not set
+CONFIG_IOSF_MBI=m
+# CONFIG_IOSF_MBI_DEBUG is not set
+CONFIG_X86_32_IRIS=y
+# CONFIG_SCHED_OMIT_FRAME_POINTER is not set
+CONFIG_HYPERVISOR_GUEST=y
+CONFIG_PARAVIRT=y
+# CONFIG_PARAVIRT_DEBUG is not set
+# CONFIG_PARAVIRT_SPINLOCKS is not set
+CONFIG_KVM_GUEST=y
+# CONFIG_KVM_DEBUG_FS is not set
+# CONFIG_LGUEST_GUEST is not set
+# CONFIG_PARAVIRT_TIME_ACCOUNTING is not set
+CONFIG_PARAVIRT_CLOCK=y
+CONFIG_NO_BOOTMEM=y
+# CONFIG_MEMTEST is not set
+# CONFIG_M486 is not set
+# CONFIG_M586 is not set
+# CONFIG_M586TSC is not set
+CONFIG_M586MMX=y
+# CONFIG_M686 is not set
+# CONFIG_MPENTIUMII is not set
+# CONFIG_MPENTIUMIII is not set
+# CONFIG_MPENTIUMM is not set
+# CONFIG_MPENTIUM4 is not set
+# CONFIG_MK6 is not set
+# CONFIG_MK7 is not set
+# CONFIG_MK8 is not set
+# CONFIG_MCRUSOE is not set
+# CONFIG_MEFFICEON is not set
+# CONFIG_MWINCHIPC6 is not set
+# CONFIG_MWINCHIP3D is not set
+# CONFIG_MELAN is not set
+# CONFIG_MGEODEGX1 is not set
+# CONFIG_MGEODE_LX is not set
+# CONFIG_MCYRIXIII is not set
+# CONFIG_MVIAC3_2 is not set
+# CONFIG_MVIAC7 is not set
+# CONFIG_MCORE2 is not set
+# CONFIG_MATOM is not set
+CONFIG_X86_GENERIC=y
+CONFIG_X86_INTERNODE_CACHE_SHIFT=6
+CONFIG_X86_L1_CACHE_SHIFT=6
+CONFIG_X86_PPRO_FENCE=y
+CONFIG_X86_F00F_BUG=y
+CONFIG_X86_ALIGNMENT_16=y
+CONFIG_X86_INTEL_USERCOPY=y
+CONFIG_X86_TSC=y
+CONFIG_X86_MINIMUM_CPU_FAMILY=4
+CONFIG_PROCESSOR_SELECT=y
+CONFIG_CPU_SUP_INTEL=y
+CONFIG_CPU_SUP_CYRIX_32=y
+# CONFIG_CPU_SUP_AMD is not set
+CONFIG_CPU_SUP_CENTAUR=y
+# CONFIG_CPU_SUP_TRANSMETA_32 is not set
+# CONFIG_CPU_SUP_UMC_32 is not set
+CONFIG_HPET_TIMER=y
+# CONFIG_DMI is not set
+CONFIG_NR_CPUS=32
+# CONFIG_SCHED_SMT is not set
+# CONFIG_SCHED_MC is not set
+# CONFIG_PREEMPT_NONE is not set
+CONFIG_PREEMPT_VOLUNTARY=y
+# CONFIG_PREEMPT is not set
+CONFIG_PREEMPT_COUNT=y
+CONFIG_X86_UP_APIC_MSI=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS=y
+# CONFIG_X86_MCE is not set
+# CONFIG_VM86 is not set
+# CONFIG_X86_16BIT is not set
+CONFIG_TOSHIBA=y
+# CONFIG_I8K is not set
+# CONFIG_X86_REBOOTFIXUPS is not set
+CONFIG_MICROCODE=y
+# CONFIG_MICROCODE_INTEL is not set
+CONFIG_MICROCODE_AMD=y
+CONFIG_MICROCODE_OLD_INTERFACE=y
+# CONFIG_MICROCODE_INTEL_EARLY is not set
+CONFIG_MICROCODE_AMD_EARLY=y
+CONFIG_MICROCODE_EARLY=y
+CONFIG_X86_MSR=m
+CONFIG_X86_CPUID=y
+# CONFIG_NOHIGHMEM is not set
+CONFIG_HIGHMEM4G=y
+# CONFIG_HIGHMEM64G is not set
+# CONFIG_VMSPLIT_3G is not set
+# CONFIG_VMSPLIT_3G_OPT is not set
+# CONFIG_VMSPLIT_2G is not set
+# CONFIG_VMSPLIT_2G_OPT is not set
+CONFIG_VMSPLIT_1G=y
+CONFIG_PAGE_OFFSET=0x40000000
+CONFIG_HIGHMEM=y
+CONFIG_ARCH_FLATMEM_ENABLE=y
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+CONFIG_ILLEGAL_POINTER_VALUE=0
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_FLATMEM_MANUAL=y
+# CONFIG_SPARSEMEM_MANUAL is not set
+CONFIG_FLATMEM=y
+CONFIG_FLAT_NODE_MEM_MAP=y
+CONFIG_SPARSEMEM_STATIC=y
+CONFIG_HAVE_MEMBLOCK=y
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y
+CONFIG_ARCH_DISCARD_MEMBLOCK=y
+# CONFIG_HAVE_BOOTMEM_INFO_NODE is not set
+CONFIG_PAGEFLAGS_EXTENDED=y
+CONFIG_SPLIT_PTLOCK_CPUS=4
+CONFIG_MEMORY_BALLOON=y
+# CONFIG_BALLOON_COMPACTION is not set
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+# CONFIG_PHYS_ADDR_T_64BIT is not set
+CONFIG_ZONE_DMA_FLAG=1
+CONFIG_BOUNCE=y
+CONFIG_VIRT_TO_BUS=y
+CONFIG_MMU_NOTIFIER=y
+CONFIG_KSM=y
+CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
+CONFIG_TRANSPARENT_HUGEPAGE=y
+# CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is not set
+CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
+CONFIG_CLEANCACHE=y
+# CONFIG_CMA is not set
+CONFIG_ZPOOL=y
+CONFIG_ZBUD=m
+CONFIG_ZSMALLOC=m
+CONFIG_PGTABLE_MAPPING=y
+CONFIG_ZSMALLOC_STAT=y
+CONFIG_GENERIC_EARLY_IOREMAP=y
+CONFIG_HIGHPTE=y
+CONFIG_X86_CHECK_BIOS_CORRUPTION=y
+CONFIG_X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK=y
+CONFIG_X86_RESERVE_LOW=64
+CONFIG_MATH_EMULATION=y
+# CONFIG_MTRR is not set
+# CONFIG_ARCH_RANDOM is not set
+# CONFIG_X86_SMAP is not set
+CONFIG_X86_INTEL_MPX=y
+# CONFIG_EFI is not set
+# CONFIG_SECCOMP is not set
+CONFIG_HZ_100=y
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+# CONFIG_HZ_1000 is not set
+CONFIG_HZ=100
+CONFIG_SCHED_HRTICK=y
+CONFIG_KEXEC=y
+CONFIG_CRASH_DUMP=y
+CONFIG_PHYSICAL_START=0x1000000
+# CONFIG_RELOCATABLE is not set
+CONFIG_PHYSICAL_ALIGN=0x200000
+CONFIG_HOTPLUG_CPU=y
+# CONFIG_BOOTPARAM_HOTPLUG_CPU0 is not set
+# CONFIG_DEBUG_HOTPLUG_CPU0 is not set
+# CONFIG_COMPAT_VDSO is not set
+# CONFIG_CMDLINE_BOOL is not set
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+
+#
+# Power management and ACPI options
+#
+CONFIG_SUSPEND=y
+CONFIG_SUSPEND_FREEZER=y
+CONFIG_PM_SLEEP=y
+CONFIG_PM_SLEEP_SMP=y
+CONFIG_PM_AUTOSLEEP=y
+CONFIG_PM_WAKELOCKS=y
+CONFIG_PM_WAKELOCKS_LIMIT=100
+CONFIG_PM_WAKELOCKS_GC=y
+CONFIG_PM=y
+CONFIG_PM_DEBUG=y
+CONFIG_PM_ADVANCED_DEBUG=y
+CONFIG_PM_SLEEP_DEBUG=y
+CONFIG_PM_TRACE=y
+CONFIG_PM_TRACE_RTC=y
+CONFIG_WQ_POWER_EFFICIENT_DEFAULT=y
+CONFIG_ACPI=y
+CONFIG_ACPI_LEGACY_TABLES_LOOKUP=y
+CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC=y
+CONFIG_ACPI_SLEEP=y
+# CONFIG_ACPI_PROCFS_POWER is not set
+# CONFIG_ACPI_EC_DEBUGFS is not set
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+# CONFIG_ACPI_VIDEO is not set
+CONFIG_ACPI_FAN=y
+# CONFIG_ACPI_DOCK is not set
+CONFIG_ACPI_PROCESSOR=y
+# CONFIG_ACPI_IPMI is not set
+CONFIG_ACPI_HOTPLUG_CPU=y
+# CONFIG_ACPI_PROCESSOR_AGGREGATOR is not set
+CONFIG_ACPI_THERMAL=y
+CONFIG_ACPI_CUSTOM_DSDT_FILE=""
+# CONFIG_ACPI_CUSTOM_DSDT is not set
+# CONFIG_ACPI_INITRD_TABLE_OVERRIDE is not set
+# CONFIG_ACPI_DEBUG is not set
+# CONFIG_ACPI_PCI_SLOT is not set
+CONFIG_X86_PM_TIMER=y
+CONFIG_ACPI_CONTAINER=y
+CONFIG_ACPI_HOTPLUG_IOAPIC=y
+# CONFIG_ACPI_SBS is not set
+# CONFIG_ACPI_HED is not set
+# CONFIG_ACPI_CUSTOM_METHOD is not set
+# CONFIG_ACPI_REDUCED_HARDWARE_ONLY is not set
+CONFIG_HAVE_ACPI_APEI=y
+CONFIG_HAVE_ACPI_APEI_NMI=y
+# CONFIG_ACPI_APEI is not set
+# CONFIG_PMIC_OPREGION is not set
+CONFIG_SFI=y
+CONFIG_X86_APM_BOOT=y
+CONFIG_APM=m
+CONFIG_APM_IGNORE_USER_SUSPEND=y
+CONFIG_APM_DO_ENABLE=y
+# CONFIG_APM_CPU_IDLE is not set
+CONFIG_APM_DISPLAY_BLANK=y
+CONFIG_APM_ALLOW_INTS=y
+
+#
+# CPU Frequency scaling
+#
+# CONFIG_CPU_FREQ is not set
+
+#
+# CPU Idle
+#
+CONFIG_CPU_IDLE=y
+# CONFIG_CPU_IDLE_GOV_LADDER is not set
+CONFIG_CPU_IDLE_GOV_MENU=y
+# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
+CONFIG_INTEL_IDLE=y
+
+#
+# Bus options (PCI etc.)
+#
+CONFIG_PCI=y
+# CONFIG_PCI_GOBIOS is not set
+# CONFIG_PCI_GOMMCONFIG is not set
+# CONFIG_PCI_GODIRECT is not set
+CONFIG_PCI_GOANY=y
+CONFIG_PCI_BIOS=y
+CONFIG_PCI_DIRECT=y
+CONFIG_PCI_MMCONFIG=y
+CONFIG_PCI_DOMAINS=y
+# CONFIG_PCI_CNB20LE_QUIRK is not set
+# CONFIG_PCIEPORTBUS is not set
+# CONFIG_PCI_MSI is not set
+# CONFIG_PCI_DEBUG is not set
+# CONFIG_PCI_REALLOC_ENABLE_AUTO is not set
+# CONFIG_PCI_STUB is not set
+CONFIG_HT_IRQ=y
+# CONFIG_PCI_IOV is not set
+# CONFIG_PCI_PRI is not set
+# CONFIG_PCI_PASID is not set
+CONFIG_PCI_LABEL=y
+
+#
+# PCI host controller drivers
+#
+CONFIG_ISA_DMA_API=y
+# CONFIG_ISA is not set
+CONFIG_SCx200=m
+CONFIG_SCx200HR_TIMER=m
+# CONFIG_OLPC is not set
+CONFIG_ALIX=y
+CONFIG_NET5501=y
+CONFIG_PCCARD=y
+# CONFIG_PCMCIA is not set
+CONFIG_CARDBUS=y
+
+#
+# PC-card bridges
+#
+# CONFIG_YENTA is not set
+# CONFIG_HOTPLUG_PCI is not set
+# CONFIG_RAPIDIO is not set
+# CONFIG_X86_SYSFB is not set
+
+#
+# Executable file formats / Emulations
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE=y
+CONFIG_BINFMT_SCRIPT=y
+CONFIG_HAVE_AOUT=y
+# CONFIG_BINFMT_AOUT is not set
+CONFIG_BINFMT_MISC=m
+# CONFIG_COREDUMP is not set
+CONFIG_HAVE_ATOMIC_IOMAP=y
+CONFIG_PMC_ATOM=y
+CONFIG_NET=y
+
+#
+# Networking options
+#
+# CONFIG_PACKET is not set
+CONFIG_UNIX=y
+CONFIG_UNIX_DIAG=m
+CONFIG_XFRM=y
+CONFIG_XFRM_ALGO=y
+# CONFIG_XFRM_USER is not set
+# CONFIG_XFRM_SUB_POLICY is not set
+# CONFIG_XFRM_MIGRATE is not set
+# CONFIG_XFRM_STATISTICS is not set
+# CONFIG_NET_KEY is not set
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+CONFIG_IP_ADVANCED_ROUTER=y
+# CONFIG_IP_FIB_TRIE_STATS is not set
+# CONFIG_IP_MULTIPLE_TABLES is not set
+# CONFIG_IP_ROUTE_MULTIPATH is not set
+CONFIG_IP_ROUTE_VERBOSE=y
+CONFIG_IP_PNP=y
+CONFIG_IP_PNP_DHCP=y
+# CONFIG_IP_PNP_BOOTP is not set
+# CONFIG_IP_PNP_RARP is not set
+CONFIG_NET_IPIP=y
+CONFIG_NET_IPGRE_DEMUX=y
+CONFIG_NET_IP_TUNNEL=y
+# CONFIG_NET_IPGRE is not set
+# CONFIG_IP_MROUTE is not set
+# CONFIG_SYN_COOKIES is not set
+CONFIG_NET_UDP_TUNNEL=y
+CONFIG_NET_FOU=y
+CONFIG_NET_FOU_IP_TUNNELS=y
+# CONFIG_GENEVE is not set
+CONFIG_INET_AH=m
+CONFIG_INET_ESP=y
+# CONFIG_INET_IPCOMP is not set
+# CONFIG_INET_XFRM_TUNNEL is not set
+CONFIG_INET_TUNNEL=y
+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET_XFRM_MODE_TUNNEL is not set
+CONFIG_INET_XFRM_MODE_BEET=y
+CONFIG_INET_LRO=m
+CONFIG_INET_DIAG=m
+CONFIG_INET_TCP_DIAG=m
+CONFIG_INET_UDP_DIAG=m
+CONFIG_TCP_CONG_ADVANCED=y
+# CONFIG_TCP_CONG_BIC is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_TCP_CONG_WESTWOOD=y
+CONFIG_TCP_CONG_HTCP=m
+# CONFIG_TCP_CONG_HSTCP is not set
+# CONFIG_TCP_CONG_HYBLA is not set
+CONFIG_TCP_CONG_VEGAS=y
+# CONFIG_TCP_CONG_SCALABLE is not set
+# CONFIG_TCP_CONG_LP is not set
+CONFIG_TCP_CONG_VENO=y
+CONFIG_TCP_CONG_YEAH=y
+CONFIG_TCP_CONG_ILLINOIS=m
+# CONFIG_TCP_CONG_DCTCP is not set
+CONFIG_DEFAULT_CUBIC=y
+# CONFIG_DEFAULT_VEGAS is not set
+# CONFIG_DEFAULT_VENO is not set
+# CONFIG_DEFAULT_WESTWOOD is not set
+# CONFIG_DEFAULT_RENO is not set
+CONFIG_DEFAULT_TCP_CONG="cubic"
+CONFIG_TCP_MD5SIG=y
+CONFIG_IPV6=y
+CONFIG_IPV6_ROUTER_PREF=y
+CONFIG_IPV6_ROUTE_INFO=y
+CONFIG_IPV6_OPTIMISTIC_DAD=y
+# CONFIG_INET6_AH is not set
+# CONFIG_INET6_ESP is not set
+# CONFIG_INET6_IPCOMP is not set
+CONFIG_IPV6_MIP6=m
+# CONFIG_INET6_XFRM_TUNNEL is not set
+CONFIG_INET6_TUNNEL=y
+# CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET6_XFRM_MODE_TUNNEL is not set
+CONFIG_INET6_XFRM_MODE_BEET=m
+CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=y
+# CONFIG_IPV6_SIT is not set
+CONFIG_IPV6_TUNNEL=y
+CONFIG_IPV6_GRE=m
+CONFIG_IPV6_MULTIPLE_TABLES=y
+CONFIG_IPV6_SUBTREES=y
+CONFIG_IPV6_MROUTE=y
+# CONFIG_IPV6_MROUTE_MULTIPLE_TABLES is not set
+CONFIG_IPV6_PIMSM_V2=y
+# CONFIG_NETWORK_SECMARK is not set
+CONFIG_NET_PTP_CLASSIFY=y
+CONFIG_NETWORK_PHY_TIMESTAMPING=y
+# CONFIG_NETFILTER is not set
+# CONFIG_IP_DCCP is not set
+CONFIG_IP_SCTP=y
+# CONFIG_NET_SCTPPROBE is not set
+# CONFIG_SCTP_DBG_OBJCNT is not set
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_MD5 is not set
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_SHA1 is not set
+CONFIG_SCTP_DEFAULT_COOKIE_HMAC_NONE=y
+# CONFIG_SCTP_COOKIE_HMAC_MD5 is not set
+# CONFIG_SCTP_COOKIE_HMAC_SHA1 is not set
+# CONFIG_RDS is not set
+# CONFIG_TIPC is not set
+CONFIG_ATM=y
+CONFIG_ATM_CLIP=y
+# CONFIG_ATM_CLIP_NO_ICMP is not set
+CONFIG_ATM_LANE=m
+CONFIG_ATM_MPOA=y
+CONFIG_ATM_BR2684=m
+CONFIG_ATM_BR2684_IPFILTER=y
+CONFIG_L2TP=m
+CONFIG_L2TP_DEBUGFS=m
+# CONFIG_L2TP_V3 is not set
+CONFIG_STP=m
+CONFIG_BRIDGE=m
+# CONFIG_BRIDGE_IGMP_SNOOPING is not set
+CONFIG_HAVE_NET_DSA=y
+CONFIG_NET_DSA=m
+CONFIG_NET_DSA_TAG_DSA=y
+CONFIG_NET_DSA_TAG_EDSA=y
+# CONFIG_VLAN_8021Q is not set
+CONFIG_DECNET=m
+CONFIG_DECNET_ROUTER=y
+CONFIG_LLC=y
+CONFIG_LLC2=y
+CONFIG_IPX=m
+# CONFIG_IPX_INTERN is not set
+CONFIG_ATALK=m
+CONFIG_DEV_APPLETALK=m
+CONFIG_IPDDP=m
+# CONFIG_IPDDP_ENCAP is not set
+CONFIG_X25=m
+# CONFIG_LAPB is not set
+CONFIG_PHONET=y
+CONFIG_6LOWPAN=y
+# CONFIG_IEEE802154 is not set
+CONFIG_NET_SCHED=y
+
+#
+# Queueing/Scheduling
+#
+CONFIG_NET_SCH_CBQ=m
+CONFIG_NET_SCH_HTB=y
+CONFIG_NET_SCH_HFSC=m
+CONFIG_NET_SCH_ATM=m
+# CONFIG_NET_SCH_PRIO is not set
+# CONFIG_NET_SCH_MULTIQ is not set
+CONFIG_NET_SCH_RED=y
+CONFIG_NET_SCH_SFB=m
+CONFIG_NET_SCH_SFQ=y
+# CONFIG_NET_SCH_TEQL is not set
+CONFIG_NET_SCH_TBF=m
+# CONFIG_NET_SCH_GRED is not set
+CONFIG_NET_SCH_DSMARK=y
+CONFIG_NET_SCH_NETEM=m
+# CONFIG_NET_SCH_DRR is not set
+# CONFIG_NET_SCH_MQPRIO is not set
+# CONFIG_NET_SCH_CHOKE is not set
+# CONFIG_NET_SCH_QFQ is not set
+# CONFIG_NET_SCH_CODEL is not set
+# CONFIG_NET_SCH_FQ_CODEL is not set
+CONFIG_NET_SCH_FQ=m
+CONFIG_NET_SCH_HHF=m
+CONFIG_NET_SCH_PIE=m
+CONFIG_NET_SCH_PLUG=y
+
+#
+# Classification
+#
+CONFIG_NET_CLS=y
+CONFIG_NET_CLS_BASIC=y
+# CONFIG_NET_CLS_TCINDEX is not set
+# CONFIG_NET_CLS_ROUTE4 is not set
+# CONFIG_NET_CLS_FW is not set
+CONFIG_NET_CLS_U32=m
+CONFIG_CLS_U32_PERF=y
+CONFIG_CLS_U32_MARK=y
+# CONFIG_NET_CLS_RSVP is not set
+CONFIG_NET_CLS_RSVP6=m
+# CONFIG_NET_CLS_FLOW is not set
+CONFIG_NET_CLS_CGROUP=m
+CONFIG_NET_CLS_BPF=m
+# CONFIG_NET_EMATCH is not set
+# CONFIG_NET_CLS_ACT is not set
+# CONFIG_NET_CLS_IND is not set
+CONFIG_NET_SCH_FIFO=y
+CONFIG_DCB=y
+CONFIG_DNS_RESOLVER=y
+CONFIG_BATMAN_ADV=y
+CONFIG_BATMAN_ADV_BLA=y
+CONFIG_BATMAN_ADV_DAT=y
+CONFIG_BATMAN_ADV_NC=y
+CONFIG_BATMAN_ADV_MCAST=y
+# CONFIG_BATMAN_ADV_DEBUG is not set
+CONFIG_OPENVSWITCH=y
+CONFIG_OPENVSWITCH_GRE=y
+CONFIG_VSOCKETS=y
+CONFIG_NETLINK_MMAP=y
+# CONFIG_NETLINK_DIAG is not set
+CONFIG_NET_MPLS_GSO=y
+# CONFIG_HSR is not set
+CONFIG_NET_SWITCHDEV=y
+CONFIG_RPS=y
+CONFIG_RFS_ACCEL=y
+CONFIG_XPS=y
+CONFIG_CGROUP_NET_PRIO=y
+CONFIG_CGROUP_NET_CLASSID=y
+CONFIG_NET_RX_BUSY_POLL=y
+CONFIG_BQL=y
+CONFIG_NET_FLOW_LIMIT=y
+
+#
+# Network testing
+#
+# CONFIG_NET_PKTGEN is not set
+# CONFIG_NET_TCPPROBE is not set
+# CONFIG_NET_DROP_MONITOR is not set
+CONFIG_HAMRADIO=y
+
+#
+# Packet Radio protocols
+#
+CONFIG_AX25=y
+# CONFIG_AX25_DAMA_SLAVE is not set
+CONFIG_NETROM=y
+CONFIG_ROSE=y
+
+#
+# AX.25 network device drivers
+#
+# CONFIG_MKISS is not set
+# CONFIG_6PACK is not set
+# CONFIG_BPQETHER is not set
+# CONFIG_BAYCOM_SER_FDX is not set
+CONFIG_BAYCOM_SER_HDX=y
+# CONFIG_BAYCOM_PAR is not set
+# CONFIG_BAYCOM_EPP is not set
+# CONFIG_YAM is not set
+CONFIG_CAN=m
+CONFIG_CAN_RAW=m
+CONFIG_CAN_BCM=m
+CONFIG_CAN_GW=m
+
+#
+# CAN Device Drivers
+#
+CONFIG_CAN_VCAN=m
+# CONFIG_CAN_SLCAN is not set
+# CONFIG_CAN_DEV is not set
+# CONFIG_CAN_DEBUG_DEVICES is not set
+CONFIG_IRDA=m
+
+#
+# IrDA protocols
+#
+# CONFIG_IRLAN is not set
+CONFIG_IRNET=m
+# CONFIG_IRCOMM is not set
+# CONFIG_IRDA_ULTRA is not set
+
+#
+# IrDA options
+#
+# CONFIG_IRDA_CACHE_LAST_LSAP is not set
+CONFIG_IRDA_FAST_RR=y
+# CONFIG_IRDA_DEBUG is not set
+
+#
+# Infrared-port device drivers
+#
+
+#
+# SIR device drivers
+#
+# CONFIG_IRTTY_SIR is not set
+
+#
+# Dongle support
+#
+CONFIG_KINGSUN_DONGLE=m
+# CONFIG_KSDAZZLE_DONGLE is not set
+CONFIG_KS959_DONGLE=m
+
+#
+# FIR device drivers
+#
+CONFIG_USB_IRDA=m
+CONFIG_SIGMATEL_FIR=m
+CONFIG_NSC_FIR=m
+# CONFIG_WINBOND_FIR is not set
+# CONFIG_TOSHIBA_FIR is not set
+CONFIG_SMC_IRCC_FIR=m
+CONFIG_ALI_FIR=m
+# CONFIG_VLSI_FIR is not set
+CONFIG_VIA_FIR=m
+CONFIG_MCS_FIR=m
+# CONFIG_BT is not set
+CONFIG_AF_RXRPC=m
+CONFIG_AF_RXRPC_DEBUG=y
+CONFIG_RXKAD=m
+CONFIG_FIB_RULES=y
+CONFIG_WIRELESS=y
+CONFIG_CFG80211=y
+CONFIG_NL80211_TESTMODE=y
+CONFIG_CFG80211_DEVELOPER_WARNINGS=y
+# CONFIG_CFG80211_REG_DEBUG is not set
+CONFIG_CFG80211_CERTIFICATION_ONUS=y
+CONFIG_CFG80211_REG_CELLULAR_HINTS=y
+# CONFIG_CFG80211_REG_RELAX_NO_IR is not set
+# CONFIG_CFG80211_DEFAULT_PS is not set
+CONFIG_CFG80211_DEBUGFS=y
+# CONFIG_CFG80211_INTERNAL_REGDB is not set
+# CONFIG_CFG80211_WEXT is not set
+# CONFIG_LIB80211 is not set
+CONFIG_MAC80211=y
+CONFIG_MAC80211_HAS_RC=y
+CONFIG_MAC80211_RC_MINSTREL=y
+CONFIG_MAC80211_RC_MINSTREL_HT=y
+# CONFIG_MAC80211_RC_MINSTREL_VHT is not set
+CONFIG_MAC80211_RC_DEFAULT_MINSTREL=y
+CONFIG_MAC80211_RC_DEFAULT="minstrel_ht"
+# CONFIG_MAC80211_MESH is not set
+# CONFIG_MAC80211_LEDS is not set
+CONFIG_MAC80211_DEBUGFS=y
+CONFIG_MAC80211_MESSAGE_TRACING=y
+CONFIG_MAC80211_DEBUG_MENU=y
+# CONFIG_MAC80211_NOINLINE is not set
+# CONFIG_MAC80211_VERBOSE_DEBUG is not set
+# CONFIG_MAC80211_MLME_DEBUG is not set
+CONFIG_MAC80211_STA_DEBUG=y
+CONFIG_MAC80211_HT_DEBUG=y
+# CONFIG_MAC80211_OCB_DEBUG is not set
+# CONFIG_MAC80211_IBSS_DEBUG is not set
+# CONFIG_MAC80211_PS_DEBUG is not set
+# CONFIG_MAC80211_TDLS_DEBUG is not set
+CONFIG_MAC80211_DEBUG_COUNTERS=y
+CONFIG_WIMAX=y
+CONFIG_WIMAX_DEBUG_LEVEL=8
+# CONFIG_RFKILL is not set
+CONFIG_RFKILL_REGULATOR=y
+CONFIG_NET_9P=m
+# CONFIG_NET_9P_VIRTIO is not set
+CONFIG_NET_9P_DEBUG=y
+# CONFIG_CAIF is not set
+CONFIG_CEPH_LIB=m
+CONFIG_CEPH_LIB_PRETTYDEBUG=y
+CONFIG_CEPH_LIB_USE_DNS_RESOLVER=y
+CONFIG_NFC=m
+# CONFIG_NFC_DIGITAL is not set
+CONFIG_NFC_NCI=m
+# CONFIG_NFC_NCI_SPI is not set
+# CONFIG_NFC_HCI is not set
+
+#
+# Near Field Communication (NFC) devices
+#
+CONFIG_NFC_PN533=m
+CONFIG_NFC_SIM=m
+CONFIG_NFC_MRVL=m
+# CONFIG_NFC_MRVL_USB is not set
+# CONFIG_NFC_ST21NFCB is not set
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+# CONFIG_UEVENT_HELPER is not set
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+# CONFIG_STANDALONE is not set
+# CONFIG_PREVENT_FIRMWARE_BUILD is not set
+CONFIG_FW_LOADER=y
+CONFIG_FIRMWARE_IN_KERNEL=y
+CONFIG_EXTRA_FIRMWARE=""
+CONFIG_FW_LOADER_USER_HELPER=y
+CONFIG_FW_LOADER_USER_HELPER_FALLBACK=y
+CONFIG_ALLOW_DEV_COREDUMP=y
+# CONFIG_DEBUG_DRIVER is not set
+# CONFIG_DEBUG_DEVRES is not set
+# CONFIG_SYS_HYPERVISOR is not set
+# CONFIG_GENERIC_CPU_DEVICES is not set
+CONFIG_GENERIC_CPU_AUTOPROBE=y
+CONFIG_REGMAP=y
+CONFIG_REGMAP_I2C=m
+CONFIG_REGMAP_SPI=y
+CONFIG_REGMAP_SPMI=m
+CONFIG_REGMAP_MMIO=y
+CONFIG_REGMAP_IRQ=y
+CONFIG_DMA_SHARED_BUFFER=y
+CONFIG_FENCE_TRACE=y
+
+#
+# Bus devices
+#
+# CONFIG_CONNECTOR is not set
+CONFIG_MTD=m
+CONFIG_MTD_TESTS=m
+CONFIG_MTD_REDBOOT_PARTS=m
+CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
+CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+CONFIG_MTD_REDBOOT_PARTS_READONLY=y
+# CONFIG_MTD_CMDLINE_PARTS is not set
+# CONFIG_MTD_AR7_PARTS is not set
+
+#
+# User Modules And Translation Layers
+#
+CONFIG_MTD_BLKDEVS=m
+CONFIG_MTD_BLOCK=m
+CONFIG_MTD_BLOCK_RO=m
+# CONFIG_FTL is not set
+CONFIG_NFTL=m
+# CONFIG_NFTL_RW is not set
+CONFIG_INFTL=m
+# CONFIG_RFD_FTL is not set
+# CONFIG_SSFDC is not set
+# CONFIG_SM_FTL is not set
+CONFIG_MTD_OOPS=m
+
+#
+# RAM/ROM/Flash chip drivers
+#
+CONFIG_MTD_CFI=m
+CONFIG_MTD_JEDECPROBE=m
+CONFIG_MTD_GEN_PROBE=m
+CONFIG_MTD_CFI_ADV_OPTIONS=y
+# CONFIG_MTD_CFI_NOSWAP is not set
+CONFIG_MTD_CFI_BE_BYTE_SWAP=y
+# CONFIG_MTD_CFI_LE_BYTE_SWAP is not set
+CONFIG_MTD_CFI_GEOMETRY=y
+CONFIG_MTD_MAP_BANK_WIDTH_1=y
+CONFIG_MTD_MAP_BANK_WIDTH_2=y
+# CONFIG_MTD_MAP_BANK_WIDTH_4 is not set
+# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
+# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
+# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
+# CONFIG_MTD_CFI_I1 is not set
+CONFIG_MTD_CFI_I2=y
+CONFIG_MTD_CFI_I4=y
+CONFIG_MTD_CFI_I8=y
+CONFIG_MTD_OTP=y
+CONFIG_MTD_CFI_INTELEXT=m
+CONFIG_MTD_CFI_AMDSTD=m
+CONFIG_MTD_CFI_STAA=m
+CONFIG_MTD_CFI_UTIL=m
+CONFIG_MTD_RAM=m
+CONFIG_MTD_ROM=m
+CONFIG_MTD_ABSENT=m
+
+#
+# Mapping drivers for chip access
+#
+# CONFIG_MTD_COMPLEX_MAPPINGS is not set
+CONFIG_MTD_PHYSMAP=m
+# CONFIG_MTD_PHYSMAP_COMPAT is not set
+CONFIG_MTD_SCx200_DOCFLASH=m
+# CONFIG_MTD_AMD76XROM is not set
+CONFIG_MTD_ICHXROM=m
+# CONFIG_MTD_ESB2ROM is not set
+# CONFIG_MTD_CK804XROM is not set
+# CONFIG_MTD_SCB2_FLASH is not set
+CONFIG_MTD_NETtel=m
+# CONFIG_MTD_L440GX is not set
+# CONFIG_MTD_INTEL_VR_NOR is not set
+CONFIG_MTD_PLATRAM=m
+
+#
+# Self-contained MTD device drivers
+#
+# CONFIG_MTD_PMC551 is not set
+CONFIG_MTD_DATAFLASH=m
+CONFIG_MTD_DATAFLASH_WRITE_VERIFY=y
+# CONFIG_MTD_DATAFLASH_OTP is not set
+CONFIG_MTD_M25P80=m
+# CONFIG_MTD_SST25L is not set
+CONFIG_MTD_SLRAM=m
+CONFIG_MTD_PHRAM=m
+CONFIG_MTD_MTDRAM=m
+CONFIG_MTDRAM_TOTAL_SIZE=4096
+CONFIG_MTDRAM_ERASE_SIZE=128
+CONFIG_MTD_BLOCK2MTD=m
+
+#
+# Disk-On-Chip Device Drivers
+#
+CONFIG_MTD_DOCG3=m
+CONFIG_BCH_CONST_M=14
+CONFIG_BCH_CONST_T=4
+# CONFIG_MTD_NAND is not set
+CONFIG_MTD_ONENAND=m
+CONFIG_MTD_ONENAND_VERIFY_WRITE=y
+# CONFIG_MTD_ONENAND_GENERIC is not set
+CONFIG_MTD_ONENAND_OTP=y
+# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
+
+#
+# LPDDR & LPDDR2 PCM memory drivers
+#
+CONFIG_MTD_LPDDR=m
+CONFIG_MTD_QINFO_PROBE=m
+CONFIG_MTD_SPI_NOR=m
+# CONFIG_MTD_SPI_NOR_USE_4K_SECTORS is not set
+# CONFIG_MTD_UBI is not set
+CONFIG_ARCH_MIGHT_HAVE_PC_PARPORT=y
+CONFIG_PARPORT=m
+# CONFIG_PARPORT_PC is not set
+# CONFIG_PARPORT_GSC is not set
+CONFIG_PARPORT_AX88796=m
+# CONFIG_PARPORT_1284 is not set
+CONFIG_PARPORT_NOT_PC=y
+CONFIG_PNP=y
+CONFIG_PNP_DEBUG_MESSAGES=y
+
+#
+# Protocols
+#
+CONFIG_PNPACPI=y
+CONFIG_BLK_DEV=y
+# CONFIG_BLK_DEV_NULL_BLK is not set
+# CONFIG_BLK_DEV_FD is not set
+# CONFIG_BLK_DEV_PCIESSD_MTIP32XX is not set
+# CONFIG_ZRAM is not set
+# CONFIG_BLK_CPQ_CISS_DA is not set
+# CONFIG_BLK_DEV_DAC960 is not set
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_COW_COMMON is not set
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
+# CONFIG_BLK_DEV_CRYPTOLOOP is not set
+# CONFIG_BLK_DEV_DRBD is not set
+CONFIG_BLK_DEV_NBD=y
+# CONFIG_BLK_DEV_NVME is not set
+# CONFIG_BLK_DEV_SX8 is not set
+# CONFIG_BLK_DEV_RAM is not set
+CONFIG_CDROM_PKTCDVD=y
+CONFIG_CDROM_PKTCDVD_BUFFERS=8
+# CONFIG_CDROM_PKTCDVD_WCACHE is not set
+CONFIG_ATA_OVER_ETH=y
+CONFIG_VIRTIO_BLK=m
+CONFIG_BLK_DEV_HD=y
+# CONFIG_BLK_DEV_RBD is not set
+# CONFIG_BLK_DEV_RSXX is not set
+
+#
+# Misc devices
+#
+CONFIG_SENSORS_LIS3LV02D=m
+CONFIG_AD525X_DPOT=y
+CONFIG_AD525X_DPOT_I2C=m
+CONFIG_AD525X_DPOT_SPI=m
+CONFIG_DUMMY_IRQ=y
+# CONFIG_IBM_ASM is not set
+# CONFIG_PHANTOM is not set
+# CONFIG_SGI_IOC4 is not set
+# CONFIG_TIFM_CORE is not set
+CONFIG_ICS932S401=m
+# CONFIG_ENCLOSURE_SERVICES is not set
+# CONFIG_HP_ILO is not set
+# CONFIG_APDS9802ALS is not set
+CONFIG_ISL29003=m
+# CONFIG_ISL29020 is not set
+CONFIG_SENSORS_TSL2550=m
+CONFIG_SENSORS_BH1780=m
+CONFIG_SENSORS_BH1770=m
+CONFIG_SENSORS_APDS990X=m
+CONFIG_HMC6352=m
+CONFIG_DS1682=m
+# CONFIG_TI_DAC7512 is not set
+# CONFIG_VMWARE_BALLOON is not set
+CONFIG_BMP085=y
+CONFIG_BMP085_I2C=m
+CONFIG_BMP085_SPI=m
+# CONFIG_PCH_PHUB is not set
+CONFIG_USB_SWITCH_FSA9480=m
+CONFIG_LATTICE_ECP3_CONFIG=y
+# CONFIG_SRAM is not set
+# CONFIG_C2PORT is not set
+
+#
+# EEPROM support
+#
+# CONFIG_EEPROM_AT24 is not set
+CONFIG_EEPROM_AT25=y
+CONFIG_EEPROM_LEGACY=m
+CONFIG_EEPROM_MAX6875=m
+CONFIG_EEPROM_93CX6=y
+CONFIG_EEPROM_93XX46=y
+# CONFIG_CB710_CORE is not set
+
+#
+# Texas Instruments shared transport line discipline
+#
+# CONFIG_TI_ST is not set
+CONFIG_SENSORS_LIS3_I2C=m
+
+#
+# Altera FPGA firmware download module
+#
+# CONFIG_ALTERA_STAPL is not set
+# CONFIG_INTEL_MEI is not set
+# CONFIG_INTEL_MEI_ME is not set
+# CONFIG_INTEL_MEI_TXE is not set
+# CONFIG_VMWARE_VMCI is not set
+
+#
+# Intel MIC Bus Driver
+#
+
+#
+# Intel MIC Host Driver
+#
+
+#
+# Intel MIC Card Driver
+#
+# CONFIG_ECHO is not set
+# CONFIG_CXL_BASE is not set
+CONFIG_HAVE_IDE=y
+CONFIG_IDE=m
+
+#
+# Please see Documentation/ide/ide.txt for help/info on IDE drives
+#
+CONFIG_IDE_XFER_MODE=y
+CONFIG_IDE_TIMINGS=y
+CONFIG_IDE_ATAPI=y
+CONFIG_BLK_DEV_IDE_SATA=y
+CONFIG_IDE_GD=m
+# CONFIG_IDE_GD_ATA is not set
+# CONFIG_IDE_GD_ATAPI is not set
+# CONFIG_BLK_DEV_DELKIN is not set
+CONFIG_BLK_DEV_IDECD=m
+CONFIG_BLK_DEV_IDECD_VERBOSE_ERRORS=y
+CONFIG_BLK_DEV_IDETAPE=m
+# CONFIG_BLK_DEV_IDEACPI is not set
+CONFIG_IDE_TASK_IOCTL=y
+CONFIG_IDE_PROC_FS=y
+
+#
+# IDE chipset support/bugfixes
+#
+CONFIG_IDE_GENERIC=m
+CONFIG_BLK_DEV_PLATFORM=m
+CONFIG_BLK_DEV_CMD640=m
+CONFIG_BLK_DEV_CMD640_ENHANCED=y
+# CONFIG_BLK_DEV_IDEPNP is not set
+
+#
+# PCI IDE chipsets support
+#
+# CONFIG_BLK_DEV_GENERIC is not set
+# CONFIG_BLK_DEV_OPTI621 is not set
+# CONFIG_BLK_DEV_RZ1000 is not set
+# CONFIG_BLK_DEV_AEC62XX is not set
+# CONFIG_BLK_DEV_ALI15X3 is not set
+# CONFIG_BLK_DEV_AMD74XX is not set
+# CONFIG_BLK_DEV_ATIIXP is not set
+# CONFIG_BLK_DEV_CMD64X is not set
+# CONFIG_BLK_DEV_TRIFLEX is not set
+# CONFIG_BLK_DEV_CS5520 is not set
+# CONFIG_BLK_DEV_CS5530 is not set
+# CONFIG_BLK_DEV_CS5535 is not set
+# CONFIG_BLK_DEV_CS5536 is not set
+# CONFIG_BLK_DEV_HPT366 is not set
+# CONFIG_BLK_DEV_JMICRON is not set
+# CONFIG_BLK_DEV_SC1200 is not set
+# CONFIG_BLK_DEV_PIIX is not set
+# CONFIG_BLK_DEV_IT8172 is not set
+# CONFIG_BLK_DEV_IT8213 is not set
+# CONFIG_BLK_DEV_IT821X is not set
+# CONFIG_BLK_DEV_NS87415 is not set
+# CONFIG_BLK_DEV_PDC202XX_OLD is not set
+# CONFIG_BLK_DEV_PDC202XX_NEW is not set
+# CONFIG_BLK_DEV_SVWKS is not set
+# CONFIG_BLK_DEV_SIIMAGE is not set
+# CONFIG_BLK_DEV_SIS5513 is not set
+# CONFIG_BLK_DEV_SLC90E66 is not set
+# CONFIG_BLK_DEV_TRM290 is not set
+# CONFIG_BLK_DEV_VIA82CXXX is not set
+# CONFIG_BLK_DEV_TC86C001 is not set
+# CONFIG_BLK_DEV_IDEDMA is not set
+
+#
+# SCSI device support
+#
+CONFIG_SCSI_MOD=y
+CONFIG_RAID_ATTRS=m
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+CONFIG_SCSI_NETLINK=y
+# CONFIG_SCSI_MQ_DEFAULT is not set
+CONFIG_SCSI_PROC_FS=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=y
+CONFIG_CHR_DEV_ST=m
+CONFIG_CHR_DEV_OSST=m
+CONFIG_BLK_DEV_SR=m
+CONFIG_BLK_DEV_SR_VENDOR=y
+CONFIG_CHR_DEV_SG=m
+CONFIG_CHR_DEV_SCH=y
+CONFIG_SCSI_CONSTANTS=y
+CONFIG_SCSI_LOGGING=y
+# CONFIG_SCSI_SCAN_ASYNC is not set
+
+#
+# SCSI Transports
+#
+# CONFIG_SCSI_SPI_ATTRS is not set
+CONFIG_SCSI_FC_ATTRS=y
+CONFIG_SCSI_ISCSI_ATTRS=y
+CONFIG_SCSI_SAS_ATTRS=y
+# CONFIG_SCSI_SAS_LIBSAS is not set
+CONFIG_SCSI_SRP_ATTRS=y
+# CONFIG_SCSI_LOWLEVEL is not set
+CONFIG_SCSI_DH=y
+CONFIG_SCSI_DH_RDAC=y
+CONFIG_SCSI_DH_HP_SW=m
+CONFIG_SCSI_DH_EMC=m
+CONFIG_SCSI_DH_ALUA=y
+CONFIG_SCSI_OSD_INITIATOR=y
+# CONFIG_SCSI_OSD_ULD is not set
+CONFIG_SCSI_OSD_DPRINT_SENSE=1
+CONFIG_SCSI_OSD_DEBUG=y
+CONFIG_ATA=y
+# CONFIG_ATA_NONSTANDARD is not set
+CONFIG_ATA_VERBOSE_ERROR=y
+CONFIG_ATA_ACPI=y
+# CONFIG_SATA_ZPODD is not set
+CONFIG_SATA_PMP=y
+
+#
+# Controllers with non-SFF native interface
+#
+# CONFIG_SATA_AHCI is not set
+CONFIG_SATA_AHCI_PLATFORM=m
+# CONFIG_SATA_INIC162X is not set
+# CONFIG_SATA_ACARD_AHCI is not set
+# CONFIG_SATA_SIL24 is not set
+# CONFIG_ATA_SFF is not set
+CONFIG_MD=y
+# CONFIG_BLK_DEV_MD is not set
+CONFIG_BCACHE=m
+# CONFIG_BCACHE_DEBUG is not set
+CONFIG_BCACHE_CLOSURES_DEBUG=y
+# CONFIG_BLK_DEV_DM is not set
+CONFIG_TARGET_CORE=m
+# CONFIG_TCM_IBLOCK is not set
+CONFIG_TCM_FILEIO=m
+CONFIG_TCM_PSCSI=m
+# CONFIG_TCM_USER is not set
+# CONFIG_LOOPBACK_TARGET is not set
+CONFIG_ISCSI_TARGET=m
+CONFIG_SBP_TARGET=m
+# CONFIG_FUSION is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+CONFIG_FIREWIRE=y
+# CONFIG_FIREWIRE_OHCI is not set
+# CONFIG_FIREWIRE_SBP2 is not set
+# CONFIG_FIREWIRE_NET is not set
+# CONFIG_FIREWIRE_NOSY is not set
+CONFIG_MACINTOSH_DRIVERS=y
+# CONFIG_MAC_EMUMOUSEBTN is not set
+CONFIG_NETDEVICES=y
+CONFIG_NET_CORE=y
+CONFIG_BONDING=y
+CONFIG_DUMMY=m
+CONFIG_EQUALIZER=y
+# CONFIG_NET_FC is not set
+# CONFIG_NET_TEAM is not set
+CONFIG_MACVLAN=y
+CONFIG_MACVTAP=m
+# CONFIG_IPVLAN is not set
+# CONFIG_VXLAN is not set
+CONFIG_NETCONSOLE=m
+# CONFIG_NETCONSOLE_DYNAMIC is not set
+CONFIG_NETPOLL=y
+CONFIG_NET_POLL_CONTROLLER=y
+# CONFIG_TUN is not set
+# CONFIG_VETH is not set
+# CONFIG_VIRTIO_NET is not set
+# CONFIG_NLMON is not set
+# CONFIG_ARCNET is not set
+CONFIG_ATM_DRIVERS=y
+CONFIG_ATM_DUMMY=y
+# CONFIG_ATM_TCP is not set
+# CONFIG_ATM_LANAI is not set
+# CONFIG_ATM_ENI is not set
+# CONFIG_ATM_FIRESTREAM is not set
+# CONFIG_ATM_ZATM is not set
+# CONFIG_ATM_NICSTAR is not set
+# CONFIG_ATM_IDT77252 is not set
+# CONFIG_ATM_AMBASSADOR is not set
+# CONFIG_ATM_HORIZON is not set
+# CONFIG_ATM_IA is not set
+# CONFIG_ATM_FORE200E is not set
+# CONFIG_ATM_HE is not set
+# CONFIG_ATM_SOLOS is not set
+
+#
+# CAIF transport drivers
+#
+CONFIG_VHOST_NET=m
+CONFIG_VHOST_SCSI=m
+CONFIG_VHOST_RING=m
+CONFIG_VHOST=m
+
+#
+# Distributed Switch Architecture drivers
+#
+CONFIG_NET_DSA_MV88E6XXX=m
+# CONFIG_NET_DSA_MV88E6060 is not set
+CONFIG_NET_DSA_MV88E6XXX_NEED_PPU=y
+CONFIG_NET_DSA_MV88E6131=m
+CONFIG_NET_DSA_MV88E6123_61_65=m
+# CONFIG_NET_DSA_MV88E6171 is not set
+# CONFIG_NET_DSA_MV88E6352 is not set
+# CONFIG_NET_DSA_BCM_SF2 is not set
+CONFIG_ETHERNET=y
+CONFIG_MDIO=m
+CONFIG_NET_VENDOR_3COM=y
+# CONFIG_VORTEX is not set
+# CONFIG_TYPHOON is not set
+CONFIG_NET_VENDOR_ADAPTEC=y
+# CONFIG_ADAPTEC_STARFIRE is not set
+CONFIG_NET_VENDOR_AGERE=y
+# CONFIG_ET131X is not set
+CONFIG_NET_VENDOR_ALTEON=y
+# CONFIG_ACENIC is not set
+# CONFIG_ALTERA_TSE is not set
+CONFIG_NET_VENDOR_AMD=y
+# CONFIG_AMD8111_ETH is not set
+# CONFIG_PCNET32 is not set
+# CONFIG_AMD_XGBE is not set
+# CONFIG_NET_XGENE is not set
+CONFIG_NET_VENDOR_ARC=y
+CONFIG_NET_VENDOR_ATHEROS=y
+# CONFIG_ATL2 is not set
+# CONFIG_ATL1 is not set
+# CONFIG_ATL1E is not set
+# CONFIG_ATL1C is not set
+# CONFIG_ALX is not set
+CONFIG_NET_VENDOR_BROADCOM=y
+# CONFIG_B44 is not set
+# CONFIG_BCMGENET is not set
+# CONFIG_BNX2 is not set
+# CONFIG_CNIC is not set
+# CONFIG_TIGON3 is not set
+# CONFIG_BNX2X is not set
+CONFIG_NET_VENDOR_BROCADE=y
+# CONFIG_BNA is not set
+CONFIG_NET_VENDOR_CHELSIO=y
+# CONFIG_CHELSIO_T1 is not set
+# CONFIG_CHELSIO_T3 is not set
+# CONFIG_CHELSIO_T4 is not set
+# CONFIG_CHELSIO_T4VF is not set
+CONFIG_NET_VENDOR_CISCO=y
+# CONFIG_ENIC is not set
+# CONFIG_CX_ECAT is not set
+# CONFIG_DNET is not set
+CONFIG_NET_VENDOR_DEC=y
+# CONFIG_NET_TULIP is not set
+CONFIG_NET_VENDOR_DLINK=y
+# CONFIG_DL2K is not set
+# CONFIG_SUNDANCE is not set
+CONFIG_NET_VENDOR_EMULEX=y
+# CONFIG_BE2NET is not set
+CONFIG_NET_VENDOR_EXAR=y
+# CONFIG_S2IO is not set
+# CONFIG_VXGE is not set
+CONFIG_NET_VENDOR_HP=y
+# CONFIG_HP100 is not set
+CONFIG_NET_VENDOR_INTEL=y
+# CONFIG_E100 is not set
+CONFIG_E1000=m
+CONFIG_E1000E=m
+CONFIG_IGB=m
+# CONFIG_IGBVF is not set
+# CONFIG_IXGB is not set
+CONFIG_IXGBE=m
+# CONFIG_IXGBE_DCB is not set
+# CONFIG_I40E is not set
+CONFIG_NET_VENDOR_I825XX=y
+# CONFIG_IP1000 is not set
+# CONFIG_JME is not set
+CONFIG_NET_VENDOR_MARVELL=y
+# CONFIG_MVMDIO is not set
+# CONFIG_SKGE is not set
+# CONFIG_SKY2 is not set
+CONFIG_NET_VENDOR_MELLANOX=y
+# CONFIG_MLX4_EN is not set
+# CONFIG_MLX4_CORE is not set
+# CONFIG_MLX5_CORE is not set
+CONFIG_NET_VENDOR_MICREL=y
+# CONFIG_KS8851 is not set
+# CONFIG_KS8851_MLL is not set
+# CONFIG_KSZ884X_PCI is not set
+CONFIG_NET_VENDOR_MICROCHIP=y
+# CONFIG_ENC28J60 is not set
+CONFIG_NET_VENDOR_MYRI=y
+# CONFIG_MYRI10GE is not set
+# CONFIG_FEALNX is not set
+CONFIG_NET_VENDOR_NATSEMI=y
+# CONFIG_NATSEMI is not set
+# CONFIG_NS83820 is not set
+CONFIG_NET_VENDOR_8390=y
+# CONFIG_NE2K_PCI is not set
+CONFIG_NET_VENDOR_NVIDIA=y
+# CONFIG_FORCEDETH is not set
+CONFIG_NET_VENDOR_OKI=y
+# CONFIG_PCH_GBE is not set
+# CONFIG_ETHOC is not set
+CONFIG_NET_PACKET_ENGINE=y
+# CONFIG_HAMACHI is not set
+# CONFIG_YELLOWFIN is not set
+CONFIG_NET_VENDOR_QLOGIC=y
+# CONFIG_QLA3XXX is not set
+# CONFIG_QLCNIC is not set
+# CONFIG_QLGE is not set
+# CONFIG_NETXEN_NIC is not set
+CONFIG_NET_VENDOR_QUALCOMM=y
+CONFIG_NET_VENDOR_REALTEK=y
+# CONFIG_ATP is not set
+# CONFIG_8139CP is not set
+# CONFIG_8139TOO is not set
+# CONFIG_R8169 is not set
+CONFIG_NET_VENDOR_RDC=y
+# CONFIG_R6040 is not set
+CONFIG_NET_VENDOR_ROCKER=y
+# CONFIG_ROCKER is not set
+CONFIG_NET_VENDOR_SAMSUNG=y
+# CONFIG_SXGBE_ETH is not set
+CONFIG_NET_VENDOR_SEEQ=y
+CONFIG_NET_VENDOR_SILAN=y
+# CONFIG_SC92031 is not set
+CONFIG_NET_VENDOR_SIS=y
+# CONFIG_SIS900 is not set
+# CONFIG_SIS190 is not set
+# CONFIG_SFC is not set
+CONFIG_NET_VENDOR_SMSC=y
+# CONFIG_EPIC100 is not set
+# CONFIG_SMSC911X is not set
+# CONFIG_SMSC9420 is not set
+CONFIG_NET_VENDOR_STMICRO=y
+# CONFIG_STMMAC_ETH is not set
+CONFIG_NET_VENDOR_SUN=y
+# CONFIG_HAPPYMEAL is not set
+# CONFIG_SUNGEM is not set
+# CONFIG_CASSINI is not set
+# CONFIG_NIU is not set
+CONFIG_NET_VENDOR_TEHUTI=y
+# CONFIG_TEHUTI is not set
+CONFIG_NET_VENDOR_TI=y
+# CONFIG_TI_CPSW_ALE is not set
+# CONFIG_TLAN is not set
+CONFIG_NET_VENDOR_VIA=y
+# CONFIG_VIA_RHINE is not set
+# CONFIG_VIA_VELOCITY is not set
+CONFIG_NET_VENDOR_WIZNET=y
+# CONFIG_WIZNET_W5100 is not set
+# CONFIG_WIZNET_W5300 is not set
+# CONFIG_FDDI is not set
+# CONFIG_HIPPI is not set
+# CONFIG_NET_SB1000 is not set
+CONFIG_PHYLIB=m
+
+#
+# MII PHY device drivers
+#
+CONFIG_AT803X_PHY=m
+CONFIG_AMD_PHY=m
+# CONFIG_AMD_XGBE_PHY is not set
+CONFIG_MARVELL_PHY=m
+CONFIG_DAVICOM_PHY=m
+# CONFIG_QSEMI_PHY is not set
+CONFIG_LXT_PHY=m
+CONFIG_CICADA_PHY=m
+# CONFIG_VITESSE_PHY is not set
+CONFIG_SMSC_PHY=m
+CONFIG_BROADCOM_PHY=m
+# CONFIG_BCM7XXX_PHY is not set
+CONFIG_BCM87XX_PHY=m
+CONFIG_ICPLUS_PHY=m
+CONFIG_REALTEK_PHY=m
+CONFIG_NATIONAL_PHY=m
+# CONFIG_STE10XP is not set
+# CONFIG_LSI_ET1011C_PHY is not set
+# CONFIG_MICREL_PHY is not set
+CONFIG_FIXED_PHY=m
+CONFIG_MDIO_BITBANG=m
+# CONFIG_MDIO_GPIO is not set
+# CONFIG_MDIO_BCM_UNIMAC is not set
+CONFIG_MICREL_KS8995MA=m
+# CONFIG_PLIP is not set
+CONFIG_PPP=y
+# CONFIG_PPP_BSDCOMP is not set
+CONFIG_PPP_DEFLATE=m
+CONFIG_PPP_FILTER=y
+CONFIG_PPP_MPPE=m
+CONFIG_PPP_MULTILINK=y
+CONFIG_PPPOATM=y
+CONFIG_PPPOE=y
+CONFIG_PPTP=m
+# CONFIG_PPPOL2TP is not set
+# CONFIG_PPP_ASYNC is not set
+# CONFIG_PPP_SYNC_TTY is not set
+# CONFIG_SLIP is not set
+CONFIG_SLHC=y
+
+#
+# Host-side USB support is needed for USB Network Adapter support
+#
+# CONFIG_USB_NET_DRIVERS is not set
+# CONFIG_WLAN is not set
+
+#
+# WiMAX Wireless Broadband devices
+#
+# CONFIG_WIMAX_I2400M_USB is not set
+CONFIG_WAN=y
+# CONFIG_LANMEDIA is not set
+CONFIG_HDLC=m
+# CONFIG_HDLC_RAW is not set
+CONFIG_HDLC_RAW_ETH=m
+CONFIG_HDLC_CISCO=m
+# CONFIG_HDLC_FR is not set
+CONFIG_HDLC_PPP=m
+
+#
+# X.25/LAPB support is disabled
+#
+# CONFIG_PCI200SYN is not set
+# CONFIG_WANXL is not set
+# CONFIG_PC300TOO is not set
+# CONFIG_FARSYNC is not set
+# CONFIG_DSCC4 is not set
+# CONFIG_DLCI is not set
+CONFIG_SBNI=m
+CONFIG_SBNI_MULTILINE=y
+# CONFIG_VMXNET3 is not set
+CONFIG_ISDN=y
+# CONFIG_ISDN_I4L is not set
+CONFIG_ISDN_CAPI=m
+# CONFIG_CAPI_TRACE is not set
+CONFIG_ISDN_CAPI_CAPI20=m
+# CONFIG_ISDN_CAPI_MIDDLEWARE is not set
+
+#
+# CAPI hardware drivers
+#
+CONFIG_CAPI_AVM=y
+# CONFIG_ISDN_DRV_AVMB1_B1PCI is not set
+# CONFIG_ISDN_DRV_AVMB1_T1PCI is not set
+# CONFIG_ISDN_DRV_AVMB1_C4 is not set
+# CONFIG_CAPI_EICON is not set
+# CONFIG_ISDN_DRV_GIGASET is not set
+# CONFIG_HYSDN is not set
+CONFIG_MISDN=y
+CONFIG_MISDN_DSP=m
+CONFIG_MISDN_L1OIP=m
+
+#
+# mISDN hardware drivers
+#
+# CONFIG_MISDN_HFCPCI is not set
+# CONFIG_MISDN_HFCMULTI is not set
+CONFIG_MISDN_HFCUSB=m
+# CONFIG_MISDN_AVMFRITZ is not set
+# CONFIG_MISDN_SPEEDFAX is not set
+# CONFIG_MISDN_INFINEON is not set
+# CONFIG_MISDN_W6692 is not set
+# CONFIG_MISDN_NETJET is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+CONFIG_INPUT_FF_MEMLESS=m
+CONFIG_INPUT_POLLDEV=m
+# CONFIG_INPUT_SPARSEKMAP is not set
+CONFIG_INPUT_MATRIXKMAP=m
+
+#
+# Userland interfaces
+#
+# CONFIG_INPUT_MOUSEDEV is not set
+CONFIG_INPUT_JOYDEV=m
+CONFIG_INPUT_EVDEV=m
+# CONFIG_INPUT_EVBUG is not set
+
+#
+# Input Device Drivers
+#
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ADP5588=m
+CONFIG_KEYBOARD_ADP5589=m
+CONFIG_KEYBOARD_ATKBD=y
+CONFIG_KEYBOARD_QT1070=m
+CONFIG_KEYBOARD_QT2160=m
+# CONFIG_KEYBOARD_LKKBD is not set
+# CONFIG_KEYBOARD_GPIO is not set
+CONFIG_KEYBOARD_GPIO_POLLED=m
+CONFIG_KEYBOARD_TCA6416=m
+CONFIG_KEYBOARD_TCA8418=m
+CONFIG_KEYBOARD_MATRIX=m
+CONFIG_KEYBOARD_LM8323=m
+# CONFIG_KEYBOARD_LM8333 is not set
+CONFIG_KEYBOARD_MAX7359=m
+CONFIG_KEYBOARD_MCS=m
+# CONFIG_KEYBOARD_MPR121 is not set
+# CONFIG_KEYBOARD_NEWTON is not set
+CONFIG_KEYBOARD_OPENCORES=m
+# CONFIG_KEYBOARD_STOWAWAY is not set
+CONFIG_KEYBOARD_SUNKBD=m
+CONFIG_KEYBOARD_XTKBD=m
+CONFIG_KEYBOARD_CROS_EC=m
+CONFIG_INPUT_MOUSE=y
+# CONFIG_MOUSE_PS2 is not set
+# CONFIG_MOUSE_SERIAL is not set
+CONFIG_MOUSE_APPLETOUCH=m
+CONFIG_MOUSE_BCM5974=m
+CONFIG_MOUSE_CYAPA=m
+CONFIG_MOUSE_ELAN_I2C=m
+CONFIG_MOUSE_ELAN_I2C_I2C=y
+# CONFIG_MOUSE_ELAN_I2C_SMBUS is not set
+CONFIG_MOUSE_VSXXXAA=m
+CONFIG_MOUSE_GPIO=m
+CONFIG_MOUSE_SYNAPTICS_I2C=m
+CONFIG_MOUSE_SYNAPTICS_USB=m
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+CONFIG_INPUT_TOUCHSCREEN=y
+# CONFIG_TOUCHSCREEN_ADS7846 is not set
+CONFIG_TOUCHSCREEN_AD7877=m
+# CONFIG_TOUCHSCREEN_AD7879 is not set
+CONFIG_TOUCHSCREEN_ATMEL_MXT=m
+CONFIG_TOUCHSCREEN_AUO_PIXCIR=m
+CONFIG_TOUCHSCREEN_BU21013=m
+# CONFIG_TOUCHSCREEN_CY8CTMG110 is not set
+CONFIG_TOUCHSCREEN_CYTTSP_CORE=m
+# CONFIG_TOUCHSCREEN_CYTTSP_I2C is not set
+CONFIG_TOUCHSCREEN_CYTTSP_SPI=m
+# CONFIG_TOUCHSCREEN_CYTTSP4_CORE is not set
+CONFIG_TOUCHSCREEN_DA9052=m
+CONFIG_TOUCHSCREEN_DYNAPRO=m
+# CONFIG_TOUCHSCREEN_HAMPSHIRE is not set
+# CONFIG_TOUCHSCREEN_EETI is not set
+CONFIG_TOUCHSCREEN_FUJITSU=m
+CONFIG_TOUCHSCREEN_GOODIX=m
+# CONFIG_TOUCHSCREEN_ILI210X is not set
+CONFIG_TOUCHSCREEN_GUNZE=m
+CONFIG_TOUCHSCREEN_ELAN=m
+CONFIG_TOUCHSCREEN_ELO=m
+CONFIG_TOUCHSCREEN_WACOM_W8001=m
+CONFIG_TOUCHSCREEN_WACOM_I2C=m
+# CONFIG_TOUCHSCREEN_MAX11801 is not set
+# CONFIG_TOUCHSCREEN_MCS5000 is not set
+# CONFIG_TOUCHSCREEN_MMS114 is not set
+CONFIG_TOUCHSCREEN_MTOUCH=m
+CONFIG_TOUCHSCREEN_INEXIO=m
+# CONFIG_TOUCHSCREEN_MK712 is not set
+# CONFIG_TOUCHSCREEN_PENMOUNT is not set
+CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+CONFIG_TOUCHSCREEN_TOUCHRIGHT=m
+CONFIG_TOUCHSCREEN_TOUCHWIN=m
+CONFIG_TOUCHSCREEN_PIXCIR=m
+# CONFIG_TOUCHSCREEN_WM831X is not set
+CONFIG_TOUCHSCREEN_USB_COMPOSITE=m
+# CONFIG_TOUCHSCREEN_MC13783 is not set
+CONFIG_TOUCHSCREEN_USB_EGALAX=y
+# CONFIG_TOUCHSCREEN_USB_PANJIT is not set
+CONFIG_TOUCHSCREEN_USB_3M=y
+# CONFIG_TOUCHSCREEN_USB_ITM is not set
+CONFIG_TOUCHSCREEN_USB_ETURBO=y
+CONFIG_TOUCHSCREEN_USB_GUNZE=y
+CONFIG_TOUCHSCREEN_USB_DMC_TSC10=y
+# CONFIG_TOUCHSCREEN_USB_IRTOUCH is not set
+CONFIG_TOUCHSCREEN_USB_IDEALTEK=y
+CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
+# CONFIG_TOUCHSCREEN_USB_GOTOP is not set
+# CONFIG_TOUCHSCREEN_USB_JASTEC is not set
+# CONFIG_TOUCHSCREEN_USB_ELO is not set
+# CONFIG_TOUCHSCREEN_USB_E2I is not set
+# CONFIG_TOUCHSCREEN_USB_ZYTRONIC is not set
+# CONFIG_TOUCHSCREEN_USB_ETT_TC45USB is not set
+# CONFIG_TOUCHSCREEN_USB_NEXIO is not set
+CONFIG_TOUCHSCREEN_USB_EASYTOUCH=y
+CONFIG_TOUCHSCREEN_TOUCHIT213=m
+# CONFIG_TOUCHSCREEN_TSC_SERIO is not set
+CONFIG_TOUCHSCREEN_TSC2005=m
+# CONFIG_TOUCHSCREEN_TSC2007 is not set
+CONFIG_TOUCHSCREEN_PCAP=m
+# CONFIG_TOUCHSCREEN_ST1232 is not set
+CONFIG_TOUCHSCREEN_SUR40=m
+CONFIG_TOUCHSCREEN_TPS6507X=m
+# CONFIG_TOUCHSCREEN_ZFORCE is not set
+# CONFIG_INPUT_MISC is not set
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_ARCH_MIGHT_HAVE_PC_SERIO=y
+CONFIG_SERIO_I8042=y
+CONFIG_SERIO_SERPORT=y
+# CONFIG_SERIO_CT82C710 is not set
+CONFIG_SERIO_PARKBD=m
+# CONFIG_SERIO_PCIPS2 is not set
+CONFIG_SERIO_LIBPS2=y
+CONFIG_SERIO_RAW=m
+CONFIG_SERIO_ALTERA_PS2=m
+CONFIG_SERIO_PS2MULT=m
+CONFIG_SERIO_ARC_PS2=m
+CONFIG_GAMEPORT=m
+# CONFIG_GAMEPORT_NS558 is not set
+# CONFIG_GAMEPORT_L4 is not set
+# CONFIG_GAMEPORT_EMU10K1 is not set
+# CONFIG_GAMEPORT_FM801 is not set
+
+#
+# Character devices
+#
+CONFIG_TTY=y
+# CONFIG_VT is not set
+CONFIG_UNIX98_PTYS=y
+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
+CONFIG_LEGACY_PTYS=y
+CONFIG_LEGACY_PTY_COUNT=256
+# CONFIG_SERIAL_NONSTANDARD is not set
+# CONFIG_NOZOMI is not set
+# CONFIG_N_GSM is not set
+# CONFIG_TRACE_SINK is not set
+# CONFIG_DEVMEM is not set
+CONFIG_DEVKMEM=y
+
+#
+# Serial drivers
+#
+CONFIG_SERIAL_EARLYCON=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_DEPRECATED_OPTIONS=y
+CONFIG_SERIAL_8250_PNP=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_SERIAL_8250_PCI=y
+CONFIG_SERIAL_8250_NR_UARTS=4
+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+# CONFIG_SERIAL_8250_EXTENDED is not set
+# CONFIG_SERIAL_8250_DW is not set
+# CONFIG_SERIAL_8250_FINTEK is not set
+
+#
+# Non-8250 serial port support
+#
+# CONFIG_SERIAL_MAX3100 is not set
+# CONFIG_SERIAL_MAX310X is not set
+# CONFIG_SERIAL_MFD_HSU is not set
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+# CONFIG_SERIAL_JSM is not set
+# CONFIG_SERIAL_SCCNXP is not set
+# CONFIG_SERIAL_SC16IS7XX is not set
+# CONFIG_SERIAL_TIMBERDALE is not set
+# CONFIG_SERIAL_ALTERA_JTAGUART is not set
+# CONFIG_SERIAL_ALTERA_UART is not set
+# CONFIG_SERIAL_IFX6X60 is not set
+# CONFIG_SERIAL_PCH_UART is not set
+# CONFIG_SERIAL_ARC is not set
+# CONFIG_SERIAL_RP2 is not set
+# CONFIG_SERIAL_FSL_LPUART is not set
+# CONFIG_SERIAL_MEN_Z135 is not set
+# CONFIG_TTY_PRINTK is not set
+# CONFIG_PRINTER is not set
+CONFIG_PPDEV=m
+# CONFIG_VIRTIO_CONSOLE is not set
+CONFIG_IPMI_HANDLER=y
+CONFIG_IPMI_PANIC_EVENT=y
+CONFIG_IPMI_PANIC_STRING=y
+CONFIG_IPMI_DEVICE_INTERFACE=m
+CONFIG_IPMI_SI=y
+CONFIG_IPMI_SI_PROBE_DEFAULTS=y
+CONFIG_IPMI_SSIF=m
+CONFIG_IPMI_WATCHDOG=m
+# CONFIG_IPMI_POWEROFF is not set
+# CONFIG_HW_RANDOM is not set
+CONFIG_NVRAM=y
+# CONFIG_R3964 is not set
+# CONFIG_APPLICOM is not set
+# CONFIG_SONYPI is not set
+# CONFIG_MWAVE is not set
+CONFIG_SCx200_GPIO=m
+CONFIG_PC8736x_GPIO=y
+CONFIG_NSC_GPIO=y
+CONFIG_RAW_DRIVER=m
+CONFIG_MAX_RAW_DEVS=256
+# CONFIG_HPET is not set
+CONFIG_HANGCHECK_TIMER=m
+CONFIG_TCG_TPM=y
+# CONFIG_TCG_TIS is not set
+# CONFIG_TCG_TIS_I2C_ATMEL is not set
+CONFIG_TCG_TIS_I2C_INFINEON=m
+CONFIG_TCG_TIS_I2C_NUVOTON=m
+CONFIG_TCG_NSC=y
+# CONFIG_TCG_ATMEL is not set
+# CONFIG_TCG_INFINEON is not set
+# CONFIG_TCG_TIS_I2C_ST33 is not set
+# CONFIG_TCG_CRB is not set
+# CONFIG_TELCLOCK is not set
+CONFIG_DEVPORT=y
+# CONFIG_XILLYBUS is not set
+
+#
+# I2C support
+#
+CONFIG_I2C=m
+CONFIG_I2C_BOARDINFO=y
+CONFIG_I2C_COMPAT=y
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_MUX=m
+
+#
+# Multiplexer I2C Chip support
+#
+# CONFIG_I2C_MUX_GPIO is not set
+# CONFIG_I2C_MUX_PCA9541 is not set
+CONFIG_I2C_MUX_PCA954x=m
+CONFIG_I2C_HELPER_AUTO=y
+CONFIG_I2C_SMBUS=m
+CONFIG_I2C_ALGOBIT=m
+
+#
+# I2C Hardware Bus support
+#
+
+#
+# PC SMBus host controller drivers
+#
+# CONFIG_I2C_ALI1535 is not set
+# CONFIG_I2C_ALI1563 is not set
+# CONFIG_I2C_ALI15X3 is not set
+# CONFIG_I2C_AMD756 is not set
+# CONFIG_I2C_AMD8111 is not set
+# CONFIG_I2C_I801 is not set
+# CONFIG_I2C_ISCH is not set
+# CONFIG_I2C_ISMT is not set
+# CONFIG_I2C_PIIX4 is not set
+# CONFIG_I2C_NFORCE2 is not set
+# CONFIG_I2C_SIS5595 is not set
+# CONFIG_I2C_SIS630 is not set
+# CONFIG_I2C_SIS96X is not set
+# CONFIG_I2C_VIA is not set
+# CONFIG_I2C_VIAPRO is not set
+
+#
+# ACPI drivers
+#
+# CONFIG_I2C_SCMI is not set
+
+#
+# I2C system bus drivers (mostly embedded / system-on-chip)
+#
+CONFIG_I2C_CBUS_GPIO=m
+# CONFIG_I2C_DESIGNWARE_PCI is not set
+# CONFIG_I2C_EG20T is not set
+CONFIG_I2C_GPIO=m
+CONFIG_I2C_KEMPLD=m
+CONFIG_I2C_OCORES=m
+# CONFIG_I2C_PCA_PLATFORM is not set
+# CONFIG_I2C_PXA_PCI is not set
+CONFIG_I2C_SIMTEC=m
+# CONFIG_I2C_XILINX is not set
+
+#
+# External I2C/SMBus adapter drivers
+#
+# CONFIG_I2C_DIOLAN_U2C is not set
+CONFIG_I2C_DLN2=m
+CONFIG_I2C_PARPORT=m
+CONFIG_I2C_PARPORT_LIGHT=m
+CONFIG_I2C_ROBOTFUZZ_OSIF=m
+# CONFIG_I2C_TAOS_EVM is not set
+CONFIG_I2C_TINY_USB=m
+
+#
+# Other I2C/SMBus bus drivers
+#
+# CONFIG_I2C_CROS_EC_TUNNEL is not set
+# CONFIG_SCx200_ACB is not set
+# CONFIG_I2C_STUB is not set
+CONFIG_I2C_SLAVE=y
+# CONFIG_I2C_SLAVE_EEPROM is not set
+# CONFIG_I2C_DEBUG_CORE is not set
+# CONFIG_I2C_DEBUG_ALGO is not set
+# CONFIG_I2C_DEBUG_BUS is not set
+CONFIG_SPI=y
+# CONFIG_SPI_DEBUG is not set
+CONFIG_SPI_MASTER=y
+
+#
+# SPI Master Controller Drivers
+#
+CONFIG_SPI_ALTERA=m
+CONFIG_SPI_BITBANG=y
+CONFIG_SPI_BUTTERFLY=m
+# CONFIG_SPI_DLN2 is not set
+# CONFIG_SPI_GPIO is not set
+CONFIG_SPI_LM70_LLP=m
+CONFIG_SPI_OC_TINY=m
+# CONFIG_SPI_PXA2XX is not set
+# CONFIG_SPI_PXA2XX_PCI is not set
+CONFIG_SPI_SC18IS602=m
+# CONFIG_SPI_TOPCLIFF_PCH is not set
+CONFIG_SPI_XCOMM=m
+CONFIG_SPI_XILINX=m
+CONFIG_SPI_DESIGNWARE=y
+# CONFIG_SPI_DW_PCI is not set
+# CONFIG_SPI_DW_MMIO is not set
+
+#
+# SPI Protocol Masters
+#
+CONFIG_SPI_SPIDEV=m
+CONFIG_SPI_TLE62X0=m
+CONFIG_SPMI=m
+# CONFIG_HSI is not set
+
+#
+# PPS support
+#
+CONFIG_PPS=y
+# CONFIG_PPS_DEBUG is not set
+
+#
+# PPS clients support
+#
+# CONFIG_PPS_CLIENT_KTIMER is not set
+# CONFIG_PPS_CLIENT_LDISC is not set
+# CONFIG_PPS_CLIENT_PARPORT is not set
+# CONFIG_PPS_CLIENT_GPIO is not set
+
+#
+# PPS generators support
+#
+
+#
+# PTP clock support
+#
+CONFIG_PTP_1588_CLOCK=y
+# CONFIG_DP83640_PHY is not set
+CONFIG_PTP_1588_CLOCK_PCH=y
+CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=y
+CONFIG_GPIOLIB=y
+CONFIG_GPIO_DEVRES=y
+CONFIG_GPIO_ACPI=y
+CONFIG_DEBUG_GPIO=y
+# CONFIG_GPIO_SYSFS is not set
+CONFIG_GPIO_GENERIC=y
+# CONFIG_GPIO_DA9052 is not set
+CONFIG_GPIO_MAX730X=y
+
+#
+# Memory mapped GPIO drivers:
+#
+CONFIG_GPIO_GENERIC_PLATFORM=y
+# CONFIG_GPIO_IT8761E is not set
+# CONFIG_GPIO_F7188X is not set
+CONFIG_GPIO_SCH311X=y
+# CONFIG_GPIO_SCH is not set
+# CONFIG_GPIO_ICH is not set
+# CONFIG_GPIO_VX855 is not set
+# CONFIG_GPIO_LYNXPOINT is not set
+
+#
+# I2C GPIO expanders:
+#
+CONFIG_GPIO_ARIZONA=y
+CONFIG_GPIO_MAX7300=m
+# CONFIG_GPIO_MAX732X is not set
+CONFIG_GPIO_PCA953X=m
+CONFIG_GPIO_PCF857X=m
+CONFIG_GPIO_WM831X=m
+CONFIG_GPIO_ADP5588=m
+
+#
+# PCI GPIO expanders:
+#
+# CONFIG_GPIO_BT8XX is not set
+# CONFIG_GPIO_AMD8111 is not set
+# CONFIG_GPIO_INTEL_MID is not set
+# CONFIG_GPIO_PCH is not set
+# CONFIG_GPIO_ML_IOH is not set
+# CONFIG_GPIO_RDC321X is not set
+
+#
+# SPI GPIO expanders:
+#
+CONFIG_GPIO_MAX7301=y
+CONFIG_GPIO_MCP23S08=m
+CONFIG_GPIO_MC33880=m
+
+#
+# AC97 GPIO expanders:
+#
+
+#
+# LPC GPIO expanders:
+#
+CONFIG_GPIO_KEMPLD=y
+
+#
+# MODULbus GPIO expanders:
+#
+
+#
+# USB GPIO expanders:
+#
+# CONFIG_GPIO_DLN2 is not set
+CONFIG_W1=m
+
+#
+# 1-wire Bus Masters
+#
+# CONFIG_W1_MASTER_MATROX is not set
+CONFIG_W1_MASTER_DS2490=m
+CONFIG_W1_MASTER_DS2482=m
+CONFIG_W1_MASTER_DS1WM=m
+CONFIG_W1_MASTER_GPIO=m
+
+#
+# 1-wire Slaves
+#
+CONFIG_W1_SLAVE_THERM=m
+# CONFIG_W1_SLAVE_SMEM is not set
+# CONFIG_W1_SLAVE_DS2408 is not set
+# CONFIG_W1_SLAVE_DS2413 is not set
+CONFIG_W1_SLAVE_DS2406=m
+CONFIG_W1_SLAVE_DS2423=m
+CONFIG_W1_SLAVE_DS2431=m
+CONFIG_W1_SLAVE_DS2433=m
+# CONFIG_W1_SLAVE_DS2433_CRC is not set
+# CONFIG_W1_SLAVE_DS2760 is not set
+CONFIG_W1_SLAVE_DS2780=m
+CONFIG_W1_SLAVE_DS2781=m
+# CONFIG_W1_SLAVE_DS28E04 is not set
+CONFIG_W1_SLAVE_BQ27000=m
+CONFIG_POWER_SUPPLY=y
+CONFIG_POWER_SUPPLY_DEBUG=y
+CONFIG_PDA_POWER=m
+CONFIG_GENERIC_ADC_BATTERY=m
+# CONFIG_WM831X_BACKUP is not set
+CONFIG_WM831X_POWER=y
+CONFIG_TEST_POWER=m
+CONFIG_BATTERY_DS2780=m
+CONFIG_BATTERY_DS2781=m
+CONFIG_BATTERY_DS2782=m
+# CONFIG_BATTERY_SBS is not set
+CONFIG_BATTERY_BQ27x00=m
+# CONFIG_BATTERY_BQ27X00_I2C is not set
+# CONFIG_BATTERY_BQ27X00_PLATFORM is not set
+CONFIG_BATTERY_DA9052=m
+CONFIG_BATTERY_MAX17040=m
+# CONFIG_BATTERY_MAX17042 is not set
+# CONFIG_CHARGER_PCF50633 is not set
+# CONFIG_CHARGER_ISP1704 is not set
+# CONFIG_CHARGER_MAX8903 is not set
+CONFIG_CHARGER_LP8727=m
+CONFIG_CHARGER_GPIO=y
+CONFIG_CHARGER_MANAGER=y
+CONFIG_CHARGER_BQ2415X=m
+CONFIG_CHARGER_BQ24190=m
+# CONFIG_CHARGER_BQ24735 is not set
+CONFIG_CHARGER_SMB347=m
+CONFIG_BATTERY_GAUGE_LTC2941=m
+# CONFIG_POWER_RESET is not set
+# CONFIG_POWER_AVS is not set
+# CONFIG_HWMON is not set
+CONFIG_THERMAL=y
+# CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE is not set
+CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE=y
+# CONFIG_THERMAL_DEFAULT_GOV_USER_SPACE is not set
+CONFIG_THERMAL_GOV_FAIR_SHARE=y
+# CONFIG_THERMAL_GOV_STEP_WISE is not set
+CONFIG_THERMAL_GOV_BANG_BANG=y
+# CONFIG_THERMAL_GOV_USER_SPACE is not set
+# CONFIG_THERMAL_EMULATION is not set
+# CONFIG_INTEL_POWERCLAMP is not set
+CONFIG_INTEL_SOC_DTS_THERMAL=m
+# CONFIG_INT340X_THERMAL is not set
+
+#
+# Texas Instruments thermal drivers
+#
+CONFIG_WATCHDOG=y
+CONFIG_WATCHDOG_CORE=y
+# CONFIG_WATCHDOG_NOWAYOUT is not set
+
+#
+# Watchdog Device Drivers
+#
+# CONFIG_SOFT_WATCHDOG is not set
+# CONFIG_DA9052_WATCHDOG is not set
+# CONFIG_MENF21BMC_WATCHDOG is not set
+CONFIG_WM831X_WATCHDOG=y
+CONFIG_XILINX_WATCHDOG=y
+CONFIG_DW_WATCHDOG=y
+# CONFIG_RN5T618_WATCHDOG is not set
+# CONFIG_RETU_WATCHDOG is not set
+CONFIG_ACQUIRE_WDT=m
+# CONFIG_ADVANTECH_WDT is not set
+# CONFIG_ALIM1535_WDT is not set
+# CONFIG_ALIM7101_WDT is not set
+CONFIG_F71808E_WDT=m
+# CONFIG_SP5100_TCO is not set
+# CONFIG_SBC_FITPC2_WATCHDOG is not set
+# CONFIG_EUROTECH_WDT is not set
+CONFIG_IB700_WDT=m
+CONFIG_IBMASR=m
+CONFIG_WAFER_WDT=y
+# CONFIG_I6300ESB_WDT is not set
+# CONFIG_IE6XX_WDT is not set
+# CONFIG_ITCO_WDT is not set
+CONFIG_IT8712F_WDT=y
+CONFIG_IT87_WDT=y
+# CONFIG_HP_WATCHDOG is not set
+CONFIG_KEMPLD_WDT=m
+CONFIG_SC1200_WDT=m
+# CONFIG_SCx200_WDT is not set
+CONFIG_PC87413_WDT=m
+# CONFIG_NV_TCO is not set
+CONFIG_60XX_WDT=y
+# CONFIG_SBC8360_WDT is not set
+# CONFIG_SBC7240_WDT is not set
+# CONFIG_CPU5_WDT is not set
+# CONFIG_SMSC_SCH311X_WDT is not set
+CONFIG_SMSC37B787_WDT=y
+# CONFIG_VIA_WDT is not set
+CONFIG_W83627HF_WDT=m
+# CONFIG_W83877F_WDT is not set
+CONFIG_W83977F_WDT=y
+# CONFIG_MACHZ_WDT is not set
+# CONFIG_SBC_EPX_C3_WATCHDOG is not set
+# CONFIG_MEN_A21_WDT is not set
+
+#
+# PCI-based Watchdog Cards
+#
+# CONFIG_PCIPCWATCHDOG is not set
+# CONFIG_WDTPCI is not set
+
+#
+# USB-based Watchdog Cards
+#
+CONFIG_USBPCWATCHDOG=m
+CONFIG_SSB_POSSIBLE=y
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB=m
+CONFIG_SSB_SPROM=y
+CONFIG_SSB_PCIHOST_POSSIBLE=y
+CONFIG_SSB_PCIHOST=y
+# CONFIG_SSB_B43_PCI_BRIDGE is not set
+CONFIG_SSB_SILENT=y
+CONFIG_SSB_DRIVER_PCICORE_POSSIBLE=y
+# CONFIG_SSB_DRIVER_PCICORE is not set
+CONFIG_SSB_DRIVER_GPIO=y
+CONFIG_BCMA_POSSIBLE=y
+
+#
+# Broadcom specific AMBA
+#
+CONFIG_BCMA=m
+CONFIG_BCMA_HOST_PCI_POSSIBLE=y
+CONFIG_BCMA_HOST_PCI=y
+CONFIG_BCMA_HOST_SOC=y
+CONFIG_BCMA_DRIVER_GMAC_CMN=y
+# CONFIG_BCMA_DRIVER_GPIO is not set
+# CONFIG_BCMA_DEBUG is not set
+
+#
+# Multifunction device drivers
+#
+CONFIG_MFD_CORE=y
+# CONFIG_MFD_CS5535 is not set
+CONFIG_MFD_BCM590XX=m
+CONFIG_MFD_CROS_EC=m
+# CONFIG_MFD_CROS_EC_I2C is not set
+CONFIG_PMIC_DA9052=y
+CONFIG_MFD_DA9052_SPI=y
+CONFIG_MFD_DLN2=m
+CONFIG_MFD_MC13XXX=m
+# CONFIG_MFD_MC13XXX_SPI is not set
+CONFIG_MFD_MC13XXX_I2C=m
+# CONFIG_HTC_PASIC3 is not set
+# CONFIG_LPC_ICH is not set
+# CONFIG_LPC_SCH is not set
+# CONFIG_MFD_JANZ_CMODIO is not set
+CONFIG_MFD_KEMPLD=y
+CONFIG_MFD_MENF21BMC=m
+CONFIG_EZX_PCAP=y
+# CONFIG_MFD_VIPERBOARD is not set
+CONFIG_MFD_RETU=m
+CONFIG_MFD_PCF50633=m
+CONFIG_PCF50633_ADC=m
+CONFIG_PCF50633_GPIO=m
+# CONFIG_MFD_RDC321X is not set
+# CONFIG_MFD_RTSX_PCI is not set
+CONFIG_MFD_RTSX_USB=m
+CONFIG_MFD_RN5T618=m
+CONFIG_MFD_SI476X_CORE=m
+CONFIG_MFD_SM501=y
+CONFIG_MFD_SM501_GPIO=y
+CONFIG_ABX500_CORE=y
+CONFIG_MFD_SYSCON=y
+# CONFIG_MFD_TI_AM335X_TSCADC is not set
+# CONFIG_MFD_LP3943 is not set
+CONFIG_TPS6105X=m
+# CONFIG_TPS65010 is not set
+CONFIG_TPS6507X=m
+# CONFIG_MFD_TPS65217 is not set
+CONFIG_MFD_TPS65218=m
+# CONFIG_MFD_TPS65912 is not set
+# CONFIG_MFD_TPS65912_SPI is not set
+CONFIG_MFD_WL1273_CORE=m
+# CONFIG_MFD_LM3533 is not set
+# CONFIG_MFD_TIMBERDALE is not set
+# CONFIG_MFD_TMIO is not set
+# CONFIG_MFD_VX855 is not set
+CONFIG_MFD_ARIZONA=y
+CONFIG_MFD_ARIZONA_I2C=m
+# CONFIG_MFD_ARIZONA_SPI is not set
+# CONFIG_MFD_WM5102 is not set
+CONFIG_MFD_WM5110=y
+CONFIG_MFD_WM8997=y
+CONFIG_MFD_WM831X=y
+CONFIG_MFD_WM831X_SPI=y
+# CONFIG_MFD_WM8994 is not set
+CONFIG_REGULATOR=y
+# CONFIG_REGULATOR_DEBUG is not set
+CONFIG_REGULATOR_FIXED_VOLTAGE=m
+CONFIG_REGULATOR_VIRTUAL_CONSUMER=y
+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
+# CONFIG_REGULATOR_ACT8865 is not set
+CONFIG_REGULATOR_AD5398=m
+CONFIG_REGULATOR_ANATOP=y
+CONFIG_REGULATOR_BCM590XX=m
+# CONFIG_REGULATOR_DA9052 is not set
+CONFIG_REGULATOR_DA9210=m
+CONFIG_REGULATOR_DA9211=m
+CONFIG_REGULATOR_FAN53555=m
+CONFIG_REGULATOR_GPIO=y
+# CONFIG_REGULATOR_ISL9305 is not set
+# CONFIG_REGULATOR_ISL6271A is not set
+CONFIG_REGULATOR_LP3971=m
+CONFIG_REGULATOR_LP3972=m
+CONFIG_REGULATOR_LP872X=m
+# CONFIG_REGULATOR_LP8755 is not set
+CONFIG_REGULATOR_LTC3589=m
+CONFIG_REGULATOR_MAX1586=m
+# CONFIG_REGULATOR_MAX8649 is not set
+# CONFIG_REGULATOR_MAX8660 is not set
+# CONFIG_REGULATOR_MAX8952 is not set
+CONFIG_REGULATOR_MAX8973=m
+CONFIG_REGULATOR_MC13XXX_CORE=m
+CONFIG_REGULATOR_MC13783=m
+CONFIG_REGULATOR_MC13892=m
+CONFIG_REGULATOR_PCAP=m
+CONFIG_REGULATOR_PCF50633=m
+CONFIG_REGULATOR_PFUZE100=m
+# CONFIG_REGULATOR_RN5T618 is not set
+CONFIG_REGULATOR_TPS51632=m
+# CONFIG_REGULATOR_TPS6105X is not set
+# CONFIG_REGULATOR_TPS62360 is not set
+CONFIG_REGULATOR_TPS65023=m
+CONFIG_REGULATOR_TPS6507X=m
+CONFIG_REGULATOR_TPS6524X=y
+CONFIG_REGULATOR_WM831X=m
+CONFIG_MEDIA_SUPPORT=m
+
+#
+# Multimedia core support
+#
+# CONFIG_MEDIA_CAMERA_SUPPORT is not set
+# CONFIG_MEDIA_ANALOG_TV_SUPPORT is not set
+CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y
+# CONFIG_MEDIA_RADIO_SUPPORT is not set
+# CONFIG_MEDIA_SDR_SUPPORT is not set
+CONFIG_MEDIA_RC_SUPPORT=y
+CONFIG_MEDIA_CONTROLLER=y
+# CONFIG_MEDIA_CONTROLLER_DVB is not set
+CONFIG_VIDEO_ADV_DEBUG=y
+CONFIG_VIDEO_FIXED_MINOR_RANGES=y
+CONFIG_VIDEOBUF2_CORE=m
+CONFIG_VIDEOBUF2_MEMOPS=m
+CONFIG_VIDEOBUF2_DMA_SG=m
+CONFIG_DVB_CORE=m
+# CONFIG_DVB_NET is not set
+# CONFIG_TTPCI_EEPROM is not set
+CONFIG_DVB_MAX_ADAPTERS=8
+CONFIG_DVB_DYNAMIC_MINORS=y
+
+#
+# Media drivers
+#
+CONFIG_RC_CORE=m
+# CONFIG_RC_MAP is not set
+CONFIG_RC_DECODERS=y
+CONFIG_LIRC=m
+CONFIG_IR_LIRC_CODEC=m
+CONFIG_IR_NEC_DECODER=m
+CONFIG_IR_RC5_DECODER=m
+CONFIG_IR_RC6_DECODER=m
+CONFIG_IR_JVC_DECODER=m
+# CONFIG_IR_SONY_DECODER is not set
+CONFIG_IR_SANYO_DECODER=m
+# CONFIG_IR_SHARP_DECODER is not set
+CONFIG_IR_MCE_KBD_DECODER=m
+CONFIG_IR_XMP_DECODER=m
+CONFIG_RC_DEVICES=y
+# CONFIG_RC_ATI_REMOTE is not set
+# CONFIG_IR_ENE is not set
+CONFIG_IR_HIX5HD2=m
+# CONFIG_IR_IMON is not set
+CONFIG_IR_MCEUSB=m
+# CONFIG_IR_ITE_CIR is not set
+# CONFIG_IR_FINTEK is not set
+# CONFIG_IR_NUVOTON is not set
+CONFIG_IR_REDRAT3=m
+CONFIG_IR_STREAMZAP=m
+# CONFIG_IR_WINBOND_CIR is not set
+# CONFIG_IR_IGORPLUGUSB is not set
+CONFIG_IR_IGUANA=m
+CONFIG_IR_TTUSBIR=m
+# CONFIG_RC_LOOPBACK is not set
+CONFIG_IR_GPIO_CIR=m
+CONFIG_MEDIA_USB_SUPPORT=y
+
+#
+# Analog/digital TV USB devices
+#
+# CONFIG_VIDEO_AU0828 is not set
+
+#
+# Digital TV USB devices
+#
+# CONFIG_DVB_USB is not set
+# CONFIG_DVB_USB_V2 is not set
+# CONFIG_DVB_TTUSB_BUDGET is not set
+# CONFIG_DVB_TTUSB_DEC is not set
+CONFIG_SMS_USB_DRV=m
+CONFIG_DVB_B2C2_FLEXCOP_USB=m
+CONFIG_DVB_B2C2_FLEXCOP_USB_DEBUG=y
+# CONFIG_DVB_AS102 is not set
+
+#
+# Webcam, TV (analog/digital) USB devices
+#
+# CONFIG_MEDIA_PCI_SUPPORT is not set
+
+#
+# Supported MMC/SDIO adapters
+#
+
+#
+# Supported FireWire (IEEE 1394) Adapters
+#
+CONFIG_DVB_FIREDTV=m
+CONFIG_DVB_FIREDTV_INPUT=y
+CONFIG_MEDIA_COMMON_OPTIONS=y
+
+#
+# common driver options
+#
+# CONFIG_CYPRESS_FIRMWARE is not set
+CONFIG_DVB_B2C2_FLEXCOP=m
+CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
+CONFIG_SMS_SIANO_MDTV=m
+# CONFIG_SMS_SIANO_RC is not set
+
+#
+# Media ancillary drivers (tuners, sensors, i2c, frontends)
+#
+CONFIG_MEDIA_SUBDRV_AUTOSELECT=y
+CONFIG_MEDIA_ATTACH=y
+CONFIG_MEDIA_TUNER=m
+CONFIG_MEDIA_TUNER_SIMPLE=m
+CONFIG_MEDIA_TUNER_TDA8290=m
+CONFIG_MEDIA_TUNER_TDA827X=m
+CONFIG_MEDIA_TUNER_TDA18271=m
+CONFIG_MEDIA_TUNER_TDA9887=m
+CONFIG_MEDIA_TUNER_MT20XX=m
+CONFIG_MEDIA_TUNER_XC2028=m
+CONFIG_MEDIA_TUNER_XC5000=m
+CONFIG_MEDIA_TUNER_XC4000=m
+CONFIG_MEDIA_TUNER_MC44S803=m
+
+#
+# Multistandard (satellite) frontends
+#
+
+#
+# Multistandard (cable + terrestrial) frontends
+#
+
+#
+# DVB-S (satellite) frontends
+#
+CONFIG_DVB_CX24123=m
+CONFIG_DVB_MT312=m
+CONFIG_DVB_S5H1420=m
+CONFIG_DVB_STV0299=m
+CONFIG_DVB_TUNER_ITD1000=m
+CONFIG_DVB_TUNER_CX24113=m
+
+#
+# DVB-T (terrestrial) frontends
+#
+CONFIG_DVB_MT352=m
+# CONFIG_DVB_AS102_FE is not set
+
+#
+# DVB-C (cable) frontends
+#
+CONFIG_DVB_STV0297=m
+
+#
+# ATSC (North American/Korean Terrestrial/Cable DTV) frontends
+#
+CONFIG_DVB_NXT200X=m
+CONFIG_DVB_BCM3510=m
+CONFIG_DVB_LGDT330X=m
+
+#
+# ISDB-T (terrestrial) frontends
+#
+
+#
+# ISDB-S (satellite) & ISDB-T (terrestrial) frontends
+#
+
+#
+# Digital terrestrial only tuners/PLL
+#
+CONFIG_DVB_PLL=m
+
+#
+# SEC control devices for DVB-S
+#
+CONFIG_DVB_ISL6421=m
+
+#
+# Tools to develop new frontends
+#
+# CONFIG_DVB_DUMMY_FE is not set
+
+#
+# Graphics support
+#
+# CONFIG_AGP is not set
+CONFIG_VGA_ARB=y
+CONFIG_VGA_ARB_MAX_GPUS=16
+# CONFIG_VGA_SWITCHEROO is not set
+
+#
+# Direct Rendering Manager
+#
+# CONFIG_DRM is not set
+
+#
+# Frame buffer Devices
+#
+CONFIG_FB=m
+CONFIG_FIRMWARE_EDID=y
+CONFIG_FB_CMDLINE=y
+# CONFIG_FB_DDC is not set
+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
+CONFIG_FB_CFB_FILLRECT=m
+CONFIG_FB_CFB_COPYAREA=m
+CONFIG_FB_CFB_IMAGEBLIT=m
+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+CONFIG_FB_SYS_FILLRECT=m
+CONFIG_FB_SYS_COPYAREA=m
+CONFIG_FB_SYS_IMAGEBLIT=m
+# CONFIG_FB_FOREIGN_ENDIAN is not set
+CONFIG_FB_SYS_FOPS=m
+CONFIG_FB_DEFERRED_IO=y
+CONFIG_FB_HECUBA=m
+# CONFIG_FB_SVGALIB is not set
+# CONFIG_FB_MACMODES is not set
+# CONFIG_FB_BACKLIGHT is not set
+CONFIG_FB_MODE_HELPERS=y
+CONFIG_FB_TILEBLITTING=y
+
+#
+# Frame buffer hardware drivers
+#
+# CONFIG_FB_CIRRUS is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_CYBER2000 is not set
+CONFIG_FB_ARC=m
+# CONFIG_FB_VGA16 is not set
+CONFIG_FB_N411=m
+# CONFIG_FB_HGA is not set
+CONFIG_FB_OPENCORES=m
+CONFIG_FB_S1D13XXX=m
+# CONFIG_FB_NVIDIA is not set
+# CONFIG_FB_RIVA is not set
+# CONFIG_FB_I740 is not set
+# CONFIG_FB_LE80578 is not set
+# CONFIG_FB_MATROX is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_ATY is not set
+# CONFIG_FB_S3 is not set
+# CONFIG_FB_SAVAGE is not set
+# CONFIG_FB_SIS is not set
+# CONFIG_FB_VIA is not set
+# CONFIG_FB_NEOMAGIC is not set
+# CONFIG_FB_KYRO is not set
+# CONFIG_FB_3DFX is not set
+# CONFIG_FB_VOODOO1 is not set
+# CONFIG_FB_VT8623 is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_CARMINE is not set
+# CONFIG_FB_GEODE is not set
+CONFIG_FB_SM501=m
+CONFIG_FB_SMSCUFX=m
+CONFIG_FB_UDL=m
+CONFIG_FB_VIRTUAL=m
+# CONFIG_FB_METRONOME is not set
+# CONFIG_FB_MB862XX is not set
+# CONFIG_FB_BROADSHEET is not set
+CONFIG_FB_AUO_K190X=m
+CONFIG_FB_AUO_K1900=m
+CONFIG_FB_AUO_K1901=m
+CONFIG_BACKLIGHT_LCD_SUPPORT=y
+CONFIG_LCD_CLASS_DEVICE=m
+CONFIG_LCD_L4F00242T03=m
+CONFIG_LCD_LMS283GF05=m
+# CONFIG_LCD_LTV350QV is not set
+CONFIG_LCD_ILI922X=m
+CONFIG_LCD_ILI9320=m
+CONFIG_LCD_TDO24M=m
+CONFIG_LCD_VGG2432A4=m
+CONFIG_LCD_PLATFORM=m
+# CONFIG_LCD_S6E63M0 is not set
+# CONFIG_LCD_LD9040 is not set
+CONFIG_LCD_AMS369FG06=m
+CONFIG_LCD_LMS501KF03=m
+# CONFIG_LCD_HX8357 is not set
+CONFIG_BACKLIGHT_CLASS_DEVICE=y
+CONFIG_BACKLIGHT_GENERIC=m
+# CONFIG_BACKLIGHT_DA9052 is not set
+# CONFIG_BACKLIGHT_APPLE is not set
+# CONFIG_BACKLIGHT_SAHARA is not set
+CONFIG_BACKLIGHT_WM831X=y
+# CONFIG_BACKLIGHT_ADP8860 is not set
+# CONFIG_BACKLIGHT_ADP8870 is not set
+CONFIG_BACKLIGHT_PCF50633=m
+CONFIG_BACKLIGHT_LM3639=m
+CONFIG_BACKLIGHT_GPIO=m
+CONFIG_BACKLIGHT_LV5207LP=m
+CONFIG_BACKLIGHT_BD6107=m
+# CONFIG_VGASTATE is not set
+CONFIG_LOGO=y
+# CONFIG_LOGO_LINUX_MONO is not set
+# CONFIG_LOGO_LINUX_VGA16 is not set
+# CONFIG_LOGO_LINUX_CLUT224 is not set
+# CONFIG_SOUND is not set
+
+#
+# HID support
+#
+CONFIG_HID=m
+# CONFIG_HID_BATTERY_STRENGTH is not set
+# CONFIG_HIDRAW is not set
+# CONFIG_UHID is not set
+CONFIG_HID_GENERIC=m
+
+#
+# Special HID drivers
+#
+CONFIG_HID_A4TECH=m
+CONFIG_HID_ACRUX=m
+CONFIG_HID_ACRUX_FF=y
+# CONFIG_HID_APPLE is not set
+# CONFIG_HID_APPLEIR is not set
+CONFIG_HID_AUREAL=m
+CONFIG_HID_BELKIN=m
+# CONFIG_HID_BETOP_FF is not set
+CONFIG_HID_CHERRY=m
+CONFIG_HID_CHICONY=m
+CONFIG_HID_CP2112=m
+CONFIG_HID_CYPRESS=m
+CONFIG_HID_DRAGONRISE=m
+CONFIG_DRAGONRISE_FF=y
+CONFIG_HID_EMS_FF=m
+# CONFIG_HID_ELECOM is not set
+CONFIG_HID_ELO=m
+CONFIG_HID_EZKEY=m
+# CONFIG_HID_HOLTEK is not set
+CONFIG_HID_GT683R=m
+# CONFIG_HID_HUION is not set
+CONFIG_HID_KEYTOUCH=m
+CONFIG_HID_KYE=m
+CONFIG_HID_UCLOGIC=m
+CONFIG_HID_WALTOP=m
+CONFIG_HID_GYRATION=m
+CONFIG_HID_ICADE=m
+CONFIG_HID_TWINHAN=m
+CONFIG_HID_KENSINGTON=m
+CONFIG_HID_LCPOWER=m
+# CONFIG_HID_LENOVO is not set
+CONFIG_HID_LOGITECH=m
+CONFIG_HID_LOGITECH_HIDPP=m
+# CONFIG_LOGITECH_FF is not set
+# CONFIG_LOGIRUMBLEPAD2_FF is not set
+# CONFIG_LOGIG940_FF is not set
+CONFIG_LOGIWHEELS_FF=y
+# CONFIG_HID_MAGICMOUSE is not set
+CONFIG_HID_MICROSOFT=m
+CONFIG_HID_MONTEREY=m
+CONFIG_HID_MULTITOUCH=m
+CONFIG_HID_NTRIG=m
+CONFIG_HID_ORTEK=m
+CONFIG_HID_PANTHERLORD=m
+# CONFIG_PANTHERLORD_FF is not set
+# CONFIG_HID_PENMOUNT is not set
+# CONFIG_HID_PETALYNX is not set
+# CONFIG_HID_PICOLCD is not set
+CONFIG_HID_PLANTRONICS=m
+CONFIG_HID_PRIMAX=m
+CONFIG_HID_ROCCAT=m
+CONFIG_HID_SAITEK=m
+# CONFIG_HID_SAMSUNG is not set
+CONFIG_HID_SONY=m
+# CONFIG_SONY_FF is not set
+CONFIG_HID_SPEEDLINK=m
+CONFIG_HID_STEELSERIES=m
+# CONFIG_HID_SUNPLUS is not set
+CONFIG_HID_RMI=m
+CONFIG_HID_GREENASIA=m
+CONFIG_GREENASIA_FF=y
+CONFIG_HID_SMARTJOYPLUS=m
+CONFIG_SMARTJOYPLUS_FF=y
+CONFIG_HID_TIVO=m
+# CONFIG_HID_TOPSEED is not set
+CONFIG_HID_THINGM=m
+# CONFIG_HID_THRUSTMASTER is not set
+# CONFIG_HID_WACOM is not set
+# CONFIG_HID_WIIMOTE is not set
+CONFIG_HID_XINMO=m
+CONFIG_HID_ZEROPLUS=m
+CONFIG_ZEROPLUS_FF=y
+CONFIG_HID_ZYDACRON=m
+# CONFIG_HID_SENSOR_HUB is not set
+
+#
+# USB HID support
+#
+CONFIG_USB_HID=m
+CONFIG_HID_PID=y
+# CONFIG_USB_HIDDEV is not set
+
+#
+# USB HID Boot Protocol drivers
+#
+CONFIG_USB_KBD=m
+CONFIG_USB_MOUSE=m
+
+#
+# I2C HID support
+#
+CONFIG_I2C_HID=m
+CONFIG_USB_OHCI_LITTLE_ENDIAN=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_COMMON=y
+CONFIG_USB_ARCH_HAS_HCD=y
+CONFIG_USB=m
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+
+#
+# Miscellaneous USB options
+#
+CONFIG_USB_DEFAULT_PERSIST=y
+# CONFIG_USB_DYNAMIC_MINORS is not set
+CONFIG_USB_OTG=y
+CONFIG_USB_OTG_WHITELIST=y
+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
+CONFIG_USB_OTG_FSM=m
+CONFIG_USB_MON=m
+CONFIG_USB_WUSB=m
+CONFIG_USB_WUSB_CBAF=m
+CONFIG_USB_WUSB_CBAF_DEBUG=y
+
+#
+# USB Host Controller Drivers
+#
+CONFIG_USB_C67X00_HCD=m
+CONFIG_USB_XHCI_HCD=m
+CONFIG_USB_XHCI_PCI=m
+CONFIG_USB_XHCI_PLATFORM=m
+CONFIG_USB_EHCI_HCD=m
+# CONFIG_USB_EHCI_ROOT_HUB_TT is not set
+CONFIG_USB_EHCI_TT_NEWSCHED=y
+CONFIG_USB_EHCI_PCI=m
+CONFIG_USB_EHCI_HCD_PLATFORM=m
+CONFIG_USB_OXU210HP_HCD=m
+CONFIG_USB_ISP116X_HCD=m
+CONFIG_USB_ISP1362_HCD=m
+# CONFIG_USB_FUSBH200_HCD is not set
+# CONFIG_USB_FOTG210_HCD is not set
+# CONFIG_USB_MAX3421_HCD is not set
+CONFIG_USB_OHCI_HCD=m
+CONFIG_USB_OHCI_HCD_PCI=m
+# CONFIG_USB_OHCI_HCD_SSB is not set
+CONFIG_USB_OHCI_HCD_PLATFORM=m
+# CONFIG_USB_UHCI_HCD is not set
+CONFIG_USB_U132_HCD=m
+CONFIG_USB_SL811_HCD=m
+CONFIG_USB_SL811_HCD_ISO=y
+CONFIG_USB_R8A66597_HCD=m
+# CONFIG_USB_WHCI_HCD is not set
+# CONFIG_USB_HWA_HCD is not set
+# CONFIG_USB_HCD_BCMA is not set
+CONFIG_USB_HCD_SSB=m
+CONFIG_USB_HCD_TEST_MODE=y
+
+#
+# USB Device Class drivers
+#
+# CONFIG_USB_ACM is not set
+CONFIG_USB_PRINTER=m
+CONFIG_USB_WDM=m
+CONFIG_USB_TMC=m
+
+#
+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
+#
+
+#
+# also be needed; see USB_STORAGE Help for more info
+#
+CONFIG_USB_STORAGE=m
+# CONFIG_USB_STORAGE_DEBUG is not set
+# CONFIG_USB_STORAGE_REALTEK is not set
+# CONFIG_USB_STORAGE_DATAFAB is not set
+CONFIG_USB_STORAGE_FREECOM=m
+CONFIG_USB_STORAGE_ISD200=m
+# CONFIG_USB_STORAGE_USBAT is not set
+# CONFIG_USB_STORAGE_SDDR09 is not set
+# CONFIG_USB_STORAGE_SDDR55 is not set
+CONFIG_USB_STORAGE_JUMPSHOT=m
+CONFIG_USB_STORAGE_ALAUDA=m
+CONFIG_USB_STORAGE_ONETOUCH=m
+CONFIG_USB_STORAGE_KARMA=m
+CONFIG_USB_STORAGE_CYPRESS_ATACB=m
+# CONFIG_USB_STORAGE_ENE_UB6250 is not set
+CONFIG_USB_UAS=m
+
+#
+# USB Imaging devices
+#
+CONFIG_USB_MDC800=m
+CONFIG_USB_MICROTEK=m
+CONFIG_USBIP_CORE=m
+# CONFIG_USBIP_VHCI_HCD is not set
+# CONFIG_USBIP_HOST is not set
+# CONFIG_USBIP_DEBUG is not set
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_GADGET=y
+
+#
+# Platform Glue Layer
+#
+CONFIG_MUSB_PIO_ONLY=y
+CONFIG_USB_DWC3=y
+CONFIG_USB_DWC3_GADGET=y
+
+#
+# Platform Glue Driver Support
+#
+CONFIG_USB_DWC3_PCI=y
+
+#
+# Debugging features
+#
+# CONFIG_USB_DWC3_DEBUG is not set
+CONFIG_USB_DWC2=y
+
+#
+# Gadget/Dual-role mode requires USB Gadget support to be enabled
+#
+CONFIG_USB_DWC2_PERIPHERAL=y
+CONFIG_USB_DWC2_PLATFORM=y
+# CONFIG_USB_DWC2_DEBUG is not set
+# CONFIG_USB_DWC2_TRACK_MISSED_SOFS is not set
+# CONFIG_USB_CHIPIDEA is not set
+CONFIG_USB_ISP1760=m
+CONFIG_USB_ISP1760_HCD=y
+CONFIG_USB_ISP1760_HOST_ROLE=y
+# CONFIG_USB_ISP1760_GADGET_ROLE is not set
+# CONFIG_USB_ISP1760_DUAL_ROLE is not set
+
+#
+# USB port drivers
+#
+# CONFIG_USB_USS720 is not set
+# CONFIG_USB_SERIAL is not set
+
+#
+# USB Miscellaneous drivers
+#
+CONFIG_USB_EMI62=m
+# CONFIG_USB_EMI26 is not set
+# CONFIG_USB_ADUTUX is not set
+CONFIG_USB_SEVSEG=m
+# CONFIG_USB_RIO500 is not set
+CONFIG_USB_LEGOTOWER=m
+CONFIG_USB_LCD=m
+# CONFIG_USB_LED is not set
+CONFIG_USB_CYPRESS_CY7C63=m
+CONFIG_USB_CYTHERM=m
+# CONFIG_USB_IDMOUSE is not set
+CONFIG_USB_FTDI_ELAN=m
+CONFIG_USB_APPLEDISPLAY=m
+CONFIG_USB_SISUSBVGA=m
+# CONFIG_USB_LD is not set
+CONFIG_USB_TRANCEVIBRATOR=m
+CONFIG_USB_IOWARRIOR=m
+# CONFIG_USB_TEST is not set
+CONFIG_USB_EHSET_TEST_FIXTURE=m
+CONFIG_USB_ISIGHTFW=m
+CONFIG_USB_YUREX=m
+CONFIG_USB_EZUSB_FX2=m
+CONFIG_USB_HSIC_USB3503=m
+# CONFIG_USB_LINK_LAYER_TEST is not set
+# CONFIG_USB_ATM is not set
+
+#
+# USB Physical Layer drivers
+#
+CONFIG_USB_PHY=y
+CONFIG_NOP_USB_XCEIV=y
+# CONFIG_USB_GPIO_VBUS is not set
+# CONFIG_TAHVO_USB is not set
+CONFIG_USB_ISP1301=m
+CONFIG_USB_GADGET=y
+# CONFIG_USB_GADGET_DEBUG is not set
+# CONFIG_USB_GADGET_DEBUG_FILES is not set
+CONFIG_USB_GADGET_DEBUG_FS=y
+CONFIG_USB_GADGET_VBUS_DRAW=2
+CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+
+#
+# USB Peripheral Controller
+#
+CONFIG_USB_FUSB300=y
+CONFIG_USB_FOTG210_UDC=m
+# CONFIG_USB_GR_UDC is not set
+CONFIG_USB_R8A66597=y
+# CONFIG_USB_PXA27X is not set
+CONFIG_USB_MV_UDC=m
+CONFIG_USB_MV_U3D=m
+CONFIG_USB_M66592=m
+CONFIG_USB_BDC_UDC=y
+
+#
+# Platform Support
+#
+CONFIG_USB_BDC_PCI=y
+# CONFIG_USB_AMD5536UDC is not set
+# CONFIG_USB_NET2272 is not set
+# CONFIG_USB_NET2280 is not set
+# CONFIG_USB_GOKU is not set
+# CONFIG_USB_EG20T is not set
+CONFIG_USB_LIBCOMPOSITE=m
+CONFIG_USB_F_SS_LB=m
+CONFIG_USB_U_ETHER=m
+CONFIG_USB_F_ECM=m
+CONFIG_USB_F_EEM=m
+CONFIG_USB_F_SUBSET=m
+CONFIG_USB_F_MASS_STORAGE=m
+CONFIG_USB_F_FS=m
+CONFIG_USB_F_HID=m
+CONFIG_USB_CONFIGFS=m
+# CONFIG_USB_CONFIGFS_SERIAL is not set
+# CONFIG_USB_CONFIGFS_ACM is not set
+# CONFIG_USB_CONFIGFS_OBEX is not set
+# CONFIG_USB_CONFIGFS_NCM is not set
+CONFIG_USB_CONFIGFS_ECM=y
+CONFIG_USB_CONFIGFS_ECM_SUBSET=y
+# CONFIG_USB_CONFIGFS_RNDIS is not set
+# CONFIG_USB_CONFIGFS_EEM is not set
+# CONFIG_USB_CONFIGFS_PHONET is not set
+CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+# CONFIG_USB_CONFIGFS_F_LB_SS is not set
+CONFIG_USB_CONFIGFS_F_FS=y
+CONFIG_USB_CONFIGFS_F_HID=y
+CONFIG_USB_ZERO=m
+# CONFIG_USB_ZERO_HNPTEST is not set
+CONFIG_USB_ETH=m
+# CONFIG_USB_ETH_RNDIS is not set
+CONFIG_USB_ETH_EEM=y
+# CONFIG_USB_G_NCM is not set
+# CONFIG_USB_GADGETFS is not set
+# CONFIG_USB_FUNCTIONFS is not set
+# CONFIG_USB_MASS_STORAGE is not set
+# CONFIG_USB_GADGET_TARGET is not set
+# CONFIG_USB_G_SERIAL is not set
+CONFIG_USB_G_PRINTER=m
+# CONFIG_USB_CDC_COMPOSITE is not set
+# CONFIG_USB_G_NOKIA is not set
+# CONFIG_USB_G_ACM_MS is not set
+# CONFIG_USB_G_MULTI is not set
+CONFIG_USB_G_HID=m
+# CONFIG_USB_G_DBGP is not set
+CONFIG_UWB=m
+CONFIG_UWB_HWA=m
+# CONFIG_UWB_WHCI is not set
+# CONFIG_UWB_I1480U is not set
+# CONFIG_MMC is not set
+CONFIG_MEMSTICK=m
+CONFIG_MEMSTICK_DEBUG=y
+
+#
+# MemoryStick drivers
+#
+# CONFIG_MEMSTICK_UNSAFE_RESUME is not set
+# CONFIG_MSPRO_BLOCK is not set
+# CONFIG_MS_BLOCK is not set
+
+#
+# MemoryStick Host Controller Drivers
+#
+# CONFIG_MEMSTICK_TIFM_MS is not set
+# CONFIG_MEMSTICK_JMICRON_38X is not set
+# CONFIG_MEMSTICK_R592 is not set
+# CONFIG_MEMSTICK_REALTEK_USB is not set
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=m
+CONFIG_LEDS_CLASS_FLASH=m
+
+#
+# LED drivers
+#
+# CONFIG_LEDS_LM3530 is not set
+# CONFIG_LEDS_LM3642 is not set
+# CONFIG_LEDS_NET48XX is not set
+# CONFIG_LEDS_WRAP is not set
+CONFIG_LEDS_PCA9532=m
+CONFIG_LEDS_PCA9532_GPIO=y
+# CONFIG_LEDS_GPIO is not set
+CONFIG_LEDS_LP3944=m
+CONFIG_LEDS_LP55XX_COMMON=m
+# CONFIG_LEDS_LP5521 is not set
+CONFIG_LEDS_LP5523=m
+CONFIG_LEDS_LP5562=m
+CONFIG_LEDS_LP8501=m
+CONFIG_LEDS_LP8860=m
+CONFIG_LEDS_PCA955X=m
+CONFIG_LEDS_PCA963X=m
+# CONFIG_LEDS_WM831X_STATUS is not set
+CONFIG_LEDS_DA9052=m
+# CONFIG_LEDS_DAC124S085 is not set
+CONFIG_LEDS_REGULATOR=m
+# CONFIG_LEDS_BD2802 is not set
+CONFIG_LEDS_LT3593=m
+# CONFIG_LEDS_MC13783 is not set
+CONFIG_LEDS_TCA6507=m
+# CONFIG_LEDS_LM355x is not set
+# CONFIG_LEDS_OT200 is not set
+CONFIG_LEDS_MENF21BMC=m
+
+#
+# LED driver for blink(1) USB RGB LED is under Special HID drivers (HID_THINGM)
+#
+CONFIG_LEDS_BLINKM=m
+
+#
+# LED Triggers
+#
+# CONFIG_LEDS_TRIGGERS is not set
+# CONFIG_ACCESSIBILITY is not set
+# CONFIG_INFINIBAND is not set
+# CONFIG_EDAC is not set
+CONFIG_RTC_LIB=y
+# CONFIG_RTC_CLASS is not set
+# CONFIG_DMADEVICES is not set
+CONFIG_AUXDISPLAY=y
+CONFIG_UIO=m
+# CONFIG_UIO_CIF is not set
+CONFIG_UIO_PDRV_GENIRQ=m
+# CONFIG_UIO_DMEM_GENIRQ is not set
+# CONFIG_UIO_AEC is not set
+# CONFIG_UIO_SERCOS3 is not set
+# CONFIG_UIO_PCI_GENERIC is not set
+# CONFIG_UIO_NETX is not set
+# CONFIG_UIO_MF624 is not set
+CONFIG_VIRT_DRIVERS=y
+CONFIG_VIRTIO=y
+
+#
+# Virtio drivers
+#
+# CONFIG_VIRTIO_PCI is not set
+CONFIG_VIRTIO_BALLOON=y
+CONFIG_VIRTIO_MMIO=y
+# CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES is not set
+
+#
+# Microsoft Hyper-V guest support
+#
+# CONFIG_HYPERV is not set
+CONFIG_STAGING=y
+# CONFIG_SLICOSS is not set
+# CONFIG_COMEDI is not set
+# CONFIG_PANEL is not set
+# CONFIG_RTS5208 is not set
+# CONFIG_VT6655 is not set
+
+#
+# IIO staging drivers
+#
+
+#
+# Accelerometers
+#
+# CONFIG_ADIS16201 is not set
+CONFIG_ADIS16203=m
+CONFIG_ADIS16204=y
+CONFIG_ADIS16209=m
+CONFIG_ADIS16220=y
+CONFIG_ADIS16240=m
+CONFIG_LIS3L02DQ=m
+CONFIG_SCA3000=y
+
+#
+# Analog to digital converters
+#
+CONFIG_AD7606=m
+CONFIG_AD7606_IFACE_PARALLEL=m
+CONFIG_AD7606_IFACE_SPI=m
+# CONFIG_AD7780 is not set
+CONFIG_AD7816=m
+# CONFIG_AD7192 is not set
+CONFIG_AD7280=y
+
+#
+# Analog digital bi-direction converters
+#
+# CONFIG_ADT7316 is not set
+
+#
+# Capacitance to digital converters
+#
+# CONFIG_AD7150 is not set
+CONFIG_AD7152=m
+CONFIG_AD7746=m
+
+#
+# Direct Digital Synthesis
+#
+# CONFIG_AD9832 is not set
+# CONFIG_AD9834 is not set
+
+#
+# Digital gyroscope sensors
+#
+# CONFIG_ADIS16060 is not set
+
+#
+# Network Analyzer, Impedance Converters
+#
+# CONFIG_AD5933 is not set
+
+#
+# Light sensors
+#
+CONFIG_SENSORS_ISL29018=m
+CONFIG_SENSORS_ISL29028=m
+# CONFIG_TSL2583 is not set
+CONFIG_TSL2x7x=m
+
+#
+# Magnetometer sensors
+#
+CONFIG_SENSORS_HMC5843=y
+CONFIG_SENSORS_HMC5843_I2C=m
+CONFIG_SENSORS_HMC5843_SPI=y
+
+#
+# Active energy metering IC
+#
+# CONFIG_ADE7753 is not set
+CONFIG_ADE7754=y
+CONFIG_ADE7758=y
+CONFIG_ADE7759=m
+CONFIG_ADE7854=y
+CONFIG_ADE7854_I2C=m
+CONFIG_ADE7854_SPI=y
+
+#
+# Resolver to digital converters
+#
+# CONFIG_AD2S90 is not set
+CONFIG_AD2S1200=m
+CONFIG_AD2S1210=y
+
+#
+# Triggers - standalone
+#
+CONFIG_IIO_SIMPLE_DUMMY=m
+# CONFIG_IIO_SIMPLE_DUMMY_EVENTS is not set
+CONFIG_IIO_SIMPLE_DUMMY_BUFFER=y
+# CONFIG_FB_SM7XX is not set
+# CONFIG_FB_XGI is not set
+CONFIG_FT1000=m
+CONFIG_FT1000_USB=m
+
+#
+# Speakup console speech
+#
+CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4=m
+CONFIG_STAGING_MEDIA=y
+# CONFIG_DVB_CXD2099 is not set
+# CONFIG_DVB_MN88472 is not set
+CONFIG_DVB_MN88473=m
+# CONFIG_LIRC_STAGING is not set
+
+#
+# Android
+#
+# CONFIG_USB_WPAN_HCD is not set
+# CONFIG_WIMAX_GDM72XX is not set
+# CONFIG_LTE_GDM724X is not set
+# CONFIG_FIREWIRE_SERIAL is not set
+CONFIG_LUSTRE_FS=m
+CONFIG_LUSTRE_OBD_MAX_IOCTL_BUFFER=8192
+CONFIG_LUSTRE_DEBUG_EXPENSIVE_CHECK=y
+CONFIG_LUSTRE_LLITE_LLOOP=m
+CONFIG_LNET=m
+CONFIG_LNET_MAX_PAYLOAD=1048576
+CONFIG_LNET_SELFTEST=m
+# CONFIG_DGNC is not set
+# CONFIG_DGAP is not set
+# CONFIG_GS_FPGABOOT is not set
+# CONFIG_FB_TFT is not set
+# CONFIG_I2O is not set
+# CONFIG_X86_PLATFORM_DEVICES is not set
+CONFIG_CHROME_PLATFORMS=y
+CONFIG_CHROMEOS_PSTORE=m
+
+#
+# Hardware Spinlock drivers
+#
+
+#
+# Clock Source drivers
+#
+CONFIG_CLKSRC_I8253=y
+CONFIG_CLKEVT_I8253=y
+CONFIG_I8253_LOCK=y
+CONFIG_CLKBLD_I8253=y
+# CONFIG_ATMEL_PIT is not set
+# CONFIG_SH_TIMER_CMT is not set
+# CONFIG_SH_TIMER_MTU2 is not set
+# CONFIG_SH_TIMER_TMU is not set
+# CONFIG_EM_TIMER_STI is not set
+# CONFIG_ASM9260_TIMER is not set
+# CONFIG_MAILBOX is not set
+CONFIG_IOMMU_SUPPORT=y
+
+#
+# Generic IOMMU Pagetable Support
+#
+# CONFIG_IOMMU_IO_PGTABLE_LPAE is not set
+
+#
+# Remoteproc drivers
+#
+CONFIG_REMOTEPROC=y
+CONFIG_STE_MODEM_RPROC=y
+
+#
+# Rpmsg drivers
+#
+
+#
+# SOC (System On Chip) specific Drivers
+#
+CONFIG_SOC_TI=y
+# CONFIG_PM_DEVFREQ is not set
+CONFIG_EXTCON=y
+
+#
+# Extcon Device Drivers
+#
+CONFIG_EXTCON_ADC_JACK=y
+CONFIG_EXTCON_GPIO=y
+CONFIG_EXTCON_RT8973A=m
+CONFIG_EXTCON_SM5502=m
+# CONFIG_MEMORY is not set
+CONFIG_IIO=y
+CONFIG_IIO_BUFFER=y
+# CONFIG_IIO_BUFFER_CB is not set
+CONFIG_IIO_KFIFO_BUF=y
+CONFIG_IIO_TRIGGERED_BUFFER=y
+CONFIG_IIO_TRIGGER=y
+CONFIG_IIO_CONSUMERS_PER_TRIGGER=2
+
+#
+# Accelerometers
+#
+# CONFIG_BMA180 is not set
+CONFIG_BMC150_ACCEL=m
+# CONFIG_IIO_ST_ACCEL_3AXIS is not set
+# CONFIG_KXSD9 is not set
+CONFIG_MMA8452=m
+# CONFIG_KXCJK1013 is not set
+CONFIG_MMA9551_CORE=m
+CONFIG_MMA9551=m
+CONFIG_MMA9553=m
+
+#
+# Analog to digital converters
+#
+CONFIG_AD_SIGMA_DELTA=y
+CONFIG_AD7266=y
+CONFIG_AD7291=m
+CONFIG_AD7298=m
+CONFIG_AD7476=m
+CONFIG_AD7791=y
+CONFIG_AD7793=y
+CONFIG_AD7887=m
+CONFIG_AD7923=y
+CONFIG_AD799X=m
+# CONFIG_CC10001_ADC is not set
+CONFIG_MAX1027=m
+# CONFIG_MAX1363 is not set
+CONFIG_MCP320X=y
+# CONFIG_MCP3422 is not set
+# CONFIG_MEN_Z188_ADC is not set
+CONFIG_NAU7802=m
+# CONFIG_QCOM_SPMI_IADC is not set
+CONFIG_QCOM_SPMI_VADC=m
+CONFIG_TI_ADC081C=m
+CONFIG_TI_ADC128S052=m
+
+#
+# Amplifiers
+#
+CONFIG_AD8366=y
+
+#
+# Hid Sensor IIO Common
+#
+
+#
+# SSP Sensor Common
+#
+# CONFIG_IIO_SSP_SENSORS_COMMONS is not set
+CONFIG_IIO_SSP_SENSORHUB=y
+CONFIG_IIO_ST_SENSORS_I2C=m
+CONFIG_IIO_ST_SENSORS_SPI=y
+CONFIG_IIO_ST_SENSORS_CORE=y
+
+#
+# Digital to analog converters
+#
+CONFIG_AD5064=m
+# CONFIG_AD5360 is not set
+CONFIG_AD5380=m
+# CONFIG_AD5421 is not set
+CONFIG_AD5446=m
+CONFIG_AD5449=y
+CONFIG_AD5504=m
+# CONFIG_AD5624R_SPI is not set
+# CONFIG_AD5686 is not set
+# CONFIG_AD5755 is not set
+CONFIG_AD5764=y
+CONFIG_AD5791=m
+CONFIG_AD7303=y
+CONFIG_MAX517=m
+CONFIG_MCP4725=m
+CONFIG_MCP4922=m
+
+#
+# Frequency Synthesizers DDS/PLL
+#
+
+#
+# Clock Generator/Distribution
+#
+# CONFIG_AD9523 is not set
+
+#
+# Phase-Locked Loop (PLL) frequency synthesizers
+#
+CONFIG_ADF4350=m
+
+#
+# Digital gyroscope sensors
+#
+CONFIG_ADIS16080=m
+CONFIG_ADIS16130=m
+CONFIG_ADIS16136=y
+CONFIG_ADIS16260=m
+# CONFIG_ADXRS450 is not set
+CONFIG_BMG160=m
+CONFIG_IIO_ST_GYRO_3AXIS=y
+CONFIG_IIO_ST_GYRO_I2C_3AXIS=m
+CONFIG_IIO_ST_GYRO_SPI_3AXIS=y
+CONFIG_ITG3200=m
+
+#
+# Humidity sensors
+#
+# CONFIG_DHT11 is not set
+# CONFIG_SI7005 is not set
+# CONFIG_SI7020 is not set
+
+#
+# Inertial measurement units
+#
+CONFIG_ADIS16400=m
+CONFIG_ADIS16480=m
+CONFIG_KMX61=m
+CONFIG_INV_MPU6050_IIO=m
+CONFIG_IIO_ADIS_LIB=y
+CONFIG_IIO_ADIS_LIB_BUFFER=y
+
+#
+# Light sensors
+#
+CONFIG_ADJD_S311=m
+# CONFIG_AL3320A is not set
+CONFIG_APDS9300=m
+CONFIG_CM32181=m
+CONFIG_CM3232=m
+# CONFIG_CM36651 is not set
+CONFIG_GP2AP020A00F=m
+# CONFIG_ISL29125 is not set
+CONFIG_JSA1212=m
+CONFIG_LTR501=m
+CONFIG_TCS3414=m
+CONFIG_TCS3472=m
+CONFIG_SENSORS_TSL2563=m
+CONFIG_TSL4531=m
+CONFIG_VCNL4000=m
+
+#
+# Magnetometer sensors
+#
+CONFIG_AK8975=m
+CONFIG_AK09911=m
+CONFIG_MAG3110=m
+# CONFIG_IIO_ST_MAGN_3AXIS is not set
+
+#
+# Inclinometer sensors
+#
+
+#
+# Triggers - standalone
+#
+CONFIG_IIO_INTERRUPT_TRIGGER=m
+CONFIG_IIO_SYSFS_TRIGGER=m
+
+#
+# Pressure sensors
+#
+CONFIG_BMP280=m
+# CONFIG_MPL115 is not set
+CONFIG_MPL3115=m
+CONFIG_IIO_ST_PRESS=m
+CONFIG_IIO_ST_PRESS_I2C=m
+CONFIG_IIO_ST_PRESS_SPI=m
+CONFIG_T5403=m
+
+#
+# Lightning sensors
+#
+CONFIG_AS3935=y
+
+#
+# Proximity sensors
+#
+# CONFIG_SX9500 is not set
+
+#
+# Temperature sensors
+#
+CONFIG_MLX90614=m
+CONFIG_TMP006=m
+# CONFIG_NTB is not set
+# CONFIG_VME_BUS is not set
+# CONFIG_PWM is not set
+CONFIG_IPACK_BUS=m
+# CONFIG_BOARD_TPCI200 is not set
+# CONFIG_SERIAL_IPOCTAL is not set
+CONFIG_RESET_CONTROLLER=y
+CONFIG_FMC=m
+CONFIG_FMC_FAKEDEV=m
+# CONFIG_FMC_TRIVIAL is not set
+CONFIG_FMC_WRITE_EEPROM=m
+CONFIG_FMC_CHARDEV=m
+
+#
+# PHY Subsystem
+#
+CONFIG_GENERIC_PHY=y
+CONFIG_BCM_KONA_USB2_PHY=y
+# CONFIG_PHY_SAMSUNG_USB2 is not set
+CONFIG_POWERCAP=y
+CONFIG_INTEL_RAPL=m
+CONFIG_MCB=m
+# CONFIG_MCB_PCI is not set
+# CONFIG_THUNDERBOLT is not set
+
+#
+# Android
+#
+# CONFIG_ANDROID is not set
+
+#
+# Firmware Drivers
+#
+CONFIG_EDD=m
+# CONFIG_EDD_OFF is not set
+# CONFIG_FIRMWARE_MEMMAP is not set
+CONFIG_DELL_RBU=y
+# CONFIG_DCDBAS is not set
+# CONFIG_ISCSI_IBFT_FIND is not set
+# CONFIG_GOOGLE_FIRMWARE is not set
+
+#
+# File systems
+#
+CONFIG_DCACHE_WORD_ACCESS=y
+CONFIG_EXT2_FS=m
+# CONFIG_EXT2_FS_XATTR is not set
+# CONFIG_EXT3_FS is not set
+CONFIG_EXT4_FS=m
+CONFIG_EXT4_USE_FOR_EXT23=y
+# CONFIG_EXT4_FS_POSIX_ACL is not set
+CONFIG_EXT4_FS_SECURITY=y
+CONFIG_EXT4_DEBUG=y
+CONFIG_JBD2=m
+CONFIG_JBD2_DEBUG=y
+CONFIG_FS_MBCACHE=m
+CONFIG_REISERFS_FS=m
+# CONFIG_REISERFS_CHECK is not set
+# CONFIG_REISERFS_PROC_INFO is not set
+# CONFIG_REISERFS_FS_XATTR is not set
+# CONFIG_JFS_FS is not set
+# CONFIG_XFS_FS is not set
+CONFIG_GFS2_FS=m
+# CONFIG_GFS2_FS_LOCKING_DLM is not set
+# CONFIG_OCFS2_FS is not set
+CONFIG_BTRFS_FS=y
+CONFIG_BTRFS_FS_POSIX_ACL=y
+CONFIG_BTRFS_FS_CHECK_INTEGRITY=y
+# CONFIG_BTRFS_FS_RUN_SANITY_TESTS is not set
+CONFIG_BTRFS_DEBUG=y
+# CONFIG_BTRFS_ASSERT is not set
+CONFIG_NILFS2_FS=m
+# CONFIG_FS_DAX is not set
+CONFIG_FS_POSIX_ACL=y
+CONFIG_EXPORTFS=y
+CONFIG_FILE_LOCKING=y
+CONFIG_FSNOTIFY=y
+# CONFIG_DNOTIFY is not set
+CONFIG_INOTIFY_USER=y
+CONFIG_FANOTIFY=y
+CONFIG_QUOTA=y
+CONFIG_QUOTA_NETLINK_INTERFACE=y
+CONFIG_PRINT_QUOTA_WARNING=y
+CONFIG_QUOTA_DEBUG=y
+CONFIG_QUOTA_TREE=m
+CONFIG_QFMT_V1=m
+CONFIG_QFMT_V2=m
+CONFIG_QUOTACTL=y
+CONFIG_AUTOFS4_FS=m
+CONFIG_FUSE_FS=y
+CONFIG_CUSE=y
+CONFIG_OVERLAY_FS=y
+
+#
+# Caches
+#
+# CONFIG_FSCACHE is not set
+
+#
+# CD-ROM/DVD Filesystems
+#
+# CONFIG_ISO9660_FS is not set
+CONFIG_UDF_FS=y
+CONFIG_UDF_NLS=y
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=y
+CONFIG_MSDOS_FS=m
+CONFIG_VFAT_FS=y
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+# CONFIG_NTFS_FS is not set
+
+#
+# Pseudo filesystems
+#
+CONFIG_PROC_FS=y
+# CONFIG_PROC_KCORE is not set
+CONFIG_PROC_VMCORE=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_PROC_PAGE_MONITOR=y
+CONFIG_KERNFS=y
+CONFIG_SYSFS=y
+# CONFIG_HUGETLBFS is not set
+# CONFIG_HUGETLB_PAGE is not set
+CONFIG_CONFIGFS_FS=m
+# CONFIG_MISC_FILESYSTEMS is not set
+# CONFIG_NETWORK_FILESYSTEMS is not set
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NLS_CODEPAGE_737=m
+CONFIG_NLS_CODEPAGE_775=m
+CONFIG_NLS_CODEPAGE_850=m
+CONFIG_NLS_CODEPAGE_852=m
+CONFIG_NLS_CODEPAGE_855=m
+CONFIG_NLS_CODEPAGE_857=y
+CONFIG_NLS_CODEPAGE_860=m
+CONFIG_NLS_CODEPAGE_861=y
+# CONFIG_NLS_CODEPAGE_862 is not set
+CONFIG_NLS_CODEPAGE_863=y
+CONFIG_NLS_CODEPAGE_864=y
+CONFIG_NLS_CODEPAGE_865=m
+# CONFIG_NLS_CODEPAGE_866 is not set
+CONFIG_NLS_CODEPAGE_869=y
+CONFIG_NLS_CODEPAGE_936=y
+CONFIG_NLS_CODEPAGE_950=y
+CONFIG_NLS_CODEPAGE_932=m
+CONFIG_NLS_CODEPAGE_949=m
+# CONFIG_NLS_CODEPAGE_874 is not set
+CONFIG_NLS_ISO8859_8=m
+CONFIG_NLS_CODEPAGE_1250=m
+# CONFIG_NLS_CODEPAGE_1251 is not set
+# CONFIG_NLS_ASCII is not set
+# CONFIG_NLS_ISO8859_1 is not set
+CONFIG_NLS_ISO8859_2=m
+# CONFIG_NLS_ISO8859_3 is not set
+CONFIG_NLS_ISO8859_4=m
+CONFIG_NLS_ISO8859_5=m
+CONFIG_NLS_ISO8859_6=m
+CONFIG_NLS_ISO8859_7=m
+CONFIG_NLS_ISO8859_9=m
+# CONFIG_NLS_ISO8859_13 is not set
+CONFIG_NLS_ISO8859_14=m
+# CONFIG_NLS_ISO8859_15 is not set
+# CONFIG_NLS_KOI8_R is not set
+CONFIG_NLS_KOI8_U=m
+# CONFIG_NLS_MAC_ROMAN is not set
+CONFIG_NLS_MAC_CELTIC=y
+CONFIG_NLS_MAC_CENTEURO=m
+CONFIG_NLS_MAC_CROATIAN=m
+# CONFIG_NLS_MAC_CYRILLIC is not set
+# CONFIG_NLS_MAC_GAELIC is not set
+CONFIG_NLS_MAC_GREEK=m
+CONFIG_NLS_MAC_ICELAND=m
+# CONFIG_NLS_MAC_INUIT is not set
+CONFIG_NLS_MAC_ROMANIAN=m
+CONFIG_NLS_MAC_TURKISH=m
+CONFIG_NLS_UTF8=m
+CONFIG_DLM=m
+CONFIG_DLM_DEBUG=y
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+
+#
+# printk and dmesg options
+#
+CONFIG_PRINTK_TIME=y
+CONFIG_MESSAGE_LOGLEVEL_DEFAULT=4
+# CONFIG_BOOT_PRINTK_DELAY is not set
+# CONFIG_DYNAMIC_DEBUG is not set
+
+#
+# Compile-time checks and compiler options
+#
+# CONFIG_DEBUG_INFO is not set
+# CONFIG_ENABLE_WARN_DEPRECATED is not set
+# CONFIG_ENABLE_MUST_CHECK is not set
+CONFIG_FRAME_WARN=1024
+# CONFIG_STRIP_ASM_SYMS is not set
+# CONFIG_READABLE_ASM is not set
+CONFIG_UNUSED_SYMBOLS=y
+# CONFIG_PAGE_OWNER is not set
+CONFIG_DEBUG_FS=y
+CONFIG_HEADERS_CHECK=y
+CONFIG_DEBUG_SECTION_MISMATCH=y
+CONFIG_ARCH_WANT_FRAME_POINTERS=y
+CONFIG_FRAME_POINTER=y
+CONFIG_DEBUG_FORCE_WEAK_PER_CPU=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_MAGIC_SYSRQ_DEFAULT_ENABLE=0x1
+CONFIG_DEBUG_KERNEL=y
+
+#
+# Memory Debugging
+#
+CONFIG_PAGE_EXTENSION=y
+# CONFIG_DEBUG_PAGEALLOC is not set
+CONFIG_DEBUG_OBJECTS=y
+# CONFIG_DEBUG_OBJECTS_SELFTEST is not set
+# CONFIG_DEBUG_OBJECTS_FREE is not set
+CONFIG_DEBUG_OBJECTS_TIMERS=y
+CONFIG_DEBUG_OBJECTS_WORK=y
+CONFIG_DEBUG_OBJECTS_RCU_HEAD=y
+CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER=y
+CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT=1
+CONFIG_HAVE_DEBUG_KMEMLEAK=y
+# CONFIG_DEBUG_KMEMLEAK is not set
+# CONFIG_DEBUG_STACK_USAGE is not set
+# CONFIG_DEBUG_VM is not set
+CONFIG_DEBUG_VIRTUAL=y
+CONFIG_DEBUG_MEMORY_INIT=y
+# CONFIG_DEBUG_PER_CPU_MAPS is not set
+# CONFIG_DEBUG_HIGHMEM is not set
+CONFIG_HAVE_DEBUG_STACKOVERFLOW=y
+# CONFIG_DEBUG_STACKOVERFLOW is not set
+CONFIG_HAVE_ARCH_KMEMCHECK=y
+CONFIG_DEBUG_SHIRQ=y
+
+#
+# Debug Lockups and Hangs
+#
+# CONFIG_LOCKUP_DETECTOR is not set
+# CONFIG_DETECT_HUNG_TASK is not set
+CONFIG_PANIC_ON_OOPS=y
+CONFIG_PANIC_ON_OOPS_VALUE=1
+CONFIG_PANIC_TIMEOUT=0
+CONFIG_SCHED_DEBUG=y
+# CONFIG_SCHEDSTATS is not set
+# CONFIG_SCHED_STACK_END_CHECK is not set
+# CONFIG_TIMER_STATS is not set
+
+#
+# Lock Debugging (spinlocks, mutexes, etc...)
+#
+# CONFIG_DEBUG_RT_MUTEXES is not set
+CONFIG_DEBUG_SPINLOCK=y
+CONFIG_DEBUG_MUTEXES=y
+# CONFIG_DEBUG_WW_MUTEX_SLOWPATH is not set
+CONFIG_DEBUG_LOCK_ALLOC=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_LOCKDEP=y
+# CONFIG_LOCK_STAT is not set
+CONFIG_DEBUG_LOCKDEP=y
+CONFIG_DEBUG_ATOMIC_SLEEP=y
+CONFIG_DEBUG_LOCKING_API_SELFTESTS=y
+CONFIG_LOCK_TORTURE_TEST=y
+CONFIG_TRACE_IRQFLAGS=y
+CONFIG_STACKTRACE=y
+# CONFIG_DEBUG_KOBJECT is not set
+# CONFIG_DEBUG_KOBJECT_RELEASE is not set
+CONFIG_DEBUG_BUGVERBOSE=y
+# CONFIG_DEBUG_LIST is not set
+# CONFIG_DEBUG_PI_LIST is not set
+# CONFIG_DEBUG_SG is not set
+# CONFIG_DEBUG_NOTIFIERS is not set
+# CONFIG_DEBUG_CREDENTIALS is not set
+
+#
+# RCU Debugging
+#
+CONFIG_PROVE_RCU=y
+# CONFIG_PROVE_RCU_REPEATEDLY is not set
+# CONFIG_SPARSE_RCU_POINTER is not set
+CONFIG_TORTURE_TEST=y
+# CONFIG_RCU_TORTURE_TEST is not set
+CONFIG_RCU_CPU_STALL_TIMEOUT=21
+CONFIG_RCU_CPU_STALL_INFO=y
+# CONFIG_RCU_TRACE is not set
+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
+CONFIG_NOTIFIER_ERROR_INJECTION=y
+CONFIG_CPU_NOTIFIER_ERROR_INJECT=m
+CONFIG_PM_NOTIFIER_ERROR_INJECT=y
+CONFIG_FAULT_INJECTION=y
+# CONFIG_FAIL_PAGE_ALLOC is not set
+CONFIG_FAIL_MAKE_REQUEST=y
+CONFIG_FAIL_IO_TIMEOUT=y
+# CONFIG_FAULT_INJECTION_DEBUG_FS is not set
+# CONFIG_LATENCYTOP is not set
+CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS=y
+CONFIG_USER_STACKTRACE_SUPPORT=y
+CONFIG_NOP_TRACER=y
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_HAVE_DYNAMIC_FTRACE_WITH_REGS=y
+CONFIG_HAVE_FTRACE_MCOUNT_RECORD=y
+CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+CONFIG_HAVE_C_RECORDMCOUNT=y
+CONFIG_TRACER_MAX_TRACE=y
+CONFIG_TRACE_CLOCK=y
+CONFIG_RING_BUFFER=y
+CONFIG_EVENT_TRACING=y
+CONFIG_CONTEXT_SWITCH_TRACER=y
+CONFIG_RING_BUFFER_ALLOW_SWAP=y
+CONFIG_TRACING=y
+CONFIG_GENERIC_TRACER=y
+CONFIG_TRACING_SUPPORT=y
+CONFIG_FTRACE=y
+CONFIG_FUNCTION_TRACER=y
+CONFIG_FUNCTION_GRAPH_TRACER=y
+CONFIG_IRQSOFF_TRACER=y
+# CONFIG_SCHED_TRACER is not set
+# CONFIG_FTRACE_SYSCALLS is not set
+CONFIG_TRACER_SNAPSHOT=y
+CONFIG_TRACER_SNAPSHOT_PER_CPU_SWAP=y
+CONFIG_TRACE_BRANCH_PROFILING=y
+# CONFIG_BRANCH_PROFILE_NONE is not set
+# CONFIG_PROFILE_ANNOTATED_BRANCHES is not set
+CONFIG_PROFILE_ALL_BRANCHES=y
+# CONFIG_BRANCH_TRACER is not set
+CONFIG_STACK_TRACER=y
+CONFIG_BLK_DEV_IO_TRACE=y
+# CONFIG_KPROBE_EVENT is not set
+CONFIG_UPROBE_EVENT=y
+CONFIG_PROBE_EVENTS=y
+# CONFIG_DYNAMIC_FTRACE is not set
+CONFIG_FUNCTION_PROFILER=y
+# CONFIG_FTRACE_STARTUP_TEST is not set
+# CONFIG_MMIOTRACE is not set
+CONFIG_TRACEPOINT_BENCHMARK=y
+# CONFIG_RING_BUFFER_BENCHMARK is not set
+# CONFIG_RING_BUFFER_STARTUP_TEST is not set
+
+#
+# Runtime Testing
+#
+CONFIG_LKDTM=y
+# CONFIG_TEST_LIST_SORT is not set
+CONFIG_KPROBES_SANITY_TEST=y
+# CONFIG_BACKTRACE_SELF_TEST is not set
+CONFIG_RBTREE_TEST=y
+CONFIG_INTERVAL_TREE_TEST=m
+# CONFIG_PERCPU_TEST is not set
+CONFIG_ATOMIC64_SELFTEST=y
+# CONFIG_TEST_HEXDUMP is not set
+CONFIG_TEST_STRING_HELPERS=m
+CONFIG_TEST_KSTRTOX=y
+CONFIG_TEST_RHASHTABLE=y
+# CONFIG_PROVIDE_OHCI1394_DMA_INIT is not set
+CONFIG_BUILD_DOCSRC=y
+# CONFIG_DMA_API_DEBUG is not set
+# CONFIG_TEST_LKM is not set
+# CONFIG_TEST_USER_COPY is not set
+CONFIG_TEST_BPF=m
+# CONFIG_TEST_FIRMWARE is not set
+# CONFIG_TEST_UDELAY is not set
+# CONFIG_SAMPLES is not set
+CONFIG_HAVE_ARCH_KGDB=y
+# CONFIG_KGDB is not set
+# CONFIG_STRICT_DEVMEM is not set
+CONFIG_X86_VERBOSE_BOOTUP=y
+CONFIG_EARLY_PRINTK=y
+# CONFIG_EARLY_PRINTK_DBGP is not set
+CONFIG_X86_PTDUMP=y
+# CONFIG_DEBUG_RODATA is not set
+# CONFIG_DEBUG_SET_MODULE_RONX is not set
+CONFIG_DEBUG_NX_TEST=m
+# CONFIG_DOUBLEFAULT is not set
+CONFIG_DEBUG_TLBFLUSH=y
+CONFIG_IOMMU_STRESS=y
+CONFIG_HAVE_MMIOTRACE_SUPPORT=y
+# CONFIG_X86_DECODER_SELFTEST is not set
+CONFIG_IO_DELAY_TYPE_0X80=0
+CONFIG_IO_DELAY_TYPE_0XED=1
+CONFIG_IO_DELAY_TYPE_UDELAY=2
+CONFIG_IO_DELAY_TYPE_NONE=3
+# CONFIG_IO_DELAY_0X80 is not set
+# CONFIG_IO_DELAY_0XED is not set
+# CONFIG_IO_DELAY_UDELAY is not set
+CONFIG_IO_DELAY_NONE=y
+CONFIG_DEFAULT_IO_DELAY_TYPE=3
+# CONFIG_DEBUG_BOOT_PARAMS is not set
+# CONFIG_CPA_DEBUG is not set
+CONFIG_OPTIMIZE_INLINING=y
+CONFIG_DEBUG_NMI_SELFTEST=y
+CONFIG_X86_DEBUG_STATIC_CPU_HAS=y
+
+#
+# Security options
+#
+CONFIG_KEYS=y
+CONFIG_PERSISTENT_KEYRINGS=y
+# CONFIG_TRUSTED_KEYS is not set
+CONFIG_ENCRYPTED_KEYS=y
+# CONFIG_SECURITY_DMESG_RESTRICT is not set
+# CONFIG_SECURITY is not set
+CONFIG_SECURITYFS=y
+CONFIG_DEFAULT_SECURITY_DAC=y
+CONFIG_DEFAULT_SECURITY=""
+CONFIG_XOR_BLOCKS=y
+CONFIG_CRYPTO=y
+
+#
+# Crypto core or helper
+#
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_ALGAPI2=y
+CONFIG_CRYPTO_AEAD=y
+CONFIG_CRYPTO_AEAD2=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_BLKCIPHER2=y
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_HASH2=y
+CONFIG_CRYPTO_RNG=y
+CONFIG_CRYPTO_RNG2=y
+CONFIG_CRYPTO_PCOMP=y
+CONFIG_CRYPTO_PCOMP2=y
+CONFIG_CRYPTO_MANAGER=y
+CONFIG_CRYPTO_MANAGER2=y
+CONFIG_CRYPTO_USER=m
+CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
+CONFIG_CRYPTO_GF128MUL=y
+CONFIG_CRYPTO_NULL=y
+# CONFIG_CRYPTO_PCRYPT is not set
+CONFIG_CRYPTO_WORKQUEUE=y
+CONFIG_CRYPTO_CRYPTD=m
+CONFIG_CRYPTO_MCRYPTD=y
+CONFIG_CRYPTO_AUTHENC=y
+CONFIG_CRYPTO_TEST=m
+CONFIG_CRYPTO_ABLK_HELPER=m
+
+#
+# Authenticated Encryption with Associated Data
+#
+CONFIG_CRYPTO_CCM=y
+CONFIG_CRYPTO_GCM=y
+CONFIG_CRYPTO_SEQIV=y
+
+#
+# Block modes
+#
+CONFIG_CRYPTO_CBC=y
+CONFIG_CRYPTO_CTR=y
+CONFIG_CRYPTO_CTS=m
+CONFIG_CRYPTO_ECB=m
+CONFIG_CRYPTO_LRW=y
+CONFIG_CRYPTO_PCBC=m
+CONFIG_CRYPTO_XTS=y
+
+#
+# Hash modes
+#
+CONFIG_CRYPTO_CMAC=y
+CONFIG_CRYPTO_HMAC=y
+# CONFIG_CRYPTO_XCBC is not set
+CONFIG_CRYPTO_VMAC=m
+
+#
+# Digest
+#
+CONFIG_CRYPTO_CRC32C=y
+CONFIG_CRYPTO_CRC32C_INTEL=m
+CONFIG_CRYPTO_CRC32=m
+CONFIG_CRYPTO_CRC32_PCLMUL=m
+CONFIG_CRYPTO_CRCT10DIF=y
+CONFIG_CRYPTO_GHASH=y
+CONFIG_CRYPTO_MD4=y
+CONFIG_CRYPTO_MD5=y
+# CONFIG_CRYPTO_MICHAEL_MIC is not set
+# CONFIG_CRYPTO_RMD128 is not set
+# CONFIG_CRYPTO_RMD160 is not set
+CONFIG_CRYPTO_RMD256=y
+CONFIG_CRYPTO_RMD320=m
+CONFIG_CRYPTO_SHA1=y
+CONFIG_CRYPTO_SHA256=y
+CONFIG_CRYPTO_SHA512=m
+CONFIG_CRYPTO_TGR192=y
+CONFIG_CRYPTO_WP512=m
+
+#
+# Ciphers
+#
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_586=m
+CONFIG_CRYPTO_AES_NI_INTEL=m
+CONFIG_CRYPTO_ANUBIS=y
+CONFIG_CRYPTO_ARC4=y
+# CONFIG_CRYPTO_BLOWFISH is not set
+CONFIG_CRYPTO_CAMELLIA=y
+CONFIG_CRYPTO_CAST_COMMON=y
+# CONFIG_CRYPTO_CAST5 is not set
+CONFIG_CRYPTO_CAST6=y
+CONFIG_CRYPTO_DES=y
+CONFIG_CRYPTO_FCRYPT=m
+CONFIG_CRYPTO_KHAZAD=m
+# CONFIG_CRYPTO_SALSA20 is not set
+# CONFIG_CRYPTO_SALSA20_586 is not set
+CONFIG_CRYPTO_SEED=m
+CONFIG_CRYPTO_SERPENT=m
+# CONFIG_CRYPTO_SERPENT_SSE2_586 is not set
+CONFIG_CRYPTO_TEA=y
+CONFIG_CRYPTO_TWOFISH=m
+CONFIG_CRYPTO_TWOFISH_COMMON=y
+CONFIG_CRYPTO_TWOFISH_586=y
+
+#
+# Compression
+#
+# CONFIG_CRYPTO_DEFLATE is not set
+CONFIG_CRYPTO_ZLIB=y
+CONFIG_CRYPTO_LZO=m
+# CONFIG_CRYPTO_LZ4 is not set
+CONFIG_CRYPTO_LZ4HC=y
+
+#
+# Random Number Generation
+#
+# CONFIG_CRYPTO_ANSI_CPRNG is not set
+CONFIG_CRYPTO_DRBG_MENU=y
+CONFIG_CRYPTO_DRBG_HMAC=y
+CONFIG_CRYPTO_DRBG_HASH=y
+# CONFIG_CRYPTO_DRBG_CTR is not set
+CONFIG_CRYPTO_DRBG=y
+CONFIG_CRYPTO_USER_API=m
+# CONFIG_CRYPTO_USER_API_HASH is not set
+CONFIG_CRYPTO_USER_API_SKCIPHER=m
+CONFIG_CRYPTO_USER_API_RNG=m
+CONFIG_CRYPTO_HASH_INFO=y
+# CONFIG_CRYPTO_HW is not set
+CONFIG_ASYMMETRIC_KEY_TYPE=y
+CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
+CONFIG_PUBLIC_KEY_ALGO_RSA=y
+CONFIG_X509_CERTIFICATE_PARSER=y
+CONFIG_PKCS7_MESSAGE_PARSER=y
+CONFIG_PKCS7_TEST_KEY=y
+# CONFIG_SIGNED_PE_FILE_VERIFICATION is not set
+CONFIG_HAVE_KVM=y
+CONFIG_HAVE_KVM_IRQCHIP=y
+CONFIG_HAVE_KVM_IRQFD=y
+CONFIG_HAVE_KVM_IRQ_ROUTING=y
+CONFIG_HAVE_KVM_EVENTFD=y
+CONFIG_KVM_APIC_ARCHITECTURE=y
+CONFIG_KVM_MMIO=y
+CONFIG_KVM_ASYNC_PF=y
+CONFIG_HAVE_KVM_MSI=y
+CONFIG_HAVE_KVM_CPU_RELAX_INTERCEPT=y
+CONFIG_KVM_VFIO=y
+CONFIG_KVM_GENERIC_DIRTYLOG_READ_PROTECT=y
+CONFIG_VIRTUALIZATION=y
+CONFIG_KVM=y
+CONFIG_KVM_INTEL=y
+CONFIG_KVM_AMD=y
+# CONFIG_KVM_MMU_AUDIT is not set
+# CONFIG_LGUEST is not set
+CONFIG_BINARY_PRINTF=y
+
+#
+# Library routines
+#
+CONFIG_RAID6_PQ=y
+CONFIG_BITREVERSE=y
+# CONFIG_HAVE_ARCH_BITREVERSE is not set
+CONFIG_GENERIC_STRNCPY_FROM_USER=y
+CONFIG_GENERIC_STRNLEN_USER=y
+CONFIG_GENERIC_NET_UTILS=y
+CONFIG_GENERIC_FIND_FIRST_BIT=y
+CONFIG_GENERIC_PCI_IOMAP=y
+CONFIG_GENERIC_IOMAP=y
+CONFIG_GENERIC_IO=y
+CONFIG_PERCPU_RWSEM=y
+CONFIG_ARCH_HAS_FAST_MULTIPLIER=y
+CONFIG_CRC_CCITT=y
+CONFIG_CRC16=y
+CONFIG_CRC_T10DIF=y
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC32=y
+# CONFIG_CRC32_SELFTEST is not set
+# CONFIG_CRC32_SLICEBY8 is not set
+# CONFIG_CRC32_SLICEBY4 is not set
+# CONFIG_CRC32_SARWATE is not set
+CONFIG_CRC32_BIT=y
+CONFIG_CRC7=y
+CONFIG_LIBCRC32C=y
+# CONFIG_CRC8 is not set
+# CONFIG_AUDIT_ARCH_COMPAT_GENERIC is not set
+CONFIG_RANDOM32_SELFTEST=y
+CONFIG_ZLIB_INFLATE=y
+CONFIG_ZLIB_DEFLATE=y
+CONFIG_LZO_COMPRESS=y
+CONFIG_LZO_DECOMPRESS=y
+CONFIG_LZ4HC_COMPRESS=y
+CONFIG_LZ4_DECOMPRESS=y
+CONFIG_XZ_DEC=y
+CONFIG_XZ_DEC_X86=y
+CONFIG_XZ_DEC_POWERPC=y
+CONFIG_XZ_DEC_IA64=y
+CONFIG_XZ_DEC_ARM=y
+CONFIG_XZ_DEC_ARMTHUMB=y
+CONFIG_XZ_DEC_SPARC=y
+CONFIG_XZ_DEC_BCJ=y
+# CONFIG_XZ_DEC_TEST is not set
+CONFIG_DECOMPRESS_GZIP=y
+CONFIG_DECOMPRESS_BZIP2=y
+CONFIG_DECOMPRESS_LZMA=y
+CONFIG_DECOMPRESS_XZ=y
+CONFIG_DECOMPRESS_LZO=y
+CONFIG_DECOMPRESS_LZ4=y
+CONFIG_BCH=m
+CONFIG_BCH_CONST_PARAMS=y
+CONFIG_INTERVAL_TREE=y
+CONFIG_ASSOCIATIVE_ARRAY=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT_MAP=y
+CONFIG_HAS_DMA=y
+CONFIG_CPU_RMAP=y
+CONFIG_DQL=y
+CONFIG_GLOB=y
+# CONFIG_GLOB_SELFTEST is not set
+CONFIG_NLATTR=y
+CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE=y
+CONFIG_AVERAGE=y
+CONFIG_CLZ_TAB=y
+# CONFIG_CORDIC is not set
+# CONFIG_DDR is not set
+CONFIG_MPILIB=y
+CONFIG_OID_REGISTRY=y
+CONFIG_ARCH_HAS_SG_CHAIN=y
+
+--dDRMvlgZJXvWKvBx--
