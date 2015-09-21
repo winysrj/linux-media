@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38674 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933034AbbIDNgq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2015 09:36:46 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 690372A0080
-	for <linux-media@vger.kernel.org>; Fri,  4 Sep 2015 15:35:44 +0200 (CEST)
-Message-ID: <55E99E30.5000702@xs4all.nl>
-Date: Fri, 04 Sep 2015 15:35:44 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:55280 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932387AbbIUUEV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 16:04:21 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 2/2] media: v4l: ti-vpe: Document CAL driver
+Date: Mon, 21 Sep 2015 15:04:08 -0500
+Message-ID: <1442865848-19280-3-git-send-email-bparrot@ti.com>
+In-Reply-To: <1442865848-19280-1-git-send-email-bparrot@ti.com>
+References: <1442865848-19280-1-git-send-email-bparrot@ti.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.4] Various fixes
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various fixes and enhancements, nothing special.
+Device Tree bindings for the Camera Adaptation Layer (CAL) driver
 
-Note that the v4l2-compat-ioctl32 fix has a CC for stable from 3.10 onwards.
-The arm64 architecture was added in 3.10.
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ Documentation/devicetree/bindings/media/ti-cal.txt | 70 ++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
 
-Regards,
+diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
+new file mode 100644
+index 000000000000..680efadb6208
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti-cal.txt
+@@ -0,0 +1,70 @@
++Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
++------------------------------------------------------
++
++The Camera Adaptation Layer (CAL) is a key component for image capture
++applications. The capture module provides the system interface and the
++processing capability to connect CSI2 image-sensor modules to the
++DRA72x device.
++
++Required properties:
++- compatible: must be "ti,cal"
++- reg:	physical base address and length of the registers set for the 4
++	memory regions required;
++- reg-names: name associated with the memory regions described is <reg>;
++- interrupts: should contain IRQ line for the CAL;
++
++CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
++should contain a 'port' child node with child 'endpoint' node. Please
++refer to the bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	cal: cal@4845b000 {
++		compatible = "ti,cal";
++		ti,hwmods = "cal";
++		reg = <0x4845B000 0x400>,
++		      <0x4845B800 0x40>,
++		      <0x4845B900 0x40>,
++		      <0x4A002e94 0x4>;
++		reg-names = "cal_top",
++			    "cal_rx_core0",
++			    "cal_rx_core1",
++			    "camerrx_control";
++		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		csi2_0: port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++			endpoint {
++				slave-mode;
++				remote-endpoint = <&ar0330_1>;
++			};
++		};
++		csi2_1: port@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++		};
++	};
++
++	i2c5: i2c@4807c000 {
++		ar0330@10 {
++			compatible = "ti,ar0330";
++			reg = <0x10>;
++
++			port {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				ar0330_1: endpoint {
++					reg = <0>;
++					clock-lanes = <1>;
++					data-lanes = <0 2 3 4>;
++					remote-endpoint = <&csi2_0>;
++				};
++			};
++		};
++	};
+-- 
+1.8.5.1
 
-	Hans
-
-The following changes since commit 50ef28a6ac216fd8b796257a3768fef8f57b917d:
-
-  [media] c8sectpfe: Remove select on undefined LIBELF_32 (2015-09-03 14:10:06 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.4a
-
-for you to fetch changes up to f71d4170d11859760f70ce4667b9c1d4da8373eb:
-
-  vivid: sdr cap: few enhancements (2015-09-04 15:24:42 +0200)
-
-----------------------------------------------------------------
-Alexander Kuleshov (1):
-      media/pci/cobalt: Use %*ph to print small buffers
-
-Andrew Milkovich (1):
-      Staging: media: bcm2048: warnings for uninitialized variables fixed
-
-Andrzej Hajda (1):
-      v4l2-compat-ioctl32: fix alignment for ARM64
-
-Antti Palosaari (2):
-      vivid: SDR cap: add control for FM deviation
-      vivid: sdr cap: few enhancements
-
-Darek Zielski (1):
-      saa7134: add Leadtek Winfast TV2100 FM card support
-
-Nicolas Sugino (1):
-      ivtv-alsa: Add index to specify device number
-
-Zahari Doychev (1):
-      m2m: fix bad unlock balance
-
- Documentation/video4linux/CARDLIST.saa7134    |  1 +
- drivers/media/pci/cobalt/cobalt-cpld.c        |  8 +++-----
- drivers/media/pci/ivtv/ivtv-alsa-main.c       | 14 ++++++++++++--
- drivers/media/pci/saa7134/saa7134-cards.c     | 43 +++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/saa7134/saa7134-input.c     |  7 +++++++
- drivers/media/pci/saa7134/saa7134.h           |  1 +
- drivers/media/platform/vivid/vivid-core.h     |  1 +
- drivers/media/platform/vivid/vivid-ctrls.c    | 37 ++++++++++++++++++++++++++++++++++++-
- drivers/media/platform/vivid/vivid-sdr-cap.c  | 37 +++++++++++++++++--------------------
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  9 +++++----
- drivers/media/v4l2-core/v4l2-mem2mem.c        | 23 ++++++++---------------
- drivers/staging/media/bcm2048/radio-bcm2048.c | 20 ++++++++++----------
- 12 files changed, 144 insertions(+), 57 deletions(-)
