@@ -1,124 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34821 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754419AbbIHKF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 06:05:56 -0400
-Date: Tue, 8 Sep 2015 07:05:50 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v6 2/8] [media] media: add a common struct to be embed
- on media graph objects
-Message-ID: <20150908070550.1c7d23f3@recife.lan>
-In-Reply-To: <1533583.FbVB9fTcuR@avalon>
-References: <cover.1439981515.git.mchehab@osg.samsung.com>
-	<1667127.681LBiMjnq@avalon>
-	<55D6DC48.3070406@xs4all.nl>
-	<1533583.FbVB9fTcuR@avalon>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44796 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752262AbbIUNOF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 09:14:05 -0400
+Subject: Re: [RESEND PATCH] media: vb2: Fix vb2_dc_prepare do not correct sync
+ data to device
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56000293.9000802@xs4all.nl>
+Date: Mon, 21 Sep 2015 15:13:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 08 Sep 2015 00:49:58 +0300
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Tiffany!
 
-> Hi Hans,
+On 21-09-15 14:26, Tiffany Lin wrote:
+> vb2_dc_prepare use the number of SG entries dma_map_sg_attrs return.
+> But in dma_sync_sg_for_device, it use lengths of each SG entries
+> before dma_map_sg_attrs. dma_map_sg_attrs will concatenate
+> SGs until dma length > dma seg bundary. sgt->nents will less than
+> sgt->orig_nents. Using SG entries after dma_map_sg_attrs
+> in vb2_dc_prepare will make some SGs are not sync to device.
+> After add DMA_ATTR_SKIP_CPU_SYNC in vb2_dc_get_userptr to remove
+> sync data to device twice. Device randomly get incorrect data because
+> some SGs are not sync to device. Change to use number of SG entries
+> before dma_map_sg_attrs in vb2_dc_prepare to prevent this issue.
 > 
-> On Friday 21 August 2015 10:07:36 Hans Verkuil wrote:
-> > On 08/21/2015 03:02 AM, Laurent Pinchart wrote:
-> > > On Wednesday 19 August 2015 08:01:49 Mauro Carvalho Chehab wrote:
-> > >> +/* Enums used internally at the media controller to represent graphs */
-> > >> +
-> > >> +/**
-> > >> + * enum media_gobj_type - type of a graph element
-> > > 
-> > > Let's try to standardize the vocabulary, should it be called graph object
-> > > or graph element ? In the first case let's document it as graph object.
-> > > In the second case it would be more consistent to refer to it as enum
-> > > media_gelem_type (and struct media_gelem below).
-> > 
-> > For what it is worth, I prefer the term graph object.
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> So do I.
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 2397ceb..c5d00bd 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -100,7 +100,7 @@ static void vb2_dc_prepare(void *buf_priv)
+>  	if (!sgt || buf->db_attach)
+>  		return;
+>  
+> -	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+> +	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+>  }
+>  
+>  static void vb2_dc_finish(void *buf_priv)
+> @@ -112,7 +112,7 @@ static void vb2_dc_finish(void *buf_priv)
+>  	if (!sgt || buf->db_attach)
+>  		return;
+>  
+> -	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+>  }
 
-At v7 we removed the term "elements" in favor of "objects", as proposed by
-Hans.
+I don't really understand it. I am assuming that this happens on an arm and that
+the dma_map_sg_attrs and dma_sync_sg_* functions used are arm_iommu_map_sg() and
+arm_iommu_sync_sg_* as implemented in arch/arm/mm/dma-mapping.c.
 
-> 
-> > >> + *
-> > >> + */
-> > >> +enum media_gobj_type {
-> > >> +	 /* FIXME: add the types here, as we embed media_gobj */
-> > >> +	MEDIA_GRAPH_NONE
-> > >> +};
-> > >> +
-> > >> +#define MEDIA_BITS_PER_TYPE		8
-> > >> +#define MEDIA_BITS_PER_LOCAL_ID		(32 - MEDIA_BITS_PER_TYPE)
-> > >> +#define MEDIA_LOCAL_ID_MASK		 GENMASK(MEDIA_BITS_PER_LOCAL_ID - 1, 
-> 0)
-> > >> +
-> > >> +/* Structs to represent the objects that belong to a media graph */
-> > >> +
-> > >> +/**
-> > >> + * struct media_gobj - Define a graph object.
-> > >> + *
-> > >> + * @id:		Non-zero object ID identifier. The ID should be unique
-> > >> + *		inside a media_device, as it is composed by
-> > >> + *		MEDIA_BITS_PER_TYPE to store the type plus
-> > >> + *		MEDIA_BITS_PER_LOCAL_ID	to store a per-type ID
-> > >> + *		(called as "local ID").
-> > > 
-> > > I'd very much prefer using a single ID range and adding a type field.
-> > > Abusing bits of the ID field to store the type will just makes IDs
-> > > impractical to use. Let's do it properly.
-> > 
-> > Why is that impractical? I think it is more practical. Why waste memory on
-> > something that is easy to encode in the ID?
-> > 
-> > I'm not necessarily opposed to splitting this up (Mauro's initial patch
-> > series used a separate type field if I remember correctly), but it's not
-> > clear to me what the benefits are. Keeping it in a single u32 makes
-> > describing links also very easy since you just give it the two objects that
-> > are linked and it is immediately clear which object types are linked: no
-> > need to either store the types in the link struct or look up each object to
-> > find the type.
-> > 
-> > >> + * All elements on the media graph should have this struct embedded
-> > > 
-> > > All elements (objects) or only the ones that need an ID ? Or maybe we'll
-> > > define graph element (object) as an element (object) that has an ID,
-> > > making some "elements" not elements.
-> > 
-> > Yes, all objects have an ID. I see no reason to special-case this.
-> > 
-> > You wrote this at 3 am, so you were probably sleep-deprived when you wrote
-> > the second sentence as I can't wrap my head around that one :-)
-> 
-> It's always 3:00am in some time zone, but it wasn't in Seattle ;-)
-> 
-> The question was whether every element is required to have an ID. If some of 
-> what we currently call element doesn't need an ID, then we'll have to either 
-> modify the quoted documentation, or redefine "element" to only include the 
-> elements that have an ID, making the graph objects that don't have an ID not 
-> "elements".
+Now, as I understand it (and my understanding may very well be flawed!) the map_sg
+function concatenates SG entries if possible, so it may return fewer entries. But
+the dma_sync_sg functions use those updated SG entries, so the full buffer should
+be covered by this. Using orig_nents will actually sync parts of the buffer twice!
+The first nents entries already cover the full buffer so any remaining entries up
+to orig_nents will just duplicate parts of the buffer.
 
-Sorry but I read the above 3 or 4 times, but I failed to understand
-what you're meaning.
+So this patch makes no sense in the current code.
 
-There's one good reason for all objects to have an ID: userspace
-should be able to detect if a graph object was removed.
+If I understand your log text correctly this patch goes on top of Sakari Ailus' vb2
+sync patch series. So if it wasn't needed before, but it is needed after his patch
+series, then the problem is in that patch series.
 
-I mean, let's suppose that the topology_version has changed, because
-some links were removed and others added, among other changes.
+In any case, I need some help understanding this patch.
 
-If all objects have an object ID, it is easy (and quick, because all
-it needs to do is to compare a u32 integer) for userspace to compare the
-previously retrieved topology with the new one and check what objects
-were dropped/added by checking the object ID.
+And *if* this patch is correct, then the same thing should likely be done for
+videobuf2-dma-sg.c.
 
 Regards,
-Mauro
+
+	Hans
+
+>  
+>  /*********************************************/
+> 
