@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:48983 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756671AbbIDK15 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58671 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756031AbbIUJgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2015 06:27:57 -0400
-Message-ID: <55E971EF.3070901@xs4all.nl>
-Date: Fri, 04 Sep 2015 12:26:55 +0200
+	Mon, 21 Sep 2015 05:36:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 13/13] DocBook: add SDR specific info to G_MODULATOR /
- S_MODULATOR
-References: <1441144769-29211-1-git-send-email-crope@iki.fi> <1441144769-29211-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1441144769-29211-14-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: ricardo.ribalda@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>,
+	<stable@vger.kernel.org>
+Subject: [PATCH 1/2] v4l2-ctrls: arrays are also considered compound controls
+Date: Mon, 21 Sep 2015 11:36:41 +0200
+Message-Id: <1442828202-25578-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2015 11:59 PM, Antti Palosaari wrote:
-> Add SDR specific notes to G_MODULATOR / S_MODULATOR documentation.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> index 80167fc..affb694 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> @@ -78,6 +78,15 @@ different audio modulation if the request cannot be satisfied. However
->  this is a write-only ioctl, it does not return the actual audio
->  modulation selected.</para>
->  
-> +    <para><link linkend="sdr">SDR</link> specific modulator types are
-> +<constant>V4L2_TUNER_SDR</constant> and <constant>V4L2_TUNER_RF</constant>.
-> +Valid fields for these modulator types are <structfield>index</structfield>,
-> +<structfield>name</structfield>, <structfield>capability</structfield>,
-> +<structfield>rangelow</structfield>, <structfield>rangehigh</structfield>
-> +and <structfield>type</structfield>. All the rest fields must be
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-s/rest/remaining/
+Array controls weren't skipped when only V4L2_CTRL_FLAG_NEXT_CTRL was
+provided (so no V4L2_CTRL_FLAG_NEXT_COMPOUND was set). This is wrong
+since arrays are also considered compound controls (i.e. with more than
+one value), and applications that do not know about arrays will not
+be able to handle such controls.
 
-> +initialized to zero by both application and driver.
+Fix the test to include arrays.
 
-I would drop this sentence. The spec is clear about which fields have to be set
-by the user. The only thing I would mention here is that txsubchans should be
-initialized to 0 by applications (we might want to use it in the future) when
-calling S_MODULATOR.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: <stable@vger.kernel.org>      # for v3.17 and up
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-For S_TUNER it is the same: only mention that audmode should be initialized to
-0 for these SDR tuner types.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b6b7dcc..d5de70e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2498,7 +2498,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 			/* We found a control with the given ID, so just get
+ 			   the next valid one in the list. */
+ 			list_for_each_entry_continue(ref, &hdl->ctrl_refs, node) {
+-				is_compound =
++				is_compound = ref->ctrl->is_array ||
+ 					ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
+ 				if (id < ref->ctrl->id &&
+ 				    (is_compound & mask) == match)
+@@ -2512,7 +2512,7 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
+ 			   is one, otherwise the first 'if' above would have
+ 			   been true. */
+ 			list_for_each_entry(ref, &hdl->ctrl_refs, node) {
+-				is_compound =
++				is_compound = ref->ctrl->is_array ||
+ 					ref->ctrl->type >= V4L2_CTRL_COMPOUND_TYPES;
+ 				if (id < ref->ctrl->id &&
+ 				    (is_compound & mask) == match)
+-- 
+2.5.3
 
-> +Term modulator means SDR transmitter on this context.</para>
-
-s/Term/The term/
-s/on/in/
-
-Note: the same typos are in patch 12/13.
-
-Perhaps this sentence should be rewritten since it is not clear what you
-mean. I guess the idea is that 'modulator' is not a good match to what actually
-happens in the SDR hardware?
-
-How about:
-
-"Note that the term 'modulator' is a misnomer for type V4L2_TUNER_SDR since
-this really is a DAC and the 'modulator' frequency is in reality the sampling
-frequency of the DAC."
-
-I hope I got that right.
-
-And do something similar for patch 12/13.
-
-> +
->      <para>To change the radio frequency the &VIDIOC-S-FREQUENCY; ioctl
->  is available.</para>
->  
-> 
-
-Regards,
-
-	Hans
