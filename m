@@ -1,67 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:61498 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755916AbbIXOBO (ORCPT
+Received: from fed1rmfepo102.cox.net ([68.230.241.144]:48360 "EHLO
+	fed1rmfepo102.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757211AbbIUTIs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2015 10:01:14 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 06/19] staging: media: omap4iss: fix handling platform_get_irq
- result
-Date: Thu, 24 Sep 2015 16:00:14 +0200
-Message-id: <1443103227-25612-7-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
-References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
+	Mon, 21 Sep 2015 15:08:48 -0400
+Received: from fed1rmimpo306 ([68.230.241.174]) by fed1rmfepo102.cox.net
+          (InterMail vM.8.01.05.15 201-2260-151-145-20131218) with ESMTP
+          id <20150921190847.VWCW19282.fed1rmfepo102.cox.net@fed1rmimpo306>
+          for <linux-media@vger.kernel.org>;
+          Mon, 21 Sep 2015 15:08:47 -0400
+From: Eric Nelson <eric@nelint.com>
+To: linux-media@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mchehab@osg.samsung.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, patrice.chotard@st.com, fabf@skynet.be,
+	wsa@the-dreams.de, heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br, Eric Nelson <eric@nelint.com>
+Subject: [PATCH V2 1/2] rc-core: define a default timeout for drivers
+Date: Mon, 21 Sep 2015 12:08:43 -0700
+Message-Id: <1442862524-3694-2-git-send-email-eric@nelint.com>
+In-Reply-To: <1442862524-3694-1-git-send-email-eric@nelint.com>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <1442862524-3694-1-git-send-email-eric@nelint.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function can return negative value.
+A default timeout value of 100ms is workable for most decoders.
+Declare a constant to help standardize its' use.
 
-The problem has been detected using proposed semantic patch
-scripts/coccinelle/tests/assign_signed_to_unsigned.cocci [1].
-
-[1]: http://permalink.gmane.org/gmane.linux.kernel/2046107
-
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Eric Nelson <eric@nelint.com>
 ---
-Hi,
+ include/media/rc-core.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-To avoid problems with too many mail recipients I have sent whole
-patchset only to LKML. Anyway patches have no dependencies.
-
-Regards
-Andrzej
----
- drivers/staging/media/omap4iss/iss.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 9bfb725..0b03cb7 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -1440,12 +1440,13 @@ static int iss_probe(struct platform_device *pdev)
- 		 iss_reg_read(iss, OMAP4_ISS_MEM_ISP_SYS1, ISP5_REVISION));
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index ec921f6..62c64bd 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -239,6 +239,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ 	memset(ev, 0, sizeof(*ev));
+ }
  
- 	/* Interrupt */
--	iss->irq_num = platform_get_irq(pdev, 0);
--	if (iss->irq_num <= 0) {
-+	ret = platform_get_irq(pdev, 0);
-+	if (ret <= 0) {
- 		dev_err(iss->dev, "No IRQ resource\n");
- 		ret = -ENODEV;
- 		goto error_iss;
- 	}
-+	iss->irq_num = ret;
- 
- 	if (devm_request_irq(iss->dev, iss->irq_num, iss_isr, IRQF_SHARED,
- 			     "OMAP4 ISS", iss)) {
++#define IR_DEFAULT_TIMEOUT	MS_TO_NS(100)
+ #define IR_MAX_DURATION         500000000	/* 500 ms */
+ #define US_TO_NS(usec)		((usec) * 1000)
+ #define MS_TO_US(msec)		((msec) * 1000)
 -- 
-1.9.1
+2.5.2
 
