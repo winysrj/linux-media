@@ -1,102 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42302 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753314AbbIRJ23 (ORCPT
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:33276 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756009AbbIUIUJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 05:28:29 -0400
-Message-ID: <55FBD90C.3020301@xs4all.nl>
-Date: Fri, 18 Sep 2015 11:27:40 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 21 Sep 2015 04:20:09 -0400
+Received: by ykft14 with SMTP id t14so95874911ykf.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Sep 2015 01:20:08 -0700 (PDT)
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] [media] v4l2: introduce v4l2_timeval
-References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <1442524780-781677-8-git-send-email-arnd@arndb.de> <55FBC5B2.10808@xs4all.nl> <8200227.6XAMdOOJfW@wuerfel>
-In-Reply-To: <8200227.6XAMdOOJfW@wuerfel>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201509201159.QAcxzCyr%fengguang.wu@intel.com>
+References: <201509201159.QAcxzCyr%fengguang.wu@intel.com>
+Date: Mon, 21 Sep 2015 10:20:08 +0200
+Message-ID: <CABxcv==4OQce73RGPstvHQWt0sbHyx5Hv114rweOtpyb2F+fcQ@mail.gmail.com>
+Subject: Re: drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type
+ name 'dvb_frontend'
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/18/15 11:09, Arnd Bergmann wrote:
-> On Friday 18 September 2015 10:05:06 Hans Verkuil wrote:
->> On 09/17/15 23:19, Arnd Bergmann wrote:
->>> The v4l2 API uses a 'struct timeval' to communicate time stamps to user
->>> space. This is broken on 32-bit architectures as soon as we have a C library
->>> that defines time_t as 64 bit, which then changes the structure layout of
->>> struct v4l2_buffer.
->>>
->>> Since existing user space source code relies on the type to be 'struct
->>> timeva' and we want to preserve compile-time compatibility when moving
->>
->> s/timeva/timeval/
-> 
-> Fixed
-> 
->>> to a new libc, we cannot make user-visible changes to the header file.
->>>
->>> In this patch, we change the type of the timestamp to 'struct v4l2_timeval'
->>
->> Don't we need a kernel-wide timeval64? Rather than adding a v4l2-specific
->> struct?
-> 
-> I still hope to avoid doing that. All in-kernel users should be changed to
-> use timespec64 or ktime_t, which are always more efficient and accurate.
-> 
-> For the system call interface, all timeval APIs are deprecated and have
-> replacements using timespec64 (e.g. clock_gettime() replaces gettimeofday).
-> 
-> Only a handful of ioctls pass timeval, and so far my impression is that
-> we are better off handling each one separately. The total amount of code
-> we need to add this way should be less than if we have to duplicate all
-> common code functions that today operate on timeval and can eventually
-> get removed.
+Hello,
 
-Ah, OK. Got it.
+On Sun, Sep 20, 2015 at 5:17 AM, kbuild test robot
+<fengguang.wu@intel.com> wrote:
+> Hi Kozlov,
+>
+> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
+>
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+> head:   133bb59585140747fd3938002670cb395f40dc76
+> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
+> date:   6 weeks ago
+> config: x86_64-randconfig-h0-09201020 (attached as .config)
+> reproduce:
+>   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
+>   # save the attached .config to linux build tree
+>   make ARCH=x86_64
+>
+> All error/warnings (new ones prefixed by >>):
+>
+>    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
+>>> drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type name 'dvb_frontend'
+>     static inline dvb_frontend *lnbh25_attach(
+>                   ^
+>
+> vim +/dvb_frontend +46 drivers/media/dvb-frontends/lnbh25.h
+>
+> e025273b Kozlov Sergey 2015-07-28  40  #if IS_REACHABLE(CONFIG_DVB_LNBH25)
+> e025273b Kozlov Sergey 2015-07-28  41  struct dvb_frontend *lnbh25_attach(
+> e025273b Kozlov Sergey 2015-07-28  42   struct dvb_frontend *fe,
+> e025273b Kozlov Sergey 2015-07-28  43   struct lnbh25_config *cfg,
+> e025273b Kozlov Sergey 2015-07-28  44   struct i2c_adapter *i2c);
+> e025273b Kozlov Sergey 2015-07-28  45  #else
+> e025273b Kozlov Sergey 2015-07-28 @46  static inline dvb_frontend *lnbh25_attach(
+> e025273b Kozlov Sergey 2015-07-28  47   struct dvb_frontend *fe,
+> e025273b Kozlov Sergey 2015-07-28  48   struct lnbh25_config *cfg,
+> e025273b Kozlov Sergey 2015-07-28  49   struct i2c_adapter *i2c)
+>
+> :::::: The code at line 46 was first introduced by commit
+> :::::: e025273b86fb4a6440192b809e05332777c3faa5 [media] lnbh25: LNBH25 SEC controller driver
+>
+> :::::: TO: Kozlov Sergey <serjk@netup.ru>
+> :::::: CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
 
-I think this is dependent on the upcoming media workshop next month. If we
-decide to redesign v4l2_buffer anyway, then we can avoid timeval completely.
-And the only place where we would need to convert it in the compat code
-hidden in the v4l2 core (likely v4l2-ioctl.c).
+I had already posted a patch to fix this issue about a week ago:
 
-I am not really keen on having v4l2_timeval in all these drivers. I would
-have to check them anyway since I suspect that in several drivers the local
-timeval variable can be avoided by rewriting that part of the driver.
+https://patchwork.linuxtv.org/patch/31402/
 
-Personally I am in favor of a redesigned v4l2_buffer: it's awkward to use
-with multiplanar formats, there is cruft in there that can be removed (timecode),
-and there is little space for additions (HW-specific timecodes, more buffer
-meta data, etc).
-
-We'll see.
-
-Regards,
-
-	Hans
-
-> 
->>> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
->>> index 295fde5fdb75..df5daac6d099 100644
->>> --- a/drivers/media/platform/vim2m.c
->>> +++ b/drivers/media/platform/vim2m.c
->>> @@ -235,7 +235,7 @@ static int device_process(struct vim2m_ctx *ctx,
->>>  	in_vb->v4l2_buf.sequence = q_data->sequence++;
->>>  	memcpy(&out_vb->v4l2_buf.timestamp,
->>>  			&in_vb->v4l2_buf.timestamp,
->>> -			sizeof(struct timeval));
->>> +			sizeof(struct v4l2_timeval));
->>>  	if (in_vb->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
->>>  		memcpy(&out_vb->v4l2_buf.timecode, &in_vb->v4l2_buf.timecode,
->>>  			sizeof(struct v4l2_timecode));
->>
->> See https://patchwork.linuxtv.org/patch/31405/
->>
->> I'll merge that one for 4.4 very soon.
-> 
-> Ok.
-> 
-> 	Arnd
-> 
+Best regards,
+Javier
