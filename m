@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57283 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753550AbbIMTQi (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:34733 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932348AbbIUNgW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 15:16:38 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 769CA2A009D
-	for <linux-media@vger.kernel.org>; Sun, 13 Sep 2015 21:15:22 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] v4l2: add support for the SMPTE 2084 transfer function
-Date: Sun, 13 Sep 2015 21:15:17 +0200
-Message-Id: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 21 Sep 2015 09:36:22 -0400
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH 25/38] staging: media: davinci_vpfe: fix ipipe_mode type
+Date: Mon, 21 Sep 2015 15:33:57 +0200
+Message-id: <1442842450-29769-26-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The variable can take negative values.
 
-This transfer function is used in High Dynamic Range content. It can be signaled
-via the new HDMI Dynamic Range and Mastering InfoFrame (defined in CEA-861.3).
+The problem has been detected using proposed semantic patch
+scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
 
-Regards,
+[1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
 
-	Hans
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hans Verkuil (4):
-  videodev2.h: add SMPTE 2084 transfer function define
-  vivid-tpg: add support for SMPTE 2084 transfer function
-  vivid: add support for SMPTE 2084 transfer function
-  DocBook media: Document the SMPTE 2084 transfer function
-
- Documentation/DocBook/media/v4l/biblio.xml      |  9 +++
- Documentation/DocBook/media/v4l/pixfmt.xml      | 39 ++++++++++
- drivers/media/platform/vivid/vivid-ctrls.c      |  1 +
- drivers/media/platform/vivid/vivid-tpg-colors.c | 96 ++++++++++++++++++++++++-
- drivers/media/platform/vivid/vivid-tpg-colors.h |  2 +-
- include/uapi/linux/videodev2.h                  |  1 +
- 6 files changed, 144 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+index 2a3a56b..b1d5e23 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+@@ -254,7 +254,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
+ 	void __iomem *ipipe_base = ipipe->base_addr;
+ 	struct v4l2_mbus_framefmt *outformat;
+ 	u32 color_pat;
+-	u32 ipipe_mode;
++	int ipipe_mode;
+ 	u32 data_path;
+ 
+ 	/* enable clock to IPIPE */
 -- 
-2.1.4
+1.9.1
 
