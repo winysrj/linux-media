@@ -1,85 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53611 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754155AbbIHKfy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Sep 2015 06:35:54 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51699 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756468AbbIUJgz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 05:36:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: [RFC 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
-Date: Tue,  8 Sep 2015 13:33:47 +0300
-Message-Id: <1441708435-12736-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441708435-12736-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: ricardo.ribalda@gmail.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] DocBook/media: clarify control documentation
+Date: Mon, 21 Sep 2015 11:36:42 +0200
+Message-Id: <1442828202-25578-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
+References: <1442828202-25578-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cache synchronisation may be a time consuming operation and thus not
-best performed in an interrupt which is a typical context for
-vb2_buffer_done() calls. This may consume up to tens of ms on some
-machines, depending on the buffer size.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+- Add missing V4L2_CTRL_TYPE_U32 documentation
+- Remove 'which are actually different on the hardware' sentence which
+  is confusing. I think the idea was to let the user know that the step can
+  be different for different hardware, but that's obvious because otherwise
+  you wouldn't need to specify the step value.
+- Clarify that V4L2_CTRL_COMPOUND_TYPES also applies to arrays.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml        |  7 +++++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml          | 21 ++++++++++++++++-----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 64fce4d..c5c0707a 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
--	unsigned int plane;
- 
- 	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
- 		return;
-@@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, state);
- 
--	/* sync buffers */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
--
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
- static void __vb2_dqbuf(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	unsigned int i;
-+	unsigned int plane;
- 
- 	/* nothing to do if the buffer is already dequeued */
- 	if (vb->state == VB2_BUF_STATE_DEQUEUED)
-@@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 
- 	vb->state = VB2_BUF_STATE_DEQUEUED;
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; plane++)
-+		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-+
- 	/* unmap DMABUF buffer */
- 	if (q->memory == V4L2_MEMORY_DMABUF)
--		for (i = 0; i < vb->num_planes; ++i) {
--			if (!vb->planes[i].dbuf_mapped)
-+		for (plane = 0; plane < vb->num_planes; ++plane) {
-+			if (!vb->planes[plane].dbuf_mapped)
- 				continue;
--			call_void_memop(vb, unmap_dmabuf, vb->planes[i].mem_priv);
--			vb->planes[i].dbuf_mapped = 0;
-+			call_void_memop(vb, unmap_dmabuf,
-+					vb->planes[plane].mem_priv);
-+			vb->planes[plane].dbuf_mapped = 0;
- 		}
- }
- 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index c5bdbfc..842536a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -200,6 +200,13 @@ Valid if this control is of type <constant>V4L2_CTRL_TYPE_U16</constant>.</entry
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
++	    <entry>__u32 *</entry>
++	    <entry><structfield>p_u32</structfield></entry>
++	    <entry>A pointer to a matrix control of unsigned 32-bit values.
++Valid if this control is of type <constant>V4L2_CTRL_TYPE_U32</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>void *</entry>
+ 	    <entry><structfield>ptr</structfield></entry>
+ 	    <entry>A pointer to a compound type which can be an N-dimensional array and/or a
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 6ec39c6..55b7582 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -101,8 +101,9 @@ prematurely end the enumeration).</para></footnote></para>
+ next supported non-compound control, or <errorcode>EINVAL</errorcode>
+ if there is none. In addition, the <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant>
+ flag can be specified to enumerate all compound controls (i.e. controls
+-with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant>). Specify both
+-<constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
++with type &ge; <constant>V4L2_CTRL_COMPOUND_TYPES</constant> and/or array
++control, in other words controls that contain more than one value).
++Specify both <constant>V4L2_CTRL_FLAG_NEXT_CTRL</constant> and
+ <constant>V4L2_CTRL_FLAG_NEXT_COMPOUND</constant> in order to enumerate
+ all controls, compound or not. Drivers which do not support these flags yet
+ always return <errorcode>EINVAL</errorcode>.</para>
+@@ -422,7 +423,7 @@ the array to zero.</entry>
+ 	    <entry>any</entry>
+ 	    <entry>An integer-valued control ranging from minimum to
+ maximum inclusive. The step value indicates the increment between
+-values which are actually different on the hardware.</entry>
++values.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BOOLEAN</constant></entry>
+@@ -518,7 +519,7 @@ Older drivers which do not support this feature return an
+ 	    <entry>any</entry>
+ 	    <entry>An unsigned 8-bit valued control ranging from minimum to
+ maximum inclusive. The step value indicates the increment between
+-values which are actually different on the hardware.
++values.
+ </entry>
+ 	  </row>
+ 	  <row>
+@@ -528,7 +529,17 @@ values which are actually different on the hardware.
+ 	    <entry>any</entry>
+ 	    <entry>An unsigned 16-bit valued control ranging from minimum to
+ maximum inclusive. The step value indicates the increment between
+-values which are actually different on the hardware.
++values.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_U32</constant></entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>any</entry>
++	    <entry>An unsigned 32-bit valued control ranging from minimum to
++maximum inclusive. The step value indicates the increment between
++values.
+ </entry>
+ 	  </row>
+ 	</tbody>
 -- 
-2.1.0.231.g7484e3b
+2.5.3
 
