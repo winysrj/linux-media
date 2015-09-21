@@ -1,52 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55002 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078AbbIJRjs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Sep 2015 13:39:48 -0400
-Subject: Re: [PATCH 2/2] [media] media-device: split media initialization and
- registration
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Cc: Luis de Bethencourt <luis@debethencourt.com>,
-	linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>
-References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
- <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <55F1C04C.1040906@linux.intel.com>
-Date: Thu, 10 Sep 2015 20:39:24 +0300
-MIME-Version: 1.0
-In-Reply-To: <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from fed1rmfepo203.cox.net ([68.230.241.148]:43003 "EHLO
+	fed1rmfepo203.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757136AbbIUTIr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Sep 2015 15:08:47 -0400
+Received: from fed1rmimpo306 ([68.230.241.174]) by fed1rmfepo203.cox.net
+          (InterMail vM.8.01.05.15 201-2260-151-145-20131218) with ESMTP
+          id <20150921190847.TSBL31460.fed1rmfepo203.cox.net@fed1rmimpo306>
+          for <linux-media@vger.kernel.org>;
+          Mon, 21 Sep 2015 15:08:47 -0400
+From: Eric Nelson <eric@nelint.com>
+To: linux-media@vger.kernel.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mchehab@osg.samsung.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, patrice.chotard@st.com, fabf@skynet.be,
+	wsa@the-dreams.de, heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br, Eric Nelson <eric@nelint.com>
+Subject: [PATCH V2 0/2] rc: Add timeout support to gpio-ir-recv
+Date: Mon, 21 Sep 2015 12:08:42 -0700
+Message-Id: <1442862524-3694-1-git-send-email-eric@nelint.com>
+In-Reply-To: <1441980024-1944-1-git-send-email-eric@nelint.com>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Javier Martinez Canillas wrote:
-> Also, add a media_entity_cleanup() function that will destroy the
-> graph_mutex that is initialized in media_entity_init().
+Add timeout support to the gpio-ir-recv driver as discussed
+in this original patch:
 
-media_device_init() and media_device_cleanup()?
+	https://patchwork.ozlabs.org/patch/516827/
+
+V2 uses the timeout field of the rcdev instead of a device tree 
+field to set the timeout value as suggested by Sean Young.
+
+Eric Nelson (2):
+  rc-core: define a default timeout for drivers
+  rc: gpio-ir-recv: add timeout on idle
+
+ drivers/media/rc/gpio-ir-recv.c | 22 ++++++++++++++++++++++
+ include/media/rc-core.h         |  1 +
+ 2 files changed, 23 insertions(+)
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.5.2
+
