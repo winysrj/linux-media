@@ -1,330 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:34254 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642AbbIILUD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 07:20:03 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NUE030BAQ5DSLD0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 09 Sep 2015 20:20:01 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v4 0/8] Refactoring Videobuf2 for common use
-Date: Wed, 09 Sep 2015 20:19:49 +0900
-Message-id: <1441797597-17389-1-git-send-email-jh1009.sung@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:38709 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932151AbbIVXVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2015 19:21:30 -0400
+Date: Tue, 22 Sep 2015 20:21:24 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [RFC 0/9] Unrestricted media entity ID range support
+Message-ID: <20150922202124.20c22f2a@recife.lan>
+In-Reply-To: <5601CE75.3040503@linux.intel.com>
+References: <1441966152-28444-1-git-send-email-sakari.ailus@linux.intel.com>
+	<20150919092231.55fd5c28@osg.samsung.com>
+	<55FE5F91.6090506@linux.intel.com>
+	<20150922091144.328735a3@recife.lan>
+	<5601CE75.3040503@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+Em Wed, 23 Sep 2015 00:56:05 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-This is the 4th round for refactoring Videobuf2(a.k.a VB2).
-The purpose of this patch series is to separate existing VB2 framework
-into core part and V4L2 specific part. So that not only V4L2 but also other
-frameworks can use them to manage buffer and utilize queue.
+> Hi Mauro,
+> 
+> Mauro Carvalho Chehab wrote:
+> > Em Sun, 20 Sep 2015 10:26:09 +0300
+> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> >
+> >> Hi Mauro,
+> >>
+> >> Mauro Carvalho Chehab wrote:
+> >>> Hi Sakari,
+> >>>
+> >>> On Fri, 11 Sep 2015 13:09:03 +0300
+> >>> Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
+> >>>
+> >>>> Hi all,
+> >>>>
+> >>>> This patchset adds an API for managing entity enumerations, i.e.
+> >>>> storing a bit of information per entity. The entity ID is no longer
+> >>>> limited to small integers (e.g. 31 or 63), but
+> >>>> MEDIA_ENTITY_MAX_LOW_ID. The drivers are also converted to use that
+> >>>> instead of a fixed number.
+> >>>>
+> >>>> If the number of entities in a real use case grows beyond the
+> >>>> capabilities of the approach, the algorithm may be changed. But most
+> >>>> importantly, the API is used to perform the same operation everywhere
+> >>>> it's done.
+> >>>>
+> >>>> I'm sending this for review only, the code itself is untested.
+> >>>>
+> >>>> I haven't entirely made up my mind on the fourth patch. It could be
+> >>>> dropped, as it uses the API for a somewhat different purpose.
+> >>>>
+> >>>
+> >>> Sorry for not reviewing this earlier, but I'm traveling this week to
+> >>> China, and I was having some troubles with the Internet. Btw, I don't
+> >>> have my notebook here (just a chromebook without the media tree).
+> >>> So, please consider this as just a preliminary review.
+> >>>
+> >>> I won't be comment this series patch by patch, because it is really
+> >>> painful to do it while here with this Internet.
+> >>>
+> >>> Also, I want to discuss the patch series as a hole.
+> >>>
+> >>>   From what we've agreed last week, we won't be using a separate ID
+> >>> range for the entity ID, but this patch series is actually adding
+> >>> it, and, IMHO, using a confusing nomenclature: instead of calling the
+> >>> entity ID range as "entity_id" at the media_device struct, you're
+> >>> now calling it "low_id". That sounds confusing to me. If you think
+> >>> we should keep a separate range for entities, calling it as
+> >>> "entity_id" is clearer.
+> >>
+> >> It's *not* the entity ID. It's a number used internally to keep track of
+> >> the entities, and only used for this purpose, nothing else. If you look
+> >> at the patch, the number of places where low_id is used is very limited.
+> >> Individual drivers do not and must not access the low_id field.
+> >>
+> >> The underlying algorithm for keeping track of entities does not change,
+> >> but that could be changed later on without affecting the users of the
+> >> alrogithm. --- See patch 3.
+> >>
+> >> There are two main reasons for this:
+> >>
+> >> 1. No need to implement a new algorithm which would be less efficient
+> >> but could cope in cases we do not have yet; this can be done later on,
+> >> as patch 3 adds an API to access the information without making
+> >> assumptions on the implementation.
+> >
+> > If this is an internal number used only by the graph traversal
+> > algorithm, then the implementation doesn't seem correct. I mean:
+> > such number should be generated internally when starting the
+> > graph traversal algorithm, and it would be better to store such
+> > graph-traversal internal algorithm data on a separate struct.
+> 
+> In that case the number would become enumeration specific. I have no 
+> problem in that, but if a single entity specific number works for the 
+> purpose, I think that could be used as well. Using something else than a 
+> constant value per entity quickly will require memory allocation, and 
+> graph traversal is performance critical in many cases.
 
-Why do we try to make the VB2 framework to be common?
+I guess a single loop at graph traversal start would solve it. Yet,
+it means an extra O(n) to fill in the numbers, but the algorithm
+that fills such numbers will be at least O(n) either here or at the
+entity creation.
 
-As you may know, current DVB framework uses ringbuffer mechanism to demux
-MPEG-2 TS data and pass it to userspace. However, this mechanism requires
-extra memory copy because DVB framework provides only read() system call for
-application - read() system call copies the kernel data to user-space buffer.
-So if we can use VB2 framework which supports streaming I/O and buffer
-sharing mechanism, then we could enhance existing DVB framework by removing
-the extra memory copy - with VB2 framework, application can access the kernel
-data directly through mmap system call.
+Perhaps one solution would be to have a "dirty" flag that would be
+raised if a new entity would be created (and removed?). If dirty
+flag is raised, it would do the count at the beginning of the graph
+start.
 
-We have a plan for this work as follows:
-1. Separate existing VB2 framework into three parts - VB2 common, VB2-v4l2.
-   Of course, this change will not affect other v4l2-based
-   device drivers. This patch series corresponds to this step.
+> >
+> >> 2. It does solve the problem. The graph object IDs of the entities can
+> >> be large without adversely affecting the functionality of existing drivers.
+> >
+> > Right now, with just those 9 patches, it doesn't ;)
+> >
+> > I mean: if I apply your patches after the MC next gen ones and try to use the
+> > graph traversal, it will do the wrong thing for hybrid TV cards, as the number
+> > of entities there are more than 64. Ok, easy to fix after this series by
+> > just changing the value of MEDIA_ENTITY_MAX_LOW_ID, but this will only
+> > work while we don't implement dynamic support.
+> 
+> Fair enough. Still, it didn't work before either: the graph traversal 
+> algorithm depends on entity ID not exceeding MEDIA_ENTITY_ENUM_MAX_ID 
+> (which this set renames).
 
-2. Add and implement new APIs for DVB streaming I/O.
-   We can remove unnecessary memory copy between kernel-space and user-space
-   by using these new APIs. However, we leaves legacy interfaces as-is
-   for backward compatibility.
+Well, for existing drivers that use graph traversal, this number is
+not exceeded.
 
-This patch series is the first step for it.
-The previous version of this patch series can be found at belows.
+> I still consider that a separate problem.
+> 
+> >
+> >>>
+> >>> Also, you said at the low_id comment that if an entity is
+> >>> unregistered and then re-registered, it would preserve the same
+> >>
+> >> I never claimed that, and the patchset does not implement that either.
+> >
+> > That's what I understood from this comment:
+> >
+> > 	Rename the macro as it no longer is a maximum ID that an entity can have,
+> > 	but a low ID which is used for internal purposes of enumeration. This is
+> > 	the maximum number of concurrent entities that may exist in a media
+> > 	device.
+> >
+> > If this is the "max number of concurrent entities", you need to reassign
+> > those numbers when entities are removed.
+> >
+> > If this is not what you're meaning, then fix the patch description
+> > to let it clearer.
+> >
+> > I guess then that "low ID" is actually an upper bound for that
+> > graph-traversal only control number. We should really not use the word "ID"
+> > here, as this is not an ID. it is just some index/control number that will
+> > be granted to be below some upper bound.
+> 
+> Index sounds good to me, it's indeed clearer. I didn't like "low" 
+> either, it just happens to be that way right now.
 
-[1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
-[2] RFC PATCH v2 - http://www.spinics.net/lists/linux-media/msg92130.html
-[3] RFC PATCH v3 - http://www.spinics.net/lists/linux-media/msg92953.html
+OK.
 
+> With a different 
+> algorithm, I think we can get rid of the entire field --- but it will 
+> have to be replaced by something that requires memory allocation.
 
-Changes since v3
+It is hard to tell how a new algorithm would be without writing the
+code for it and do some experimentation ;)
 
-1. Resolve build errors
-In previous patch set, the build errors prevented reviewers from applying
-the patch. So, in this patch, I tryed to fix the build errors but I hadn't
-the build test on all architectures except for x86 and ARM.
+> 
+> ...
+> 
+> >>>
+> >>> - some other mechanism would be available for drivers that
+> >>>     would support dynamic entity creation.
+> >>>
+> >>> So, I don't see how this would solve the problems that we
+> >>> discussed at the last week IRC chats.
+> >>>
+> >>> Am I missing something?
+> >>
+> >> This set indeed solves a problem, and that problem was unrestricting the
+> >> graph object ID of the entities. There are other problems remaining
+> >> before entities can be e.g. unregistered one by one, but they are
+> >> separate problems.
+> >
+> > That's not the way I see it ;) I mean, for the current MC code, this patch
+> > series is not needed, as all drivers right now have less than 64 entities.
+> 
+> In the last IRC meeting we agreed to have a single ID range for graph 
+> object IDs. Now that ID will be given to all graph objects, 64 will be 
+> reached much sooner than it used to, and it probably happens on at least 
+> some existing drivers as well.
 
-2. Modify descriptions for DocBook
-Descriptions not complying with the DocBook rule are modified,
-which was pointed out by Mauro.
+Yes, using a single range will make this an issue. So, yes we need to
+apply the patches that fixes the upper bound problem before applying
+the patch that moves from 4 ranges into one. So, the order would be:
 
-3. Initialize reserved fields explicitly
-The reserved fields of v4l2_buffer are initialized by 0 explicitly
-when the vb2_buffer information is returned to userspace,
-which was pointed out by Hans.
+- the 82 patches
+- the graph traversal change to use an "index" for the entity count
+  (the equivalent of this series)
+- the patch that changes from 4 to 1 range.
+> 
+> >
+> > This need only starts after/during the MC next gen patches, in order
+> > to address two changes that come on this series:
+> >
+> > - having an arbitrary entity ID number that will be a way bigger
+> >    than the current upper bound (the number of entities);
+> 
+> It's indeed *the number of entities*, not entity ID.
+> 
+> >
+> > - support more than 64 entities.
+> >
+> > So, I would be expecting a patch series that would either:
+> >
+> > 1) change the graph traversal algorithms to not depend on some
+> > upper bound limit;
+> >
+> > 	or:
+> >
+> > 2) dynamically create whatever internal index number and to
+> > dynamically determine the upper bound limit that would be needed for the
+> > graph traversal algorithm to work, allocating those data when the graph
+> > traversal algorithm starts and freeing them when the graph traversal
+> > stops, and/or when the media device is unregistered.
+> 
+> Even with 4 k entities, the memory required by that algorithm to track 
+> the entities would be just 512 bytes + 16 * depth. I wonder if a more 
+> sophisticated algorithm would be able to operate with less or as 
+> efficiently.
 
-4. Remove unnecessary type-cast
-According to Mauro's advice, the unnecessary type-cast are removed
-because it's better for the compiler - rather than human - to check those
-things.
+Hard to tell without seeing the code ;) 
 
-5. Sperate the patch - not easy to review - into two patches
-In previous patch set, patch 5 was too difficult to review. So accoring to
-Hans' opinion, it separated the patch without any functional changes.
+The current algorithm is not bad, but I never really needed to look at
+other alternatives for it.
 
+Yet, with dynamic entity creation/removal, we'll need to add some extra
+code to re-numerate the new entities and re-calculate the upper bound,
+as entities are created/removed. So, it might justify the need or a better
+algorithm, in order to avoid adding too much penalty to the performance.
 
-Changes since v2
+> 
+> The memory would need to come from elsewhere than from the stack obviously.
 
-1. Remove v4l2 stuffs completely from vb2_buffer
-The v4l2 stuffs - v4l2_buf and v4l2_planes - are removed completely from
-struct vb2_buffer. New member variables - index, type, memory - are added
-to struct vb2_buffer, all of which can be used commonly. And bytesused,
-length, offset, userptr, fd, data_offset are added to struct vb2_plane
-for the same reason. So, we can manage video buffer by only using
-struct vb2_buffer.
-And, v4l2 stuffs - flags, field, timestamp, timecode, sequence - are defined
-as member variables of struct vb2_v4l2_buffer.
+Yes.
 
-2. Create new header file for VB2 internal use
-videobuf2-internal.h is created, which is referred by videobuf2-core
-and videobuf2-v4l2. The header file contains dprintk() for debug,
-macro functions to invoke various callbacks, and vb2_core_* function prototypes
-referred by inside of videobuf2.
+> 
+> >
+> >>
+> >>>
+> >>> Regards,
+> >>> Mauro
+> >>>
+> >>> PS.: sparse already complains on two places at the media-entity where
+> >>> bitmaps are declared at the stack. With max entities equal to 64,
+> >>> that's not an issue, but if we change to a higher number, those will
+> >>> need to be dynamically allocated, in order to avoid stack overflows.
+> >>> I didn't see any patches touching that.
+> >>
+> >> I agree. The aim of the set was not to increase the number of concurrent
+> >> entities. That is a separate problem which can be solved later on once
+> >> we have a use case for it.
+> >>
+> >
+> > I reviewed that code. The problem there is actually unrelated to what
+> > this patch series is trying to solve, as the problem there is due to the
+> > number of PADs (and not on the number of entities). I mean about this
+> > code at media_entity_pipeline_start():
+> >
+> > 	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > 		DECLARE_BITMAP(active, entity->num_pads);
+> > 		DECLARE_BITMAP(has_no_links, entity->num_pads);
+> >
+> > That limits the max number of pads, as a big number would cause a
+> > Linux stack overflow.
+> >
+> > Those bitmaps should likely be moved to struct media_pipeline or
+> > struct media_device and be either dynamically created/removed or
+> > having them relying on a max number of pads.
+> 
+> How many pads are we looking forwards to have?
+> 
+> I don't think we have a fixed limit as such, but AFAIR there's no driver 
+> using more than around five at the moment, so there was really no need 
+> to worry about it.
+> 
+> I guess it'd be good to have a maximum though just to be on the safe side.
 
-3. Remove buffer-specific callbacks as much as possible
-There were many callback functions to handle video buffer information
-in previous patch series. In this patch series, I try to remove these callbacks
-as much as possible without breaking the existing function flow.
-As a result, only four callbacks are remained - fill_user_buffer(),
-fill_vb2_buffer(), fill_vb2_timestamp() and is_last().
+DVB drivers use currently 256 pads. At the patch I wrote earlier today:
 
-All ideas above are from Hans and it seems to be better and right way.
+	https://patchwork.linuxtv.org/patch/31512/
 
+(not sure why it was not at patchwork yet... Had to re-send it now)
 
-Changes since v1
+I used the next power of two as the max limit, so 512 pads. I opted to
+just add the two bitmaps used at the graph traversal logic as part of
+the private fields of struct media_device. I don't expect any performance
+penalty with that.
 
-1. Divide patch set into more pieces
-v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
-list with size problem - over 300kb. So I have divided the patch set into five
-pieces and refined them neatly, which was pointed by Hans.
-
-2. Add shell scripts for renaming patch
-In case of renaming patch, shell scripts are included inside the body of the
-patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
-be used by reviewers or maintainers to regenerate big patch file if something
-goes wrong during patch apply.
-
-3. Remove dependency on v4l2 from videobuf2
-In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
-e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
-from using videobuf2 independently and made them forced to include
-v4l2-specific stuff.
-In this version, these dependent stuffs are replaced with VB2 own stuffs.
-e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
-required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
-will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
-backward compatibility.
-
-4. Unify duplicated definitions
-VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
-duplicated macro functions that invoke callback functions implemented in vb2
-backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
-callbacks of device drivers.
-In previous patch set, these macro functions were defined
-in both videobuf2-core.c and videobuf2-v4l2.c.
-
-
-This patch series is based on media_tree.git [4]. I have applied this patches
-to my own git [5] for review, and tested this patch series on ubuntu
-PC(Intel i7-3770) for x86 system and odroid-xu3(exynos5422) for ARM.
-
-[4] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
-[5] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
-    (branch: vb2-refactoring)
-
-Any suggestions and comments are welcome.
+One thing I forgot to add there was a test if a driver is using more than
+the maximum number of PADs. We should add such test on a version 2 of the
+patch.
 
 Regards,
-Junghak
+Mauro
 
-Junghak Sung (8):
-  [media] videobuf2: Replace videobuf2-core with videobuf2-v4l2
-  [media] videobuf2: Restructure vb2_buffer (1/3)
-  [media] videobuf2: Restructure vb2_buffer (2/3)
-  [media] videobuf2: Restructure vb2_buffer (3/3)
-  [media] videobuf2: Change queue_setup argument
-  [media] videobuf2: Replace v4l2-specific data with vb2 data.
-  [media] videobuf2: Move v4l2-specific stuff to videobuf2-v4l2
-  [media] videobuf2: Remove v4l2-dependencies from videobuf2-core
 
- Documentation/video4linux/v4l2-pci-skeleton.c      |    4 +-
- drivers/input/touchscreen/sur40.c                  |   20 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c          |   23 +-
- drivers/media/pci/cobalt/cobalt-driver.h           |    6 +-
- drivers/media/pci/cobalt/cobalt-irq.c              |    7 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c             |   24 +-
- drivers/media/pci/cx23885/cx23885-417.c            |   13 +-
- drivers/media/pci/cx23885/cx23885-core.c           |   24 +-
- drivers/media/pci/cx23885/cx23885-dvb.c            |   11 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |   18 +-
- drivers/media/pci/cx23885/cx23885-video.c          |   29 +-
- drivers/media/pci/cx23885/cx23885.h                |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |   24 +-
- drivers/media/pci/cx25821/cx25821.h                |    3 +-
- drivers/media/pci/cx88/cx88-blackbird.c            |   15 +-
- drivers/media/pci/cx88/cx88-core.c                 |    8 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |   13 +-
- drivers/media/pci/cx88/cx88-mpeg.c                 |   14 +-
- drivers/media/pci/cx88/cx88-vbi.c                  |   19 +-
- drivers/media/pci/cx88/cx88-video.c                |   21 +-
- drivers/media/pci/cx88/cx88.h                      |    2 +-
- drivers/media/pci/dt3155/dt3155.c                  |   20 +-
- drivers/media/pci/dt3155/dt3155.h                  |    3 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |   21 +-
- drivers/media/pci/saa7134/saa7134-core.c           |   14 +-
- drivers/media/pci/saa7134/saa7134-ts.c             |   16 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |   12 +-
- drivers/media/pci/saa7134/saa7134-video.c          |   23 +-
- drivers/media/pci/saa7134/saa7134.h                |    4 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |   48 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         |   21 +-
- drivers/media/pci/solo6x10/solo6x10.h              |    4 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |   14 +-
- drivers/media/pci/tw68/tw68-video.c                |   22 +-
- drivers/media/pci/tw68/tw68.h                      |    3 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |   38 +-
- drivers/media/platform/am437x/am437x-vpfe.h        |    3 +-
- drivers/media/platform/blackfin/bfin_capture.c     |   37 +-
- drivers/media/platform/coda/coda-bit.c             |  135 +-
- drivers/media/platform/coda/coda-common.c          |   26 +-
- drivers/media/platform/coda/coda-jpeg.c            |    6 +-
- drivers/media/platform/coda/coda.h                 |    8 +-
- drivers/media/platform/coda/trace.h                |   18 +-
- drivers/media/platform/davinci/vpbe_display.c      |   34 +-
- drivers/media/platform/davinci/vpif_capture.c      |   33 +-
- drivers/media/platform/davinci/vpif_capture.h      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |   31 +-
- drivers/media/platform/davinci/vpif_display.h      |    2 +-
- drivers/media/platform/exynos-gsc/gsc-core.h       |    4 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |   25 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |   27 +-
- drivers/media/platform/exynos4-is/fimc-core.c      |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.h      |    4 +-
- drivers/media/platform/exynos4-is/fimc-is.h        |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |   18 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.h |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp.h       |    4 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |   20 +-
- drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |   23 +-
- drivers/media/platform/m2m-deinterlace.c           |   25 +-
- drivers/media/platform/marvell-ccic/mcam-core.c    |   46 +-
- drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
- drivers/media/platform/mx2_emmaprp.c               |   17 +-
- drivers/media/platform/omap3isp/ispvideo.c         |   27 +-
- drivers/media/platform/omap3isp/ispvideo.h         |    4 +-
- drivers/media/platform/rcar_jpu.c                  |   64 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |   20 +-
- drivers/media/platform/s3c-camif/camif-core.c      |    2 +-
- drivers/media/platform/s3c-camif/camif-core.h      |    4 +-
- drivers/media/platform/s5p-g2d/g2d.c               |   19 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |   34 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   80 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   19 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   62 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |   46 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |   33 +-
- drivers/media/platform/s5p-tv/mixer.h              |    4 +-
- drivers/media/platform/s5p-tv/mixer_grp_layer.c    |    2 +-
- drivers/media/platform/s5p-tv/mixer_reg.c          |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c        |   13 +-
- drivers/media/platform/s5p-tv/mixer_vp_layer.c     |    5 +-
- drivers/media/platform/sh_veu.c                    |   22 +-
- drivers/media/platform/sh_vou.c                    |   29 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |   28 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |   24 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |   30 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |   48 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   63 +-
- drivers/media/platform/soc_camera/soc_camera.c     |    2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |   26 +-
- drivers/media/platform/ti-vpe/vpe.c                |   87 +-
- drivers/media/platform/vim2m.c                     |   55 +-
- drivers/media/platform/vivid/vivid-core.h          |    4 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c   |   73 +-
- drivers/media/platform/vivid/vivid-kthread-out.c   |   34 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c       |   46 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |   40 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |   20 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |   18 +-
- drivers/media/platform/vivid/vivid-vid-out.c       |   18 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |    4 +-
- drivers/media/platform/vsp1/vsp1_video.c           |   23 +-
- drivers/media/platform/vsp1/vsp1_video.h           |    8 +-
- drivers/media/platform/vsp1/vsp1_wpf.c             |    4 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |   29 +-
- drivers/media/platform/xilinx/xilinx-dma.h         |    2 +-
- drivers/media/usb/airspy/airspy.c                  |   26 +-
- drivers/media/usb/au0828/au0828-vbi.c              |   10 +-
- drivers/media/usb/au0828/au0828-video.c            |   48 +-
- drivers/media/usb/au0828/au0828.h                  |    3 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |   10 +-
- drivers/media/usb/em28xx/em28xx-video.c            |   37 +-
- drivers/media/usb/em28xx/em28xx.h                  |    3 +-
- drivers/media/usb/go7007/go7007-driver.c           |   29 +-
- drivers/media/usb/go7007/go7007-priv.h             |    4 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |   22 +-
- drivers/media/usb/hackrf/hackrf.c                  |   24 +-
- drivers/media/usb/msi2500/msi2500.c                |   19 +-
- drivers/media/usb/pwc/pwc-if.c                     |   35 +-
- drivers/media/usb/pwc/pwc-uncompress.c             |    6 +-
- drivers/media/usb/pwc/pwc.h                        |    4 +-
- drivers/media/usb/s2255/s2255drv.c                 |   29 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |   17 +-
- drivers/media/usb/stk1160/stk1160-video.c          |   12 +-
- drivers/media/usb/stk1160/stk1160.h                |    4 +-
- drivers/media/usb/usbtv/usbtv-video.c              |   24 +-
- drivers/media/usb/usbtv/usbtv.h                    |    3 +-
- drivers/media/usb/uvc/uvc_queue.c                  |   29 +-
- drivers/media/usb/uvc/uvc_video.c                  |   20 +-
- drivers/media/usb/uvc/uvcvideo.h                   |    6 +-
- drivers/media/v4l2-core/Makefile                   |    2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
- drivers/media/v4l2-core/v4l2-mem2mem.c             |   10 +-
- drivers/media/v4l2-core/v4l2-trace.c               |    2 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 2075 +++-----------------
- drivers/media/v4l2-core/videobuf2-internal.h       |  182 ++
- drivers/media/v4l2-core/videobuf2-v4l2.c           | 1674 ++++++++++++++++
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |   45 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.h    |    3 +-
- drivers/staging/media/omap4iss/iss_video.c         |   25 +-
- drivers/staging/media/omap4iss/iss_video.h         |    6 +-
- drivers/usb/gadget/function/uvc_queue.c            |   28 +-
- drivers/usb/gadget/function/uvc_queue.h            |    4 +-
- include/media/davinci/vpbe_display.h               |    3 +-
- include/media/soc_camera.h                         |    2 +-
- include/media/v4l2-mem2mem.h                       |   11 +-
- include/media/videobuf2-core.h                     |  228 +--
- include/media/videobuf2-dvb.h                      |    2 +-
- include/media/videobuf2-v4l2.h                     |  158 ++
- include/trace/events/v4l2.h                        |   40 +-
- 152 files changed, 4023 insertions(+), 3207 deletions(-)
- create mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
- create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
- create mode 100644 include/media/videobuf2-v4l2.h
 
--- 
-1.7.9.5
-
+> 
