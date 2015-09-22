@@ -1,101 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:47452 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbbIRJVa (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34028 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752926AbbIVJB4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Sep 2015 05:21:30 -0400
-Subject: Re: [PATCH v3] media: atmel-isi: parse the DT parameters for
- vsync/hsync/pixclock polarity
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1438681069-16981-1-git-send-email-josh.wu@atmel.com>
- <3317317.RTpCstaHHn@avalon>
-CC: Josh Wu <josh.wu@atmel.com>, <linux-arm-kernel@lists.infradead.org>
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Message-ID: <55FBD76C.1040303@atmel.com>
-Date: Fri, 18 Sep 2015 11:20:44 +0200
+	Tue, 22 Sep 2015 05:01:56 -0400
+Received: from [10.61.217.18] (unknown [173.38.220.33])
+	by tschai.lan (Postfix) with ESMTPSA id D0D832A008E
+	for <linux-media@vger.kernel.org>; Tue, 22 Sep 2015 11:00:29 +0200 (CEST)
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.4] More fixes/enhancements
+Message-ID: <560118FF.3060301@xs4all.nl>
+Date: Tue, 22 Sep 2015 11:01:51 +0200
 MIME-Version: 1.0
-In-Reply-To: <3317317.RTpCstaHHn@avalon>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 04/08/2015 13:22, Laurent Pinchart a écrit :
-> Hi Josh,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 04 August 2015 17:37:49 Josh Wu wrote:
->> This patch will get the DT parameters of vsync/hsync/pixclock polarity, and
->> pass to driver.
->>
->> Also add a debug information for test purpose.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+More fixes and enhancements.
 
-Guennadi, Mauro,
+Note the v4l2-ctrls fix that has a CC to stable for 3.17 and up.
 
-I don't see this patch in Linux-next and I'm not so used to
-http://git.linuxtv.org but didn't find it either.
+Regards,
 
-Well in fact it's just a lengthy version of "ping" ;-)
+	Hans
 
-Bye,
+The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
 
->> ---
->>
->> Changes in v3:
->> - add embedded sync dt property support.
->>
->> Changes in v2:
->> - rewrite the debug message and add pix clock polarity setup thanks to
->>   Laurent.
->> - update the commit log.
->>
->>  drivers/media/platform/soc_camera/atmel-isi.c | 15 +++++++++++++++
->>  1 file changed, 15 insertions(+)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->> b/drivers/media/platform/soc_camera/atmel-isi.c index fead841..4efc939
->> 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -1061,6 +1061,11 @@ static int isi_camera_set_bus_param(struct
->> soc_camera_device *icd) if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
->>  		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
->>
->> +	dev_dbg(icd->parent, "vsync active %s, hsync active %s, sampling on pix
->> clock %s edge\n", +		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" :
->> "high",
->> +		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
->> +		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "falling" : "rising");
->> +
->>  	if (isi->pdata.has_emb_sync)
->>  		cfg1 |= ISI_CFG1_EMB_SYNC;
->>  	if (isi->pdata.full_mode)
->> @@ -1148,6 +1153,16 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
->>  		return -EINVAL;
->>  	}
->>
->> +	if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
->> +		isi->pdata.hsync_act_low = true;
->> +	if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
->> +		isi->pdata.vsync_act_low = true;
->> +	if (ep.bus.parallel.flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
->> +		isi->pdata.pclk_act_falling = true;
->> +
->> +	if (ep.bus_type == V4L2_MBUS_BT656)
->> +		isi->pdata.has_emb_sync = true;
->> +
->>  	return 0;
->>  }
-> 
+  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
 
+are available in the git repository at:
 
--- 
-Nicolas Ferre
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.4c
+
+for you to fetch changes up to c8e88d026d67d33c427a9083a7762527a6b80d1c:
+
+  media: v4l2-ctrls: Fix 64bit support in get_ctrl() (2015-09-22 10:23:37 +0200)
+
+----------------------------------------------------------------
+Andrzej Pietrasiewicz (2):
+      s5p-jpeg: add support for 5433
+      MAINTAINERS: add exynos jpeg codec maintainers
+
+Benoit Parrot (1):
+      media: v4l2-ctrls: Fix 64bit support in get_ctrl()
+
+Hans Verkuil (1):
+      cobalt: fix Kconfig dependency
+
+Javier Martinez Canillas (1):
+      tvp5150: add support for asynchronous probing
+
+Joe Perches (1):
+      s5p-mfc: Correct misuse of %0x<decimal>
+
+Luis de Bethencourt (1):
+      cx25821, cx88, tm6000: use SNDRV_DEFAULT_ENABLE_PNP
+
+Marek Szyprowski (1):
+      s5p-jpeg: generalize clocks handling
+
+ Documentation/devicetree/bindings/media/exynos-jpeg-codec.txt |   3 +-
+ MAINTAINERS                                                   |   8 ++
+ drivers/media/i2c/tvp5150.c                                   |  14 ++-
+ drivers/media/pci/cobalt/Kconfig                              |   2 +-
+ drivers/media/pci/cx25821/cx25821-alsa.c                      |   2 +-
+ drivers/media/pci/cx88/cx88-alsa.c                            |   2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c                   | 444 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h                   |  41 ++++++-
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.c             |  80 ++++++++++---
+ drivers/media/platform/s5p-jpeg/jpeg-hw-exynos4.h             |  11 +-
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h                   |  85 +++++++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c               |   2 +-
+ drivers/media/usb/tm6000/tm6000-alsa.c                        |   2 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c                          |   6 +-
+ 14 files changed, 586 insertions(+), 116 deletions(-)
