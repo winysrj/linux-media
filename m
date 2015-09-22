@@ -1,848 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:56908 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933355AbbIVNam (ORCPT
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:33440 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933856AbbIVXwi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 09:30:42 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NV202QZ5YV34V30@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Sep 2015 22:30:39 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v5 2/8] media: videobuf2: Restructure vb2_buffer (1/3)
-Date: Tue, 22 Sep 2015 22:30:30 +0900
-Message-id: <1442928636-3589-3-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1442928636-3589-1-git-send-email-jh1009.sung@samsung.com>
-References: <1442928636-3589-1-git-send-email-jh1009.sung@samsung.com>
+	Tue, 22 Sep 2015 19:52:38 -0400
+Received: by ykft14 with SMTP id t14so26505139ykf.0
+        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2015 16:52:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20150922203751.GS3175@valkosipuli.retiisi.org.uk>
+References: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
+ <56000293.9000802@xs4all.nl> <560175AD.2010401@arm.com> <20150922203751.GS3175@valkosipuli.retiisi.org.uk>
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Wed, 23 Sep 2015 07:52:18 +0800
+Message-ID: <CAGS+omAm5j7N-TPbium6CNO3RkcuBViuULbnMe_Yh4NUwm-xKw@mail.gmail.com>
+Subject: Re: [RESEND PATCH] media: vb2: Fix vb2_dc_prepare do not correct sync
+ data to device
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Robin Murphy <robin.murphy@arm.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-mediatek@lists.infradead.org"
+	<linux-mediatek@lists.infradead.org>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove v4l2 stuff - v4l2_buf, v4l2_plane - from struct vb2_buffer.
+Hi Sakari,
 
-Add new member variables - bytesused, length, offset, userptr, fd,
-data_offset - to struct vb2_plane in order to cover all information
-of v4l2_plane.
-struct vb2_plane {
-        <snip>
-        unsigned int            bytesused;
-        unsigned int            length;
-        union {
-                unsigned int    offset;
-                unsigned long   userptr;
-                int             fd;
-        } m;
-        unsigned int            data_offset;
-}
+On Wed, Sep 23, 2015 at 4:37 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Robin,
+>
+> On Tue, Sep 22, 2015 at 04:37:17PM +0100, Robin Murphy wrote:
+>> Hi Hans,
+>>
+>> On 21/09/15 14:13, Hans Verkuil wrote:
+>> >Hi Tiffany!
+>> >
+>> >On 21-09-15 14:26, Tiffany Lin wrote:
+>> >>vb2_dc_prepare use the number of SG entries dma_map_sg_attrs return.
+>> >>But in dma_sync_sg_for_device, it use lengths of each SG entries
+>> >>before dma_map_sg_attrs. dma_map_sg_attrs will concatenate
+>> >>SGs until dma length > dma seg bundary. sgt->nents will less than
+>> >>sgt->orig_nents. Using SG entries after dma_map_sg_attrs
+>> >>in vb2_dc_prepare will make some SGs are not sync to device.
+>> >>After add DMA_ATTR_SKIP_CPU_SYNC in vb2_dc_get_userptr to remove
+>> >>sync data to device twice. Device randomly get incorrect data because
+>> >>some SGs are not sync to device. Change to use number of SG entries
+>> >>before dma_map_sg_attrs in vb2_dc_prepare to prevent this issue.
+>> >>
+>> >>Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+>> >>---
+>> >>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+>> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+>> >>
+>> >>diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> >>index 2397ceb..c5d00bd 100644
+>> >>--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> >>+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> >>@@ -100,7 +100,7 @@ static void vb2_dc_prepare(void *buf_priv)
+>> >>    if (!sgt || buf->db_attach)
+>> >>            return;
+>> >>
+>> >>-   dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>> >>+   dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+>> >>  }
+>> >>
+>> >>  static void vb2_dc_finish(void *buf_priv)
+>> >>@@ -112,7 +112,7 @@ static void vb2_dc_finish(void *buf_priv)
+>> >>    if (!sgt || buf->db_attach)
+>> >>            return;
+>> >>
+>> >>-   dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>> >>+   dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+>> >>  }
+>> >
+>> >I don't really understand it. I am assuming that this happens on an arm and that
+>> >the dma_map_sg_attrs and dma_sync_sg_* functions used are arm_iommu_map_sg() and
+>> >arm_iommu_sync_sg_* as implemented in arch/arm/mm/dma-mapping.c.
+>> >
+>> >Now, as I understand it (and my understanding may very well be flawed!) the map_sg
+>> >function concatenates SG entries if possible, so it may return fewer entries. But
+>> >the dma_sync_sg functions use those updated SG entries, so the full buffer should
+>> >be covered by this. Using orig_nents will actually sync parts of the buffer twice!
+>> >The first nents entries already cover the full buffer so any remaining entries up
+>> >to orig_nents will just duplicate parts of the buffer.
+>>
+>> As Documentation/DMA-API.txt says, the parameters to dma_sync_sg_* must be
+>> the same as those originally passed into dma_map_sg. The segments are only
+>> merged *from the point of view of the device*: if I have a scatterlist of
+>> two discontiguous 4K segments, I can remap them with an IOMMU so the device
+>> sees them as a single 8K buffer, and tell it as such. If on the other hand I
+>> want to do maintenance from the CPU side (i.e. any DMA API call), then those
+>> DMA addresses mean nothing and I can only operate on the CPU addresses of
+>> the underlying pages, which are still very much discontiguous in the linear
+>> map; ergo I still need to iterate over the original entries.
+>>
+>> Whilst I can't claim much familiarity with v4l itself, from a brief look
+>> over the existing code this patch does look to be doing the right thing.
+>
+> Thanks for the explanation. I wonder if this is the only place where we have
+> this issue. :-I
+>
+> I think this might have been partly caused by the unfortunately named field
+> (nents) in struct sg_table. I wrote a small patch for this (plus a fix for a
+> few other things as well):
+>
+>
+> From 8928d76db4d45c2b4a16ff90de6695bc88e19779 Mon Sep 17 00:00:00 2001
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> Date: Tue, 22 Sep 2015 23:30:30 +0300
+> Subject: [PATCH 1/1] Documentation: DMA API: Be more explicit that nelems is
+>  always the same
+>
+> The nelems argument to the DMA API functions operating on scatterlists is
+> always the same. The documentation used different argument names and the
+> matter was not mentioned in Documentation/DMA-API-HOWTO.txt at all. Fix
+> these.
 
-Replace v4l2_buf with new member variables - index, type, memory - which
-are common fields for buffer management.
-struct vb2_buffer {
-        <snip>
-        unsigned int            index;
-        unsigned int            type;
-        unsigned int            memory;
-        unsigned int            num_planes;
-        struct vb2_plane        planes[VIDEO_MAX_PLANES];
-        <snip>
-};
 
-v4l2 specific fields - flags, field, timestamp, timecode,
-sequence - are moved to vb2_v4l2_buffer in videobuf2-v4l2.c
-struct vb2_v4l2_buffer {
-        struct vb2_buffer       vb2_buf;
+Thanks for this patch!  I was very confused by this as well.
+Can you also fix the following incorrect comments in arch/arm/mm/dma-mapping.c :
 
-        __u32                   flags;
-        __u32                   field;
-        struct timeval          timestamp;
-        struct v4l2_timecode    timecode;
-        __u32                   sequence;
-};
+1694 /**
+1695  * arm_iommu_sync_sg_for_cpu
+1696  * @dev: valid struct device pointer
+1697  * @sg: list of buffers
+1698  * @nents: number of buffers to map (returned from dma_map_sg)
+1699  * @dir: DMA transfer direction (same as was passed to dma_map_sg)
+1700  */
+1701 void arm_iommu_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
 
-This patch includes only changes inside of the videobuf2.
-So, in practice, we need to fold this patch and following two patches
-when merging upstream, to avoid breaking git bisectability.
+1712 /**
+1713  * arm_iommu_sync_sg_for_device
+1714  * @dev: valid struct device pointer
+1715  * @sg: list of buffers
+1716  * @nents: number of buffers to map (returned from dma_map_sg)
+1717  * @dir: DMA transfer direction (same as was passed to dma_map_sg)
+1718  */
+1719 void arm_iommu_sync_sg_for_device(struct device *dev, struct
+scatterlist *sg,
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |  219 ++++++++++++++++++------------
- include/media/videobuf2-core.h           |   66 +++++----
- include/media/videobuf2-v4l2.h           |   28 ++++
- 3 files changed, 201 insertions(+), 112 deletions(-)
+In both cases @nents should be
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 9518ebd..8c456f7 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -53,7 +53,7 @@ module_param(debug, int, 0644);
- 
- #define log_memop(vb, op)						\
- 	dprintk(2, "call_memop(%p, %d, %s)%s\n",			\
--		(vb)->vb2_queue, (vb)->v4l2_buf.index, #op,		\
-+		(vb)->vb2_queue, (vb)->index, #op,			\
- 		(vb)->vb2_queue->mem_ops->op ? "" : " (nop)")
- 
- #define call_memop(vb, op, args...)					\
-@@ -115,7 +115,7 @@ module_param(debug, int, 0644);
- 
- #define log_vb_qop(vb, op, args...)					\
- 	dprintk(2, "call_vb_qop(%p, %d, %s)%s\n",			\
--		(vb)->vb2_queue, (vb)->v4l2_buf.index, #op,		\
-+		(vb)->vb2_queue, (vb)->index, #op,			\
- 		(vb)->vb2_queue->ops->op ? "" : " (nop)")
- 
- #define call_vb_qop(vb, op, args...)					\
-@@ -211,7 +211,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 
- 		/* Associate allocator private data with this plane */
- 		vb->planes[plane].mem_priv = mem_priv;
--		vb->v4l2_planes[plane].length = q->plane_sizes[plane];
-+		vb->planes[plane].length = q->plane_sizes[plane];
- 	}
- 
- 	return 0;
-@@ -235,8 +235,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		call_void_memop(vb, put, vb->planes[plane].mem_priv);
- 		vb->planes[plane].mem_priv = NULL;
--		dprintk(3, "freed plane %d of buffer %d\n", plane,
--			vb->v4l2_buf.index);
-+		dprintk(3, "freed plane %d of buffer %d\n", plane, vb->index);
- 	}
- }
- 
-@@ -269,7 +268,9 @@ static void __vb2_plane_dmabuf_put(struct vb2_buffer *vb, struct vb2_plane *p)
- 
- 	call_void_memop(vb, detach_dmabuf, p->mem_priv);
- 	dma_buf_put(p->dbuf);
--	memset(p, 0, sizeof(*p));
-+	p->mem_priv = NULL;
-+	p->dbuf = NULL;
-+	p->dbuf_mapped = 0;
- }
- 
- /**
-@@ -299,7 +300,7 @@ static void __setup_lengths(struct vb2_queue *q, unsigned int n)
- 			continue;
- 
- 		for (plane = 0; plane < vb->num_planes; ++plane)
--			vb->v4l2_planes[plane].length = q->plane_sizes[plane];
-+			vb->planes[plane].length = q->plane_sizes[plane];
- 	}
- }
- 
-@@ -314,10 +315,10 @@ static void __setup_offsets(struct vb2_queue *q, unsigned int n)
- 	unsigned long off;
- 
- 	if (q->num_buffers) {
--		struct v4l2_plane *p;
-+		struct vb2_plane *p;
- 		vb = q->bufs[q->num_buffers - 1];
--		p = &vb->v4l2_planes[vb->num_planes - 1];
--		off = PAGE_ALIGN(p->m.mem_offset + p->length);
-+		p = &vb->planes[vb->num_planes - 1];
-+		off = PAGE_ALIGN(p->m.offset + p->length);
- 	} else {
- 		off = 0;
- 	}
-@@ -328,12 +329,12 @@ static void __setup_offsets(struct vb2_queue *q, unsigned int n)
- 			continue;
- 
- 		for (plane = 0; plane < vb->num_planes; ++plane) {
--			vb->v4l2_planes[plane].m.mem_offset = off;
-+			vb->planes[plane].m.offset = off;
- 
- 			dprintk(3, "buffer %d, plane %d offset 0x%08lx\n",
- 					buffer, plane, off);
- 
--			off += vb->v4l2_planes[plane].length;
-+			off += vb->planes[plane].length;
- 			off = PAGE_ALIGN(off);
- 		}
- 	}
-@@ -361,16 +362,12 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum v4l2_memory memory,
- 			break;
- 		}
- 
--		/* Length stores number of planes for multiplanar buffers */
--		if (V4L2_TYPE_IS_MULTIPLANAR(q->type))
--			vb->v4l2_buf.length = num_planes;
--
- 		vb->state = VB2_BUF_STATE_DEQUEUED;
- 		vb->vb2_queue = q;
- 		vb->num_planes = num_planes;
--		vb->v4l2_buf.index = q->num_buffers + buffer;
--		vb->v4l2_buf.type = q->type;
--		vb->v4l2_buf.memory = memory;
-+		vb->index = q->num_buffers + buffer;
-+		vb->type = q->type;
-+		vb->memory = memory;
- 
- 		/* Allocate video buffer memory for the MMAP type */
- 		if (memory == V4L2_MEMORY_MMAP) {
-@@ -592,7 +589,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 			length = (b->memory == V4L2_MEMORY_USERPTR ||
- 				  b->memory == V4L2_MEMORY_DMABUF)
- 			       ? b->m.planes[plane].length
--			       : vb->v4l2_planes[plane].length;
-+				: vb->planes[plane].length;
- 			bytesused = b->m.planes[plane].bytesused
- 				  ? b->m.planes[plane].bytesused : length;
- 
-@@ -605,8 +602,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 	} else {
- 		length = (b->memory == V4L2_MEMORY_USERPTR)
--		       ? b->length : vb->v4l2_planes[0].length;
--		bytesused = b->bytesused ? b->bytesused : length;
-+			? b->length : vb->planes[0].length;
- 
- 		if (b->bytesused > length)
- 			return -EINVAL;
-@@ -656,12 +652,23 @@ static bool __buffers_in_use(struct vb2_queue *q)
-  */
- static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 
- 	/* Copy back data such as timestamp, flags, etc. */
--	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
--	b->reserved2 = vb->v4l2_buf.reserved2;
--	b->reserved = vb->v4l2_buf.reserved;
-+	b->index = vb->index;
-+	b->type = vb->type;
-+	b->memory = vb->memory;
-+	b->bytesused = 0;
-+
-+	b->flags = vbuf->flags;
-+	b->field = vbuf->field;
-+	b->timestamp = vbuf->timestamp;
-+	b->timecode = vbuf->timecode;
-+	b->sequence = vbuf->sequence;
-+	b->reserved2 = 0;
-+	b->reserved = 0;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
- 		/*
-@@ -669,21 +676,34 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		 * for it. The caller has already verified memory and size.
- 		 */
- 		b->length = vb->num_planes;
--		memcpy(b->m.planes, vb->v4l2_planes,
--			b->length * sizeof(struct v4l2_plane));
-+		for (plane = 0; plane < vb->num_planes; ++plane) {
-+			struct v4l2_plane *pdst = &b->m.planes[plane];
-+			struct vb2_plane *psrc = &vb->planes[plane];
-+
-+			pdst->bytesused = psrc->bytesused;
-+			pdst->length = psrc->length;
-+			if (q->memory == V4L2_MEMORY_MMAP)
-+				pdst->m.mem_offset = psrc->m.offset;
-+			else if (q->memory == V4L2_MEMORY_USERPTR)
-+				pdst->m.userptr = psrc->m.userptr;
-+			else if (q->memory == V4L2_MEMORY_DMABUF)
-+				pdst->m.fd = psrc->m.fd;
-+			pdst->data_offset = psrc->data_offset;
-+			memset(pdst->reserved, 0, sizeof(pdst->reserved));
-+		}
- 	} else {
- 		/*
- 		 * We use length and offset in v4l2_planes array even for
- 		 * single-planar buffers, but userspace does not.
- 		 */
--		b->length = vb->v4l2_planes[0].length;
--		b->bytesused = vb->v4l2_planes[0].bytesused;
-+		b->length = vb->planes[0].length;
-+		b->bytesused = vb->planes[0].bytesused;
- 		if (q->memory == V4L2_MEMORY_MMAP)
--			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
-+			b->m.offset = vb->planes[0].m.offset;
- 		else if (q->memory == V4L2_MEMORY_USERPTR)
--			b->m.userptr = vb->v4l2_planes[0].m.userptr;
-+			b->m.userptr = vb->planes[0].m.userptr;
- 		else if (q->memory == V4L2_MEMORY_DMABUF)
--			b->m.fd = vb->v4l2_planes[0].m.fd;
-+			b->m.fd = vb->planes[0].m.fd;
- 	}
- 
- 	/*
-@@ -1197,7 +1217,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	vb->cnt_buf_done++;
- #endif
- 	dprintk(4, "done processing on buffer %d, state: %d\n",
--			vb->v4l2_buf.index, state);
-+			vb->index, state);
- 
- 	/* sync buffers */
- 	for (plane = 0; plane < vb->num_planes; ++plane)
-@@ -1278,25 +1298,26 @@ static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-  * v4l2_buffer by the userspace. The caller has already verified that struct
-  * v4l2_buffer has a valid number of planes.
-  */
--static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
--				struct v4l2_plane *v4l2_planes)
-+static void __fill_vb2_buffer(struct vb2_buffer *vb,
-+		const struct v4l2_buffer *b, struct vb2_plane *planes)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	unsigned int plane;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
- 			for (plane = 0; plane < vb->num_planes; ++plane) {
--				v4l2_planes[plane].m.userptr =
-+				planes[plane].m.userptr =
- 					b->m.planes[plane].m.userptr;
--				v4l2_planes[plane].length =
-+				planes[plane].length =
- 					b->m.planes[plane].length;
- 			}
- 		}
- 		if (b->memory == V4L2_MEMORY_DMABUF) {
- 			for (plane = 0; plane < vb->num_planes; ++plane) {
--				v4l2_planes[plane].m.fd =
-+				planes[plane].m.fd =
- 					b->m.planes[plane].m.fd;
--				v4l2_planes[plane].length =
-+				planes[plane].length =
- 					b->m.planes[plane].length;
- 			}
- 		}
-@@ -1320,7 +1341,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 			 * applications working.
- 			 */
- 			for (plane = 0; plane < vb->num_planes; ++plane) {
--				struct v4l2_plane *pdst = &v4l2_planes[plane];
-+				struct vb2_plane *pdst = &planes[plane];
- 				struct v4l2_plane *psrc = &b->m.planes[plane];
- 
- 				if (psrc->bytesused == 0)
-@@ -1350,13 +1371,13 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * old userspace applications working.
- 		 */
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
--			v4l2_planes[0].m.userptr = b->m.userptr;
--			v4l2_planes[0].length = b->length;
-+			planes[0].m.userptr = b->m.userptr;
-+			planes[0].length = b->length;
- 		}
- 
- 		if (b->memory == V4L2_MEMORY_DMABUF) {
--			v4l2_planes[0].m.fd = b->m.fd;
--			v4l2_planes[0].length = b->length;
-+			planes[0].m.fd = b->m.fd;
-+			planes[0].length = b->length;
- 		}
- 
- 		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-@@ -1364,17 +1385,17 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 				vb2_warn_zero_bytesused(vb);
- 
- 			if (vb->vb2_queue->allow_zero_bytesused)
--				v4l2_planes[0].bytesused = b->bytesused;
-+				planes[0].bytesused = b->bytesused;
- 			else
--				v4l2_planes[0].bytesused = b->bytesused ?
--					b->bytesused : v4l2_planes[0].length;
-+				planes[0].bytesused = b->bytesused ?
-+					b->bytesused : planes[0].length;
- 		} else
--			v4l2_planes[0].bytesused = 0;
-+			planes[0].bytesused = 0;
- 
- 	}
- 
- 	/* Zero flags that the vb2 core handles */
--	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-+	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
- 	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
- 	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
- 		/*
-@@ -1382,7 +1403,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * their timestamp and timestamp source flags from the
- 		 * queue.
- 		 */
--		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 	}
- 
- 	if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-@@ -1392,11 +1413,11 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 		 * The 'field' is valid metadata for this output buffer
- 		 * and so that needs to be copied here.
- 		 */
--		vb->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TIMECODE;
--		vb->v4l2_buf.field = b->field;
-+		vbuf->flags &= ~V4L2_BUF_FLAG_TIMECODE;
-+		vbuf->field = b->field;
- 	} else {
- 		/* Zero any output buffer flags as this is a capture buffer */
--		vb->v4l2_buf.flags &= ~V4L2_BUFFER_OUT_FLAGS;
-+		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
- 	}
- }
- 
-@@ -1405,7 +1426,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
--	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
-+	__fill_vb2_buffer(vb, b, vb->planes);
- 	return call_vb_qop(vb, buf_prepare, vb);
- }
- 
-@@ -1414,7 +1435,7 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-  */
- static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
--	struct v4l2_plane planes[VIDEO_MAX_PLANES];
-+	struct vb2_plane planes[VIDEO_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
- 	void *mem_priv;
- 	unsigned int plane;
-@@ -1429,9 +1450,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		/* Skip the plane if already verified */
--		if (vb->v4l2_planes[plane].m.userptr &&
--		    vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
--		    && vb->v4l2_planes[plane].length == planes[plane].length)
-+		if (vb->planes[plane].m.userptr &&
-+			vb->planes[plane].m.userptr == planes[plane].m.userptr
-+			&& vb->planes[plane].length == planes[plane].length)
- 			continue;
- 
- 		dprintk(3, "userspace address for plane %d changed, "
-@@ -1457,7 +1478,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 		}
- 
- 		vb->planes[plane].mem_priv = NULL;
--		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
-+		vb->planes[plane].bytesused = 0;
-+		vb->planes[plane].length = 0;
-+		vb->planes[plane].m.userptr = 0;
-+		vb->planes[plane].data_offset = 0;
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
-@@ -1476,8 +1500,12 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
- 	 */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		vb->v4l2_planes[plane] = planes[plane];
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		vb->planes[plane].bytesused = planes[plane].bytesused;
-+		vb->planes[plane].length = planes[plane].length;
-+		vb->planes[plane].m.userptr = planes[plane].m.userptr;
-+		vb->planes[plane].data_offset = planes[plane].data_offset;
-+	}
- 
- 	if (reacquired) {
- 		/*
-@@ -1504,10 +1532,11 @@ err:
- 	/* In case of errors, release planes that were already acquired */
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		if (vb->planes[plane].mem_priv)
--			call_void_memop(vb, put_userptr, vb->planes[plane].mem_priv);
-+			call_void_memop(vb, put_userptr,
-+				vb->planes[plane].mem_priv);
- 		vb->planes[plane].mem_priv = NULL;
--		vb->v4l2_planes[plane].m.userptr = 0;
--		vb->v4l2_planes[plane].length = 0;
-+		vb->planes[plane].m.userptr = 0;
-+		vb->planes[plane].length = 0;
- 	}
- 
- 	return ret;
-@@ -1518,7 +1547,7 @@ err:
-  */
- static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
--	struct v4l2_plane planes[VIDEO_MAX_PLANES];
-+	struct vb2_plane planes[VIDEO_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
- 	void *mem_priv;
- 	unsigned int plane;
-@@ -1554,7 +1583,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		/* Skip the plane if already verified */
- 		if (dbuf == vb->planes[plane].dbuf &&
--		    vb->v4l2_planes[plane].length == planes[plane].length) {
-+			vb->planes[plane].length == planes[plane].length) {
- 			dma_buf_put(dbuf);
- 			continue;
- 		}
-@@ -1568,11 +1597,15 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 
- 		/* Release previously acquired memory if present */
- 		__vb2_plane_dmabuf_put(vb, &vb->planes[plane]);
--		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
-+		vb->planes[plane].bytesused = 0;
-+		vb->planes[plane].length = 0;
-+		vb->planes[plane].m.fd = 0;
-+		vb->planes[plane].data_offset = 0;
- 
- 		/* Acquire each plane's memory */
--		mem_priv = call_ptr_memop(vb, attach_dmabuf, q->alloc_ctx[plane],
--			dbuf, planes[plane].length, dma_dir);
-+		mem_priv = call_ptr_memop(vb, attach_dmabuf,
-+			q->alloc_ctx[plane], dbuf, planes[plane].length,
-+			dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-@@ -1602,8 +1635,12 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	 * Now that everything is in order, copy relevant information
- 	 * provided by userspace.
- 	 */
--	for (plane = 0; plane < vb->num_planes; ++plane)
--		vb->v4l2_planes[plane] = planes[plane];
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		vb->planes[plane].bytesused = planes[plane].bytesused;
-+		vb->planes[plane].length = planes[plane].length;
-+		vb->planes[plane].m.fd = planes[plane].m.fd;
-+		vb->planes[plane].data_offset = planes[plane].data_offset;
-+	}
- 
- 	if (reacquired) {
- 		/*
-@@ -1654,6 +1691,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb)
- 
- static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- {
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vb2_queue *q = vb->vb2_queue;
- 	int ret;
- 
-@@ -1682,9 +1720,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	}
- 
- 	vb->state = VB2_BUF_STATE_PREPARING;
--	vb->v4l2_buf.timestamp.tv_sec = 0;
--	vb->v4l2_buf.timestamp.tv_usec = 0;
--	vb->v4l2_buf.sequence = 0;
-+	vbuf->timestamp.tv_sec = 0;
-+	vbuf->timestamp.tv_usec = 0;
-+	vbuf->sequence = 0;
- 
- 	switch (q->memory) {
- 	case V4L2_MEMORY_MMAP:
-@@ -1776,7 +1814,7 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		/* Fill buffer information for the userspace */
- 		__fill_v4l2_buffer(vb, b);
- 
--		dprintk(1, "prepare of buffer %d succeeded\n", vb->v4l2_buf.index);
-+		dprintk(1, "prepare of buffer %d succeeded\n", vb->index);
- 	}
- 	return ret;
- }
-@@ -1818,7 +1856,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	/*
- 	 * If you see this warning, then the driver isn't cleaning up properly
- 	 * after a failed start_streaming(). See the start_streaming()
--	 * documentation in videobuf2-v4l2.h for more information how buffers
-+	 * documentation in videobuf2-core.h for more information how buffers
- 	 * should be returned to vb2 in start_streaming().
- 	 */
- 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
-@@ -1849,11 +1887,13 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
- 	int ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
- 	struct vb2_buffer *vb;
-+	struct vb2_v4l2_buffer *vbuf;
- 
- 	if (ret)
- 		return ret;
- 
- 	vb = q->bufs[b->index];
-+	vbuf = to_vb2_v4l2_buffer(vb);
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DEQUEUED:
-@@ -1886,10 +1926,10 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		 */
- 		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
- 		    V4L2_BUF_FLAG_TIMESTAMP_COPY)
--			vb->v4l2_buf.timestamp = b->timestamp;
--		vb->v4l2_buf.flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
-+			vbuf->timestamp = b->timestamp;
-+		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
- 		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
--			vb->v4l2_buf.timecode = b->timecode;
-+			vbuf->timecode = b->timecode;
- 	}
- 
- 	trace_vb2_qbuf(q, vb);
-@@ -1917,7 +1957,7 @@ static int vb2_internal_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 			return ret;
- 	}
- 
--	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
-+	dprintk(1, "qbuf of buffer %d succeeded\n", vb->index);
- 	return 0;
- }
- 
-@@ -2107,9 +2147,11 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
- 		}
- }
- 
--static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-+static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
-+		bool nonblocking)
- {
- 	struct vb2_buffer *vb = NULL;
-+	struct vb2_v4l2_buffer *vbuf = NULL;
- 	int ret;
- 
- 	if (b->type != q->type) {
-@@ -2142,14 +2184,15 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool n
- 
- 	trace_vb2_dqbuf(q, vb);
- 
-+	vbuf = to_vb2_v4l2_buffer(vb);
- 	if (!V4L2_TYPE_IS_OUTPUT(q->type) &&
--	    vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
-+			vbuf->flags & V4L2_BUF_FLAG_LAST)
- 		q->last_buffer_dequeued = true;
- 	/* go back to dequeued state */
- 	__vb2_dqbuf(vb);
- 
- 	dprintk(1, "dqbuf of buffer %d, with state %d\n",
--			vb->v4l2_buf.index, vb->state);
-+			vb->index, vb->state);
- 
- 	return 0;
- }
-@@ -2205,7 +2248,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	/*
- 	 * If you see this warning, then the driver isn't cleaning up properly
- 	 * in stop_streaming(). See the stop_streaming() documentation in
--	 * videobuf2-v4l2.h for more information how buffers should be returned
-+	 * videobuf2-core.h for more information how buffers should be returned
- 	 * to vb2 in stop_streaming().
- 	 */
- 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
-@@ -2407,7 +2450,7 @@ static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
- 		vb = q->bufs[buffer];
- 
- 		for (plane = 0; plane < vb->num_planes; ++plane) {
--			if (vb->v4l2_planes[plane].m.mem_offset == off) {
-+			if (vb->planes[plane].m.offset == off) {
- 				*_buffer = buffer;
- 				*_plane = plane;
- 				return 0;
-@@ -2565,7 +2608,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
- 	 * so, we need to do the same here.
- 	 */
--	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
-+	length = PAGE_ALIGN(vb->planes[plane].length);
- 	if (length < (vma->vm_end - vma->vm_start)) {
- 		dprintk(1,
- 			"MMAP invalid, as it would overflow buffer length\n");
-@@ -2739,7 +2782,7 @@ EXPORT_SYMBOL_GPL(vb2_poll);
-  * responsible of clearing it's content and setting initial values for some
-  * required entries before calling this function.
-  * q->ops, q->mem_ops, q->type and q->io_modes are mandatory. Please refer
-- * to the struct vb2_queue description in include/media/videobuf2-v4l2.h
-+ * to the struct vb2_queue description in include/media/videobuf2-core.h
-  * for more information.
-  */
- int vb2_queue_init(struct vb2_queue *q)
-@@ -2770,7 +2813,7 @@ int vb2_queue_init(struct vb2_queue *q)
- 	init_waitqueue_head(&q->done_wq);
- 
- 	if (q->buf_struct_size == 0)
--		q->buf_struct_size = sizeof(struct vb2_buffer);
-+		q->buf_struct_size = sizeof(struct vb2_v4l2_buffer);
- 
- 	return 0;
- }
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 19990d7..108fa16 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -111,10 +111,38 @@ struct vb2_mem_ops {
- 	int		(*mmap)(void *buf_priv, struct vm_area_struct *vma);
- };
- 
-+/**
-+ * struct vb2_plane - plane information
-+ * @mem_priv:	private data with this plane
-+ * @dbuf:	dma_buf - shared buffer object
-+ * @dbuf_mapped:	flag to show whether dbuf is mapped or not
-+ * @bytesused:	number of bytes occupied by data in the plane (payload)
-+ * @length:	size of this plane (NOT the payload) in bytes
-+ * @mem_offset:	when memory in the associated struct vb2_buffer is
-+ *		VB2_MEMORY_MMAP, equals the offset from the start of
-+ *		the device memory for this plane (or is a "cookie" that
-+ *		should be passed to mmap() called on the video node)
-+ * @userptr:	when memory is VB2_MEMORY_USERPTR, a userspace pointer
-+ *		pointing to this plane
-+ * @fd:		when memory is VB2_MEMORY_DMABUF, a userspace file
-+ *		descriptor associated with this plane
-+ * @data_offset:	offset in the plane to the start of data; usually 0,
-+ *		unless there is a header in front of the data
-+ * Should contain enough information to be able to cover all the fields
-+ * of struct v4l2_plane at videodev2.h
-+ */
- struct vb2_plane {
- 	void			*mem_priv;
- 	struct dma_buf		*dbuf;
- 	unsigned int		dbuf_mapped;
-+	unsigned int		bytesused;
-+	unsigned int		length;
-+	union {
-+		unsigned int	offset;
-+		unsigned long	userptr;
-+		int		fd;
-+	} m;
-+	unsigned int		data_offset;
- };
- 
- /**
-@@ -163,43 +191,32 @@ struct vb2_queue;
- 
- /**
-  * struct vb2_buffer - represents a video buffer
-- * @v4l2_buf:		struct v4l2_buffer associated with this buffer; can
-- *			be read by the driver and relevant entries can be
-- *			changed by the driver in case of CAPTURE types
-- *			(such as timestamp)
-- * @v4l2_planes:	struct v4l2_planes associated with this buffer; can
-- *			be read by the driver and relevant entries can be
-- *			changed by the driver in case of CAPTURE types
-- *			(such as bytesused); NOTE that even for single-planar
-- *			types, the v4l2_planes[0] struct should be used
-- *			instead of v4l2_buf for filling bytesused - drivers
-- *			should use the vb2_set_plane_payload() function for that
-  * @vb2_queue:		the queue to which this driver belongs
-+ * @index:		id number of the buffer
-+ * @type:		buffer type
-+ * @memory:		the method, in which the actual data is passed
-  * @num_planes:		number of planes in the buffer
-  *			on an internal driver queue
-+ * @planes:		private per-plane information; do not change
-  * @state:		current buffer state; do not change
-  * @queued_entry:	entry on the queued buffers list, which holds all
-  *			buffers queued from userspace
-  * @done_entry:		entry on the list that stores all buffers ready to
-  *			be dequeued to userspace
-- * @planes:		private per-plane information; do not change
-  */
- struct vb2_buffer {
--	struct v4l2_buffer	v4l2_buf;
--	struct v4l2_plane	v4l2_planes[VIDEO_MAX_PLANES];
--
- 	struct vb2_queue	*vb2_queue;
--
-+	unsigned int		index;
-+	unsigned int		type;
-+	unsigned int		memory;
- 	unsigned int		num_planes;
-+	struct vb2_plane	planes[VIDEO_MAX_PLANES];
- 
--/* Private: internal use only */
-+	/* Private: internal use only */
- 	enum vb2_buffer_state	state;
- 
- 	struct list_head	queued_entry;
- 	struct list_head	done_entry;
--
--	struct vb2_plane	planes[VIDEO_MAX_PLANES];
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these buffer-related ops are
-@@ -354,7 +371,8 @@ struct v4l2_fh;
-  * @drv_priv:	driver private data
-  * @buf_struct_size: size of the driver-specific buffer structure;
-  *		"0" indicates the driver doesn't want to use a custom buffer
-- *		structure type, so sizeof(struct vb2_buffer) will is used
-+ *		structure type. for example, sizeof(struct vb2_v4l2_buffer)
-+ *		will be used for v4l2.
-  * @timestamp_flags: Timestamp flags; V4L2_BUF_FLAG_TIMESTAMP_* and
-  *		V4L2_BUF_FLAG_TSTAMP_SRC_*
-  * @gfp_flags:	additional gfp flags used when allocating the buffers.
-@@ -573,7 +591,7 @@ static inline void vb2_set_plane_payload(struct vb2_buffer *vb,
- 				 unsigned int plane_no, unsigned long size)
- {
- 	if (plane_no < vb->num_planes)
--		vb->v4l2_planes[plane_no].bytesused = size;
-+		vb->planes[plane_no].bytesused = size;
- }
- 
- /**
-@@ -585,7 +603,7 @@ static inline unsigned long vb2_get_plane_payload(struct vb2_buffer *vb,
- 				 unsigned int plane_no)
- {
- 	if (plane_no < vb->num_planes)
--		return vb->v4l2_planes[plane_no].bytesused;
-+		return vb->planes[plane_no].bytesused;
- 	return 0;
- }
- 
-@@ -598,7 +616,7 @@ static inline unsigned long
- vb2_plane_size(struct vb2_buffer *vb, unsigned int plane_no)
- {
- 	if (plane_no < vb->num_planes)
--		return vb->v4l2_planes[plane_no].length;
-+		return vb->planes[plane_no].length;
- 	return 0;
- }
- 
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index d4a4d9a..20d8ad2 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -12,6 +12,34 @@
- #ifndef _MEDIA_VIDEOBUF2_V4L2_H
- #define _MEDIA_VIDEOBUF2_V4L2_H
- 
-+#include <linux/videodev2.h>
- #include <media/videobuf2-core.h>
- 
-+/**
-+ * struct vb2_v4l2_buffer - video buffer information for v4l2
-+ * @vb2_buf:	video buffer 2
-+ * @flags:	buffer informational flags
-+ * @field:	enum v4l2_field; field order of the image in the buffer
-+ * @timestamp:	frame timestamp
-+ * @timecode:	frame timecode
-+ * @sequence:	sequence count of this frame
-+ * Should contain enough information to be able to cover all the fields
-+ * of struct v4l2_buffer at videodev2.h
-+ */
-+struct vb2_v4l2_buffer {
-+	struct vb2_buffer	vb2_buf;
-+
-+	__u32			flags;
-+	__u32			field;
-+	struct timeval		timestamp;
-+	struct v4l2_timecode	timecode;
-+	__u32			sequence;
-+};
-+
-+/**
-+ * to_vb2_v4l2_buffer() - cast struct vb2_buffer * to struct vb2_v4l2_buffer *
-+ */
-+#define to_vb2_v4l2_buffer(vb) \
-+	(container_of(vb, struct vb2_v4l2_buffer, vb2_buf))
-+
- #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
--- 
-1.7.9.5
+  * @nents: number of buffers to sync (same as was passed to dma_map_sg)
 
+
+Thanks!
+-Dan
+
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  Documentation/DMA-API-HOWTO.txt | 5 +++++
+>  Documentation/DMA-API.txt       | 9 +++++----
+>  2 files changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/Documentation/DMA-API-HOWTO.txt b/Documentation/DMA-API-HOWTO.txt
+> index 55b70b9..d69b3fc 100644
+> --- a/Documentation/DMA-API-HOWTO.txt
+> +++ b/Documentation/DMA-API-HOWTO.txt
+> @@ -681,6 +681,11 @@ or:
+>
+>  as appropriate.
+>
+> +PLEASE NOTE:  The 'nents' argument to dma_sync_sg_for_cpu() and
+> +             dma_sync_sg_for_device() must be the same passed to
+> +             dma_map_sg(). It is _NOT_ the count returned by
+> +             dma_map_sg().
+> +
+>  After the last DMA transfer call one of the DMA unmap routines
+>  dma_unmap_{single,sg}(). If you don't touch the data from the first
+>  dma_map_*() call till dma_unmap_*(), then you don't have to call the
+> diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
+> index edccacd..8c832f0 100644
+> --- a/Documentation/DMA-API.txt
+> +++ b/Documentation/DMA-API.txt
+> @@ -340,14 +340,15 @@ accessed sg->address and sg->length as shown above.
+>
+>         void
+>         dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+> -               int nhwentries, enum dma_data_direction direction)
+> +               int nents, enum dma_data_direction direction)
+>
+>  Unmap the previously mapped scatter/gather list.  All the parameters
+>  must be the same as those and passed in to the scatter/gather mapping
+>  API.
+>
+>  Note: <nents> must be the number you passed in, *not* the number of
+> -DMA address entries returned.
+> +DMA address entries returned. In struct sg_table this is the field
+> +called orig_nents.
+>
+>  void
+>  dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
+> @@ -356,10 +357,10 @@ void
+>  dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
+>                            enum dma_data_direction direction)
+>  void
+> -dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
+> +dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nents,
+>                     enum dma_data_direction direction)
+>  void
+> -dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
+> +dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nents,
+>                        enum dma_data_direction direction)
+>
+>  Synchronise a single contiguous or scatter/gather mapping for the CPU
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
