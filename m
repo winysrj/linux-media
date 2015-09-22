@@ -1,142 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51658 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751904AbbIOQdy (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:58062 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756520AbbIVFM7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Sep 2015 12:33:54 -0400
-Message-ID: <55F84824.2000603@xs4all.nl>
-Date: Tue, 15 Sep 2015 18:32:36 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 22 Sep 2015 01:12:59 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor output YUV formats
+Date: Tue, 22 Sep 2015 13:14:34 +0800
+Message-ID: <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org, y2038@lists.linaro.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH 7/7] [RFC] [media] introduce v4l2_timespec type for timestamps
-References: <1442332148-488079-1-git-send-email-arnd@arndb.de> <1442332148-488079-8-git-send-email-arnd@arndb.de>
-In-Reply-To: <1442332148-488079-8-git-send-email-arnd@arndb.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/15/2015 05:49 PM, Arnd Bergmann wrote:
-> The v4l2 event queue uses a 'struct timespec' to pass monotonic
-> timestamps. This is not a problem by itself, but it breaks when user
-> space redefines timespec to use 'long long' on 32-bit systems.
-> 
-> To avoid that problem, we define our own replacement for timespec here,
-> using 'long' tv_sec and tv_nsec members. This means no change to the
-> existing API, but lets us keep using it with a y2038 compatible libc.
-> 
-> As a side-effect, this changes the API for x32 programs to be the same
-> as native 32-bit, using a 32-bit tv_sec/tv_nsec value, but both old and
-> new kernels already support both formats for on the binary level for
-> compat and x32.
-> 
-> Alternatively, we could leave the header file to define the interface
-> based on 'struct timespec', and implement both ioctls for native
-> processes. I picked the approach in this case because it matches what
-> we do for v4l2_timeval in the respective patch, but both would work
-> equally well here.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/v4l2-core/v4l2-event.c | 20 +++++++++++++-------
->  include/uapi/linux/videodev2.h       |  8 +++++++-
->  2 files changed, 20 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 8d3171c6bee8..2a26ad591f59 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -108,7 +108,7 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
->  }
->  
->  static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev,
-> -		const struct timespec *ts)
-> +		const struct v4l2_timespec *ts)
->  {
->  	struct v4l2_subscribed_event *sev;
->  	struct v4l2_kevent *kev;
-> @@ -170,17 +170,20 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
->  {
->  	struct v4l2_fh *fh;
->  	unsigned long flags;
-> -	struct timespec timestamp;
-> +	struct timespec64 timestamp;
-> +	struct v4l2_timespec vts;
->  
->  	if (vdev == NULL)
->  		return;
->  
-> -	ktime_get_ts(&timestamp);
-> +	ktime_get_ts64(&timestamp);
-> +	vts.tv_sec = timestamp.tv_sec;
-> +	vts.tv_nsec = timestamp.tv_nsec;
+This patch enable Atmel ISI preview path to convert the YUV to RGB format.
 
-I prefer to take this opportunity to create a v4l2_get_timespec helper
-function, just like v4l2_get_timeval.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
->  
->  	spin_lock_irqsave(&vdev->fh_lock, flags);
->  
->  	list_for_each_entry(fh, &vdev->fh_list, list)
-> -		__v4l2_event_queue_fh(fh, ev, &timestamp);
-> +		__v4l2_event_queue_fh(fh, ev, &vts);
->  
->  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
->  }
-> @@ -189,12 +192,15 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue);
->  void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev)
->  {
->  	unsigned long flags;
-> -	struct timespec timestamp;
-> +	struct timespec64 timestamp;
-> +	struct v4l2_timespec vts;
->  
-> -	ktime_get_ts(&timestamp);
-> +	ktime_get_ts64(&timestamp);
-> +	vts.tv_sec = timestamp.tv_sec;
-> +	vts.tv_nsec = timestamp.tv_nsec;
->  
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> -	__v4l2_event_queue_fh(fh, ev, &timestamp);
-> +	__v4l2_event_queue_fh(fh, ev, &vts);
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_event_queue_fh);
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index b02cf054fbb8..bc659be87260 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -809,6 +809,12 @@ struct v4l2_timeval {
->  	long tv_usec;
->  };
->  
-> +/* used for monotonic times, therefore y2038 safe */
-> +struct v4l2_timespec {
-> +	long tv_sec;
-> +	long tv_nsec;
-> +};
-> +
->  /**
->   * struct v4l2_buffer - video buffer info
->   * @index:	id number of the buffer
-> @@ -2088,7 +2094,7 @@ struct v4l2_event {
->  	} u;
->  	__u32				pending;
->  	__u32				sequence;
-> -	struct timespec			timestamp;
-> +	struct v4l2_timespec		timestamp;
->  	__u32				id;
->  	__u32				reserved[8];
->  };
-> 
+ drivers/media/platform/soc_camera/atmel-isi.c | 38 ++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-I think I am OK with this. This timestamp is used much more rarely and I do
-not expect this ABI change to cause any problems in userspace.
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index e87d354..e33a16a 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YVYU:
+ 	case V4L2_PIX_FMT_VYUY:
++	/* RGB */
++	case V4L2_PIX_FMT_RGB565:
+ 		return true;
+-	/* RGB, TODO */
+ 	default:
+ 		return false;
+ 	}
+ }
+ 
++static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
++{
++	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
++			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
++}
++
+ static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+ {
+ 	if (isi->active) {
+@@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
++	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
++
+ 	pm_runtime_get_sync(ici->v4l2_dev.dev);
+ 
+ 	/* Reset ISI */
+@@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 		.layout			= SOC_MBUS_LAYOUT_PACKED,
+ 	},
++	{
++		.fourcc			= V4L2_PIX_FMT_RGB565,
++		.name			= "RGB565",
++		.bits_per_sample	= 8,
++		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
++		.order			= SOC_MBUS_ORDER_LE,
++		.layout			= SOC_MBUS_LAYOUT_PACKED,
++	},
+ };
+ 
+ /* This will be corrected as we get more formats */
+@@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 				  struct soc_camera_format_xlate *xlate)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	int formats = 0, ret;
++	int formats = 0, ret, i, n;
+ 	/* sensor format */
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+@@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_YVYU8_2X8:
+-		formats++;
+-		if (xlate) {
+-			xlate->host_fmt	= &isi_camera_formats[0];
+-			xlate->code	= code.code;
+-			xlate++;
+-			dev_dbg(icd->parent, "Providing format %s using code %d\n",
+-				isi_camera_formats[0].name, code.code);
++		n = ARRAY_SIZE(isi_camera_formats);
++		formats += n;
++		for (i = 0; i < n; i++) {
++			if (xlate) {
++				xlate->host_fmt	= &isi_camera_formats[i];
++				xlate->code	= code.code;
++				dev_dbg(icd->parent, "Providing format %s using code %d\n",
++					isi_camera_formats[0].name, code.code);
++				xlate++;
++			}
+ 		}
+ 		break;
+ 	default:
+-- 
+1.9.1
 
-Regards,
-
-	Hans
