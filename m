@@ -1,125 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36848 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754563AbbIXCvj (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33298 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753746AbbIVIST (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2015 22:51:39 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F3E352A0097
-	for <linux-media@vger.kernel.org>; Thu, 24 Sep 2015 04:50:08 +0200 (CEST)
-Date: Thu, 24 Sep 2015 04:50:08 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 22 Sep 2015 04:18:19 -0400
+Received: by pacex6 with SMTP id ex6so2987710pac.0
+        for <linux-media@vger.kernel.org>; Tue, 22 Sep 2015 01:18:19 -0700 (PDT)
+From: Terry Heo <terryheo@google.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20150924025008.F3E352A0097@tschai.lan>
+Cc: Terry Heo <terryheo@google.com>
+Subject: [PATCH] [media] cx231xx: fix bulk transfer mode
+Date: Tue, 22 Sep 2015 17:18:05 +0900
+Message-Id: <1442909885-26277-1-git-send-email-terryheo@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The current cx231xx driver doesn't work with bulk transfer mode.
+This patch makes it possible to use bulk transfer mode.
 
-Results of the daily build of media_tree:
+Signed-off-by: Terry Heo <terryheo@google.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-date:		Thu Sep 24 04:00:16 CEST 2015
-git branch:	test
-git hash:	9ddf9071ea17b83954358b2dac42b34e5857a9af
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index a2fd49b..f497888 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -914,6 +914,7 @@ EXPORT_SYMBOL_GPL(cx231xx_uninit_isoc);
+  */
+ void cx231xx_uninit_bulk(struct cx231xx *dev)
+ {
++	struct cx231xx_dmaqueue *dma_q = &dev->video_mode.vidq;
+ 	struct urb *urb;
+ 	int i;
+ 
+@@ -931,7 +932,7 @@ void cx231xx_uninit_bulk(struct cx231xx *dev)
+ 			if (dev->video_mode.bulk_ctl.transfer_buffer[i]) {
+ 				usb_free_coherent(dev->udev,
+ 						urb->transfer_buffer_length,
+-						dev->video_mode.isoc_ctl.
++						dev->video_mode.bulk_ctl.
+ 						transfer_buffer[i],
+ 						urb->transfer_dma);
+ 			}
+@@ -943,10 +944,12 @@ void cx231xx_uninit_bulk(struct cx231xx *dev)
+ 
+ 	kfree(dev->video_mode.bulk_ctl.urb);
+ 	kfree(dev->video_mode.bulk_ctl.transfer_buffer);
++	kfree(dma_q->p_left_data);
+ 
+ 	dev->video_mode.bulk_ctl.urb = NULL;
+ 	dev->video_mode.bulk_ctl.transfer_buffer = NULL;
+ 	dev->video_mode.bulk_ctl.num_bufs = 0;
++	dma_q->p_left_data = NULL;
+ 
+ 	if (dev->mode_tv == 0)
+ 		cx231xx_capture_start(dev, 0, Raw_Video);
+@@ -1196,6 +1199,16 @@ int cx231xx_init_bulk(struct cx231xx *dev, int max_packets,
+ 				  sb_size, cx231xx_bulk_irq_callback, dma_q);
+ 	}
+ 
++	/* clear halt */
++	rc = usb_clear_halt(dev->udev, dev->video_mode.bulk_ctl.urb[0]->pipe);
++	if (rc < 0) {
++		dev_err(dev->dev,
++			"failed to clear USB bulk endpoint stall/halt condition (error=%i)\n",
++			rc);
++		cx231xx_uninit_bulk(dev);
++		return rc;
++	}
++
+ 	init_waitqueue_head(&dma_q->wq);
+ 
+ 	/* submit urbs and enables IRQ */
+-- 
+2.6.0.rc0.131.gf624c3d
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
