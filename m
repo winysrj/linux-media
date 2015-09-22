@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38752 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751634AbbIAV7z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Sep 2015 17:59:55 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 11/13] hackrf: do not set human readable name for formats
-Date: Wed,  2 Sep 2015 00:59:27 +0300
-Message-Id: <1441144769-29211-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1441144769-29211-1-git-send-email-crope@iki.fi>
-References: <1441144769-29211-1-git-send-email-crope@iki.fi>
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:16764 "EHLO
+	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757670AbbIVMUp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2015 08:20:45 -0400
+Date: Tue, 22 Sep 2015 14:20:35 +0200
+From: Thierry Reding <treding@nvidia.com>
+To: Bryan Wu <pengw@nvidia.com>
+CC: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
+	<ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
+	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>
+Subject: Re: [PATCH 3/3] Documentation: DT bindings: add VI and CSI bindings
+Message-ID: <20150922122033.GD1417@ulmo.nvidia.com>
+References: <1442861755-22743-1-git-send-email-pengw@nvidia.com>
+ <1442861755-22743-4-git-send-email-pengw@nvidia.com>
+MIME-Version: 1.0
+In-Reply-To: <1442861755-22743-4-git-send-email-pengw@nvidia.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="JgQwtEuHJzHdouWu"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format names are set by core nowadays. Remove name from driver.
+--JgQwtEuHJzHdouWu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/hackrf/hackrf.c | 3 ---
- 1 file changed, 3 deletions(-)
+On Mon, Sep 21, 2015 at 11:55:55AM -0700, Bryan Wu wrote:
+> Signed-off-by: Bryan Wu <pengw@nvidia.com>
+> ---
+>  .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 +++++++++++++++=
++++++-
+>  1 file changed, 205 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.=
+txt b/Documentation/devicetree/bindings/gpu/nvidia,tegra20-host1x.txt
+[...]
+> +  - ports: 2 ports presenting 2 channels of CSI. Each port has 2 endpoin=
+ts:
+> +    one connects to sensor device tree node as input and the other one c=
+onnects
+> +    to VI endpoint.
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index b6415b9..5878f19 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -69,7 +69,6 @@ static const struct v4l2_frequency_band bands_rx_tx[] = {
- 
- /* stream formats */
- struct hackrf_format {
--	char	*name;
- 	u32	pixelformat;
- 	u32	buffersize;
- };
-@@ -77,7 +76,6 @@ struct hackrf_format {
- /* format descriptions for capture and preview */
- static struct hackrf_format formats[] = {
- 	{
--		.name		= "Complex S8",
- 		.pixelformat	= V4L2_SDR_FMT_CS8,
- 		.buffersize	= BULK_BUFFER_SIZE,
- 	},
-@@ -1006,7 +1004,6 @@ static int hackrf_enum_fmt_sdr(struct file *file, void *priv,
- 	if (f->index >= NUM_FORMATS)
- 		return -EINVAL;
- 
--	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
- 	f->pixelformat = formats[f->index].pixelformat;
- 
- 	return 0;
--- 
-http://palosaari.fi/
+It looks to me like we'll only need the first of these endpoints. The
+connection to the VI is implied. Even more so if the CSI nodes are moved
+into the VI node as children (which I really think they should be).
 
+Thierry
+
+--JgQwtEuHJzHdouWu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJWAUeRAAoJEN0jrNd/PrOhwlQP/RKYToDpkzkJHtrvleX3nlpq
+2ar+pG8eiXraUpre+RTF1Xd3CHJH7kw6V+mb1bOHQy/iRPEAquOPz8iFww0hWF1X
+OUGTAd0VbBCVnyb8lF8SV9h7s1UavsTlKq1maYNMSBSplt4r2s1y8cfFo7+rm7K8
+DuNsS2vzoDeANZP75sPVFYYnQd8FMvPDNVxNSlvDVeeo8ElhyRvdhvXw0TEnO/b7
+DKpo3J7QENtVWMfff3FgEhWK5fot152E0ljayhDL+oBjDrpqBcCggeI/oQ8T7E5D
+/CGXgV06SJR2VbLT79P4g9VTvfAXooRlJLKJ8xeaQmWvB2CsBNk8uYsSZImBU9n9
+vSMvyFXuSc+TBH3P8cXvckP4zPWPsm8dXQY5K96TCUXqsO9AZ7xj0iJBamJabc4V
+Cps6woLHAUfTEDcxssEBKbOJGQ0Wktb3cNtw9J96VaEsAt6IAll6I/JTTzcGp/Ne
+0qxVQv0uMJgOlYjXsvOJQcQdkk87yxFMhmMdiTMgBh/qSIaCRkrIkI4VLXXk/QIn
+5qK6G+9HO2qr1RQ81iS0JTpsK4CzZCcfPNOegFXcKPtQGBVuXB3XoXIhaRN38A34
+yo5K1wsT/n/xZ5QirlO+hDLs8E6dtQxbd6vDuL+lgaexqxA4cqU6xNNOeDoNxyco
+bn3GWVckLFjwmnIkchTJ
+=bVL/
+-----END PGP SIGNATURE-----
+
+--JgQwtEuHJzHdouWu--
