@@ -1,117 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:21870 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752926AbbIVFJI (ORCPT
+Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:37762 "EHLO
+	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758798AbbIVR2G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 01:09:08 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 1/5] media: atmel-isi: correct yuv swap according to different sensor outputs
-Date: Tue, 22 Sep 2015 13:14:30 +0800
-Message-ID: <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 22 Sep 2015 13:28:06 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	stefanr@s5r6.in-berlin.de, crope@iki.fi, dan.carpenter@oracle.com,
+	tskd08@gmail.com, ruchandani.tina@gmail.com, arnd@arndb.de,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	Julia.Lawall@lip6.fr, elfring@users.sourceforge.net,
+	ricardo.ribalda@gmail.com, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, misterpib@gmail.com, takamichiho@gmail.com,
+	pmatilai@laiskiainen.org, damien@zamaudio.com, daniel@zonque.org,
+	vladcatoi@gmail.com, normalperson@yhbt.net, joe@oampo.co.uk,
+	bugzilla.frnkcg@spamgourmet.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 16/21] media: au0828 video change to use v4l_enable_media_tuner()
+Date: Tue, 22 Sep 2015 11:19:35 -0600
+Message-Id: <436ac597ac9a29169e9d5ce0f1bc5206cd5edc39.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
-sensor output and Atmel ISI output format.
+au0828 is changed to use v4l_enable_media_tuner() to check for
+tuner availability from vidioc_g_tuner(), and au0828_v4l2_close(),
+before changing tuner settings. If tuner isn't free, return busy
+condition from vidioc_g_tuner() and in au0828_v4l2_close() tuner
+is left untouched without powering down to save energy.
 
-Current there are two cases Atmel ISI supported:
-  1. Atmel ISI outputs YUYV format.
-     This case we need to setup YCC_SWAP according to sensor output
-     format.
-  2. Atmel ISI output a pass-through formats, which means no swap.
-     Just setup YCC_SWAP as default with no swap.
-
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
+ drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
- drivers/media/platform/soc_camera/atmel-isi.c | 43 ++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 45e304a..df64294 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
- 	return readl(isi->regs + reg);
- }
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index b63ae78..6680aeb 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1005,8 +1005,12 @@ static int au0828_v4l2_close(struct file *filp)
+ 		goto end;
  
-+static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
-+		const struct soc_camera_format_xlate *xlate)
-+{
-+	/* By default, no swap for the codec path of Atmel ISI. So codec
-+	* output is same as sensor's output.
-+	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
-+	* And if sensor's output is UYVY, then codec outputs UYVY.
-+	*/
-+	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
-+
-+	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
-+		/* all convert to YUYV */
-+		switch (xlate->code) {
-+		case MEDIA_BUS_FMT_VYUY8_2X8:
-+			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
-+			break;
-+		case MEDIA_BUS_FMT_UYVY8_2X8:
-+			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
-+			break;
-+		case MEDIA_BUS_FMT_YVYU8_2X8:
-+			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
-+			break;
-+		}
-+	}
-+
-+	return cfg2_yuv_swap;
-+}
-+
- static void configure_geometry(struct atmel_isi *isi, u32 width,
--			u32 height, u32 code)
-+		u32 height, const struct soc_camera_format_xlate *xlate)
+ 	if (dev->users == 1) {
+-		/* Save some power by putting tuner to sleep */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
++		/* Save some power by putting tuner to sleep, if it is free */
++		/* What happens when radio is using tuner?? */
++		ret = v4l_enable_media_tuner(vdev);
++		if (ret == 0)
++			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
++					     s_power, 0);
+ 		dev->std_set_in_tuner_core = 0;
+ 
+ 		/* When close the device, set the usb intf0 into alt0 to free
+@@ -1407,10 +1411,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
  {
- 	u32 cfg2;
+ 	struct au0828_dev *dev = video_drvdata(file);
++	struct video_device *vfd = video_devdata(file);
++	int ret;
  
- 	/* According to sensor's output format to set cfg2 */
--	switch (code) {
-+	switch (xlate->code) {
- 	default:
- 	/* Grey */
- 	case MEDIA_BUS_FMT_Y8_1X8:
-@@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
- 		break;
- 	/* YUV */
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
--		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
--		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
--		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
--		break;
- 	case MEDIA_BUS_FMT_YVYU8_2X8:
--		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
--		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
--		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
-+		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
-+				setup_cfg2_yuv_swap(isi, xlate);
- 		break;
- 	/* RGB, TODO */
- 	}
-@@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+ 	if (t->index != 0)
+ 		return -EINVAL;
  
- 	configure_geometry(isi, icd->user_width, icd->user_height,
--				icd->current_fmt->code);
-+				icd->current_fmt);
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
++
+ 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+ 		dev->std_set_in_tuner_core, dev->dev_state);
  
- 	spin_lock_irq(&isi->lock);
- 	/* Clear any pending interrupt */
 -- 
-1.9.1
+2.1.4
 
