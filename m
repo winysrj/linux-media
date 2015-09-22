@@ -1,338 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kronos.mailus.de ([217.172.179.146]:40313 "EHLO
-	kronos.mailus.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbbIKPNk (ORCPT
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:56250 "EHLO
+	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758366AbbIVR2H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 11:13:40 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by kronos.mailus.de (Postfix) with ESMTP id 4DF412C265
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2015 17:04:22 +0200 (CEST)
-Received: from kronos.mailus.de ([127.0.0.1])
-	by localhost (kronos.mailus.de [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id fStou4uDH01l for <linux-media@vger.kernel.org>;
-	Fri, 11 Sep 2015 17:04:09 +0200 (CEST)
-Received: from [192.168.36.2] (f054019020.adsl.alicedsl.de [78.54.19.20])
-	by kronos.mailus.de (Postfix) with ESMTPSA id 9AE8E2C258
-	for <linux-media@vger.kernel.org>; Fri, 11 Sep 2015 17:04:08 +0200 (CEST)
-Message-ID: <55F2ED67.3030306@vontaene.de>
-Date: Fri, 11 Sep 2015 17:04:07 +0200
-From: Erik Andresen <erik@vontaene.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Terratec H7 Rev. 4 is DVBSky
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="i63kb9agxcnaf3hMV2DAF4JqbMSpWV90o"
+	Tue, 22 Sep 2015 13:28:07 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	stefanr@s5r6.in-berlin.de, crope@iki.fi, dan.carpenter@oracle.com,
+	tskd08@gmail.com, ruchandani.tina@gmail.com, arnd@arndb.de,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	Julia.Lawall@lip6.fr, elfring@users.sourceforge.net,
+	ricardo.ribalda@gmail.com, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, misterpib@gmail.com, takamichiho@gmail.com,
+	pmatilai@laiskiainen.org, damien@zamaudio.com, daniel@zonque.org,
+	vladcatoi@gmail.com, normalperson@yhbt.net, joe@oampo.co.uk,
+	bugzilla.frnkcg@spamgourmet.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 19/21] media: au0828 implement enable_source and disable_source handlers
+Date: Tue, 22 Sep 2015 11:19:38 -0600
+Message-Id: <3853ee1a38b4b2989386fff0c745a75cd56ef103.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---i63kb9agxcnaf3hMV2DAF4JqbMSpWV90o
-Content-Type: multipart/mixed;
- boundary="------------080102020806070403080802"
+Implements enable_source and disable_source handlers for other
+drivers (v4l2-core, dvb-core, and ALSA) to use to check for
+tuner connected to the decoder and activate the link if tuner
+is free, and deactivate and free the tuner when it is no longer
+needed.
 
-This is a multi-part message in MIME format.
---------------080102020806070403080802
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I recently got a Terratec H7 in Revision 4 and turned out that it is not
-just a new revision, but a new product with USB ProductID 0x10a5.
-Previous revisions have been AZ6007, but this revision does not work
-with this driver [1].
-
-Output of lsusb (extended output attached):
-Bus 001 Device 011: ID 0ccd:10a5 TerraTec Electronic GmbH
-
-The revision 4 seems to a DVBSky variant, adding its Product ID to
-dvbsky.c with the attached patch enabled me to scan for channels and
-watch DVB-C and DVB-T.
-
-greetings,
-Erik
-
-[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg70934.htm=
-l
-
---------------080102020806070403080802
-Content-Type: text/x-diff;
- name="0001-Add-Terratec-H7-Revision-4-to-DVBSky-driver.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="0001-Add-Terratec-H7-Revision-4-to-DVBSky-driver.patch"
-
-=46rom b453f37d9a6e9910cb7d76fa58ba724449ac9a22 Mon Sep 17 00:00:00 2001
-From: Erik Andresen <erik@vontaene.de>
-Date: Fri, 11 Sep 2015 16:51:10 +0200
-Subject: [PATCH] Add Terratec H7 Revision 4 to DVBSky driver
-
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++++
- 2 files changed, 5 insertions(+)
+ drivers/media/usb/au0828/au0828-core.c | 169 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828.h      |   2 +
+ 2 files changed, 171 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-cor=
-e/dvb-usb-ids.h
-index c117fb3..0a46580 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -257,6 +257,7 @@
- #define USB_PID_TERRATEC_CINERGY_T_XXS_2		0x00ab
- #define USB_PID_TERRATEC_H7				0x10b4
- #define USB_PID_TERRATEC_H7_2				0x10a3
-+#define USB_PID_TERRATEC_H7_3				0x10a5
- #define USB_PID_TERRATEC_T3				0x10a0
- #define USB_PID_TERRATEC_T5				0x10a1
- #define USB_PID_NOXON_DAB_STICK				0x00b3
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dv=
-b-usb-v2/dvbsky.c
-index cdf59bc..8f526a4 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -841,6 +841,10 @@ static const struct usb_device_id dvbsky_id_table[] =
-=3D {
- 		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI,
- 		&dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI",
- 		RC_MAP_TT_1500) },
-+        { DVB_USB_DEVICE(USB_VID_TERRATEC,
-+                USB_PID_TERRATEC_H7_3,
-+                &dvbsky_t680c_props, "Terratec H7 Rev.4",
-+                RC_MAP_TT_1500) },
- 	{ }
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index fcff2e2..ce9d5d4 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -268,6 +268,164 @@ static void au0828_create_media_graph(struct media_entity *new,
+ #endif
+ }
+ 
++static int au0828_enable_source(struct media_entity *entity,
++				struct media_pipeline *pipe)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_entity  *source;
++	struct media_entity *sink;
++	struct media_link *link, *found_link = NULL;
++	int i, ret = 0;
++	struct media_device *mdev = entity->parent;
++	struct au0828_dev *dev;
++
++	if (!mdev)
++		return -ENODEV;
++
++	/* for ALSA and Video entities, source is the decoder */
++	mutex_lock(&mdev->graph_mutex);
++
++	dev = mdev->source_priv;
++	if (!dev->tuner || !dev->decoder) {
++		ret = -ENODEV;
++		goto end;
++	}
++
++	/*
++	 * For ALSA and V4L2 entity, find the link to which decoder
++	 * is the sink. Look for an active link between decoder and
++	 * tuner, if one exists, nothing to do. If not, look for any
++	 * active links between tuner and any other entity. If one
++	 * exists, tuner is busy. If tuner is free, setup link and
++	 * start pipeline from source (tuner).
++	 * For DVB FE entity, the source for the link is the tuner.
++	 * Check if tuner is available and setup link and start
++	 * pipeline.
++	*/
++	if (entity->type != MEDIA_ENT_T_DEVNODE_DVB_FE)
++		sink = dev->decoder;
++	else
++		sink = entity;
++
++	/* Is an active link between sink and tuner */
++	if (dev->active_link) {
++		if (dev->active_link->sink->entity == sink &&
++		    dev->active_link->source->entity == dev->tuner) {
++			ret = 0;
++			goto end;
++		} else {
++			ret = -EBUSY;
++			goto end;
++		}
++	}
++
++	for (i = 0; i < sink->num_links; i++) {
++		link = &sink->links[i];
++		/* Used to check just the sink, check source too - works?? */
++		if (link->sink->entity == sink &&
++		    link->source->entity == dev->tuner) {
++			found_link = link;
++			break;
++		}
++	}
++
++	if (!found_link) {
++		ret = -ENODEV;
++		goto end;
++	}
++
++	source = found_link->source->entity;
++	for (i = 0; i < source->num_links; i++) {
++		struct media_entity *find_sink;
++		int flags = 0;
++
++		link = &source->links[i];
++		find_sink = link->sink->entity;
++
++		if (find_sink == sink)
++			flags = MEDIA_LNK_FL_ENABLED;
++
++		ret = __media_entity_setup_link(link, flags);
++		if (ret) {
++			pr_err(
++				"Change tuner link %s->%s to %s. Error %d\n",
++				source->name, find_sink->name,
++				flags ? "enabled" : "disabled",
++				ret);
++			goto end;
++		}
++		/* start pipeline */
++		if (find_sink == sink) {
++			dev->active_link = link;
++			ret = __media_entity_pipeline_start(entity, pipe);
++			if (ret) {
++				pr_err("Start Pipeline: %s->%s Error %d\n",
++					source->name, entity->name, ret);
++				goto end;
++			}
++			/* save link owner to avoid audio deactivating
++			   video owned link from disable_source and
++			   vice versa */
++			dev->active_link_owner = entity;
++			pr_info("Started Pipeline: %s->%s ret %d\n",
++				source->name, entity->name, ret);
++		}
++	}
++end:
++	mutex_unlock(&mdev->graph_mutex);
++	return ret;
++#endif
++	return 0;
++}
++
++static void au0828_disable_source(struct media_entity *entity)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_entity *sink;
++	int ret = 0;
++	struct media_device *mdev = entity->parent;
++	struct au0828_dev *dev;
++
++	if (!mdev)
++		return;
++
++	mutex_lock(&mdev->graph_mutex);
++
++	dev = mdev->source_priv;
++	if (!dev->tuner || !dev->decoder || !dev->active_link) {
++		ret = -ENODEV;
++		goto end;
++	}
++
++	if (entity->type != MEDIA_ENT_T_DEVNODE_DVB_FE)
++		sink = dev->decoder;
++	else
++		sink = entity;
++
++	/* link is active - stop pipeline from source (tuner) */
++	if (dev->active_link && dev->active_link->sink->entity == sink &&
++	    dev->active_link->source->entity == dev->tuner) {
++		/* prevent video from deactivating link when audio
++		   has active pipeline */
++		if (dev->active_link_owner != entity)
++			goto end;
++		__media_entity_pipeline_stop(entity);
++		pr_info("Stopped Pipeline: %s->%s entity %s\n",
++			dev->active_link->source->entity->name,
++			dev->active_link->sink->entity->name,
++			entity->name);
++		ret = __media_entity_setup_link(dev->active_link, 0);
++		if (ret)
++			pr_err("Deactive link Error %d\n", ret);
++		dev->active_link = NULL;
++		dev->active_link_owner = NULL;
++	}
++
++end:
++	mutex_unlock(&mdev->graph_mutex);
++#endif
++}
++
+ static void au0828_media_device_register(struct au0828_dev *dev,
+ 					  struct usb_device *udev)
+ {
+@@ -291,6 +449,10 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+ 				sizeof(mdev->serial));
+ 		strcpy(mdev->bus_info, udev->devpath);
+ 		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++		/* Set enable_source and disable_source handlers and data */
++		mdev->source_priv = (void *) dev;
++		mdev->enable_source = au0828_enable_source;
++		mdev->disable_source = au0828_disable_source;
+ 		ret = media_device_register(mdev);
+ 		if (ret) {
+ 			dev_err(&udev->dev,
+@@ -303,6 +465,13 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+ 		dev->entity_notify.notify = au0828_create_media_graph;
+ 		media_device_register_entity_notify(mdev, &dev->entity_notify);
+ 	}
++	/* If ALSA registered the media device - set enable_source */
++	if (!mdev->enable_source) {
++		/* Set enable_source and disable_source handlers and data */
++		mdev->source_priv = (void *) dev;
++		mdev->enable_source = au0828_enable_source;
++		mdev->disable_source = au0828_disable_source;
++	}
+ 	dev->media_dev = mdev;
+ #endif
+ }
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 08cc7b8..f64dbbb 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -287,6 +287,8 @@ struct au0828_dev {
+ 	bool vdev_linked;
+ 	bool vbi_linked;
+ 	bool alsa_capture_linked;
++	struct media_link *active_link;
++	struct media_entity *active_link_owner;
+ #endif
  };
- MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
---=20
-2.5.0
+ 
+-- 
+2.1.4
 
-
---------------080102020806070403080802
-Content-Type: text/plain; charset=ISO-8859-15;
- name="lsusb.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="lsusb.txt"
-
-QnVzIDAwMiBEZXZpY2UgMDA5OiBJRCAwY2NkOjEwYTUgVGVycmFUZWMgRWxlY3Ryb25pYyBH
-bWJIIApEZXZpY2UgRGVzY3JpcHRvcjoKICBiTGVuZ3RoICAgICAgICAgICAgICAgIDE4CiAg
-YkRlc2NyaXB0b3JUeXBlICAgICAgICAgMQogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAK
-ICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAwIChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZl
-bCkKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAwIAogIGJEZXZpY2VQcm90b2NvbCAgICAg
-ICAgIDAgCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2NAogIGlkVmVuZG9yICAgICAgICAg
-ICAweDBjY2QgVGVycmFUZWMgRWxlY3Ryb25pYyBHbWJICiAgaWRQcm9kdWN0ICAgICAgICAg
-IDB4MTBhNSAKICBiY2REZXZpY2UgICAgICAgICAgICAwLjAwCiAgaU1hbnVmYWN0dXJlciAg
-ICAgICAgICAgMSAKICBpUHJvZHVjdCAgICAgICAgICAgICAgICAyIAogIGlTZXJpYWwgICAg
-ICAgICAgICAgICAgIDMgCiAgYk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQogIENvbmZpZ3Vy
-YXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAgIGJE
-ZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAyMTkK
-ICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0aW9uVmFsdWUg
-ICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDQgCiAgICBibUF0dHJpYnV0ZXMg
-ICAgICAgICAweDgwCiAgICAgIChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2VyICAgICAgICAg
-ICAgICA1MDBtQQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAg
-ICAgICAgICAgICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBi
-SW50ZXJmYWNlTnVtYmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAg
-IDAKICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMwogICAgICBiSW50ZXJmYWNlQ2xh
-c3MgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3Vi
-Q2xhc3MgICAgICAxIAogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgICAxIAogICAgICBp
-SW50ZXJmYWNlICAgICAgICAgICAgICAwIAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgog
-ICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5
-cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJ
-TgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVy
-IFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAg
-ICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAg
-ICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50
-ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAg
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAg
-ICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAxIE9VVAog
-ICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5
-cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAg
-Tm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3
-TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2
-YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAg
-Ykxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAg
-ICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAg
-ICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25l
-CiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQ
-YWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAg
-ICAgICAgICAgICAgIDAKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3Ro
-ICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAg
-ICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAg
-ICAgICAxCiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDMKICAgICAgYkludGVyZmFj
-ZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFj
-ZVN1YkNsYXNzICAgICAgMSAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAgMSAKICAg
-ICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRv
-cjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0
-b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQ
-IDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAgICAgICBUcmFu
-c2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5jaCBUeXBlICAg
-ICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERh
-dGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDQwICAxeCA2NCBieXRlcwogICAg
-ICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDMKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRv
-cjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0
-b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4MDEgIEVQ
-IDEgT1VUCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJh
-bnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAg
-ICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQog
-ICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAg
-IGJJbnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoK
-ICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JU
-eXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIg
-SU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2Zl
-ciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAg
-ICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0
-YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDEzZjIgIDN4IDEwMTAgYnl0ZXMKICAg
-ICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRv
-cjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5
-cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFs
-dGVybmF0ZVNldHRpbmcgICAgICAgMgogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAz
-CiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNz
-CiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDEgCiAgICAgIGJJbnRlcmZhY2VQcm90
-b2NvbCAgICAgIDEgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVu
-ZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwog
-ICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAg
-MwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAg
-ICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUg
-ICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDA0MCAg
-MXggNjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAzCiAgICAgIEVu
-ZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwog
-ICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDAxICBFUCAxIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAg
-IDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBT
-eW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAg
-ICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1
-MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBv
-aW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAg
-ICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNz
-ICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQog
-ICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAg
-ICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAg
-ICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgxMmQ2ICAz
-eCA3MjYgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRl
-cmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAg
-ICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAg
-ICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgMwogICAgICBiTnVtRW5kcG9p
-bnRzICAgICAgICAgICAzCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9y
-IFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDEgCiAgICAg
-IGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDEgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAg
-ICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAg
-ICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElu
-dGVycnVwdAogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAg
-ICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDA0MCAgMXggNjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
-ICAgICAzCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAg
-ICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAxIE9VVAogICAgICAgIGJtQXR0cmli
-dXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBC
-dWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAg
-VXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAg
-ICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAg
-ICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAg
-ICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBi
-RW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1dGVz
-ICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2No
-cm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAg
-ICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6
-ZSAgICAgMHgxMmFlICAzeCA2ODYgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
-ICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAg
-ICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRl
-cmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgNAog
-ICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAzCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAg
-ICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFz
-cyAgICAgIDEgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDEgCiAgICAgIGlJbnRl
-cmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAg
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAg
-ICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAg
-ICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJhbnNmZXIgVHlw
-ZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAg
-ICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAg
-ICAgd01heFBhY2tldFNpemUgICAgIDB4MDA0MCAgMXggNjQgYnl0ZXMKICAgICAgICBiSW50
-ZXJ2YWwgICAgICAgICAgICAgICAzCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAg
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAg
-ICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAxIE9VVAog
-ICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5
-cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAg
-Tm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3
-TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2
-YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAg
-Ykxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAg
-ICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAg
-ICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAg
-ICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAg
-ICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwM2NhICAxeCA5NzAgYnl0ZXMKICAgICAgICBiSW50
-ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAg
-Ykxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAg
-ICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNl
-dHRpbmcgICAgICAgNQogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAzCiAgICAgIGJJ
-bnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJ
-bnRlcmZhY2VTdWJDbGFzcyAgICAgIDEgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAg
-IDEgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJE
-ZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAw
-eDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMwogICAgICAg
-ICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAgICAgU3luY2gg
-VHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAg
-ICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDA0MCAgMXggNjQgYnl0
-ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAzCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJE
-ZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAw
-eDAxICBFUCAxIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAg
-ICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBl
-ICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAg
-IERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMK
-ICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2Ny
-aXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgy
-ICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAg
-VHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBU
-eXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAg
-ICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMmFjICAxeCA2ODQgYnl0
-ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVz
-Y3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3Jp
-cHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAg
-ICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgNgogICAgICBiTnVtRW5kcG9pbnRzICAgICAg
-ICAgICAzCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmlj
-IENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDEgCiAgICAgIGJJbnRlcmZh
-Y2VQcm90b2NvbCAgICAgIDEgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAg
-ICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAg
-ICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9p
-bnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAg
-ICAgICAgMwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEludGVycnVwdAog
-ICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdl
-IFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4
-MDA0MCAgMXggNjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAzCiAg
-ICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAg
-ICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9p
-bnRBZGRyZXNzICAgICAweDAxICBFUCAxIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAg
-ICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAg
-ICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlw
-ZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAw
-ICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAg
-IEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAg
-NwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRB
-ZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAg
-ICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAg
-ICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2Ug
-VHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
-M2FjICAxeCA5NDAgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCg==
---------------080102020806070403080802--
-
---i63kb9agxcnaf3hMV2DAF4JqbMSpWV90o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEARECAAYFAlXy7WcACgkQ8NqlQQxmej6ojACglINp2xwQOHDuaech6/M9fmJA
-vdAAniXGzWCU/qS3d1gf2+oGZARIHlKN
-=CuTg
------END PGP SIGNATURE-----
-
---i63kb9agxcnaf3hMV2DAF4JqbMSpWV90o--
