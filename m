@@ -1,104 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59940 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751907AbbIKPt1 (ORCPT
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:56251 "EHLO
+	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758775AbbIVR2C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 11:49:27 -0400
-Message-ID: <55F2F57D.1010700@xs4all.nl>
-Date: Fri, 11 Sep 2015 17:38:37 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 17/18] [media] dvbdev: move indirect links on dvr/demux
- to a separate function
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <85b36c34704eeba890472e7973d2e01a69c4b87c.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <85b36c34704eeba890472e7973d2e01a69c4b87c.1441559233.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Sep 2015 13:28:02 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	stefanr@s5r6.in-berlin.de, crope@iki.fi, dan.carpenter@oracle.com,
+	tskd08@gmail.com, ruchandani.tina@gmail.com, arnd@arndb.de,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	Julia.Lawall@lip6.fr, elfring@users.sourceforge.net,
+	ricardo.ribalda@gmail.com, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, gtmkramer@xs4all.nl,
+	clemens@ladisch.de, misterpib@gmail.com, takamichiho@gmail.com,
+	pmatilai@laiskiainen.org, damien@zamaudio.com, daniel@zonque.org,
+	vladcatoi@gmail.com, normalperson@yhbt.net, joe@oampo.co.uk,
+	bugzilla.frnkcg@spamgourmet.com, jussi@sonarnerd.net
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 10/21] media: au8522 change to create MC pad for ALSA Audio Out
+Date: Tue, 22 Sep 2015 11:19:29 -0600
+Message-Id: <350974dc0fdc9832ab0f22c88f82eabc703092d3.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1442937669.git.shuahkh@osg.samsung.com>
+References: <cover.1442937669.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2015 07:31 PM, Mauro Carvalho Chehab wrote:
-> Cleanup the code a little bit by moving the routine that creates
-> links between DVR and demux to the I/O entitis into a separate
-> function.
-> 
-> While here, fix the code to use strncmp() instead of strcmp().
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Add new pad for ALSA Audio Out to au8522_media_pads.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522.h         | 1 +
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 8527fc40e6a0..ea76fe54e0e4 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -522,6 +522,28 @@ EXPORT_SYMBOL(dvb_unregister_device);
->  
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +
-> +static int dvb_create_io_intf_links(struct dvb_adapter *adap,
-> +				    struct media_interface *intf,
-> +				    char *name)
-> +{
-> +	struct media_device *mdev = adap->mdev;
-> +	struct media_entity *entity;
-> +	struct media_link *link;
-> +
-> +	media_device_for_each_entity(entity, mdev) {
-> +		if (entity->function == MEDIA_ENT_F_IO) {
-> +			if (strncmp(entity->name, name, strlen(name)))
-> +				continue;
-> +			link = media_create_intf_link(entity, intf,
-> +						      MEDIA_LNK_FL_ENABLED);
-> +			if (!link)
-> +				return -ENOMEM;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
->  int dvb_create_media_graph(struct dvb_adapter *adap)
->  {
->  	struct media_device *mdev = adap->mdev;
-> @@ -619,25 +641,15 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
->  			if (!link)
->  				return -ENOMEM;
->  		}
-> -
-> -		media_device_for_each_entity(entity, mdev) {
-> -			if (entity->function == MEDIA_ENT_F_IO) {
-> -				if (!strcmp(entity->name, DVR_TSOUT)) {
-> -					link = media_create_intf_link(entity,
-> -							intf,
-> -							MEDIA_LNK_FL_ENABLED);
-> -					if (!link)
-> -						return -ENOMEM;
-> -				}
-> -				if (!strcmp(entity->name, DEMUX_TSOUT)) {
-> -					link = media_create_intf_link(entity,
-> -							intf,
-> -							MEDIA_LNK_FL_ENABLED);
-> -					if (!link)
-> -						return -ENOMEM;
-> -				}
-> -				break;
-> -			}
-> +		if (intf->type == MEDIA_INTF_T_DVB_DVR) {
-> +			ret = dvb_create_io_intf_links(adap, intf, DVR_TSOUT);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +		if (intf->type == MEDIA_INTF_T_DVB_DEMUX) {
-> +			ret = dvb_create_io_intf_links(adap, intf, DEMUX_TSOUT);
-> +			if (ret)
-> +				return ret;
->  		}
->  	}
->  	return 0;
-> 
+diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
+index 3c72f40..d7a997f 100644
+--- a/drivers/media/dvb-frontends/au8522.h
++++ b/drivers/media/dvb-frontends/au8522.h
+@@ -94,6 +94,7 @@ enum au8522_media_pads {
+ 	AU8522_PAD_INPUT,
+ 	AU8522_PAD_VID_OUT,
+ 	AU8522_PAD_VBI_OUT,
++	AU8522_PAD_AUDIO_OUT,
+ 
+ 	AU8522_NUM_PADS
+ };
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 24990db..5fc9a39 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -775,6 +775,7 @@ static int au8522_probe(struct i2c_client *client,
+ 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+ 
+ 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+-- 
+2.1.4
 
