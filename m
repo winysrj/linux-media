@@ -1,87 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:34845 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755263AbbIAJJU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Sep 2015 05:09:20 -0400
-Received: by wibq14 with SMTP id q14so24851287wib.0
-        for <linux-media@vger.kernel.org>; Tue, 01 Sep 2015 02:09:19 -0700 (PDT)
-Date: Tue, 1 Sep 2015 10:09:16 +0100
-From: Lee Jones <lee.jones@linaro.org>
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Peter Griffin <peter.griffin@linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
+Received: from eusmtp01.atmel.com ([212.144.249.243]:21870 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752926AbbIVFJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Sep 2015 01:09:08 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	<linux-arm-kernel@lists.infradead.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
-	patrice.chotard@st.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	valentinrothberg@gmail.com, hugues.fruchet@st.com
-Subject: Re: [PATCH v3 4/6] [media] c8sectpfe: Update binding to reset-gpios
-Message-ID: <20150901090916.GM4796@x1>
-References: <1440784362-31217-1-git-send-email-peter.griffin@linaro.org>
- <1440784362-31217-5-git-send-email-peter.griffin@linaro.org>
- <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 1/5] media: atmel-isi: correct yuv swap according to different sensor outputs
+Date: Tue, 22 Sep 2015 13:14:30 +0800
+Message-ID: <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABxcv=nM7MBK2EcD1-YK5y0J1hBtxV+6Wu812C23pNkAzigu7g@mail.gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 01 Sep 2015, Javier Martinez Canillas wrote:
-> On Fri, Aug 28, 2015 at 7:52 PM, Peter Griffin <peter.griffin@linaro.org> wrote:
-> > gpio.txt documents that GPIO properties should be named
-> > "[<name>-]gpios", with <name> being the purpose of this
-> > GPIO for the device.
-> >
-> > This change has been done as one atomic commit.
-> >
-> > Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> > Acked-by: Lee Jones <lee.jones@linaro.org>
-> > ---
-> >  Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt | 6 +++---
-> >  arch/arm/boot/dts/stihxxx-b2120.dtsi                          | 4 ++--
-> >  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c         | 2 +-
-> >  3 files changed, 6 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> > index d4def76..e70d840 100644
-> > --- a/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> > +++ b/Documentation/devicetree/bindings/media/stih407-c8sectpfe.txt
-> > @@ -35,7 +35,7 @@ Required properties (tsin (child) node):
-> >
-> >  - tsin-num     : tsin id of the InputBlock (must be between 0 to 6)
-> >  - i2c-bus      : phandle to the I2C bus DT node which the demodulators & tuners on this tsin channel are connected.
-> > -- rst-gpio     : reset gpio for this tsin channel.
-> > +- reset-gpios  : reset gpio for this tsin channel.
-> 
-> The documentation is a bit outdated, the GPIO subsystem supports both
-> -gpio and -gpios, see commit:
-> 
-> dd34c37aa3e8 ("gpio: of: Allow -gpio suffix for property names")
-> 
-> So it makes sense to me to use -gpio instead of -gpios in this case
-> since is a single GPIO. Also rst is already a descriptive name since
-> that's how many datasheets name a reset pin. I'm not saying I'm
-> against this patch, just pointing out since the commit message is a
-> bit misleading.
+we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
+sensor output and Atmel ISI output format.
 
-As I suggested this patch, I feel I must comment.
+Current there are two cases Atmel ISI supported:
+  1. Atmel ISI outputs YUYV format.
+     This case we need to setup YCC_SWAP according to sensor output
+     format.
+  2. Atmel ISI output a pass-through formats, which means no swap.
+     Just setup YCC_SWAP as default with no swap.
 
-My order of preference would be:
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
- reset-gpio
- reset-gpios
- rst-gpio
- rst-gpios
+ drivers/media/platform/soc_camera/atmel-isi.c | 43 ++++++++++++++++++++-------
+ 1 file changed, 33 insertions(+), 10 deletions(-)
 
-This current patch is No2, so it's okay to stay IMHO.
-
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 45e304a..df64294 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+ 	return readl(isi->regs + reg);
+ }
+ 
++static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
++		const struct soc_camera_format_xlate *xlate)
++{
++	/* By default, no swap for the codec path of Atmel ISI. So codec
++	* output is same as sensor's output.
++	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
++	* And if sensor's output is UYVY, then codec outputs UYVY.
++	*/
++	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
++
++	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
++		/* all convert to YUYV */
++		switch (xlate->code) {
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
++			break;
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
++			break;
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
++			break;
++		}
++	}
++
++	return cfg2_yuv_swap;
++}
++
+ static void configure_geometry(struct atmel_isi *isi, u32 width,
+-			u32 height, u32 code)
++		u32 height, const struct soc_camera_format_xlate *xlate)
+ {
+ 	u32 cfg2;
+ 
+ 	/* According to sensor's output format to set cfg2 */
+-	switch (code) {
++	switch (xlate->code) {
+ 	default:
+ 	/* Grey */
+ 	case MEDIA_BUS_FMT_Y8_1X8:
+@@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+ 		break;
+ 	/* YUV */
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_YVYU8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
++		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
++				setup_cfg2_yuv_swap(isi, xlate);
+ 		break;
+ 	/* RGB, TODO */
+ 	}
+@@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+ 
+ 	configure_geometry(isi, icd->user_width, icd->user_height,
+-				icd->current_fmt->code);
++				icd->current_fmt);
+ 
+ 	spin_lock_irq(&isi->lock);
+ 	/* Clear any pending interrupt */
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.9.1
+
