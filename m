@@ -1,137 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755354AbbIMU5R (ORCPT
+Received: from hqemgate16.nvidia.com ([216.228.121.65]:4188 "EHLO
+	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826AbbIWBag (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:17 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 08/32] v4l: vsp1: Move vsp1_video pointer from vsp1_entity to vsp1_rwpf
-Date: Sun, 13 Sep 2015 23:56:46 +0300
-Message-Id: <1442177830-24536-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 22 Sep 2015 21:30:36 -0400
+From: Bryan Wu <pengw@nvidia.com>
+To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
+	<treding@nvidia.com>
+CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
+	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>,
+	<linux-tegra@vger.kernel.org>
+Subject: [PATCH 2/3] ARM64: add tegra-vi support in T210 device-tree
+Date: Tue, 22 Sep 2015 18:30:33 -0700
+Message-ID: <1442971834-2721-3-git-send-email-pengw@nvidia.com>
+In-Reply-To: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
+References: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only RPFs and WPFs can be associated with video nodes, don't waste
-memory by storing the video pointer in all entities.
+Following device tree support for Tegra VI now:
+ - "vi" node which might have 6 ports/endpoints
+ - in TPG mode, "vi" node don't need to define any ports/endpoints
+ - ports/endpoints defines the link between VI and external sensors.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Bryan Wu <pengw@nvidia.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c    |  6 +++---
- drivers/media/platform/vsp1/vsp1_entity.h |  3 ---
- drivers/media/platform/vsp1/vsp1_rwpf.h   |  3 +++
- drivers/media/platform/vsp1/vsp1_video.c  | 10 +++++-----
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts |   8 +
+ arch/arm64/boot/dts/nvidia/tegra210.dtsi          | 174 +++++++++++++++++++++-
+ 2 files changed, 181 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 5f93cbdcb0f1..91ecf75119ba 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -289,8 +289,8 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
- 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+diff --git a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
+index d4ee460..534ada52 100644
+--- a/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
++++ b/arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts
+@@ -7,6 +7,14 @@
+ 	model = "NVIDIA Tegra210 P2571 reference board (E.1)";
+ 	compatible = "nvidia,p2571-e01", "nvidia,tegra210";
  
--		ret = media_entity_create_link(&rpf->entity.video->video.entity,
--					       0, &rpf->entity.subdev.entity,
-+		ret = media_entity_create_link(&rpf->video->video.entity, 0,
-+					       &rpf->entity.subdev.entity,
- 					       RWPF_PAD_SINK,
- 					       MEDIA_LNK_FL_ENABLED |
- 					       MEDIA_LNK_FL_IMMUTABLE);
-@@ -311,7 +311,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 
- 		ret = media_entity_create_link(&wpf->entity.subdev.entity,
- 					       RWPF_PAD_SOURCE,
--					       &wpf->entity.video->video.entity,
-+					       &wpf->video->video.entity,
- 					       0, flags);
- 		if (ret < 0)
- 			goto done;
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 8867a5787c28..9c95507ec762 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -19,7 +19,6 @@
- #include <media/v4l2-subdev.h>
- 
- struct vsp1_device;
--struct vsp1_video;
- 
- enum vsp1_entity_type {
- 	VSP1_ENTITY_BRU,
-@@ -71,8 +70,6 @@ struct vsp1_entity {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_mbus_framefmt *formats;
- 
--	struct vsp1_video *video;
--
- 	spinlock_t lock;		/* Protects the streaming field */
- 	bool streaming;
- };
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 0076920adb28..1a90c7c8e972 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -24,6 +24,7 @@
- #define RWPF_PAD_SOURCE				1
- 
- struct vsp1_rwpf;
-+struct vsp1_video;
- 
- struct vsp1_rwpf_memory {
- 	unsigned int num_planes;
-@@ -40,6 +41,8 @@ struct vsp1_rwpf {
- 	struct vsp1_entity entity;
- 	struct v4l2_ctrl_handler ctrls;
- 
-+	struct vsp1_video *video;
++	host1x@0,50000000 {
++		vi@0,54080000 {
++			status = "okay";
 +
- 	const struct vsp1_rwpf_operations *ops;
++			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
++		};
++	};
++
+ 	pinmux: pinmux@0,700008d4 {
+ 		pinctrl-names = "boot";
+ 		pinctrl-0 = <&state_boot>;
+diff --git a/arch/arm64/boot/dts/nvidia/tegra210.dtsi b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
+index 1168bcd..3f6501f 100644
+--- a/arch/arm64/boot/dts/nvidia/tegra210.dtsi
++++ b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
+@@ -109,9 +109,181 @@
  
- 	unsigned int max_width;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 121f8724bcf6..2d27e8334911 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -435,11 +435,11 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 		if (e->type == VSP1_ENTITY_RPF) {
- 			rwpf = to_rwpf(subdev);
- 			pipe->inputs[pipe->num_inputs++] = rwpf;
--			rwpf->entity.video->pipe_index = pipe->num_inputs;
-+			rwpf->video->pipe_index = pipe->num_inputs;
- 		} else if (e->type == VSP1_ENTITY_WPF) {
- 			rwpf = to_rwpf(subdev);
- 			pipe->output = to_rwpf(subdev);
--			rwpf->entity.video->pipe_index = 0;
-+			rwpf->video->pipe_index = 0;
- 		} else if (e->type == VSP1_ENTITY_LIF) {
- 			pipe->lif = e;
- 		} else if (e->type == VSP1_ENTITY_BRU) {
-@@ -648,10 +648,10 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 		vi@0,54080000 {
+ 			compatible = "nvidia,tegra210-vi";
+-			reg = <0x0 0x54080000 0x0 0x00040000>;
++			reg = <0x0 0x54080000 0x0 0x800>;
+ 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
++			clocks = <&tegra_car TEGRA210_CLK_VI>,
++				 <&tegra_car TEGRA210_CLK_CSI>,
++				 <&tegra_car TEGRA210_CLK_PLL_C>;
++			clock-names = "vi", "csi", "parent";
++			resets = <&tegra_car 20>;
++			reset-names = "vi";
++
++			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
++
++			iommus = <&mc TEGRA_SWGROUP_VI>;
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++
++					vi_in0: endpoint {
++						remote-endpoint = <&csi_out0>;
++					};
++				};
++				port@1 {
++					reg = <1>;
++
++					vi_in1: endpoint {
++						remote-endpoint = <&csi_out1>;
++					};
++				};
++				port@2 {
++					reg = <2>;
++
++					vi_in2: endpoint {
++						remote-endpoint = <&csi_out2>;
++					};
++				};
++				port@3 {
++					reg = <3>;
++
++					vi_in3: endpoint {
++						remote-endpoint = <&csi_out3>;
++					};
++				};
++				port@4 {
++					reg = <4>;
++
++					vi_in4: endpoint {
++						remote-endpoint = <&csi_out4>;
++					};
++				};
++				port@5 {
++					reg = <5>;
++
++					vi_in5: endpoint {
++						remote-endpoint = <&csi_out5>;
++					};
++				};
++
++			};
++		};
++
++		csi@0,54080838 {
++			compatible = "nvidia,tegra210-csi";
++			reg = <0x0 0x54080838 0x0 0x700>;
++			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
++			clock-names = "cil";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in0: endpoint@0 {
++						reg = <0x0>;
++					};
++					csi_out0: endpoint@1 {
++						reg = <0x1>;
++						remote-endpoint = <&vi_in0>;
++					};
++				};
++				port@1 {
++					reg = <1>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in1: endpoint@0 {
++						reg = <0>;
++					};
++					csi_out1: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&vi_in1>;
++					};
++				};
++			};
++		};
++
++		csi@1,54081038 {
++			compatible = "nvidia,tegra210-csi";
++			reg = <0x0 0x54081038 0x0 0x700>;
++			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
++			clock-names = "cil";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@2 {
++					reg = <2>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in2: endpoint@0 {
++						reg = <0>;
++					};
++
++					csi_out2: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&vi_in2>;
++					};
++				};
++				port@3 {
++					reg = <3>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in3: endpoint@0 {
++						reg = <0>;
++					};
++
++					csi_out3: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&vi_in3>;
++					};
++				};
++			};
++		};
++
++		csi@2,54081838 {
++			compatible = "nvidia,tegra210-csi";
++			reg = <0x0 0x54081838 0x0 0x700>;
++			clocks = <&tegra_car TEGRA210_CLK_CILE>;
++			clock-names = "cil";
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@4 {
++					reg = <4>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in4: endpoint@0 {
++						reg = <0>;
++					};
++					csi_out4: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&vi_in4>;
++					};
++				};
++				port@5 {
++					reg = <5>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++					csi_in5: endpoint@0 {
++						reg = <0>;
++					};
++					csi_out5: endpoint@1 {
++						reg = <1>;
++						remote-endpoint = <&vi_in5>;
++					};
++				};
++			};
+ 		};
  
- 	/* Complete buffers on all video nodes. */
- 	for (i = 0; i < pipe->num_inputs; ++i)
--		vsp1_video_frame_end(pipe, pipe->inputs[i]->entity.video);
-+		vsp1_video_frame_end(pipe, pipe->inputs[i]->video);
- 
- 	if (!pipe->lif)
--		vsp1_video_frame_end(pipe, pipe->output->entity.video);
-+		vsp1_video_frame_end(pipe, pipe->output->video);
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
-@@ -1200,7 +1200,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	if (!video)
- 		return ERR_PTR(-ENOMEM);
- 
--	rwpf->entity.video = video;
-+	rwpf->video = video;
- 
- 	video->vsp1 = vsp1;
- 	video->rwpf = rwpf;
+ 		tsec@0,54100000 {
 -- 
-2.4.6
+2.1.4
 
