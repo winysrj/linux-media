@@ -1,40 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55794 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752147AbbIIQ3i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 12:29:38 -0400
-Date: Wed, 9 Sep 2015 12:29:36 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Mian Yousaf Kaukab <yousaf.kaukab@intel.com>,
-	<linux-media@vger.kernel.org>, <mchehab@osg.samsung.com>,
-	<linux-usb@vger.kernel.org>
-Subject: Re: [PATCH v1] media: uvcvideo: handle urb completion in a work
- queue
-In-Reply-To: <2075897.6pASZPILMt@avalon>
-Message-ID: <Pine.LNX.4.44L0.1509091226310.2045-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from fed1rmfepo101.cox.net ([68.230.241.143]:58424 "EHLO
+	fed1rmfepo101.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730AbbIWOHW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2015 10:07:22 -0400
+Received: from fed1rmimpo109 ([68.230.241.158]) by fed1rmfepo101.cox.net
+          (InterMail vM.8.01.05.15 201-2260-151-145-20131218) with ESMTP
+          id <20150923140710.DIPD18929.fed1rmfepo101.cox.net@fed1rmimpo109>
+          for <linux-media@vger.kernel.org>;
+          Wed, 23 Sep 2015 10:07:10 -0400
+From: Eric Nelson <eric@nelint.com>
+To: linux-media@vger.kernel.org, sean@mess.org
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mchehab@osg.samsung.com,
+	mark.rutland@arm.com, ijc+devicetree@hellion.org.uk,
+	galak@codeaurora.org, patrice.chotard@st.com, fabf@skynet.be,
+	wsa@the-dreams.de, heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br, Eric Nelson <eric@nelint.com>
+Subject: [PATCH V3 2/2] rc: gpio-ir-recv: add timeout on idle
+Date: Wed, 23 Sep 2015 07:07:08 -0700
+Message-Id: <1443017228-16499-1-git-send-email-eric@nelint.com>
+In-Reply-To: <5602AE95.9000505@nelint.com>
+References: <5602AE95.9000505@nelint.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 9 Sep 2015, Laurent Pinchart wrote:
+Many decoders require a trailing space (period without IR illumination)
+to be delivered before completing a decode.
 
-> > > Instead of fixing the issue in the uvcvideo driver, would it then make
-> > > more sense to fix it in the remaining hcd drivers ?
-> > 
-> > Unfortunately that's not so easy.  It involves some subtle changes
-> > related to the way isochronous endpoints are handled.  I wouldn't know
-> > what to change in any of the HCDs, except the ones that I maintain.
-> 
-> I'm not saying it would be easy, but I'm wondering whether it makes change to 
-> move individual USB device drivers to work queues when the long term goal is 
-> to use tasklets for URB completion anyway.
+Since the gpio-ir-recv driver only delivers events on gpio transitions,
+a single IR symbol (caused by a quick touch on an IR remote) will not
+be properly decoded without the use of a timer to flush the tail end
+state of the IR receiver.
 
-I'm not sure that this is a long-term goal for every HCD.  For
-instance, there probably isn't much incentive to convert a driver if
-its host controllers can only run at low speed or full speed.
+This patch initializes and uses a timer and the timeout field of rcdev
+to complete the stream and allow decode.
 
-Alan Stern
+The timeout can be overridden through the use of the LIRC_SET_REC_TIMEOUT
+ioctl.
+
+Signed-off-by: Eric Nelson <eric@nelint.com>
+---
+V2 uses the timeout field of the rcdev instead of a device tree 
+field to set the timeout value as suggested by Sean Young.
+
+V3 fixes whitespace, simplifies timer setup and adds a del_timer_sync
+as suggested by Sean Young.
+
+ drivers/media/rc/gpio-ir-recv.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 7dbc9ca..f62e3f1 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -30,6 +30,7 @@ struct gpio_rc_dev {
+ 	struct rc_dev *rcdev;
+ 	int gpio_nr;
+ 	bool active_low;
++	struct timer_list flush_timer;
+ };
+ 
+ #ifdef CONFIG_OF
+@@ -93,12 +94,26 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ 	if (rc < 0)
+ 		goto err_get_value;
+ 
++	mod_timer(&gpio_dev->flush_timer,
++		  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
++
+ 	ir_raw_event_handle(gpio_dev->rcdev);
+ 
+ err_get_value:
+ 	return IRQ_HANDLED;
+ }
+ 
++static void flush_timer(unsigned long arg)
++{
++	struct gpio_rc_dev *gpio_dev = (struct gpio_rc_dev *)arg;
++	DEFINE_IR_RAW_EVENT(ev);
++
++	ev.timeout = true;
++	ev.duration = gpio_dev->rcdev->timeout;
++	ir_raw_event_store(gpio_dev->rcdev, &ev);
++	ir_raw_event_handle(gpio_dev->rcdev);
++}
++
+ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ {
+ 	struct gpio_rc_dev *gpio_dev;
+@@ -144,6 +159,9 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	rcdev->input_id.version = 0x0100;
+ 	rcdev->dev.parent = &pdev->dev;
+ 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
++	rcdev->min_timeout = 0;
++	rcdev->timeout = IR_DEFAULT_TIMEOUT;
++	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	if (pdata->allowed_protos)
+ 		rcdev->allowed_protocols = pdata->allowed_protos;
+ 	else
+@@ -154,6 +172,9 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	gpio_dev->gpio_nr = pdata->gpio_nr;
+ 	gpio_dev->active_low = pdata->active_low;
+ 
++	setup_timer(&gpio_dev->flush_timer, flush_timer,
++		    (unsigned long)gpio_dev);
++
+ 	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+ 	if (rc < 0)
+ 		goto err_gpio_request;
+@@ -196,6 +217,7 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
+ 	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
+ 
+ 	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
++	del_timer_sync(&gpio_dev->flush_timer);
+ 	rc_unregister_device(gpio_dev->rcdev);
+ 	gpio_free(gpio_dev->gpio_nr);
+ 	kfree(gpio_dev);
+-- 
+2.5.2
 
