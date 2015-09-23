@@ -1,216 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52348 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755474AbbIMU52 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 16:57:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 24/32] v4l: vsp1: Make the userspace API optional
-Date: Sun, 13 Sep 2015 23:57:02 +0300
-Message-Id: <1442177830-24536-25-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1442177830-24536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from gofer.mess.org ([80.229.237.210]:36036 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754663AbbIWN0o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2015 09:26:44 -0400
+Date: Wed, 23 Sep 2015 14:26:40 +0100
+From: Sean Young <sean@mess.org>
+To: Eric Nelson <eric@nelint.com>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mchehab@osg.samsung.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+Subject: Re: [PATCH V2 2/2] rc: gpio-ir-recv: add timeout on idle
+Message-ID: <20150923132640.GA10104@gofer.mess.org>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <1442862524-3694-1-git-send-email-eric@nelint.com>
+ <1442862524-3694-3-git-send-email-eric@nelint.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1442862524-3694-3-git-send-email-eric@nelint.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The R-Car Gen3 SoCs include VSP instances dedicated to the DU that will
-be controlled entirely by the rcar-du-drm driver through the KMS API. To
-support that use case make the userspace V4L2 API optional.
+On Mon, Sep 21, 2015 at 12:08:44PM -0700, Eric Nelson wrote:
+> Many decoders require a trailing space (period without IR illumination)
+> to be delivered before completing a decode.
+> 
+> Since the gpio-ir-recv driver only delivers events on gpio transitions,
+> a single IR symbol (caused by a quick touch on an IR remote) will not
+> be properly decoded without the use of a timer to flush the tail end
+> state of the IR receiver.
+> 
+> This patch initializes and uses a timer and the timeout field of rcdev
+> to complete the stream and allow decode.
+> 
+> The timeout can be overridden through the use of the LIRC_SET_REC_TIMEOUT
+> ioctl.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h        |  1 +
- drivers/media/platform/vsp1/vsp1_drv.c    | 57 ++++++++++++++++++-------------
- drivers/media/platform/vsp1/vsp1_entity.c |  2 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |  6 ++--
- drivers/media/platform/vsp1/vsp1_wpf.c    |  6 ++--
- 5 files changed, 43 insertions(+), 29 deletions(-)
+Thanks, this is much nicer.
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 173f9f830049..791d24c2c8d1 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -53,6 +53,7 @@ struct vsp1_platform_data {
- 
- struct vsp1_device_info {
- 	unsigned int num_bru_inputs;
-+	bool uapi;
- };
- 
- struct vsp1_device {
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index eccdacdf4f4c..5a18f69c90c2 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -134,6 +134,17 @@ static int vsp1_create_links(struct vsp1_device *vsp1)
- 			return ret;
- 	}
- 
-+	if (vsp1->pdata.features & VSP1_HAS_LIF) {
-+		ret = media_entity_create_link(
-+			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
-+			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (!vsp1->info->uapi)
-+		return 0;
-+
- 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
- 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
- 
-@@ -165,14 +176,6 @@ static int vsp1_create_links(struct vsp1_device *vsp1)
- 			return ret;
- 	}
- 
--	if (vsp1->pdata.features & VSP1_HAS_LIF) {
--		ret = media_entity_create_link(
--			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
--			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
--		if (ret < 0)
--			return ret;
--	}
--
- 	return 0;
- }
- 
-@@ -270,7 +273,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
--		struct vsp1_video *video;
- 		struct vsp1_rwpf *rpf;
- 
- 		rpf = vsp1_rpf_create(vsp1, i);
-@@ -282,13 +284,16 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		vsp1->rpf[i] = rpf;
- 		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
- 
--		video = vsp1_video_create(vsp1, rpf);
--		if (IS_ERR(video)) {
--			ret = PTR_ERR(video);
--			goto done;
--		}
-+		if (vsp1->info->uapi) {
-+			struct vsp1_video *video = vsp1_video_create(vsp1, rpf);
- 
--		list_add_tail(&video->list, &vsp1->videos);
-+			if (IS_ERR(video)) {
-+				ret = PTR_ERR(video);
-+				goto done;
-+			}
-+
-+			list_add_tail(&video->list, &vsp1->videos);
-+		}
- 	}
- 
- 	if (vsp1->pdata.features & VSP1_HAS_SRU) {
-@@ -315,7 +320,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		struct vsp1_video *video;
- 		struct vsp1_rwpf *wpf;
- 
- 		wpf = vsp1_wpf_create(vsp1, i);
-@@ -327,14 +331,17 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		vsp1->wpf[i] = wpf;
- 		list_add_tail(&wpf->entity.list_dev, &vsp1->entities);
- 
--		video = vsp1_video_create(vsp1, wpf);
--		if (IS_ERR(video)) {
--			ret = PTR_ERR(video);
--			goto done;
--		}
-+		if (vsp1->info->uapi) {
-+			struct vsp1_video *video = vsp1_video_create(vsp1, wpf);
-+
-+			if (IS_ERR(video)) {
-+				ret = PTR_ERR(video);
-+				goto done;
-+			}
- 
--		list_add_tail(&video->list, &vsp1->videos);
--		wpf->entity.sink = &video->video.entity;
-+			list_add_tail(&video->list, &vsp1->videos);
-+			wpf->entity.sink = &video->video.entity;
-+		}
- 	}
- 
- 	/* Create links. */
-@@ -350,7 +357,8 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 			goto done;
- 	}
- 
--	ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
-+	if (vsp1->info->uapi)
-+		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
- 
- done:
- 	if (ret < 0)
-@@ -624,6 +632,7 @@ static int vsp1_remove(struct platform_device *pdev)
- 
- static const struct vsp1_device_info vsp1_gen2_info = {
- 	.num_bru_inputs = 4,
-+	.uapi = true,
- };
- 
- static const struct of_device_id vsp1_of_match[] = {
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index cb9d480d8ee5..7068ba1e89e9 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -45,7 +45,7 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
- 	if (!streaming)
- 		return 0;
- 
--	if (!entity->subdev.ctrl_handler)
-+	if (!entity->vsp1->info->uapi || !entity->subdev.ctrl_handler)
- 		return 0;
- 
- 	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index d41ae950d1a1..4e1db5a3c928 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -151,11 +151,13 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Take the control handler lock to ensure that the CTRL0 value won't be
- 	 * changed behind our back by a set control operation.
- 	 */
--	mutex_lock(sru->ctrls.lock);
-+	if (sru->entity.vsp1->info->uapi)
-+		mutex_lock(sru->ctrls.lock);
- 	ctrl0 |= vsp1_sru_read(sru, VI6_SRU_CTRL0)
- 	       & (VI6_SRU_CTRL0_PARAM0_MASK | VI6_SRU_CTRL0_PARAM1_MASK);
- 	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
--	mutex_unlock(sru->ctrls.lock);
-+	if (sru->entity.vsp1->info->uapi)
-+		mutex_unlock(sru->ctrls.lock);
- 
- 	vsp1_sru_write(sru, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d2537b46fc46..451ca37930e0 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -151,10 +151,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Take the control handler lock to ensure that the PDV value won't be
- 	 * changed behind our back by a set control operation.
- 	 */
--	mutex_lock(wpf->ctrls.lock);
-+	if (vsp1->info->uapi)
-+		mutex_lock(wpf->ctrls.lock);
- 	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
- 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
--	mutex_unlock(wpf->ctrls.lock);
-+	if (vsp1->info->uapi)
-+		mutex_unlock(wpf->ctrls.lock);
- 
- 	vsp1_write(vsp1, VI6_DPR_WPF_FPORCH(wpf->entity.index),
- 		   VI6_DPR_WPF_FPORCH_FP_WPFN);
--- 
-2.4.6
+> Signed-off-by: Eric Nelson <eric@nelint.com>
+> ---
+>  drivers/media/rc/gpio-ir-recv.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+> 
+> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+> index 7dbc9ca..d3b216a 100644
+> --- a/drivers/media/rc/gpio-ir-recv.c
+> +++ b/drivers/media/rc/gpio-ir-recv.c
+> @@ -30,6 +30,7 @@ struct gpio_rc_dev {
+>  	struct rc_dev *rcdev;
+>  	int gpio_nr;
+>  	bool active_low;
+> +	struct timer_list flush_timer;
+>  };
+>  
+>  #ifdef CONFIG_OF
+> @@ -93,12 +94,26 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+>  	if (rc < 0)
+>  		goto err_get_value;
+>  
+> +	mod_timer(&gpio_dev->flush_timer,
+> +		  jiffies + nsecs_to_jiffies(gpio_dev->rcdev->timeout));
+> +
+>  	ir_raw_event_handle(gpio_dev->rcdev);
+>  
+>  err_get_value:
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static void flush_timer(unsigned long arg)
+> +{
+> +	struct gpio_rc_dev *gpio_dev = (struct gpio_rc_dev *)arg;
+> +	DEFINE_IR_RAW_EVENT(ev);
+> +
+> +	ev.timeout = true;
+> +	ev.duration =  gpio_dev->rcdev->timeout;
 
+Nitpick: two spaces, checkpatch would have found this.
+
+> +	ir_raw_event_store(gpio_dev->rcdev, &ev);
+> +	ir_raw_event_handle(gpio_dev->rcdev);
+> +}
+> +
+>  static int gpio_ir_recv_probe(struct platform_device *pdev)
+>  {
+>  	struct gpio_rc_dev *gpio_dev;
+> @@ -144,6 +159,9 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+>  	rcdev->input_id.version = 0x0100;
+>  	rcdev->dev.parent = &pdev->dev;
+>  	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
+> +	rcdev->min_timeout = 1;
+> +	rcdev->timeout = IR_DEFAULT_TIMEOUT;
+> +	rcdev->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+>  	if (pdata->allowed_protos)
+>  		rcdev->allowed_protocols = pdata->allowed_protos;
+>  	else
+> @@ -154,6 +172,10 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+>  	gpio_dev->gpio_nr = pdata->gpio_nr;
+>  	gpio_dev->active_low = pdata->active_low;
+>  
+> +	init_timer(&gpio_dev->flush_timer);
+> +	gpio_dev->flush_timer.function = flush_timer;
+> +	gpio_dev->flush_timer.data = (unsigned long)gpio_dev;
+
+
+You could use "setup_timer(&gpio_dev->flush_timer, flush_timer, (unsigned long)gpio_dev);" here.
+
+
+> +
+>  	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+>  	if (rc < 0)
+>  		goto err_gpio_request;
+
+You'll need a "del_timer_sync(&gpio_dev->flush_timer);" in 
+gpio_ir_recv_remove() or you'll have a race on remove.
+
+
+Sean
