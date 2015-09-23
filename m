@@ -1,113 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:54118 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbbIKGyc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 02:54:32 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-arm-kernel@lists.infradead.org>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 1/3] media: atmel-isi: setup the ISI_CFG2 register directly
-Date: Fri, 11 Sep 2015 15:00:14 +0800
-Message-ID: <1441954816-11285-1-git-send-email-josh.wu@atmel.com>
+Received: from foss.arm.com ([217.140.101.70]:34554 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754282AbbIWOhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Sep 2015 10:37:52 -0400
+Subject: Re: [PATCH 15/17] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
+To: zhangfei <zhangfei.gao@linaro.org>,
+	"linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com>
+ <1442850433-5903-16-git-send-email-sudeep.holla@arm.com>
+ <5602B6A1.2090309@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Guoxiong Yan <yanguoxiong@huawei.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Message-ID: <5602B93B.7040108@arm.com>
+Date: Wed, 23 Sep 2015 15:37:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <5602B6A1.2090309@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the function configure_geometry(), we will setup the ISI CFG2
-according to the sensor output format.
 
-It make no sense to just read back the CFG2 register and just set part
-of it.
 
-So just set up this register directly makes things simpler.
-Currently only support YUV format from camera sensor.
+On 23/09/15 15:26, zhangfei wrote:
+>
+>
+> On 09/21/2015 08:47 AM, Sudeep Holla wrote:
+>> This driver doesn't claim the IR transmitter to be wakeup source. It
+>> even disables the clock and the IR during suspend-resume cycle.
+>>
+>> This patch removes yet another misuse of IRQF_NO_SUSPEND.
+>>
+>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
+>> Cc: Patrice Chotard <patrice.chotard@st.com>
+>> Cc: Fabio Estevam <fabio.estevam@freescale.com>
+>> Cc: Guoxiong Yan <yanguoxiong@huawei.com>
+>> Cc: linux-media@vger.kernel.org
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>    drivers/media/rc/ir-hix5hd2.c | 2 +-
+>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+>> index 1c087cb76815..d0549fba711c 100644
+>> --- a/drivers/media/rc/ir-hix5hd2.c
+>> +++ b/drivers/media/rc/ir-hix5hd2.c
+>> @@ -257,7 +257,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+>>    		goto clkerr;
+>>
+>>    	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
+>> -			     IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
+>> +			     0, pdev->name, priv) < 0) {
+>>    		dev_err(dev, "IRQ %d register failed\n", priv->irq);
+>>    		ret = -EINVAL;
+>>    		goto regerr;
+>>
+>
+> ir is wakeup source for hix5hd2, so we use IRQF_NO_SUSPEND.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
+OK, but from the existing implementation of suspend/resume callbacks, I
+read that the clocks as well as the IP block is powered off. Is part of
+the logic always-on ?
 
-Changes in v4:
-- add a COL_SPACE_YCbCr for cfg2
+> However, it is true the wakeup mechanism is not realized on hix5hd2 yet.
 
-Changes in v3: None
-Changes in v2:
-- add Laurent's reviewed-by tag.
+OK, then I assume you can add the right APIs(enable_irq_wake and
+friends) when you add that feature.
 
- drivers/media/platform/soc_camera/atmel-isi.c | 20 +++++++-------------
- include/media/atmel-isi.h                     |  2 ++
- 2 files changed, 9 insertions(+), 13 deletions(-)
+> I am fine with either using IRQF_NO_SUSPEND or not.
+>
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index f39132c..a76c609 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -105,24 +105,25 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
- static int configure_geometry(struct atmel_isi *isi, u32 width,
- 			u32 height, u32 code)
- {
--	u32 cfg2, cr;
-+	u32 cfg2;
- 
-+	/* According to sensor's output format to set cfg2 */
- 	switch (code) {
- 	/* YUV, including grey */
- 	case MEDIA_BUS_FMT_Y8_1X8:
--		cr = ISI_CFG2_GRAYSCALE;
-+		cfg2 = ISI_CFG2_GRAYSCALE | ISI_CFG2_COL_SPACE_YCbCr;
- 		break;
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_3;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_2;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
- 		break;
- 	case MEDIA_BUS_FMT_YVYU8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_MODE_1;
-+		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
- 		break;
- 	case MEDIA_BUS_FMT_YUYV8_2X8:
--		cr = ISI_CFG2_YCC_SWAP_DEFAULT;
-+		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
- 		break;
- 	/* RGB, TODO */
- 	default:
-@@ -130,17 +131,10 @@ static int configure_geometry(struct atmel_isi *isi, u32 width,
- 	}
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
--	cfg2 = isi_readl(isi, ISI_CFG2);
--	/* Set YCC swap mode */
--	cfg2 &= ~ISI_CFG2_YCC_SWAP_MODE_MASK;
--	cfg2 |= cr;
- 	/* Set width */
--	cfg2 &= ~(ISI_CFG2_IM_HSIZE_MASK);
- 	cfg2 |= ((width - 1) << ISI_CFG2_IM_HSIZE_OFFSET) &
- 			ISI_CFG2_IM_HSIZE_MASK;
- 	/* Set height */
--	cfg2 &= ~(ISI_CFG2_IM_VSIZE_MASK);
- 	cfg2 |= ((height - 1) << ISI_CFG2_IM_VSIZE_OFFSET)
- 			& ISI_CFG2_IM_VSIZE_MASK;
- 	isi_writel(isi, ISI_CFG2, cfg2);
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 6008b09..e7a96b8 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -66,6 +66,8 @@
- 
- /* Bitfields in CFG2 */
- #define ISI_CFG2_GRAYSCALE			(1 << 13)
-+#define ISI_CFG2_COL_SPACE_YCbCr		(0 << 15)
-+#define ISI_CFG2_COL_SPACE_RGB			(1 << 15)
- /* Constants for YCC_SWAP(ISI_V2) */
- #define		ISI_CFG2_YCC_SWAP_DEFAULT	(0 << 28)
- #define		ISI_CFG2_YCC_SWAP_MODE_1	(1 << 28)
--- 
-1.9.1
+No using IRQF_NO_SUSPEND for wakeup is simply wrong and hence this patch
+series removes all those misuse. If you need it as wakeup, then you need
+to use right APIs for that. Since I don't see any support for wakeup in
+this driver I decided to just remove the flag. Please feel free to add
+the support making use of right APIs.
 
+Regards,
+Sudeep
