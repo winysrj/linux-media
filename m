@@ -1,86 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49855 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758878AbbIVVKt (ORCPT
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:3880 "EHLO
+	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbbIWBag (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Sep 2015 17:10:49 -0400
-Date: Wed, 23 Sep 2015 00:10:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, robin.murphy@arm.com,
-	hverkuil@xs4all.nl
-Subject: Re: [RESEND PATCH] media: vb2: Fix vb2_dc_prepare do not correct
- sync data to device
-Message-ID: <20150922211015.GT3175@valkosipuli.retiisi.org.uk>
-References: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
+	Tue, 22 Sep 2015 21:30:36 -0400
+From: Bryan Wu <pengw@nvidia.com>
+To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
+	<treding@nvidia.com>
+CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
+	<davidw@nvidia.com>, <gfitzer@nvidia.com>, <bmurthyv@nvidia.com>,
+	<linux-tegra@vger.kernel.org>
+Subject: [PATCH 0/3 RFC v3] media: platform: add NVIDIA Tegra VI driver
+Date: Tue, 22 Sep 2015 18:30:31 -0700
+Message-ID: <1442971834-2721-1-git-send-email-pengw@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1442838371-21484-1-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
+This patchset add and enable V4L2 driver for latest NVIDIA Tegra
+Video Input hardware controller.
 
-(Robin and Hans cc'd.)
+It's based on the staging/work branch of Thierry Reding Tegra
+upstream kernel github repo, which is based on 4.2-rc1.
+(https://github.com/thierryreding/linux/tree/staging/work) 
 
-On Mon, Sep 21, 2015 at 08:26:11PM +0800, Tiffany Lin wrote:
-> vb2_dc_prepare use the number of SG entries dma_map_sg_attrs return.
-> But in dma_sync_sg_for_device, it use lengths of each SG entries
-> before dma_map_sg_attrs. dma_map_sg_attrs will concatenate
-> SGs until dma length > dma seg bundary. sgt->nents will less than
-> sgt->orig_nents. Using SG entries after dma_map_sg_attrs
-> in vb2_dc_prepare will make some SGs are not sync to device.
-> After add DMA_ATTR_SKIP_CPU_SYNC in vb2_dc_get_userptr to remove
-> sync data to device twice. Device randomly get incorrect data because
-> some SGs are not sync to device. Change to use number of SG entries
-> before dma_map_sg_attrs in vb2_dc_prepare to prevent this issue.
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 2397ceb..c5d00bd 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -100,7 +100,7 @@ static void vb2_dc_prepare(void *buf_priv)
->  	if (!sgt || buf->db_attach)
->  		return;
->  
-> -	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
->  }
->  
->  static void vb2_dc_finish(void *buf_priv)
-> @@ -112,7 +112,7 @@ static void vb2_dc_finish(void *buf_priv)
->  	if (!sgt || buf->db_attach)
->  		return;
->  
-> -	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> +	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
->  }
->  
->  /*********************************************/
+v4:
+  - fix all the coding style issues
+  - solve all the minor problems pointed out by Hans Verkuil
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+v3:
+  - rework on the locking code related to kthread
+  - remove some dead code
+  - other fixes
 
-Could you post a similar patch for videobuf2-dma-sg as well, please? This
-should probably go to stable (since when?).
+v2:
+  - allocate kthread for each channel instead of workqueue
+  - create tegra-csi as a separated V4L2 subdevice
+  - define all the register bits needed in this driver
+  - add device tree binding document
+  - update things according to Hans and Thierry's review.
 
-videobuf-dma-sg appears to be broken, too, but the fix is more changes
-than one or two lines.
+Bryan Wu (3):
+  [media] v4l: tegra: Add NVIDIA Tegra VI driver
+  ARM64: add tegra-vi support in T210 device-tree
+  Documentation: DT bindings: add VI and CSI bindings
+
+ .../bindings/gpu/nvidia,tegra20-host1x.txt         | 211 +++++-
+ arch/arm64/boot/dts/nvidia/tegra210-p2571-e01.dts  |   8 +
+ arch/arm64/boot/dts/nvidia/tegra210.dtsi           | 174 ++++-
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/tegra/Kconfig               |  10 +
+ drivers/media/platform/tegra/Makefile              |   3 +
+ drivers/media/platform/tegra/tegra-channel.c       | 802 +++++++++++++++++++++
+ drivers/media/platform/tegra/tegra-core.c          | 252 +++++++
+ drivers/media/platform/tegra/tegra-core.h          | 162 +++++
+ drivers/media/platform/tegra/tegra-csi.c           | 566 +++++++++++++++
+ drivers/media/platform/tegra/tegra-vi.c            | 581 +++++++++++++++
+ drivers/media/platform/tegra/tegra-vi.h            | 213 ++++++
+ 13 files changed, 2978 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/media/platform/tegra/Kconfig
+ create mode 100644 drivers/media/platform/tegra/Makefile
+ create mode 100644 drivers/media/platform/tegra/tegra-channel.c
+ create mode 100644 drivers/media/platform/tegra/tegra-core.c
+ create mode 100644 drivers/media/platform/tegra/tegra-core.h
+ create mode 100644 drivers/media/platform/tegra/tegra-csi.c
+ create mode 100644 drivers/media/platform/tegra/tegra-vi.c
+ create mode 100644 drivers/media/platform/tegra/tegra-vi.h
 
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
