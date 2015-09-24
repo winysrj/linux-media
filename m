@@ -1,613 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:53878 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838AbbIFRbj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Sep 2015 13:31:39 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Joe Perches <joe@perches.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 13/18] [media] media-entity.h: rename entity.type to entity.function
-Date: Sun,  6 Sep 2015 14:30:56 -0300
-Message-Id: <10e7edf1c85965d8ef8c6c5f527fd695a2660fc4.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39833 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751238AbbIXJF2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Sep 2015 05:05:28 -0400
+Received: from [10.0.1.32] (unknown [176.61.120.147])
+	by tschai.lan (Postfix) with ESMTPSA id 316AF2A00AF
+	for <linux-media@vger.kernel.org>; Thu, 24 Sep 2015 11:03:58 +0200 (CEST)
+Message-ID: <5603BCD2.7090103@xs4all.nl>
+Date: Thu, 24 Sep 2015 10:05:22 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v4.4] Merge part 1 of the vb2 split-up series
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Entities should have one or more functions. Calling it as a
-type proofed to not be correct, as an entity could eventually
-have more than one type.
+As requested by Mauro, here is the pull request that merges patches 1-4
+of Junghak's patch series that splits up the vb2 code. Patches 2-4 are
+squashed together and it includes the two fixup patches Junghak posted that
+fix compilation errors.
 
-So, rename the field as function.
+Regards,
 
-Please notice that this patch doesn't extend support for
-multiple function entities. Such change will happen when
-we have real case drivers using it.
+	Hans
 
-No functional changes.
+The following changes since commit 9ddf9071ea17b83954358b2dac42b34e5857a9af:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+  Merge tag 'v4.3-rc1' into patchwork (2015-09-13 11:10:12 -0300)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 109cc3792534..2e0fc28fa12f 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -303,8 +303,8 @@ calling media_entity_init():
- 	err = media_entity_init(&sd->entity, npads, pads);
- 
- The pads array must have been previously initialized. There is no need to
--manually set the struct media_entity type and name fields, but the revision
--field must be initialized if needed.
-+manually set the struct media_entity function and name fields, but the
-+revision field must be initialized if needed.
- 
- A reference to the entity will be automatically acquired/released when the
- subdev device node (if any) is opened/closed.
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index df2fe4cc2d47..e925909bc99e 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -229,7 +229,7 @@ static int dvb_create_tsout_entity(struct dvb_device *dvbdev,
- 		if (!entity->name)
- 			return ret;
- 
--		entity->type = MEDIA_ENT_T_DVB_TSOUT;
-+		entity->function = MEDIA_ENT_T_DVB_TSOUT;
- 		pads->flags = MEDIA_PAD_FL_SINK;
- 
- 		ret = media_entity_init(entity, 1, pads);
-@@ -302,18 +302,18 @@ static int dvb_create_media_entity(struct dvb_device *dvbdev,
- 
- 	switch (type) {
- 	case DVB_DEVICE_FRONTEND:
--		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMOD;
-+		dvbdev->entity->function = MEDIA_ENT_T_DVB_DEMOD;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_DEMUX:
--		dvbdev->entity->type = MEDIA_ENT_T_DVB_DEMUX;
-+		dvbdev->entity->function = MEDIA_ENT_T_DVB_DEMUX;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		for (i = 1; i < npads; i++)
- 			dvbdev->pads[i].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
- 	case DVB_DEVICE_CA:
--		dvbdev->entity->type = MEDIA_ENT_T_DVB_CA;
-+		dvbdev->entity->function = MEDIA_ENT_T_DVB_CA;
- 		dvbdev->pads[0].flags = MEDIA_PAD_FL_SINK;
- 		dvbdev->pads[1].flags = MEDIA_PAD_FL_SOURCE;
- 		break;
-@@ -537,7 +537,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 		return 0;
- 
- 	media_device_for_each_entity(entity, mdev) {
--		switch (entity->type) {
-+		switch (entity->function) {
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
-@@ -576,7 +576,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 	/* Create demux links for each ringbuffer/pad */
- 	if (demux) {
- 		media_device_for_each_entity(entity, mdev) {
--			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
-+			if (entity->function == MEDIA_ENT_T_DVB_TSOUT) {
- 				if (!strncmp(entity->name, DVR_TSOUT,
- 				    strlen(DVR_TSOUT))) {
- 					ret = media_create_pad_link(demux,
-@@ -621,7 +621,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
- 		}
- 
- 		media_device_for_each_entity(entity, mdev) {
--			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
-+			if (entity->function == MEDIA_ENT_T_DVB_TSOUT) {
- 				if (!strcmp(entity->name, DVR_TSOUT)) {
- 					link = media_create_intf_link(entity,
- 							intf,
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 55cd42a584a5..a6fbe78a70e3 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -775,7 +775,7 @@ static int au8522_probe(struct i2c_client *client,
- 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
- 
- 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
- 				state->pads);
-diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-index 5f76997f6e07..2b8f72ac0f7d 100644
---- a/drivers/media/i2c/adp1653.c
-+++ b/drivers/media/i2c/adp1653.c
-@@ -516,7 +516,7 @@ static int adp1653_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		goto free_and_quit;
- 
--	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+	flash->subdev.entity.function = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
- 
- 	return 0;
- 
-diff --git a/drivers/media/i2c/as3645a.c b/drivers/media/i2c/as3645a.c
-index 9d579a836f79..a49ef7d6df18 100644
---- a/drivers/media/i2c/as3645a.c
-+++ b/drivers/media/i2c/as3645a.c
-@@ -831,7 +831,7 @@ static int as3645a_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		goto done;
- 
--	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+	flash->subdev.entity.function = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
- 
- 	mutex_init(&flash->power_lock);
- 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index 270135d06b32..d48a3a4df96b 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -5208,7 +5208,7 @@ static int cx25840_probe(struct i2c_client *client,
- 	state->pads[CX25840_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[CX25840_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[CX25840_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
- 
- 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
- 				state->pads);
-diff --git a/drivers/media/i2c/lm3560.c b/drivers/media/i2c/lm3560.c
-index 9bd9def0852c..7c1abdca39d0 100644
---- a/drivers/media/i2c/lm3560.c
-+++ b/drivers/media/i2c/lm3560.c
-@@ -368,7 +368,7 @@ static int lm3560_subdev_init(struct lm3560_flash *flash,
- 	rval = media_entity_init(&flash->subdev_led[led_no].entity, 0, NULL);
- 	if (rval < 0)
- 		goto err_out;
--	flash->subdev_led[led_no].entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+	flash->subdev_led[led_no].entity.function = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
- 
- 	return rval;
- 
-diff --git a/drivers/media/i2c/lm3646.c b/drivers/media/i2c/lm3646.c
-index 4160e18af607..d609f2fa8e6c 100644
---- a/drivers/media/i2c/lm3646.c
-+++ b/drivers/media/i2c/lm3646.c
-@@ -285,7 +285,7 @@ static int lm3646_subdev_init(struct lm3646_flash *flash)
- 	rval = media_entity_init(&flash->subdev_led.entity, 0, NULL);
- 	if (rval < 0)
- 		goto err_out;
--	flash->subdev_led.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+	flash->subdev_led.entity.function = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
- 	return rval;
- 
- err_out:
-diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
-index f718a1009e4c..206319b88d7a 100644
---- a/drivers/media/i2c/m5mols/m5mols_core.c
-+++ b/drivers/media/i2c/m5mols/m5mols_core.c
-@@ -978,7 +978,7 @@ static int m5mols_probe(struct i2c_client *client,
- 	ret = media_entity_init(&sd->entity, 1, &info->pad);
- 	if (ret < 0)
- 		return ret;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 
- 	init_waitqueue_head(&info->irq_waitq);
- 	mutex_init(&info->lock);
-diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
-index a9761251b970..6cd407bcfddf 100644
---- a/drivers/media/i2c/noon010pc30.c
-+++ b/drivers/media/i2c/noon010pc30.c
-@@ -779,7 +779,7 @@ static int noon010_probe(struct i2c_client *client,
- 		goto np_err;
- 
- 	info->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, 1, &info->pad);
- 	if (ret < 0)
- 		goto np_err;
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index 6bce9832ab7b..c085dec69201 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -1445,7 +1445,7 @@ static int ov2659_probe(struct i2c_client *client,
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	ov2659->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, 1, &ov2659->pad);
- 	if (ret < 0) {
- 		v4l2_ctrl_handler_free(&ov2659->ctrls);
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 8a8eb593fc23..2862244a6488 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -1500,7 +1500,7 @@ static int ov965x_probe(struct i2c_client *client,
- 		return ret;
- 
- 	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, 1, &ov965x->pad);
- 	if (ret < 0)
- 		return ret;
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index abae37321c0c..3f55168cce47 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1688,7 +1688,7 @@ static int s5c73m3_probe(struct i2c_client *client,
- 
- 	state->sensor_pads[S5C73M3_JPEG_PAD].flags = MEDIA_PAD_FL_SOURCE;
- 	state->sensor_pads[S5C73M3_ISP_PAD].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 
- 	ret = media_entity_init(&sd->entity, S5C73M3_NUM_PADS,
- 							state->sensor_pads);
-@@ -1704,7 +1704,7 @@ static int s5c73m3_probe(struct i2c_client *client,
- 	state->oif_pads[OIF_ISP_PAD].flags = MEDIA_PAD_FL_SINK;
- 	state->oif_pads[OIF_JPEG_PAD].flags = MEDIA_PAD_FL_SINK;
- 	state->oif_pads[OIF_SOURCE_PAD].flags = MEDIA_PAD_FL_SOURCE;
--	oif_sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	oif_sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 
- 	ret = media_entity_init(&oif_sd->entity, OIF_NUM_PADS,
- 							state->oif_pads);
-diff --git a/drivers/media/i2c/s5k4ecgx.c b/drivers/media/i2c/s5k4ecgx.c
-index d207ddce31b6..45f6e6f2585a 100644
---- a/drivers/media/i2c/s5k4ecgx.c
-+++ b/drivers/media/i2c/s5k4ecgx.c
-@@ -961,7 +961,7 @@ static int s5k4ecgx_probe(struct i2c_client *client,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- 	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, 1, &priv->pad);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index 0513196bd48c..22dfeadf7672 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -408,7 +408,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
- 
- static inline bool s5k5baf_is_cis_subdev(struct v4l2_subdev *sd)
- {
--	return sd->entity.type == MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	return sd->entity.function == MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- }
- 
- static inline struct s5k5baf *to_s5k5baf(struct v4l2_subdev *sd)
-@@ -1904,7 +1904,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- 	state->cis_pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, NUM_CIS_PADS, &state->cis_pad);
- 	if (ret < 0)
- 		goto err;
-@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
- 
- 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
- 
- 	if (!ret)
-diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-index 39a461f9d9bb..71162c02d6d7 100644
---- a/drivers/media/i2c/s5k6aa.c
-+++ b/drivers/media/i2c/s5k6aa.c
-@@ -1577,7 +1577,7 @@ static int s5k6aa_probe(struct i2c_client *client,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- 	s5k6aa->pad.flags = MEDIA_PAD_FL_SOURCE;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 	ret = media_entity_init(&sd->entity, 1, &s5k6aa->pad);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 5aa49eb393a9..bb1f891a1eb6 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2763,7 +2763,7 @@ static int smiapp_init(struct smiapp_sensor *sensor)
- 
- 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
- 
--	sensor->pixel_array->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	sensor->pixel_array->sd.entity.function = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
- 
- 	/* final steps */
- 	smiapp_read_frame_fmt(sensor);
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 97eb97d9b662..ccef9621d147 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -108,7 +108,7 @@ static long media_device_enum_entities(struct media_device *mdev,
- 	u_ent.id = media_entity_id(ent);
- 	if (ent->name)
- 		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
--	u_ent.type = ent->type;
-+	u_ent.type = ent->function;
- 	u_ent.revision = ent->revision;
- 	u_ent.flags = ent->flags;
- 	u_ent.group_id = ent->group_id;
-@@ -614,8 +614,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- {
- 	int i;
- 
--	if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN ||
--	    entity->type == MEDIA_ENT_T_UNKNOWN)
-+	if (entity->function == MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN ||
-+	    entity->function == MEDIA_ENT_T_UNKNOWN)
- 		dev_warn(mdev->dev,
- 			 "Entity type for entity %s was not initialized!\n",
- 			 entity->name);
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 8e14841bf445..8bee7313a497 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -191,7 +191,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		struct xvip_dma *dma;
- 
--		if (entity->type != MEDIA_ENT_T_V4L2_VIDEO)
-+		if (entity->function != MEDIA_ENT_T_V4L2_VIDEO)
- 			continue;
- 
- 		dma = to_xvip_dma(media_entity_to_video_device(entity));
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 399c6712faf9..44a2ab3c85ab 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -263,7 +263,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		return 0;
- 
- 	media_device_for_each_entity(entity, mdev) {
--		switch (entity->type) {
-+		switch (entity->function) {
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 806b8d320bae..5c01f37cd0b8 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1830,18 +1830,18 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
- 
- 		switch(AUVI_INPUT(i).type) {
- 		case AU0828_VMUX_COMPOSITE:
--			ent->type = MEDIA_ENT_T_CONN_COMPOSITE;
-+			ent->function = MEDIA_ENT_T_CONN_COMPOSITE;
- 			break;
- 		case AU0828_VMUX_SVIDEO:
--			ent->type = MEDIA_ENT_T_CONN_SVIDEO;
-+			ent->function = MEDIA_ENT_T_CONN_SVIDEO;
- 			break;
- 		case AU0828_VMUX_CABLE:
- 		case AU0828_VMUX_TELEVISION:
- 		case AU0828_VMUX_DVB:
--			ent->type = MEDIA_ENT_T_CONN_RF;
-+			ent->function = MEDIA_ENT_T_CONN_RF;
- 			break;
- 		default: /* AU0828_VMUX_DEBUG */
--			ent->type = MEDIA_ENT_T_CONN_TEST;
-+			ent->function = MEDIA_ENT_T_CONN_TEST;
- 			break;
- 		}
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index c05aaef85491..b01d6bce3cf6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1249,7 +1249,7 @@ static int cx231xx_create_media_graph(struct cx231xx *dev)
- 		return 0;
- 
- 	media_device_for_each_entity(entity, mdev) {
--		switch (entity->type) {
-+		switch (entity->function) {
- 		case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
- 			tuner = entity;
- 			break;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index e8baff4d6290..ed4a49c850c7 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -119,7 +119,7 @@ static int cx231xx_enable_analog_tuner(struct cx231xx *dev)
- 	 * this should be enough for the actual needs.
- 	 */
- 	media_device_for_each_entity(entity, mdev) {
--		if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
-+		if (entity->function == MEDIA_ENT_T_V4L2_SUBDEV_DECODER) {
- 			decoder = entity;
- 			break;
- 		}
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index b90f2a52db96..e8fc5ec8fc35 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -698,7 +698,7 @@ register_client:
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	t->pad[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
--	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
-+	t->sd.entity.function = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
- 	t->sd.entity.name = t->name;
- 
- 	ret = media_entity_init(&t->sd.entity, TUNER_NUM_PADS, &t->pad[0]);
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 8429da66754a..2446b2d8fe66 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -197,7 +197,7 @@ static void v4l2_device_release(struct device *cd)
- 	if (v4l2_dev->mdev) {
- 		/* Remove interfaces and interface links */
- 		media_devnode_remove(vdev->intf_devnode);
--		if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN)
-+		if (vdev->entity.function != MEDIA_ENT_T_UNKNOWN)
- 			media_device_unregister_entity(&vdev->entity);
- 	}
- #endif
-@@ -726,20 +726,20 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 	if (!vdev->v4l2_dev->mdev)
- 		return 0;
- 
--	vdev->entity.type = MEDIA_ENT_T_UNKNOWN;
-+	vdev->entity.function = MEDIA_ENT_T_UNKNOWN;
- 
- 	switch (type) {
- 	case VFL_TYPE_GRABBER:
- 		intf_type = MEDIA_INTF_T_V4L_VIDEO;
--		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
-+		vdev->entity.function = MEDIA_ENT_T_V4L2_VIDEO;
- 		break;
- 	case VFL_TYPE_VBI:
- 		intf_type = MEDIA_INTF_T_V4L_VBI;
--		vdev->entity.type = MEDIA_ENT_T_V4L2_VBI;
-+		vdev->entity.function = MEDIA_ENT_T_V4L2_VBI;
- 		break;
- 	case VFL_TYPE_SDR:
- 		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
--		vdev->entity.type = MEDIA_ENT_T_V4L2_SWRADIO;
-+		vdev->entity.function = MEDIA_ENT_T_V4L2_SWRADIO;
- 		break;
- 	case VFL_TYPE_RADIO:
- 		intf_type = MEDIA_INTF_T_V4L_RADIO;
-@@ -757,7 +757,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 		return 0;
- 	}
- 
--	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-+	if (vdev->entity.function != MEDIA_ENT_T_UNKNOWN) {
- 		vdev->entity.name = vdev->name;
- 
- 		/* Needed just for backward compatibility with legacy MC API */
-@@ -784,7 +784,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 		return -ENOMEM;
- 	}
- 
--	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-+	if (vdev->entity.function != MEDIA_ENT_T_UNKNOWN) {
- 		struct media_link *link;
- 
- 		link = media_create_intf_link(&vdev->entity,
-diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-index 34c489fed55e..cf7b3cb9a373 100644
---- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-+++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-@@ -655,7 +655,7 @@ struct v4l2_flash *v4l2_flash_init(
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
- 
- 	ret = v4l2_flash_init_controls(v4l2_flash, config);
- 	if (ret < 0)
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index b3bcc8253182..b440cb66669c 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -535,9 +535,9 @@ v4l2_subdev_link_validate_get_format(struct media_pad *pad,
- 		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
- 	}
- 
--	WARN(pad->entity->type != MEDIA_ENT_T_V4L2_VIDEO,
-+	WARN(pad->entity->function != MEDIA_ENT_T_V4L2_VIDEO,
- 	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
--	     pad->entity->type, pad->entity->name);
-+	     pad->entity->function, pad->entity->name);
- 
- 	return -EINVAL;
- }
-@@ -584,7 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
--	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN;
-+	sd->entity.function = MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
- EXPORT_SYMBOL(v4l2_subdev_init);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8bdc10dcc5e7..10f7d5f0eb66 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -152,7 +152,8 @@ struct media_entity_operations {
-  *
-  * @graph_obj:	Embedded structure containing the media object common data.
-  * @name:	Entity name.
-- * @type:	Entity type, as defined at uapi/media.h (MEDIA_ENT_T_*)
-+ * @function:	Entity main function, as defined at uapi/media.h
-+ *		(MEDIA_ENT_F_*)
-  * @revision:	Entity revision - OBSOLETE - should be removed soon.
-  * @flags:	Entity flags, as defined at uapi/media.h (MEDIA_ENT_FL_*)
-  * @group_id:	Entity group ID - OBSOLETE - should be removed soon.
-@@ -179,7 +180,7 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
--	u32 type;
-+	u32 function;
- 	u32 revision;
- 	unsigned long flags;
- 	u32 group_id;
-@@ -277,7 +278,7 @@ static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- 	if (!entity)
- 		return false;
- 
--	switch (entity->type) {
-+	switch (entity->function) {
- 	case MEDIA_ENT_T_V4L2_VIDEO:
- 	case MEDIA_ENT_T_V4L2_VBI:
- 	case MEDIA_ENT_T_V4L2_SWRADIO:
-@@ -292,7 +293,7 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- 	if (!entity)
- 		return false;
- 
--	switch (entity->type) {
-+	switch (entity->function) {
- 	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
- 	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
- 	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
--- 
-2.4.3
+are available in the git repository at:
 
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.4d
 
+for you to fetch changes up to bfb074ffaec76830674f0826df834ae9e239afa4:
+
+  media: videobuf2: Restructure vb2_buffer (2015-09-24 10:55:43 +0200)
+
+----------------------------------------------------------------
+Junghak Sung (2):
+      media: videobuf2: Replace videobuf2-core with videobuf2-v4l2
+      media: videobuf2: Restructure vb2_buffer
+
+ drivers/input/touchscreen/sur40.c                  |  17 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  21 +-
+ drivers/media/pci/cobalt/cobalt-driver.h           |   6 +-
+ drivers/media/pci/cobalt/cobalt-irq.c              |   7 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  20 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |  11 +-
+ drivers/media/pci/cx23885/cx23885-core.c           |  24 +--
+ drivers/media/pci/cx23885/cx23885-dvb.c            |   9 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  16 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |  27 +--
+ drivers/media/pci/cx23885/cx23885.h                |   2 +-
+ drivers/media/pci/cx25821/cx25821-video.c          |  21 +-
+ drivers/media/pci/cx25821/cx25821.h                |   3 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |  13 +-
+ drivers/media/pci/cx88/cx88-core.c                 |   8 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |  11 +-
+ drivers/media/pci/cx88/cx88-mpeg.c                 |  14 +-
+ drivers/media/pci/cx88/cx88-vbi.c                  |  17 +-
+ drivers/media/pci/cx88/cx88-video.c                |  19 +-
+ drivers/media/pci/cx88/cx88.h                      |   2 +-
+ drivers/media/pci/dt3155/dt3155.c                  |  17 +-
+ drivers/media/pci/dt3155/dt3155.h                  |   3 +-
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  19 +-
+ drivers/media/pci/saa7134/saa7134-core.c           |  14 +-
+ drivers/media/pci/saa7134/saa7134-ts.c             |  14 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  10 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |  21 +-
+ drivers/media/pci/saa7134/saa7134.h                |   2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |  46 +++--
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |  19 +-
+ drivers/media/pci/solo6x10/solo6x10.h              |   4 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |  26 +--
+ drivers/media/pci/tw68/tw68-video.c                |  19 +-
+ drivers/media/pci/tw68/tw68.h                      |   3 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |  35 ++--
+ drivers/media/platform/am437x/am437x-vpfe.h        |   3 +-
+ drivers/media/platform/blackfin/bfin_capture.c     |  34 ++--
+ drivers/media/platform/coda/coda-bit.c             | 135 ++++++-------
+ drivers/media/platform/coda/coda-common.c          |  23 +--
+ drivers/media/platform/coda/coda-jpeg.c            |   6 +-
+ drivers/media/platform/coda/coda.h                 |   8 +-
+ drivers/media/platform/coda/trace.h                |  18 +-
+ drivers/media/platform/davinci/vpbe_display.c      |  31 +--
+ drivers/media/platform/davinci/vpif_capture.c      |  30 +--
+ drivers/media/platform/davinci/vpif_capture.h      |   2 +-
+ drivers/media/platform/davinci/vpif_display.c      |  39 ++--
+ drivers/media/platform/davinci/vpif_display.h      |   2 +-
+ drivers/media/platform/exynos-gsc/gsc-core.h       |   4 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  23 +--
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  24 +--
+ drivers/media/platform/exynos4-is/fimc-core.c      |   2 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |   4 +-
+ drivers/media/platform/exynos4-is/fimc-is.h        |   2 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  15 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.h |   2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.h       |   4 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  17 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |   4 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  21 +-
+ drivers/media/platform/m2m-deinterlace.c           |  23 ++-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |  43 ++--
+ drivers/media/platform/marvell-ccic/mcam-core.h    |   2 +-
+ drivers/media/platform/mx2_emmaprp.c               |  15 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |  25 +--
+ drivers/media/platform/omap3isp/ispvideo.h         |   4 +-
+ drivers/media/platform/rcar_jpu.c                  |  61 +++---
+ drivers/media/platform/s3c-camif/camif-capture.c   |  17 +-
+ drivers/media/platform/s3c-camif/camif-core.c      |   2 +-
+ drivers/media/platform/s3c-camif/camif-core.h      |   4 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |  17 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  32 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  80 ++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   4 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  17 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  60 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    |  46 ++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  33 ++--
+ drivers/media/platform/s5p-tv/mixer.h              |   4 +-
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c    |   2 +-
+ drivers/media/platform/s5p-tv/mixer_reg.c          |   2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c        |  11 +-
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c     |   5 +-
+ drivers/media/platform/sh_veu.c                    |  19 +-
+ drivers/media/platform/sh_vou.c                    |  26 +--
+ drivers/media/platform/soc_camera/atmel-isi.c      |  26 +--
+ drivers/media/platform/soc_camera/mx2_camera.c     |  21 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |  27 +--
+ drivers/media/platform/soc_camera/rcar_vin.c       |  45 +++--
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  57 +++---
+ drivers/media/platform/soc_camera/soc_camera.c     |   2 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |  23 +--
+ drivers/media/platform/ti-vpe/vpe.c                |  42 ++--
+ drivers/media/platform/vim2m.c                     |  52 ++---
+ drivers/media/platform/vivid/vivid-core.h          |   4 +-
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |  73 +++----
+ drivers/media/platform/vivid/vivid-kthread-out.c   |  34 ++--
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  44 +++--
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  45 +++--
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  18 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  15 +-
+ drivers/media/platform/vivid/vivid-vid-out.c       |  15 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c             |   4 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |  20 +-
+ drivers/media/platform/vsp1/vsp1_video.h           |   8 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c             |   4 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         |  26 +--
+ drivers/media/platform/xilinx/xilinx-dma.h         |   2 +-
+ drivers/media/usb/airspy/airspy.c                  |  24 ++-
+ drivers/media/usb/au0828/au0828-vbi.c              |   7 +-
+ drivers/media/usb/au0828/au0828-video.c            |  45 +++--
+ drivers/media/usb/au0828/au0828.h                  |   3 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c              |   7 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |  34 ++--
+ drivers/media/usb/em28xx/em28xx.h                  |   3 +-
+ drivers/media/usb/go7007/go7007-driver.c           |  29 +--
+ drivers/media/usb/go7007/go7007-priv.h             |   4 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |  20 +-
+ drivers/media/usb/hackrf/hackrf.c                  |  22 ++-
+ drivers/media/usb/msi2500/msi2500.c                |  17 +-
+ drivers/media/usb/pwc/pwc-if.c                     |  33 ++--
+ drivers/media/usb/pwc/pwc-uncompress.c             |   6 +-
+ drivers/media/usb/pwc/pwc.h                        |   4 +-
+ drivers/media/usb/s2255/s2255drv.c                 |  27 +--
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  15 +-
+ drivers/media/usb/stk1160/stk1160-video.c          |  12 +-
+ drivers/media/usb/stk1160/stk1160.h                |   4 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |  21 +-
+ drivers/media/usb/usbtv/usbtv.h                    |   3 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  26 +--
+ drivers/media/usb/uvc/uvc_video.c                  |  20 +-
+ drivers/media/usb/uvc/uvcvideo.h                   |   6 +-
+ drivers/media/v4l2-core/Makefile                   |   2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |  10 +-
+ drivers/media/v4l2-core/v4l2-trace.c               |   2 +-
+ drivers/media/v4l2-core/videobuf2-core.c           | 217 ++++++++++++---------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c     |   2 +-
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         |   2 +-
+ drivers/media/v4l2-core/videobuf2-memops.c         |   2 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |  31 +++
+ drivers/media/v4l2-core/videobuf2-vmalloc.c        |   2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  43 ++--
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |   3 +-
+ drivers/staging/media/omap4iss/iss_video.c         |  23 ++-
+ drivers/staging/media/omap4iss/iss_video.h         |   6 +-
+ drivers/usb/gadget/function/uvc_queue.c            |  26 +--
+ drivers/usb/gadget/function/uvc_queue.h            |   4 +-
+ include/media/davinci/vpbe_display.h               |   3 +-
+ include/media/soc_camera.h                         |   2 +-
+ include/media/v4l2-mem2mem.h                       |  11 +-
+ include/media/videobuf2-core.h                     |  68 ++++---
+ include/media/videobuf2-dma-contig.h               |   2 +-
+ include/media/videobuf2-dma-sg.h                   |   2 +-
+ include/media/videobuf2-memops.h                   |   2 +-
+ include/media/videobuf2-v4l2.h                     |  45 +++++
+ include/media/videobuf2-vmalloc.h                  |   2 +-
+ include/trace/events/v4l2.h                        |  35 ++--
+ 157 files changed, 1753 insertions(+), 1322 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/videobuf2-v4l2.c
+ create mode 100644 include/media/videobuf2-v4l2.h
