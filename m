@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59800 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638AbbIMTQr (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:8833 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755871AbbIXOBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Sep 2015 15:16:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/4] videodev2.h: add SMPTE 2084 transfer function define
-Date: Sun, 13 Sep 2015 21:15:18 +0200
-Message-Id: <1442171721-13058-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
-References: <1442171721-13058-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 24 Sep 2015 10:01:12 -0400
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 04/19] v4l: omap3isp: fix handling platform_get_irq result
+Date: Thu, 24 Sep 2015 16:00:12 +0200
+Message-id: <1443103227-25612-5-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
+References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The function can return negative value.
 
-CEA-861.3 adds support for the SMPTE 2084 Electro-Optical Transfer Function
-as can be used in HDR displays. Add a defined for this in videodev2.h.
+The problem has been detected using proposed semantic patch
+scripts/coccinelle/tests/assign_signed_to_unsigned.cocci [1].
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[1]: http://permalink.gmane.org/gmane.linux.kernel/2046107
+
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+Hi,
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4900e15..80314ad 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -269,6 +269,7 @@ enum v4l2_xfer_func {
- 	V4L2_XFER_FUNC_SMPTE240M   = 4,
- 	V4L2_XFER_FUNC_NONE        = 5,
- 	V4L2_XFER_FUNC_DCI_P3      = 6,
-+	V4L2_XFER_FUNC_SMPTE2084   = 7,
- };
+To avoid problems with too many mail recipients I have sent whole
+patchset only to LKML. Anyway patches have no dependencies.
+
+Regards
+Andrzej
+---
+ drivers/media/platform/omap3isp/isp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 56e683b..df9d2c2 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2442,12 +2442,13 @@ static int isp_probe(struct platform_device *pdev)
+ 	}
  
- /*
+ 	/* Interrupt */
+-	isp->irq_num = platform_get_irq(pdev, 0);
+-	if (isp->irq_num <= 0) {
++	ret = platform_get_irq(pdev, 0);
++	if (ret <= 0) {
+ 		dev_err(isp->dev, "No IRQ resource\n");
+ 		ret = -ENODEV;
+ 		goto error_iommu;
+ 	}
++	isp->irq_num = ret;
+ 
+ 	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
+ 			     "OMAP3 ISP", isp)) {
 -- 
-2.1.4
+1.9.1
 
