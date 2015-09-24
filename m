@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44411 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933513AbbI2Jjk (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:47455 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217AbbIXPHa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Sep 2015 05:39:40 -0400
-Date: Tue, 29 Sep 2015 11:39:37 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-	sakari.ailus@linux.intel.com, andrew@lunn.ch, rpurdie@rpsys.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 12/12] media: flash: use led_set_brightness_sync for
- torch brightness
-Message-ID: <20150929093937.GB9293@amd>
-References: <1443445641-9529-1-git-send-email-j.anaszewski@samsung.com>
- <1443445641-9529-13-git-send-email-j.anaszewski@samsung.com>
- <20150928203747.GA19666@amd>
- <560A3D23.4010606@samsung.com>
+	Thu, 24 Sep 2015 11:07:30 -0400
+Date: Thu, 24 Sep 2015 18:07:11 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 06/19] staging: media: omap4iss: fix handling
+ platform_get_irq result
+Message-ID: <20150924150711.GL4953@mwanda>
+References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
+ <1443103227-25612-7-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <560A3D23.4010606@samsung.com>
+In-Reply-To: <1443103227-25612-7-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2015-09-29 09:26:27, Jacek Anaszewski wrote:
-> Hi Pavel,
+On Thu, Sep 24, 2015 at 04:00:14PM +0200, Andrzej Hajda wrote:
+> Hi,
 > 
-> Thanks for the review.
+> To avoid problems with too many mail recipients I have sent whole
+> patchset only to LKML. Anyway patches have no dependencies.
 > 
-> On 09/28/2015 10:37 PM, Pavel Machek wrote:
-> >On Mon 2015-09-28 15:07:21, Jacek Anaszewski wrote:
-> >>LED subsystem shifted responsibility for choosing between SYNC or ASYNC
-> >>way of setting brightness from drivers to the caller. Adapt the wrapper
-> >>to those changes.
-> >
-> >Umm. Maybe right patch, but wrong position in the queue, no?
-> >
-> >If I understand changelog correctly, LED flashes will be subtly broken
-> >before this patch is applied.
-> >
-> >I guess this patch should be moved sooner so everything works at each
-> >position in bisect...?
-> 
-> Moving it wouldn't improve anything. It would have to be merged with
-> patch 7/12 [1]. However, as you mentioned, LED flashes before this
-> patch will be broken only subtly, i.e. torch brightness will be set
-> from a work queue task and not synchronously. It would be barely
-> noticeable. Nonetheless, I can merge the patches in the next
-> version of the patch set.
 
-Ok, flash firing a tiny bit later is probably not huge problem. I
-guess it is best to leave the patches as is.
+I'm pretty sure mailman or whatever counts CCs as recipients as well.
 
-Best regards,
-								Pavel
+regards,
+dan carpenter
 
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
