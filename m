@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33929 "EHLO lists.s-osg.org"
+Received: from www.netup.ru ([77.72.80.15]:55269 "EHLO imap.netup.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933587AbbICQBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Sep 2015 12:01:10 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 5/5] [media] smiapp: create pad links after subdev registration
-Date: Thu,  3 Sep 2015 18:00:36 +0200
-Message-Id: <1441296036-20727-6-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
-References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
+	id S1753474AbbIYHK4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Sep 2015 03:10:56 -0400
+Received: from mail-la0-f53.google.com (mail-la0-f53.google.com [209.85.215.53])
+	by imap.netup.ru (Postfix) with ESMTPA id 8870172FB09
+	for <linux-media@vger.kernel.org>; Fri, 25 Sep 2015 10:10:55 +0300 (MSK)
+Received: by lacao8 with SMTP id ao8so88298747lac.3
+        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2015 00:10:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CABxcv=kxojA4Tuv-Vas8KkAh8SUJ-cbM8rPW3Auk7H6RP9aAxA@mail.gmail.com>
+References: <201509201655.YWNNEnBb%fengguang.wu@intel.com> <CABxcv=kxojA4Tuv-Vas8KkAh8SUJ-cbM8rPW3Auk7H6RP9aAxA@mail.gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Fri, 25 Sep 2015 10:10:35 +0300
+Message-ID: <CAK3bHNWwH+AN7+siXymALwgARPJEDARWyRQqzef7Gn2DuURS9w@mail.gmail.com>
+Subject: Re: drivers/media/pci/netup_unidvb/netup_unidvb_core.c:417:18: error:
+ too many arguments to function 'horus3a_attach'
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: kbuild test robot <fengguang.wu@intel.com>,
+	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The smiapp driver creates the pads links before the media entity is
-registered with the media device. This doesn't work now that object
-IDs are used to create links so the media_device has to be set.
+Hi Javier, Mauro,
 
-Move entity registration logic before pads links creation.
+seems like I have sent duplicate patch to fix this problem ( Subject:
+[PATCH] fix compile error when CONFIG_DVB_HORUS3A is disabled). It's
+totally identical so, please ignore my patch and apply Javier's patch
+https://patchwork.linuxtv.org/patch/31401/
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+thanks !
 
----
+2015-09-21 11:21 GMT+03:00 Javier Martinez Canillas <javier@dowhile0.org>:
+> Hello,
+>
+> On Sun, Sep 20, 2015 at 10:56 AM, kbuild test robot
+> <fengguang.wu@intel.com> wrote:
+>> Hi Kozlov,
+>>
+>> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
+>>
+>> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+>> head:   99bc7215bc60f6cd414cf1b85cd9d52cc596cccb
+>> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
+>> date:   6 weeks ago
+>> config: i386-randconfig-b0-09201649 (attached as .config)
+>> reproduce:
+>>   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
+>>   # save the attached .config to linux build tree
+>>   make ARCH=i386
+>>
+>> All error/warnings (new ones prefixed by >>):
+>>
+>>    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
+>>    drivers/media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
+>>          struct i2c_adapter *i2c)
+>>
+>
+> I had already posted a patch to fix this issue about a week ago:
+>
+> https://patchwork.linuxtv.org/patch/31401/
+>
+> Best regards,
+> Javier
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- drivers/media/i2c/smiapp/smiapp-core.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 5aa49eb393a9..938201789ebc 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2495,23 +2495,23 @@ static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
- 			return rval;
- 		}
- 
--		rval = media_create_pad_link(&this->sd.entity,
--						this->source_pad,
--						&last->sd.entity,
--						last->sink_pad,
--						MEDIA_LNK_FL_ENABLED |
--						MEDIA_LNK_FL_IMMUTABLE);
-+		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-+						   &this->sd);
- 		if (rval) {
- 			dev_err(&client->dev,
--				"media_create_pad_link failed\n");
-+				"v4l2_device_register_subdev failed\n");
- 			return rval;
- 		}
- 
--		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
--						   &this->sd);
-+		rval = media_create_pad_link(&this->sd.entity,
-+					     this->source_pad,
-+					     &last->sd.entity,
-+					     last->sink_pad,
-+					     MEDIA_LNK_FL_ENABLED |
-+					     MEDIA_LNK_FL_IMMUTABLE);
- 		if (rval) {
- 			dev_err(&client->dev,
--				"v4l2_device_register_subdev failed\n");
-+				"media_create_pad_link failed\n");
- 			return rval;
- 		}
- 	}
+
 -- 
-2.4.3
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
