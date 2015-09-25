@@ -1,73 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:8281 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754562AbbIXR0i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Sep 2015 13:26:38 -0400
-Subject: Re: [Question]: What's right way to use struct media_pipeline?
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	<laurent.pinchart@ideasonboard.com>
-References: <56035829.2080300@nvidia.com> <5603B8B3.3060109@xs4all.nl>
-CC: <linux-media@vger.kernel.org>
-From: Bryan Wu <pengw@nvidia.com>
-Message-ID: <5604324D.70000@nvidia.com>
-Date: Thu, 24 Sep 2015 10:26:37 -0700
+Received: from www.netup.ru ([77.72.80.15]:55585 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752275AbbIYHWs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Sep 2015 03:22:48 -0400
+Received: from mail-la0-f46.google.com (mail-la0-f46.google.com [209.85.215.46])
+	by imap.netup.ru (Postfix) with ESMTPA id 48A7B72FB1E
+	for <linux-media@vger.kernel.org>; Fri, 25 Sep 2015 10:22:45 +0300 (MSK)
+Received: by lacao8 with SMTP id ao8so88562780lac.3
+        for <linux-media@vger.kernel.org>; Fri, 25 Sep 2015 00:22:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <5603B8B3.3060109@xs4all.nl>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CABxcv==4OQce73RGPstvHQWt0sbHyx5Hv114rweOtpyb2F+fcQ@mail.gmail.com>
+References: <201509201159.QAcxzCyr%fengguang.wu@intel.com> <CABxcv==4OQce73RGPstvHQWt0sbHyx5Hv114rweOtpyb2F+fcQ@mail.gmail.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Fri, 25 Sep 2015 10:22:25 +0300
+Message-ID: <CAK3bHNW4DBB3VBeEWZE_B2CmtK=31iEXZnZru9A3Mngr-cD-tg@mail.gmail.com>
+Subject: Re: drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type
+ name 'dvb_frontend'
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: kbuild test robot <fengguang.wu@intel.com>,
+	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Javier, Mauro,
+
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
 
-On 09/24/2015 01:47 AM, Hans Verkuil wrote:
-> On 09/24/2015 02:55 AM, Bryan Wu wrote:
->> Hi Hans,
->>
->> I found struct media_pipeline actually is completely empty and I assume we use that to control all the entities belonging to one media_pipeline.
->>
->> media_pipeline should contains either all the media_link or all the media_entity. How come an empty struct can provide those information?
-> It's basically an empty base class to speak in C++ terminology.
+2015-09-21 11:20 GMT+03:00 Javier Martinez Canillas <javier@dowhile0.org>:
+> Hello,
 >
-> See drivers/media/platform/xilinx/xilinx-dma.h on how it is used there.
->
-> Laurent Pinchart knows a lot more about it than I do, though.
->
-
-Hi Laurent,
-
-I have a subdev media entity which have 4 media pads.
-
-pad[0] is sink and pad[1] is source, these 2 pads belong to the first 
-media pipeline
-
-pad[2] is sink and pad[3] is source, these 2 pads belong to the second 
-media pipeline
-
-Actually our hardware Tegra has 3 these kind of entities, so totally we 
-have 6 media pipelines like 6 dma channels.
-
-How to handle that with media pipeline framework? I saw in xilinx driver 
-it just has one pipeline which is shared by several DMA channels, right?
-
--Bryan
-
->
->> What about following ideas?
->> 1. when media_entity_create_links, it will return a media_link pointer.
->> 2. we save this media_link pointer into the media_pipeline
->> 3. use this media_pipeline for start streaming, stop streaming and validate links.
+> On Sun, Sep 20, 2015 at 5:17 AM, kbuild test robot
+> <fengguang.wu@intel.com> wrote:
+>> Hi Kozlov,
 >>
->> Maybe I miss something during recent media controller changes.
+>> FYI, the error/warning still remains. You may either fix it or ask me to silently ignore in future.
 >>
->> Thanks,
->> -Bryan
+>> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+>> head:   133bb59585140747fd3938002670cb395f40dc76
+>> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
+>> date:   6 weeks ago
+>> config: x86_64-randconfig-h0-09201020 (attached as .config)
+>> reproduce:
+>>   git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
+>>   # save the attached .config to linux build tree
+>>   make ARCH=x86_64
 >>
->> -----------------------------------------------------------------------------------
->> This email message is for the sole use of the intended recipient(s) and may contain
->> confidential information.  Any unauthorized review, use, disclosure or distribution
->> is prohibited.  If you are not the intended recipient, please contact the sender by
->> reply email and destroy all copies of the original message.
->> -----------------------------------------------------------------------------------
+>> All error/warnings (new ones prefixed by >>):
+>>
+>>    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
+>>>> drivers/media/dvb-frontends/lnbh25.h:46:15: error: unknown type name 'dvb_frontend'
+>>     static inline dvb_frontend *lnbh25_attach(
+>>                   ^
+>>
+>> vim +/dvb_frontend +46 drivers/media/dvb-frontends/lnbh25.h
+>>
+>> e025273b Kozlov Sergey 2015-07-28  40  #if IS_REACHABLE(CONFIG_DVB_LNBH25)
+>> e025273b Kozlov Sergey 2015-07-28  41  struct dvb_frontend *lnbh25_attach(
+>> e025273b Kozlov Sergey 2015-07-28  42   struct dvb_frontend *fe,
+>> e025273b Kozlov Sergey 2015-07-28  43   struct lnbh25_config *cfg,
+>> e025273b Kozlov Sergey 2015-07-28  44   struct i2c_adapter *i2c);
+>> e025273b Kozlov Sergey 2015-07-28  45  #else
+>> e025273b Kozlov Sergey 2015-07-28 @46  static inline dvb_frontend *lnbh25_attach(
+>> e025273b Kozlov Sergey 2015-07-28  47   struct dvb_frontend *fe,
+>> e025273b Kozlov Sergey 2015-07-28  48   struct lnbh25_config *cfg,
+>> e025273b Kozlov Sergey 2015-07-28  49   struct i2c_adapter *i2c)
+>>
+>> :::::: The code at line 46 was first introduced by commit
+>> :::::: e025273b86fb4a6440192b809e05332777c3faa5 [media] lnbh25: LNBH25 SEC controller driver
+>>
+>> :::::: TO: Kozlov Sergey <serjk@netup.ru>
+>> :::::: CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>
+> I had already posted a patch to fix this issue about a week ago:
+>
+> https://patchwork.linuxtv.org/patch/31402/
+>
+> Best regards,
+> Javier
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+
+-- 
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
