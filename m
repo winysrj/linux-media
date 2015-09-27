@@ -1,125 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:46700 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbbIKRaA (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41566 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754800AbbI0Czg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Sep 2015 13:30:00 -0400
-Message-ID: <55F30F50.6090902@xs4all.nl>
-Date: Fri, 11 Sep 2015 19:28:48 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-CC: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@linaro.org,
-	robdclark@gmail.com, daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 07/11] vb2: dma-contig: Remove redundant sgt_base
- field
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1441972234-8643-8-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 26 Sep 2015 22:55:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7F3002A0006
+	for <linux-media@vger.kernel.org>; Sun, 27 Sep 2015 04:54:01 +0200 (CEST)
+Date: Sun, 27 Sep 2015 04:54:01 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20150927025401.7F3002A0006@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2015 01:50 PM, Sakari Ailus wrote:
-> The struct vb2_dc_buf contains two struct sg_table fields: sgt_base and
-> dma_sgt. The former is used by DMA-BUF buffers whereas the latter is used
-> by USERPTR.
-> 
-> Unify the two, leaving dma_sgt.
-> 
-> MMAP buffers do not need cache flushing since they have been allocated
-> using dma_alloc_coherent().
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I would have to see this again after it is rebased on 4.3-rc1. That will contain
-Jan Kara's vb2 changes which might well affect this patch.
+Results of the daily build of media_tree:
 
-Are there use-cases where we want to allocate non-coherent memory? I know we
-don't support this today, but is this something we might want in the future?
+date:		Sun Sep 27 04:00:16 CEST 2015
+git branch:	test
+git hash:	ac4033e02a54a1dd3b22364d392ffe3da5d09a5f
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Just curious.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-	Hans
+Detailed results are available here:
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 94c1e64..26a0a0f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -36,7 +36,6 @@ struct vb2_dc_buf {
->  	/* MMAP related */
->  	struct vb2_vmarea_handler	handler;
->  	atomic_t			refcount;
-> -	struct sg_table			*sgt_base;
->  
->  	/* USERPTR related */
->  	struct vm_area_struct		*vma;
-> @@ -117,7 +116,7 @@ static void vb2_dc_prepare(void *buf_priv)
->  	struct sg_table *sgt = buf->dma_sgt;
->  
->  	/* DMABUF exporter will flush the cache for us */
-> -	if (!sgt || buf->db_attach)
-> +	if (!buf->vma)
->  		return;
->  
->  	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> @@ -129,7 +128,7 @@ static void vb2_dc_finish(void *buf_priv)
->  	struct sg_table *sgt = buf->dma_sgt;
->  
->  	/* DMABUF exporter will flush the cache for us */
-> -	if (!sgt || buf->db_attach)
-> +	if (!buf->vma)
->  		return;
->  
->  	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> @@ -146,9 +145,9 @@ static void vb2_dc_put(void *buf_priv)
->  	if (!atomic_dec_and_test(&buf->refcount))
->  		return;
->  
-> -	if (buf->sgt_base) {
-> -		sg_free_table(buf->sgt_base);
-> -		kfree(buf->sgt_base);
-> +	if (buf->dma_sgt) {
-> +		sg_free_table(buf->dma_sgt);
-> +		kfree(buf->dma_sgt);
->  	}
->  	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
->  	put_device(buf->dev);
-> @@ -252,13 +251,13 @@ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
->  	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
->  	 * map the same scatter list to multiple attachments at the same time.
->  	 */
-> -	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
-> +	ret = sg_alloc_table(sgt, buf->dma_sgt->orig_nents, GFP_KERNEL);
->  	if (ret) {
->  		kfree(attach);
->  		return -ENOMEM;
->  	}
->  
-> -	rd = buf->sgt_base->sgl;
-> +	rd = buf->dma_sgt->sgl;
->  	wr = sgt->sgl;
->  	for (i = 0; i < sgt->orig_nents; ++i) {
->  		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-> @@ -409,10 +408,10 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
->  	exp_info.flags = flags;
->  	exp_info.priv = buf;
->  
-> -	if (!buf->sgt_base)
-> -		buf->sgt_base = vb2_dc_get_base_sgt(buf);
-> +	if (!buf->dma_sgt)
-> +		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
->  
-> -	if (WARN_ON(!buf->sgt_base))
-> +	if (WARN_ON(!buf->dma_sgt))
->  		return NULL;
->  
->  	dbuf = dma_buf_export(&exp_info);
-> 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
