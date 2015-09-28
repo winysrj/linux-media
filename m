@@ -1,46 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34471 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444AbbIPQeQ (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:56816 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752247AbbI1LzU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Sep 2015 12:34:16 -0400
-From: Masanari Iida <standby24x7@gmail.com>
-To: linux-kernel@vger.kernel.org, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org, corbet@lwn.net
-Cc: Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] [media] dvbdev: Fix warnings while make htmldocs caused by dvbdev.h
-Date: Thu, 17 Sep 2015 01:34:47 +0900
-Message-Id: <1442421287-22517-1-git-send-email-standby24x7@gmail.com>
+	Mon, 28 Sep 2015 07:55:20 -0400
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 4/4] ARM64: dts: exynos5433: add jpeg node
+Date: Mon, 28 Sep 2015 13:54:37 +0200
+Message-id: <2466182.YdnXZtSWXI@amdc1976>
+In-reply-to: <5608FFBD.1030306@samsung.com>
+References: <1442586060-23657-1-git-send-email-andrzej.p@samsung.com>
+ <55FFD4FF.6090306@samsung.com> <5608FFBD.1030306@samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix following warning while "make htmldocs".
 
-.//drivers/media/dvb-core/dvbdev.h:199: warning: Excess
-function parameter 'device' description in 'dvb_register_device'
-.//drivers/media/dvb-core/dvbdev.h:199: warning: Excess
-function parameter 'adapter_nums' description in 'dvb_register_device'
+Hi,
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
----
- drivers/media/dvb-core/dvbdev.h | 4 ----
- 1 file changed, 4 deletions(-)
+On Monday, September 28, 2015 05:52:13 PM Krzysztof Kozlowski wrote:
+> W dniu 21.09.2015 o 18:59, Andrzej Pietrasiewicz pisze:
+> > Hi Hans,
+> > 
+> > W dniu 21.09.2015 o 11:50, Hans Verkuil pisze:
+> >> On 18-09-15 16:21, Andrzej Pietrasiewicz wrote:
+> >>> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> >>>
+> >>> Add Exynos 5433 jpeg h/w codec node.
+> >>>
+> >>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >>> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> >>> ---
+> >>>   arch/arm64/boot/dts/exynos/exynos5433.dtsi | 21 +++++++++++++++++++++
+> >>>   1 file changed, 21 insertions(+)
+> >>>
+> >>> diff --git a/arch/arm64/boot/dts/exynos/exynos5433.dtsi
+> >>> b/arch/arm64/boot/dts/exynos/exynos5433.dtsi
+> >>
+> >> This dtsi file doesn't exist in the media-git tree. What is the story
+> >> here?
+> >>
+> >> Should this go through a different subsystem?
+> >>
+> >> I think the media subsystem can take patches 1-3 and whoever does DT
+> >> patches can
+> >> take this patch, right?
+> >>
+> > 
+> > The cover letter explains that the series is rebased onto Mauro's
+> > master with Kukjin's branch merged. The latter does contain
+> > the exynos5433.dtsi. That said, yes, taking patches 1-3 in
+> > media subsystem and leaving DT patch to someone else is the
+> > way to go.
+> 
+> Although Kukjin picked Exynos 5433 ARM64 patches but they were not
+> accepted upstream by arm-soc. He rolled it for few releases but:
+> 1. Reason for not accepting by arm-soc was not resolved - there is no DTS.
+> 2. Kukjin did not rebase the branch for 4.4... which maybe means that he
+> wants to drop it?
+> 3. Anyone (but me...) can send Galaxy Note4 (Exynos5433) DTS file based
+> on sources on opensource.samsung.com. The DTS there is for 32-bit but it
+> can be probably easily adjusted for ARM64.
+> 
+> All of this means that Device Tree support for this driver can't be
+> merged now and effort for mainlining 5433 may be unfortunately wasted...
 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index c61a4f0..1069a77 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -184,10 +184,6 @@ int dvb_unregister_adapter(struct dvb_adapter *adap);
-  * @pdvbdev:	pointer to the place where the new struct dvb_device will be
-  *		stored
-  * @template:	Template used to create &pdvbdev;
-- * @device:	pointer to struct device that corresponds to the device driver
-- * @adapter_nums: Array with a list of the numbers for @dvb_register_adapter;
-- * 		to select among them. Typically, initialized with:
-- *		DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nums)
-  * @priv:	private data
-  * @type:	type of the device: DVB_DEVICE_SEC, DVB_DEVICE_FRONTEND,
-  *		DVB_DEVICE_DEMUX, DVB_DEVICE_DVR, DVB_DEVICE_CA, DVB_DEVICE_NET
--- 
-2.6.0.rc2
+Exynos5433 support is being incrementally merged (clocks, drm, phy,
+pinctrl, thermal and tty support is already in upstream or -next).
+
+I don't know why DTS changes got stuck in Kukjin's tree (Kukjin,
+could you please explain?) but I think that this shouldn't not stop
+us from continuing Exynos5433 upstreaming effort.
+
+Best regards,
+--
+Bartlomiej Zolnierkiewicz
+Samsung R&D Institute Poland
+Samsung Electronics
 
