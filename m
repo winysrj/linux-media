@@ -1,68 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:35887 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021AbbIWO0s (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59749 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbbI1Uhw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Sep 2015 10:26:48 -0400
-Received: by pacgz1 with SMTP id gz1so7923032pac.3
-        for <linux-media@vger.kernel.org>; Wed, 23 Sep 2015 07:26:48 -0700 (PDT)
-Message-ID: <5602B6A1.2090309@linaro.org>
-Date: Wed, 23 Sep 2015 07:26:41 -0700
-From: zhangfei <zhangfei.gao@linaro.org>
-MIME-Version: 1.0
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-pm@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-CC: Thomas Gleixner <tglx@linutronix.de>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Guoxiong Yan <yanguoxiong@huawei.com>,
+	Mon, 28 Sep 2015 16:37:52 -0400
+Date: Mon, 28 Sep 2015 22:37:47 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sakari.ailus@linux.intel.com, andrew@lunn.ch, rpurdie@rpsys.net,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH 15/17] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
-References: <1442850433-5903-1-git-send-email-sudeep.holla@arm.com> <1442850433-5903-16-git-send-email-sudeep.holla@arm.com>
-In-Reply-To: <1442850433-5903-16-git-send-email-sudeep.holla@arm.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCH v2 12/12] media: flash: use led_set_brightness_sync for
+ torch brightness
+Message-ID: <20150928203747.GA19666@amd>
+References: <1443445641-9529-1-git-send-email-j.anaszewski@samsung.com>
+ <1443445641-9529-13-git-send-email-j.anaszewski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1443445641-9529-13-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon 2015-09-28 15:07:21, Jacek Anaszewski wrote:
+> LED subsystem shifted responsibility for choosing between SYNC or ASYNC
+> way of setting brightness from drivers to the caller. Adapt the wrapper
+> to those changes.
 
+Umm. Maybe right patch, but wrong position in the queue, no?
 
-On 09/21/2015 08:47 AM, Sudeep Holla wrote:
-> This driver doesn't claim the IR transmitter to be wakeup source. It
-> even disables the clock and the IR during suspend-resume cycle.
->
-> This patch removes yet another misuse of IRQF_NO_SUSPEND.
->
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: Zhangfei Gao <zhangfei.gao@linaro.org>
-> Cc: Patrice Chotard <patrice.chotard@st.com>
-> Cc: Fabio Estevam <fabio.estevam@freescale.com>
-> Cc: Guoxiong Yan <yanguoxiong@huawei.com>
+If I understand changelog correctly, LED flashes will be subtly broken
+before this patch is applied.
+
+I guess this patch should be moved sooner so everything works at each
+position in bisect...?
+
+Best regards,
+								Pavel
+
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Pavel Machek <pavel@ucw.cz>
 > Cc: linux-media@vger.kernel.org
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 > ---
->   drivers/media/rc/ir-hix5hd2.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-> index 1c087cb76815..d0549fba711c 100644
-> --- a/drivers/media/rc/ir-hix5hd2.c
-> +++ b/drivers/media/rc/ir-hix5hd2.c
-> @@ -257,7 +257,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
->   		goto clkerr;
->
->   	if (devm_request_irq(dev, priv->irq, hix5hd2_ir_rx_interrupt,
-> -			     IRQF_NO_SUSPEND, pdev->name, priv) < 0) {
-> +			     0, pdev->name, priv) < 0) {
->   		dev_err(dev, "IRQ %d register failed\n", priv->irq);
->   		ret = -EINVAL;
->   		goto regerr;
->
+>  drivers/media/v4l2-core/v4l2-flash-led-class.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> index 5bdfb8d..5d67335 100644
+> --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> @@ -107,10 +107,10 @@ static void v4l2_flash_set_led_brightness(struct v4l2_flash *v4l2_flash,
+>  		if (ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_TORCH)
+>  			return;
+>  
+> -		led_set_brightness(&v4l2_flash->fled_cdev->led_cdev,
+> +		led_set_brightness_sync(&v4l2_flash->fled_cdev->led_cdev,
+>  					brightness);
+>  	} else {
+> -		led_set_brightness(&v4l2_flash->iled_cdev->led_cdev,
+> +		led_set_brightness_sync(&v4l2_flash->iled_cdev->led_cdev,
+>  					brightness);
+>  	}
+>  }
+> @@ -206,11 +206,11 @@ static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
+>  	case V4L2_CID_FLASH_LED_MODE:
+>  		switch (c->val) {
+>  		case V4L2_FLASH_LED_MODE_NONE:
+> -			led_set_brightness(led_cdev, LED_OFF);
+> +			led_set_brightness_sync(led_cdev, LED_OFF);
+>  			return led_set_flash_strobe(fled_cdev, false);
+>  		case V4L2_FLASH_LED_MODE_FLASH:
+>  			/* Turn the torch LED off */
+> -			led_set_brightness(led_cdev, LED_OFF);
+> +			led_set_brightness_sync(led_cdev, LED_OFF);
+>  			if (ctrls[STROBE_SOURCE]) {
+>  				external_strobe = (ctrls[STROBE_SOURCE]->val ==
+>  					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
 
-ir is wakeup source for hix5hd2, so we use IRQF_NO_SUSPEND.
-However, it is true the wakeup mechanism is not realized on hix5hd2 yet.
-I am fine with either using IRQF_NO_SUSPEND or not.
-
-Thanks for the patch.
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
