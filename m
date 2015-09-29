@@ -1,168 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fed1rmfepi108.cox.net ([68.230.241.139]:34463 "EHLO
-	fed1rmfepi108.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbbIIVAo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Sep 2015 17:00:44 -0400
-Received: from fed1rmimpo305 ([68.230.241.173]) by fed1rmfepo101.cox.net
-          (InterMail vM.8.01.05.15 201-2260-151-145-20131218) with ESMTP
-          id <20150909192252.CPDR18929.fed1rmfepo101.cox.net@fed1rmimpo305>
-          for <linux-media@vger.kernel.org>; Wed, 9 Sep 2015 15:22:52 -0400
-From: Eric Nelson <eric@nelint.com>
-To: linux-media@vger.kernel.org
-Cc: otavio@ossystems.com.br, Eric Nelson <eric@nelint.com>
-Subject: [PATCH] rc: gpio-ir-recv: allow flush space on idle
-Date: Wed,  9 Sep 2015 12:22:50 -0700
-Message-Id: <1441826570-26117-1-git-send-email-eric@nelint.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16867 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755800AbbI2H0d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Sep 2015 03:26:33 -0400
+Message-id: <560A3D23.4010606@samsung.com>
+Date: Tue, 29 Sep 2015 09:26:27 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Pavel Machek <pavel@ucw.cz>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sakari.ailus@linux.intel.com, andrew@lunn.ch, rpurdie@rpsys.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 12/12] media: flash: use led_set_brightness_sync for
+ torch brightness
+References: <1443445641-9529-1-git-send-email-j.anaszewski@samsung.com>
+ <1443445641-9529-13-git-send-email-j.anaszewski@samsung.com>
+ <20150928203747.GA19666@amd>
+In-reply-to: <20150928203747.GA19666@amd>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many decoders require a trailing space (period without IR illumination)
-to be delivered before completing a decode.
+Hi Pavel,
 
-Since the gpio-ir-recv driver only delivers events on gpio transitions,
-a single IR symbol (caused by a quick touch on an IR remote) will not
-be properly decoded without the use of a timer to flush the tail end
-state of the IR receiver.
+Thanks for the review.
 
-This patch adds an optional device tree node "flush-ms" which, if
-present, will use a jiffie-based timer to complete the last pulse
-stream and allow decode.
+On 09/28/2015 10:37 PM, Pavel Machek wrote:
+> On Mon 2015-09-28 15:07:21, Jacek Anaszewski wrote:
+>> LED subsystem shifted responsibility for choosing between SYNC or ASYNC
+>> way of setting brightness from drivers to the caller. Adapt the wrapper
+>> to those changes.
+>
+> Umm. Maybe right patch, but wrong position in the queue, no?
+>
+> If I understand changelog correctly, LED flashes will be subtly broken
+> before this patch is applied.
+>
+> I guess this patch should be moved sooner so everything works at each
+> position in bisect...?
 
-The "flush-ms" value should be chosen with a value that will convert
-well to jiffies (multiples of 10 are good).
+Moving it wouldn't improve anything. It would have to be merged with
+patch 7/12 [1]. However, as you mentioned, LED flashes before this
+patch will be broken only subtly, i.e. torch brightness will be set
+from a work queue task and not synchronously. It would be barely
+noticeable. Nonetheless, I can merge the patches in the next
+version of the patch set.
 
-Signed-off-by: Eric Nelson <eric@nelint.com>
----
- .../devicetree/bindings/media/gpio-ir-receiver.txt |  1 +
- drivers/media/rc/gpio-ir-recv.c                    | 39 ++++++++++++++++++----
- include/media/gpio-ir-recv.h                       |  1 +
- 3 files changed, 34 insertions(+), 7 deletions(-)
+[1] https://lkml.org/lkml/2015/9/28/322
 
-diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
-index 56e726e..13ff92d 100644
---- a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
-+++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
-@@ -6,6 +6,7 @@ Required properties:
- 
- Optional properties:
- 	- linux,rc-map-name: Linux specific remote control map name.
-+	- flush-ms: time for final flush of 'space' pulse (period with no IR)
- 
- Example node:
- 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 7dbc9ca..e3c353e 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -29,7 +29,9 @@
- struct gpio_rc_dev {
- 	struct rc_dev *rcdev;
- 	int gpio_nr;
-+	int flush_jiffies;
- 	bool active_low;
-+	struct timer_list flush_timer;
- };
- 
- #ifdef CONFIG_OF
-@@ -42,6 +44,7 @@ static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
- 	struct device_node *np = dev->of_node;
- 	enum of_gpio_flags flags;
- 	int gpio;
-+	u32 flush_ms = 0;
- 
- 	gpio = of_get_gpio_flags(np, 0, &flags);
- 	if (gpio < 0) {
-@@ -50,6 +53,9 @@ static int gpio_ir_recv_get_devtree_pdata(struct device *dev,
- 		return gpio;
- 	}
- 
-+	of_property_read_u32(np, "flush-ms", &flush_ms);
-+	pdata->flush_jiffies = msecs_to_jiffies(flush_ms);
-+
- 	pdata->gpio_nr = gpio;
- 	pdata->active_low = (flags & OF_GPIO_ACTIVE_LOW);
- 	/* probe() takes care of map_name == NULL or allowed_protos == 0 */
-@@ -71,9 +77,8 @@ MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
- 
- #endif
- 
--static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
-+static void flush_gp(struct gpio_rc_dev *gpio_dev)
- {
--	struct gpio_rc_dev *gpio_dev = dev_id;
- 	int gval;
- 	int rc = 0;
- 	enum raw_event_type type = IR_SPACE;
-@@ -81,7 +86,7 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
- 	gval = gpio_get_value(gpio_dev->gpio_nr);
- 
- 	if (gval < 0)
--		goto err_get_value;
-+		return;
- 
- 	if (gpio_dev->active_low)
- 		gval = !gval;
-@@ -90,15 +95,30 @@ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
- 		type = IR_PULSE;
- 
- 	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
--	if (rc < 0)
--		goto err_get_value;
-+	if (rc >= 0)
-+		ir_raw_event_handle(gpio_dev->rcdev);
-+}
- 
--	ir_raw_event_handle(gpio_dev->rcdev);
-+static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
-+{
-+	struct gpio_rc_dev *gpio_dev = dev_id;
-+
-+	flush_gp(gpio_dev);
-+
-+	if (gpio_dev->flush_jiffies)
-+		mod_timer(&gpio_dev->flush_timer,
-+			  jiffies + gpio_dev->flush_jiffies);
- 
--err_get_value:
- 	return IRQ_HANDLED;
- }
- 
-+static void flush_timer(unsigned long arg)
-+{
-+	struct gpio_rc_dev *gpio_dev = (struct gpio_rc_dev *)arg;
-+
-+	flush_gp(gpio_dev);
-+}
-+
- static int gpio_ir_recv_probe(struct platform_device *pdev)
- {
- 	struct gpio_rc_dev *gpio_dev;
-@@ -152,8 +172,13 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 
- 	gpio_dev->rcdev = rcdev;
- 	gpio_dev->gpio_nr = pdata->gpio_nr;
-+	gpio_dev->flush_jiffies = pdata->flush_jiffies;
- 	gpio_dev->active_low = pdata->active_low;
- 
-+	init_timer(&gpio_dev->flush_timer);
-+	gpio_dev->flush_timer.function = flush_timer;
-+	gpio_dev->flush_timer.data = (unsigned long)gpio_dev;
-+
- 	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
- 	if (rc < 0)
- 		goto err_gpio_request;
-diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
-index 0142736..88fae78 100644
---- a/include/media/gpio-ir-recv.h
-+++ b/include/media/gpio-ir-recv.h
-@@ -17,6 +17,7 @@ struct gpio_ir_recv_platform_data {
- 	int		gpio_nr;
- 	bool		active_low;
- 	u64		allowed_protos;
-+	int		flush_jiffies;
- 	const char	*map_name;
- };
- 
+> Best regards,
+> 								Pavel
+>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: Pavel Machek <pavel@ucw.cz>
+>> Cc: linux-media@vger.kernel.org
+>> ---
+>>   drivers/media/v4l2-core/v4l2-flash-led-class.c |    8 ++++----
+>>   1 file changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+>> index 5bdfb8d..5d67335 100644
+>> --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
+>> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+>> @@ -107,10 +107,10 @@ static void v4l2_flash_set_led_brightness(struct v4l2_flash *v4l2_flash,
+>>   		if (ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_TORCH)
+>>   			return;
+>>
+>> -		led_set_brightness(&v4l2_flash->fled_cdev->led_cdev,
+>> +		led_set_brightness_sync(&v4l2_flash->fled_cdev->led_cdev,
+>>   					brightness);
+>>   	} else {
+>> -		led_set_brightness(&v4l2_flash->iled_cdev->led_cdev,
+>> +		led_set_brightness_sync(&v4l2_flash->iled_cdev->led_cdev,
+>>   					brightness);
+>>   	}
+>>   }
+>> @@ -206,11 +206,11 @@ static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
+>>   	case V4L2_CID_FLASH_LED_MODE:
+>>   		switch (c->val) {
+>>   		case V4L2_FLASH_LED_MODE_NONE:
+>> -			led_set_brightness(led_cdev, LED_OFF);
+>> +			led_set_brightness_sync(led_cdev, LED_OFF);
+>>   			return led_set_flash_strobe(fled_cdev, false);
+>>   		case V4L2_FLASH_LED_MODE_FLASH:
+>>   			/* Turn the torch LED off */
+>> -			led_set_brightness(led_cdev, LED_OFF);
+>> +			led_set_brightness_sync(led_cdev, LED_OFF);
+>>   			if (ctrls[STROBE_SOURCE]) {
+>>   				external_strobe = (ctrls[STROBE_SOURCE]->val ==
+>>   					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
+>
+
+
 -- 
-2.5.1
-
+Best Regards,
+Jacek Anaszewski
