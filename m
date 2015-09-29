@@ -1,69 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54885 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752571AbbIDLgw (ORCPT
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:47641 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964820AbbI2Rr6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Sep 2015 07:36:52 -0400
-Message-ID: <55E98216.3080602@xs4all.nl>
-Date: Fri, 04 Sep 2015 13:35:50 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-Subject: Re: [PATCH 2/3] ml86v7667: implement g_std() method
-References: <6015647.cjLjRfTWc7@wasted.cogentembedded.com> <1725998.gULFgFImHk@wasted.cogentembedded.com>
-In-Reply-To: <1725998.gULFgFImHk@wasted.cogentembedded.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 29 Sep 2015 13:47:58 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH] v4l-utils: mc_nextgen_test fix -d option parsing
+Date: Tue, 29 Sep 2015 11:47:54 -0600
+Message-Id: <1443548874-4360-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/04/2015 01:16 AM, Sergei Shtylyov wrote:
-> The driver was written with the 'soc_camera' use in mind, however the g_std()
-> video method was forgotten. Implement it at last...
-> 
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+mc_nextgen_test -d option doesn't work due to a missing break.
+Fix the bug so -d, --device=DEVICE option can accept a device
+name. Without this fix, mc_nextgen_test assumes default device
+name.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ contrib/test/mc_nextgen_test.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> 
-> ---
->  drivers/media/i2c/ml86v7667.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> Index: media_tree/drivers/media/i2c/ml86v7667.c
-> ===================================================================
-> --- media_tree.orig/drivers/media/i2c/ml86v7667.c
-> +++ media_tree/drivers/media/i2c/ml86v7667.c
-> @@ -233,6 +233,15 @@ static int ml86v7667_g_mbus_config(struc
->  	return 0;
->  }
->  
-> +static int ml86v7667_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
-> +{
-> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
-> +
-> +	*std = priv->std;
-> +
-> +	return 0;
-> +}
-> +
->  static int ml86v7667_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  {
->  	struct ml86v7667_priv *priv = to_ml86v7667(sd);
-> @@ -282,6 +291,7 @@ static const struct v4l2_ctrl_ops ml86v7
->  };
->  
->  static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
-> +	.g_std = ml86v7667_g_std,
->  	.s_std = ml86v7667_s_std,
->  	.querystd = ml86v7667_querystd,
->  	.g_input_status = ml86v7667_g_input_status,
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
+index 490f048..e287096 100644
+--- a/contrib/test/mc_nextgen_test.c
++++ b/contrib/test/mc_nextgen_test.c
+@@ -89,6 +89,7 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
+ 	case 'd':
+ 		strncpy(media_device, arg, sizeof(media_device) - 1);
+ 		media_device[sizeof(media_device)-1] = '\0';
++		break;
+ 
+ 	case '?':
+ 		argp_state_help(state, state->out_stream,
+-- 
+2.1.4
 
