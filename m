@@ -1,55 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:33796 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932531AbbJ2VXn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 17:23:43 -0400
-Received: by wmff134 with SMTP id f134so32384368wmf.1
-        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:42 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 7/9] media: rc: nuvoton-cir: simplify debug code
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:42136 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751002AbbI3XNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Sep 2015 19:13:06 -0400
+Date: Wed, 30 Sep 2015 20:13:00 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: James <bjlockie@lockie.ca>
 Cc: linux-media@vger.kernel.org
-Message-ID: <56328E21.3080006@gmail.com>
-Date: Thu, 29 Oct 2015 22:22:41 +0100
+Subject: Re: uvc-1.5
+Message-ID: <20150930201300.66ab1478@recife.lan>
+In-Reply-To: <560B196A.2020704@lockie.ca>
+References: <560B196A.2020704@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of explicitely checking debug use nvt_dbg like in other parts
-of the driver thus simplifying the code.
+Em Tue, 29 Sep 2015 19:06:18 -0400
+James <bjlockie@lockie.ca> escreveu:
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+> When is the Linux kernel going to support uvc-1.5?
+> It was made a standard on June 6, 2012
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index ff874fc..ee1b14e 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -716,7 +716,7 @@ static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
- 
- static void nvt_cir_log_irqs(u8 status, u8 iren)
- {
--	nvt_pr(KERN_INFO, "IRQ 0x%02x (IREN 0x%02x) :%s%s%s%s%s%s%s%s%s",
-+	nvt_dbg("IRQ 0x%02x (IREN 0x%02x) :%s%s%s%s%s%s%s%s%s",
- 		status, iren,
- 		status & CIR_IRSTS_RDR	? " RDR"	: "",
- 		status & CIR_IRSTS_RTR	? " RTR"	: "",
-@@ -790,8 +790,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
- 		return IRQ_NONE;
- 	}
- 
--	if (debug)
--		nvt_cir_log_irqs(status, iren);
-+	nvt_cir_log_irqs(status, iren);
- 
- 	if (status & CIR_IRSTS_RTR) {
- 		/* FIXME: add code for study/learn mode */
--- 
-2.6.2
+When someone writes patches adding support for it, together with the
+code that adds support to at least one device that uses UVC 1.5 ;)
 
+I dunno if anyone is working on that ATM.
 
+Regards,
+Mauro
