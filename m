@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44733 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751401AbbJLPkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 11:40:10 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, k.kozlowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, hyun.kwon@xilinx.com,
-	michal.simek@xilinx.com, soren.brinkmann@xilinx.com,
-	gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, lars@metafoo.de,
-	elfring@users.sourceforge.net, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: [PATCH 1/1] media: Correctly determine whether an entity is a sub-device
-Date: Mon, 12 Oct 2015 18:38:23 +0300
-Message-Id: <1444664303-18454-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20151011215625.779630d9@recife.lan>
-References: <20151011215625.779630d9@recife.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:60602 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754696AbbJAR0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 13:26:20 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 5/5] [media] DocBook: Remove a warning at videobuf2-v4l2.h
+Date: Thu,  1 Oct 2015 14:26:02 -0300
+Message-Id: <d383b57911c8a6c3da1af7b3f72dfecfcd5633d0.1443720347.git.mchehab@osg.samsung.com>
+In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the function of an entity is not one of the pre-defined ones, it is not
-correctly recognised as a V4L2 sub-device.
+There's no need to document to_foo() macros, and the macro is
+badly documented anyway. That removes this warning:
+	include/media/videobuf2-v4l2.h:43: warning: No description found for parameter 'vb'
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/media-entity.h | 1 +
- 1 file changed, 1 insertion(+)
+While here, remove the parenthesis for container_of(). The
+countainer_of() already have parenthesis inside it.
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index a60872a..76e9a124 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -328,6 +328,7 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- 	case MEDIA_ENT_F_LENS:
- 	case MEDIA_ENT_F_ATV_DECODER:
- 	case MEDIA_ENT_F_TUNER:
-+	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
- 		return true;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 20d8ad20066c..71f7fe2706b3 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -36,10 +36,10 @@ struct vb2_v4l2_buffer {
+ 	__u32			sequence;
+ };
  
- 	default:
+-/**
++/*
+  * to_vb2_v4l2_buffer() - cast struct vb2_buffer * to struct vb2_v4l2_buffer *
+  */
+ #define to_vb2_v4l2_buffer(vb) \
+-	(container_of(vb, struct vb2_v4l2_buffer, vb2_buf))
++	container_of(vb, struct vb2_v4l2_buffer, vb2_buf)
+ 
+ #endif /* _MEDIA_VIDEOBUF2_V4L2_H */
 -- 
-2.1.4
+2.4.3
 
