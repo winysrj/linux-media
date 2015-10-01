@@ -1,64 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:35222 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399AbbJZRLD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 13:11:03 -0400
-Received: by obctp1 with SMTP id tp1so120947044obc.2
-        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 10:11:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
- <5625DDCA.2040203@xs4all.nl> <CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
- <562B5178.5040303@xs4all.nl> <CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
- <562D5DE2.5020406@xs4all.nl> <CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
- <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Mon, 26 Oct 2015 18:10:43 +0100
-Message-ID: <CAH-u=82pNpsWVEBaAazRgwHGuUDVd0HQ11JLKU=_KcnMcuKcJg@mail.gmail.com>
-Subject: Re: PCIe capture driver
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:33548 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933134AbbJAMFJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 08:05:09 -0400
+Received: by wiclk2 with SMTP id lk2so29856323wic.0
+        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2015 05:05:08 -0700 (PDT)
+From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+To: hverkuil@xs4all.nl, horms@verge.net.au, magnus.damm@gmail.com,
+	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	mchehab@osg.samsung.com
+Cc: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
+	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Subject: [PATCH 0/2] media: platform: rcar_jpu: code cleanup and release function changes
+Date: Thu,  1 Oct 2015 15:03:30 +0300
+Message-Id: <1443701012-20730-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ran,
+This series of patches includes improvements and code cleanup for rcar_jpu driver.
 
-2015-10-26 18:04 GMT+01:00 Ran Shalit <ranshalit@gmail.com>:
-> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
->>> No, use V4L2. What you do with the frame after it has been captured
->>> into memory has no relevance to the API you use to capture into memory.
->>
->> Ran, I've built many open and closed source Linux drivers over the
->> last 10 years - so I can speak with authority on this.
->>
->> Hans is absolutely correct, don't make the mistake of going
->> proprietary with your API. Take advantage of the massive amount of
->> video related frameworks the kernel has to offer. It will get you to
->> market faster, assuming your goal is to build a driver that is open
->> source. If your licensing prohibits an open source driver solution,
->> you'll have no choice but to build your own proprietary API.
->>
->> --
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
->
-> Hi,
->
-> Thank you very much for these valuable comments.
-> If I may ask one more on this issue:
-> Is there an example in linux tree, for a pci device which is used both
-> as a capture and a display device ? (I've made a search but did not
-> find any)
-> The PCIe device we are using will be both a capture device and output
-> video device (for display).
+Mikhail Ulyanov (2):
+  V4L2: platform: rcar_jpu: remove redundant code
+  V4L2: platform: rcar_jpu: switch off clock on release later
 
-Is is a custom card ? If not, which one is it ?
-And if it is a custom board, then maybe can you at least describe the
-inputs and outputs exactly (ideally, the chips used) ?
-This would help understand what you problem really is :).
+ drivers/media/platform/rcar_jpu.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-JM
+-- 
+2.5.1
+
