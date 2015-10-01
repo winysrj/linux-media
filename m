@@ -1,88 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34277 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752124AbbJJQvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 12:51:24 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv5 03/13] DocBook: document tuner RF gain control
-Date: Sat, 10 Oct 2015 19:50:59 +0300
-Message-Id: <1444495869-1969-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
-References: <1444495869-1969-1-git-send-email-crope@iki.fi>
+Received: from bombadil.infradead.org ([198.137.202.9]:49365 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbbJAWRn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 18:17:43 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sergey Kozlov <serjk@netup.ru>
+Subject: [PATCH 4/7] [media] netup_unidvb_ci: Fix dereference of noderef expression
+Date: Thu,  1 Oct 2015 19:17:26 -0300
+Message-Id: <340ccedb76593a2961ad5dd72b33894dd755a358.1443737683.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
+References: <cover.1443737682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
+References: <cover.1443737682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add brief description for tuner RF gain control.
+Fix those sparse warnings:
+	drivers/media/pci/netup_unidvb/netup_unidvb_ci.c:150:40: warning: dereference of noderef expression
+	drivers/media/pci/netup_unidvb/netup_unidvb_ci.c:165:31: warning: dereference of noderef expression
+	drivers/media/pci/netup_unidvb/netup_unidvb_ci.c:174:36: warning: dereference of noderef expression
+	drivers/media/pci/netup_unidvb/netup_unidvb_ci.c:189:27: warning: dereference of noderef expression
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
- Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
- 3 files changed, 19 insertions(+)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index f56faf5..eb091c7 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
- <constant>V4L2_TUNER_ADC</constant> is deprecated now.
- 	  </para>
- 	</listitem>
-+	<listitem>
-+	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
-+RF Tuner control.</para>
-+	</listitem>
-       </orderedlist>
-     </section>
+diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_ci.c b/drivers/media/pci/netup_unidvb/netup_unidvb_ci.c
+index 0bfb14c9e527..f46ffac66ee9 100644
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_ci.c
++++ b/drivers/media/pci/netup_unidvb/netup_unidvb_ci.c
+@@ -147,7 +147,7 @@ static int netup_unidvb_ci_read_attribute_mem(struct dvb_ca_en50221 *en50221,
+ {
+ 	struct netup_ci_state *state = en50221->data;
+ 	struct netup_unidvb_dev *dev = state->dev;
+-	u8 val = state->membase8_config[addr];
++	u8 val = *((u8 __force *)state->membase8_io + addr);
  
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 33aece5..f13a429 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
-               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
-             </row>
-             <row>
-+              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
-+              <entry>integer</entry>
-+            </row>
-+            <row>
-+              <entry spanname="descr">The RF amplifier is the very first
-+amplifier on the receiver signal path, just right after the antenna input.
-+The difference between the LNA gain and the RF gain in this document is that
-+the LNA gain is integrated in the tuner chip while the RF gain is a separate
-+chip. There may be both RF and LNA gain controls in the same device.
-+The range and step are driver-specific.</entry>
-+            </row>
-+            <row>
-               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
-               <entry>integer</entry>
-             </row>
-@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
-               <entry spanname="descr">LNA (low noise amplifier) gain is first
- gain stage on the RF tuner signal path. It is located very close to tuner
- antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
-+See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
-+and LNA gain differs from the each others.
- The range and step are driver-specific.</entry>
-             </row>
-             <row>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index c9eedc1..ab9fca4 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -156,6 +156,7 @@ applications. -->
- 	<date>2015-05-26</date>
- 	<authorinitials>ap</authorinitials>
- 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
-+Added V4L2_CID_RF_TUNER_RF_GAIN control.
- 	</revremark>
-       </revision>
+ 	dev_dbg(&dev->pci_dev->dev,
+ 		"%s(): addr=0x%x val=0x%x\n", __func__, addr, val);
+@@ -162,7 +162,7 @@ static int netup_unidvb_ci_write_attribute_mem(struct dvb_ca_en50221 *en50221,
+ 
+ 	dev_dbg(&dev->pci_dev->dev,
+ 		"%s(): addr=0x%x data=0x%x\n", __func__, addr, data);
+-	state->membase8_config[addr] = data;
++	*((u8 __force *)state->membase8_io + addr) = data;
+ 	return 0;
+ }
+ 
+@@ -171,7 +171,7 @@ static int netup_unidvb_ci_read_cam_ctl(struct dvb_ca_en50221 *en50221,
+ {
+ 	struct netup_ci_state *state = en50221->data;
+ 	struct netup_unidvb_dev *dev = state->dev;
+-	u8 val = state->membase8_io[addr];
++	u8 val = *((u8 __force *)state->membase8_io + addr);
+ 
+ 	dev_dbg(&dev->pci_dev->dev,
+ 		"%s(): addr=0x%x val=0x%x\n", __func__, addr, val);
+@@ -186,7 +186,7 @@ static int netup_unidvb_ci_write_cam_ctl(struct dvb_ca_en50221 *en50221,
+ 
+ 	dev_dbg(&dev->pci_dev->dev,
+ 		"%s(): addr=0x%x data=0x%x\n", __func__, addr, data);
+-	state->membase8_io[addr] = data;
++	*((u8 __force *)state->membase8_io + addr) = data;
+ 	return 0;
+ }
  
 -- 
-http://palosaari.fi/
+2.4.3
+
 
