@@ -1,63 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52881 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751895AbbJLKYs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 06:24:48 -0400
-Message-ID: <561B89FD.4010802@xs4all.nl>
-Date: Mon, 12 Oct 2015 12:22:53 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [RFC] ADV7604: VGA support
-References: <CAH-u=81zwkTxjYEsO8rNLf687-nGuj3DdJNeF6bmnxSUSVYQQg@mail.gmail.com>
-In-Reply-To: <CAH-u=81zwkTxjYEsO8rNLf687-nGuj3DdJNeF6bmnxSUSVYQQg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:60592 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754283AbbJAR0T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 13:26:19 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 2/5] [media] dvbdev: Remove two cut-and-paste errors
+Date: Thu,  1 Oct 2015 14:25:59 -0300
+Message-Id: <5a11cb1cd4cb7fe9cf44ca62bd9b472254f6e5b2.1443720347.git.mchehab@osg.samsung.com>
+In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/2015 06:17 PM, Jean-Michel Hautbois wrote:
-> Hi,
-> 
-> I had another look into the ADV7604 HW manual, and I understand that
-> in automatic mode, there is 4 AIN_SEL values possible, determining the
-> connection on AIN pins.
-> Now, having a look at the current ADV76xx files, I can see that two
-> pads are there :
-> ADV7604_PAD_VGA_RGB and ADV7604_PAD_VGA_COMP.
-> 
-> According to the manual, my understanding is that we should have four
-> HDMI pads and four analog pads. The latter would be configured as RGB
-> or component, which allows four analog inputs as described in the HW
-> manual.
+Those two came from dvb_register_adapter cut-and-paste:
 
-When I wrote the driver we only needed one VGA input receiving either RGB
-or YCbCr. Hence there is only one analog input and two pads. I wouldn't have
-been able to test the additional analog inputs anyway.
+	.//drivers/media/dvb-core/dvbdev.h:199: warning: Excess function parameter 'device' description in 'dvb_register_device'
+	.//drivers/media/dvb-core/dvbdev.h:199: warning: Excess function parameter 'adapter_nums' description in 'dvb_register_device'
 
-I chose to use pads to select between the two modes, but that's something
-that can be changed (it's not something you can autodetect, unfortunately).
+Remove them.
 
-If you want to add support for all four analog inputs, then feel free to
-do so.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Regards,
-
-	Hans
-
-> 
-> I don't know if you agree with that or if you had something else in
-> mind when designing it in the first place, I may have missed something
-> (Lars :) ?).
-> 
-> Thanks,
-> JM
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index c61a4f03a66f..1069a776bbdb 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -184,10 +184,6 @@ int dvb_unregister_adapter(struct dvb_adapter *adap);
+  * @pdvbdev:	pointer to the place where the new struct dvb_device will be
+  *		stored
+  * @template:	Template used to create &pdvbdev;
+- * @device:	pointer to struct device that corresponds to the device driver
+- * @adapter_nums: Array with a list of the numbers for @dvb_register_adapter;
+- * 		to select among them. Typically, initialized with:
+- *		DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nums)
+  * @priv:	private data
+  * @type:	type of the device: DVB_DEVICE_SEC, DVB_DEVICE_FRONTEND,
+  *		DVB_DEVICE_DEMUX, DVB_DEVICE_DVR, DVB_DEVICE_CA, DVB_DEVICE_NET
+-- 
+2.4.3
 
