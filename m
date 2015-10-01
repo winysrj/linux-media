@@ -1,50 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:34984 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814AbbJZRW0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 13:22:26 -0400
-Received: by qgbb65 with SMTP id b65so125030687qgb.2
-        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 10:22:26 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:44424 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923AbbJARVN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Oct 2015 13:21:13 -0400
+Date: Thu, 1 Oct 2015 14:21:07 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: How to fix DocBook parsers for private fields inside #ifdefs
+Message-ID: <20151001142107.5a0bf7b2@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-	<5625DDCA.2040203@xs4all.nl>
-	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
-	<562B5178.5040303@xs4all.nl>
-	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
-	<562D5DE2.5020406@xs4all.nl>
-	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
-	<CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-Date: Mon, 26 Oct 2015 13:22:25 -0400
-Message-ID: <CALzAhNWy+w8Y5X45nXdnOXewg8qpHgqyWE7zP6inzcGejKd=Bw@mail.gmail.com>
-Subject: Re: PCIe capture driver
-From: Steven Toth <stoth@kernellabs.com>
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Hans is absolutely correct, don't make the mistake of going
->> proprietary with your API. Take advantage of the massive amount of
+Hi Jon,
 
-> Thank you very much for these valuable comments.
-> If I may ask one more on this issue:
-> Is there an example in linux tree, for a pci device which is used both
-> as a capture and a display device ? (I've made a search but did not
-> find any)
-> The PCIe device we are using will be both a capture device and output
-> video device (for display).
 
-An in-kernel open source PCIe device that you can feed frames (and
-presumably audio), have the device render and capture? Not that I'm
-aware of.
+I'm trying to cleanup some warnings when creating docbooks for a struct located
+at include/media/videobuf2-core.h. 
 
-I've done these kinds of driver projects in the past, on a commercial
-basis, for our clients. Contact me off list if you're looking for
-help.
+This is the struct:
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+struct vb2_buffer {
+        struct vb2_queue        *vb2_queue;
+        unsigned int            index;
+        unsigned int            type;
+        unsigned int            memory;
+        unsigned int            num_planes;
+        struct vb2_plane        planes[VIDEO_MAX_PLANES];
+
+        /* Private: internal use only */
+        enum vb2_buffer_state   state;
+
+        struct list_head        queued_entry;
+        struct list_head        done_entry;
+#ifdef CONFIG_VIDEO_ADV_DEBUG
+        /*
+         * Counters for how often these buffer-related ops are
+         * called. Used to check for unbalanced ops.
+         */
+        u32             cnt_mem_alloc;
+...
+#endif
+}
+
+The data at the ifdef are used only for debugging purposes during driver
+development or driver testing and should not be used in production.
+
+They're all after a private comment:
+	/* Private: internal use only */
+
+So, according with Documentation/kernel-doc-nano-HOWTO.txt, they shold
+have been ignored.
+
+Still, the scripts produce warnings for them:
+
+$ make cleandocs
+$ make DOCBOOKS=device-drivers.xml htmldocs 2>&1|grep /media/
+
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_alloc'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_put'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_get_dmabuf'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_get_userptr'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_put_userptr'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_prepare'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_finish'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_attach_dmabuf'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_detach_dmabuf'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_map_dmabuf'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_unmap_dmabuf'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_vaddr'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_cookie'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_num_users'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_mem_mmap'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_init'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_prepare'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_finish'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_cleanup'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_queue'
+.//include/media/videobuf2-core.h:254: warning: No description found for parameter 'cnt_buf_done'
+
+I tried to add another private: after the #ifdef, but it still produces
+those warnings.
+
+Any idea about how to fix it?
+
+Thanks!
+Mauro
