@@ -1,102 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58798 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751255AbbJLLwn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 07:52:43 -0400
-Message-ID: <561B9E97.4050909@xs4all.nl>
-Date: Mon, 12 Oct 2015 13:50:47 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv9 06/15] rc: Add HDMI CEC protocol handling
-References: <cover.1441633456.git.hansverk@cisco.com> <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com> <20151006180540.GR21513@n2100.arm.linux.org.uk>
-In-Reply-To: <20151006180540.GR21513@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:49336 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998AbbJAWRm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 18:17:42 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 1/7] [media] media-entity.c: get rid of var length arrays
+Date: Thu,  1 Oct 2015 19:17:23 -0300
+Message-Id: <ef69ee1bc2c10fd1c5b389258d8156f3c38bdb33.1443737682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
+References: <cover.1443737682.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
+References: <cover.1443737682.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/2015 08:05 PM, Russell King - ARM Linux wrote:
-> On Mon, Sep 07, 2015 at 03:44:35PM +0200, Hans Verkuil wrote:
->> From: Kamil Debski <kamil@wypas.org>
->>
->> Add handling of remote control events coming from the HDMI CEC bus.
->> This patch includes a new keymap that maps values found in the CEC
->> messages to the keys pressed and released. Also, a new protocol has
->> been added to the core.
->>
->> Signed-off-by: Kamil Debski <kamil@wypas.org>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> (Added Mauro)
-> 
-> Hmm, how is rc-cec supposed to be loaded?
+Fix those sparse warnings:
+	drivers/media/media-entity.c:238:17: warning: Variable length array is used.
+	drivers/media/media-entity.c:239:17: warning: Variable length array is used.
 
-Is CONFIG_RC_MAP enabled in your config? Ran 'depmod -a'? (Sorry, I'm sure you've done
-that, just checking...)
+That allows sparse and other code check tools to verify if the
+function is using more stack than allowed.
 
-It's optional as I understand it, since you could configure the keytable from
-userspace instead of using this module.
+It also solves a bad Kernel pratice of using var length arrays
+at the stack.
 
-For the record (just tried it), it does load fine on my setup.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-BTW, I am still on the fence whether using the kernel RC subsystem is the
-right thing to do. There are a number of CEC RC commands that use extra parameters
-that cannot be mapped to the RC API, so you still need to handle those manually.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 153a46469814..767fe55ba08e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -235,8 +235,8 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+-		DECLARE_BITMAP(active, entity->num_pads);
+-		DECLARE_BITMAP(has_no_links, entity->num_pads);
++		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
++		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
+ 		unsigned int i;
+ 
+ 		entity->stream_count++;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0c003d817493..197f93799753 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -116,6 +116,13 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+ #define MEDIA_ENTITY_ENUM_MAX_ID	64
+ 
++/*
++ * The number of pads can't be bigger than the number of entities,
++ * as the worse-case scenario is to have one entity linked up to
++ * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
++ */
++#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
++
+ struct media_entity_graph {
+ 	struct {
+ 		struct media_entity *entity;
+-- 
+2.4.3
 
-I know Mauro would like to see this integration, but I am wondering whether it
-really makes sense.
-
-What is your opinion on this?
-
-Perhaps I should split it off into a separate patch and keep it out from the initial
-pull request once we're ready for that.
-
-Regards,
-
-	Hans
-
-> 
-> At boot, I see:
-> 
-> [   16.577704] IR keymap rc-cec not found
-> [   16.586675] Registered IR keymap rc-empty
-> [   16.591668] input: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1/input3
-> [   16.597769] rc1: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1
-> 
-> Yet the rc-cec is a module in the filesystem, but it doesn't seem to
-> be loaded automatically - even after the system has booted, the module
-> hasn't been loaded.
-> 
-> It looks like it _should_ be loaded, but this plainly isn't working:
-> 
->         map = seek_rc_map(name);
-> #ifdef MODULE
->         if (!map) {
->                 int rc = request_module("%s", name);
->                 if (rc < 0) {
->                         printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
->                         return NULL;
->                 }
->                 msleep(20);     /* Give some time for IR to register */
-> 
->                 map = seek_rc_map(name);
->         }
-> #endif
->         if (!map) {
->                 printk(KERN_ERR "IR keymap %s not found\n", name);
->                 return NULL;
->         }
-> 
-> Any ideas?
-> 
 
