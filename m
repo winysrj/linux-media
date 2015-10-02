@@ -1,40 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43478 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846AbbJUVHb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2015 17:07:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] hackrf: fix possible null ptr on debug printing
-Date: Thu, 22 Oct 2015 00:07:06 +0300
-Message-Id: <1445461626-8713-1-git-send-email-crope@iki.fi>
+Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:40485 "EHLO
+	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751691AbbJBWHj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 18:07:39 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
+	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
+	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
+	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
+	takamichiho@gmail.com, pmatilai@laiskiainen.org,
+	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
+	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 03/20] media: Media Controller enable/disable source handler API
+Date: Fri,  2 Oct 2015 16:07:15 -0600
+Message-Id: <7138deae9f47108f44577c3ba9479774c2eda79b.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/hackrf/hackrf.c:1533 hackrf_probe()
-error: we previously assumed 'dev' could be null (see line 1366)
+Add new fields to struct media_device to add enable_source, and
+disable_source handlers, and source_priv to stash driver private
+data that is need to run these handlers. The enable_source handler
+finds source entity for the passed in entity and check if it is
+available, and activate the link using __media_entity_setup_link()
+interface. Bridge driver is expected to implement and set these
+handlers and private data when media_device is registered or when
+bridge driver finds the media_device during probe. This is to enable
+the use-case to find tuner entity connected to the decoder entity and
+check if it is available, and activate it and start pipeline between
+the source and the entity. The disable_source handler deactivates the
+link and stops the pipeline. This handler can be invoked from the
+media core (v4l-core, dvb-core) as well as other drivers such as ALSA
+that control the media device.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/usb/hackrf/hackrf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/media/media-device.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index e05bfec..84e8a42 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -1530,7 +1530,7 @@ err_v4l2_ctrl_handler_free_rx:
- err_kfree:
- 	kfree(dev);
- err:
--	dev_dbg(dev->dev, "failed=%d\n", ret);
-+	dev_dbg(&intf->dev, "failed=%d\n", ret);
- 	return ret;
- }
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index bc53f4f..9a53b19 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -101,6 +101,25 @@ struct media_device {
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
  
++	/* Handlers to find source entity for the sink entity and
++	 * check if it is available, and activate the link using
++	 * media_entity_setup_link() interface and start pipeline
++	 * from the source to the entity.
++	 * Bridge driver is expected to implement and set the
++	 * handler when media_device is registered or when
++	 * bridge driver finds the media_device during probe.
++	 * Bridge driver sets source_priv with information
++	 * necessary to run enable/disable source handlers.
++	 *
++	 * Use-case: find tuner entity connected to the decoder
++	 * entity and check if it is available, and activate the
++	 * using media_entity_setup_link() if it is available.
++	*/
++	void *source_priv;
++	int (*enable_source)(struct media_entity *entity,
++			     struct media_pipeline *pipe);
++	void (*disable_source)(struct media_entity *entity);
++
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
+ };
 -- 
-http://palosaari.fi/
+2.1.4
 
