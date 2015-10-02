@@ -1,346 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39218 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbbJJNgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:18 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from smtp207.alice.it ([82.57.200.103]:8541 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750983AbbJBUj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 16:39:29 -0400
+From: Antonio Ospite <ao2@ao2.it>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 18/26] [media] demux.h: make checkpatch.ph happy
-Date: Sat, 10 Oct 2015 10:36:01 -0300
-Message-Id: <abfc97f722348032c9b6b2cd8f464446aaac6a72.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, moinejf@free.fr,
+	Anders Blomdell <anders.blomdell@control.lth.se>,
+	Thomas Champagne <lafeuil@gmail.com>,
+	Antonio Ospite <ao2@ao2.it>, stable@vger.kernel.org
+Subject: [PATCH] [media] gspca: ov534/topro: prevent a division by 0
+Date: Fri,  2 Oct 2015 22:33:13 +0200
+Message-Id: <1443817993-32406-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are lots of CodingStyle violations here. Now that we're
-touching a log on this header files, adding the documentation
-here, make sure that this will follow the Kernel CodingStyle.
+v4l2-compliance sends a zeroed struct v4l2_streamparm in
+v4l2-test-formats.cpp::testParmType(), and this results in a division by
+0 in some gspca subdrivers:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+  divide error: 0000 [#1] SMP
+  Modules linked in: gspca_ov534 gspca_main ...
+  CPU: 0 PID: 17201 Comm: v4l2-compliance Not tainted 4.3.0-rc2-ao2 #1
+  Hardware name: System manufacturer System Product Name/M2N-E SLI, BIOS
+    ASUS M2N-E SLI ACPI BIOS Revision 1301 09/16/2010
+  task: ffff8800818306c0 ti: ffff880095c4c000 task.ti: ffff880095c4c000
+  RIP: 0010:[<ffffffffa079bd62>]  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
+  RSP: 0018:ffff880095c4fce8  EFLAGS: 00010296
+  RAX: 0000000000000000 RBX: ffff8800c9522000 RCX: ffffffffa077a140
+  RDX: 0000000000000000 RSI: ffff880095e0c100 RDI: ffff8800c9522000
+  RBP: ffff880095e0c100 R08: ffffffffa077a100 R09: 00000000000000cc
+  R10: ffff880067ec7740 R11: 0000000000000016 R12: ffffffffa07bb400
+  R13: 0000000000000000 R14: ffff880081b6a800 R15: 0000000000000000
+  FS:  00007fda0de78740(0000) GS:ffff88012fc00000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 00000000014630f8 CR3: 00000000cf349000 CR4: 00000000000006f0
+  Stack:
+   ffffffffa07a6431 ffff8800c9522000 ffffffffa077656e 00000000c0cc5616
+   ffff8800c9522000 ffffffffa07a5e20 ffff880095e0c100 0000000000000000
+   ffff880067ec7740 ffffffffa077a140 ffff880067ec7740 0000000000000016
+  Call Trace:
+   [<ffffffffa07a6431>] ? v4l_s_parm+0x21/0x50 [videodev]
+   [<ffffffffa077656e>] ? vidioc_s_parm+0x4e/0x60 [gspca_main]
+   [<ffffffffa07a5e20>] ? __video_do_ioctl+0x280/0x2f0 [videodev]
+   [<ffffffffa07a5ba0>] ? video_ioctl2+0x20/0x20 [videodev]
+   [<ffffffffa07a59b9>] ? video_usercopy+0x319/0x4e0 [videodev]
+   [<ffffffff81182dc1>] ? page_add_new_anon_rmap+0x71/0xa0
+   [<ffffffff811afb92>] ? mem_cgroup_commit_charge+0x52/0x90
+   [<ffffffff81179b18>] ? handle_mm_fault+0xc18/0x1680
+   [<ffffffffa07a15cc>] ? v4l2_ioctl+0xac/0xd0 [videodev]
+   [<ffffffff811c846f>] ? do_vfs_ioctl+0x28f/0x480
+   [<ffffffff811c86d4>] ? SyS_ioctl+0x74/0x80
+   [<ffffffff8154a8b6>] ? entry_SYSCALL_64_fastpath+0x16/0x75
+  Code: c7 93 d9 79 a0 5b 5d e9 f1 f3 9a e0 0f 1f 00 66 2e 0f 1f 84 00
+    00 00 00 00 66 66 66 66 90 53 31 d2 48 89 fb 48 83 ec 08 8b 46 10 <f7>
+    76 0c 80 bf ac 0c 00 00 00 88 87 4e 0e 00 00 74 09 80 bf 4f
+  RIP  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
+   RSP <ffff880095c4fce8>
+  ---[ end trace 279710c2c6c72080 ]---
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index b344cad096cd..7405d6e2297d 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -32,9 +32,9 @@
- #include <linux/time.h>
- #include <linux/dvb/dmx.h>
+Following what the doc says about a zeroed timeperframe (see
+http://www.linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-parm.html):
+
+  ...
+  To reset manually applications can just set this field to zero.
+
+fix the issue by resetting the frame rate to a default value in case of
+an unusable timeperframe.
+
+The fix is done in the subdrivers instead of gspca.c because only the
+subdrivers have notion of a default frame rate to reset the camera to.
+
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
+Cc: stable@vger.kernel.org
+---
+
+Hi,
+
+I think the problem in the gspca subdrivers has always been there, so the
+patch could be applied to any relevant stable releases.
+
+After the fix, v4l2-compliance runs fine but it gets two failures, I'll send
+another mail about those.
+
+After this change gets merged I will also send a patch to use defines for the
+default framerates used below as the same value is used in multiple places.
+
+Ah, I ran the patch through scripts/checkpatch.pl from 4.3-rc2 and it
+complained about the commit message but I think it may be a false positive.
+
+Ciao ciao,
+   Antonio
+
+
+ drivers/media/usb/gspca/ov534.c | 9 +++++++--
+ drivers/media/usb/gspca/topro.c | 6 +++++-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+index 146071b..bfff1d1 100644
+--- a/drivers/media/usb/gspca/ov534.c
++++ b/drivers/media/usb/gspca/ov534.c
+@@ -1491,8 +1491,13 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	struct sd *sd = (struct sd *) gspca_dev;
  
--/*--------------------------------------------------------------------------*/
--/* Common definitions */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * Common definitions
-+ */
- 
- /*
-  * DMX_MAX_FILTER_SIZE: Maximum length (in bytes) of a section/PES filter.
-@@ -45,7 +45,8 @@
- #endif
- 
- /*
-- * DMX_MAX_SECFEED_SIZE: Maximum length (in bytes) of a private section feed filter.
-+ * DMX_MAX_SECFEED_SIZE: Maximum length (in bytes) of a private section feed
-+ * filter.
-  */
- 
- #ifndef DMX_MAX_SECTION_SIZE
-@@ -55,18 +56,30 @@
- #define DMX_MAX_SECFEED_SIZE (DMX_MAX_SECTION_SIZE + 188)
- #endif
- 
--/*--------------------------------------------------------------------------*/
--/* TS packet reception */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * TS packet reception
-+ */
- 
- /* TS filter type for set() */
- 
--#define TS_PACKET       1   /* send TS packets (188 bytes) to callback (default) */
--#define	TS_PAYLOAD_ONLY 2   /* in case TS_PACKET is set, only send the TS
--			       payload (<=184 bytes per packet) to callback */
--#define TS_DECODER      4   /* send stream to built-in decoder (if present) */
--#define TS_DEMUX        8   /* in case TS_PACKET is set, send the TS to
--			       the demux device, not to the dvr device */
-+#define TS_PACKET       1   /*
-+			     * send TS packets (188 bytes) to callback
-+			     * (default)
-+			     */
+-	/* Set requested framerate */
+-	sd->frame_rate = tpf->denominator / tpf->numerator;
++	if (tpf->numerator == 0 || tpf->denominator == 0)
++		/* Set default framerate */
++		sd->frame_rate = 30;
++	else
++		/* Set requested framerate */
++		sd->frame_rate = tpf->denominator / tpf->numerator;
 +
-+#define	TS_PAYLOAD_ONLY 2   /*
-+			     * in case TS_PACKET is set, only send the TS
-+			     * payload (<=184 bytes per packet) to callback
-+			     */
+ 	if (gspca_dev->streaming)
+ 		set_frame_rate(gspca_dev);
+ 
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index c70ff40..c028a5c 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -4802,7 +4802,11 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
+ 	struct v4l2_fract *tpf = &cp->timeperframe;
+ 	int fr, i;
+ 
+-	sd->framerate = tpf->denominator / tpf->numerator;
++	if (tpf->numerator == 0 || tpf->denominator == 0)
++		sd->framerate = 30;
++	else
++		sd->framerate = tpf->denominator / tpf->numerator;
 +
-+#define TS_DECODER      4   /*
-+			     * send stream to built-in decoder (if present)
-+			     */
-+
-+#define TS_DEMUX        8   /*
-+			     * in case TS_PACKET is set, send the TS to
-+			     * the demux device, not to the dvr device
-+			     */
+ 	if (gspca_dev->streaming)
+ 		setframerate(gspca_dev, v4l2_ctrl_g_ctrl(gspca_dev->exposure));
  
- /**
-  * struct dmx_ts_feed - Structure that contains a TS feed filter
-@@ -86,19 +99,19 @@ struct dmx_ts_feed {
- 	int is_filtering;
- 	struct dmx_demux *parent;
- 	void *priv;
--	int (*set) (struct dmx_ts_feed *feed,
--		    u16 pid,
--		    int type,
--		    enum dmx_ts_pes pes_type,
--		    size_t circular_buffer_size,
--		    struct timespec timeout);
--	int (*start_filtering) (struct dmx_ts_feed* feed);
--	int (*stop_filtering) (struct dmx_ts_feed* feed);
-+	int (*set)(struct dmx_ts_feed *feed,
-+		   u16 pid,
-+		   int type,
-+		   enum dmx_ts_pes pes_type,
-+		   size_t circular_buffer_size,
-+		   struct timespec timeout);
-+	int (*start_filtering)(struct dmx_ts_feed *feed);
-+	int (*stop_filtering)(struct dmx_ts_feed *feed);
- };
- 
--/*--------------------------------------------------------------------------*/
--/* Section reception */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * Section reception
-+ */
- 
- /**
-  * struct dmx_section_filter - Structure that describes a section filter
-@@ -119,11 +132,11 @@ struct dmx_ts_feed {
-  * equal to filter_value in all the tested bit positions.
-  */
- struct dmx_section_filter {
--	u8 filter_value [DMX_MAX_FILTER_SIZE];
--	u8 filter_mask [DMX_MAX_FILTER_SIZE];
--	u8 filter_mode [DMX_MAX_FILTER_SIZE];
--	struct dmx_section_feed* parent; /* Back-pointer */
--	void* priv; /* Pointer to private data of the API client */
-+	u8 filter_value[DMX_MAX_FILTER_SIZE];
-+	u8 filter_mask[DMX_MAX_FILTER_SIZE];
-+	u8 filter_mode[DMX_MAX_FILTER_SIZE];
-+	struct dmx_section_feed *parent; /* Back-pointer */
-+	void *priv; /* Pointer to private data of the API client */
- };
- 
- /**
-@@ -139,7 +152,7 @@ struct dmx_section_filter {
-  *			is in progress on this section feed. If a filter cannot
-  *			be allocated, the function fails with -ENOSPC.
-  * @release_filter:	This function releases all the resources of a
-- * 			previously allocated section filter. The function
-+ *			previously allocated section filter. The function
-  *			should not be called while filtering is in progress
-  *			on this section feed. After calling this function,
-  *			the caller should not try to dereference the filter
-@@ -153,8 +166,8 @@ struct dmx_section_filter {
-  */
- struct dmx_section_feed {
- 	int is_filtering;
--	struct dmx_demux* parent;
--	void* priv;
-+	struct dmx_demux *parent;
-+	void *priv;
- 
- 	int check_crc;
- 
-@@ -166,33 +179,33 @@ struct dmx_section_feed {
- 	u16 secbufp, seclen, tsfeedp;
- 
- 	/* public: */
--	int (*set) (struct dmx_section_feed* feed,
--		    u16 pid,
--		    size_t circular_buffer_size,
--		    int check_crc);
--	int (*allocate_filter) (struct dmx_section_feed* feed,
--				struct dmx_section_filter** filter);
--	int (*release_filter) (struct dmx_section_feed* feed,
--			       struct dmx_section_filter* filter);
--	int (*start_filtering) (struct dmx_section_feed* feed);
--	int (*stop_filtering) (struct dmx_section_feed* feed);
-+	int (*set)(struct dmx_section_feed *feed,
-+		   u16 pid,
-+		   size_t circular_buffer_size,
-+		   int check_crc);
-+	int (*allocate_filter)(struct dmx_section_feed *feed,
-+			       struct dmx_section_filter **filter);
-+	int (*release_filter)(struct dmx_section_feed *feed,
-+			      struct dmx_section_filter *filter);
-+	int (*start_filtering)(struct dmx_section_feed *feed);
-+	int (*stop_filtering)(struct dmx_section_feed *feed);
- };
- 
--/*--------------------------------------------------------------------------*/
--/* Callback functions */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * Callback functions
-+ */
- 
--typedef int (*dmx_ts_cb) ( const u8 * buffer1,
--			   size_t buffer1_length,
--			   const u8 * buffer2,
--			   size_t buffer2_length,
--			   struct dmx_ts_feed* source);
-+typedef int (*dmx_ts_cb)(const u8 *buffer1,
-+			 size_t buffer1_length,
-+			 const u8 *buffer2,
-+			 size_t buffer2_length,
-+			 struct dmx_ts_feed *source);
- 
--typedef int (*dmx_section_cb) (	const u8 * buffer1,
--				size_t buffer1_len,
--				const u8 * buffer2,
--				size_t buffer2_len,
--				struct dmx_section_filter * source);
-+typedef int (*dmx_section_cb)(const u8 *buffer1,
-+			      size_t buffer1_len,
-+			      const u8 *buffer2,
-+			      size_t buffer2_len,
-+			     struct dmx_section_filter *source);
- 
- /*--------------------------------------------------------------------------*/
- /* DVB Front-End */
-@@ -229,9 +242,9 @@ struct dmx_frontend {
- 	enum dmx_frontend_source source;
- };
- 
--/*--------------------------------------------------------------------------*/
--/* MPEG-2 TS Demux */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * MPEG-2 TS Demux
-+ */
- 
- /*
-  * Flags OR'ed in the capabilities field of struct dmx_demux.
-@@ -255,7 +268,8 @@ struct dmx_frontend {
-  *.
- */
- 
--#define DMX_FE_ENTRY(list) list_entry(list, struct dmx_frontend, connectivity_list)
-+#define DMX_FE_ENTRY(list) \
-+	list_entry(list, struct dmx_frontend, connectivity_list)
- 
- /**
-  * struct dmx_demux - Structure that contains the demux capabilities and
-@@ -269,7 +283,7 @@ struct dmx_frontend {
-  *
-  * @open: This function reserves the demux for use by the caller and, if
-  *	necessary, initializes the demux. When the demux is no longer needed,
-- * 	the function @close should be called. It should be possible for
-+ *	the function @close should be called. It should be possible for
-  *	multiple clients to access the demux at the same time. Thus, the
-  *	function implementation should increment the demux usage count when
-  *	@open is called and decrement it when @close is called.
-@@ -277,7 +291,7 @@ struct dmx_frontend {
-  *	instance data.
-  *	It returns
-  *		0 on success;
-- * 		-EUSERS, if maximum usage count was reached;
-+ *		-EUSERS, if maximum usage count was reached;
-  *		-EINVAL, on bad parameter.
-  *
-  * @close: This function reserves the demux for use by the caller and, if
-@@ -408,7 +422,7 @@ struct dmx_frontend {
-  *	call can be used as a parameter for @connect_frontend. The include
-  *	file demux.h contains the macro DMX_FE_ENTRY() for converting an
-  *	element of the generic type struct &list_head * to the type
-- * 	struct &dmx_frontend *. The caller must not free the memory of any of
-+ *	struct &dmx_frontend *. The caller must not free the memory of any of
-  *	the elements obtained via this function call.
-  *	The @demux function parameter contains a pointer to the demux API and
-  *	instance data.
-@@ -450,44 +464,45 @@ struct dmx_frontend {
- 
- struct dmx_demux {
- 	u32 capabilities;
--	struct dmx_frontend* frontend;
--	void* priv;
--	int (*open) (struct dmx_demux* demux);
--	int (*close) (struct dmx_demux* demux);
--	int (*write) (struct dmx_demux* demux, const char __user *buf, size_t count);
--	int (*allocate_ts_feed) (struct dmx_demux* demux,
--				 struct dmx_ts_feed** feed,
--				 dmx_ts_cb callback);
--	int (*release_ts_feed) (struct dmx_demux* demux,
--				struct dmx_ts_feed* feed);
--	int (*allocate_section_feed) (struct dmx_demux* demux,
--				      struct dmx_section_feed** feed,
--				      dmx_section_cb callback);
--	int (*release_section_feed) (struct dmx_demux* demux,
--				     struct dmx_section_feed* feed);
--	int (*add_frontend) (struct dmx_demux* demux,
--			     struct dmx_frontend* frontend);
--	int (*remove_frontend) (struct dmx_demux* demux,
--				struct dmx_frontend* frontend);
--	struct list_head* (*get_frontends) (struct dmx_demux* demux);
--	int (*connect_frontend) (struct dmx_demux* demux,
--				 struct dmx_frontend* frontend);
--	int (*disconnect_frontend) (struct dmx_demux* demux);
-+	struct dmx_frontend *frontend;
-+	void *priv;
-+	int (*open)(struct dmx_demux *demux);
-+	int (*close)(struct dmx_demux *demux);
-+	int (*write)(struct dmx_demux *demux, const char __user *buf,
-+		     size_t count);
-+	int (*allocate_ts_feed)(struct dmx_demux *demux,
-+				struct dmx_ts_feed **feed,
-+				dmx_ts_cb callback);
-+	int (*release_ts_feed)(struct dmx_demux *demux,
-+			       struct dmx_ts_feed *feed);
-+	int (*allocate_section_feed)(struct dmx_demux *demux,
-+				     struct dmx_section_feed **feed,
-+				     dmx_section_cb callback);
-+	int (*release_section_feed)(struct dmx_demux *demux,
-+				    struct dmx_section_feed *feed);
-+	int (*add_frontend)(struct dmx_demux *demux,
-+			    struct dmx_frontend *frontend);
-+	int (*remove_frontend)(struct dmx_demux *demux,
-+			       struct dmx_frontend *frontend);
-+	struct list_head *(*get_frontends)(struct dmx_demux *demux);
-+	int (*connect_frontend)(struct dmx_demux *demux,
-+				struct dmx_frontend *frontend);
-+	int (*disconnect_frontend)(struct dmx_demux *demux);
- 
--	int (*get_pes_pids) (struct dmx_demux* demux, u16 *pids);
-+	int (*get_pes_pids)(struct dmx_demux *demux, u16 *pids);
- 
- 	/* private: Not used upstream and never documented */
- #if 0
--	int (*get_caps) (struct dmx_demux* demux, struct dmx_caps *caps);
--	int (*set_source) (struct dmx_demux* demux, const dmx_source_t *src);
-+	int (*get_caps)(struct dmx_demux *demux, struct dmx_caps *caps);
-+	int (*set_source)(struct dmx_demux *demux, const dmx_source_t *src);
- #endif
- 	/*
- 	 * private: Only used at av7110, to read some data from firmware.
- 	 *	As this was never documented, we have no clue about what's
--	 * 	there, and its usage on other drivers aren't encouraged.
-+	 *	there, and its usage on other drivers aren't encouraged.
- 	 */
--	int (*get_stc) (struct dmx_demux* demux, unsigned int num,
--			u64 *stc, unsigned int *base);
-+	int (*get_stc)(struct dmx_demux *demux, unsigned int num,
-+		       u64 *stc, unsigned int *base);
- };
- 
- #endif /* #ifndef __DEMUX_H */
 -- 
-2.4.3
-
+2.6.0
 
