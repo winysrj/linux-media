@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from TYO200.gate.nec.co.jp ([210.143.35.50]:61350 "EHLO
-	tyo200.gate.nec.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759896AbbJIAg7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2015 20:36:59 -0400
-Received: from tyo202.gate.nec.co.jp ([10.7.69.202])
-	by tyo200.gate.nec.co.jp (8.13.8/8.13.4) with ESMTP id t990awhm022431
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 9 Oct 2015 09:36:58 +0900 (JST)
-From: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [PATCH] media: fix waitqueue_active without memory barrier in cpia2
- driver
-Date: Fri, 9 Oct 2015 00:35:40 +0000
-Message-ID: <17EC94B0A072C34B8DCF0D30AD16044A02874762@BPXM09GP.gisp.nec.co.jp>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from resqmta-po-08v.sys.comcast.net ([96.114.154.167]:47707 "EHLO
+	resqmta-po-08v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751914AbbJBWHo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 18:07:44 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
+	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
+	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
+	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
+	takamichiho@gmail.com, pmatilai@laiskiainen.org,
+	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
+	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 15/20] media: au0828 video change to use v4l_enable_media_tuner()
+Date: Fri,  2 Oct 2015 16:07:27 -0600
+Message-Id: <2c8b4a96ea5e03f4f9166da23ebc78dbef0813b5.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-cpia2_usb_disconnect() seems to be missing a memory barrier which might
-cause the waker to not notice the waiter and miss sending a wake_up as
-in the following figure.
+au0828 is changed to use v4l_enable_media_tuner() to check for
+tuner availability from vidioc_g_tuner(), and au0828_v4l2_close(),
+before changing tuner settings. If tuner isn't free, return busy
+condition from vidioc_g_tuner() and in au0828_v4l2_close() tuner
+is left untouched without powering down to save energy.
 
-	cpia2_usb_disconnect			sync
-------------------------------------------------------------------------
-					mutex_unlock(&cam->v4l2_lock);
-if (waitqueue_active(&cam->wq_stream))
-/* The CPU might reorder the test for
-   the waitqueue up here, before
-   prior writes complete */
-					/* wait_event_interruptible */
-					 /* __wait_event_interruptible */
-					  /* ___wait_event */
-					  long __int = prepare_to_wait_event(
-					    &wq, &__wait, state);
-					  if (!cam->streaming ||
-					    frame->status == FRAME_READY)
-cam->curbuff->status = FRAME_READY;
-cam->curbuff->length = 0;
-					  schedule()
-------------------------------------------------------------------------
-
-The attached patch removes the call to waitqueue_active() leaving just
-wake_up() behind.  This fixes the problem because the call to
-spin_lock_irqsave() in wake_up() will be an ACQUIRE operation.
-
-I found this issue when I was looking through the linux source code
-for places calling waitqueue_active() before wake_up*(), but without
-preceding memory barriers, after sending a patch to fix a similar
-issue in drivers/tty/n_tty.c  (Details about the original issue can be
-found here: https://lkml.org/lkml/2015/9/28/849).
-
-Signed-off-by: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/usb/cpia2/cpia2_usb.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
-index 351a78a..c1aa1ab 100644
---- a/drivers/media/usb/cpia2/cpia2_usb.c
-+++ b/drivers/media/usb/cpia2/cpia2_usb.c
-@@ -890,8 +890,7 @@ static void cpia2_usb_disconnect(struct usb_interface *intf)
- 		DBG("Wakeup waiting processes\n");
- 		cam->curbuff->status = FRAME_READY;
- 		cam->curbuff->length = 0;
--		if (waitqueue_active(&cam->wq_stream))
--			wake_up_interruptible(&cam->wq_stream);
-+		wake_up_interruptible(&cam->wq_stream);
- 	}
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 062730d..6581f79 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1004,8 +1004,12 @@ static int au0828_v4l2_close(struct file *filp)
+ 		goto end;
  
- 	DBG("Releasing interface\n");
+ 	if (dev->users == 1) {
+-		/* Save some power by putting tuner to sleep */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
++		/* Save some power by putting tuner to sleep, if it is free */
++		/* What happens when radio is using tuner?? */
++		ret = v4l_enable_media_tuner(vdev);
++		if (ret == 0)
++			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
++					     s_power, 0);
+ 		dev->std_set_in_tuner_core = 0;
+ 
+ 		/* When close the device, set the usb intf0 into alt0 to free
+@@ -1406,10 +1410,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct au0828_dev *dev = video_drvdata(file);
++	struct video_device *vfd = video_devdata(file);
++	int ret;
+ 
+ 	if (t->index != 0)
+ 		return -EINVAL;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
++
+ 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+ 		dev->std_set_in_tuner_core, dev->dev_state);
+ 
 -- 
-1.7.1
+2.1.4
+
