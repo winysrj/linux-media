@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33103 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758063AbbJ2VXh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 17:23:37 -0400
-Received: by wmeg8 with SMTP id g8so32456783wme.0
-        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:36 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 2/9] media: rc: nuvoton-cir: remove unneeded lock
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56328D57.5000304@gmail.com>
-Date: Thu, 29 Oct 2015 22:19:19 +0100
+Received: from mout.kundenserver.de ([212.227.126.187]:61142 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbbJBW0S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 18:26:18 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 5/7] [media] mipi-csis: make sparse happy
+Date: Sat, 03 Oct 2015 00:25:57 +0200
+Message-ID: <4962836.RxBJeKxGZM@wuerfel>
+In-Reply-To: <de2ce8fd84f965a270bad28d284932bf20c349be.1443737683.git.mchehab@osg.samsung.com>
+References: <cover.1443737682.git.mchehab@osg.samsung.com> <de2ce8fd84f965a270bad28d284932bf20c349be.1443737683.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-chip_major / chip_minor are accessed sequentially in probe only.
-Therefore no lock is needed.
+On Thursday 01 October 2015 19:17:27 Mauro Carvalho Chehab wrote:
+> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+> index d74e1bec3d86..4b85105dc159 100644
+> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
+> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+> @@ -706,7 +706,8 @@ static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
+>                 else
+>                         offset = S5PCSIS_PKTDATA_ODD;
+>  
+> -               memcpy(pktbuf->data, state->regs + offset, pktbuf->len);
+> +               memcpy(pktbuf->data, (u8 __force *)state->regs + offset,
+> +                      pktbuf->len);
+>                 pktbuf->data = NULL;
+> 
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 3 ---
- 1 file changed, 3 deletions(-)
+I think this is what memcpy_toio() is meant for.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 3d9a4cf..4d8e12f 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -227,7 +227,6 @@ static void cir_wake_dump_regs(struct nvt_dev *nvt)
- /* detect hardware features */
- static int nvt_hw_detect(struct nvt_dev *nvt)
- {
--	unsigned long flags;
- 	u8 chip_major, chip_minor;
- 	char chip_id[12];
- 	bool chip_unknown = false;
-@@ -279,10 +278,8 @@ static int nvt_hw_detect(struct nvt_dev *nvt)
- 
- 	nvt_efm_disable(nvt);
- 
--	spin_lock_irqsave(&nvt->nvt_lock, flags);
- 	nvt->chip_major = chip_major;
- 	nvt->chip_minor = chip_minor;
--	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
- 	return 0;
- }
--- 
-2.6.2
-
-
+	Arnd
