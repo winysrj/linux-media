@@ -1,157 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37137 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752035AbbJLH6N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 03:58:13 -0400
-Message-ID: <561B6798.7070909@xs4all.nl>
-Date: Mon, 12 Oct 2015 09:56:08 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>, linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: v4l2-ctrl is unable to set autogain to 0 with gspca/ov534
-References: <20151007100524.3fc05282628a153591f5c13e@ao2.it>
-In-Reply-To: <20151007100524.3fc05282628a153591f5c13e@ao2.it>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15582 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022AbbJBMK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 08:10:29 -0400
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
+	Format Codec (MFC)...)
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Subject: [PATCH v2 1/2] s5p-mfc: end-of-stream handling for newer encoders
+Date: Fri, 02 Oct 2015 14:09:38 +0200
+Message-id: <1443787779-18458-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antonio,
+MFC encoder supports end-of-stream handling for encoder
+in version 5 of hardware. This patch adds it also for newer version.
+It was successfully tested on MFC-v8.
 
-On 10/07/2015 10:05 AM, Antonio Ospite wrote:
-> Hi,
-> 
-> It looks like it is not possible to set the autogain from 1 to 0 using
-> v4l2-ctrl with the driver I am using.
-> 
-> I am testing with the gspca/ov534 driver, and this sequence of commands
-> does not change the value of the control:
-> 
->   v4l2-ctl --set-ctrl=gain_automatic=1
->   v4l2-ctl --list-ctrls | grep gain_automatic
->   # The following does not work
->   v4l2-ctl --set-ctrl=gain_automatic=0
->   v4l2-ctl --list-ctrls | grep gain_automatic
-> 
-> The same thing happens with guvcview, but setting the control with qv4l2
-> works fine.
-> 
-> After a little investigation I figured out some more details: in my use
-> case the autogain is a master control in an auto cluster, and switching
-> it from auto to manual does not work when using VIDIOC_S_CTRL i.e. when
-> calling set_ctrl().
-> 
-> It works with qv4l2 because it uses VIDIOC_S_EXT_CTRLS.
-> 
-> So the difference is between v4l2-ctrls.c::v4l2_s_ctrl() and
-> v4l2-ctrls.c::v4l2_s_ext_ctrls().
-> 
-> Wrt. auto clusters going from auto to manual the two functions do
-> basically this:
-> 
-> 
->   v4l2_s_ctrl()
->     set_ctrl_lock()
->       user_to_new()
->       set_ctrl()
->         update_from_auto_cluster(master)
->         try_or_set_cluster()
->       cur_to_user()
->         
->     
->   v4l2_s_ext_ctrls()
->     try_set_ext_ctrls()
->       update_from_auto_cluster(master)
->       user_to_new() for each control
->       try_or_set_cluster()
->       new_to_user()
-> 
-> 
-> I think the problem is that when update_from_auto_cluster(master) is
-> called it overrides the new master control value from userspace by
-> calling cur_to_new(). This also happens when calling VIDIOC_S_EXT_CTRLS
-> (in try_set_ext_ctrls), but in that case, AFTER the call to
-> update_from_auto_cluster(master), the code calls user_to_new() that sets
-> back again the correct new value in the control before making the value
-> permanent with try_or_set_cluster().
-> 
-> The regression may have been introduced in
-> 5d0360a4f027576e5419d4a7c711c9ca0f1be8ca, in fact by just reverting
-> these two interdependent commits:
-> 
-> 7a7f1ab37dc8f66cf0ef10f3d3f1b79ac4bc67fc
-> 5d0360a4f027576e5419d4a7c711c9ca0f1be8ca
-> 
-> the problem goes away, so the regression is about user_to_new() not
-> being called AFTER update_from_auto_cluster(master) anymore in
-> set_ctrl(), as per 5d0360a4f027576e5419d4a7c711c9ca0f1be8ca.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+Hi,
 
-Excellent analysis!
+This version is rebased on latest media_tree branch.
 
-> 
-> A quick and dirty fixup could look like this:
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index b6b7dcc..55d78fc 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -3198,8 +3198,11 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
->            manual mode we have to update the current volatile values since
->            those will become the initial manual values after such a switch. */
->         if (master->is_auto && master->has_volatiles && ctrl == master &&
-> -           !is_cur_manual(master) && ctrl->val == master->manual_mode_value)
-> +           !is_cur_manual(master) && ctrl->val == master->manual_mode_value) {
-> +               s32 new_auto_val = master->val;
->                 update_from_auto_cluster(master);
-> +               master->val = new_auto_val;
-> +       }
-> 
->         ctrl->is_new = 1;
->         return try_or_set_cluster(fh, master, true, ch_flags);
-> 
-> 
-> However I think that calling user_to_new() after
-> update_from_auto_cluster() has always been masking a bug in the latter.
-> 
-> Maybe this is a better fix, in place of the one above.
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index b6b7dcc..19fc06e 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -3043,7 +3043,7 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
->  {
->         int i;
-> 
-> -       for (i = 0; i < master->ncontrols; i++)
-> +       for (i = 1; i < master->ncontrols; i++)
->                 cur_to_new(master->cluster[i]);
->         if (!call_op(master, g_volatile_ctrl))
->                 for (i = 1; i < master->ncontrols; i++)
-> 
+Regards
+Andrzej
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 25 ++++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  5 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 51 ++++++++++++++++---------
+ 3 files changed, 49 insertions(+), 32 deletions(-)
 
-I agree, this is the right fix.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 7b646c2..05a31ee 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -181,13 +181,6 @@ unlock:
+ 		mutex_unlock(&dev->mfc_mutex);
+ }
+ 
+-static void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev)
+-{
+-	mfc_write(dev, 0, S5P_FIMV_RISC_HOST_INT);
+-	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
+-	mfc_write(dev, 0xffff, S5P_FIMV_SI_RTN_CHID);
+-}
+-
+ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_buf *dst_buf;
+@@ -579,17 +572,13 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
+ 	}
+ }
+ 
+-static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx,
+-				 unsigned int reason, unsigned int err)
++static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf *mb_entry;
+ 
+ 	mfc_debug(2, "Stream completed\n");
+ 
+-	s5p_mfc_clear_int_flags(dev);
+-	ctx->int_type = reason;
+-	ctx->int_err = err;
+ 	ctx->state = MFCINST_FINISHED;
+ 
+ 	spin_lock(&dev->irqlock);
+@@ -646,6 +635,13 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 		if (ctx->c_ops->post_frame_start) {
+ 			if (ctx->c_ops->post_frame_start(ctx))
+ 				mfc_err("post_frame_start() failed\n");
++
++			if (ctx->state == MFCINST_FINISHING &&
++						list_empty(&ctx->ref_queue)) {
++				s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
++				s5p_mfc_handle_stream_complete(ctx);
++				break;
++			}
+ 			s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
+ 			wake_up_ctx(ctx, reason, err);
+ 			WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
+@@ -691,7 +687,10 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 		break;
+ 
+ 	case S5P_MFC_R2H_CMD_COMPLETE_SEQ_RET:
+-		s5p_mfc_handle_stream_complete(ctx, reason, err);
++		s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
++		ctx->int_type = reason;
++		ctx->int_err = err;
++		s5p_mfc_handle_stream_complete(ctx);
+ 		break;
+ 
+ 	case S5P_MFC_R2H_CMD_DPB_FLUSH_RET:
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 94868f7..d082d47 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -907,9 +907,9 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
+ 			list_add_tail(&mb_entry->list, &ctx->ref_queue);
+ 			ctx->ref_queue_cnt++;
+ 		}
+-		mfc_debug(2, "enc src count: %d, enc ref count: %d\n",
+-			  ctx->src_queue_cnt, ctx->ref_queue_cnt);
+ 	}
++	mfc_debug(2, "enc src count: %d, enc ref count: %d\n",
++		  ctx->src_queue_cnt, ctx->ref_queue_cnt);
+ 	if ((ctx->dst_queue_cnt > 0) && (strm_size > 0)) {
+ 		mb_entry = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf,
+ 									list);
+@@ -932,6 +932,7 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	if ((ctx->src_queue_cnt == 0) || (ctx->dst_queue_cnt == 0))
+ 		clear_work_bit(ctx);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index e0924a52..69a6880 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -522,7 +522,7 @@ static int s5p_mfc_set_enc_stream_buffer_v6(struct s5p_mfc_ctx *ctx,
+ 	writel(addr, mfc_regs->e_stream_buffer_addr); /* 16B align */
+ 	writel(size, mfc_regs->e_stream_buffer_size);
+ 
+-	mfc_debug(2, "stream buf addr: 0x%08lx, size: 0x%x\n",
++	mfc_debug(2, "stream buf addr: 0x%08lx, size: 0x%d\n",
+ 		  addr, size);
+ 
+ 	return 0;
+@@ -554,7 +554,7 @@ static void s5p_mfc_get_enc_frame_buffer_v6(struct s5p_mfc_ctx *ctx,
+ 	enc_recon_y_addr = readl(mfc_regs->e_recon_luma_dpb_addr);
+ 	enc_recon_c_addr = readl(mfc_regs->e_recon_chroma_dpb_addr);
+ 
+-	mfc_debug(2, "recon y addr: 0x%08lx\n", enc_recon_y_addr);
++	mfc_debug(2, "recon y addr: 0x%08lx y_addr: 0x%08lx\n", enc_recon_y_addr, *y_addr);
+ 	mfc_debug(2, "recon c addr: 0x%08lx\n", enc_recon_c_addr);
+ }
+ 
+@@ -1483,6 +1483,7 @@ static int s5p_mfc_encode_one_frame_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
++	int cmd;
+ 
+ 	mfc_debug(2, "++\n");
+ 
+@@ -1493,9 +1494,13 @@ static int s5p_mfc_encode_one_frame_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	s5p_mfc_set_slice_mode(ctx);
+ 
++	if (ctx->state != MFCINST_FINISHING)
++		cmd = S5P_FIMV_CH_FRAME_START_V6;
++	else
++		cmd = S5P_FIMV_CH_LAST_FRAME_V6;
++
+ 	writel(ctx->inst_no, mfc_regs->instance_id);
+-	s5p_mfc_hw_call_void(dev->mfc_cmds, cmd_host2risc, dev,
+-			S5P_FIMV_CH_FRAME_START_V6, NULL);
++	s5p_mfc_hw_call_void(dev->mfc_cmds, cmd_host2risc, dev, cmd, NULL);
+ 
+ 	mfc_debug(2, "--\n");
+ 
+@@ -1563,8 +1568,8 @@ static inline int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx)
+ 	temp_vb->flags |= MFC_BUF_FLAG_USED;
+ 	s5p_mfc_set_dec_stream_buffer_v6(ctx,
+ 		vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0),
+-		ctx->consumed_stream,
+-		temp_vb->b->vb2_buf.planes[0].bytesused);
++			ctx->consumed_stream,
++			temp_vb->b->vb2_buf.planes[0].bytesused);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 
+ 	dev->curr_ctx = ctx->num;
+@@ -1592,7 +1597,7 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
+ 
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 
+-	if (list_empty(&ctx->src_queue)) {
++	if (list_empty(&ctx->src_queue) && ctx->state != MFCINST_FINISHING) {
+ 		mfc_debug(2, "no src buffers.\n");
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+ 		return -EAGAIN;
+@@ -1604,15 +1609,28 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
+ 		return -EAGAIN;
+ 	}
+ 
+-	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+-	src_mb->flags |= MFC_BUF_FLAG_USED;
+-	src_y_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 0);
+-	src_c_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 1);
++	if (list_empty(&ctx->src_queue)) {
++		/* send null frame */
++		s5p_mfc_set_enc_frame_buffer_v6(ctx, 0, 0);
++		src_mb = NULL;
++	} else {
++		src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
++		src_mb->flags |= MFC_BUF_FLAG_USED;
++		if (src_mb->b->vb2_buf.planes[0].bytesused == 0) {
++			s5p_mfc_set_enc_frame_buffer_v6(ctx, 0, 0);
++			ctx->state = MFCINST_FINISHING;
++		} else {
++			src_y_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 0);
++			src_c_addr = vb2_dma_contig_plane_dma_addr(&src_mb->b->vb2_buf, 1);
+ 
+-	mfc_debug(2, "enc src y addr: 0x%08lx\n", src_y_addr);
+-	mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
++			mfc_debug(2, "enc src y addr: 0x%08lx\n", src_y_addr);
++			mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
+ 
+-	s5p_mfc_set_enc_frame_buffer_v6(ctx, src_y_addr, src_c_addr);
++			s5p_mfc_set_enc_frame_buffer_v6(ctx, src_y_addr, src_c_addr);
++			if (src_mb->flags & MFC_BUF_FLAG_EOS)
++				ctx->state = MFCINST_FINISHING;
++		}
++	}
+ 
+ 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
+ 	dst_mb->flags |= MFC_BUF_FLAG_USED;
+@@ -1639,11 +1657,10 @@ static inline void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	mfc_debug(2, "Preparing to init decoding.\n");
+ 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+-	mfc_debug(2, "Header size: %d\n",
+-		temp_vb->b->vb2_buf.planes[0].bytesused);
++	mfc_debug(2, "Header size: %d\n", temp_vb->b->vb2_buf.planes[0].bytesused);
+ 	s5p_mfc_set_dec_stream_buffer_v6(ctx,
+ 		vb2_dma_contig_plane_dma_addr(&temp_vb->b->vb2_buf, 0), 0,
+-		temp_vb->b->vb2_buf.planes[0].bytesused);
++			temp_vb->b->vb2_buf.planes[0].bytesused);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	dev->curr_ctx = ctx->num;
+ 	s5p_mfc_init_decode_v6(ctx);
+-- 
+1.9.1
 
-> 
-> We can assume that the master control in an auto cluster is always the
-> first one, can't we? With the change above we don't override the new
-> value of the master control, in this case when it's being changed from
-> auto to manual.
-> 
-> I may be missing some details tho, so I am asking if my reasoning is
-> correct before sending a proper patch. And should I CC stable on it as
-> the change fixes a regression?
-
-Just post the patch to linux-media, but add this line after your Signed-off-by:
-
-Cc: <stable@vger.kernel.org>      # for v3.17 and up
-
-Thanks for looking at this!
-
-Regards,
-
-	Hans
