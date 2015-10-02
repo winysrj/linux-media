@@ -1,277 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37088 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752160AbbJJQvZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 12:51:25 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv5 04/13] v4l2: add support for SDR transmitter
-Date: Sat, 10 Oct 2015 19:51:00 +0300
-Message-Id: <1444495869-1969-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
-References: <1444495869-1969-1-git-send-email-crope@iki.fi>
+Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:40194 "EHLO
+	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752034AbbJBWHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 18:07:45 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
+	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
+	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
+	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
+	takamichiho@gmail.com, pmatilai@laiskiainen.org,
+	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
+	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 17/20] media: au0828 change to register/unregister entity_notify hook
+Date: Fri,  2 Oct 2015 16:07:29 -0600
+Message-Id: <c8148c1fa875207148b4cc852c912359ad3c1e71.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New IOCTL ops:
-vidioc_enum_fmt_sdr_out
-vidioc_g_fmt_sdr_out
-vidioc_s_fmt_sdr_out
-vidioc_try_fmt_sdr_out
+au0828 registers entity_notify hook to create media graph for
+the device. This handler runs whenvere a new entity gets added
+to the media device. It creates necessary links from video, vbi,
+and ALSA entities to decoder and links tuner and decoder entities.
+As this handler runs as entities get added, it has to maintain
+state on the links it already created. New fields are added to
+au0828_dev to keep this state information. entity_notify gets
+unregistered before media_device unregister.
 
-New vb2 buffertype:
-V4L2_BUF_TYPE_SDR_OUTPUT
-
-New v4l2 capability:
-V4L2_CAP_SDR_OUTPUT
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  2 ++
- drivers/media/v4l2-core/v4l2-dev.c            | 14 ++++++++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c          | 25 +++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf-core.c       |  4 +++-
- include/media/v4l2-ioctl.h                    |  8 ++++++++
- include/trace/events/v4l2.h                   |  1 +
- include/uapi/linux/videodev2.h                |  5 ++++-
- 7 files changed, 55 insertions(+), 4 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 178 ++++++++++++++++++---------------
+ drivers/media/usb/au0828/au0828.h      |   6 ++
+ 2 files changed, 102 insertions(+), 82 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index d032e9a..327e83a 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -214,6 +214,7 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
- 		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
-@@ -260,6 +261,7 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
- 		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
- 	default:
- 		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 71a1b93..6b1eaed 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -637,8 +637,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			       ops->vidioc_try_fmt_sliced_vbi_out)))
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_G_SLICED_VBI_CAP, vidioc_g_sliced_vbi_cap);
--	} else if (is_sdr) {
--		/* SDR specific ioctls */
-+	} else if (is_sdr && is_rx) {
-+		/* SDR receiver specific ioctls */
- 		if (ops->vidioc_enum_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
- 		if (ops->vidioc_g_fmt_sdr_cap)
-@@ -647,6 +647,16 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
- 		if (ops->vidioc_try_fmt_sdr_cap)
- 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
-+	} else if (is_sdr && is_tx) {
-+		/* SDR transmitter specific ioctls */
-+		if (ops->vidioc_enum_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_ENUM_FMT), valid_ioctls);
-+		if (ops->vidioc_g_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_G_FMT), valid_ioctls);
-+		if (ops->vidioc_s_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_S_FMT), valid_ioctls);
-+		if (ops->vidioc_try_fmt_sdr_out)
-+			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 544d304..ade89d9 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -137,6 +137,8 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	if (dev->media_dev &&
+ 	    media_devnode_is_registered(&dev->media_dev->devnode)) {
++		media_device_unregister_entity_notify(dev->media_dev,
++						      &dev->entity_notify);
+ 		media_device_unregister(dev->media_dev);
+ 		dev->media_dev = NULL;
  	}
+@@ -215,52 +217,22 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	au0828_usb_release(dev);
+ }
  
- 	if (is_vid || is_vbi || is_sdr) {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 056a5ad..073ab36 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -153,6 +153,7 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
- 	[V4L2_BUF_TYPE_SDR_CAPTURE]        = "sdr-cap",
-+	[V4L2_BUF_TYPE_SDR_OUTPUT]         = "sdr-out",
- };
- EXPORT_SYMBOL(v4l2_type_names);
+-static void au0828_media_device_register(struct au0828_dev *dev,
+-					  struct usb_device *udev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_device *mdev;
+-	int ret;
+-
+-	mdev = media_device_get_devres(&udev->dev);
+-	if (!mdev)
+-		return;
+-
+-	if (!media_devnode_is_registered(&mdev->devnode)) {
+-		/* register media device */
+-		mdev->dev = &udev->dev;
+-
+-		if (udev->product)
+-			strlcpy(mdev->model, udev->product,
+-				sizeof(mdev->model));
+-		if (udev->serial)
+-			strlcpy(mdev->serial, udev->serial,
+-				sizeof(mdev->serial));
+-		strcpy(mdev->bus_info, udev->devpath);
+-		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+-		ret = media_device_register(mdev);
+-		if (ret) {
+-			dev_err(&udev->dev,
+-				"Couldn't create a media device. Error: %d\n",
+-				ret);
+-			return;
+-		}
+-	}
+-	dev->media_dev = mdev;
+-#endif
+-}
+-
+-
+-static int au0828_create_media_graph(struct au0828_dev *dev)
++void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
++	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *entity;
+ 	struct media_entity *tuner = NULL, *decoder = NULL;
++	struct media_entity *audio_capture = NULL;
+ 	int i, ret;
  
-@@ -326,6 +327,7 @@ static void v4l_print_format(const void *arg, bool write_only)
- 				sliced->service_lines[1][i]);
- 		break;
- 	case V4L2_BUF_TYPE_SDR_CAPTURE:
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
- 		sdr = &p->fmt.sdr;
- 		pr_cont(", pixelformat=%c%c%c%c\n",
- 			(sdr->pixelformat >>  0) & 0xff,
-@@ -974,6 +976,10 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
- 		if (is_sdr && is_rx && ops->vidioc_g_fmt_sdr_cap)
- 			return 0;
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (is_sdr && is_tx && ops->vidioc_g_fmt_sdr_out)
-+			return 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -1324,6 +1330,11 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 	if (!mdev)
+-		return 0;
++		return;
++
++	if (dev->tuner_linked && dev->vdev_linked && dev->vbi_linked &&
++	    dev->audio_capture_linked)
++		return;
+ 
+ 	media_device_for_each_entity(entity, mdev) {
+ 		switch (entity->function) {
+@@ -270,6 +242,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		case MEDIA_ENT_F_ATV_DECODER:
+ 			decoder = entity;
  			break;
- 		ret = ops->vidioc_enum_fmt_sdr_cap(file, fh, arg);
- 		break;
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_enum_fmt_sdr_out))
++		case MEDIA_ENT_F_AUDIO_CAPTURE:
++			audio_capture = entity;
 +			break;
-+		ret = ops->vidioc_enum_fmt_sdr_out(file, fh, arg);
-+		break;
- 	}
- 	if (ret == 0)
- 		v4l_fill_fmtdesc(p);
-@@ -1418,6 +1429,10 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_rx || !is_sdr || !ops->vidioc_g_fmt_sdr_cap))
- 			break;
- 		return ops->vidioc_g_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_g_fmt_sdr_out))
-+			break;
-+		return ops->vidioc_g_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1497,6 +1512,11 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_s_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_s_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_s_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-@@ -1576,6 +1596,11 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.sdr);
- 		return ops->vidioc_try_fmt_sdr_cap(file, fh, arg);
-+	case V4L2_BUF_TYPE_SDR_OUTPUT:
-+		if (unlikely(!is_tx || !is_sdr || !ops->vidioc_try_fmt_sdr_out))
-+			break;
-+		CLEAR_AFTER_FIELD(p, fmt.sdr);
-+		return ops->vidioc_try_fmt_sdr_out(file, fh, arg);
- 	}
- 	return -EINVAL;
- }
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index 926836d..6c02989 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -576,7 +576,8 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
  		}
- 		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
- 		    || q->type == V4L2_BUF_TYPE_VBI_OUTPUT
--		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
-+		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT
-+		    || q->type == V4L2_BUF_TYPE_SDR_OUTPUT) {
- 			buf->size = b->bytesused;
- 			buf->field = b->field;
- 			buf->ts = b->timestamp;
-@@ -1154,6 +1155,7 @@ unsigned int videobuf_poll_stream(struct file *file,
- 			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 			case V4L2_BUF_TYPE_VBI_OUTPUT:
- 			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			case V4L2_BUF_TYPE_SDR_OUTPUT:
- 				rc = POLLOUT | POLLWRNORM;
+ 	}
+ 
+@@ -277,65 +252,111 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 
+ 	/* Something bad happened! */
+ 	if (!decoder)
+-		return -EINVAL;
++		return;
+ 
+-	if (tuner) {
++	if (tuner && !dev->tuner_linked) {
++		dev->tuner = tuner;
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
+ 					    decoder, 0,
+ 				            MEDIA_LNK_FL_ENABLED);
+-		if (ret)
+-			return ret;
++		if (ret == 0)
++			dev->tuner_linked = 1;
+ 	}
+ 
+-	if (dev->vdev.entity.graph_obj.mdev) {
++	if (dev->vdev.entity.graph_obj.mdev && !dev->vdev_linked) {
+ 		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
+ 					    &dev->vdev.entity, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+-		if (ret)
+-			return ret;
++		if (ret == 0)
++			dev->vdev_linked = 1;
+ 	}
+-	if (dev->vbi_dev.entity.graph_obj.mdev) {
++
++	if (dev->vbi_dev.entity.graph_obj.mdev && !dev->vbi_linked) {
+ 		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
+ 					    &dev->vbi_dev.entity, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+-		if (ret)
+-			return ret;
+-	}
++		if (ret == 0)
++			dev->vbi_linked = 1;
+ 
+-	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+-		struct media_entity *ent = &dev->input_ent[i];
++		/* Input entities are registered before vbi entity */
++		for (i = 0; i < AU0828_MAX_INPUT; i++) {
++			struct media_entity *ent = &dev->input_ent[i];
+ 
+-		if (!ent->graph_obj.mdev)
+-			continue;
++			if (!ent->graph_obj.mdev)
++				continue;
+ 
+-		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+-			break;
++			if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
++				break;
+ 
+-		switch(AUVI_INPUT(i).type) {
+-		case AU0828_VMUX_CABLE:
+-		case AU0828_VMUX_TELEVISION:
+-		case AU0828_VMUX_DVB:
+-			if (!tuner)
++			switch (AUVI_INPUT(i).type) {
++			case AU0828_VMUX_CABLE:
++			case AU0828_VMUX_TELEVISION:
++			case AU0828_VMUX_DVB:
++				if (!tuner)
++					break;
++
++				media_create_pad_link(ent, 0, tuner,
++						      TUNER_PAD_RF_INPUT,
++						      MEDIA_LNK_FL_ENABLED);
++				break;
++			case AU0828_VMUX_COMPOSITE:
++			case AU0828_VMUX_SVIDEO:
++			default: /* AU0828_VMUX_DEBUG */
++				/* FIXME: fix the decoder PAD */
++				media_create_pad_link(ent, 0, decoder, 0, 0);
  				break;
- 			default:
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 8fbbd76..017ffb2 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -36,6 +36,8 @@ struct v4l2_ioctl_ops {
- 					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_sdr_cap)     (struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_sdr_out)     (struct file *file, void *fh,
-+					    struct v4l2_fmtdesc *f);
++			}
++		}
++	}
  
- 	/* VIDIOC_G_FMT handlers */
- 	int (*vidioc_g_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -60,6 +62,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_g_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
+-			ret = media_create_pad_link(ent, 0, tuner,
+-						    TUNER_PAD_RF_INPUT,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-			break;
+-		case AU0828_VMUX_COMPOSITE:
+-		case AU0828_VMUX_SVIDEO:
+-		default: /* AU0828_VMUX_DEBUG */
+-			/* FIXME: fix the decoder PAD */
+-			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
+-			if (ret)
+-				return ret;
+-			break;
++	if (audio_capture && !dev->audio_capture_linked) {
++		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
++					    audio_capture, 0,
++					    MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->audio_capture_linked = 1;
++	}
++#endif
++}
++
++static void au0828_media_device_register(struct au0828_dev *dev,
++					  struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev;
++	int ret;
++
++	mdev = media_device_get_devres(&udev->dev);
++	if (!mdev)
++		return;
++
++	if (!media_devnode_is_registered(&mdev->devnode)) {
++		/* register media device */
++		mdev->dev = &udev->dev;
++
++		if (udev->product)
++			strlcpy(mdev->model, udev->product,
++				sizeof(mdev->model));
++		if (udev->serial)
++			strlcpy(mdev->serial, udev->serial,
++				sizeof(mdev->serial));
++		strcpy(mdev->bus_info, udev->devpath);
++		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++		ret = media_device_register(mdev);
++		if (ret) {
++			dev_err(&udev->dev,
++				"Couldn't create a media device. Error: %d\n",
++				ret);
++			return;
+ 		}
+ 	}
++	/* register entity_notify callback */
++	dev->entity_notify.notify_data = (void *) dev;
++	dev->entity_notify.notify = au0828_create_media_graph;
++	media_device_register_entity_notify(mdev, &dev->entity_notify);
++
++	dev->media_dev = mdev;
+ #endif
+-	return 0;
+ }
  
- 	/* VIDIOC_S_FMT handlers */
- 	int (*vidioc_s_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -84,6 +88,8 @@ struct v4l2_ioctl_ops {
- 					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_sdr_cap)    (struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_s_fmt_sdr_out)    (struct file *file, void *fh,
-+					struct v4l2_format *f);
+ static int au0828_usb_probe(struct usb_interface *interface,
+@@ -450,13 +471,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
  
- 	/* VIDIOC_TRY_FMT handlers */
- 	int (*vidioc_try_fmt_vid_cap)    (struct file *file, void *fh,
-@@ -108,6 +114,8 @@ struct v4l2_ioctl_ops {
- 					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_sdr_cap)    (struct file *file, void *fh,
- 					  struct v4l2_format *f);
-+	int (*vidioc_try_fmt_sdr_out)    (struct file *file, void *fh,
-+					  struct v4l2_format *f);
+ 	mutex_unlock(&dev->lock);
  
- 	/* Buffer handlers */
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
-diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
-index b015b38..64b5fd7 100644
---- a/include/trace/events/v4l2.h
-+++ b/include/trace/events/v4l2.h
-@@ -27,6 +27,7 @@
- 	EM( V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE, "VIDEO_CAPTURE_MPLANE" ) \
- 	EM( V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,  "VIDEO_OUTPUT_MPLANE" )	\
- 	EM( V4L2_BUF_TYPE_SDR_CAPTURE,          "SDR_CAPTURE" )		\
-+	EM( V4L2_BUF_TYPE_SDR_OUTPUT,           "SDR_OUTPUT" )		\
- 	EMe(V4L2_BUF_TYPE_PRIVATE,		"PRIVATE" )
+-	retval = au0828_create_media_graph(dev);
+-	if (retval) {
+-		pr_err("%s() au0282_dev_register failed to create graph\n",
+-		       __func__);
+-		au0828_usb_disconnect(interface);
+-	}
+-
+ 	return retval;
+ }
  
- SHOW_TYPE
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index fa8bf2d..f95e1ef 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -145,6 +145,7 @@ enum v4l2_buf_type {
- 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
- 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
-+	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
- 	/* Deprecated, do not use */
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index b7940c5..3874906f 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -282,6 +282,12 @@ struct au0828_dev {
+ 	struct media_entity *decoder;
+ 	struct media_entity input_ent[AU0828_MAX_INPUT];
+ 	struct media_pad input_pad[AU0828_MAX_INPUT];
++	struct media_entity_notify entity_notify;
++	struct media_entity *tuner;
++	bool tuner_linked;
++	bool vdev_linked;
++	bool vbi_linked;
++	bool audio_capture_linked;
+ #endif
  };
-@@ -159,7 +160,8 @@ enum v4l2_buf_type {
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
- 	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
- 	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
--	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
-+	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT		\
-+	 || (type) == V4L2_BUF_TYPE_SDR_OUTPUT)
  
- enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
-@@ -435,6 +437,7 @@ struct v4l2_capability {
- 
- #define V4L2_CAP_SDR_CAPTURE		0x00100000  /* Is a SDR capture device */
- #define V4L2_CAP_EXT_PIX_FORMAT		0x00200000  /* Supports the extended pixel format */
-+#define V4L2_CAP_SDR_OUTPUT		0x00400000  /* Is a SDR output device */
- 
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
 -- 
-http://palosaari.fi/
+2.1.4
 
