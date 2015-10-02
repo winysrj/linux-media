@@ -1,153 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39185 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595AbbJJNgQ (ORCPT
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:37491 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751660AbbJBWHl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 06/26] [media] DocBook: Document tveeprom.h
-Date: Sat, 10 Oct 2015 10:35:49 -0300
-Message-Id: <326ab27bbddf053e6b578fde312b5069aa55b2ab.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+	Fri, 2 Oct 2015 18:07:41 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
+	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
+	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
+	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
+	takamichiho@gmail.com, pmatilai@laiskiainen.org,
+	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
+	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 09/20] media: au8522 change to create MC pad for ALSA Audio Out
+Date: Fri,  2 Oct 2015 16:07:21 -0600
+Message-Id: <3f1c71ce5febd9376fb95280858256f42a79001a.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This header declares the code and structures used to parse
-Hauppauge eeproms. As this is part of the V4L2 common, and
-used by several drivers, let's properly document it.
+Add new pad for ALSA Audio Out to au8522_media_pads.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522.h         | 1 +
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 8ce967a48c58..bdc0f7e0a55d 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -223,6 +223,7 @@ X!Isound/sound_firmware.c
-      <sect1><title>Video2Linux devices</title>
- !Iinclude/media/tuner.h
- !Iinclude/media/tuner-types.h
-+!Iinclude/media/tveeprom.h
- !Iinclude/media/v4l2-async.h
- !Iinclude/media/v4l2-ctrls.h
- !Iinclude/media/v4l2-dv-timings.h
-diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
-index bb484967ef8b..8be898739e0c 100644
---- a/include/media/tveeprom.h
-+++ b/include/media/tveeprom.h
-@@ -1,28 +1,63 @@
-+
- /*
-+ * tveeprom - Contains structures and functions to work with Hauppauge
-+ *	      eeproms.
-  */
+diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
+index 3c72f40..d7a997f 100644
+--- a/drivers/media/dvb-frontends/au8522.h
++++ b/drivers/media/dvb-frontends/au8522.h
+@@ -94,6 +94,7 @@ enum au8522_media_pads {
+ 	AU8522_PAD_INPUT,
+ 	AU8522_PAD_VID_OUT,
+ 	AU8522_PAD_VBI_OUT,
++	AU8522_PAD_AUDIO_OUT,
  
-+#include <linux/if_ether.h>
-+
-+/**
-+ * enum tveeprom_audio_processor - Specifies the type of audio processor
-+ *				   used on a Hauppauge device.
-+ *
-+ * @TVEEPROM_AUDPROC_NONE:	No audio processor present
-+ * @TVEEPROM_AUDPROC_INTERNAL:	The audio processor is internal to the
-+ *				video processor
-+ * @TVEEPROM_AUDPROC_MSP:	The audio processor is a MSPXXXX device
-+ * @TVEEPROM_AUDPROC_OTHER:	The audio processor is another device
-+ */
- enum tveeprom_audio_processor {
--	/* No audio processor present */
- 	TVEEPROM_AUDPROC_NONE,
--	/* The audio processor is internal to the video processor */
- 	TVEEPROM_AUDPROC_INTERNAL,
--	/* The audio processor is a MSPXXXX device */
- 	TVEEPROM_AUDPROC_MSP,
--	/* The audio processor is another device */
- 	TVEEPROM_AUDPROC_OTHER,
+ 	AU8522_NUM_PADS
  };
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 39fab1a..655dee8 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -775,6 +775,7 @@ static int au8522_probe(struct i2c_client *client,
+ 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
  
--#include <linux/if_ether.h>
--
-+/**
-+ * struct tveeprom - Contains the fields parsed from Hauppauge eeproms
-+ *
-+ * @has_radio:			1 if the device has radio; 0 otherwise.
-+ * @has_ir:			If has_ir == 0, then it is unknown what the IR
-+ *				capabilities are. Otherwise:
-+ *					bit 0) 1 (= IR capabilities are known);
-+ *					bit 1) IR receiver present;
-+ *					bit 2) IR transmitter (blaster) present.
-+ * @has_MAC_address:		0: no MAC, 1: MAC present, 2: unknown.
-+ * @tuner_type:			type of the tuner (TUNER_*, as defined at
-+ *				include/media/tuner.h).
-+ * @tuner_formats:		Supported analog TV standards (V4L2_STD_*).
-+ * @tuner_hauppauge_model:	Hauppauge's code for the device model number.
-+ * @tuner2_type:		type of the second tuner (TUNER_*, as defined
-+ *				at include/media/tuner.h).
-+ * @tuner2_formats:		Tuner 2 supported analog TV standards
-+ *				(V4L2_STD_*).
-+ * @tuner2_hauppauge_model:	tuner 2 Hauppauge's code for the device model
-+ *				number.
-+ * @audio_processor:		analog audio decoder, as defined by enum
-+ *				tveeprom_audio_processor.
-+ * @decoder_processor:		Hauppauge's code for the decoder chipset.
-+ *				Unused by the drivers, as they probe the
-+ *				decoder based on the PCI or USB ID.
-+ * @model:			Hauppauge's model number
-+ * @revision:			Card revision number
-+ * @serial_number:		Card's serial number
-+ * @rev_str:			Card revision converted to number
-+ * @MAC_address:		MAC address for the network interface
-+ */
- struct tveeprom {
- 	u32 has_radio;
--	/* If has_ir == 0, then it is unknown what the IR capabilities are,
--	   otherwise:
--	   bit 0: 1 (= IR capabilities are known)
--	   bit 1: IR receiver present
--	   bit 2: IR transmitter (blaster) present */
- 	u32 has_ir;
--	u32 has_MAC_address; /* 0: no MAC, 1: MAC present, 2: unknown */
-+	u32 has_MAC_address;
- 
- 	u32 tuner_type;
- 	u32 tuner_formats;
-@@ -42,7 +77,28 @@ struct tveeprom {
- 	u8 MAC_address[ETH_ALEN];
- };
- 
-+/**
-+ * tveeprom_hauppauge_analog - Fill struct tveeprom using the contents
-+ *			       of the eeprom previously filled at
-+ *			       @eeprom_data field.
-+ *
-+ * @c:			I2C client struct
-+ * @tvee:		Struct to where the eeprom parsed data will be filled;
-+ * @eeprom_data:	Array with the contents of the eeprom_data. It should
-+ *			contain 256 bytes filled with the contents of the
-+ *			eeprom read from the Hauppauge device.
-+ */
- void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 			       unsigned char *eeprom_data);
- 
-+/**
-+ * tveeprom_read - Reads the contents of the eeprom found at the Hauppauge
-+ *		   devices.
-+ *
-+ * @c:		I2C client struct
-+ * @eedata:	Array where the eeprom content will be stored.
-+ * @len:	Size of @eedata array. If the eeprom content will be latter
-+ *		be parsed by tveeprom_hauppauge_analog(), len should be, at
-+ *		least, 256.
-+ */
- int tveeprom_read(struct i2c_client *c, unsigned char *eedata, int len);
+ 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
 -- 
-2.4.3
-
+2.1.4
 
