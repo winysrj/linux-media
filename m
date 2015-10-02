@@ -1,114 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:38824 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759212AbbJ3JSX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Oct 2015 05:18:23 -0400
-Received: by igbdj2 with SMTP id dj2so6914163igb.1
-        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2015 02:18:23 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:55092 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751039AbbJBURJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 16:17:09 -0400
+Subject: Re: Satix S2 driver bug report - kernel tried to execute NX-protected
+ page - exploit attempt?
+To: Stefan Breitegger <tuxstef@tuxstef.org>,
+	linux-media@vger.kernel.org
+References: <560E3B0E.6080203@tuxstef.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <560EE643.8040308@iki.fi>
+Date: Fri, 2 Oct 2015 23:17:07 +0300
 MIME-Version: 1.0
-In-Reply-To: <562FFF9D.3070502@xs4all.nl>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-	<5625DDCA.2040203@xs4all.nl>
-	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
-	<562B5178.5040303@xs4all.nl>
-	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
-	<562D5DE2.5020406@xs4all.nl>
-	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
-	<CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-	<562EA780.7070706@xs4all.nl>
-	<CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
-	<562FFF9D.3070502@xs4all.nl>
-Date: Fri, 30 Oct 2015 11:18:23 +0200
-Message-ID: <CAJ2oMhLc_EkBMYpA49kw13E4Pw9piwDPiXZGe1mWoT7QzuE3cg@mail.gmail.com>
-Subject: Re: PCIe capture driver
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <560E3B0E.6080203@tuxstef.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 28, 2015 at 12:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->
-> On 10/27/2015 22:56, Ran Shalit wrote:
->> On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>
->>>
->>> On 10/27/2015 02:04, Ran Shalit wrote:
->>>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
->>>>>> No, use V4L2. What you do with the frame after it has been captured
->>>>>> into memory has no relevance to the API you use to capture into memory.
->>>>>
->>>>> Ran, I've built many open and closed source Linux drivers over the
->>>>> last 10 years - so I can speak with authority on this.
->>>>>
->>>>> Hans is absolutely correct, don't make the mistake of going
->>>>> proprietary with your API. Take advantage of the massive amount of
->>>>> video related frameworks the kernel has to offer. It will get you to
->>>>> market faster, assuming your goal is to build a driver that is open
->>>>> source. If your licensing prohibits an open source driver solution,
->>>>> you'll have no choice but to build your own proprietary API.
->>>>>
->>>>> --
->>>>> Steven Toth - Kernel Labs
->>>>> http://www.kernellabs.com
->>>>
->>>> Hi,
->>>>
->>>> Thank you very much for these valuable comments.
->>>> If I may ask one more on this issue:
->>>> Is there an example in linux tree, for a pci device which is used both
->>>> as a capture and a display device ? (I've made a search but did not
->>>> find any)
->>>> The PCIe device we are using will be both a capture device and output
->>>> video device (for display).
->>>
->>> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
->>>
->>> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
->>>
->>> Regards,
->>>
->>>         Hans
->>
->> Hi Hans,
->>
->> Thank you very much for the reference.
->> I see that the cobalt card is not for sale ?  If it was it could help
->> us in our development.
->
-> No, sorry. It's a Cisco-internal card only.
->
->> In our case it is more custom design which is based on FPGA:
->>
->> Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
->>
->> As I understand there is no product chip which can do the above
->> (3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
->> the board design.
->
-> The ivtv driver (drivers/media/pci/ivtv) has SD input and output, so that can be a
-> useful reference for that as well. The Hauppauge PVR-350 board is no longer
-> sold, but you might be able to pick one up on ebay.
->
-> Regards,
->
->         Hans
+Moikka!
+I wonder if that has something to do with m88ds3103 driver conversion to 
+I2C binding I did...
+But there is some things I do not understand. According to log it is 
+DVBSky S952 device, cx23885 + m88ds3103, which crash. I see no comments 
+on cx23885 code any Satix S2 model. Also log says it loads nGene driver, 
+which is driver for some Satix models. So why it even loads cx23885 
+driver for DVBSky S952 device as your device is Satix S2...
 
-I've been delving in V4l Wikis,  API,   and the PCI driver examples code.
+Antti
 
-I think a good starting point for the development will be
-v4l2-pci-skeleton.c , becuase it is much simpler than the more
-production examples,
-do you recommend it as a starting point ?
 
-I am just not sure that the pci skeleton supports the HD & SD channels
-at the same time:
-I think it will open only one device (for example /dev/video0) , so
-that the application will need to select which input is used (not
-both) ?
 
-Best Regards,
-Ran
+On 10/02/2015 11:06 AM, Stefan Breitegger wrote:
+> Dear Sir or Madam!
+>
+> After upgrading to Ubuntu mainline kernel 4.2.2-040202-generic the
+> cx23885 module is not working any more.
+> A dmesg here:
+>
+> [  247.320554] nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+> [  261.359682] media: Linux media interface: v0.10
+> [  261.364715] Linux video capture interface: v2.00
+> [  261.364718] WARNING: You are using an experimental version of the
+> media stack.
+>      As the driver is backported to an older kernel, it doesn't offer
+>      enough quality for its usage in production.
+>      Use it with care.
+> Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+>      ca739eb086155007d7264be7ccc07f894d5a7bbe Revert [media] rcar_vin:
+> call g_std() instead of querystd()
+>      d383b57911c8a6c3da1af7b3f72dfecfcd5633d0 [media] DocBook: Remove a
+> warning at videobuf2-v4l2.h
+>      32d81b41cd4f2021ef1b6378b4f6029307687df2 [media] DocBook: fix most
+> of warnings at videobuf2-core.h
+> [  261.381875] cx23885 driver version 0.0.4 loaded
+> [  261.381996] CORE cx23885[0]: subsystem: 4254:0952, board: DVBSky S952
+> [card=50,autodetected]
+> [  261.613345] cx25840 15-0044: cx23885 A/V decoder found @ 0x88
+> (cx23885[0])
+> [  262.235583] cx25840 15-0044: loaded v4l-cx23885-avcore-01.fw firmware
+> (16382 bytes)
+> [  262.252095] cx23885_dvb_register() allocating 1 frontend(s)
+> [  262.252099] cx23885[0]: cx23885 based dvb card
+> [  262.252495] kernel tried to execute NX-protected page - exploit
+> attempt? (uid: 0)
+> [  262.252497] BUG: unable to handle kernel paging request at
+> ffffffffc1040189
+> [  262.252500] IP: [<ffffffffc1040189>]
+> __param_str_disable_analog_audio+0x3fa9/0xffffffffffffce20 [cx23885]
+> [  262.252513] PGD 1c10067 PUD 1c12067 PMD 6aa0f067 PTE 8000000123307161
+> [  262.252516] Oops: 0011 [#1] SMP
+> [  262.252518] Modules linked in: cx25840(OE) cx23885(OE+) altera_ci(OE)
+> tda18271(OE) altera_stapl(OE) videobuf2_dvb(OE) m88ds3103(OE)
+> tveeprom(OE) cx2341x(OE) i2c_mux videobuf2_dma_sg(OE)
+> videobuf2_memops(OE) frame_vector(POE) videobuf2_core(OE)
+> v4l2_common(OE) videodev(OE) media(OE) ngene(OE) rc_dib0700_rc5(OE)
+> dvb_usb_dib0700(OE) dib9000(OE) dib7000m(OE) dib0090(OE) dib0070(OE)
+> dib3000mc(OE) dibx000_common(OE) dvb_usb(OE) dvb_core(OE) rc_core(OE)
+> mt2060(OE) xt_CHECKSUM iptable_mangle ipt_MASQUERADE
+> nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 ebtable_filter ebtables
+> xfrm_user xfrm4_tunnel tunnel4 ipcomp xfrm_ipcomp esp4 ah4 af_key
+> xfrm_algo binfmt_misc bridge stp llc ppdev snd_hda_codec_via
+> snd_hda_codec_generic nvidia(POE) snd_hda_intel snd_hda_codec
+> snd_hda_core snd_hwdep snd_pcm input_leds kvm_amd
+> [  262.252547]  kvm snd_seq_midi snd_seq_midi_event snd_rawmidi snd_seq
+> serio_raw edac_core snd_seq_device edac_mce_amd k10temp snd_timer snd
+> drm soundcore parport_pc 8250_fintek wmi parport shpchp i2c_piix4
+> asus_atk0110 mac_hid ip6t_REJECT nf_reject_ipv6 nf_log_ipv6 xt_hl
+> ip6t_rt nf_conntrack_ipv6 nf_defrag_ipv6 ipt_REJECT nf_reject_ipv4
+> nf_log_ipv4 nf_log_common xt_LOG xt_limit xt_tcpudp xt_addrtype
+> nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack ip6table_filter ip6_tables
+> nf_conntrack_netbios_ns nf_conntrack_broadcast nf_nat_ftp nf_nat
+> nf_conntrack_ftp nf_conntrack iptable_filter ip_tables x_tables nvram
+> autofs4 pata_acpi raid10 raid456 async_raid6_recov async_memcpy async_pq
+> async_xor async_tx xor hid_generic usbhid hid psmouse raid6_pq raid1
+> pata_atiixp raid0 multipath ahci r8169 libahci mii linear
+>
+> [  262.252580] CPU: 0 PID: 4771 Comm: modprobe Tainted: P           OE
+> 4.2.2-040202-generic #201509291435
+> [  262.252582] Hardware name: System manufacturer System Product
+> Name/M4A785TD-V EVO, BIOS 2105    07/23/2010
+> [  262.252584] task: ffff880117538000 ti: ffff88007a6b4000 task.ti:
+> ffff88007a6b4000
+> [  262.252586] RIP: 0010:[<ffffffffc1040189>]  [<ffffffffc1040189>]
+> __param_str_disable_analog_audio+0x3fa9/0xffffffffffffce20 [cx23885]
+> [  262.252594] RSP: 0018:ffff88007a6b7820  EFLAGS: 00010282
+> [  262.252595] RAX: ffff880119c3d800 RBX: ffff880119c3d800 RCX:
+> 0000000000000000
+> [  262.252596] RDX: ffff880128c39db0 RSI: ffff880128c39da8 RDI:
+> ffff880119c3d800
+> [  262.252598] RBP: ffff88007a6b78b8 R08: 0000000000000000 R09:
+> ffff88012abf3200
+> [  262.252599] R10: 00000000000082ae R11: 0000000000000010 R12:
+> ffff88006abe8810
+> [  262.252600] R13: ffff88007a6b78e8 R14: ffff88007a6b7850 R15:
+> ffffffffc103b260
+> [  262.252602] FS:  00007f7b955c2700(0000) GS:ffff88012fc00000(0000)
+> knlGS:00000000f71f2b40
+> [  262.252604] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> [  262.252605] CR2: ffffffffc1040189 CR3: 000000006ab28000 CR4:
+> 00000000000006f0
+> [  262.252606] Stack:
+> [  262.252607]  ffffffffc0ff720b fffe0021019bfcc0 ffe099fd00003e80
+> 0000000000000106
+> [  262.252609]  ffffffffc1040189 ffffffff81ef0101 303133736438386d
+> 0000000000000033
+> [  262.252612]  0068000000000000 ffff88007a6b7828 0000000000000000
+> 0000000000000000
+> [  262.252614] Call Trace:
+> [  262.252618]  [<ffffffffc0ff720b>] ? m88ds3103_attach+0x13b/0x170
+> [m88ds3103]
+> [  262.252626]  [<ffffffffc102e14d>] dvb_register+0x52d/0x36c0 [cx23885]
+> [  262.252632]  [<ffffffffc102d7b0>] ?
+> dvbsky_s952_portc_set_voltage+0xb0/0xb0 [cx23885]
+> [  262.252636]  [<ffffffff810cbdb2>] ? wake_up_klogd+0x32/0x40
+> [  262.252639]  [<ffffffff810cbf98>] ? console_unlock+0x1d8/0x4c0
+> [  262.252641]  [<ffffffff810cc5f4>] ? vprintk_emit+0x374/0x4f0
+> [  262.252643]  [<ffffffff810cc8c9>] ? vprintk_default+0x29/0x40
+> [  262.252646]  [<ffffffff8179bf1d>] ? printk+0x46/0x48
+> [  262.252653]  [<ffffffffc10316d7>] cx23885_dvb_register+0x117/0x160
+> [cx23885]
+> [  262.252658]  [<ffffffffc102a01b>] cx23885_initdev+0xf5b/0x1230 [cx23885]
+> [  262.252662]  [<ffffffff813e2ff5>] local_pci_probe+0x45/0xa0
+> [  262.252665]  [<ffffffff813e41b4>] ? pci_match_device+0xf4/0x120
+> [  262.252667]  [<ffffffff813e42ea>] pci_device_probe+0xca/0x110
+> [  262.252671]  [<ffffffff814e521d>] driver_probe_device+0x1ed/0x430
+> [  262.252673]  [<ffffffff814e54f0>] __driver_attach+0x90/0xa0
+> [  262.252675]  [<ffffffff814e5460>] ? driver_probe_device+0x430/0x430
+> [  262.252677]  [<ffffffff814e308d>] bus_for_each_dev+0x5d/0x90
+> [  262.252679]  [<ffffffff814e4bde>] driver_attach+0x1e/0x20
+> [  262.252681]  [<ffffffff814e4750>] bus_add_driver+0x1d0/0x290
+> [  262.252683]  [<ffffffffc1050000>] ? 0xffffffffc1050000
+> [  262.252685]  [<ffffffff814e5eb0>] driver_register+0x60/0xe0
+> [  262.252688]  [<ffffffff813e295c>] __pci_register_driver+0x4c/0x50
+> [  262.252693]  [<ffffffffc1050033>] cx23885_init+0x33/0x1000 [cx23885]
+> [  262.252696]  [<ffffffff8100213d>] do_one_initcall+0xcd/0x1f0
+> [  262.252698]  [<ffffffff811b279e>] ? __vunmap+0xae/0xf0
+> [  262.252701]  [<ffffffff811ccb2f>] ? kmem_cache_alloc_trace+0x17f/0x1f0
+> [  262.252704]  [<ffffffff8179c50e>] ? do_init_module+0x28/0x1ea
+> [  262.252706]  [<ffffffff8179c547>] do_init_module+0x61/0x1ea
+> [  262.252709]  [<ffffffff810fa6d1>] load_module+0x1401/0x1b20
+> [  262.252712]  [<ffffffff810f6c30>] ? __symbol_put+0x40/0x40
+> [  262.252715]  [<ffffffff810fafd0>] SyS_finit_module+0x80/0xb0
+> [  262.252718]  [<ffffffff817a9472>] entry_SYSCALL_64_fastpath+0x16/0x75
+> [  262.252719] Code: 31 00 61 38 32 39 33 00 73 69 32 31 36 35 5f 61 74
+> 74 61 63 68 00 73 79 6d 62 6f 6c 3a 73 69 32 31 36 35 5f 61 74 74 61 63
+> 68 00 <6d> 38 38 64 73 33 31 30 33 5f 61 74 74 61 63 68 00 73 79 6d 62
+> [  262.252739] RIP  [<ffffffffc1040189>]
+> __param_str_disable_analog_audio+0x3fa9/0xffffffffffffce20 [cx23885]
+> [  262.252746]  RSP <ffff88007a6b7820>
+> [  262.252747] CR2: ffffffffc1040189
+> [  262.252749] ---[ end trace e5e7d4edcd42cc5d ]---
+>
+> Yours sincerely,
+> Stefan
+>
+
+-- 
+http://palosaari.fi/
