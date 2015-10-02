@@ -1,46 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:33771 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760AbbJPVpq (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56158 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750755AbbJBMcU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 17:45:46 -0400
-Received: by yknn9 with SMTP id n9so46505919ykn.0
-        for <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 14:45:46 -0700 (PDT)
+	Fri, 2 Oct 2015 08:32:20 -0400
+In-Reply-To: <CAPybu_2R9c7sRm-BVO3WOdk0OJtJJK8FBn7BFkW-iim--dAMDw@mail.gmail.com>
+References: <CAPybu_2R9c7sRm-BVO3WOdk0OJtJJK8FBn7BFkW-iim--dAMDw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <10110482.QkOJ1nlAsE@wuerfel>
-References: <10110482.QkOJ1nlAsE@wuerfel>
-Date: Fri, 16 Oct 2015 23:45:46 +0200
-Message-ID: <CABxcv=n_N-176+iOsBaroJoGy0kj35YELyfLnaXJGmsi9xkDOg@mail.gmail.com>
-Subject: Re: [PATCH] [media] lnbh25: fix lnbh25_attach inline wrapper
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sergey Kozlov <serjk@netup.ru>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: Dublin: ELCE linux-media dinner
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Fri, 02 Oct 2015 13:32:04 +0100
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Message-ID: <07277415-3E28-4367-A0AD-6399AFB869C2@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Arnd,
-
-On Fri, Oct 16, 2015 at 10:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> The 'static inline' version of lnbh25_attach() has an incorrect
-> prototype which results in a build error when
-> CONFIG_DVB_LNBH25 is disabled:
+On October 2, 2015 12:05:37 PM GMT+01:00, Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> wrote:
+>Hello
 >
-> In file included from /git/arm-soc/drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
-> /git/arm-soc/drivers/media/dvb-frontends/lnbh25.h:46:86: error: unknown type name 'dvb_frontend'
+>Some of the people from this list will be in Dublin the next week for
+>the ELCE, unfortunately, this year we will not have the linux-media
+>summit, because it will be in Korea.
 >
-> This changes the code to have the correct prototype.
+>Anyway, I think that it can be a great idea to meet in Dublin and have
+>dinner together.
 >
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: e025273b86fb ("[media] lnbh25: LNBH25 SEC controller driver")
-> ---
+>At least these people will be in Dublin:
+>
+>Hans Verlkuil: 2-10 october
+>Nicolas Dufresne: 2-10 october
+>Ricardo Ribalda: 3-10 october
+>
+>
+>Date: Hans has proposed the dates 4th  (sunday) or 6th.  The 6th is
+>the Technical Showcase and I believe that there will be some food
+>involved.
+>
+>Location: I assume most of us will have their room close to the
+>conference, so we can find out a place close by. Any Dublin local in
+>the list that can recommend a place?
+>
+>Looking forward to meet you!
 
-Same for this patch, the same change is already in the media fixes branch [0].
+I'm no Dublin native, but I asked a taxidriver instead:-) 
 
-[0]: http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?h=fixes&id=b36a55cf298127a285806c52d8777c49548f3785
+Herbstreet.ie looks good, but there are a bunch of other restaurants in that area as well. You likely need a reservation, though. I can do that if I know how many will join in.
 
-Best regards,
-Javier
+Hans
