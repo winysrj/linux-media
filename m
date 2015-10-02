@@ -1,59 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:35811 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751391AbbJPVmv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 17:42:51 -0400
-Received: by ykaz22 with SMTP id z22so94719359yka.2
-        for <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 14:42:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <7188906.Hi9qi0FZQC@wuerfel>
-References: <7188906.Hi9qi0FZQC@wuerfel>
-Date: Fri, 16 Oct 2015 23:42:50 +0200
-Message-ID: <CABxcv=kFNhdrGivGtk4O0gXKB7P_Uw9NYofpzNkaepVBFGjG6w@mail.gmail.com>
-Subject: Re: [PATCH] [media] horus3a: fix horus3a_attach inline wrapper
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kozlov Sergey <serjk@netup.ru>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:60688 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbbJBKKz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 06:10:55 -0400
+Message-id: <560E582B.2050304@samsung.com>
+Date: Fri, 02 Oct 2015 12:10:51 +0200
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] v4l2-flash-led-class: Add missing VIDEO_V4L2 Kconfig
+ dependency
+References: <1443777555-6710-1-git-send-email-j.anaszewski@samsung.com>
+ <20151002094141.GG26916@valkosipuli.retiisi.org.uk>
+In-reply-to: <20151002094141.GG26916@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Arnd,
+Hi Sakari,
 
-On Fri, Oct 16, 2015 at 10:30 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> The 'static inline' version of horus3a_attach() is incorrectly
-> copied from another file, which results in a build error when
-> CONFIG_DVB_HORUS3A is disabled:
+On 10/02/2015 11:41 AM, Sakari Ailus wrote:
+> Hi Jacek,
 >
-> In file included from /git/arm-soc/drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
-> media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
-> media/dvb-frontends/horus3a.h:51:13: warning: its scope is only this definition or declaration, which is probably not what you want
-> media/pci/netup_unidvb/netup_unidvb_core.c: In function 'netup_unidvb_dvb_init':
-> media/pci/netup_unidvb/netup_unidvb_core.c:417:279: warning: passing argument 1 of '__a' from incompatible pointer type [-Wincompatible-pointer-types]
-> media/pci/netup_unidvb/netup_unidvb_core.c:417:279: note: expected 'const struct cxd2820r_config *' but argument is of type 'struct dvb_frontend *'
-> media/pci/netup_unidvb/netup_unidvb_core.c:417:298: warning: passing argument 2 of '__a' from incompatible pointer type [-Wincompatible-pointer-types]
-> media/pci/netup_unidvb/netup_unidvb_core.c:417:298: note: expected 'struct i2c_adapter *' but argument is of type 'struct horus3a_config *'
-> media/pci/netup_unidvb/netup_unidvb_core.c:417:275: error: too many arguments to function '__a'
+> On Fri, Oct 02, 2015 at 11:19:15AM +0200, Jacek Anaszewski wrote:
+>> Fixes the following randconfig problem:
+>>
+>> drivers/built-in.o: In function `v4l2_flash_release':
+>> (.text+0x12204f): undefined reference to `v4l2_async_unregister_subdev'
+>> drivers/built-in.o: In function `v4l2_flash_release':
+>> (.text+0x122057): undefined reference to `v4l2_ctrl_handler_free'
+>> drivers/built-in.o: In function `v4l2_flash_close':
+>> v4l2-flash-led-class.c:(.text+0x12208f): undefined reference to `v4l2_fh_is_singular'
+>> v4l2-flash-led-class.c:(.text+0x1220c8): undefined reference to `__v4l2_ctrl_s_ctrl'
+>> drivers/built-in.o: In function `v4l2_flash_open':
+>> v4l2-flash-led-class.c:(.text+0x12227f): undefined reference to `v4l2_fh_is_singular'
+>> drivers/built-in.o: In function `v4l2_flash_init_controls':
+>> v4l2-flash-led-class.c:(.text+0x12274e): undefined reference to `v4l2_ctrl_handler_init_class'
+>> v4l2-flash-led-class.c:(.text+0x122797): undefined reference to `v4l2_ctrl_new_std_menu'
+>> v4l2-flash-led-class.c:(.text+0x1227e0): undefined reference to `v4l2_ctrl_new_std'
+>> v4l2-flash-led-class.c:(.text+0x122826): undefined reference to `v4l2_ctrl_handler_setup'
+>> v4l2-flash-led-class.c:(.text+0x122839): undefined reference to `v4l2_ctrl_handler_free'
+>> drivers/built-in.o: In function `v4l2_flash_init':
+>> (.text+0x1228e2): undefined reference to `v4l2_subdev_init'
+>> drivers/built-in.o: In function `v4l2_flash_init':
+>> (.text+0x12293b): undefined reference to `v4l2_async_register_subdev'
+>> drivers/built-in.o: In function `v4l2_flash_init':
+>> (.text+0x122949): undefined reference to `v4l2_ctrl_handler_free'
+>> drivers/built-in.o:(.rodata+0x20ef8): undefined reference to `v4l2_subdev_queryctrl'
+>> drivers/built-in.o:(.rodata+0x20f10): undefined reference to `v4l2_subdev_querymenu'
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>   drivers/media/v4l2-core/Kconfig |    2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+>> index 82876a6..9beece0 100644
+>> --- a/drivers/media/v4l2-core/Kconfig
+>> +++ b/drivers/media/v4l2-core/Kconfig
+>> @@ -47,7 +47,7 @@ config V4L2_MEM2MEM_DEV
+>>   # Used by LED subsystem flash drivers
+>>   config V4L2_FLASH_LED_CLASS
+>>   	tristate "V4L2 flash API for LED flash class devices"
+>> -	depends on VIDEO_V4L2_SUBDEV_API
+>> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>>   	depends on LEDS_CLASS_FLASH
+>>   	---help---
+>>   	  Say Y here to enable V4L2 flash API support for LED flash
 >
-> This changes the code to have the correct prototype.
+> Hmm. I wonder if VIDEO_V4L2_SUBDEV_API itself should depend on VIDEO_V4L2.
 >
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: a5d32b358254 ("[media] horus3a: Sony Horus3A DVB-S/S2 tuner driver")
-> ---
+> That'd be logical, I don't think VIDEO_V4L2_SUBDEV_API could be meaningfully
+> used with VIDEO_V4L2 disabled. The API implementation is in v4l2-subdev.c
+> which itself depends on VIDEO_V4L2.
+>
+> Oddly enough, VIDEO_V4L2_SUBDEV_API is currently defined in
+> drivers/media/Kconfig, it should probably be in
+> drivers/media/v4l2-core/Kconfig instead.
+>
 
-I posted the same patch a couple of weeks ago and was already picked
-by Mauro on his fixes branch [0].
+Since I don't see any Makefile referring to this symbol, it seems that
+moving it to drivers/media/v4l2-core/Kconfig and adding VIDEO_V4L2
+dependency should be non-problematic operation. I can submit relevant
+patch if everyone agrees.
 
-AFAIU that branch contains 4.3-rc material so I guess it will land
-into mainline soon.
-
-[0]: http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?h=fixes&id=de5abc98bf34e06d7accd943c4057843db921f00
-
-Best regards,
-Javier
+-- 
+Best Regards,
+Jacek Anaszewski
