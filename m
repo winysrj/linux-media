@@ -1,133 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39207 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397AbbJJNgS (ORCPT
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:54349 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751871AbbJBWHp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:18 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 25/26] [media] DocBook: Add documentation about the demux API
-Date: Sat, 10 Oct 2015 10:36:08 -0300
-Message-Id: <de08e701c6b9edb0e555da48a95c9250cbec3ea8.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+	Fri, 2 Oct 2015 18:07:45 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz,
+	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
+	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, chris.j.arges@canonical.com,
+	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
+	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
+	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
+	takamichiho@gmail.com, pmatilai@laiskiainen.org,
+	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
+	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 16/20] media: au0828 change to use Managed Media Controller API
+Date: Fri,  2 Oct 2015 16:07:28 -0600
+Message-Id: <d172317cfda2af728b64f24e6553e33f696aa76c.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
+References: <cover.1443822799.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several stuff at media's kdapi.xml that don't
-belong there, as it documents the Kernel internal ABI, and
-not the userspace API.
+Change au0828 to use Managed Media Controller API to coordinate
+creating/deleting media device on parent usb device it shares
+with the snd-usb-audio driver. With this change, au0828 uses
+media_device_get_devres() to allocate a new media device devres
+or return an existing one, if it finds one.
 
-Add the documentation here. The hole kdapi.xml will be
-removed on a latter patch, after we finish documenting
-what's there at the proper places.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 45 +++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 23 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 8d5620aeaf36..42a2d8593e39 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -239,21 +239,86 @@ X!Isound/sound_firmware.c
-      </sect1>
-      <sect1><title>Digital TV (DVB) devices</title>
- !Idrivers/media/dvb-core/dvb_ca_en50221.h
--!Idrivers/media/dvb-core/demux.h
- !Idrivers/media/dvb-core/dvb_frontend.h
- !Idrivers/media/dvb-core/dvb_math.h
- !Idrivers/media/dvb-core/dvb_ringbuffer.h
- !Idrivers/media/dvb-core/dvbdev.h
--     </sect1>
--     <sect1><title>Remote Controller devices</title>
-+	<sect1><title>Digital TV Demux API</title>
-+	    <para>The kernel demux API defines a driver-internal interface for
-+	    registering low-level, hardware specific driver to a hardware
-+	    independent demux layer. It is only of interest for Digital TV
-+	    device driver writers. The header file for this API is named
-+	    <constant>demux.h</constant> and located in
-+	    <constant>drivers/media/dvb-core</constant>.</para>
-+
-+	<para>The demux API should be implemented for each demux in the
-+	system. It is used to select the TS source of a demux and to manage
-+	the demux resources. When the demux client allocates a resource via
-+	the demux API, it receives a pointer to the API of that
-+	resource.</para>
-+	<para>Each demux receives its TS input from a DVB front-end or from
-+	memory, as set via this demux API. In a system with more than one
-+	front-end, the API can be used to select one of the DVB front-ends
-+	as a TS source for a demux, unless this is fixed in the HW platform.
-+	The demux API only controls front-ends regarding to their connections
-+	with demuxes; the APIs used to set the other front-end parameters,
-+	such as tuning, are not defined in this document.</para>
-+	<para>The functions that implement the abstract interface demux should
-+	be defined static or module private and registered to the Demux
-+	core for external access. It is not necessary to implement every
-+	function in the struct <constant>dmx_demux</constant>. For example,
-+	a demux interface might support Section filtering, but not PES
-+	filtering. The API client is expected to check the value of any
-+	function pointer before calling the function: the value of NULL means
-+	that the &#8220;function is not available&#8221;.</para>
-+	<para>Whenever the functions of the demux API modify shared data,
-+	the possibilities of lost update and race condition problems should
-+	be addressed, e.g. by protecting parts of code with mutexes.</para>
-+	<para>Note that functions called from a bottom half context must not
-+	sleep. Even a simple memory allocation without using GFP_ATOMIC can
-+	result in a kernel thread being put to sleep if swapping is needed.
-+	For example, the Linux kernel calls the functions of a network device
-+	interface from a bottom half context. Thus, if a demux API function
-+	is called from network device code, the function must not sleep.
-+	</para>
-+    </sect1>
-+
-+    <section id="demux_callback_api">
-+	<title>Demux Callback API</title>
-+	<para>This kernel-space API comprises the callback functions that
-+	deliver filtered data to the demux client. Unlike the other DVB
-+	kABIs, these functions are provided by the client and called from
-+	the demux code.</para>
-+	<para>The function pointers of this abstract interface are not
-+	packed into a structure as in the other demux APIs, because the
-+	callback functions are registered and used independent of each
-+	other. As an example, it is possible for the API client to provide
-+	several callback functions for receiving TS packets and no
-+	callbacks for PES packets or sections.</para>
-+	<para>The functions that implement the callback API need not be
-+	re-entrant: when a demux driver calls one of these functions,
-+	the driver is not allowed to call the function again before
-+	the original call returns. If a callback is triggered by a
-+	hardware interrupt, it is recommended to use the Linux
-+	&#8220;bottom half&#8221; mechanism or start a tasklet instead of
-+	making the callback function call directly from a hardware
-+	interrupt.</para>
-+	<para>This mechanism is implemented by
-+	<link linkend='API-dmx-ts-cb'>dmx_ts_cb()</link> and
-+	<link linkend='API-dmx-section-cb'>dmx_section_cb()</link>.</para>
-+    </section>
-+
-+!Idrivers/media/dvb-core/demux.h
-+    </sect1>
-+    <sect1><title>Remote Controller devices</title>
- !Iinclude/media/rc-core.h
- !Iinclude/media/lirc_dev.h
--     </sect1>
--     <sect1><title>Media Controller devices</title>
-+    </sect1>
-+    <sect1><title>Media Controller devices</title>
- !Iinclude/media/media-device.h
- !Iinclude/media/media-devnode.h
- !Iinclude/media/media-entity.h
--     </sect1>
-+    </sect1>
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 4fd7db8..544d304 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -135,9 +135,9 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ {
  
-   </chapter>
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	if (dev->media_dev) {
++	if (dev->media_dev &&
++	    media_devnode_is_registered(&dev->media_dev->devnode)) {
+ 		media_device_unregister(dev->media_dev);
+-		kfree(dev->media_dev);
+ 		dev->media_dev = NULL;
+ 	}
+ #endif
+@@ -222,31 +222,30 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+ 	struct media_device *mdev;
+ 	int ret;
  
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_get_devres(&udev->dev);
+ 	if (!mdev)
+ 		return;
+ 
+-	mdev->dev = &udev->dev;
+-
+-	if (!dev->board.name)
+-		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
+-	else
+-		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
+-	if (udev->serial)
+-		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+-	strcpy(mdev->bus_info, udev->devpath);
+-	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+-	mdev->driver_version = LINUX_VERSION_CODE;
+-
+-	ret = media_device_register(mdev);
+-	if (ret) {
+-		pr_err(
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
++	if (!media_devnode_is_registered(&mdev->devnode)) {
++		/* register media device */
++		mdev->dev = &udev->dev;
++
++		if (udev->product)
++			strlcpy(mdev->model, udev->product,
++				sizeof(mdev->model));
++		if (udev->serial)
++			strlcpy(mdev->serial, udev->serial,
++				sizeof(mdev->serial));
++		strcpy(mdev->bus_info, udev->devpath);
++		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++		ret = media_device_register(mdev);
++		if (ret) {
++			dev_err(&udev->dev,
++				"Couldn't create a media device. Error: %d\n",
++				ret);
++			return;
++		}
+ 	}
+-
+ 	dev->media_dev = mdev;
+ #endif
+ }
 -- 
-2.4.3
-
+2.1.4
 
