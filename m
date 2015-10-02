@@ -1,128 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:50136 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbbJDRCl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Oct 2015 13:02:41 -0400
-Date: Sun, 4 Oct 2015 19:02:08 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor
- output YUV formats
-In-Reply-To: <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
- <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:61363 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075AbbJBMoZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 08:44:25 -0400
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Andrzej Hajda' <a.hajda@samsung.com>,
+	"'open list:ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC)...'"
+	<linux-media@vger.kernel.org>
+Cc: 'Bartlomiej Zolnierkiewicz' <b.zolnierkie@samsung.com>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jeongtae Park' <jtp.park@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+References: <1443787779-18458-1-git-send-email-a.hajda@samsung.com>
+ <1443787779-18458-2-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1443787779-18458-2-git-send-email-a.hajda@samsung.com>
+Subject: RE: [PATCH v2 2/2] s5p-mfc: use MFC_BUF_FLAG_EOS to identify last
+ buffers in decoder capture queue
+Date: Fri, 02 Oct 2015 14:44:22 +0200
+Message-id: <002701d0fd10$1056ea60$3104bf20$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 22 Sep 2015, Josh Wu wrote:
+Hi Andrzej,
 
-> This patch enable Atmel ISI preview path to convert the YUV to RGB format.
+> From: Andrzej Hajda [mailto:a.hajda@samsung.com]
+> Sent: Friday, October 02, 2015 2:10 PM
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> MFC driver never delivered EOS event to apps feeding constantly its
+capture
+> buffer with fresh buffers. The patch fixes it by marking last buffers
+returned
+> by MFC with MFC_BUF_FLAG_EOS flag and firing EOS event on de-queuing
+> such buffers.
+
+Checkpatch complains that lines in the description are too long.
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars
+per line)
+#23:
+
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
+
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 > ---
+> Hi,
 > 
->  drivers/media/platform/soc_camera/atmel-isi.c | 38 ++++++++++++++++++++-------
->  1 file changed, 29 insertions(+), 9 deletions(-)
+> This version is rebased on latest media_tree branch.
 > 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index e87d354..e33a16a 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device *icd,
->  	case V4L2_PIX_FMT_UYVY:
->  	case V4L2_PIX_FMT_YVYU:
->  	case V4L2_PIX_FMT_VYUY:
-> +	/* RGB */
-> +	case V4L2_PIX_FMT_RGB565:
->  		return true;
-> -	/* RGB, TODO */
->  	default:
->  		return false;
+> Regards
+> Andrzej
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |  1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 21 +++++++++++++-------
+> -
+>  2 files changed, 14 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index 05a31ee..3ffe2ec 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -196,6 +196,7 @@ static void
+> s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
+>  		vb2_set_plane_payload(&dst_buf->b->vb2_buf, 0, 0);
+>  		vb2_set_plane_payload(&dst_buf->b->vb2_buf, 1, 0);
+>  		list_del(&dst_buf->list);
+> +		dst_buf->flags |= MFC_BUF_FLAG_EOS;
+>  		ctx->dst_queue_cnt--;
+>  		dst_buf->b->sequence = (ctx->sequence++);
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index 1734775..8d3d40c 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -645,17 +645,22 @@ static int vidioc_dqbuf(struct file *file, void
+*priv,
+> struct v4l2_buffer *buf)
+>  		mfc_err("Call on DQBUF after unrecoverable error\n");
+>  		return -EIO;
 >  	}
+> -	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> -		ret = vb2_dqbuf(&ctx->vq_src, buf, file->f_flags &
+> O_NONBLOCK);
+> -	else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +
+> +	switch (buf->type) {
+> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> +		return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags &
+> O_NONBLOCK);
+> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>  		ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags &
+> O_NONBLOCK);
+> -		if (ret == 0 && ctx->state == MFCINST_FINISHED &&
+> -				list_empty(&ctx->vq_dst.done_list))
+> +		if (ret)
+> +			return ret;
+> +
+> +		if (ctx->state == MFCINST_FINISHED &&
+> +		    (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
+>  			v4l2_event_queue_fh(&ctx->fh, &ev);
+> -	} else {
+> -		ret = -EINVAL;
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+>  	}
+> -	return ret;
 >  }
->  
-> +static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
-> +{
-> +	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
-> +			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
-> +}
-> +
-
-Why not just pass fourcc to this function? Or maybe just embed it in 
-start_streaming - it won't clutter it a lot.
-
->  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
->  {
->  	if (isi->active) {
-> @@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->  	struct atmel_isi *isi = ici->priv;
->  	int ret;
->  
-> +	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
-> +
->  	pm_runtime_get_sync(ici->v4l2_dev.dev);
->  
->  	/* Reset ISI */
-> @@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
->  		.order			= SOC_MBUS_ORDER_LE,
->  		.layout			= SOC_MBUS_LAYOUT_PACKED,
->  	},
-> +	{
-> +		.fourcc			= V4L2_PIX_FMT_RGB565,
-> +		.name			= "RGB565",
-> +		.bits_per_sample	= 8,
-> +		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
-> +		.order			= SOC_MBUS_ORDER_LE,
-> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
-> +	},
->  };
->  
->  /* This will be corrected as we get more formats */
-> @@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
->  				  struct soc_camera_format_xlate *xlate)
->  {
->  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> -	int formats = 0, ret;
-> +	int formats = 0, ret, i, n;
->  	/* sensor format */
->  	struct v4l2_subdev_mbus_code_enum code = {
->  		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> @@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
->  	case MEDIA_BUS_FMT_VYUY8_2X8:
->  	case MEDIA_BUS_FMT_YUYV8_2X8:
->  	case MEDIA_BUS_FMT_YVYU8_2X8:
-> -		formats++;
-> -		if (xlate) {
-> -			xlate->host_fmt	= &isi_camera_formats[0];
-> -			xlate->code	= code.code;
-> -			xlate++;
-> -			dev_dbg(icd->parent, "Providing format %s using code %d\n",
-> -				isi_camera_formats[0].name, code.code);
-> +		n = ARRAY_SIZE(isi_camera_formats);
-> +		formats += n;
-> +		for (i = 0; i < n; i++) {
-> +			if (xlate) {
-
-I'd put if outside of the loop, or just do
-
-+		for (i = 0; xlate && i < n; i++) {
-
-
-> +				xlate->host_fmt	= &isi_camera_formats[i];
-> +				xlate->code	= code.code;
-> +				dev_dbg(icd->parent, "Providing format %s using code %d\n",
-> +					isi_camera_formats[0].name, code.code);
-> +				xlate++;
-> +			}
->  		}
->  		break;
->  	default:
-> -- 
-> 1.9.1
 > 
+>  /* Export DMA buffer */
+> --
+> 1.9.1
+
