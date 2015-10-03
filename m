@@ -1,52 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45021 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751993AbbJZXDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 19:03:51 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 11/19] v4l: vsp1: Use the new media_entity_graph_walk_start() interface
-Date: Tue, 27 Oct 2015 01:01:42 +0200
-Message-Id: <1445900510-1398-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:47217 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750779AbbJCQ6Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Oct 2015 12:58:25 -0400
+Date: Sat, 3 Oct 2015 13:58:16 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>,
+	linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 05/15] cx88: use pci_set_dma_mask insted of
+ pci_dma_supported
+Message-ID: <20151003135816.23cb243f@recife.lan>
+In-Reply-To: <1443885579-7094-6-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
+	<1443885579-7094-6-git-send-email-hch@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Hi Christoph,
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index f741582..ce10d86 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -415,6 +415,12 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 	mutex_lock(&mdev->graph_mutex);
- 
- 	/* Walk the graph to locate the entities and video nodes. */
-+	ret = media_entity_graph_walk_init(&graph, mdev);
-+	if (ret) {
-+		mutex_unlock(&mdev->graph_mutex);
-+		return ret;
-+	}
-+
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-@@ -448,6 +454,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 
- 	mutex_unlock(&mdev->graph_mutex);
- 
-+	media_entity_graph_walk_cleanup(&graph);
-+
- 	/* We need one output and at least one input. */
- 	if (pipe->num_inputs == 0 || !pipe->output) {
- 		ret = -EPIPE;
--- 
-2.1.4
 
+Em Sat,  3 Oct 2015 17:19:29 +0200
+Christoph Hellwig <hch@lst.de> escreveu:
+
+> This ensures the dma mask that is supported by the driver is recorded
+> in the device structure.
+
+
+For this and the other patches touching at drivers/media:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/media/pci/cx88/cx88-alsa.c  | 2 +-
+>  drivers/media/pci/cx88/cx88-mpeg.c  | 2 +-
+>  drivers/media/pci/cx88/cx88-video.c | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+> index 7f8dc60..0703a81 100644
+> --- a/drivers/media/pci/cx88/cx88-alsa.c
+> +++ b/drivers/media/pci/cx88/cx88-alsa.c
+> @@ -890,7 +890,7 @@ static int snd_cx88_create(struct snd_card *card, struct pci_dev *pci,
+>  		return err;
+>  	}
+>  
+> -	if (!pci_dma_supported(pci,DMA_BIT_MASK(32))) {
+> +	if (!pci_set_dma_mask(pci,DMA_BIT_MASK(32))) {
+>  		dprintk(0, "%s/1: Oops: no 32bit PCI DMA ???\n",core->name);
+>  		err = -EIO;
+>  		cx88_core_put(core, pci);
+> diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+> index 34f5057..9b3b565 100644
+> --- a/drivers/media/pci/cx88/cx88-mpeg.c
+> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
+> @@ -393,7 +393,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+>  	if (pci_enable_device(dev->pci))
+>  		return -EIO;
+>  	pci_set_master(dev->pci);
+> -	if (!pci_dma_supported(dev->pci,DMA_BIT_MASK(32))) {
+> +	if (!pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32))) {
+>  		printk("%s/2: Oops: no 32bit PCI DMA ???\n",dev->core->name);
+>  		return -EIO;
+>  	}
+> diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+> index 400e5ca..f12af31 100644
+> --- a/drivers/media/pci/cx88/cx88-video.c
+> +++ b/drivers/media/pci/cx88/cx88-video.c
+> @@ -1311,7 +1311,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+>  	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
+>  
+>  	pci_set_master(pci_dev);
+> -	if (!pci_dma_supported(pci_dev,DMA_BIT_MASK(32))) {
+> +	if (!pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32))) {
+>  		printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
+>  		err = -EIO;
+>  		goto fail_core;
