@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:49512 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757729AbbJ2QBf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 12:01:35 -0400
-Date: Thu, 29 Oct 2015 17:01:17 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
-In-Reply-To: <87twpcj6vj.fsf@belgarion.home>
-Message-ID: <Pine.LNX.4.64.1510291656580.694@axis700.grange>
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
- <87io5wwahg.fsf@belgarion.home> <Pine.LNX.4.64.1510272306300.21185@axis700.grange>
- <87twpcj6vj.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([198.137.202.9]:51350 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242AbbJCPYQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:24:16 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 14/15] pci: remove pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:38 +0200
+Message-Id: <1443885579-7094-15-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/parisc/ccio-dma.c            | 2 --
+ include/asm-generic/pci-dma-compat.h | 6 ------
+ 2 files changed, 8 deletions(-)
 
-On Tue, 27 Oct 2015, Robert Jarzmik wrote:
+diff --git a/drivers/parisc/ccio-dma.c b/drivers/parisc/ccio-dma.c
+index 957b421..8e11fb2 100644
+--- a/drivers/parisc/ccio-dma.c
++++ b/drivers/parisc/ccio-dma.c
+@@ -704,8 +704,6 @@ ccio_mark_invalid(struct ioc *ioc, dma_addr_t iova, size_t byte_cnt)
+  * ccio_dma_supported - Verify the IOMMU supports the DMA address range.
+  * @dev: The PCI device.
+  * @mask: A bit mask describing the DMA address range of the device.
+- *
+- * This function implements the pci_dma_supported function.
+  */
+ static int 
+ ccio_dma_supported(struct device *dev, u64 mask)
+diff --git a/include/asm-generic/pci-dma-compat.h b/include/asm-generic/pci-dma-compat.h
+index c110843..eafce7b 100644
+--- a/include/asm-generic/pci-dma-compat.h
++++ b/include/asm-generic/pci-dma-compat.h
+@@ -6,12 +6,6 @@
+ 
+ #include <linux/dma-mapping.h>
+ 
+-static inline int
+-pci_dma_supported(struct pci_dev *hwdev, u64 mask)
+-{
+-	return dma_supported(hwdev == NULL ? NULL : &hwdev->dev, mask);
+-}
+-
+ static inline void *
+ pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
+ 		     dma_addr_t *dma_handle)
+-- 
+1.9.1
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > Hi Robert,
-> >
-> > Didn't you tell me, that your dmaengine patch got rejected and therefore 
-> > these your patches were on hold?
-> They were reverted, and then revamped into DMA_CTRL_REUSE, upstreamed and
-> merged, as in the commit 272420214d26 ("dmaengine: Add DMA_CTRL_REUSE"). I'd
-> 
-> Of course a pending fix is still underway
-> (http://www.serverphorums.com/read.php?12,1318680). But that shouldn't stop us
-> from reviewing to get ready to merge.
-> 
-> I want this serie to be ready, so that as soon as Vinod merges the fix, I can
-> ping you to trigger the merge into your tree, without doing (and waiting)
-> additional review cycles.
-
-Thanks, understand now. As we discussed before, correct me if I am wrong, 
-this is your hobby project. PXA270 is a legacy platform, nobody except you 
-is interested in this work. I have nothing against hobby projects and I 
-want to support them as much as I can, but I hope you'll understand, that 
-I don't have too much free time, so I cannot handle such projects with a 
-high priority. I understand your desire to process these patches ASAP, 
-however, I'd like to try to minimise my work too. So, I can propose the 
-following: let us wait, until your PXA dmaengine patches are _indeed_ in 
-the mainline. Then you test your camera patches on top of that tree again, 
-perform any eventually necessary updates and either let me know, that 
-either your last version is ok and I can now review it, or submit a new 
-version, that _works_ on top of then current tree.
-
-Thanks
-Guennadi
-
-> Cheers.
-> 
-> --
-> Robert
