@@ -1,121 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:36002 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965111AbbJ0TYV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 15:24:21 -0400
-Received: by lbcao8 with SMTP id ao8so71259963lbc.3
-        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2015 12:24:20 -0700 (PDT)
-Received: from mapperone.Elisa (a88-115-254-86.elisa-laajakaista.fi. [88.115.254.86])
-        by smtp.gmail.com with ESMTPSA id v6sm7169090lby.49.2015.10.27.12.24.18
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Tue, 27 Oct 2015 12:24:19 -0700 (PDT)
-From: Alberto Mardegan <mardy@users.sourceforge.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [media] em28xx: add Terratec Cinergy T XS (MT2060)
-Date: Tue, 27 Oct 2015 21:24:14 +0200
-Message-Id: <1445973854-4912-1-git-send-email-mardy@users.sourceforge.net>
+Received: from bombadil.infradead.org ([198.137.202.9]:51207 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbbJCPXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:40 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 05/15] cx88: use pci_set_dma_mask insted of pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:29 +0200
+Message-Id: <1443885579-7094-6-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Terratec Cinergy T XS is a DVB-T receiver with no analog TV tuner.
-This patch adds support for the cards carrying the mt2060 tuner; it's
-unclear whether there are cards sold under the same name which use a
-different tuner.
-As long as there are no reports of such cards, and indeed as long as
-there are no working drivers for them, we assume that the USB device
-[0ccd:0043] is carrying the mt2060 tuner.
+This ensures the dma mask that is supported by the driver is recorded
+in the device structure.
 
-Signed-off-by: Alberto Mardegan <mardy@users.sourceforge.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- Documentation/video4linux/CARDLIST.em28xx |  4 ++--
- drivers/media/usb/em28xx/em28xx-cards.c   |  8 ++++++--
- drivers/media/usb/em28xx/em28xx-dvb.c     | 15 +++++++++++++++
- 3 files changed, 23 insertions(+), 4 deletions(-)
+ drivers/media/pci/cx88/cx88-alsa.c  | 2 +-
+ drivers/media/pci/cx88/cx88-mpeg.c  | 2 +-
+ drivers/media/pci/cx88/cx88-video.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/video4linux/CARDLIST.em28xx b/Documentation/video4linux/CARDLIST.em28xx
-index 9e57ce4..6720999 100644
---- a/Documentation/video4linux/CARDLIST.em28xx
-+++ b/Documentation/video4linux/CARDLIST.em28xx
-@@ -41,8 +41,8 @@
-  40 -> Plextor ConvertX PX-TV100U               (em2861)        [093b:a005]
-  41 -> Kworld 350 U DVB-T                       (em2870)        [eb1a:e350]
-  42 -> Kworld 355 U DVB-T                       (em2870)        [eb1a:e355,eb1a:e357,eb1a:e359]
-- 43 -> Terratec Cinergy T XS                    (em2870)        [0ccd:0043]
-- 44 -> Terratec Cinergy T XS (MT2060)           (em2870)
-+ 43 -> Terratec Cinergy T XS                    (em2870)
-+ 44 -> Terratec Cinergy T XS (MT2060)           (em2870)        [0ccd:0043]
-  45 -> Pinnacle PCTV DVB-T                      (em2870)
-  46 -> Compro, VideoMate U3                     (em2870)        [185b:2870]
-  47 -> KWorld DVB-T 305U                        (em2880)        [eb1a:e305]
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 3940046..30d7629 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -1051,8 +1051,12 @@ struct em28xx_board em28xx_boards[] = {
- 	},
- 	[EM2870_BOARD_TERRATEC_XS_MT2060] = {
- 		.name         = "Terratec Cinergy T XS (MT2060)",
--		.valid        = EM28XX_BOARD_NOT_VALIDATED,
-+		.xclk         = EM28XX_XCLK_IR_RC5_MODE |
-+				EM28XX_XCLK_FREQUENCY_12MHZ,
-+		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE,
- 		.tuner_type   = TUNER_ABSENT, /* MT2060 */
-+		.has_dvb      = 1,
-+		.tuner_gpio   = default_tuner_gpio,
- 	},
- 	[EM2870_BOARD_KWORLD_350U] = {
- 		.name         = "Kworld 350 U DVB-T",
-@@ -2368,7 +2372,7 @@ struct usb_device_id em28xx_id_table[] = {
- 	{ USB_DEVICE(0x0ccd, 0x0042),
- 			.driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
- 	{ USB_DEVICE(0x0ccd, 0x0043),
--			.driver_info = EM2870_BOARD_TERRATEC_XS },
-+			.driver_info = EM2870_BOARD_TERRATEC_XS_MT2060 },
- 	{ USB_DEVICE(0x0ccd, 0x008e),	/* Cinergy HTC USB XS Rev. 1 */
- 			.driver_info = EM2884_BOARD_TERRATEC_HTC_USB_XS },
- 	{ USB_DEVICE(0x0ccd, 0x00ac),	/* Cinergy HTC USB XS Rev. 2 */
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 357be76..bf5c244 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -38,6 +38,7 @@
- #include "lgdt3305.h"
- #include "zl10353.h"
- #include "s5h1409.h"
-+#include "mt2060.h"
- #include "mt352.h"
- #include "mt352_priv.h" /* FIXME */
- #include "tda1002x.h"
-@@ -815,6 +816,10 @@ static struct zl10353_config em28xx_zl10353_no_i2c_gate_dev = {
- 	.parallel_ts = 1,
- };
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 7f8dc60..0703a81 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -890,7 +890,7 @@ static int snd_cx88_create(struct snd_card *card, struct pci_dev *pci,
+ 		return err;
+ 	}
  
-+static struct mt2060_config em28xx_mt2060_config = {
-+	.i2c_address = 0x60,
-+};
-+
- static struct qt1010_config em28xx_qt1010_config = {
- 	.i2c_address = 0x62
- };
-@@ -1142,6 +1147,16 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			goto out_free;
- 		}
- 		break;
-+	case EM2870_BOARD_TERRATEC_XS_MT2060:
-+		dvb->fe[0] = dvb_attach(zl10353_attach,
-+						&em28xx_zl10353_no_i2c_gate_dev,
-+						&dev->i2c_adap[dev->def_i2c_bus]);
-+		if (dvb->fe[0] != NULL) {
-+			dvb_attach(mt2060_attach, dvb->fe[0],
-+					&dev->i2c_adap[dev->def_i2c_bus],
-+					&em28xx_mt2060_config, 1220);
-+		}
-+		break;
- 	case EM2870_BOARD_KWORLD_355U:
- 		dvb->fe[0] = dvb_attach(zl10353_attach,
- 					   &em28xx_zl10353_no_i2c_gate_dev,
+-	if (!pci_dma_supported(pci,DMA_BIT_MASK(32))) {
++	if (!pci_set_dma_mask(pci,DMA_BIT_MASK(32))) {
+ 		dprintk(0, "%s/1: Oops: no 32bit PCI DMA ???\n",core->name);
+ 		err = -EIO;
+ 		cx88_core_put(core, pci);
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index 34f5057..9b3b565 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -393,7 +393,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+ 	if (pci_enable_device(dev->pci))
+ 		return -EIO;
+ 	pci_set_master(dev->pci);
+-	if (!pci_dma_supported(dev->pci,DMA_BIT_MASK(32))) {
++	if (!pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32))) {
+ 		printk("%s/2: Oops: no 32bit PCI DMA ???\n",dev->core->name);
+ 		return -EIO;
+ 	}
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 400e5ca..f12af31 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1311,7 +1311,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
+ 
+ 	pci_set_master(pci_dev);
+-	if (!pci_dma_supported(pci_dev,DMA_BIT_MASK(32))) {
++	if (!pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32))) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
+ 		err = -EIO;
+ 		goto fail_core;
 -- 
 1.9.1
 
