@@ -1,34 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:33548 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933134AbbJAMFJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 08:05:09 -0400
-Received: by wiclk2 with SMTP id lk2so29856323wic.0
-        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2015 05:05:08 -0700 (PDT)
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-To: hverkuil@xs4all.nl, horms@verge.net.au, magnus.damm@gmail.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	mchehab@osg.samsung.com
-Cc: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
-	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Subject: [PATCH 0/2] media: platform: rcar_jpu: code cleanup and release function changes
-Date: Thu,  1 Oct 2015 15:03:30 +0300
-Message-Id: <1443701012-20730-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Received: from lists.s-osg.org ([54.187.51.154]:47175 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752151AbbJCOZV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Oct 2015 10:25:21 -0400
+Date: Sat, 3 Oct 2015 11:25:10 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Eric Nelson <eric@nelint.com>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+Subject: Re: [PATCH V2 1/2] rc-core: define a default timeout for drivers
+Message-ID: <20151003112510.54fe2a25@recife.lan>
+In-Reply-To: <1442862524-3694-2-git-send-email-eric@nelint.com>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+	<1442862524-3694-1-git-send-email-eric@nelint.com>
+	<1442862524-3694-2-git-send-email-eric@nelint.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches includes improvements and code cleanup for rcar_jpu driver.
+Em Mon, 21 Sep 2015 12:08:43 -0700
+Eric Nelson <eric@nelint.com> escreveu:
 
-Mikhail Ulyanov (2):
-  V4L2: platform: rcar_jpu: remove redundant code
-  V4L2: platform: rcar_jpu: switch off clock on release later
+> A default timeout value of 100ms is workable for most decoders.
+> Declare a constant to help standardize its' use.
 
- drivers/media/platform/rcar_jpu.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+I guess the worse case scenario is the NEC protocol:
+	http://www.sbprojects.com/knowledge/ir/nec.php
 
--- 
-2.5.1
+with allows a repeat message to be sent on every 110ms. As the
+repeat message is 11.25 ms, that would mean a maximum time without
+data for 98.75 ms. So, in thesis, 100 ms would be ok. However, IR
+timings are not always precise and may affected by the battery charge.
 
+So, I think that a timeout of 100ms is too close to 98.75 and may
+cause troubles.
+
+S, IMHO, it is safer to define the default timeout as 125ms.
+
+Regards,
+Mauro
+
+
+> 
+> Signed-off-by: Eric Nelson <eric@nelint.com>
+> ---
+>  include/media/rc-core.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+> index ec921f6..62c64bd 100644
+> --- a/include/media/rc-core.h
+> +++ b/include/media/rc-core.h
+> @@ -239,6 +239,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+>  	memset(ev, 0, sizeof(*ev));
+>  }
+>  
+> +#define IR_DEFAULT_TIMEOUT	MS_TO_NS(100)
+>  #define IR_MAX_DURATION         500000000	/* 500 ms */
+>  #define US_TO_NS(usec)		((usec) * 1000)
+>  #define MS_TO_US(msec)		((msec) * 1000)
