@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49338 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51300 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbbJAWRm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 18:17:42 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Subject: [PATCH 7/7] [media] rcar_jpu: Fix namespace for two __be16 vars
-Date: Thu,  1 Oct 2015 19:17:29 -0300
-Message-Id: <996347612dc58b534e397a742b3bfd3023850bb1.1443737683.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
-References: <cover.1443737682.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1443737682.git.mchehab@osg.samsung.com>
-References: <cover.1443737682.git.mchehab@osg.samsung.com>
+	with ESMTP id S1753143AbbJCPYE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:24:04 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 10/15] nouveau: don't call pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:34 +0200
+Message-Id: <1443885579-7094-11-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes those sparse warnings:
-	drivers/media/platform/rcar_jpu.c:1150:51: warning: incorrect type in assignment (different base types)
-	drivers/media/platform/rcar_jpu.c:1150:51:    expected unsigned short [unsigned] [short] [usertype] <noident>
-	drivers/media/platform/rcar_jpu.c:1150:51:    got restricted __be16 [usertype] <noident>
-	drivers/media/platform/rcar_jpu.c:1152:50: warning: incorrect type in assignment (different base types)
-	drivers/media/platform/rcar_jpu.c:1152:50:    expected unsigned short [unsigned] [short] [usertype] <noident>
-	drivers/media/platform/rcar_jpu.c:1152:50:    got restricted __be16 [usertype] <noident>
+Just try to set a 64-bit DMA mask first and retry with the smaller dma_mask
+if dma_set_mask failed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/gpu/drm/nouveau/nouveau_ttm.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-index 7533b9e16649..c80395df67bc 100644
---- a/drivers/media/platform/rcar_jpu.c
-+++ b/drivers/media/platform/rcar_jpu.c
-@@ -1147,9 +1147,9 @@ static void jpu_buf_finish(struct vb2_buffer *vb)
- 	buffer = vb2_plane_vaddr(vb, 0);
+diff --git a/drivers/gpu/drm/nouveau/nouveau_ttm.c b/drivers/gpu/drm/nouveau/nouveau_ttm.c
+index 3f0fb55..bb030e6 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_ttm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_ttm.c
+@@ -350,11 +350,14 @@ nouveau_ttm_init(struct nouveau_drm *drm)
  
- 	memcpy(buffer, jpeg_hdrs[jpu_buf->compr_quality], JPU_JPEG_HDR_SIZE);
--	*(u16 *)(buffer + JPU_JPEG_HEIGHT_OFFSET) =
-+	*(__be16 *)(buffer + JPU_JPEG_HEIGHT_OFFSET) =
- 					cpu_to_be16(q_data->format.height);
--	*(u16 *)(buffer + JPU_JPEG_WIDTH_OFFSET) =
-+	*(__be16 *)(buffer + JPU_JPEG_WIDTH_OFFSET) =
- 					cpu_to_be16(q_data->format.width);
- 	*(buffer + JPU_JPEG_SUBS_OFFSET) = q_data->fmtinfo->subsampling;
- }
+ 	bits = nvxx_mmu(&drm->device)->dma_bits;
+ 	if (nvxx_device(&drm->device)->func->pci) {
+-		if (drm->agp.bridge ||
+-		     !pci_dma_supported(dev->pdev, DMA_BIT_MASK(bits)))
++		if (drm->agp.bridge)
+ 			bits = 32;
+ 
+ 		ret = pci_set_dma_mask(dev->pdev, DMA_BIT_MASK(bits));
++		if (ret && bits != 32) {
++			bits = 32;
++			ret = pci_set_dma_mask(dev->pdev, DMA_BIT_MASK(bits));
++		}
+ 		if (ret)
+ 			return ret;
+ 
 -- 
-2.4.3
-
+1.9.1
 
