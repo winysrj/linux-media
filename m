@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:52026 "EHLO
-	resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751635AbbJBWHk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:40 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 05/20] media: Media Controller export non locking __media_entity_setup_link()
-Date: Fri,  2 Oct 2015 16:07:17 -0600
-Message-Id: <be68adb0a1119de9ce6905451292ecbb6fe6dfb5.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51180 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503AbbJCPXm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:42 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 02/15] tw68-core: use pci_set_dma_mask insted of pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:26 +0200
+Message-Id: <1443885579-7094-3-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Export __media_entity_setup_link() to be used from code paths that hold
-the graph_mutex.
+This ensures the dma mask that is supported by the driver is recorded
+in the device structure.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/media-entity.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/pci/tw68/tw68-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 797b7b3..49a8755 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -811,6 +811,7 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(__media_entity_setup_link);
- 
- int media_entity_setup_link(struct media_link *link, u32 flags)
- {
+diff --git a/drivers/media/pci/tw68/tw68-core.c b/drivers/media/pci/tw68/tw68-core.c
+index 04706cc..8c5655d 100644
+--- a/drivers/media/pci/tw68/tw68-core.c
++++ b/drivers/media/pci/tw68/tw68-core.c
+@@ -257,7 +257,7 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+ 		dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+ 		dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
+ 	pci_set_master(pci_dev);
+-	if (!pci_dma_supported(pci_dev, DMA_BIT_MASK(32))) {
++	if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
+ 		pr_info("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
+ 		err = -EIO;
+ 		goto fail1;
 -- 
-2.1.4
+1.9.1
 
