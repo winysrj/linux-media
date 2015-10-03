@@ -1,65 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:19676 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115AbbJBBfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2015 21:35:09 -0400
-Date: Fri, 2 Oct 2015 09:34:25 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c:691:23-26:
- WARNING: Suspicious code. resource_size is maybe missing with res
-Message-ID: <201510020918.lWcb9NHt%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46583 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751326AbbJCCi7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Oct 2015 22:38:59 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 59E2E2A0080
+	for <linux-media@vger.kernel.org>; Sat,  3 Oct 2015 04:37:16 +0200 (CEST)
+Date: Sat, 03 Oct 2015 04:37:16 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151003023716.59E2E2A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-head:   ccf70ddcbe9984cee406be2bacfedd5e4776919d
-commit: 409e9eff727295b93a5dde51988a6f8646e5aa6b [media] c8sectpfe: Allow compiling it with COMPILE_TEST
-date:   7 weeks ago
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-coccinelle warnings: (new ones prefixed by >>)
+date:		Sat Oct  3 04:00:16 CEST 2015
+git branch:	test
+git hash:	ca739eb086155007d7264be7ccc07f894d5a7bbe
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
->> drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c:691:23-26: WARNING: Suspicious code. resource_size is maybe missing with res
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-vim +691 drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+Detailed results are available here:
 
-c5f5d0f9 Peter Griffin 2015-07-30  675  	if (!fei)
-c5f5d0f9 Peter Griffin 2015-07-30  676  		return -ENOMEM;
-c5f5d0f9 Peter Griffin 2015-07-30  677  
-c5f5d0f9 Peter Griffin 2015-07-30  678  	fei->dev = dev;
-c5f5d0f9 Peter Griffin 2015-07-30  679  
-c5f5d0f9 Peter Griffin 2015-07-30  680  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "c8sectpfe");
-c5f5d0f9 Peter Griffin 2015-07-30  681  	fei->io = devm_ioremap_resource(dev, res);
-c5f5d0f9 Peter Griffin 2015-07-30  682  	if (IS_ERR(fei->io))
-c5f5d0f9 Peter Griffin 2015-07-30  683  		return PTR_ERR(fei->io);
-c5f5d0f9 Peter Griffin 2015-07-30  684  
-c5f5d0f9 Peter Griffin 2015-07-30  685  	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
-c5f5d0f9 Peter Griffin 2015-07-30  686  					"c8sectpfe-ram");
-c5f5d0f9 Peter Griffin 2015-07-30  687  	fei->sram = devm_ioremap_resource(dev, res);
-c5f5d0f9 Peter Griffin 2015-07-30  688  	if (IS_ERR(fei->sram))
-c5f5d0f9 Peter Griffin 2015-07-30  689  		return PTR_ERR(fei->sram);
-c5f5d0f9 Peter Griffin 2015-07-30  690  
-c5f5d0f9 Peter Griffin 2015-07-30 @691  	fei->sram_size = res->end - res->start;
-c5f5d0f9 Peter Griffin 2015-07-30  692  
-c5f5d0f9 Peter Griffin 2015-07-30  693  	fei->idle_irq = platform_get_irq_byname(pdev, "c8sectpfe-idle-irq");
-c5f5d0f9 Peter Griffin 2015-07-30  694  	if (fei->idle_irq < 0) {
-c5f5d0f9 Peter Griffin 2015-07-30  695  		dev_err(dev, "Can't get c8sectpfe-idle-irq\n");
-c5f5d0f9 Peter Griffin 2015-07-30  696  		return fei->idle_irq;
-c5f5d0f9 Peter Griffin 2015-07-30  697  	}
-c5f5d0f9 Peter Griffin 2015-07-30  698  
-c5f5d0f9 Peter Griffin 2015-07-30  699  	fei->error_irq = platform_get_irq_byname(pdev, "c8sectpfe-error-irq");
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-:::::: The code at line 691 was first introduced by commit
-:::::: c5f5d0f99794cfb675ecacfe37a1b33b352b9752 [media] c8sectpfe: STiH407/10 Linux DVB demux support
+Full logs are available here:
 
-:::::: TO: Peter Griffin <peter.griffin@linaro.org>
-:::::: CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
