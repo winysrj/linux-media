@@ -1,46 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:55276 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750730AbbJHBrj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2015 21:47:39 -0400
-From: =?big5?B?VGlmZmFueSBMaW4gKKpMvHqswCk=?= <tiffany.lin@mediatek.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v3 0/2] vb2: Fix dma sg and dma contig cache sync
-Date: Thu, 8 Oct 2015 01:47:34 +0000
-Message-ID: <C04328E4489E2B459F346457AEEB907A64608B36@MTKMBS07N1.mediatek.inc>
-References: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:51174 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290AbbJCPXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:31 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 01/15] pcnet32: use pci_set_dma_mask insted of pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:25 +0200
+Message-Id: <1443885579-7094-2-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KDQpUaGFua3MgZm9yIHlvdXIgaGVscC4gOikNCg0KQmVzdCByZWdhcmRzLA0K
-VGlmZmFueQ0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogU2FrYXJpIEFpbHVz
-IFttYWlsdG86c2FrYXJpLmFpbHVzQGlraS5maV0gDQpTZW50OiBXZWRuZXNkYXksIE9jdG9iZXIg
-MDcsIDIwMTUgNzoyNCBQTQ0KVG86IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KQ2M6IFRp
-ZmZhbnkgTGluICiqTLx6rMApDQpTdWJqZWN0OiBbUEFUQ0ggdjMgMC8yXSB2YjI6IEZpeCBkbWEg
-c2cgYW5kIGRtYSBjb250aWcgY2FjaGUgc3luYw0KDQpIaSBUaWZmYW55IGFuZCBvdGhlcnMsDQoN
-Ckkgc3BsaXQgdGhlIHBhdGNoZXMgaW50byB0d28gYXMgdGhleSBuZWVkIHRvIGJlIGFwcGxpZWQg
-c2luY2UgZGlmZmVyZW50IHN0YWJsZSBrZXJuZWwgdmVyc2lvbnMsIGFuZCBhZGRlZCBjYyBzdGFi
-bGUuIEkgaW50ZW5kIHRvIHNlbmQgYSBwdWxsIHJlcXVlc3QgbGF0ZXIgdG9kYXkuDQoNCi0tDQpL
-aW5kIHJlZ2FyZHMsDQpTYWthcmkNCg0KDQoqKioqKioqKioqKioqIEVtYWlsIENvbmZpZGVudGlh
-bGl0eSBOb3RpY2UgKioqKioqKioqKioqKioqKioqKioNClRoZSBpbmZvcm1hdGlvbiBjb250YWlu
-ZWQgaW4gdGhpcyBlLW1haWwgbWVzc2FnZSAoaW5jbHVkaW5nIGFueSANCmF0dGFjaG1lbnRzKSBt
-YXkgYmUgY29uZmlkZW50aWFsLCBwcm9wcmlldGFyeSwgcHJpdmlsZWdlZCwgb3Igb3RoZXJ3aXNl
-DQpleGVtcHQgZnJvbSBkaXNjbG9zdXJlIHVuZGVyIGFwcGxpY2FibGUgbGF3cy4gSXQgaXMgaW50
-ZW5kZWQgdG8gYmUgDQpjb252ZXllZCBvbmx5IHRvIHRoZSBkZXNpZ25hdGVkIHJlY2lwaWVudChz
-KS4gQW55IHVzZSwgZGlzc2VtaW5hdGlvbiwgDQpkaXN0cmlidXRpb24sIHByaW50aW5nLCByZXRh
-aW5pbmcgb3IgY29weWluZyBvZiB0aGlzIGUtbWFpbCAoaW5jbHVkaW5nIGl0cyANCmF0dGFjaG1l
-bnRzKSBieSB1bmludGVuZGVkIHJlY2lwaWVudChzKSBpcyBzdHJpY3RseSBwcm9oaWJpdGVkIGFu
-ZCBtYXkgDQpiZSB1bmxhd2Z1bC4gSWYgeW91IGFyZSBub3QgYW4gaW50ZW5kZWQgcmVjaXBpZW50
-IG9mIHRoaXMgZS1tYWlsLCBvciBiZWxpZXZlIA0KdGhhdCB5b3UgaGF2ZSByZWNlaXZlZCB0aGlz
-IGUtbWFpbCBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIA0KaW1tZWRpYXRlbHkg
-KGJ5IHJlcGx5aW5nIHRvIHRoaXMgZS1tYWlsKSwgZGVsZXRlIGFueSBhbmQgYWxsIGNvcGllcyBv
-ZiANCnRoaXMgZS1tYWlsIChpbmNsdWRpbmcgYW55IGF0dGFjaG1lbnRzKSBmcm9tIHlvdXIgc3lz
-dGVtLCBhbmQgZG8gbm90DQpkaXNjbG9zZSB0aGUgY29udGVudCBvZiB0aGlzIGUtbWFpbCB0byBh
-bnkgb3RoZXIgcGVyc29uLiBUaGFuayB5b3Uh
+This ensures the dma mask that is supported by the driver is recorded
+in the device structure.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/net/ethernet/amd/pcnet32.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/amd/pcnet32.c b/drivers/net/ethernet/amd/pcnet32.c
+index bc8b04f..e2afabf 100644
+--- a/drivers/net/ethernet/amd/pcnet32.c
++++ b/drivers/net/ethernet/amd/pcnet32.c
+@@ -1500,7 +1500,7 @@ pcnet32_probe_pci(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!pci_dma_supported(pdev, PCNET32_DMA_MASK)) {
++	if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
+ 		if (pcnet32_debug & NETIF_MSG_PROBE)
+ 			pr_err("architecture does not support 32bit PCI busmaster DMA\n");
+ 		return -ENODEV;
+-- 
+1.9.1
 
