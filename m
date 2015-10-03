@@ -1,95 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45024 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752080AbbJZXDw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 19:03:52 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 13/19] media: Keep using the same graph walk object for a given pipeline
-Date: Tue, 27 Oct 2015 01:01:44 +0200
-Message-Id: <1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:34970 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960AbbJCOwV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 10:52:21 -0400
+Received: by pacfv12 with SMTP id fv12so135756064pac.2
+        for <linux-media@vger.kernel.org>; Sat, 03 Oct 2015 07:52:21 -0700 (PDT)
+Subject: Re: [PATCH V2 1/2] rc-core: define a default timeout for drivers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1441980024-1944-1-git-send-email-eric@nelint.com>
+ <1442862524-3694-1-git-send-email-eric@nelint.com>
+ <1442862524-3694-2-git-send-email-eric@nelint.com>
+ <20151003112510.54fe2a25@recife.lan>
+Cc: linux-media@vger.kernel.org, robh+dt@kernel.org,
+	pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	patrice.chotard@st.com, fabf@skynet.be, wsa@the-dreams.de,
+	heiko@sntech.de, devicetree@vger.kernel.org,
+	otavio@ossystems.com.br
+From: Eric Nelson <eric@nelint.com>
+Message-ID: <560FEBA2.6040504@nelint.com>
+Date: Sat, 3 Oct 2015 07:52:18 -0700
+MIME-Version: 1.0
+In-Reply-To: <20151003112510.54fe2a25@recife.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialise a given graph walk object once, and then keep using it whilst
-the same pipeline is running. Once the pipeline is stopped, release the
-graph walk object.
+Thanks Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 17 +++++++++++------
- include/media/media-entity.h |  1 +
- 2 files changed, 12 insertions(+), 6 deletions(-)
+On 10/03/2015 07:25 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 21 Sep 2015 12:08:43 -0700
+> Eric Nelson <eric@nelint.com> escreveu:
+> 
+>> A default timeout value of 100ms is workable for most decoders.
+>> Declare a constant to help standardize its' use.
+> 
+> I guess the worse case scenario is the NEC protocol:
+> 	http://www.sbprojects.com/knowledge/ir/nec.php
+> 
+> with allows a repeat message to be sent on every 110ms. As the
+> repeat message is 11.25 ms, that would mean a maximum time without
+> data for 98.75 ms. So, in thesis, 100 ms would be ok. However, IR
+> timings are not always precise and may affected by the battery charge.
+> 
+> So, I think that a timeout of 100ms is too close to 98.75 and may
+> cause troubles.
+> 
+> S, IMHO, it is safer to define the default timeout as 125ms.
+> 
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 7429c03..137aa09d 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
--	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
--	if (ret) {
--		mutex_unlock(&mdev->graph_mutex);
--		return ret;
-+	if (!pipe->streaming_count++) {
-+		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-+		if (ret)
-+			goto error_graph_walk_start;
- 	}
- 
- 	media_entity_graph_walk_start(&pipe->graph, entity);
-@@ -592,7 +592,9 @@ error:
- 			break;
- 	}
- 
--	media_entity_graph_walk_cleanup(graph);
-+error_graph_walk_start:
-+	if (!--pipe->streaming_count)
-+		media_entity_graph_walk_cleanup(graph);
- 
- 	mutex_unlock(&mdev->graph_mutex);
- 
-@@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct media_entity_graph *graph = &entity->pipe->graph;
-+	struct media_pipeline *pipe = entity->pipe;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
-+	BUG_ON(!pipe->streaming_count);
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
-@@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- 			entity->pipe = NULL;
- 	}
- 
--	media_entity_graph_walk_cleanup(graph);
-+	if (!--pipe->streaming_count)
-+		media_entity_graph_walk_cleanup(graph);
- 
- 	mutex_unlock(&mdev->graph_mutex);
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 21fd07b..cc01e08 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -98,6 +98,7 @@ struct media_entity_graph {
- };
- 
- struct media_pipeline {
-+	int streaming_count;
- 	/* For walking the graph in pipeline start / stop */
- 	struct media_entity_graph graph;
- };
--- 
-2.1.4
+Sounds good. I'll submit V3 shortly.
 
