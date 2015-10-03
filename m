@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:33603 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933214AbbJAMFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 08:05:11 -0400
-Received: by wiclk2 with SMTP id lk2so29857750wic.0
-        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2015 05:05:10 -0700 (PDT)
-From: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-To: hverkuil@xs4all.nl, horms@verge.net.au, magnus.damm@gmail.com,
-	robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	mchehab@osg.samsung.com
-Cc: laurent.pinchart@ideasonboard.com, j.anaszewski@samsung.com,
-	kamil@wypas.org, sergei.shtylyov@cogentembedded.com,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Subject: [PATCH 1/2] V4L2: platform: rcar_jpu: remove redundant code
-Date: Thu,  1 Oct 2015 15:03:31 +0300
-Message-Id: <1443701012-20730-2-git-send-email-mikhail.ulyanov@cogentembedded.com>
-In-Reply-To: <1443701012-20730-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
-References: <1443701012-20730-1-git-send-email-mikhail.ulyanov@cogentembedded.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51261 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101AbbJCPX7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:59 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 08/15] netup_unidvb: use pci_set_dma_mask insted of pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:32 +0200
+Message-Id: <1443885579-7094-9-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove redundant code. Following code line do what we want.
+This ensures the dma mask that is supported by the driver is recorded
+in the device structure.
 
-Signed-off-by: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/platform/rcar_jpu.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-index 2973f07..039bbbc 100644
---- a/drivers/media/platform/rcar_jpu.c
-+++ b/drivers/media/platform/rcar_jpu.c
-@@ -1555,9 +1555,6 @@ static irqreturn_t jpu_irq_handler(int irq, void *dev_id)
- 		dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
- 		if (src_buf->v4l2_buf.flags & V4L2_BUF_FLAG_TIMECODE)
- 			dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
--		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
--		dst_buf->v4l2_buf.flags |= src_buf->v4l2_buf.flags &
--					V4L2_BUF_FLAG_TSTAMP_SRC_MASK;
- 		dst_buf->v4l2_buf.flags = src_buf->v4l2_buf.flags &
- 			(V4L2_BUF_FLAG_TIMECODE | V4L2_BUF_FLAG_KEYFRAME |
- 			 V4L2_BUF_FLAG_PFRAME | V4L2_BUF_FLAG_BFRAME |
+diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+index 6d8bf627..511144f 100644
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
++++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+@@ -809,7 +809,7 @@ static int netup_unidvb_initdev(struct pci_dev *pci_dev,
+ 		"%s(): board vendor 0x%x, revision 0x%x\n",
+ 		__func__, board_vendor, board_revision);
+ 	pci_set_master(pci_dev);
+-	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
++	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+ 		dev_err(&pci_dev->dev,
+ 			"%s(): 32bit PCI DMA is not supported\n", __func__);
+ 		goto pci_detect_err;
 -- 
-2.5.1
+1.9.1
 
