@@ -1,218 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53440 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753617AbbJ1CBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 22:01:23 -0400
-Date: Wed, 28 Oct 2015 11:01:19 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 17/19] staging: v4l: omap4iss: Use media entity enum API
-Message-ID: <20151028110119.596a3494@concha.lan>
-In-Reply-To: <1445900510-1398-18-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-18-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51366 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753260AbbJCPYT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:24:19 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 15/15] dma: remove external references to dma_supported
+Date: Sat,  3 Oct 2015 17:19:39 +0200
+Message-Id: <1443885579-7094-16-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:48 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ Documentation/DMA-API.txt       | 13 -------------
+ drivers/usb/host/ehci-hcd.c     |  2 +-
+ drivers/usb/host/fotg210-hcd.c  |  2 +-
+ drivers/usb/host/fusbh200-hcd.c |  2 +-
+ drivers/usb/host/oxu210hp-hcd.c |  2 +-
+ 5 files changed, 4 insertions(+), 17 deletions(-)
 
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Where are the comments?
-
-> ---
->  drivers/staging/media/omap4iss/iss.c       | 15 +++++++++++----
->  drivers/staging/media/omap4iss/iss.h       |  4 ++--
->  drivers/staging/media/omap4iss/iss_video.c | 13 +++++++++++--
->  drivers/staging/media/omap4iss/iss_video.h |  4 ++--
->  4 files changed, 26 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> index c097fd5..7b0561f 100644
-> --- a/drivers/staging/media/omap4iss/iss.c
-> +++ b/drivers/staging/media/omap4iss/iss.c
-> @@ -606,7 +606,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
->  			 * crashed. Mark it as such, the ISS will be reset when
->  			 * applications will release it.
->  			 */
-> -			iss->crashed |= 1U << media_entity_id(&subdev->entity);
-> +			media_entity_enum_set(&iss->crashed, &subdev->entity);
->  			failure = -ETIMEDOUT;
->  		}
->  	}
-> @@ -641,7 +641,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
->  	 * pipeline won't start anyway (those entities would then likely fail to
->  	 * stop, making the problem worse).
->  	 */
-> -	if (pipe->entities & iss->crashed)
-> +	if (media_entity_enum_intersects(&pipe->entities, &iss->crashed))
->  		return -EIO;
-
-Should return error if the enum sizes are different.
-
->  
->  	spin_lock_irqsave(&pipe->lock, flags);
-> @@ -761,7 +761,8 @@ static int iss_reset(struct iss_device *iss)
->  		return -ETIMEDOUT;
->  	}
->  
-> -	iss->crashed = 0;
-> +	media_entity_enum_zero(&iss->crashed);
-> +
->  	return 0;
->  }
->  
-> @@ -1090,7 +1091,7 @@ void omap4iss_put(struct iss_device *iss)
->  		 * be worth investigating whether resetting the ISP only can't
->  		 * fix the problem in some cases.
->  		 */
-> -		if (iss->crashed)
-> +		if (!media_entity_enum_empty(&iss->crashed))
->  			iss_reset(iss);
->  		iss_disable_clocks(iss);
->  	}
-> @@ -1490,6 +1491,10 @@ static int iss_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto error_modules;
->  
-> +	ret = media_entity_enum_init(&iss->crashed, &iss->media_dev);
-> +	if (ret)
-> +		goto error_entities;
-> +
->  	ret = iss_create_pads_links(iss);
->  	if (ret < 0)
->  		goto error_entities;
-> @@ -1500,6 +1505,7 @@ static int iss_probe(struct platform_device *pdev)
->  
->  error_entities:
->  	iss_unregister_entities(iss);
-> +	media_entity_enum_cleanup(&iss->crashed);
->  error_modules:
->  	iss_cleanup_modules(iss);
->  error_iss:
-> @@ -1517,6 +1523,7 @@ static int iss_remove(struct platform_device *pdev)
->  	struct iss_device *iss = platform_get_drvdata(pdev);
->  
->  	iss_unregister_entities(iss);
-> +	media_entity_enum_cleanup(&iss->crashed);
->  	iss_cleanup_modules(iss);
->  
->  	return 0;
-> diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
-> index 35df8b4..5dd0d99 100644
-> --- a/drivers/staging/media/omap4iss/iss.h
-> +++ b/drivers/staging/media/omap4iss/iss.h
-> @@ -82,7 +82,7 @@ struct iss_reg {
->  /*
->   * struct iss_device - ISS device structure.
->   * @syscon: Regmap for the syscon register space
-> - * @crashed: Bitmask of crashed entities (indexed by entity ID)
-> + * @crashed: Crashed entities
->   */
->  struct iss_device {
->  	struct v4l2_device v4l2_dev;
-> @@ -101,7 +101,7 @@ struct iss_device {
->  	u64 raw_dmamask;
->  
->  	struct mutex iss_mutex;	/* For handling ref_count field */
-> -	unsigned int crashed;
-> +	struct media_entity_enum crashed;
->  	int has_context;
->  	int ref_count;
->  
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> index cbe5783..b56f999 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -761,6 +761,10 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	if (type != video->type)
->  		return -EINVAL;
->  
-> +	ret = media_entity_enum_init(&pipe->entities, entity->graph_obj.mdev);
-> +	if (ret)
-> +		return ret;
-> +
->  	mutex_lock(&video->stream_lock);
->  
->  	/* Start streaming on the pipeline. No link touching an entity in the
-> @@ -771,7 +775,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	pipe->external = NULL;
->  	pipe->external_rate = 0;
->  	pipe->external_bpp = 0;
-> -	pipe->entities = 0;
->  
->  	if (video->iss->pdata->set_constraints)
->  		video->iss->pdata->set_constraints(video->iss, true);
-> @@ -783,7 +786,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	entity = &video->video.entity;
->  	media_entity_graph_walk_start(&graph, entity);
->  	while ((entity = media_entity_graph_walk_next(&graph)))
-> -		pipe->entities |= 1 << media_entity_id(entity);
-> +		media_entity_enum_set(&pipe->entities, entity);
->  
->  	/* Verify that the currently configured format matches the output of
->  	 * the connected subdev.
-> @@ -854,6 +857,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	}
->  
->  	mutex_unlock(&video->stream_lock);
-> +
->  	return 0;
->  
->  err_omap4iss_set_stream:
-> @@ -866,6 +870,9 @@ err_media_entity_pipeline_start:
->  	video->queue = NULL;
->  
->  	mutex_unlock(&video->stream_lock);
-> +
-> +	media_entity_enum_cleanup(&pipe->entities);
-> +
->  	return ret;
->  }
->  
-> @@ -903,6 +910,8 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
->  	vb2_streamoff(&vfh->queue, type);
->  	video->queue = NULL;
->  
-> +	media_entity_enum_cleanup(&pipe->entities);
-> +
->  	if (video->iss->pdata->set_constraints)
->  		video->iss->pdata->set_constraints(video->iss, false);
->  	media_entity_pipeline_stop(&video->video.entity);
-> diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-> index f11fce2..b5d3a96 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.h
-> +++ b/drivers/staging/media/omap4iss/iss_video.h
-> @@ -77,7 +77,7 @@ enum iss_pipeline_state {
->  
->  /*
->   * struct iss_pipeline - An OMAP4 ISS hardware pipeline
-> - * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
-> + * @entities: Entities in the pipeline
->   * @error: A hardware error occurred during capture
->   */
->  struct iss_pipeline {
-> @@ -87,7 +87,7 @@ struct iss_pipeline {
->  	enum iss_pipeline_stream_state stream_state;
->  	struct iss_video *input;
->  	struct iss_video *output;
-> -	unsigned int entities;
-> +	struct media_entity_enum entities;
->  	atomic_t frame_number;
->  	bool do_propagation; /* of frame number */
->  	bool error;
-
-
+diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
+index edccacd..55f48684 100644
+--- a/Documentation/DMA-API.txt
++++ b/Documentation/DMA-API.txt
+@@ -142,19 +142,6 @@ Part Ic - DMA addressing limitations
+ ------------------------------------
+ 
+ int
+-dma_supported(struct device *dev, u64 mask)
+-
+-Checks to see if the device can support DMA to the memory described by
+-mask.
+-
+-Returns: 1 if it can and 0 if it can't.
+-
+-Notes: This routine merely tests to see if the mask is possible.  It
+-won't change the current mask settings.  It is more intended as an
+-internal API for use by the platform than an external API for use by
+-driver writers.
+-
+-int
+ dma_set_mask_and_coherent(struct device *dev, u64 mask)
+ 
+ Checks to see if the mask is possible and updates the device
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index c63d82c..48c92bf 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -589,7 +589,7 @@ static int ehci_run (struct usb_hcd *hcd)
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
+diff --git a/drivers/usb/host/fotg210-hcd.c b/drivers/usb/host/fotg210-hcd.c
+index 000ed80..c5fc3ef 100644
+--- a/drivers/usb/host/fotg210-hcd.c
++++ b/drivers/usb/host/fotg210-hcd.c
+@@ -5258,7 +5258,7 @@ static int fotg210_run(struct usb_hcd *hcd)
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
+diff --git a/drivers/usb/host/fusbh200-hcd.c b/drivers/usb/host/fusbh200-hcd.c
+index 1fd8718..4a1243a 100644
+--- a/drivers/usb/host/fusbh200-hcd.c
++++ b/drivers/usb/host/fusbh200-hcd.c
+@@ -5181,7 +5181,7 @@ static int fusbh200_run (struct usb_hcd *hcd)
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
+diff --git a/drivers/usb/host/oxu210hp-hcd.c b/drivers/usb/host/oxu210hp-hcd.c
+index fe3bd1c..1f139d8 100644
+--- a/drivers/usb/host/oxu210hp-hcd.c
++++ b/drivers/usb/host/oxu210hp-hcd.c
+@@ -2721,7 +2721,7 @@ static int oxu_run(struct usb_hcd *hcd)
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
 -- 
+1.9.1
 
-Cheers,
-Mauro
