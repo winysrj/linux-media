@@ -1,168 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:2036 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750807AbbJNGqT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2015 02:46:19 -0400
-Subject: Re: [PATCH 1/5] media: atmel-isi: correct yuv swap according to
- different sensor outputs
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
- <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1510041751480.26834@axis700.grange>
- <Pine.LNX.4.64.1510041903460.26834@axis700.grange>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Josh Wu <josh.wu@atmel.com>
-Message-ID: <561DFA36.2070705@atmel.com>
-Date: Wed, 14 Oct 2015 14:46:14 +0800
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1510041903460.26834@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:36500 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750758AbbJCWaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Oct 2015 18:30:07 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Mark Clarkstone <hello@markclarkstone.co.uk>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] m88ds3103: use own reg update_bits() implementation
+Date: Sun,  4 Oct 2015 01:29:30 +0300
+Message-Id: <1443911370-8195-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Gueannadi,
+Device stopped to tuning some channels after regmap conversion.
+Reason is that regmap_update_bits() works a bit differently for
+partially volatile registers than old homemade routine. Return
+back to old routine in order to fix issue.
 
-On 10/5/2015 1:04 AM, Guennadi Liakhovetski wrote:
-> Even simpler:
->
-> On Sun, 4 Oct 2015, Guennadi Liakhovetski wrote:
->
->> Hi Josh,
->>
->> On Tue, 22 Sep 2015, Josh Wu wrote:
->>
->>> we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
->>> sensor output and Atmel ISI output format.
->>>
->>> Current there are two cases Atmel ISI supported:
->>>    1. Atmel ISI outputs YUYV format.
->>>       This case we need to setup YCC_SWAP according to sensor output
->>>       format.
->>>    2. Atmel ISI output a pass-through formats, which means no swap.
->>>       Just setup YCC_SWAP as default with no swap.
->>>
->>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>> ---
->>>
->>>   drivers/media/platform/soc_camera/atmel-isi.c | 43 ++++++++++++++++++++-------
->>>   1 file changed, 33 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->>> index 45e304a..df64294 100644
->>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->>> @@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
->>>   	return readl(isi->regs + reg);
->>>   }
->>>   
->>> +static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
->>> +		const struct soc_camera_format_xlate *xlate)
->>> +{
->> This function will be called only for the four media codes from the
->> switch-case statement below, namely for
->>
->> MEDIA_BUS_FMT_VYUY8_2X8
->> MEDIA_BUS_FMT_UYVY8_2X8
->> MEDIA_BUS_FMT_YVYU8_2X8
->> MEDIA_BUS_FMT_YUYV8_2X8
->>
->>> +	/* By default, no swap for the codec path of Atmel ISI. So codec
->>> +	* output is same as sensor's output.
->>> +	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
->>> +	* And if sensor's output is UYVY, then codec outputs UYVY.
->>> +	*/
->>> +	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
->> Then this ISI_CFG2_YCC_SWAP_DEFAULT will only hold for
->> MEDIA_BUS_FMT_YUYV8_2X8? Why don't you just add one more case below? Don't
->> think this initialisation is really justified.
->>
->>> +
->>> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
->>> +		/* all convert to YUYV */
->>> +		switch (xlate->code) {
->>> +		case MEDIA_BUS_FMT_VYUY8_2X8:
->>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
->>> +			break;
-> Why don't you just return the result value here directly? Then you don't
-> need the variable at all
+Fixes: 478932b16052f5ded74685d096ae920cd17d6424
+Cc: <stable@kernel.org> # 4.2+
+Reported-by: Mark Clarkstone <hello@markclarkstone.co.uk>
+Tested-by: Mark Clarkstone <hello@markclarkstone.co.uk>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/m88ds3103.c | 73 +++++++++++++++++++++------------
+ 1 file changed, 47 insertions(+), 26 deletions(-)
 
-yes, This sounds good. I'll take rid of the cfg2_yuv_swap variable. Thanks.
-
-Best Regards,
-Josh Wu
->
->>> +		case MEDIA_BUS_FMT_UYVY8_2X8:
->>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
->>> +			break;
->>> +		case MEDIA_BUS_FMT_YVYU8_2X8:
->>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
->>> +			break;
->>> +		}
->>> +	}
->>> +
->>> +	return cfg2_yuv_swap;
->>> +}
->>> +
->>>   static void configure_geometry(struct atmel_isi *isi, u32 width,
->>> -			u32 height, u32 code)
->>> +		u32 height, const struct soc_camera_format_xlate *xlate)
->>>   {
->>>   	u32 cfg2;
->>>   
->>>   	/* According to sensor's output format to set cfg2 */
->>> -	switch (code) {
->>> +	switch (xlate->code) {
->>>   	default:
->>>   	/* Grey */
->>>   	case MEDIA_BUS_FMT_Y8_1X8:
->>> @@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
->>>   		break;
->>>   	/* YUV */
->>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
->>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
->>> -		break;
->>>   	case MEDIA_BUS_FMT_UYVY8_2X8:
->>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
->>> -		break;
->>>   	case MEDIA_BUS_FMT_YVYU8_2X8:
->>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
->>> -		break;
->>>   	case MEDIA_BUS_FMT_YUYV8_2X8:
->>> -		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
->>> +		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
->>> +				setup_cfg2_yuv_swap(isi, xlate);
->>>   		break;
->>>   	/* RGB, TODO */
->>>   	}
->> I would move this switch-case completely inside setup_cfg2_yuv_swap().
->> Just do
->>
->> 	cfg2 = setup_cfg2_yuv_swap(isi, xlate);
->>
->> and handle the
->>
->>   	case MEDIA_BUS_FMT_Y8_1X8:
->>
->> in the function too. These two switch-case statements really look
->> redundant.
->>
->>> @@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
->>>   
->>>   	configure_geometry(isi, icd->user_width, icd->user_height,
->>> -				icd->current_fmt->code);
->>> +				icd->current_fmt);
->>>   
->>>   	spin_lock_irq(&isi->lock);
->>>   	/* Clear any pending interrupt */
->>> -- 
->>> 1.9.1
->>>
->> Thanks
->> Guennadi
->>
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index ff31e7a..feeeb70 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -18,6 +18,27 @@
+ 
+ static struct dvb_frontend_ops m88ds3103_ops;
+ 
++/* write single register with mask */
++static int m88ds3103_update_bits(struct m88ds3103_dev *dev,
++				u8 reg, u8 mask, u8 val)
++{
++	int ret;
++	u8 tmp;
++
++	/* no need for read if whole reg is written */
++	if (mask != 0xff) {
++		ret = regmap_bulk_read(dev->regmap, reg, &tmp, 1);
++		if (ret)
++			return ret;
++
++		val &= mask;
++		tmp &= ~mask;
++		val |= tmp;
++	}
++
++	return regmap_bulk_write(dev->regmap, reg, &val, 1);
++}
++
+ /* write reg val table using reg addr auto increment */
+ static int m88ds3103_wr_reg_val_tab(struct m88ds3103_dev *dev,
+ 		const struct m88ds3103_reg_val *tab, int tab_len)
+@@ -394,10 +415,10 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 			u8tmp2 = 0x00; /* 0b00 */
+ 			break;
+ 		}
+-		ret = regmap_update_bits(dev->regmap, 0x22, 0xc0, u8tmp1 << 6);
++		ret = m88ds3103_update_bits(dev, 0x22, 0xc0, u8tmp1 << 6);
+ 		if (ret)
+ 			goto err;
+-		ret = regmap_update_bits(dev->regmap, 0x24, 0xc0, u8tmp2 << 6);
++		ret = m88ds3103_update_bits(dev, 0x24, 0xc0, u8tmp2 << 6);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -455,13 +476,13 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 			if (ret)
+ 				goto err;
+ 		}
+-		ret = regmap_update_bits(dev->regmap, 0x9d, 0x08, 0x08);
++		ret = m88ds3103_update_bits(dev, 0x9d, 0x08, 0x08);
+ 		if (ret)
+ 			goto err;
+ 		ret = regmap_write(dev->regmap, 0xf1, 0x01);
+ 		if (ret)
+ 			goto err;
+-		ret = regmap_update_bits(dev->regmap, 0x30, 0x80, 0x80);
++		ret = m88ds3103_update_bits(dev, 0x30, 0x80, 0x80);
+ 		if (ret)
+ 			goto err;
+ 	}
+@@ -498,7 +519,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	switch (dev->cfg->ts_mode) {
+ 	case M88DS3103_TS_SERIAL:
+ 	case M88DS3103_TS_SERIAL_D7:
+-		ret = regmap_update_bits(dev->regmap, 0x29, 0x20, u8tmp1);
++		ret = m88ds3103_update_bits(dev, 0x29, 0x20, u8tmp1);
+ 		if (ret)
+ 			goto err;
+ 		u8tmp1 = 0;
+@@ -567,11 +588,11 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = regmap_update_bits(dev->regmap, 0x4d, 0x02, dev->cfg->spec_inv << 1);
++	ret = m88ds3103_update_bits(dev, 0x4d, 0x02, dev->cfg->spec_inv << 1);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = regmap_update_bits(dev->regmap, 0x30, 0x10, dev->cfg->agc_inv << 4);
++	ret = m88ds3103_update_bits(dev, 0x30, 0x10, dev->cfg->agc_inv << 4);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -625,13 +646,13 @@ static int m88ds3103_init(struct dvb_frontend *fe)
+ 	dev->warm = false;
+ 
+ 	/* wake up device from sleep */
+-	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x01);
++	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x01);
+ 	if (ret)
+ 		goto err;
+-	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x00);
++	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x00);
+ 	if (ret)
+ 		goto err;
+-	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x00);
++	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x00);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -749,18 +770,18 @@ static int m88ds3103_sleep(struct dvb_frontend *fe)
+ 		utmp = 0x29;
+ 	else
+ 		utmp = 0x27;
+-	ret = regmap_update_bits(dev->regmap, utmp, 0x01, 0x00);
++	ret = m88ds3103_update_bits(dev, utmp, 0x01, 0x00);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* sleep */
+-	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x00);
++	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x00);
+ 	if (ret)
+ 		goto err;
+-	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x01);
++	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x01);
+ 	if (ret)
+ 		goto err;
+-	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x10);
++	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x10);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -992,12 +1013,12 @@ static int m88ds3103_set_tone(struct dvb_frontend *fe,
+ 	}
+ 
+ 	utmp = tone << 7 | dev->cfg->envelope_mode << 5;
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
+ 	if (ret)
+ 		goto err;
+ 
+ 	utmp = 1 << 2;
+-	ret = regmap_update_bits(dev->regmap, 0xa1, reg_a1_mask, utmp);
++	ret = m88ds3103_update_bits(dev, 0xa1, reg_a1_mask, utmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1047,7 +1068,7 @@ static int m88ds3103_set_voltage(struct dvb_frontend *fe,
+ 	voltage_dis ^= dev->cfg->lnb_en_pol;
+ 
+ 	utmp = voltage_dis << 1 | voltage_sel << 0;
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0x03, utmp);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0x03, utmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1080,7 +1101,7 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+ 	}
+ 
+ 	utmp = dev->cfg->envelope_mode << 5;
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1115,12 +1136,12 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
+ 	} else {
+ 		dev_dbg(&client->dev, "diseqc tx timeout\n");
+ 
+-		ret = regmap_update_bits(dev->regmap, 0xa1, 0xc0, 0x40);
++		ret = m88ds3103_update_bits(dev, 0xa1, 0xc0, 0x40);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0xc0, 0x80);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0xc0, 0x80);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1152,7 +1173,7 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
+ 	}
+ 
+ 	utmp = dev->cfg->envelope_mode << 5;
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1194,12 +1215,12 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
+ 	} else {
+ 		dev_dbg(&client->dev, "diseqc tx timeout\n");
+ 
+-		ret = regmap_update_bits(dev->regmap, 0xa1, 0xc0, 0x40);
++		ret = m88ds3103_update_bits(dev, 0xa1, 0xc0, 0x40);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
+-	ret = regmap_update_bits(dev->regmap, 0xa2, 0xc0, 0x80);
++	ret = m88ds3103_update_bits(dev, 0xa2, 0xc0, 0x80);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1435,13 +1456,13 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 		goto err_kfree;
+ 
+ 	/* sleep */
+-	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x00);
++	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x00);
+ 	if (ret)
+ 		goto err_kfree;
+-	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x01);
++	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x01);
+ 	if (ret)
+ 		goto err_kfree;
+-	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x10);
++	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x10);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+-- 
+http://palosaari.fi/
 
