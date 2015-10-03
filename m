@@ -1,44 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:34772 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754163AbbJ0LxP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 07:53:15 -0400
-From: Oliver Neukum <oneukum@suse.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: Oliver Neukum <oneukum@suse.com>
-Subject: [PATCH] usbvision fix overflow of interfaces array
-Date: Tue, 27 Oct 2015 12:51:34 +0100
-Message-Id: <1445946694-2931-1-git-send-email-oneukum@suse.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51223 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753022AbbJCPXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:54 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>
+Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 06/15] cx25821: use pci_set_dma_mask insted of pci_dma_supported
+Date: Sat,  3 Oct 2015 17:19:30 +0200
+Message-Id: <1443885579-7094-7-git-send-email-hch@lst.de>
+In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the crash reported in:
-http://seclists.org/bugtraq/2015/Oct/35
-The interface number needs a sanity check.
+This ensures the dma mask that is supported by the driver is recorded
+in the device structure.
 
-Signed-off-by: Oliver Neukum <oneukum@suse.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/usb/usbvision/usbvision-video.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/pci/cx25821/cx25821-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index b693206..ad33d99 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1461,6 +1461,13 @@ static int usbvision_probe(struct usb_interface *intf,
- 	printk(KERN_INFO "%s: %s found\n", __func__,
- 				usbvision_device_data[model].model_string);
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index 559f829..dbc695f 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -1319,7 +1319,7 @@ static int cx25821_initdev(struct pci_dev *pci_dev,
+ 		dev->pci_lat, (unsigned long long)dev->base_io_addr);
  
-+	/*
-+	 * this is a security check.
-+	 * an exploit using an incorrect bInterfaceNumber is known
-+	 */
-+	if (ifnum >= USB_MAXINTERFACES || !dev->actconfig->interface[ifnum])
-+		return -ENODEV;
-+
- 	if (usbvision_device_data[model].interface >= 0)
- 		interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
- 	else
+ 	pci_set_master(pci_dev);
+-	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
++	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+ 		pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+ 		err = -EIO;
+ 		goto fail_irq;
 -- 
-2.1.4
+1.9.1
 
