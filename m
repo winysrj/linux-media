@@ -1,43 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:35213 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834AbbJEK4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2015 06:56:41 -0400
-Date: Mon, 5 Oct 2015 04:56:35 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-doc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: How to fix DocBook parsers for private fields inside #ifdefs
-Message-ID: <20151005045635.455b20eb@lwn.net>
-In-Reply-To: <20151001142107.5a0bf7b2@recife.lan>
-References: <20151001142107.5a0bf7b2@recife.lan>
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:33323 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436AbbJDODC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Oct 2015 10:03:02 -0400
+Received: by igbkq10 with SMTP id kq10so46977291igb.0
+        for <linux-media@vger.kernel.org>; Sun, 04 Oct 2015 07:03:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5610B12B.8090201@tresar-electronics.com.au>
+References: <5610B12B.8090201@tresar-electronics.com.au>
+Date: Sun, 4 Oct 2015 10:03:01 -0400
+Message-ID: <CALzAhNWuOhQNQFu-baXy6QzhV3AxCknh7XeKOBjp943nz66Qyw@mail.gmail.com>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+From: Steven Toth <stoth@kernellabs.com>
+To: Richard Tresidder <rtresidd@tresar-electronics.com.au>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Oct 2015 14:21:07 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c  was failing..
+> kept getting:  kernel: modprobe: page allocation failure: order:10,
+> mode:0x10c0d0
 
-> They're all after a private comment:
-> 	/* Private: internal use only */
-> 
-> So, according with Documentation/kernel-doc-nano-HOWTO.txt, they shold
-> have been ignored.
-> 
-> Still, the scripts produce warnings for them:
+I don't think I've ever seen or heard of that in the entire history of
+the driver.
 
-Sorry, I've been away from the keyboard for a few days and am only now
-catching up.
+Are you running on traditional x86/x86 hardware, or something embedded/custom?
 
-The problem is that kernel-doc is dumb...the test is case-sensitive, so
-it needs to be "private:", not "Private:".  I'm sure there's a magic perl
-regex parameter to make the test case-insensitive; when I get a chance
-I'll figure it out and put it in there.
-
-(Of course, once you fix that glitch, you'll get gripes about the fields
-that are marked private but documented anyway.  Like I said, kernel-doc
-is dumb.)
-
-jon
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
