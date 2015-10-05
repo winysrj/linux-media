@@ -1,108 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53388 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752330AbbJ1AsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 20:48:11 -0400
-Date: Wed, 28 Oct 2015 09:48:07 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 12/19] media: Use entity enums in graph walk
-Message-ID: <20151028094807.589cb4c1@concha.lan>
-In-Reply-To: <1445900510-1398-13-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-13-git-send-email-sakari.ailus@iki.fi>
+Received: from smtp3.wa.amnet.net.au ([203.161.124.52]:35751 "EHLO
+	smtp3.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752172AbbJEOWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 10:22:42 -0400
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+To: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
+	linux-media@vger.kernel.org
+References: <5610B12B.8090201@tresar-electronics.com.au>
+ <561270E1.1040707@gmail.com>
+From: Richard Tresidder <rtresidd@tresar-electronics.com.au>
+Message-ID: <561287A8.8080505@tresar-electronics.com.au>
+Date: Mon, 5 Oct 2015 22:22:32 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <561270E1.1040707@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:43 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hmm indeed...
+I see that the 2168 wants a mux i2c adapter..
+and yep my /boot/config-3.10.0-229.14.1.el7.x86_64/ is indeed showing 
+that CONFIG_I2C_MUX is commented out..
+sigh.. Rebuilding the kernel with that setting on...
+Why this is disabled rather than just a module is beyond me..
+Curious that an error doesn't pop up about that..
+Is there a debug level that can be turned on that would show that up?
 
-> This will also mean that the necessary graph related data structures will
-> be allocated dynamically, removing the need for maximum ID checks.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Well spotted Tycho
+Will let you know how things go
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Regards
+    Richard Tresidder
 
-> ---
->  drivers/media/media-entity.c | 16 ++++++----------
->  include/media/media-entity.h |  2 +-
->  2 files changed, 7 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 4161dc7..7429c03 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -366,7 +366,7 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
->  __must_check int media_entity_graph_walk_init(
->  	struct media_entity_graph *graph, struct media_device *mdev)
->  {
-> -	return 0;
-> +	return media_entity_enum_init(&graph->entities, mdev);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
->  
-> @@ -376,6 +376,7 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
->   */
->  void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
->  {
-> +	media_entity_enum_cleanup(&graph->entities);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
->  
-> @@ -395,14 +396,11 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  				   struct media_entity *entity)
->  {
-> +	media_entity_enum_zero(&graph->entities);
-> +	media_entity_enum_set(&graph->entities, entity);
-> +
->  	graph->top = 0;
->  	graph->stack[graph->top].entity = NULL;
-> -	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
-> -
-> -	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
-> -		return;
-> -
-> -	__set_bit(media_entity_id(entity), graph->entities);
->  	stack_push(graph, entity);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-> @@ -445,11 +443,9 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
->  
->  		/* Get the entity in the other end of the link . */
->  		next = media_entity_other(entity, link);
-> -		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
-> -			return NULL;
->  
->  		/* Has the entity already been visited? */
-> -		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
-> +		if (media_entity_enum_test_and_set(&graph->entities, next)) {
->  			link_top(graph) = link_top(graph)->next;
->  			continue;
->  		}
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 6e12b53..21fd07b 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -93,8 +93,8 @@ struct media_entity_graph {
->  		struct list_head *link;
->  	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
->  
-> -	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
->  	int top;
-> +	struct media_entity_enum entities;
->  };
->  
->  struct media_pipeline {
+On 05/10/15 20:45, Tycho Lürsen wrote:
+> Hi, not sure if this is related.
+> I had to recompile the centos7 stock kernel with:
+> CONFIG_I2C_MUX=m
+>
+> It was not enabled in the kernel config.
+>
+> Op 04-10-15 om 06:55 schreef Richard Tresidder:
+>> Sorry If I've posted this to the wrong section my first attempt..
+>>
+>> Hi
+>>    I'm attempting to get an HVR2205 up and going.
+>> CORE saa7164[1]: subsystem: 0070:f120, board: Hauppauge WinTV-HVR2205 
+>> [card=13,autodetected]
+>> Distribution is CentOS7 so I've pulled the v4l from media_build.git
+>> Had to change a couple of things..  and another macro issue regarding 
+>> clamp() ..
+>> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c  was 
+>> failing..
+>> kept getting:  kernel: modprobe: page allocation failure: order:10, 
+>> mode:0x10c0d0
+>> Have plenty of RAM free so surprised about that one.. tried some of 
+>> the tricks re increasing the vm.min_free_kbytes etc..
+>>
+>> Any way I modified the routine to only allocate a single chunk buffer 
+>> based on dstsize and tweaked the chunk handling code..
+>> seemed to fix that one.. fw downloaded and seemed to boot ok..
+>>
+>> Next I'm running into a problem with the saa7164_dvb_register() stage...
+>>
+>> saa7164[1]: Hauppauge eeprom: model=151609
+>> saa7164_dvb_register() Frontend/I2C initialization failed
+>> saa7164_initdev() Failed to register dvb adapters on porta
+>>
+>> I added some extra debug and identified that client_demod->dev.driver 
+>> is null..
+>>
+>> However I'm now stuck as to what to tackle next..
+>>
+>> I can provide more info, just didn't want to spam the list for my 
+>> first email..
+>>
+>> Regards
+>>    Richard Tresidder
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
 
-
--- 
-
-Cheers,
-Mauro
