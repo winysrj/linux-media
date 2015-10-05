@@ -1,135 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39191 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbbJJNgQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 01/26] [media] DocBook: Document include/media/tuner.h
-Date: Sat, 10 Oct 2015 10:35:44 -0300
-Message-Id: <07c68a7423c4e44cc4f85caa83bb7fae36367250.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:38657 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751674AbbJEMpW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 08:45:22 -0400
+Received: by wiclk2 with SMTP id lk2so112791763wic.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 05:45:20 -0700 (PDT)
+Message-ID: <561270E1.1040707@gmail.com>
+Date: Mon, 05 Oct 2015 14:45:21 +0200
+From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+MIME-Version: 1.0
+To: Richard Tresidder <rtresidd@tresar-electronics.com.au>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+References: <5610B12B.8090201@tresar-electronics.com.au>
+In-Reply-To: <5610B12B.8090201@tresar-electronics.com.au>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is part of the V4L2 core, so its kABI should be
-documented at device-drivers DocBook.
+Hi, not sure if this is related.
+I had to recompile the centos7 stock kernel with:
+CONFIG_I2C_MUX=m
 
-Add the meta-tags for that.
+It was not enabled in the kernel config.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index 31cefc9af98e..2fc3bca44f49 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -221,6 +221,7 @@ X!Isound/sound_firmware.c
-      <title>Media Devices</title>
- 
-      <sect1><title>Video2Linux devices</title>
-+!Iinclude/media/tuner.h
- !Iinclude/media/v4l2-async.h
- !Iinclude/media/v4l2-ctrls.h
- !Iinclude/media/v4l2-dv-timings.h
-diff --git a/include/media/tuner.h b/include/media/tuner.h
-index b46ebb48fe74..4445dcbfdb80 100644
---- a/include/media/tuner.h
-+++ b/include/media/tuner.h
-@@ -166,33 +166,67 @@
- #define TDA9887_GAIN_NORMAL		(1<<20)
- #define TDA9887_RIF_41_3		(1<<21)  /* radio IF1 41.3 vs 33.3 */
- 
-+/**
-+ * enum tuner_mode      - Mode of the tuner
-+ *
-+ * @T_RADIO:        Tuner core will work in radio mode
-+ * @T_ANALOG_TV:    Tuner core will work in analog TV mode
-+ *
-+ * Older boards only had a single tuner device, but some devices have a
-+ * separate tuner for radio. In any case, the tuner-core needs to know if
-+ * the tuner chip(s) will be used in radio mode or analog TV mode, as, on
-+ * radio mode, frequencies are specified on a different range than on TV
-+ * mode. This enum is used by the tuner core in order to work with the
-+ * proper tuner range and eventually use a different tuner chip while in
-+ * radio mode.
-+ */
- enum tuner_mode {
- 	T_RADIO		= 1 << V4L2_TUNER_RADIO,
- 	T_ANALOG_TV     = 1 << V4L2_TUNER_ANALOG_TV,
- 	/* Don't need to map V4L2_TUNER_DIGITAL_TV, as tuner-core won't use it */
- };
- 
--/* Older boards only had a single tuner device. Nowadays multiple tuner
--   devices may be present on a single board. Using TUNER_SET_TYPE_ADDR
--   to pass the tuner_setup structure it is possible to setup each tuner
--   device in turn.
--
--   Since multiple devices may be present it is no longer sufficient to
--   send a command to a single i2c device. Instead you should broadcast
--   the command to all i2c devices.
--
--   By setting the mode_mask correctly you can select which commands are
--   accepted by a specific tuner device. For example, set mode_mask to
--   T_RADIO if the device is a radio-only tuner. That specific tuner will
--   only accept commands when the tuner is in radio mode and ignore them
--   when the tuner is set to TV mode.
-+/**
-+ * struct tuner_setup   - setup the tuner chipsets
-+ *
-+ * @addr:		I2C address used to control the tuner device/chipset
-+ * @type:		Type of the tuner, as defined at the TUNER_* macros.
-+ *			Each different tuner model should have an unique
-+ *			identifier.
-+ * @mode_mask:		Mask with the allowed tuner modes: V4L2_TUNER_RADIO,
-+ *			V4L2_TUNER_ANALOG_TV and/or V4L2_TUNER_DIGITAL_TV,
-+ *			describing if the tuner should be used to support
-+ *			Radio, analog TV and/or digital TV.
-+ * @config:		Used to send tuner-specific configuration for complex
-+ *			tuners that require extra parameters to be set.
-+ *			Only a very few tuners require it and its usage on
-+ *			newer tuners should be avoided.
-+ * @tuner_callback:	Some tuners require to call back the bridge driver,
-+ *			in order to do some tasks like rising a GPIO at the
-+ *			bridge chipset, in order to do things like resetting
-+ *			the device.
-+ *
-+ * Older boards only had a single tuner device. Nowadays multiple tuner
-+ * devices may be present on a single board. Using TUNER_SET_TYPE_ADDR
-+ * to pass the tuner_setup structure it is possible to setup each tuner
-+ * device in turn.
-+ *
-+ * Since multiple devices may be present it is no longer sufficient to
-+ * send a command to a single i2c device. Instead you should broadcast
-+ * the command to all i2c devices.
-+ *
-+ * By setting the mode_mask correctly you can select which commands are
-+ * accepted by a specific tuner device. For example, set mode_mask to
-+ * T_RADIO if the device is a radio-only tuner. That specific tuner will
-+ * only accept commands when the tuner is in radio mode and ignore them
-+ * when the tuner is set to TV mode.
-  */
- 
- struct tuner_setup {
--	unsigned short	addr; 	/* I2C address */
--	unsigned int	type;   /* Tuner type */
--	unsigned int	mode_mask;  /* Allowed tuner modes */
--	void		*config;    /* configuraion for more complex tuners */
-+	unsigned short	addr;
-+	unsigned int	type;
-+	unsigned int	mode_mask;
-+	void		*config;
- 	int (*tuner_callback) (void *dev, int component, int cmd, int arg);
- };
- 
--- 
-2.4.3
-
+Op 04-10-15 om 06:55 schreef Richard Tresidder:
+> Sorry If I've posted this to the wrong section my first attempt..
+>
+> Hi
+>    I'm attempting to get an HVR2205 up and going.
+> CORE saa7164[1]: subsystem: 0070:f120, board: Hauppauge WinTV-HVR2205 
+> [card=13,autodetected]
+> Distribution is CentOS7 so I've pulled the v4l from media_build.git
+> Had to change a couple of things..  and another macro issue regarding 
+> clamp() ..
+> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c  was failing..
+> kept getting:  kernel: modprobe: page allocation failure: order:10, 
+> mode:0x10c0d0
+> Have plenty of RAM free so surprised about that one.. tried some of 
+> the tricks re increasing the vm.min_free_kbytes etc..
+>
+> Any way I modified the routine to only allocate a single chunk buffer 
+> based on dstsize and tweaked the chunk handling code..
+> seemed to fix that one.. fw downloaded and seemed to boot ok..
+>
+> Next I'm running into a problem with the saa7164_dvb_register() stage...
+>
+> saa7164[1]: Hauppauge eeprom: model=151609
+> saa7164_dvb_register() Frontend/I2C initialization failed
+> saa7164_initdev() Failed to register dvb adapters on porta
+>
+> I added some extra debug and identified that client_demod->dev.driver 
+> is null..
+>
+> However I'm now stuck as to what to tackle next..
+>
+> I can provide more info, just didn't want to spam the list for my 
+> first email..
+>
+> Regards
+>    Richard Tresidder
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
