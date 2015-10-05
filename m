@@ -1,125 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33860 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526AbbJ1D4O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 23:56:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2B5BF2A008D
-	for <linux-media@vger.kernel.org>; Wed, 28 Oct 2015 04:53:57 +0100 (CET)
-Date: Wed, 28 Oct 2015 04:53:57 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151028035357.2B5BF2A008D@tschai.lan>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:33661 "EHLO
+	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956AbbJEOWE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 10:22:04 -0400
+Received: by iofh134 with SMTP id h134so187265017iof.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 07:22:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5611D97B.9020101@tresar-electronics.com.au>
+References: <5610B12B.8090201@tresar-electronics.com.au>
+	<CALzAhNWuOhQNQFu-baXy6QzhV3AxCknh7XeKOBjp943nz66Qyw@mail.gmail.com>
+	<5611D97B.9020101@tresar-electronics.com.au>
+Date: Mon, 5 Oct 2015 10:22:03 -0400
+Message-ID: <CALzAhNVVipTAE3T9Hpmi8_CT=ZS5Wd04W5LfMaf-X5QP2d0sQw@mail.gmail.com>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+From: Steven Toth <stoth@kernellabs.com>
+To: Richard Tresidder <rtresidd@tresar-electronics.com.au>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sun, Oct 4, 2015 at 9:59 PM, Richard Tresidder
+<rtresidd@tresar-electronics.com.au> wrote:
+> Hi Steven
+>    Nope standard x86_64
+> kernel 3.10.0-229.14.1.el7.x86_64
 
-Results of the daily build of media_tree:
+Hmm.
 
-date:		Wed Oct 28 04:00:15 CET 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+>
+> Was rather surprised as all my quick reading indicates that the kernel
+> should quite happily do this...
+> Though looks like its the largest chunk you can request? I'm not well enough
+> up to speed with the nitty gritty..
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Yeah, 4MB is the upper limit IIRC.
 
-Detailed results are available here:
+>
+> There is mention of something similar against this card on www linuxtv org
+> wiki index.php  Hauppauge_WinTV-HVR-2200
+>
+> ********
+> Note: Some kernels will not have enough free memory available for the
+> driver. The dmesg error will start with a message like this:
+> ] modprobe: page allocation failure: order:10, mode:0x2000d0
+> followed by a stack trace and other debugging information. While the driver
+> will load, no devices will be registered.
+> The simple workaround is to allocate more memory for the kernel:
+> sudo /bin/echo 16384 > /proc/sys/vm/min_free_kbytes
+> sudo rmmod saa7164
+> sudo modprobe saa7164
+> ********
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Hmm. I wasn't aware people in the past has seen the issue either. I
+assume you've tried the above and its not helping, or in fact growing
+that number for experimentation purposes.
 
-Full logs are available here:
+Do you have a large number of other devices / drivers loaded? I
+suspect another driver is burning through kernel memory before the
+saa7164 has a chance to be initialized.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+I took a quick look at saa7164-fw.c this morning, I see no reason why
+the allocation is required at all. With a small patch the function
+could be made to memcpy from 'src' directly, dropping the need to
+allocate srcbuf what-so-ever. This would remove the need for the 4MB
+temporary allocation, and might get you past this issue, likely on to
+the next (user buffer allocations are also large - as I recall). Note
+that the 4MB allocation is temporary, so its not a long term saving,
+but it might get you past the hump.
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
