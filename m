@@ -1,95 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:33805 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932530AbbJ2VXo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 17:23:44 -0400
-Received: by wmff134 with SMTP id f134so32384682wmf.1
-        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:43 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 8/9] media: rc: nuvoton-cir: replace nvt_pr with dev_
- functions
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56328E35.20708@gmail.com>
-Date: Thu, 29 Oct 2015 22:23:01 +0100
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:34249 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbbJEMKs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 08:10:48 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20151005110923.GA16831@wfg-t540p.sh.intel.com>
+References: <CAK3bHNWkeakZP0cEi+U=GjmPa0jN9qWC4seyS6+ih8inzvmbXQ@mail.gmail.com>
+	<20151005110923.GA16831@wfg-t540p.sh.intel.com>
+Date: Mon, 5 Oct 2015 15:10:46 +0300
+Message-ID: <CAPAsAGzSEEEogyzpNOfXAEiv8=kt8CLVDvyJKBmgYLeEVKopEA@mail.gmail.com>
+Subject: Re: [kbuild-all] drivers/media/dvb-frontends/cxd2841er.c:2393:1:
+ warning: the frame size of 2992 bytes is larger than 2048 bytes
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+To: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Abylay Ospan <aospan@netup.ru>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace nvt_pr with the respective dev_ functions thus slightly
-simplifying the code.
+2015-10-05 14:09 GMT+03:00 Fengguang Wu <fengguang.wu@intel.com>:
+> Hi Abylay,
+>
+>> cause of this 'Kernel Address sanitizer (KASan)' is enabled in your
+>> config. With gcc-4.9 kasan was disabled in compile time because of:
+>> "scripts/Makefile.kasan:23: CONFIG_KASAN: compiler does not support
+>> all options. Trying minimal configuration"
+>>
+>> but with gcc-5 it's enabled.
+>>
+>> and
+>> objdump -d drivers/media/dvb-frontends/cxd2841er.o
+>>
+>> shows that KASan adds some instructions to 'cxd2841er_sleep_tc' which
+>> writes necessary data to -fasan-shadow-offset=0xdffffc0000000000:
+>>     1476:       48 b8 00 00 00 00 00    movabs $0xdffffc0000000000,%rax
+>> ...
+>>     14d3:       c7 00 f1 f1 f1 f1       movl   $0xf1f1f1f1,(%rax)
+>>     14d9:       c7 40 04 01 f4 f4 f4    movl   $0xf4f4f401,0x4(%rax)
+>>     14e0:       c7 40 08 f2 f2 f2 f2    movl   $0xf2f2f2f2,0x8(%rax)
+>>     14e7:       c7 40 0c 01 f4 f4 f4    movl   $0xf4f4f401,0xc(%rax)
+>> ...
+>>
+>> and function will grow and we get '-Wframe-larger-than=2048' warnings.
+>>
+>> So, this warning looks normal  (until they less than 8K I think) for
+>> configurations with KASan enabled.
+>>
+>> I can suggest:
+>> * ignore this warning if KASan enabled
+>
+> Yes I can easily teach the kbuild robot to ignore this warning when
+> KASan enabled. Thanks for the explanations!
+>
+>> * Increase -Wframe-larger-than=2048 to -Wframe-larger-than=8192 if
+>> KASan enabled ( CONFIG_FRAME_WARN=8192 in kernel .config)
+>
+> Would it be possible to auto increase the threshold (in below Kconfig) when
+> KASan is enabled, so that all other developers/testers won't get the warnings,
+> too?
+>
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 15 ++++++++-------
- drivers/media/rc/nuvoton-cir.h |  3 ---
- 2 files changed, 8 insertions(+), 10 deletions(-)
+Makes sense, although 8K is too much, I think. 6K probably enough.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index ee1b14e..1ba9c99 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -274,9 +274,9 @@ static void nvt_hw_detect(struct nvt_dev *nvt)
- 
- 	/* warn, but still let the driver load, if we don't know this chip */
- 	if (!chip_name)
--		nvt_pr(KERN_WARNING,
--		       "unknown chip, id: 0x%02x 0x%02x, it may not work...",
--		       nvt->chip_major, nvt->chip_minor);
-+		dev_warn(&nvt->pdev->dev,
-+			 "unknown chip, id: 0x%02x 0x%02x, it may not work...",
-+			 nvt->chip_major, nvt->chip_minor);
- 	else
- 		nvt_dbg("found %s or compatible: chip id: 0x%02x 0x%02x",
- 			chip_name, nvt->chip_major, nvt->chip_minor);
-@@ -482,8 +482,9 @@ static u32 nvt_rx_carrier_detect(struct nvt_dev *nvt)
- 	duration *= SAMPLE_PERIOD;
- 
- 	if (!count || !duration) {
--		nvt_pr(KERN_NOTICE, "Unable to determine carrier! (c:%u, d:%u)",
--		       count, duration);
-+		dev_notice(&nvt->pdev->dev,
-+			   "Unable to determine carrier! (c:%u, d:%u)",
-+			   count, duration);
- 		return 0;
- 	}
- 
-@@ -658,7 +659,7 @@ static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
- 
- static void nvt_handle_rx_fifo_overrun(struct nvt_dev *nvt)
- {
--	nvt_pr(KERN_WARNING, "RX FIFO overrun detected, flushing data!");
-+	dev_warn(&nvt->pdev->dev, "RX FIFO overrun detected, flushing data!");
- 
- 	nvt->pkts = 0;
- 	nvt_clear_cir_fifo(nvt);
-@@ -1087,7 +1088,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 
- 	device_init_wakeup(&pdev->dev, true);
- 
--	nvt_pr(KERN_NOTICE, "driver has been successfully loaded\n");
-+	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
- 	if (debug) {
- 		cir_dump_regs(nvt);
- 		cir_wake_dump_regs(nvt);
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index c96a9d3..0ad15d3 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -35,9 +35,6 @@
- static int debug;
- 
- 
--#define nvt_pr(level, text, ...) \
--	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
--
- #define nvt_dbg(text, ...) \
- 	if (debug) \
- 		printk(KERN_DEBUG \
--- 
-2.6.2
-
-
+> lib/Kconfig.debug
+>
+> config FRAME_WARN
+>         int "Warn for stack frames larger than (needs gcc 4.4)"
+>         range 0 8192
+>         default 1024 if !64BIT
+>         default 2048 if 64BIT
+>
+> Thanks,
+> Fengguang
+>
