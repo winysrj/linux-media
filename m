@@ -1,89 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58001 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:47316 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752164AbbJJQvZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 12:51:25 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv5 06/13] v4l: add type field to v4l2_modulator struct
-Date: Sat, 10 Oct 2015 19:51:02 +0300
-Message-Id: <1444495869-1969-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
-References: <1444495869-1969-1-git-send-email-crope@iki.fi>
+	id S1750962AbbJEMDz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2015 08:03:55 -0400
+Date: Mon, 5 Oct 2015 09:03:48 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-doc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: How to fix DocBook parsers for private fields inside #ifdefs
+Message-ID: <20151005090348.7937fa4a@recife.lan>
+In-Reply-To: <20151005045635.455b20eb@lwn.net>
+References: <20151001142107.5a0bf7b2@recife.lan>
+	<20151005045635.455b20eb@lwn.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add type field to that struct like it counterpart v4l2_tuner
-already has. We need type field to distinguish different tuner
-types from each others for transmitter too.
+Em Mon, 5 Oct 2015 04:56:35 -0600
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 18 +++++++++++++++++-
- include/uapi/linux/videodev2.h       |  3 ++-
- 2 files changed, 19 insertions(+), 2 deletions(-)
+> On Thu, 1 Oct 2015 14:21:07 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> 
+> > They're all after a private comment:
+> > 	/* Private: internal use only */
+> > 
+> > So, according with Documentation/kernel-doc-nano-HOWTO.txt, they shold
+> > have been ignored.
+> > 
+> > Still, the scripts produce warnings for them:
+> 
+> Sorry, I've been away from the keyboard for a few days and am only now
+> catching up.
+> 
+> The problem is that kernel-doc is dumb...the test is case-sensitive, so
+> it needs to be "private:", not "Private:".  I'm sure there's a magic perl
+> regex parameter to make the test case-insensitive; when I get a chance
+> I'll figure it out and put it in there.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 073ab36..7486af2 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1646,15 +1646,31 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- static int v4l_g_modulator(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_modulator *p = arg;
- 	int err;
+Ah, that makes sense. Adding an "i" to the end of the regex expression
+should make it case-insensitive:
+
+-       $members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
+-       $members =~ s/\/\*\s*private:.*//gos;
++       $members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
++       $members =~ s/\/\*\s*private:.*//gosi;
+
+Patch enclosed. Yet, I guess nobody would try to use PRIVATE: So, 
+another alternative would be to do, instead:
+
+-	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
+-	$members =~ s/\/\*\s*private:.*//gos;
++	$members =~ s/\/\*\s*[Pp]rivate:.*?\/\*\s*public:.*?\*\///gos;
++	$members =~ s/\/\*\s*[Pp]rivate:.*//gos;
+
+Whatever works best for you.
+
+> (Of course, once you fix that glitch, you'll get gripes about the fields
+> that are marked private but documented anyway.  Like I said, kernel-doc
+> is dumb.)
+
+Yeah, now I'm getting those warnings:
+
+.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'state' description in 'vb2_buffer'
+.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'queued_entry' description in 'vb2_buffer'
+.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'done_entry' description in 'vb2_buffer'
+
+I'll fix that.
+
+-
+
+DocBook: Fix kernel-doc to be case-insensitive for private:
+
+On some places, people could use Private: to tag the private fields
+of an struct. So, be case-insensitive when parsing "private:"
+meta-tag.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 9a08fb5c1af6..702c6ac1350e 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1791,8 +1791,8 @@ sub dump_struct($$) {
+ 	$nested = $1;
  
-+	if (vfd->vfl_type == VFL_TYPE_RADIO)
-+		p->type = V4L2_TUNER_RADIO;
-+
- 	err = ops->vidioc_g_modulator(file, fh, p);
- 	if (!err)
- 		p->capability |= V4L2_TUNER_CAP_FREQ_BANDS;
- 	return err;
- }
- 
-+static int v4l_s_modulator(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_modulator *p = arg;
-+
-+	if (vfd->vfl_type == VFL_TYPE_RADIO)
-+		p->type = V4L2_TUNER_RADIO;
-+
-+	return ops->vidioc_s_modulator(file, fh, p);
-+}
-+
- static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -2441,7 +2457,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_G_AUDOUT, vidioc_g_audout, v4l_print_audioout, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_AUDOUT, vidioc_s_audout, v4l_print_audioout, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_MODULATOR, v4l_g_modulator, v4l_print_modulator, INFO_FL_CLEAR(v4l2_modulator, index)),
--	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
-+	IOCTL_INFO_FNC(VIDIOC_S_MODULATOR, v4l_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
- 	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index f95e1ef..a0e87d1 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1593,7 +1593,8 @@ struct v4l2_modulator {
- 	__u32			rangelow;
- 	__u32			rangehigh;
- 	__u32			txsubchans;
--	__u32			reserved[4];
-+	__u32			type;	/* enum v4l2_tuner_type */
-+	__u32			reserved[3];
- };
- 
- /*  Flags for the 'capability' field */
--- 
-http://palosaari.fi/
+ 	# ignore members marked private:
+-	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
+-	$members =~ s/\/\*\s*private:.*//gos;
++	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
++	$members =~ s/\/\*\s*private:.*//gosi;
+ 	# strip comments:
+ 	$members =~ s/\/\*.*?\*\///gos;
+ 	$nested =~ s/\/\*.*?\*\///gos;
 
