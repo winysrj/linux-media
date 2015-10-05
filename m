@@ -1,125 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55231 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093AbbJKCjA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 22:39:00 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BDFFE2A0006
-	for <linux-media@vger.kernel.org>; Sun, 11 Oct 2015 04:37:05 +0200 (CEST)
-Date: Sun, 11 Oct 2015 04:37:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151011023705.BDFFE2A0006@tschai.lan>
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:33217 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859AbbJEOnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 10:43:07 -0400
+Received: by igbkq10 with SMTP id kq10so64313417igb.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 07:43:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <56128AA6.8010106@tresar-electronics.com.au>
+References: <5610B12B.8090201@tresar-electronics.com.au>
+	<CALzAhNWuOhQNQFu-baXy6QzhV3AxCknh7XeKOBjp943nz66Qyw@mail.gmail.com>
+	<5611D97B.9020101@tresar-electronics.com.au>
+	<CALzAhNVVipTAE3T9Hpmi8_CT=ZS5Wd04W5LfMaf-X5QP2d0sQw@mail.gmail.com>
+	<56128AA6.8010106@tresar-electronics.com.au>
+Date: Mon, 5 Oct 2015 10:43:05 -0400
+Message-ID: <CALzAhNVDYgBbCfW5XSwVXJKqm7CgB23=xpsf25Y2Z0yY=tEKBQ@mail.gmail.com>
+Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
+From: Steven Toth <stoth@kernellabs.com>
+To: Richard Tresidder <rtresidd@tresar-electronics.com.au>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+>> Do you have a large number of other devices / drivers loaded? I
+>> suspect another driver is burning through kernel memory before the
+>> saa7164 has a chance to be initialized.
+>
+> Nope nothing I can see Its actually the only addon card I have in this
+> system..
+> I'd be buggered If 4GB of RAM is fragmented enough early on in the boot
+> stage...?
 
-Results of the daily build of media_tree:
+I agree.
 
-date:		Sun Oct 11 04:00:29 CEST 2015
-git branch:	test
-git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+> I've hunted but can't find a nice way to determine what contiguous blocks
+> are available..
+> Noted there was a simple module that could be compiled in to test such
+> things, I'll play with that and see what it turns up..
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Let us know how that goes.
 
-Detailed results are available here:
+>
+>> I took a quick look at saa7164-fw.c this morning, I see no reason why
+>> the allocation is required at all. With a small patch the function
+>> could be made to memcpy from 'src' directly, dropping the need to
+>> allocate srcbuf what-so-ever. This would remove the need for the 4MB
+>> temporary allocation, and might get you past this issue, likely on to
+>> the next (user buffer allocations are also large - as I recall). Note
+>> that the 4MB allocation is temporary, so its not a long term saving,
+>> but it might get you past the hump.
+>
+> That was my thoughts exactly.. but I took a minimal fiddling approach to
+> begin with..
+> I wasn't sure if there was some requirement for the memcpy_toio requiring a
+> specially allocated source..? can't see why..
+> Was going to dig into that next as a side job..
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+At this stage the code is 7-8 years old, so I don't recall the
+rationale for why I did that back in 2008(?) - but looking at it
+today, I think its needless.... and its a fairly trivial thing to
+remove and test.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
