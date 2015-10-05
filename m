@@ -1,93 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:33351 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbbJ2HRA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 03:17:00 -0400
-Date: Thu, 29 Oct 2015 00:16:57 -0700
-From: Tina Ruchandani <ruchandani.tina@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rc-core: Remove 'struct timeval' usage
-Message-ID: <20151029071657.GA11549@google.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([198.137.202.9]:33198 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751926AbbJEMRP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 08:17:15 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH] [media] DocBook: Fix remaining issues with VB2 core documentation
+Date: Mon,  5 Oct 2015 09:17:03 -0300
+Message-Id: <efe98010b80ec4516b2779e1b4e4a8ce16bf89fe.1444047333.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-streamzap uses 'struct timeval' to store the start time of a signal for
-gap tracking. struct timeval uses a 32-bit seconds representation which
-will overflow in year 2038 and beyond. Replace struct timeval with ktime_t
-which uses a 64-bit seconds representation and is 2038 safe. This patch 
-uses ktime_get_real() preserving the use of wall-clock time in the 
-original code.
+Also, no fields after "private:" should be documented. As we don't
+want to strip the documentation, let's untag. This way, it will
+be seen only at the file, and not at the DocBooks.
 
-Signed-off-by: Tina Ruchandani <ruchandani.tina@gmail.com>
----
- drivers/media/rc/streamzap.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
-index 5a17cb8..815243c 100644
---- a/drivers/media/rc/streamzap.c
-+++ b/drivers/media/rc/streamzap.c
-@@ -34,6 +34,7 @@
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/ktime.h>
- #include <linux/usb.h>
- #include <linux/usb/input.h>
- #include <media/rc-core.h>
-@@ -96,8 +97,8 @@ struct streamzap_ir {
- 	/* sum of signal lengths received since signal start */
- 	unsigned long		sum;
- 	/* start time of signal; necessary for gap tracking */
--	struct timeval		signal_last;
--	struct timeval		signal_start;
-+	ktime_t			signal_last;
-+	ktime_t			signal_start;
- 	bool			timeout_enabled;
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 128b15ad5497..af9a5d177fca 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -202,11 +202,6 @@ struct vb2_queue;
+  * @num_planes:		number of planes in the buffer
+  *			on an internal driver queue
+  * @planes:		private per-plane information; do not change
+- * @state:		current buffer state; do not change
+- * @queued_entry:	entry on the queued buffers list, which holds all
+- *			buffers queued from userspace
+- * @done_entry:		entry on the list that stores all buffers ready to
+- *			be dequeued to userspace
+  */
+ struct vb2_buffer {
+ 	struct vb2_queue	*vb2_queue;
+@@ -216,7 +211,14 @@ struct vb2_buffer {
+ 	unsigned int		num_planes;
+ 	struct vb2_plane	planes[VIDEO_MAX_PLANES];
  
- 	char			name[128];
-@@ -136,20 +137,18 @@ static void sz_push_full_pulse(struct streamzap_ir *sz,
- 	DEFINE_IR_RAW_EVENT(rawir);
+-	/* Private: internal use only */
++	/* private: internal use only
++	 *
++	 * state:		current buffer state; do not change
++	 * queued_entry:	entry on the queued buffers list, which holds
++	 *			all buffers queued from userspace
++	 * done_entry:		entry on the list that stores all buffers ready
++	 *			to be dequeued to userspace
++	 */
+ 	enum vb2_buffer_state	state;
  
- 	if (sz->idle) {
--		long deltv;
-+		int delta;
- 
- 		sz->signal_last = sz->signal_start;
--		do_gettimeofday(&sz->signal_start);
-+		sz->signal_start = ktime_get_real();
- 
--		deltv = sz->signal_start.tv_sec - sz->signal_last.tv_sec;
-+		delta = ktime_us_delta(sz->signal_start, sz->signal_last);
- 		rawir.pulse = false;
--		if (deltv > 15) {
-+		if (delta > (15 * USEC_PER_SEC)) {
- 			/* really long time */
- 			rawir.duration = IR_MAX_DURATION;
- 		} else {
--			rawir.duration = (int)(deltv * 1000000 +
--				sz->signal_start.tv_usec -
--				sz->signal_last.tv_usec);
-+			rawir.duration = delta;
- 			rawir.duration -= sz->sum;
- 			rawir.duration = US_TO_NS(rawir.duration);
- 			rawir.duration = (rawir.duration > IR_MAX_DURATION) ?
-@@ -428,7 +427,7 @@ static int streamzap_probe(struct usb_interface *intf,
- 	sz->max_timeout = US_TO_NS(SZ_TIMEOUT * SZ_RESOLUTION);
- 	#endif
- 
--	do_gettimeofday(&sz->signal_start);
-+	sz->signal_start = ktime_get_real();
- 
- 	/* Complete final initialisations */
- 	usb_fill_int_urb(sz->urb_in, usbdev, pipe, sz->buf_in,
+ 	struct list_head	queued_entry;
 -- 
-2.6.0.rc2.230.g3dd15c0
+2.4.3
 
