@@ -1,115 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45007 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752085AbbJZXDw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 19:03:52 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 15/19] v4l: vsp1: Use media entity enumeration API
-Date: Tue, 27 Oct 2015 01:01:46 +0200
-Message-Id: <1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:59120 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751256AbbJEWdd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Oct 2015 18:33:33 -0400
+From: Laura Abbott <labbott@fedoraproject.org>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+Cc: Laura Abbott <labbott@fedoraproject.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	stable@kernel.org
+Subject: [PATCHv2] si2157: Bounds check firmware
+Date: Mon,  5 Oct 2015 15:33:29 -0700
+Message-Id: <1444084409-20259-1-git-send-email-labbott@fedoraproject.org>
+In-Reply-To: <5612F98D.4020000@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+When reading the firmware and sending commands, the length
+must be bounds checked to avoid overrunning the size of the command
+buffer and smashing the stack if the firmware is not in the
+expected format. Add the proper check.
+
+Cc: stable@kernel.org
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 14 deletions(-)
+v2: Set the return code properly
+---
+ drivers/media/tuners/si2157.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index ce10d86..b3fd2be 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 					 struct vsp1_rwpf *output)
- {
- 	struct vsp1_entity *entity;
--	unsigned int entities = 0;
-+	struct media_entity_enum entities;
- 	struct media_pad *pad;
-+	int rval;
- 	bool bru_found = false;
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index 5073821..0e1ca2b 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -166,6 +166,11 @@ static int si2157_init(struct dvb_frontend *fe)
  
- 	input->location.left = 0;
- 	input->location.top = 0;
- 
-+	rval = media_entity_enum_init(
-+		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
-+	if (rval)
-+		return rval;
-+
- 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
- 
- 	while (1) {
--		if (pad == NULL)
--			return -EPIPE;
-+		if (pad == NULL) {
-+			rval = -EPIPE;
-+			goto out;
+ 	for (remaining = fw->size; remaining > 0; remaining -= 17) {
+ 		len = fw->data[fw->size - remaining];
++		if (len > SI2157_ARGLEN) {
++			dev_err(&client->dev, "Bad firmware length\n");
++			ret = -EINVAL;
++			goto err_release_firmware;
 +		}
- 
- 		/* We've reached a video node, that shouldn't have happened. */
--		if (!is_media_entity_v4l2_subdev(pad->entity))
--			return -EPIPE;
-+		if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+			rval = -EPIPE;
-+			goto out;
-+		}
- 
--		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-+		entity = to_vsp1_entity(
-+			media_entity_to_v4l2_subdev(pad->entity));
- 
- 		/* A BRU is present in the pipeline, store the compose rectangle
- 		 * location in the input RPF for use when configuring the RPF.
-@@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 			break;
- 
- 		/* Ensure the branch has no loop. */
--		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
--			return -EPIPE;
--
--		entities |= 1 << media_entity_id(&entity->subdev.entity);
-+		if (media_entity_enum_test_and_set(&entities,
-+						   &entity->subdev.entity)) {
-+			rval = -EPIPE;
-+			goto out;
-+		}
- 
- 		/* UDS can't be chained. */
- 		if (entity->type == VSP1_ENTITY_UDS) {
--			if (pipe->uds)
--				return -EPIPE;
-+			if (pipe->uds) {
-+				rval = -EPIPE;
-+				goto out;
-+			}
- 
- 			pipe->uds = entity;
- 			pipe->uds_input = bru_found ? pipe->bru
-@@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 
- 	/* The last entity must be the output WPF. */
- 	if (entity != &output->entity)
--		return -EPIPE;
-+		rval = -EPIPE;
- 
--	return 0;
-+out:
-+	media_entity_enum_cleanup(&entities);
-+
-+	return rval;
- }
- 
- static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
+ 		memcpy(cmd.args, &fw->data[(fw->size - remaining) + 1], len);
+ 		cmd.wlen = len;
+ 		cmd.rlen = 1;
 -- 
-2.1.4
+2.4.3
 
