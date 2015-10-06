@@ -1,56 +1,305 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward11p.cmail.yandex.net ([87.250.241.139]:39758 "EHLO
-	forward11p.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140AbbJTUvw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 16:51:52 -0400
-From: =?koi8-r?B?+8/L1dLP1yDhztTPzg==?= <shokurov.anton.v@yandex.ru>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-In-Reply-To: <1445202086-3689-1-git-send-email-shokurov.anton.v@yandex.ru>
-References: <1445202086-3689-1-git-send-email-shokurov.anton.v@yandex.ru>
-Subject: Re: [PATCH 1/1] x86: Fix reading the current exposure value of UVC
-MIME-Version: 1.0
-Message-Id: <622811445373860@web25g.yandex.ru>
-Date: Tue, 20 Oct 2015 23:44:20 +0300
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=koi8-r
+Received: from mailout2.samsung.com ([203.254.224.25]:41905 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332AbbJFJiD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2015 05:38:03 -0400
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NVS01MW9LF6RP60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Oct 2015 18:37:54 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v6 0/4] Refactoring Videobuf2 for common use
+Date: Tue, 06 Oct 2015 18:37:45 +0900
+Message-id: <1444124269-1084-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Hello everybody,
 
-Have you received my patch? When will it be included in the kernel?
+This is the 6th round for refactoring Videobuf2(a.k.a VB2).
+The purpose of this patch series is to separate existing VB2 framework
+into core part and V4L2 specific part. So that not only V4L2 but also other
+frameworks can use them to manage buffer and utilize queue.
 
-Thanks!
+Why do we try to make the VB2 framework to be common?
 
-19.10.2015, 00:02, "Anton V. Shokurov" <shokurov.anton.v@yandex.ru>:
-> V4L2_CID_EXPOSURE_ABSOLUTE property does not return an updated value when
-> autoexposure (V4L2_CID_EXPOSURE_AUTO) is turned on. This patch fixes this
-> issue by adding the UVC_CTRL_FLAG_AUTO_UPDATE flag.
->
-> Tested on a C920 camera.
->
-> Signed-off-by: Anton V. Shokurov <shokurov.anton.v@yandex.ru>
-> ---
-> šdrivers/media/usb/uvc/uvc_ctrl.c | 3 ++-
-> š1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-> index 3e59b28..c2ee6e3 100644
-> --- a/drivers/media/usb/uvc/uvc_ctrl.c
-> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
-> @@ -227,7 +227,8 @@ static struct uvc_control_info uvc_ctrls[] = {
-> ššššššššššššššššš.size = 4,
-> ššššššššššššššššš.flags = UVC_CTRL_FLAG_SET_CUR
-> ššššššššššššššššššššššššššššššššš| UVC_CTRL_FLAG_GET_RANGE
-> - | UVC_CTRL_FLAG_RESTORE,
-> + | UVC_CTRL_FLAG_RESTORE
-> + | UVC_CTRL_FLAG_AUTO_UPDATE,
-> ššššššššš},
-> ššššššššš{
-> ššššššššššššššššš.entity = UVC_GUID_UVC_CAMERA,
-> --
-> 2.6.0
+As you may know, current DVB framework uses ringbuffer mechanism to demux
+MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+extra memory copy because DVB framework provides only read() system call for
+application - read() system call copies the kernel data to user-space buffer.
+So if we can use VB2 framework which supports streaming I/O and buffer
+sharing mechanism, then we could enhance existing DVB framework by removing
+the extra memory copy - with VB2 framework, application can access the kernel
+data directly through mmap system call.
+
+We have a plan for this work as follows:
+1. Separate existing VB2 framework into three parts - VB2 core, VB2 v4l2.
+   Of course, this change will not affect other v4l2-based
+   device drivers. This patch series corresponds to this step.
+
+2. Add and implement new APIs for DVB streaming I/O.
+   We can remove unnecessary memory copy between kernel-space and user-space
+   by using these new APIs. However, we leaves legacy interfaces as-is
+   for backward compatibility.
+
+This patch series is the first step for it.
+The previous version of this patch series can be found at belows.
+
+[1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+[2] RFC PATCH v2 - http://www.spinics.net/lists/linux-media/msg92130.html
+[3] RFC PATCH v3 - http://www.spinics.net/lists/linux-media/msg92953.html
+[4] RFC PATCH v4 - http://www.spinics.net/lists/linux-media/msg93421.html
+[5] RFC PATCH v5 - http://www.spinics.net/lists/linux-media/msg93810.html
+
+Changes since v5
+1. v5 is merged partially to media_tree
+4 of 8 patches - restructuring vb2_buffer for common use - are merged to
+media_tree. So, v6 is rebased on later version than that.
+
+2. vb2_format is reverted to void *
+vb2_format - which is newly defined for queue_setup() in v5 to deliver
+the format information from user-space to device driver - is reverted to
+void pointer. This change requires more discussion about the way to do
+the format validation and decide the image size.
+So, in this version, I would like to revert it to original version.
+
+3. The change related with v4l2_buf_ops is moved
+The change related with v4l2_buf_ops seems to be a sort of functional change.
+So, it was moved to patch 3/4 - which includes the most of functional changes.
+
+
+Changes since v4
+1. Rebase on 4.3-rc1
+Kernel 4.3-rc1 was released. So, this patch set is made based on
+that version.
+
+2. Modify queue_setup() argument
+In previous patch set, struct v4l2_format, which is a parameter of
+queue_setup(), is abstracted by using void pointer. But, it is better way to
+pass the parameter with presise meaning than abstracting it.
+So, replace void * with struct vb2_format which is newly defined to contain
+the format information for common use.
+
+3. Add a code to check if VB2_MAX_* match with VIDEO_MAX_*
+Add a check code to videobuf2-v4l2.c where the compiler compares VIDEO_MAX_FRAME
+and VB2_MAX_FRAME (and ditto for MAX_PLANES) and throws an #error if they
+do not match.
+
+4. Change the commit order
+For easier review, the patch that just move things around without doing any
+functional change is moved to the last.
+
+All ideas above are from Hans and it seems to be better and right way.
+
+
+Changes since v3
+
+1. Resolve build errors
+In previous patch set, the build errors prevented reviewers from applying
+the patch. So, in this patch, I tryed to fix the build errors but I hadn't
+the build test on all architectures except for x86 and ARM.
+
+2. Modify descriptions for DocBook
+Descriptions not complying with the DocBook rule are modified,
+which was pointed out by Mauro.
+
+3. Initialize reserved fields explicitly
+The reserved fields of v4l2_buffer are initialized by 0 explicitly
+when the vb2_buffer information is returned to userspace,
+which was pointed out by Hans.
+
+4. Remove unnecessary type-cast
+According to Mauro's advice, the unnecessary type-cast are removed
+because it's better for the compiler - rather than human - to check those
+things.
+
+5. Sperate the patch - not easy to review - into two patches
+In previous patch set, patch 5 was too difficult to review. So accoring to
+Hans' opinion, it separated the patch without any functional changes.
+
+
+Changes since v2
+
+1. Remove v4l2 stuffs completely from vb2_buffer
+The v4l2 stuffs - v4l2_buf and v4l2_planes - are removed completely from
+struct vb2_buffer. New member variables - index, type, memory - are added
+to struct vb2_buffer, all of which can be used commonly. And bytesused,
+length, offset, userptr, fd, data_offset are added to struct vb2_plane
+for the same reason. So, we can manage video buffer by only using
+struct vb2_buffer.
+And, v4l2 stuffs - flags, field, timestamp, timecode, sequence - are defined
+as member variables of struct vb2_v4l2_buffer.
+
+2. Create new header file for VB2 internal use
+videobuf2-internal.h is created, which is referred by videobuf2-core
+and videobuf2-v4l2. The header file contains dprintk() for debug,
+macro functions to invoke various callbacks, and vb2_core_* function prototypes
+referred by inside of videobuf2.
+
+3. Remove buffer-specific callbacks as much as possible
+There were many callback functions to handle video buffer information
+in previous patch series. In this patch series, I try to remove these callbacks
+as much as possible without breaking the existing function flow.
+As a result, only four callbacks are remained - fill_user_buffer(),
+fill_vb2_buffer(), fill_vb2_timestamp() and is_last().
+
+All ideas above are from Hans and it seems to be better and right way.
+
+
+Changes since v1
+
+1. Divide patch set into more pieces
+v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
+list with size problem - over 300kb. So I have divided the patch set into five
+pieces and refined them neatly, which was pointed by Hans.
+
+2. Add shell scripts for renaming patch
+In case of renaming patch, shell scripts are included inside the body of the
+patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
+be used by reviewers or maintainers to regenerate big patch file if something
+goes wrong during patch apply.
+
+3. Remove dependency on v4l2 from videobuf2
+In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
+e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
+from using videobuf2 independently and made them forced to include
+v4l2-specific stuff.
+In this version, these dependent stuffs are replaced with VB2 own stuffs.
+e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
+required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
+will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
+backward compatibility.
+
+4. Unify duplicated definitions
+VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
+duplicated macro functions that invoke callback functions implemented in vb2
+backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
+callbacks of device drivers.
+In previous patch set, these macro functions were defined
+in both videobuf2-core.c and videobuf2-v4l2.c.
+
+
+This patch series is based on media_tree.git [6]. I have applied this patches
+to my own git [7] for review, and tested this patch series on ubuntu
+PC(Intel i7-3770) for x86 system and odroid-xu3(exynos5422) for ARM.
+
+[6] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
+[7] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
+    (branch: vb2-refactoring)
+
+Any suggestions and comments are welcome.
+
+Regards,
+Junghak
+
+Junghak Sung (4):
+  media: videobuf2: Change queue_setup argument
+  media: videobuf2: Replace v4l2-specific data with vb2 data.
+  media: videobuf2: Prepare to divide videobuf2
+  media: videobuf2: Move v4l2-specific stuff to videobuf2-v4l2
+
+ Documentation/video4linux/v4l2-pci-skeleton.c      |    4 +-
+ drivers/input/touchscreen/sur40.c                  |    3 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |    2 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |    4 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |    2 +-
+ drivers/media/pci/cx23885/cx23885-dvb.c            |    2 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |    2 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |    2 +-
+ drivers/media/pci/cx25821/cx25821-video.c          |    3 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |    2 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |    2 +-
+ drivers/media/pci/cx88/cx88-vbi.c                  |    2 +-
+ drivers/media/pci/cx88/cx88-video.c                |    2 +-
+ drivers/media/pci/dt3155/dt3155.c                  |    3 +-
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |    2 +-
+ drivers/media/pci/saa7134/saa7134-ts.c             |    2 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |    2 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |    2 +-
+ drivers/media/pci/saa7134/saa7134.h                |    2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |    2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |    2 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |    2 +-
+ drivers/media/pci/tw68/tw68-video.c                |    3 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        |    3 +-
+ drivers/media/platform/blackfin/bfin_capture.c     |    3 +-
+ drivers/media/platform/coda/coda-common.c          |    3 +-
+ drivers/media/platform/davinci/vpbe_display.c      |    3 +-
+ drivers/media/platform/davinci/vpif_capture.c      |    3 +-
+ drivers/media/platform/davinci/vpif_display.c      |    3 +-
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |    2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |    3 +-
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |    3 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |    3 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |    2 +-
+ drivers/media/platform/m2m-deinterlace.c           |    2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c    |    3 +-
+ drivers/media/platform/mx2_emmaprp.c               |    2 +-
+ drivers/media/platform/omap3isp/ispvideo.c         |    2 +-
+ drivers/media/platform/rcar_jpu.c                  |    3 +-
+ drivers/media/platform/s3c-camif/camif-capture.c   |    3 +-
+ drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |    2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c        |    2 +-
+ drivers/media/platform/sh_veu.c                    |    3 +-
+ drivers/media/platform/sh_vou.c                    |    3 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |    2 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |    3 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |    3 +-
+ drivers/media/platform/soc_camera/rcar_vin.c       |    3 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    6 +-
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |    3 +-
+ drivers/media/platform/ti-vpe/vpe.c                |    2 +-
+ drivers/media/platform/vim2m.c                     |    3 +-
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |    2 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |    7 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c       |    2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |    3 +-
+ drivers/media/platform/vivid/vivid-vid-out.c       |    3 +-
+ drivers/media/platform/vsp1/vsp1_video.c           |    3 +-
+ drivers/media/platform/xilinx/xilinx-dma.c         |    3 +-
+ drivers/media/usb/airspy/airspy.c                  |    2 +-
+ drivers/media/usb/au0828/au0828-vbi.c              |    3 +-
+ drivers/media/usb/au0828/au0828-video.c            |    3 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c              |    3 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |    3 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |    2 +-
+ drivers/media/usb/hackrf/hackrf.c                  |    2 +-
+ drivers/media/usb/msi2500/msi2500.c                |    2 +-
+ drivers/media/usb/pwc/pwc-if.c                     |    2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |    2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |    2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |    3 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |    3 +-
+ drivers/media/v4l2-core/Makefile                   |    2 +-
+ drivers/media/v4l2-core/v4l2-trace.c               |    8 +-
+ drivers/media/v4l2-core/vb2-trace.c                |    9 +
+ drivers/media/v4l2-core/videobuf2-core.c           | 1961 +++-----------------
+ drivers/media/v4l2-core/videobuf2-internal.h       |  161 ++
+ drivers/media/v4l2-core/videobuf2-v4l2.c           | 1630 ++++++++++++++++
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |    2 +-
+ drivers/staging/media/omap4iss/iss_video.c         |    2 +-
+ drivers/usb/gadget/function/uvc_queue.c            |    2 +-
+ include/media/videobuf2-core.h                     |  153 +-
+ include/media/videobuf2-dvb.h                      |    8 +-
+ include/media/videobuf2-v4l2.h                     |  104 ++
+ include/trace/events/v4l2.h                        |   33 +-
+ include/trace/events/vb2.h                         |   65 +
+ 89 files changed, 2369 insertions(+), 1967 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/vb2-trace.c
+ create mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
+ create mode 100644 include/trace/events/vb2.h
+
+-- 
+1.7.9.5
+
