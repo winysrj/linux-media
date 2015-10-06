@@ -1,146 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:5708 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750817AbbJNG5p (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:51693 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751265AbbJFCiz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2015 02:57:45 -0400
-Subject: Re: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor
- output YUV formats
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
- <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Josh Wu <josh.wu@atmel.com>
-Message-ID: <561DFCE4.8090508@atmel.com>
-Date: Wed, 14 Oct 2015 14:57:40 +0800
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 5 Oct 2015 22:38:55 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F09C02A00AE
+	for <linux-media@vger.kernel.org>; Tue,  6 Oct 2015 04:37:07 +0200 (CEST)
+Date: Tue, 06 Oct 2015 04:37:07 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151006023707.F09C02A00AE@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Guennadi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the review.
+Results of the daily build of media_tree:
 
-On 10/5/2015 1:02 AM, Guennadi Liakhovetski wrote:
-> On Tue, 22 Sep 2015, Josh Wu wrote:
->
->> This patch enable Atmel ISI preview path to convert the YUV to RGB format.
->>
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>
->>   drivers/media/platform/soc_camera/atmel-isi.c | 38 ++++++++++++++++++++-------
->>   1 file changed, 29 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index e87d354..e33a16a 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device *icd,
->>   	case V4L2_PIX_FMT_UYVY:
->>   	case V4L2_PIX_FMT_YVYU:
->>   	case V4L2_PIX_FMT_VYUY:
->> +	/* RGB */
->> +	case V4L2_PIX_FMT_RGB565:
->>   		return true;
->> -	/* RGB, TODO */
->>   	default:
->>   		return false;
->>   	}
->>   }
->>   
->> +static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
->> +{
->> +	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
->> +			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
->> +}
->> +
-> Why not just pass fourcc to this function? Or maybe just embed it in
-> start_streaming - it won't clutter it a lot.
+date:		Tue Oct  6 04:00:16 CEST 2015
+git branch:	test
+git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-I think pass fourcc to the function is good.
-Since configure_geometry() is hardware related, and the 
-enable_preview_path is also hardware related, so I prefer initialize 
-enable_preview_path in configure_geometry().
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
->
->>   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
->>   {
->>   	if (isi->active) {
->> @@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>   	struct atmel_isi *isi = ici->priv;
->>   	int ret;
->>   
->> +	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
->> +
->>   	pm_runtime_get_sync(ici->v4l2_dev.dev);
->>   
->>   	/* Reset ISI */
->> @@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
->>   		.order			= SOC_MBUS_ORDER_LE,
->>   		.layout			= SOC_MBUS_LAYOUT_PACKED,
->>   	},
->> +	{
->> +		.fourcc			= V4L2_PIX_FMT_RGB565,
->> +		.name			= "RGB565",
->> +		.bits_per_sample	= 8,
->> +		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
->> +		.order			= SOC_MBUS_ORDER_LE,
->> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
->> +	},
->>   };
->>   
->>   /* This will be corrected as we get more formats */
->> @@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
->>   				  struct soc_camera_format_xlate *xlate)
->>   {
->>   	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->> -	int formats = 0, ret;
->> +	int formats = 0, ret, i, n;
->>   	/* sensor format */
->>   	struct v4l2_subdev_mbus_code_enum code = {
->>   		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
->> @@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
->>   	case MEDIA_BUS_FMT_VYUY8_2X8:
->>   	case MEDIA_BUS_FMT_YUYV8_2X8:
->>   	case MEDIA_BUS_FMT_YVYU8_2X8:
->> -		formats++;
->> -		if (xlate) {
->> -			xlate->host_fmt	= &isi_camera_formats[0];
->> -			xlate->code	= code.code;
->> -			xlate++;
->> -			dev_dbg(icd->parent, "Providing format %s using code %d\n",
->> -				isi_camera_formats[0].name, code.code);
->> +		n = ARRAY_SIZE(isi_camera_formats);
->> +		formats += n;
->> +		for (i = 0; i < n; i++) {
->> +			if (xlate) {
-> I'd put if outside of the loop, or just do
->
-> +		for (i = 0; xlate && i < n; i++) {
+Detailed results are available here:
 
-yes, that simpler one. I'll take it. Thanks.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Best Regards,
-Josh Wu
->
->
->> +				xlate->host_fmt	= &isi_camera_formats[i];
->> +				xlate->code	= code.code;
->> +				dev_dbg(icd->parent, "Providing format %s using code %d\n",
->> +					isi_camera_formats[0].name, code.code);
->> +				xlate++;
->> +			}
->>   		}
->>   		break;
->>   	default:
->> -- 
->> 1.9.1
->>
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
