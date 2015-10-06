@@ -1,70 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:37491 "EHLO
-	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751660AbbJBWHl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:41 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 09/20] media: au8522 change to create MC pad for ALSA Audio Out
-Date: Fri,  2 Oct 2015 16:07:21 -0600
-Message-Id: <3f1c71ce5febd9376fb95280858256f42a79001a.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:34341 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746AbbJFHDQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2015 03:03:16 -0400
+Received: by lbbwt4 with SMTP id wt4so32957721lbb.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Oct 2015 00:03:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <56132CF2.3060902@redhat.com>
+References: <1444039898-7927-1-git-send-email-benjamin.gaignard@linaro.org>
+	<56132CF2.3060902@redhat.com>
+Date: Tue, 6 Oct 2015 09:03:14 +0200
+Message-ID: <CA+M3ks74JbkzqXK+8-cGKYiPjj6CSxrnxbtm7xiRTjda7wFgyQ@mail.gmail.com>
+Subject: Re: [PATCH v4 0/2] RFC: Secure Memory Allocation Framework
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: Laura Abbott <labbott@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Cooksey <tom.cooksey@arm.com>,
+	Daniel Stone <daniel.stone@collabora.com>,
+	linux-security-module@vger.kernel.org,
+	Xiaoquan Li <xiaoquan.li@vivantecorp.com>,
+	Tom Gall <tom.gall@linaro.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new pad for ALSA Audio Out to au8522_media_pads.
+I have mind few uses cases:
+- the basic one when an HW device need contiguous memory.
+- I have a device that could not cross some memory boundaries so I
+need a specific allocator for it.
+- when allocating memory for security some platform have address
+constraints or need to allocate memory in specific areas (most of the
+time because of firewall limited capacities in terms of regions)
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/dvb-frontends/au8522.h         | 1 +
- drivers/media/dvb-frontends/au8522_decoder.c | 1 +
- 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
-index 3c72f40..d7a997f 100644
---- a/drivers/media/dvb-frontends/au8522.h
-+++ b/drivers/media/dvb-frontends/au8522.h
-@@ -94,6 +94,7 @@ enum au8522_media_pads {
- 	AU8522_PAD_INPUT,
- 	AU8522_PAD_VID_OUT,
- 	AU8522_PAD_VBI_OUT,
-+	AU8522_PAD_AUDIO_OUT,
- 
- 	AU8522_NUM_PADS
- };
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 39fab1a..655dee8 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -775,6 +775,7 @@ static int au8522_probe(struct i2c_client *client,
- 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 	ret = media_entity_init(&sd->entity, ARRAY_SIZE(state->pads),
+
+2015-10-06 4:07 GMT+02:00 Laura Abbott <labbott@redhat.com>:
+> On 10/05/2015 03:11 AM, Benjamin Gaignard wrote:
+>>
+>> version 4 changes:
+>>   - rebased on kernel 4.3-rc3
+>>   - fix missing EXPORT_SYMBOL for smaf_create_handle()
+>>
+>> version 3 changes:
+>>   - Remove ioctl for allocator selection instead provide the name of
+>>     the targeted allocator with allocation request.
+>>     Selecting allocator from userland isn't the prefered way of working
+>>     but is needed when the first user of the buffer is a software
+>> component.
+>>   - Fix issues in case of error while creating smaf handle.
+>>   - Fix module license.
+>>   - Update libsmaf and tests to care of the SMAF API evolution
+>>     https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>
+>> version 2 changes:
+>>   - Add one ioctl to allow allocator selection from userspace.
+>>     This is required for the uses case where the first user of
+>>     the buffer is a software IP which can't perform dma_buf attachement.
+>>   - Add name and ranking to allocator structure to be able to sort them.
+>>   - Create a tiny library to test SMAF:
+>>     https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>   - Fix one issue when try to secure buffer without secure module
+>> registered
+>>
+>> The outcome of the previous RFC about how do secure data path was the need
+>> of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
+>>
+>> SMAF goal is to provide a framework that allow allocating and securing
+>> memory by using dma_buf. Each platform have it own way to perform those
+>> two
+>> features so SMAF design allow to register helper modules to perform them.
+>>
+>> To be sure to select the best allocation method for devices SMAF implement
+>> deferred allocation mechanism: memory allocation is only done when the
+>> first
+>> device effectively required it.
+>> Allocator modules have to implement a match() to let SMAF know if they are
+>> compatibles with devices needs.
+>> This patch set provide an example of allocator module which use
+>> dma_{alloc/free/mmap}_attrs() and check if at least one device have
+>> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
+>> I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if
+>> a better name could be found for this file.
+>>
+>> Secure modules are responsibles of granting and revoking devices access
+>> rights
+>> on the memory. Secure module is also called to check if CPU map memory
+>> into
+>> kernel and user address spaces.
+>> An example of secure module implementation can be found here:
+>> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+>> This code isn't yet part of the patch set because it depends on generic
+>> TEE
+>> which is still under discussion (https://lwn.net/Articles/644646/)
+>>
+>> For allocation part of SMAF code I get inspirated by Sumit Semwal work
+>> about
+>> constraint aware allocator.
+>>
+>
+> Overall I like the abstraction. Do you have a use case in mind right now for
+> the best allocation method? Some of the classic examples (mmu vs. no mmu)
+> are gradually becoming less relevant as the systems have evolved. I was
+> discussing constraints with Sumit w.r.t. Ion at plumbers so I'm curious
+> about
+> your uses.
+>
+> Thanks,
+> Laura
+>
+>
+
+
+
 -- 
-2.1.4
+Benjamin Gaignard
 
+Graphic Working Group
+
+Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
