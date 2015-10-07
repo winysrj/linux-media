@@ -1,99 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39213 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbbJJNgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:18 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 21/26] [media] DocBook: document typedef dmx_ts_cb at demux.h
-Date: Sat, 10 Oct 2015 10:36:04 -0300
-Message-Id: <0cf35e8420dd26fac4ba08c67fab92076ea81809.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+Received: from www.netup.ru ([77.72.80.15]:45000 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101AbbJGIDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Oct 2015 04:03:36 -0400
 MIME-Version: 1.0
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1443885579-7094-9-git-send-email-hch@lst.de>
+References: <1443885579-7094-1-git-send-email-hch@lst.de> <1443885579-7094-9-git-send-email-hch@lst.de>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Wed, 7 Oct 2015 11:03:13 +0300
+Message-ID: <CAK3bHNXJp70C3DC8OPsKHmiTeLu-J70VKSfKwDgUd5F=uorEWw@mail.gmail.com>
+Subject: Re: [PATCH 08/15] netup_unidvb: use pci_set_dma_mask insted of pci_dma_supported
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Don Fry <pcnet32@frontier.com>,
+	Oliver Neukum <oneukum@suse.com>,
+	linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
+	linux-media <linux-media@vger.kernel.org>,
+	netdev@vger.kernel.org, linux-parisc@vger.kernel.org,
+	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb/kdapi.tmpl has already an extensive documentation about
-this callback. Now that we've added function typedefs at kernel-doc,
-add such documentation at demux.h, for it to appear at device-drivers
-DocBook.
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 7405d6e2297d..39e644113350 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -195,6 +195,61 @@ struct dmx_section_feed {
-  * Callback functions
-  */
- 
-+/**
-+ * typedef dmx_ts_cb - DVB demux TS filter callback function prototype
-+ *
-+ * @buffer1:		Pointer to the start of the filtered TS packets.
-+ * @buffer1_length:	Length of the TS data in buffer1.
-+ * @buffer2:		Pointer to the tail of the filtered TS packets, or NULL.
-+ * @buffer2_length:	Length of the TS data in buffer2.
-+ * @source:		Indicates which TS feed is the source of the callback.
-+ *
-+ * This function callback prototype, provided by the client of the demux API,
-+ * is called from the demux code. The function is only called when filtering
-+ * on ae TS feed has been enabled using the start_filtering() function at
-+ * the &dmx_demux.
-+ * Any TS packets that match the filter settings are copied to a circular
-+ * buffer. The filtered TS packets are delivered to the client using this
-+ * callback function. The size of the circular buffer is controlled by the
-+ * circular_buffer_size parameter of the &dmx_ts_feed.@set function.
-+ * It is expected that the @buffer1 and @buffer2 callback parameters point to
-+ * addresses within the circular buffer, but other implementations are also
-+ * possible. Note that the called party should not try to free the memory
-+ * the @buffer1 and @buffer2 parameters point to.
-+ *
-+ * When this function is called, the @buffer1 parameter typically points to
-+ * the start of the first undelivered TS packet within a circular buffer.
-+ * The @buffer2 buffer parameter is normally NULL, except when the received
-+ * TS packets have crossed the last address of the circular buffer and
-+ * ”wrapped” to the beginning of the buffer. In the latter case the @buffer1
-+ * parameter would contain an address within the circular buffer, while the
-+ * @buffer2 parameter would contain the first address of the circular buffer.
-+ * The number of bytes delivered with this function (i.e. @buffer1_length +
-+ * @buffer2_length) is usually equal to the value of callback_length parameter
-+ * given in the set() function, with one exception: if a timeout occurs before
-+ * receiving callback_length bytes of TS data, any undelivered packets are
-+ * immediately delivered to the client by calling this function. The timeout
-+ * duration is controlled by the set() function in the TS Feed API.
-+ *
-+ * If a TS packet is received with errors that could not be fixed by the
-+ * TS-level forward error correction (FEC), the Transport_error_indicator
-+ * flag of the TS packet header should be set. The TS packet should not be
-+ * discarded, as the error can possibly be corrected by a higher layer
-+ * protocol. If the called party is slow in processing the callback, it
-+ * is possible that the circular buffer eventually fills up. If this happens,
-+ * the demux driver should discard any TS packets received while the buffer
-+ * is full and return -EOVERFLOW.
-+ *
-+ * The type of data returned to the callback can be selected by the
-+ * &dmx_ts_feed.@set function. The type parameter decides if the raw
-+ * TS packet (TS_PACKET) or just the payload (TS_PACKET|TS_PAYLOAD_ONLY)
-+ * should be returned. If additionally the TS_DECODER bit is set the stream
-+ * will also be sent to the hardware MPEG decoder.
-+ *
-+ * Return:
-+ * 	0, on success;
-+ * 	-EOVERFLOW, on buffer overflow.
-+ */
- typedef int (*dmx_ts_cb)(const u8 *buffer1,
- 			 size_t buffer1_length,
- 			 const u8 *buffer2,
+thanks !
+
+2015-10-03 18:19 GMT+03:00 Christoph Hellwig <hch@lst.de>:
+> This ensures the dma mask that is supported by the driver is recorded
+> in the device structure.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+> index 6d8bf627..511144f 100644
+> --- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+> +++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+> @@ -809,7 +809,7 @@ static int netup_unidvb_initdev(struct pci_dev *pci_dev,
+>                 "%s(): board vendor 0x%x, revision 0x%x\n",
+>                 __func__, board_vendor, board_revision);
+>         pci_set_master(pci_dev);
+> -       if (!pci_dma_supported(pci_dev, 0xffffffff)) {
+> +       if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+>                 dev_err(&pci_dev->dev,
+>                         "%s(): 32bit PCI DMA is not supported\n", __func__);
+>                 goto pci_detect_err;
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 -- 
-2.4.3
-
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
