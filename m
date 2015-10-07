@@ -1,165 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:36544 "EHLO
-	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbbJBWHm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:42 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 12/20] media: Change v4l-core to check for tuner availability
-Date: Fri,  2 Oct 2015 16:07:24 -0600
-Message-Id: <e2c7baac1e6c4b81765583425ec33914310697f1.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+Received: from baptiste.telenet-ops.be ([195.130.132.51]:33842 "EHLO
+	baptiste.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848AbbJGKjk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2015 06:39:40 -0400
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH v2 2/2] [media] rcar_vin: Remove obsolete platform data support
+Date: Wed,  7 Oct 2015 12:39:36 +0200
+Message-Id: <1444214376-26931-3-git-send-email-geert+renesas@glider.be>
+In-Reply-To: <1444214376-26931-1-git-send-email-geert+renesas@glider.be>
+References: <1444214376-26931-1-git-send-email-geert+renesas@glider.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change s_input, s_fmt, s_tuner, s_frequency, querystd,
-s_hw_freq_seek, and vb2_internal_streamon interfaces that
-alter the tuner configuration to check for tuner availability
-by calling v4l_enable_media_tuner(). If tuner isn't free,
-return -EBUSY. v4l_disable_media_tuner() is called from
-v4l2_fh_exit() to release the tuner.
+Since commit 3d7608e4c169af03 ("ARM: shmobile: bockw: remove legacy
+board file and config"), Renesas R-Car SoCs are only supported in
+generic DT-only ARM multi-platform builds.  The driver doesn't need to
+use platform data anymore, hence remove platform data configuration.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- drivers/media/v4l2-core/v4l2-fh.c        |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c     | 29 +++++++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-core.c |  3 +++
- 3 files changed, 33 insertions(+)
+Commit 3d7608e4c169af03 is now in arm-soc/for-next.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-index c97067a..538db62 100644
---- a/drivers/media/v4l2-core/v4l2-fh.c
-+++ b/drivers/media/v4l2-core/v4l2-fh.c
-@@ -92,6 +92,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
- {
- 	if (fh->vdev == NULL)
- 		return;
-+	v4l_disable_media_tuner(fh->vdev);
- 	v4l2_event_unsubscribe_all(fh);
- 	fh->vdev = NULL;
- }
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 4a384fc..af6dd2f 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1035,6 +1035,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
+v2:
+  - New.
+
+---
+ drivers/media/platform/soc_camera/rcar_vin.c | 75 +++++++++++-----------------
+ include/linux/platform_data/camera-rcar.h    | 25 ----------
+ 2 files changed, 29 insertions(+), 71 deletions(-)
+ delete mode 100644 include/linux/platform_data/camera-rcar.h
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 4069587ae8b6..493566de4f4b 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -21,7 +21,6 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/platform_data/camera-rcar.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+@@ -138,6 +137,11 @@
+ 
+ #define TIMEOUT_MS		100
+ 
++#define RCAR_VIN_HSYNC_ACTIVE_LOW	(1 << 0)
++#define RCAR_VIN_VSYNC_ACTIVE_LOW	(1 << 1)
++#define RCAR_VIN_BT601			(1 << 2)
++#define RCAR_VIN_BT656			(1 << 3)
 +
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
- }
+ enum chip_id {
+ 	RCAR_GEN2,
+ 	RCAR_H1,
+@@ -1845,63 +1849,43 @@ static const struct of_device_id rcar_vin_of_table[] = {
+ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+ #endif
  
-@@ -1433,6 +1439,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 	int ret;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	v4l_sanitize_format(p);
- 
- 	switch (p->type) {
-@@ -1612,7 +1621,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
+-static struct platform_device_id rcar_vin_id_table[] = {
+-	{ "r8a7779-vin",  RCAR_H1 },
+-	{ "r8a7778-vin",  RCAR_M1 },
+-	{ "uPD35004-vin", RCAR_E1 },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(platform, rcar_vin_id_table);
+-
+ static int rcar_vin_probe(struct platform_device *pdev)
  {
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_tuner *p = arg;
-+	int ret;
+ 	const struct of_device_id *match = NULL;
+ 	struct rcar_vin_priv *priv;
++	struct v4l2_of_endpoint ep;
++	struct device_node *np;
+ 	struct resource *mem;
+-	struct rcar_vin_platform_data *pdata;
+ 	unsigned int pdata_flags;
+ 	int irq, ret;
  
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	return ops->vidioc_s_tuner(file, fh, p);
-@@ -1650,7 +1663,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
+-	if (pdev->dev.of_node) {
+-		struct v4l2_of_endpoint ep;
+-		struct device_node *np;
++	match = of_match_device(of_match_ptr(rcar_vin_of_table), &pdev->dev);
  
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
- 		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
-@@ -1705,7 +1722,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
-+	int ret;
+-		match = of_match_device(of_match_ptr(rcar_vin_of_table),
+-					&pdev->dev);
+-
+-		np = of_graph_get_next_endpoint(pdev->dev.of_node, NULL);
+-		if (!np) {
+-			dev_err(&pdev->dev, "could not find endpoint\n");
+-			return -EINVAL;
+-		}
++	np = of_graph_get_next_endpoint(pdev->dev.of_node, NULL);
++	if (!np) {
++		dev_err(&pdev->dev, "could not find endpoint\n");
++		return -EINVAL;
++	}
  
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
+-		ret = v4l2_of_parse_endpoint(np, &ep);
+-		if (ret) {
+-			dev_err(&pdev->dev, "could not parse endpoint\n");
+-			return ret;
+-		}
++	ret = v4l2_of_parse_endpoint(np, &ep);
++	if (ret) {
++		dev_err(&pdev->dev, "could not parse endpoint\n");
 +		return ret;
- 	norm = id & vfd->tvnorms;
- 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
- 		return -EINVAL;
-@@ -1719,7 +1740,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id *p = arg;
-+	int ret;
++	}
  
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/*
- 	 * If no signal is detected, then the driver should return
- 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
-@@ -1738,7 +1763,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_hw_freq_seek *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
+-		if (ep.bus_type == V4L2_MBUS_BT656)
+-			pdata_flags = RCAR_VIN_BT656;
+-		else {
+-			pdata_flags = 0;
+-			if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+-				pdata_flags |= RCAR_VIN_HSYNC_ACTIVE_LOW;
+-			if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+-				pdata_flags |= RCAR_VIN_VSYNC_ACTIVE_LOW;
+-		}
++	if (ep.bus_type == V4L2_MBUS_BT656)
++		pdata_flags = RCAR_VIN_BT656;
++	else {
++		pdata_flags = 0;
++		if (ep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++			pdata_flags |= RCAR_VIN_HSYNC_ACTIVE_LOW;
++		if (ep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++			pdata_flags |= RCAR_VIN_VSYNC_ACTIVE_LOW;
++	}
  
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
-+		return ret;
- 	/* s_hw_freq_seek is not supported for SDR for now */
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b866a6b..6ea6ad3 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2275,6 +2275,9 @@ static int vb2_internal_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
- 	 * are available.
- 	 */
- 	if (q->queued_count >= q->min_buffers_needed) {
-+		ret = v4l_enable_media_tuner(q->owner->vdev);
-+		if (ret)
-+			return ret;
- 		ret = vb2_start_streaming(q);
- 		if (ret) {
- 			__vb2_queue_cancel(q);
+-		of_node_put(np);
++	of_node_put(np);
+ 
+-		dev_dbg(&pdev->dev, "pdata_flags = %08x\n", pdata_flags);
+-	} else {
+-		pdata = pdev->dev.platform_data;
+-		if (!pdata || !pdata->flags) {
+-			dev_err(&pdev->dev, "platform data not set\n");
+-			return -EINVAL;
+-		}
+-		pdata_flags = pdata->flags;
+-	}
++	dev_dbg(&pdev->dev, "pdata_flags = %08x\n", pdata_flags);
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+@@ -1984,7 +1968,6 @@ static struct platform_driver rcar_vin_driver = {
+ 		.name		= DRV_NAME,
+ 		.of_match_table	= of_match_ptr(rcar_vin_of_table),
+ 	},
+-	.id_table	= rcar_vin_id_table,
+ };
+ 
+ module_platform_driver(rcar_vin_driver);
+diff --git a/include/linux/platform_data/camera-rcar.h b/include/linux/platform_data/camera-rcar.h
+deleted file mode 100644
+index dfc83c581593..000000000000
+--- a/include/linux/platform_data/camera-rcar.h
++++ /dev/null
+@@ -1,25 +0,0 @@
+-/*
+- * Platform data for Renesas R-Car VIN soc-camera driver
+- *
+- * Copyright (C) 2011-2013 Renesas Solutions Corp.
+- * Copyright (C) 2013 Cogent Embedded, Inc., <source@cogentembedded.com>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- */
+-
+-#ifndef __CAMERA_RCAR_H_
+-#define __CAMERA_RCAR_H_
+-
+-#define RCAR_VIN_HSYNC_ACTIVE_LOW	(1 << 0)
+-#define RCAR_VIN_VSYNC_ACTIVE_LOW	(1 << 1)
+-#define RCAR_VIN_BT601			(1 << 2)
+-#define RCAR_VIN_BT656			(1 << 3)
+-
+-struct rcar_vin_platform_data {
+-	unsigned int flags;
+-};
+-
+-#endif /* __CAMERA_RCAR_H_ */
 -- 
-2.1.4
+1.9.1
 
