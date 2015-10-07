@@ -1,135 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:58461 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751312AbbJNHOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Oct 2015 03:14:31 -0400
-Message-ID: <561E005F.40407@xs4all.nl>
-Date: Wed, 14 Oct 2015 09:12:31 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-vk0-f48.google.com ([209.85.213.48]:33445 "EHLO
+	mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252AbbJGWIR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Oct 2015 18:08:17 -0400
+Received: by vkgd64 with SMTP id d64so20925178vkg.0
+        for <linux-media@vger.kernel.org>; Wed, 07 Oct 2015 15:08:16 -0700 (PDT)
 MIME-Version: 1.0
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv9 06/15] rc: Add HDMI CEC protocol handling
-References: <cover.1441633456.git.hansverk@cisco.com> <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com> <20151006180540.GR21513@n2100.arm.linux.org.uk> <561B9E97.4050909@xs4all.nl> <20151013230957.GN32532@n2100.arm.linux.org.uk>
-In-Reply-To: <20151013230957.GN32532@n2100.arm.linux.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
+References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
+	<CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
+Date: Wed, 7 Oct 2015 16:08:16 -0600
+Message-ID: <CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
+Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
+From: David Nelson <nelson.dt@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2015 01:09 AM, Russell King - ARM Linux wrote:
-> On Mon, Oct 12, 2015 at 01:50:47PM +0200, Hans Verkuil wrote:
->> On 10/06/2015 08:05 PM, Russell King - ARM Linux wrote:
->>> On Mon, Sep 07, 2015 at 03:44:35PM +0200, Hans Verkuil wrote:
->>>> From: Kamil Debski <kamil@wypas.org>
->>>>
->>>> Add handling of remote control events coming from the HDMI CEC bus.
->>>> This patch includes a new keymap that maps values found in the CEC
->>>> messages to the keys pressed and released. Also, a new protocol has
->>>> been added to the core.
->>>>
->>>> Signed-off-by: Kamil Debski <kamil@wypas.org>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> (Added Mauro)
->>>
->>> Hmm, how is rc-cec supposed to be loaded?
+It's been a while since I originally asked you about this has there
+been any progress?
+
+On Fri, Jun 12, 2015 at 11:21 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Hi David,
+>
+> The saa7160 chipset is supported by the saa716x driver.
+> I wrote a driver for it, which is over here.
+> http://git.linuxtv.org/cgit.cgi/manu/saa716x_new.git
+>
+> I do have the A188 card and documentation also with me,
+> thanks to Avermedia.
+>
+> The card is not yet supported in the above tree, so cloning
+> that tree will not help much in your case. Though I have
+> some code related to that, it is only on my local testbox
+>
+> I've been with an accident and my other hand is in a restrictive
+> state with minimal movements. It will be a few weeks, before
+> I can do something in this area. It's not much help to you at
+> this point right now, but just fyi
+>
+> Manu
+>
+>
+>
+> On Sat, Jun 13, 2015 at 8:46 AM, David Nelson <nelson.dt@gmail.com> wrote:
+>> I have the AverMedia HD Duet (White Box) A188WB. Which has been
+>> working great for several years in Windows 7 Media Center. I just
+>> tried installing Mythbuntu but it does not appear to be recognized. I
+>> am a bit of a newbie but I managed to find some info about it.
 >>
->> Is CONFIG_RC_MAP enabled in your config? Ran 'depmod -a'? (Sorry, I'm sure you've done
->> that, just checking...)
-> 
-> CONFIG_RC_MAP=m
-> 
-> and yes, if depmod hadn't have been run, modprobing rc-cec would not
-> have worked - modprobe always looks up in the depmod information to
-> find out where the module is located, and also to determine any
-> dependencies.
-> 
->> It's optional as I understand it, since you could configure the keytable from
->> userspace instead of using this module.
+>> Does anyone know of a driver for it? lspci says it uses the Philips
+>> SAA7160 which does appear to be in a few other supported devices.
 >>
->> For the record (just tried it), it does load fine on my setup.
-> 
-> Immediately after boot, I have:
-> 
-> # lsmod
-> Module                  Size  Used by
-> ...
-> coda                   54685  0
-> v4l2_mem2mem           14517  1 coda
-> videobuf2_dma_contig     9478  1 coda
-> videobuf2_vmalloc       5529  1 coda
-> videobuf2_memops        1888  2 videobuf2_dma_contig,videobuf2_vmalloc
-> cecd_dw_hdmi            3129  0
-> # modprobe rc-cec
-> # lsmod
-> Module                  Size  Used by
-> rc_cec                  1785  0
-> ...
-> coda                   54685  0
-> v4l2_mem2mem           14517  1 coda
-> videobuf2_dma_contig     9478  1 coda
-> videobuf2_vmalloc       5529  1 coda
-> videobuf2_memops        1888  2 videobuf2_dma_contig,videobuf2_vmalloc
-> cecd_dw_hdmi            3129  0
-> 
-> So, rc-cec is perfectly loadable, it just doesn't get loaded at boot.
-> Manually loading it like this is useless though - I have to unload
-> cecd_dw_hdmi and then re-load it after rc-cec is loaded for rc-cec to
-> be seen.  At that point, (and with the help of a userspace program)
-> things start working as expected.
+>> Details follow
+>>
+>> I get the following from lspci -vvnnk
+>>
+>> 03:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7160
+>> [1131:7160] (rev 01)
+>> Subsystem: Avermedia Technologies Inc Device [1461:1e55]
+>> Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+>> Stepping- SERR- FastB2B- DisINTx-
+>> Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+>> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>> Latency: 0, Cache Line Size: 64 bytes
+>> Interrupt: pin A routed to IRQ 10
+>> Region 0: Memory at ef800000 (64-bit, non-prefetchable) [size=1M]
+>> Capabilities: <access denied>
+>>
+>>
+>> I can see that there is a driver for a few other devices with this
+>> chip at http://www.linuxtv.org/wiki/index.php/NXP_SAA716x  (i.e.
+>> heading "As of (2014-06-07)"
+>>
+>>
+>> --
+>> -David Nelson
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Did you compile and install the v4l-utils found here:
 
-http://git.linuxtv.org/cgit.cgi/hverkuil/v4l-utils.git/log/?h=cec
 
-I think that the rc_cec module is loaded through some udev rules and
-keytables that are installed by v4l-utils. The standard v4l-utils
-doesn't know about cec, but my repo above does.
-
-To be honest, I don't really understand how it works, but if you haven't
-installed it yet then try it and see if that solves the problem.
-
->> BTW, I am still on the fence whether using the kernel RC subsystem is
->> the right thing to do. There are a number of CEC RC commands that use
->> extra parameters that cannot be mapped to the RC API, so you still
->> need to handle those manually.
-> 
-> Even though it is a remote control which is being forwarded for the
-> most part, but there are operation codes which aren't related to
-> key presses specified by the standard.  I don't think there's anything
-> wrong with having a RC interface present, but allowing other interfaces
-> as a possibility is a good thing too - it allows a certain amount of
-> flexibility.
-> 
-> For example, with rc-cec loaded and properly bound, I can control at
-> least rhythmbox within gnome using the TVs remote control with no
-> modifications - and that happens because the X server passes on the
-> events it receives via the event device.
-> 
-> Given the range of media applications, I think that's key - it needs
-> to at least have the capability to plug into the existing ways of doing
-> things, even if those ways are not perfect.
-> 
->> Perhaps I should split it off into a separate patch and keep it out
->> from the initial pull request once we're ready for that.
-> 
-> I'm biased because it is an enablement feature - it allows CEC to work
-> out of the box with at least some existing media apps. :)
-> 
-
-OK, useful feedback. I am considering putting the RC code under a kernel
-config option though. So if the RC core is not enabled or you don't want
-the RC part to be created, then you can opt to disable it.
-
-Regards,
-
-	Hans
+-- 
+-David Nelson
+Home: 801-302-1347
+Cell: 801-205-8248
