@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:58616 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932370AbbJPUfk (ORCPT
+Received: from smtp-out-094.synserver.de ([212.40.185.94]:1308 "EHLO
+	smtp-out-060.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753674AbbJGKds (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 16:35:40 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] [media] cobalt: add VIDEO_V4L2_SUBDEV_API dependency
-Date: Fri, 16 Oct 2015 22:35:33 +0200
-Message-ID: <25194020.Fs8hi1GXzI@wuerfel>
+	Wed, 7 Oct 2015 06:33:48 -0400
+Message-ID: <5614F23F.7050608@metafoo.de>
+Date: Wed, 07 Oct 2015 12:21:51 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Arnaud Pouliquen <arnaud.pouliquen@st.com>,
+	Jyri Sarha <jsarha@ti.com>,
+	"alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+CC: "moinejf@free.fr" <moinejf@free.fr>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	David Airlie <airlied@linux.ie>,
+	"broonie@kernel.org" <broonie@kernel.org>,
+	"lgirdwood@gmail.com" <lgirdwood@gmail.com>,
+	"peter.ujfalusi@ti.com" <peter.ujfalusi@ti.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"tomi.valkeinen@ti.com" <tomi.valkeinen@ti.com>,
+	"bcousson@baylibre.com" <bcousson@baylibre.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [alsa-devel] [PATCH RFC V2 0/5] another generic audio hdmi codec
+ proposal
+References: <1443718221-5120-1-git-send-email-arnaud.pouliquen@st.com> <56127ADB.6080700@ti.com> <561392F7.90608@st.com> <5613EC62.8000007@ti.com> <5614D58F.9010102@st.com>
+In-Reply-To: <5614D58F.9010102@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cobalt driver uses various encoders that require the VIDEO_V4L2_SUBDEV_API
-code, but it does not have the dependency itself, so we get a build error
-when it's not enabled:
 
-warning: (VIDEO_COBALT) selects VIDEO_ADV7511 which has unmet direct dependencies (MEDIA_SUPPORT && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API)
-warning: (VIDEO_COBALT) selects VIDEO_ADV7604 which has unmet direct dependencies (MEDIA_SUPPORT && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && (GPIOLIB || COMPILE_TEST))
-warning: (VIDEO_COBALT) selects VIDEO_ADV7842 which has unmet direct dependencies (MEDIA_SUPPORT && VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API)
-drivers/media/i2c/adv7604.c: In function 'adv76xx_get_format':
-drivers/media/i2c/adv7604.c:1878:9: error: implicit declaration of function 'v4l2_subdev_get_try_format' [-Werror=implicit-function-declaration]
+Added Hans, who's working a lot on the HDMI transmitter drivers (including
+audio support) as well as the media list to Cc.
 
-This adds an explicit dependency.
+On 10/07/2015 10:19 AM, Arnaud Pouliquen wrote:
+> 
+> 
+>>> My approach is the reverse: DRM driver does not need to know anything
+>>> about audio side. As ALSA is the client of DRM, seems more logical from
+>>> my point of view ...
+>>> Now if a generic solution must be found for all video drivers, sure,
+>>> your solution is more flexible.
+>>> But if i well understood fbdev drivers are no more accepted for upstream
+>>> (please correct me if I'm wrong).
+>>> So i don't know we have to keep fbdev in picture...
+>>>
+>>
+>> I am not promoting fbdev support. I am merely asking if we want to force
+>> all HDMI drivers to implement a drm_bridge if they want to support audio.
+>>
+> Yes this is a good point... My implementation is based on hypothesis that
+> HDMI drivers are now upstreamed as DRM drivers.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-Found on ARM randconfig builds
+The other place where you can find HDMI support is in V4L2, both receive as
+well as transmit. And while the hope for fbdev is that it will be phased out
+V4L2 will stay around for a while. And we probably want to have a common API
+that can take care of both DRM and V4L so we do not need two sets of helper
+functions for things like EDID parsing etc.
 
-diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
-index 1f88ccc174da..a7f750520757 100644
---- a/drivers/media/pci/cobalt/Kconfig
-+++ b/drivers/media/pci/cobalt/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_COBALT
- 	tristate "Cisco Cobalt support"
- 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
- 	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
- 	depends on GPIOLIB || COMPILE_TEST
- 	depends on SND
+- Lars
+
+
 
