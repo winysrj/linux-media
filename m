@@ -1,25 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from q.trading10000.com ([133.130.106.195]:48908 "EHLO
-	q.trading10000.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751371AbbJPGqU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60146 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751990AbbJGLZv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 02:46:20 -0400
-Received: from cZq.sgbetqpuu (113.68.210.165) by q.trading10000.com id h42ejm0e97cg for <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 15:36:10 +0900 (envelope-from <jack@q.trading10000.com>)
-Reply-To: <1377540328@qq.com>
-Date: Fri, 16 Oct 2015 14:35:39 +0800
-From: "Shirley" <1377540328@qq.com>
-To: <linux-media@vger.kernel.org>
-Subject: =?utf-8?B?5LiN5Y+C5bGV5LiN5LiK5bmz5Y+w5aaC5L2V6I635b6X6K+i55uY5ZKM6K6i5Y2V?=
-Message-ID: <20151016143549155063@q.trading10000.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	Wed, 7 Oct 2015 07:25:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: tiffany.lin@mediatek.com
+Subject: [PATCH v3 1/2] media: vb2 dma-contig: Fully cache synchronise buffers in prepare and finish
+Date: Wed,  7 Oct 2015 14:23:32 +0300
+Message-Id: <1444217013-21156-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
+References: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-5LiN5Y+C5Yqg5bGV5Lya5Lmf5LiN5LiKQjJC5bmz5Y+w77yM5L2G54Wn5qC35Y+v5Lul5byA5Y+R
-5LyY6LSo5rW35aSW5a6i5oi344CC5pa55rOV5b6I566A5Y2V77yM5LiA5aSp5biu5oKo5YGa5Ye6
-5pWI5p6c44CCDQror7fogZTns7tRUe+8mjEzNzc1NDAzMjgNCg==
+From: Tiffany Lin <tiffany.lin@mediatek.com>
 
+In videobuf2 dma-contig memory type the prepare and finish ops, instead of
+passing the number of entries in the original scatterlist as the "nents"
+parameter to dma_sync_sg_for_device() and dma_sync_sg_for_cpu(), the value
+returned by dma_map_sg() was used. Albeit this has been suggested in
+comments of some implementations (which have since been corrected), this
+is wrong.
+
+Cc: stable@vger.kernel.org # for v3.8 and up
+Fixes: 199d101efdba ("v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator")
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index ea33d69..c331272 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -100,7 +100,8 @@ static void vb2_dc_prepare(void *buf_priv)
+ 	if (!sgt || buf->db_attach)
+ 		return;
+ 
+-	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
++			       buf->dma_dir);
+ }
+ 
+ static void vb2_dc_finish(void *buf_priv)
+@@ -112,7 +113,7 @@ static void vb2_dc_finish(void *buf_priv)
+ 	if (!sgt || buf->db_attach)
+ 		return;
+ 
+-	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+ }
+ 
+ /*********************************************/
+-- 
+2.1.4
 
