@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:61142 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbbJBW0S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 18:26:18 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 5/7] [media] mipi-csis: make sparse happy
-Date: Sat, 03 Oct 2015 00:25:57 +0200
-Message-ID: <4962836.RxBJeKxGZM@wuerfel>
-In-Reply-To: <de2ce8fd84f965a270bad28d284932bf20c349be.1443737683.git.mchehab@osg.samsung.com>
-References: <cover.1443737682.git.mchehab@osg.samsung.com> <de2ce8fd84f965a270bad28d284932bf20c349be.1443737683.git.mchehab@osg.samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39534 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751667AbbJHIQu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Oct 2015 04:16:50 -0400
+Date: Thu, 8 Oct 2015 11:16:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: tiffany.lin@mediatek.com
+Subject: [GIT PULL for v4.4] vb2 dma-contig and dma-sg cache sync fix
+Message-ID: <20151008081647.GJ26916@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 01 October 2015 19:17:27 Mauro Carvalho Chehab wrote:
-> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-> index d74e1bec3d86..4b85105dc159 100644
-> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
-> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-> @@ -706,7 +706,8 @@ static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
->                 else
->                         offset = S5PCSIS_PKTDATA_ODD;
->  
-> -               memcpy(pktbuf->data, state->regs + offset, pktbuf->len);
-> +               memcpy(pktbuf->data, (u8 __force *)state->regs + offset,
-> +                      pktbuf->len);
->                 pktbuf->data = NULL;
-> 
+Hi Mauro,
 
-I think this is what memcpy_toio() is meant for.
+Here are the two vb2 fixes from Tiffany Lin. I've split them into two and
+added cc stable since these should be applied to kernels since v3.8 and
+v3.19 respectively.
 
-	Arnd
+Please pull.
+
+The following changes since commit f4f24d1fd0803e8b5de5da373276f5046bef7463:
+
+  [media] drxd: use kzalloc in drxd_attach() (2015-10-03 11:44:32 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git tags/vb2-nents-media-master
+
+for you to fetch changes up to 7883759183985e8a94e237ed6f49ae3581a8e499:
+
+  media: vb2 dma-sg: Fully cache synchronise buffers in prepare and finish (2015-10-07 14:14:26 +0300)
+
+----------------------------------------------------------------
+Tiffany Lin (2):
+      media: vb2 dma-contig: Fully cache synchronise buffers in prepare and finish
+      media: vb2 dma-sg: Fully cache synchronise buffers in prepare and finish
+
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
