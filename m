@@ -1,125 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:45355 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752795AbbJMC4c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 22:56:32 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id CE5142A0095
-	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2015 04:54:35 +0200 (CEST)
-Date: Tue, 13 Oct 2015 04:54:35 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151013025435.CE5142A0095@tschai.lan>
+Received: from TYO200.gate.nec.co.jp ([210.143.35.50]:61350 "EHLO
+	tyo200.gate.nec.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759896AbbJIAg7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Oct 2015 20:36:59 -0400
+Received: from tyo202.gate.nec.co.jp ([10.7.69.202])
+	by tyo200.gate.nec.co.jp (8.13.8/8.13.4) with ESMTP id t990awhm022431
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 9 Oct 2015 09:36:58 +0900 (JST)
+From: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: [PATCH] media: fix waitqueue_active without memory barrier in cpia2
+ driver
+Date: Fri, 9 Oct 2015 00:35:40 +0000
+Message-ID: <17EC94B0A072C34B8DCF0D30AD16044A02874762@BPXM09GP.gisp.nec.co.jp>
+Content-Language: ja-JP
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+cpia2_usb_disconnect() seems to be missing a memory barrier which might
+cause the waker to not notice the waiter and miss sending a wake_up as
+in the following figure.
 
-Results of the daily build of media_tree:
+	cpia2_usb_disconnect			sync
+------------------------------------------------------------------------
+					mutex_unlock(&cam->v4l2_lock);
+if (waitqueue_active(&cam->wq_stream))
+/* The CPU might reorder the test for
+   the waitqueue up here, before
+   prior writes complete */
+					/* wait_event_interruptible */
+					 /* __wait_event_interruptible */
+					  /* ___wait_event */
+					  long __int = prepare_to_wait_event(
+					    &wq, &__wait, state);
+					  if (!cam->streaming ||
+					    frame->status == FRAME_READY)
+cam->curbuff->status = FRAME_READY;
+cam->curbuff->length = 0;
+					  schedule()
+------------------------------------------------------------------------
 
-date:		Tue Oct 13 04:00:16 CEST 2015
-git branch:	test
-git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+The attached patch removes the call to waitqueue_active() leaving just
+wake_up() behind.  This fixes the problem because the call to
+spin_lock_irqsave() in wake_up() will be an ACQUIRE operation.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+I found this issue when I was looking through the linux source code
+for places calling waitqueue_active() before wake_up*(), but without
+preceding memory barriers, after sending a patch to fix a similar
+issue in drivers/tty/n_tty.c  (Details about the original issue can be
+found here: https://lkml.org/lkml/2015/9/28/849).
 
-Detailed results are available here:
+Signed-off-by: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
+---
+ drivers/media/usb/cpia2/cpia2_usb.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
+index 351a78a..c1aa1ab 100644
+--- a/drivers/media/usb/cpia2/cpia2_usb.c
++++ b/drivers/media/usb/cpia2/cpia2_usb.c
+@@ -890,8 +890,7 @@ static void cpia2_usb_disconnect(struct usb_interface *intf)
+ 		DBG("Wakeup waiting processes\n");
+ 		cam->curbuff->status = FRAME_READY;
+ 		cam->curbuff->length = 0;
+-		if (waitqueue_active(&cam->wq_stream))
+-			wake_up_interruptible(&cam->wq_stream);
++		wake_up_interruptible(&cam->wq_stream);
+ 	}
+ 
+ 	DBG("Releasing interface\n");
+-- 
+1.7.1
