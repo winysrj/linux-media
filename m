@@ -1,125 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:59762 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750949AbbJJCix (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39193 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128AbbJJNgQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Oct 2015 22:38:53 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DA87E2A008F
-	for <linux-media@vger.kernel.org>; Sat, 10 Oct 2015 04:37:00 +0200 (CEST)
-Date: Sat, 10 Oct 2015 04:37:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151010023700.DA87E2A008F@tschai.lan>
+	Sat, 10 Oct 2015 09:36:16 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 07/26] [media] DocBook: Convert struct lirc_driver to doc-nano format
+Date: Sat, 10 Oct 2015 10:35:50 -0300
+Message-Id: <be14c5cd592b6a268c825ca78ff7be758bab316d.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The struct lirc_driver is already documented, but on some
+internal format. Convert it to Kernel doc-nano format and
+add documentation for some additional parameters that are
+also present at the structure.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-date:		Sat Oct 10 04:00:16 CEST 2015
-git branch:	test
-git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index bdc0f7e0a55d..44634e295699 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -246,6 +246,7 @@ X!Isound/sound_firmware.c
+      </sect1>
+      <sect1><title>Remote Controller devices</title>
+ !Iinclude/media/rc-core.h
++!Iinclude/media/lirc_dev.h
+      </sect1>
+      <sect1><title>Media Controller devices</title>
+ !Iinclude/media/media-device.h
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 05e7ad5d2c8b..abb92f879ba2 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -118,6 +118,71 @@ static inline unsigned int lirc_buffer_write(struct lirc_buffer *buf,
+ 	return ret;
+ }
+ 
++/**
++ * struct lirc_driver - Defines the parameters on a LIRC driver
++ *
++ * @name:		this string will be used for logs
++ *
++ * @minor:		indicates minor device (/dev/lirc) number for
++ *			registered driver if caller fills it with negative
++ *			value, then the first free minor number will be used
++ *			(if available).
++ *
++ * @code_length:	length of the remote control key code expressed in bits.
++ *
++ * @buffer_size:	Number of FIFO buffers with @chunk_size size. If zero,
++ *			creates a buffer with BUFLEN size (16 bytes).
++ *
++ * @sample_rate:	if zero, the device will wait for an event with a new
++ *			code to be parsed. Otherwise, specifies the sample
++ *			rate for polling. Value should be between 0
++ *			and HZ. If equal to HZ, it would mean one polling per
++ *			second.
++ *
++ * @features:		lirc compatible hardware features, like LIRC_MODE_RAW,
++ *			LIRC_CAN_*, as defined at include/media/lirc.h.
++ *
++ * @chunk_size:		Size of each FIFO buffer.
++ *
++ * @data:		it may point to any driver data and this pointer will
++ *			be passed to all callback functions.
++ *
++ * @min_timeout:	Minimum timeout for record. Valid only if
++ *			LIRC_CAN_SET_REC_TIMEOUT is defined.
++ *
++ * @max_timeout:	Maximum timeout for record. Valid only if
++ *			LIRC_CAN_SET_REC_TIMEOUT is defined.
++ *
++ * @add_to_buf:		add_to_buf will be called after specified period of the
++ *			time or triggered by the external event, this behavior
++ *			depends on value of the sample_rate this function will
++ *			be called in user context. This routine should return
++ *			0 if data was added to the buffer and -ENODATA if none
++ *			was available. This should add some number of bits
++ *			evenly divisible by code_length to the buffer.
++ *
++ * @rbuf:		if not NULL, it will be used as a read buffer, you will
++ *			have to write to the buffer by other means, like irq's
++ *			(see also lirc_serial.c).
++ *
++ * @set_use_inc:	set_use_inc will be called after device is opened
++ *
++ * @set_use_dec:	set_use_dec will be called after device is closed
++ *
++ * @rdev:		Pointed to struct rc_dev associated with the LIRC
++ *			device.
++ *
++ * @fops:		file_operations for drivers which don't fit the current
++ *			driver model.
++ *			Some ioctl's can be directly handled by lirc_dev if the
++ *			driver's ioctl function is NULL or if it returns
++ *			-ENOIOCTLCMD (see also lirc_serial.c).
++ *
++ * @dev:		pointer to the struct device associated with the LIRC
++ *			device.
++ *
++ * @owner:		the module owning this struct
++ */
+ struct lirc_driver {
+ 	char name[40];
+ 	int minor;
+@@ -141,55 +206,6 @@ struct lirc_driver {
+ 	struct module *owner;
+ };
+ 
+-/* name:
+- * this string will be used for logs
+- *
+- * minor:
+- * indicates minor device (/dev/lirc) number for registered driver
+- * if caller fills it with negative value, then the first free minor
+- * number will be used (if available)
+- *
+- * code_length:
+- * length of the remote control key code expressed in bits
+- *
+- * sample_rate:
+- *
+- * data:
+- * it may point to any driver data and this pointer will be passed to
+- * all callback functions
+- *
+- * add_to_buf:
+- * add_to_buf will be called after specified period of the time or
+- * triggered by the external event, this behavior depends on value of
+- * the sample_rate this function will be called in user context. This
+- * routine should return 0 if data was added to the buffer and
+- * -ENODATA if none was available. This should add some number of bits
+- * evenly divisible by code_length to the buffer
+- *
+- * rbuf:
+- * if not NULL, it will be used as a read buffer, you will have to
+- * write to the buffer by other means, like irq's (see also
+- * lirc_serial.c).
+- *
+- * set_use_inc:
+- * set_use_inc will be called after device is opened
+- *
+- * set_use_dec:
+- * set_use_dec will be called after device is closed
+- *
+- * fops:
+- * file_operations for drivers which don't fit the current driver model.
+- *
+- * Some ioctl's can be directly handled by lirc_dev if the driver's
+- * ioctl function is NULL or if it returns -ENOIOCTLCMD (see also
+- * lirc_serial.c).
+- *
+- * owner:
+- * the module owning this struct
+- *
+- */
+-
+-
+ /* following functions can be called ONLY from user context
+  *
+  * returns negative value on error or minor number
+-- 
+2.4.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
