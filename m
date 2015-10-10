@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:57425 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904AbbJPUbN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39224 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039AbbJJNgT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 16:31:13 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Kozlov Sergey <serjk@netup.ru>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] [media] horus3a: fix horus3a_attach inline wrapper
-Date: Fri, 16 Oct 2015 22:30:59 +0200
-Message-ID: <7188906.Hi9qi0FZQC@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 10 Oct 2015 09:36:19 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/26] [media] dvb: don't keep support for undocumented features
+Date: Sat, 10 Oct 2015 10:35:56 -0300
+Message-Id: <1e92bbe08ad9fc0d5ec05174c176a9bc54921733.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'static inline' version of horus3a_attach() is incorrectly
-copied from another file, which results in a build error when
-CONFIG_DVB_HORUS3A is disabled:
+There are two DVB demux callbacks and ioctls that aren't documented
+and aren't used at all by the DVB core or by any DVB driver upstream.
 
-In file included from /git/arm-soc/drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
-media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
-media/dvb-frontends/horus3a.h:51:13: warning: its scope is only this definition or declaration, which is probably not what you want
-media/pci/netup_unidvb/netup_unidvb_core.c: In function 'netup_unidvb_dvb_init':
-media/pci/netup_unidvb/netup_unidvb_core.c:417:279: warning: passing argument 1 of '__a' from incompatible pointer type [-Wincompatible-pointer-types]
-media/pci/netup_unidvb/netup_unidvb_core.c:417:279: note: expected 'const struct cxd2820r_config *' but argument is of type 'struct dvb_frontend *'
-media/pci/netup_unidvb/netup_unidvb_core.c:417:298: warning: passing argument 2 of '__a' from incompatible pointer type [-Wincompatible-pointer-types]
-media/pci/netup_unidvb/netup_unidvb_core.c:417:298: note: expected 'struct i2c_adapter *' but argument is of type 'struct horus3a_config *'
-media/pci/netup_unidvb/netup_unidvb_core.c:417:275: error: too many arguments to function '__a'
+Let's comment out the code for those two ioctls and remove on some
+future version.
 
-This changes the code to have the correct prototype.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: a5d32b358254 ("[media] horus3a: Sony Horus3A DVB-S/S2 tuner driver")
----
-Found on ARM randconfig builds
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index ca56d1cc57bd..53c82514ede5 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -411,10 +411,12 @@ struct dmx_demux {
+ 
+ 	int (*get_pes_pids) (struct dmx_demux* demux, u16 *pids);
+ 
++	/* private: Not used upstream and never documented */
++#if 0
+ 	int (*get_caps) (struct dmx_demux* demux, struct dmx_caps *caps);
+-
+ 	int (*set_source) (struct dmx_demux* demux, const dmx_source_t *src);
+-
++#endif
++	/* public: */
+ 	int (*get_stc) (struct dmx_demux* demux, unsigned int num,
+ 			u64 *stc, unsigned int *base);
+ };
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index d0e3f9d85f34..86a987ef13e1 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -1023,6 +1023,9 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		dmxdev->demux->get_pes_pids(dmxdev->demux, parg);
+ 		break;
+ 
++#if 0
++	/* Not used upstream and never documented */
++
+ 	case DMX_GET_CAPS:
+ 		if (!dmxdev->demux->get_caps) {
+ 			ret = -EINVAL;
+@@ -1038,6 +1041,7 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		}
+ 		ret = dmxdev->demux->set_source(dmxdev->demux, parg);
+ 		break;
++#endif
+ 
+ 	case DMX_GET_STC:
+ 		if (!dmxdev->demux->get_stc) {
+-- 
+2.4.3
 
-diff --git a/drivers/media/dvb-frontends/horus3a.h b/drivers/media/dvb-frontends/horus3a.h
-index b055319d532e..c1e2d1834b78 100644
---- a/drivers/media/dvb-frontends/horus3a.h
-+++ b/drivers/media/dvb-frontends/horus3a.h
-@@ -46,8 +46,8 @@ extern struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
- 					const struct horus3a_config *config,
- 					struct i2c_adapter *i2c);
- #else
--static inline struct dvb_frontend *horus3a_attach(
--					const struct cxd2820r_config *config,
-+static inline struct dvb_frontend *horus3a_attach(struct dvb_frontend *fe,
-+					const struct horus3a_config *config,
- 					struct i2c_adapter *i2c)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
 
