@@ -1,98 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47316 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:55470 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750962AbbJEMDz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Oct 2015 08:03:55 -0400
-Date: Mon, 5 Oct 2015 09:03:48 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-doc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: How to fix DocBook parsers for private fields inside #ifdefs
-Message-ID: <20151005090348.7937fa4a@recife.lan>
-In-Reply-To: <20151005045635.455b20eb@lwn.net>
-References: <20151001142107.5a0bf7b2@recife.lan>
-	<20151005045635.455b20eb@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751595AbbJJQvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2015 12:51:24 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv5 01/13] v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+Date: Sat, 10 Oct 2015 19:50:57 +0300
+Message-Id: <1444495869-1969-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
+References: <1444495869-1969-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 5 Oct 2015 04:56:35 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
+SDR receiver has ADC (Analog-to-Digital Converter) and SDR transmitter
+has DAC (Digital-to-Analog Converter). Originally I though it could
+be good idea to have own type for receiver and transmitter, but now I
+feel one common type for SDR is enough. So lets rename it.
 
-> On Thu, 1 Oct 2015 14:21:07 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> 
-> > They're all after a private comment:
-> > 	/* Private: internal use only */
-> > 
-> > So, according with Documentation/kernel-doc-nano-HOWTO.txt, they shold
-> > have been ignored.
-> > 
-> > Still, the scripts produce warnings for them:
-> 
-> Sorry, I've been away from the keyboard for a few days and am only now
-> catching up.
-> 
-> The problem is that kernel-doc is dumb...the test is case-sensitive, so
-> it needs to be "private:", not "Private:".  I'm sure there's a magic perl
-> regex parameter to make the test case-insensitive; when I get a chance
-> I'll figure it out and put it in there.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml  | 12 ++++++++++++
+ Documentation/DocBook/media/v4l/dev-sdr.xml |  6 +++---
+ Documentation/DocBook/media/v4l/v4l2.xml    |  7 +++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c        |  6 +++---
+ include/uapi/linux/videodev2.h              |  5 ++++-
+ 5 files changed, 29 insertions(+), 7 deletions(-)
 
-Ah, that makes sense. Adding an "i" to the end of the regex expression
-should make it case-insensitive:
-
--       $members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
--       $members =~ s/\/\*\s*private:.*//gos;
-+       $members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
-+       $members =~ s/\/\*\s*private:.*//gosi;
-
-Patch enclosed. Yet, I guess nobody would try to use PRIVATE: So, 
-another alternative would be to do, instead:
-
--	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
--	$members =~ s/\/\*\s*private:.*//gos;
-+	$members =~ s/\/\*\s*[Pp]rivate:.*?\/\*\s*public:.*?\*\///gos;
-+	$members =~ s/\/\*\s*[Pp]rivate:.*//gos;
-
-Whatever works best for you.
-
-> (Of course, once you fix that glitch, you'll get gripes about the fields
-> that are marked private but documented anyway.  Like I said, kernel-doc
-> is dumb.)
-
-Yeah, now I'm getting those warnings:
-
-.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'state' description in 'vb2_buffer'
-.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'queued_entry' description in 'vb2_buffer'
-.//include/media/videobuf2-core.h:254: warning: Excess struct/union/enum/typedef member 'done_entry' description in 'vb2_buffer'
-
-I'll fix that.
-
--
-
-DocBook: Fix kernel-doc to be case-insensitive for private:
-
-On some places, people could use Private: to tag the private fields
-of an struct. So, be case-insensitive when parsing "private:"
-meta-tag.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 9a08fb5c1af6..702c6ac1350e 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1791,8 +1791,8 @@ sub dump_struct($$) {
- 	$nested = $1;
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index a0aef85..f56faf5 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2591,6 +2591,18 @@ and &v4l2-mbus-framefmt;.
+       </orderedlist>
+     </section>
  
- 	# ignore members marked private:
--	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gos;
--	$members =~ s/\/\*\s*private:.*//gos;
-+	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
-+	$members =~ s/\/\*\s*private:.*//gosi;
- 	# strip comments:
- 	$members =~ s/\/\*.*?\*\///gos;
- 	$nested =~ s/\/\*.*?\*\///gos;
++    <section>
++      <title>V4L2 in Linux 4.2</title>
++      <orderedlist>
++	<listitem>
++	  <para>Renamed <constant>V4L2_TUNER_ADC</constant> to
++<constant>V4L2_TUNER_SDR</constant>. The use of
++<constant>V4L2_TUNER_ADC</constant> is deprecated now.
++	  </para>
++	</listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index f890356..3344921 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -44,10 +44,10 @@ frequency.
+     </para>
+ 
+     <para>
+-The <constant>V4L2_TUNER_ADC</constant> tuner type is used for ADC tuners, and
++The <constant>V4L2_TUNER_SDR</constant> tuner type is used for SDR tuners, and
+ the <constant>V4L2_TUNER_RF</constant> tuner type is used for RF tuners. The
+-tuner index of the RF tuner (if any) must always follow the ADC tuner index.
+-Normally the ADC tuner is #0 and the RF tuner is #1.
++tuner index of the RF tuner (if any) must always follow the SDR tuner index.
++Normally the SDR tuner is #0 and the RF tuner is #1.
+     </para>
+ 
+     <para>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e98caa1..c9eedc1 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -151,6 +151,13 @@ Rubli, Andy Walls, Muralidharan Karicheri, Mauro Carvalho Chehab,
+ structs, ioctls) must be noted in more detail in the history chapter
+ (compat.xml), along with the possible impact on existing drivers and
+ applications. -->
++      <revision>
++	<revnumber>4.2</revnumber>
++	<date>2015-05-26</date>
++	<authorinitials>ap</authorinitials>
++	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++	</revremark>
++      </revision>
+ 
+       <revision>
+ 	<revnumber>3.21</revnumber>
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 5dc6908..056a5ad 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1637,7 +1637,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_frequency *p = arg;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR)
+-		p->type = V4L2_TUNER_ADC;
++		p->type = V4L2_TUNER_SDR;
+ 	else
+ 		p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 				V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+@@ -1652,7 +1652,7 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	enum v4l2_tuner_type type;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 	} else {
+ 		type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+@@ -2277,7 +2277,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	int err;
+ 
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+-		if (p->type != V4L2_TUNER_ADC && p->type != V4L2_TUNER_RF)
++		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+ 		type = p->type;
+ 	} else {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 92d65af..fa8bf2d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -165,10 +165,13 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_RADIO	     = 1,
+ 	V4L2_TUNER_ANALOG_TV	     = 2,
+ 	V4L2_TUNER_DIGITAL_TV	     = 3,
+-	V4L2_TUNER_ADC               = 4,
++	V4L2_TUNER_SDR               = 4,
+ 	V4L2_TUNER_RF                = 5,
+ };
+ 
++/* Deprecated, do not use */
++#define V4L2_TUNER_ADC  V4L2_TUNER_SDR
++
+ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+-- 
+http://palosaari.fi/
 
