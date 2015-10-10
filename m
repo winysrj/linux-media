@@ -1,155 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53365 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:35957 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751116AbbJ1AUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 20:20:24 -0400
-Date: Wed, 28 Oct 2015 09:20:20 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 02/19] media: Introduce internal index for media
- entities
-Message-ID: <20151028092020.33a1e509@concha.lan>
-In-Reply-To: <1445900510-1398-3-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-3-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1752299AbbJJQv0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2015 12:51:26 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv5 13/13] DocBook: add SDR specific info to G_MODULATOR / S_MODULATOR
+Date: Sat, 10 Oct 2015 19:51:09 +0300
+Message-Id: <1444495869-1969-14-git-send-email-crope@iki.fi>
+In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
+References: <1444495869-1969-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:33 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Add SDR specific notes to G_MODULATOR / S_MODULATOR documentation.
 
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> The internal index can be used internally by the framework in order to keep
-> track of entities for a purpose or another. The internal index is constant
-> while it's registered to a media device, but the same index may be re-used
-> once the entity having that index is unregistered.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/vidioc-g-modulator.xml | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-device.c | 17 +++++++++++++++++
->  include/media/media-device.h |  4 ++++
->  include/media/media-entity.h |  3 +++
->  3 files changed, 24 insertions(+)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index c181758..ebb84cb 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -22,6 +22,7 @@
->  
->  #include <linux/compat.h>
->  #include <linux/export.h>
-> +#include <linux/idr.h>
->  #include <linux/ioctl.h>
->  #include <linux/media.h>
->  #include <linux/types.h>
-> @@ -546,6 +547,7 @@ void media_device_init(struct media_device *mdev)
->  	INIT_LIST_HEAD(&mdev->links);
->  	spin_lock_init(&mdev->lock);
->  	mutex_init(&mdev->graph_mutex);
-> +	ida_init(&mdev->entity_internal_idx);
->  
->  	dev_dbg(mdev->dev, "Media device initialized\n");
->  }
-> @@ -558,6 +560,8 @@ EXPORT_SYMBOL_GPL(media_device_init);
->   */
->  void media_device_cleanup(struct media_device *mdev)
->  {
-> +	ida_destroy(&mdev->entity_internal_idx);
-> +	mdev->entity_internal_idx_max = 0;
->  	mutex_destroy(&mdev->graph_mutex);
->  }
->  EXPORT_SYMBOL_GPL(media_device_cleanup);
-> @@ -658,6 +662,17 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  	INIT_LIST_HEAD(&entity->links);
->  
->  	spin_lock(&mdev->lock);
-> +
-> +	entity->internal_idx = ida_simple_get(&mdev->entity_internal_idx, 1, 0,
-> +					      GFP_KERNEL);
-> +	if (entity->internal_idx < 0) {
-> +		spin_unlock(&mdev->lock);
-> +		return entity->internal_idx;
-> +	}
-> +
-> +	mdev->entity_internal_idx_max =
-> +		max(mdev->entity_internal_idx_max, entity->internal_idx);
-> +
->  	/* Initialize media_gobj embedded at the entity */
->  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
->  
-> @@ -690,6 +705,8 @@ void media_device_unregister_entity(struct media_entity *entity)
->  
->  	spin_lock(&mdev->lock);
->  
-> +	ida_simple_remove(&mdev->entity_internal_idx, entity->internal_idx);
-> +
->  	/* Remove interface links with this entity on it */
->  	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
->  		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index a2c7570..c0e1764 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -30,6 +30,7 @@
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
->  
-> +struct ida;
->  struct device;
->  
->  /**
-> @@ -47,6 +48,7 @@ struct device;
->   * @pad_id:	Unique ID used on the last pad registered
->   * @link_id:	Unique ID used on the last link registered
->   * @intf_devnode_id: Unique ID used on the last interface devnode registered
-> + * @entity_internal_idx: Allocated internal entity indices
->   * @entities:	List of registered entities
->   * @interfaces:	List of registered interfaces
->   * @pads:	List of registered pads
-> @@ -82,6 +84,8 @@ struct media_device {
->  	u32 pad_id;
->  	u32 link_id;
->  	u32 intf_devnode_id;
-> +	struct ida entity_internal_idx;
-> +	int entity_internal_idx_max;
->  
->  	struct list_head entities;
->  	struct list_head interfaces;
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index eebdd24..d3d3a39 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -159,6 +159,8 @@ struct media_entity_operations {
->   * @num_pads:	Number of sink and source pads.
->   * @num_links:	Number of existing links, both enabled and disabled.
->   * @num_backlinks: Number of backlinks
-> + * @internal_idx: An unique internal entity specific number. The numbers are
-> + *		re-used if entities are unregistered or registered again.
->   * @pads:	Pads array with the size defined by @num_pads.
->   * @links:	Linked list for the data links.
->   * @ops:	Entity operations.
-> @@ -187,6 +189,7 @@ struct media_entity {
->  	u16 num_pads;
->  	u16 num_links;
->  	u16 num_backlinks;
-> +	int internal_idx;
->  
->  	struct media_pad *pads;
->  	struct list_head links;
-
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+index 80167fc..e83f1a3 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
+@@ -78,6 +78,12 @@ different audio modulation if the request cannot be satisfied. However
+ this is a write-only ioctl, it does not return the actual audio
+ modulation selected.</para>
+ 
++    <para><link linkend="sdr">SDR</link> specific modulator types are
++<constant>V4L2_TUNER_SDR</constant> and <constant>V4L2_TUNER_RF</constant>.
++For SDR devices <structfield>txsubchans</structfield> field must be
++initialized to zero.
++The term modulator means SDR transmitter in this context.</para>
++
+     <para>To change the radio frequency the &VIDIOC-S-FREQUENCY; ioctl
+ is available.</para>
+ 
 -- 
+http://palosaari.fi/
 
-Cheers,
-Mauro
