@@ -1,90 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:37573 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757914AbbJ2VXg (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39210 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbbJJNgS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 17:23:36 -0400
-Received: by wmff134 with SMTP id f134so33247795wmf.0
-        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:35 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 1/9] media: rc: nuvoton-cir: remove unneeded IRQ_RETVAL usage
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56328D35.3070908@gmail.com>
-Date: Thu, 29 Oct 2015 22:18:45 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sat, 10 Oct 2015 09:36:18 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 23/26] [media] demux.h: Convert TS filter type into enum
+Date: Sat, 10 Oct 2015 10:36:06 -0300
+Message-Id: <0e6f2d1533bdd1ea08a15648e35ff4f8e0fcc612.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using IRQ_RETVAL is unneeded here. IRQ_NONE / IRQ_HANDLED can be
-returned directly.
+The usage of #define at the kABI is fine, but it doesn't
+allow adding a proper description. As those defines deserve
+a proper documentation, let's convert them into an enum and
+document them at device-drivers DocBook.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 85af7a8..3d9a4cf 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -779,7 +779,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
- 	if (!status) {
- 		nvt_dbg_verbose("%s exiting, IRSTS 0x0", __func__);
- 		nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
--		return IRQ_RETVAL(IRQ_NONE);
-+		return IRQ_NONE;
- 	}
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index 576e30fc5c18..98bff5cc4ff4 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -60,26 +60,22 @@
+  * TS packet reception
+  */
  
- 	/* ack/clear all irq flags we've got */
-@@ -790,7 +790,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
- 	iren = nvt_cir_reg_read(nvt, CIR_IREN);
- 	if (!iren) {
- 		nvt_dbg_verbose("%s exiting, CIR not enabled", __func__);
--		return IRQ_RETVAL(IRQ_NONE);
-+		return IRQ_NONE;
- 	}
+-/* TS filter type for set() */
+-
+-#define TS_PACKET       1   /*
+-			     * send TS packets (188 bytes) to callback
+-			     * (default)
+-			     */
+-
+-#define	TS_PAYLOAD_ONLY 2   /*
+-			     * in case TS_PACKET is set, only send the TS
+-			     * payload (<=184 bytes per packet) to callback
+-			     */
+-
+-#define TS_DECODER      4   /*
+-			     * send stream to built-in decoder (if present)
+-			     */
+-
+-#define TS_DEMUX        8   /*
+-			     * in case TS_PACKET is set, send the TS to
+-			     * the demux device, not to the dvr device
+-			     */
++/**
++ * enum ts_filter_type - filter type bitmap for dmx_ts_feed.set()
++ *
++ * @TS_PACKET:		Send TS packets (188 bytes) to callback (default).
++ * @TS_PAYLOAD_ONLY:	In case TS_PACKET is set, only send the TS payload
++ *			(<=184 bytes per packet) to callback
++ * @TS_DECODER:		Send stream to built-in decoder (if present).
++ * @TS_DEMUX:		In case TS_PACKET is set, send the TS to the demux
++ *			device, not to the dvr device
++ */
++enum ts_filter_type {
++	TS_PACKET = 1,
++	TS_PAYLOAD_ONLY = 2,
++	TS_DECODER = 4,
++	TS_DEMUX = 8,
++};
  
- 	if (debug)
-@@ -853,7 +853,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
- 	}
- 
- 	nvt_dbg_verbose("%s done", __func__);
--	return IRQ_RETVAL(IRQ_HANDLED);
-+	return IRQ_HANDLED;
- }
- 
- /* Interrupt service routine for CIR Wake */
-@@ -867,7 +867,7 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
- 
- 	status = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRSTS);
- 	if (!status)
--		return IRQ_RETVAL(IRQ_NONE);
-+		return IRQ_NONE;
- 
- 	if (status & CIR_WAKE_IRSTS_IR_PENDING)
- 		nvt_clear_cir_wake_fifo(nvt);
-@@ -879,7 +879,7 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
- 	iren = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IREN);
- 	if (!iren) {
- 		nvt_dbg_wake("%s exiting, wake not enabled", __func__);
--		return IRQ_RETVAL(IRQ_HANDLED);
-+		return IRQ_HANDLED;
- 	}
- 
- 	if ((status & CIR_WAKE_IRSTS_PE) &&
-@@ -896,7 +896,7 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
- 	}
- 
- 	nvt_dbg_wake("%s done", __func__);
--	return IRQ_RETVAL(IRQ_HANDLED);
-+	return IRQ_HANDLED;
- }
- 
- static void nvt_enable_cir(struct nvt_dev *nvt)
+ /**
+  * struct dmx_ts_feed - Structure that contains a TS feed filter
 -- 
-2.6.2
+2.4.3
 
 
