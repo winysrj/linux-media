@@ -1,45 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp12.smtpout.orange.fr ([80.12.242.134]:32267 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754790AbbJ0WVr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 18:21:47 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
-	<87io5wwahg.fsf@belgarion.home>
-	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
-Date: Tue, 27 Oct 2015 23:15:12 +0100
-In-Reply-To: <Pine.LNX.4.64.1510272306300.21185@axis700.grange> (Guennadi
-	Liakhovetski's message of "Tue, 27 Oct 2015 23:07:04 +0100 (CET)")
-Message-ID: <87twpcj6vj.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.kapsi.fi ([217.30.184.167]:34277 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752124AbbJJQvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2015 12:51:24 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv5 03/13] DocBook: document tuner RF gain control
+Date: Sat, 10 Oct 2015 19:50:59 +0300
+Message-Id: <1444495869-1969-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1444495869-1969-1-git-send-email-crope@iki.fi>
+References: <1444495869-1969-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Add brief description for tuner RF gain control.
 
-> Hi Robert,
->
-> Didn't you tell me, that your dmaengine patch got rejected and therefore 
-> these your patches were on hold?
-They were reverted, and then revamped into DMA_CTRL_REUSE, upstreamed and
-merged, as in the commit 272420214d26 ("dmaengine: Add DMA_CTRL_REUSE"). I'd
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml   |  4 ++++
+ Documentation/DocBook/media/v4l/controls.xml | 14 ++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml     |  1 +
+ 3 files changed, 19 insertions(+)
 
-Of course a pending fix is still underway
-(http://www.serverphorums.com/read.php?12,1318680). But that shouldn't stop us
-from reviewing to get ready to merge.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index f56faf5..eb091c7 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2600,6 +2600,10 @@ and &v4l2-mbus-framefmt;.
+ <constant>V4L2_TUNER_ADC</constant> is deprecated now.
+ 	  </para>
+ 	</listitem>
++	<listitem>
++	  <para>Added <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>
++RF Tuner control.</para>
++	</listitem>
+       </orderedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 33aece5..f13a429 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5418,6 +5418,18 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">Enables/disables IF automatic gain control (AGC)</entry>
+             </row>
+             <row>
++              <entry spanname="id"><constant>V4L2_CID_RF_TUNER_RF_GAIN</constant>&nbsp;</entry>
++              <entry>integer</entry>
++            </row>
++            <row>
++              <entry spanname="descr">The RF amplifier is the very first
++amplifier on the receiver signal path, just right after the antenna input.
++The difference between the LNA gain and the RF gain in this document is that
++the LNA gain is integrated in the tuner chip while the RF gain is a separate
++chip. There may be both RF and LNA gain controls in the same device.
++The range and step are driver-specific.</entry>
++            </row>
++            <row>
+               <entry spanname="id"><constant>V4L2_CID_RF_TUNER_LNA_GAIN</constant>&nbsp;</entry>
+               <entry>integer</entry>
+             </row>
+@@ -5425,6 +5437,8 @@ set. Unit is in Hz. The range and step are driver-specific.</entry>
+               <entry spanname="descr">LNA (low noise amplifier) gain is first
+ gain stage on the RF tuner signal path. It is located very close to tuner
+ antenna input. Used when <constant>V4L2_CID_RF_TUNER_LNA_GAIN_AUTO</constant> is not set.
++See <constant>V4L2_CID_RF_TUNER_RF_GAIN</constant> to understand how RF gain
++and LNA gain differs from the each others.
+ The range and step are driver-specific.</entry>
+             </row>
+             <row>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index c9eedc1..ab9fca4 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -156,6 +156,7 @@ applications. -->
+ 	<date>2015-05-26</date>
+ 	<authorinitials>ap</authorinitials>
+ 	<revremark>Renamed V4L2_TUNER_ADC to V4L2_TUNER_SDR.
++Added V4L2_CID_RF_TUNER_RF_GAIN control.
+ 	</revremark>
+       </revision>
+ 
+-- 
+http://palosaari.fi/
 
-I want this serie to be ready, so that as soon as Vinod merges the fix, I can
-ping you to trigger the merge into your tree, without doing (and waiting)
-additional review cycles.
-
-Cheers.
-
---
-Robert
