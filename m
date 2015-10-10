@@ -1,124 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:35477 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715AbbJAVVu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 17:21:50 -0400
-Received: by laer8 with SMTP id r8so82341830lae.2
-        for <linux-media@vger.kernel.org>; Thu, 01 Oct 2015 14:21:48 -0700 (PDT)
-Subject: Re: [PATCH] Add Terratec H7 Revision 4 to DVBSky driver
-To: Erik Andresen <erik@vontaene.de>, linux-media@vger.kernel.org
-References: <55F2ED67.3030306@vontaene.de> <55FD9BB6.9050401@vontaene.de>
- <560D9F1F.7040505@gmail.com>
-From: =?UTF-8?Q?Roger_M=c3=a5rtensson?= <roger.martensson@gmail.com>
-Message-ID: <560DA3DF.4060401@gmail.com>
-Date: Thu, 1 Oct 2015 23:21:35 +0200
+Received: from bombadil.infradead.org ([198.137.202.9]:39213 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013AbbJJNgS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Oct 2015 09:36:18 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 21/26] [media] DocBook: document typedef dmx_ts_cb at demux.h
+Date: Sat, 10 Oct 2015 10:36:04 -0300
+Message-Id: <0cf35e8420dd26fac4ba08c67fab92076ea81809.1444483819.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <560D9F1F.7040505@gmail.com>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
+References: <cover.1444483819.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=true
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Den 2015-10-01 kl. 23:01, skrev Roger M�rtensson:
-> Den 2015-09-19 kl. 19:30, skrev Erik Andresen:
->> Adds Terratec H7 Rev. 4 with USB id 0ccd:10a5 to DVBSky driver.
->
-> I have tested this on a Custom Linux 4.2 kernel and it is working as 
-> expected.
-> Noticed a few things.
->
-> 1) "Supported:" on ir-keytable doesn't show anything.
-> 1b) Setting RC-5 with ir-keytable -p gives me an error.
-> 2) Keymap tt-1500 may be for dvbsky but not for H7 Rev 4. Needed to do 
-> my own keymap. (48 button remote)
-> 2b) The Remote buttons "Music" and "Pic" doesn't give any scancodes in 
-> ir-keytable -t.
->
-> I have tested in a DVB-C environment with CAM/CI and encrypted channels.
-> I have two H7 devices and one of them seem to get into a hang and 
-> needs to be powercycled now and then. At the moment it is always the 
-> same one that hangs. A linux reboot does not help but I need to do it 
-> sometimes together with a power cycle of the hanging device.
->
->
-I forgot something and I'm not sure you have the right documentation for 
-it. Some operations seems not to be implemented.
-I get a lot of error in MythTV when locking to a channel. It sure would 
-be nice to see it implemented. It doesn't do any harm. Only filling up 
-the log.
+The dvb/kdapi.tmpl has already an extensive documentation about
+this callback. Now that we've added function typedefs at kernel-doc,
+add such documentation at demux.h, for it to appear at device-drivers
+DocBook.
 
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: E TVRecEvent 
-recorders/dvbchannel.cpp:1026 (GetSignalStrength) 
-DVBChan[23](/dev/dvb/adapter2/frontend0): Getting Frontend signal 
-strength failed.#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: W TVRecEvent 
-recorders/dvbsignalmonitor.cpp:91 (DVBSignalMonitor) 
-DVBSigMon[23](/dev/dvb/adapter2/frontend0): Cannot measure Signal 
-Strength#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: E TVRecEvent 
-recorders/dvbchannel.cpp:1055 (GetSNR) 
-DVBChan[23](/dev/dvb/adapter2/frontend0): Getting Frontend signal/noise 
-ratio failed.#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: W TVRecEvent 
-recorders/dvbsignalmonitor.cpp:93 (DVBSignalMonitor) 
-DVBSigMon[23](/dev/dvb/adapter2/frontend0): Cannot measure 
-S/N#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: E TVRecEvent 
-recorders/dvbchannel.cpp:1081 (GetBitErrorRate) 
-DVBChan[23](/dev/dvb/adapter2/frontend0): Getting Frontend signal error 
-rate failed.#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: W TVRecEvent 
-recorders/dvbsignalmonitor.cpp:95 (DVBSignalMonitor) 
-DVBSigMon[23](/dev/dvb/adapter2/frontend0): Cannot measure Bit Error 
-Rate#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: E TVRecEvent 
-recorders/dvbchannel.cpp:1107 (GetUncorrectedBlockCount) 
-DVBChan[23](/dev/dvb/adapter2/frontend0): Getting Frontend uncorrected 
-block count failed.#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: W TVRecEvent 
-recorders/dvbsignalmonitor.cpp:97 (DVBSignalMonitor) 
-DVBSigMon[23](/dev/dvb/adapter2/frontend0): Cannot count Uncorrected 
-Blocks#012#011#011#011eno: Operation not supported (95)
-Oct  1 23:11:16 tvpc mythbackend: mythbackend[2911]: E SignalMonitor 
-recorders/dvbchannel.cpp:1026 (GetSignalStrength) 
-DVBChan[23](/dev/dvb/adapter2/frontend0): Getting Frontend signal 
-strength failed.#012#011#011#011eno: Operation not supported (95)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
->> Signed-off-by: Erik Andresen <erik@vontaene.de>
->> ---
->>   drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
->>   drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++++
->>   2 files changed, 5 insertions(+)
->>
->> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h 
->> b/drivers/media/dvb-core/dvb-usb-ids.h
->> index c117fb3..0a46580 100644
->> --- a/drivers/media/dvb-core/dvb-usb-ids.h
->> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
->> @@ -257,6 +257,7 @@
->>   #define USB_PID_TERRATEC_CINERGY_T_XXS_2        0x00ab
->>   #define USB_PID_TERRATEC_H7                0x10b4
->>   #define USB_PID_TERRATEC_H7_2                0x10a3
->> +#define USB_PID_TERRATEC_H7_3                0x10a5
->>   #define USB_PID_TERRATEC_T3                0x10a0
->>   #define USB_PID_TERRATEC_T5                0x10a1
->>   #define USB_PID_NOXON_DAB_STICK                0x00b3
->> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c 
->> b/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> index cdf59bc..8f526a4 100644
->> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> @@ -841,6 +841,10 @@ static const struct usb_device_id 
->> dvbsky_id_table[] = {
->>           USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI,
->>           &dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI",
->>           RC_MAP_TT_1500) },
->> +        { DVB_USB_DEVICE(USB_VID_TERRATEC,
->> +                USB_PID_TERRATEC_H7_3,
->> +                &dvbsky_t680c_props, "Terratec H7 Rev.4",
->> +                RC_MAP_TT_1500) },
->>       { }
->>   };
->>   MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
->
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index 7405d6e2297d..39e644113350 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -195,6 +195,61 @@ struct dmx_section_feed {
+  * Callback functions
+  */
+ 
++/**
++ * typedef dmx_ts_cb - DVB demux TS filter callback function prototype
++ *
++ * @buffer1:		Pointer to the start of the filtered TS packets.
++ * @buffer1_length:	Length of the TS data in buffer1.
++ * @buffer2:		Pointer to the tail of the filtered TS packets, or NULL.
++ * @buffer2_length:	Length of the TS data in buffer2.
++ * @source:		Indicates which TS feed is the source of the callback.
++ *
++ * This function callback prototype, provided by the client of the demux API,
++ * is called from the demux code. The function is only called when filtering
++ * on ae TS feed has been enabled using the start_filtering() function at
++ * the &dmx_demux.
++ * Any TS packets that match the filter settings are copied to a circular
++ * buffer. The filtered TS packets are delivered to the client using this
++ * callback function. The size of the circular buffer is controlled by the
++ * circular_buffer_size parameter of the &dmx_ts_feed.@set function.
++ * It is expected that the @buffer1 and @buffer2 callback parameters point to
++ * addresses within the circular buffer, but other implementations are also
++ * possible. Note that the called party should not try to free the memory
++ * the @buffer1 and @buffer2 parameters point to.
++ *
++ * When this function is called, the @buffer1 parameter typically points to
++ * the start of the first undelivered TS packet within a circular buffer.
++ * The @buffer2 buffer parameter is normally NULL, except when the received
++ * TS packets have crossed the last address of the circular buffer and
++ * ”wrapped” to the beginning of the buffer. In the latter case the @buffer1
++ * parameter would contain an address within the circular buffer, while the
++ * @buffer2 parameter would contain the first address of the circular buffer.
++ * The number of bytes delivered with this function (i.e. @buffer1_length +
++ * @buffer2_length) is usually equal to the value of callback_length parameter
++ * given in the set() function, with one exception: if a timeout occurs before
++ * receiving callback_length bytes of TS data, any undelivered packets are
++ * immediately delivered to the client by calling this function. The timeout
++ * duration is controlled by the set() function in the TS Feed API.
++ *
++ * If a TS packet is received with errors that could not be fixed by the
++ * TS-level forward error correction (FEC), the Transport_error_indicator
++ * flag of the TS packet header should be set. The TS packet should not be
++ * discarded, as the error can possibly be corrected by a higher layer
++ * protocol. If the called party is slow in processing the callback, it
++ * is possible that the circular buffer eventually fills up. If this happens,
++ * the demux driver should discard any TS packets received while the buffer
++ * is full and return -EOVERFLOW.
++ *
++ * The type of data returned to the callback can be selected by the
++ * &dmx_ts_feed.@set function. The type parameter decides if the raw
++ * TS packet (TS_PACKET) or just the payload (TS_PACKET|TS_PAYLOAD_ONLY)
++ * should be returned. If additionally the TS_DECODER bit is set the stream
++ * will also be sent to the hardware MPEG decoder.
++ *
++ * Return:
++ * 	0, on success;
++ * 	-EOVERFLOW, on buffer overflow.
++ */
+ typedef int (*dmx_ts_cb)(const u8 *buffer1,
+ 			 size_t buffer1_length,
+ 			 const u8 *buffer2,
+-- 
+2.4.3
+
 
