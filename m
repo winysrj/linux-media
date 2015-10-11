@@ -1,95 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:59500 "EHLO
-	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751182AbbJTXZV (ORCPT
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:35864 "EHLO
+	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102AbbJKLHL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 19:25:21 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen v2 3/3] media: au0828 create link between ALSA Mixer and decoder
-Date: Tue, 20 Oct 2015 17:25:16 -0600
-Message-Id: <c2499491a5c4f215efeaf15312078736a207afab.1445380851.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1445380851.git.shuahkh@osg.samsung.com>
-References: <cover.1445380851.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1445380851.git.shuahkh@osg.samsung.com>
-References: <cover.1445380851.git.shuahkh@osg.samsung.com>
+	Sun, 11 Oct 2015 07:07:11 -0400
+Received: by oihr205 with SMTP id r205so3559215oih.3
+        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2015 04:07:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOS+5GHHPgyXnGncmcLSEXYy7R1CgyODOnFDSetzQ0khrWG+0A@mail.gmail.com>
+References: <CAOS+5GGaHQvO30fhgG6PYGc2POHFiFwHvDozZ6k6f_1MEy9_eA@mail.gmail.com>
+	<CAGoCfiyuG0q-pCsPsSkMPFa8V+qo97ewY7ngyu4Mhmu_45RDYw@mail.gmail.com>
+	<CAOS+5GGC8-Pbx9eoA0eNYU0sH5bEzqUKsuowog2BQ214djUmjA@mail.gmail.com>
+	<CAGoCfixkrKSAcY_mmW51OQX7es4tL3_dyWMtbQ6a5oVXjE-5mQ@mail.gmail.com>
+	<CAOS+5GGbS+RswFTWVxiPsbZ46OD693qqVHuEdYYmd7JeOUi4Bg@mail.gmail.com>
+	<CAOS+5GHHPgyXnGncmcLSEXYy7R1CgyODOnFDSetzQ0khrWG+0A@mail.gmail.com>
+Date: Sun, 11 Oct 2015 12:07:10 +0100
+Message-ID: <CAOS+5GF43UgzTYAoV88dD=VXOOX0kDstFtG6vZ=w9zOQKz8QEw@mail.gmail.com>
+Subject: Re: Elgato Eye TV Deluxe V2 supported?
+From: Another Sillyname <anothersname@googlemail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828_create_media_graph() to create pad link
-between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
-AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
-decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
-mixer's source pad.
+I realise this is from over a year ago but I ended up putting it to
+one side till the kernel 'caught up' as it were.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 17 ++++++++++++++---
- drivers/media/usb/au0828/au0828.h      |  1 +
- 2 files changed, 15 insertions(+), 3 deletions(-)
+Looking at github/torvalds/linux/tree/master/drivers/media/dvb-frontends
+it looks like the as102 support is now in mainline and indeed looking
+at staging there's no reference at all to any as102 devices.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 7af5d0d..3ef6fee 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -225,6 +225,7 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 	struct media_entity *entity;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
- 	struct media_entity *audio_capture = NULL;
-+	struct media_entity *mixer = NULL;
- 	int i, ret;
- 
- 	if (!mdev)
-@@ -245,6 +246,9 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 		case MEDIA_ENT_F_AUDIO_CAPTURE:
- 			audio_capture = entity;
- 			break;
-+		case MEDIA_ENT_F_AUDIO_MIXER:
-+			mixer = entity;
-+			break;
- 		}
- 	}
- 
-@@ -309,13 +313,20 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 		}
- 	}
- 
--	if (audio_capture && !dev->audio_capture_linked) {
--		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
--					    audio_capture, 0,
-+	if (mixer && audio_capture && !dev->audio_capture_linked) {
-+		ret = media_create_pad_link(mixer, 1, audio_capture, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret == 0)
- 			dev->audio_capture_linked = 1;
- 	}
-+
-+	if (mixer && !dev->mixer_linked) {
-+		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
-+					    mixer, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->mixer_linked = 1;
-+	}
- #endif
- }
- 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 2f4d597..6dd81b2 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -288,6 +288,7 @@ struct au0828_dev {
- 	bool vdev_linked;
- 	bool vbi_linked;
- 	bool audio_capture_linked;
-+	bool mixer_linked;
- 	struct media_link *active_link;
- 	struct media_entity *active_link_owner;
- #endif
--- 
-2.1.4
+I've just installed FC22 Kernel 4-1-10-200 x86_64 onto a box and
+installed the required firmware files into /lib/firmware in the hope
+the device would now work....unfortunately plugging it in gives me
+exactly the same as early last year.....no firmware load even though
+dmesg sees the device installed.
 
+Am I still stuck with potentially having to compile a custom kernel to
+support this device under Fedora (which isn't an option due to SELinux
+issues it would present elsewhere).
+
+Thanks in advance.
+
+On 2 May 2014 at 14:52, Another Sillyname <anothersname@googlemail.com> wrote:
+> OK, I realise I should be able to work this out....but I'm stuck and
+> no matter how much I read I've developed a mental block (think of it
+> as the computing version of writers block).
+>
+> I use Fedora as my primary OS, currently Fedora 20 latest kernel 3.13
+>
+> I need to keep using this kernel as I use SELinux for a couple of
+> things on my server and compiling a vanilla kernel and patching
+> SELinux in is just way too messy........
+>
+> As the V4L-DVB Media_Tree is NOT included in the kernel-devel version
+> of the Fedora kernel it requires a complete kernel compile to download
+> the required media tree, however I can't then get the V4L-DVB media
+> tree from git to patch against the Fedora (uncompiled) kernel prior to
+> compilation, I've installed all the tools required (I have built a few
+> kernels before when I needed to) but I've just hit a mental wall......
+>
+> Help!!
+>
+>
+>
+> On 25 April 2014 20:06, Another Sillyname <anothersname@googlemail.com> wrote:
+>> OK, I'm not a coder these days but I'll look and see if I can work it out.
+>>
+>> Regards and have a good weekend.
+>>
+>> Tony
+>>
+>> On 25 April 2014 19:54, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+>>>> Is the as102 tree ever likely to go mainline?
+>>>
+>>> The only reason it's in staging is because it doesn't meet the coding
+>>> standards (i.e. whitespace, variable naming, etc).  Somebody needs to
+>>> come along and expend the energy to satisfy the whitespace gods.
+>>>
+>>> Seems like a fantastically stupid reason to keep a working driver out
+>>> of the mainline, but that's just my opinion.
+>>>
+>>> Devin
+>>>
+>>> --
+>>> Devin J. Heitmueller - Kernel Labs
+>>> http://www.kernellabs.com
