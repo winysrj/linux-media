@@ -1,209 +1,522 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:14507 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752475AbbJVCXn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2015 22:23:43 -0400
-Date: Thu, 22 Oct 2015 10:23:49 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: [shuah:alsa_mc_next_gen 54/113] DockBook:
- Warning(drivers/media/dvb-core/dvbdev.h:159): No description found for
- parameter 'tsout_num_entities'
-Message-ID: <201510221048.Uk8jy4rm%fengguang.wu@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44662 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751620AbbJLPfm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2015 11:35:42 -0400
+Date: Mon, 12 Oct 2015 18:35:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v8 32/55] [media] media: use macros to check for V4L2
+ subdev entities
+Message-ID: <20151012153504.GL26916@valkosipuli.retiisi.org.uk>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+ <b94146f3b95e9adb08b11fffc896a9e747b2fa9c.1440902901.git.mchehab@osg.samsung.com>
+ <20151011210752.GK26916@valkosipuli.retiisi.org.uk>
+ <20151011215625.779630d9@recife.lan>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="2fHTh5uZTiUOsy+g"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20151011215625.779630d9@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Sun, Oct 11, 2015 at 09:56:25PM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 12 Oct 2015 00:07:52 +0300
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Sun, Aug 30, 2015 at 12:06:43AM -0300, Mauro Carvalho Chehab wrote:
+> > > Instead of relying on media subtype, use the new macros to detect
+> > > if an entity is a subdev or an A/V DMA entity.
+> > > 
+> > > Please note that most drivers assume that there's just AV_DMA or
+> > > V4L2 subdevs. This is not true anymore, as we've added MC support
+> > > for DVB, and there are plans to add support for ALSA and FB/DRM
+> > > too.
+> > > 
+> > > Ok, on the current pipelines supported by those drivers, just V4L
+> > > stuff are there, but, assuming that some day a pipeline that also
+> > > works with other subsystems will ever added, it is better to add
+> > > explicit checks for the AV_DMA stuff.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > 
+> > > diff --git a/drivers/media/platform/exynos4-is/common.c b/drivers/media/platform/exynos4-is/common.c
+> > > index 0eb34ecb8ee4..8c9a29e0e294 100644
+> > > --- a/drivers/media/platform/exynos4-is/common.c
+> > > +++ b/drivers/media/platform/exynos4-is/common.c
+> > > @@ -22,8 +22,7 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
+> > >  	while (pad->flags & MEDIA_PAD_FL_SINK) {
+> > >  		/* source pad */
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > index 0627a93b2f3b..e9810fee4c30 100644
+> > > --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > @@ -1141,8 +1141,7 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
+> > >  			}
+> > >  		}
+> > >  
+> > > -		if (src_pad == NULL ||
+> > > -		    media_entity_type(src_pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!src_pad || !is_media_entity_v4l2_subdev(src_pad->entity))
+> > >  			break;
+> > >  
+> > >  		/* Don't call FIMC subdev operation to avoid nested locking */
+> > > @@ -1397,7 +1396,7 @@ static int fimc_link_setup(struct media_entity *entity,
+> > >  	struct fimc_vid_cap *vc = &fimc->vid_cap;
+> > >  	struct v4l2_subdev *sensor;
+> > >  
+> > > -	if (media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> > >  		return -EINVAL;
+> > >  
+> > >  	if (WARN_ON(fimc == NULL))
+> > > diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > index 3d9ccbf5f10f..5fbaf5e39903 100644
+> > > --- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > +++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > @@ -467,8 +467,7 @@ static int isp_video_pipeline_validate(struct fimc_isp *isp)
+> > >  
+> > >  		/* Retrieve format at the source pad */
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > index b2607da4ad14..c2327147b360 100644
+> > > --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > @@ -814,8 +814,7 @@ static int fimc_pipeline_validate(struct fimc_lite *fimc)
+> > >  		}
+> > >  		/* Retrieve format at the source pad */
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > @@ -988,7 +987,6 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > >  {
+> > >  	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> > >  	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+> > > -	unsigned int remote_ent_type = media_entity_type(remote->entity);
+> > >  	int ret = 0;
+> > >  
+> > >  	if (WARN_ON(fimc == NULL))
+> > > @@ -1000,7 +998,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > >  
+> > >  	switch (local->index) {
+> > >  	case FLITE_SD_PAD_SINK:
+> > > -		if (remote_ent_type != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > +		if (!is_media_entity_v4l2_subdev(remote->entity)) {
+> > >  			ret = -EINVAL;
+> > >  			break;
+> > >  		}
+> > > @@ -1018,7 +1016,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > >  	case FLITE_SD_PAD_SOURCE_DMA:
+> > >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> > >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > > -		else if (remote_ent_type == MEDIA_ENT_T_DEVNODE)
+> > > +		else if (is_media_entity_v4l2_io(remote->entity))
+> > >  			atomic_set(&fimc->out_path, FIMC_IO_DMA);
+> > >  		else
+> > >  			ret = -EINVAL;
+> > > @@ -1027,7 +1025,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > >  	case FLITE_SD_PAD_SOURCE_ISP:
+> > >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> > >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > > -		else if (remote_ent_type == MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		else if (is_media_entity_v4l2_subdev(remote->entity))
+> > >  			atomic_set(&fimc->out_path, FIMC_IO_ISP);
+> > >  		else
+> > >  			ret = -EINVAL;
+> > > diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> > > index 92dbade2fffc..4a25df9dd869 100644
+> > > --- a/drivers/media/platform/exynos4-is/media-dev.c
+> > > +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> > > @@ -88,8 +88,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+> > >  				break;
+> > >  		}
+> > >  
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > >  
+> > > @@ -1062,7 +1061,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (!is_media_entity_v4l2_io(entity))
+> > >  			continue;
+> > >  
+> > >  		ret  = __fimc_md_modify_pipeline(entity, enable);
+> > > @@ -1076,7 +1075,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+> > >  	media_entity_graph_walk_start(&graph, entity_err);
+> > >  
+> > >  	while ((entity_err = media_entity_graph_walk_next(&graph))) {
+> > > -		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (!is_media_entity_v4l2_io(entity_err))
+> > >  			continue;
+> > >  
+> > >  		__fimc_md_modify_pipeline(entity_err, !enable);
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> > > index 69e7733d36cd..cb8ac90086c1 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -691,7 +691,7 @@ static int isp_pipeline_pm_use_count(struct media_entity *entity)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_io(entity))
+> > >  			use += entity->use_count;
+> > >  	}
+> > >  
+> > > @@ -714,7 +714,7 @@ static int isp_pipeline_pm_power_one(struct media_entity *entity, int change)
+> > >  	struct v4l2_subdev *subdev;
+> > >  	int ret;
+> > >  
+> > > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > > +	subdev = is_media_entity_v4l2_subdev(entity)
+> > >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > >  
+> > >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > > @@ -754,7 +754,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  
+> > >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_subdev(entity))
+> > >  			ret = isp_pipeline_pm_power_one(entity, change);
+> > >  
+> > >  	if (!ret)
+> > > @@ -764,7 +764,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+> > >  
+> > >  	while ((first = media_entity_graph_walk_next(&graph))
+> > >  	       && first != entity)
+> > > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_subdev(first))
+> > >  			isp_pipeline_pm_power_one(first, -change);
+> > >  
+> > >  	return ret;
+> > > @@ -897,8 +897,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+> > >  			break;
+> > >  
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = pad->entity;
+> > > @@ -988,8 +987,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+> > >  			break;
+> > >  
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = pad->entity;
+> > > diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> > > index 4c367352b1f7..52843ac2a9ca 100644
+> > > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > > @@ -210,8 +210,7 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+> > >  
+> > >  	remote = media_entity_remote_pad(&video->pad);
+> > >  
+> > > -	if (remote == NULL ||
+> > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > >  		return NULL;
+> > >  
+> > >  	if (pad)
+> > > @@ -243,7 +242,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+> > >  		if (entity == &video->video.entity)
+> > >  			continue;
+> > >  
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (!is_media_entity_v4l2_io(entity))
+> > >  			continue;
+> > >  
+> > >  		__video = to_isp_video(media_entity_to_video_device(entity));
+> > > @@ -917,7 +916,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+> > >  		return -EINVAL;
+> > >  	}
+> > >  
+> > > -	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!is_media_entity_v4l2_subdev(source))
+> > >  		return 0;
+> > >  
+> > >  	pipe->external = media_entity_to_v4l2_subdev(source);
+> > > diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+> > > index eae667eab1b9..fb5b016cc0a1 100644
+> > > --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> > > +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> > > @@ -837,7 +837,7 @@ static int camif_pipeline_validate(struct camif_dev *camif)
+> > >  
+> > >  	/* Retrieve format at the sensor subdev source pad */
+> > >  	pad = media_entity_remote_pad(&camif->pads[0]);
+> > > -	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  		return -EPIPE;
+> > >  
+> > >  	src_fmt.pad = pad->index;
+> > > diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> > > index 1f94c1a54e00..f74158224b93 100644
+> > > --- a/drivers/media/platform/vsp1/vsp1_video.c
+> > > +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> > > @@ -160,8 +160,7 @@ vsp1_video_remote_subdev(struct media_pad *local, u32 *pad)
+> > >  	struct media_pad *remote;
+> > >  
+> > >  	remote = media_entity_remote_pad(local);
+> > > -	if (remote == NULL ||
+> > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > >  		return NULL;
+> > >  
+> > >  	if (pad)
+> > > @@ -326,7 +325,7 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+> > >  			return -EPIPE;
+> > >  
+> > >  		/* We've reached a video node, that shouldn't have happened. */
+> > > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> > >  			return -EPIPE;
+> > >  
+> > >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > > @@ -423,7 +422,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+> > >  		struct vsp1_rwpf *rwpf;
+> > >  		struct vsp1_entity *e;
+> > >  
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > +		if (is_media_entity_v4l2_io(entity)) {
+> > >  			pipe->num_video++;
+> > >  			continue;
+> > >  		}
+> > > @@ -692,7 +691,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+> > >  	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
+> > >  
+> > >  	while (pad) {
+> > > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> > > index 88cd789cdaf7..8e14841bf445 100644
+> > > --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> > > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> > > @@ -49,8 +49,7 @@ xvip_dma_remote_subdev(struct media_pad *local, u32 *pad)
+> > >  	struct media_pad *remote;
+> > >  
+> > >  	remote = media_entity_remote_pad(local);
+> > > -	if (remote == NULL ||
+> > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > >  		return NULL;
+> > >  
+> > >  	if (pad)
+> > > @@ -113,8 +112,7 @@ static int xvip_pipeline_start_stop(struct xvip_pipeline *pipe, bool start)
+> > >  			break;
+> > >  
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = pad->entity;
+> > > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> > > index e6e1115d8215..60da43772de9 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > > @@ -526,7 +526,7 @@ static int
+> > >  v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> > >  				     struct v4l2_subdev_format *fmt)
+> > >  {
+> > > -	if (media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > +	if (is_media_entity_v4l2_subdev(pad->entity)) {
+> > >  		struct v4l2_subdev *sd =
+> > >  			media_entity_to_v4l2_subdev(pad->entity);
+> > >  
+> > > diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > index 92573fa852a9..16763e0831f2 100644
+> > > --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > @@ -148,7 +148,7 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > >  		if (entity == &video->video_dev.entity)
+> > >  			continue;
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if ((!is_media_entity_v4l2_io(remote->entity))
+> > >  			continue;
+> > >  		far_end = to_vpfe_video(media_entity_to_video_device(entity));
+> > >  		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > > @@ -293,7 +293,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > >  
+> > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > +		if !is_media_entity_v4l2_subdev(entity))
+> > >  			continue;
+> > >  		subdev = media_entity_to_v4l2_subdev(entity);
+> > >  		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+> > > @@ -334,7 +334,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+> > >  
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > >  
+> > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > +		if (!is_media_entity_v4l2_subdev(entity))
+> > >  			continue;
+> > >  		subdev = media_entity_to_v4l2_subdev(entity);
+> > >  		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
+> > > diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+> > > index 40591963b42b..44b88ff3ba83 100644
+> > > --- a/drivers/staging/media/omap4iss/iss.c
+> > > +++ b/drivers/staging/media/omap4iss/iss.c
+> > > @@ -397,7 +397,7 @@ static int iss_pipeline_pm_use_count(struct media_entity *entity)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  
+> > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_io(entity))
+> > >  			use += entity->use_count;
+> > >  	}
+> > >  
+> > > @@ -419,7 +419,7 @@ static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
+> > >  {
+> > >  	struct v4l2_subdev *subdev;
+> > >  
+> > > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > > +	subdev = is_media_entity_v4l2_subdev(entity)
+> > >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > >  
+> > >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > > @@ -461,7 +461,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
+> > >  	media_entity_graph_walk_start(&graph, entity);
+> > >  
+> > >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_subdev(entity))
+> > >  			ret = iss_pipeline_pm_power_one(entity, change);
+> > >  
+> > >  	if (!ret)
+> > > @@ -471,7 +471,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
+> > >  
+> > >  	while ((first = media_entity_graph_walk_next(&graph))
+> > >  	       && first != entity)
+> > > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (is_media_entity_v4l2_subdev(first))
+> > >  			iss_pipeline_pm_power_one(first, -change);
+> > >  
+> > >  	return ret;
+> > > @@ -590,8 +590,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+> > >  			break;
+> > >  
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = pad->entity;
+> > > @@ -658,8 +657,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+> > >  			break;
+> > >  
+> > >  		pad = media_entity_remote_pad(pad);
+> > > -		if (pad == NULL ||
+> > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > >  			break;
+> > >  
+> > >  		entity = pad->entity;
+> > > diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+> > > index 45a3f2d778fc..cbe5783735dc 100644
+> > > --- a/drivers/staging/media/omap4iss/iss_video.c
+> > > +++ b/drivers/staging/media/omap4iss/iss_video.c
+> > > @@ -191,8 +191,7 @@ iss_video_remote_subdev(struct iss_video *video, u32 *pad)
+> > >  
+> > >  	remote = media_entity_remote_pad(&video->pad);
+> > >  
+> > > -	if (remote == NULL ||
+> > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > >  		return NULL;
+> > >  
+> > >  	if (pad)
+> > > @@ -217,7 +216,7 @@ iss_video_far_end(struct iss_video *video)
+> > >  		if (entity == &video->video.entity)
+> > >  			continue;
+> > >  
+> > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > +		if (!is_media_entity_v4l2_io(entity))
+> > >  			continue;
+> > >  
+> > >  		far_end = to_iss_video(media_entity_to_video_device(entity));
+> > 
+> > I finally got around to test these patches eventually, and after some
+> > debugging found this one. I think it's a good idea to have macros to
+> > determine whether an entity exposes a V4L2 sub-device interface but it
+> > should be more robust than is_media_entity_v4l2_subdev() right now is.
+> 
+> Hmm... Not sure what you're meaning... the V4L2 sub-device interface is
+> actually a separate graph object (interfaces). Those macros work at the
+> entities, not at the interface objects.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/shuah/linux.git alsa_mc_next_gen
-head:   c24b36476a8eccb0e797729bf1555d3a615bc14d
-commit: c341cfe0a01b76b00e44d3e8799b76efb402c6f0 [54/113] [media] dvb: modify core to implement interfaces/entities at MC new gen
-reproduce: make htmldocs
+is_media_entity_v4l2_subdev() will produce wrong results for a large part of
+V4L2 sub-devices with these patches applied.
 
-All warnings (new ones prefixed by >>):
+I checked again the original implementation, and it seems to be based only
+on the type as well, albeit that's a range, not a set of different
+functions.
 
-   Warning(kernel/sys.c): no structured comments found
-   Warning(drivers/dma-buf/seqno-fence.c): no structured comments found
-   Warning(drivers/dma-buf/reservation.c): no structured comments found
-   Warning(include/linux/reservation.h): no structured comments found
-   Warning(include/media/v4l2-dv-timings.h:29): cannot understand function prototype: 'const struct v4l2_dv_timings v4l2_dv_timings_presets[]; '
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'frame_height'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'hfreq'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'vsync'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'active_width'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'polarities'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'interlaced'
-   Warning(include/media/v4l2-dv-timings.h:147): No description found for parameter 'fmt'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'frame_height'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'hfreq'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'vsync'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'polarities'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'interlaced'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'aspect'
-   Warning(include/media/v4l2-dv-timings.h:171): No description found for parameter 'fmt'
-   Warning(include/media/v4l2-dv-timings.h:184): No description found for parameter 'hor_landscape'
-   Warning(include/media/v4l2-dv-timings.h:184): No description found for parameter 'vert_portrait'
-   Warning(include/media/videobuf2-core.h:112): No description found for parameter 'get_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_alloc'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_put'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_get_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_get_userptr'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_put_userptr'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_prepare'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_finish'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_attach_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_detach_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_map_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_unmap_dmabuf'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_vaddr'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_cookie'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_num_users'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_mem_mmap'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_init'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_prepare'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_finish'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_cleanup'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_queue'
-   Warning(include/media/videobuf2-core.h:231): No description found for parameter 'cnt_buf_done'
-   Warning(drivers/media/dvb-core/dvbdev.h:159): No description found for parameter 'intf_devnode'
->> Warning(drivers/media/dvb-core/dvbdev.h:159): No description found for parameter 'tsout_num_entities'
->> Warning(drivers/media/dvb-core/dvbdev.h:159): No description found for parameter 'tsout_entity'
->> Warning(drivers/media/dvb-core/dvbdev.h:159): No description found for parameter 'tsout_pads'
->> Warning(drivers/media/dvb-core/dvbdev.h:203): No description found for parameter 'demux_sink_pads'
-   Warning(drivers/media/dvb-core/dvbdev.h:203): Excess function parameter 'device' description in 'dvb_register_device'
-   Warning(drivers/media/dvb-core/dvbdev.h:203): Excess function parameter 'adapter_nums' description in 'dvb_register_device'
-   Warning(include/media/media-entity.h:69): No description found for parameter 'mdev'
-   Warning(include/linux/hsi/hsi.h:150): Excess struct/union/enum/typedef member 'e_handler' description in 'hsi_client'
-   Warning(include/linux/hsi/hsi.h:150): Excess struct/union/enum/typedef member 'pclaimed' description in 'hsi_client'
-   Warning(include/linux/hsi/hsi.h:150): Excess struct/union/enum/typedef member 'nb' description in 'hsi_client'
+I suppose this will change at some point in the future: the interface indeed
+should not be determined by the function of the entity. At least it needs to
+be fixed now until the rework. I'll submit a patch for that.
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+-- 
+Regards,
 
---2fHTh5uZTiUOsy+g
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-CS/VEp1mRlF/AT1zKwE0VAAA
-
---2fHTh5uZTiUOsy+g--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
