@@ -1,82 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39212 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999AbbJJNgS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:18 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:48400 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751659AbbJLP6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2015 11:58:15 -0400
+Date: Mon, 12 Oct 2015 12:58:06 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 22/26] [media] DocBook: document typedef dmx_section_cb at demux.h
-Date: Sat, 10 Oct 2015 10:36:05 -0300
-Message-Id: <4be45fb467e1dd57255056527191d61d8d16e1b3.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	kgene@kernel.org, k.kozlowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, hyun.kwon@xilinx.com,
+	michal.simek@xilinx.com, soren.brinkmann@xilinx.com,
+	gregkh@linuxfoundation.org, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, lars@metafoo.de,
+	elfring@users.sourceforge.net, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH 1/1] media: Correctly determine whether an entity is a
+ sub-device
+Message-ID: <20151012125806.65ad436a@recife.lan>
+In-Reply-To: <1444664303-18454-1-git-send-email-sakari.ailus@iki.fi>
+References: <20151011215625.779630d9@recife.lan>
+	<1444664303-18454-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb/kdapi.tmpl has already an extensive documentation about
-this callback. Now that we've added function typedefs at kernel-doc,
-add such documentation at demux.h, for it to appear at device-drivers
-DocBook.
+Em Mon, 12 Oct 2015 18:38:23 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> If the function of an entity is not one of the pre-defined ones, it is not
+> correctly recognised as a V4L2 sub-device.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/media/media-entity.h | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index a60872a..76e9a124 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -328,6 +328,7 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+>  	case MEDIA_ENT_F_LENS:
+>  	case MEDIA_ENT_F_ATV_DECODER:
+>  	case MEDIA_ENT_F_TUNER:
+> +	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
+>  		return true;
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 39e644113350..576e30fc5c18 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -256,11 +256,46 @@ typedef int (*dmx_ts_cb)(const u8 *buffer1,
- 			 size_t buffer2_length,
- 			 struct dmx_ts_feed *source);
- 
-+/**
-+ * typedef dmx_section_cb - DVB demux TS filter callback function prototype
-+ *
-+ * @buffer1:		Pointer to the start of the filtered section, e.g.
-+ *			within the circular buffer of the demux driver.
-+ * @buffer1_len:	Length of the filtered section data in @buffer1,
-+ *			including headers and CRC.
-+ * @buffer2:		Pointer to the tail of the filtered section data,
-+ *			or NULL. Useful to handle the wrapping of a
-+ *			circular buffer.
-+ * @buffer2_len:	Length of the filtered section data in @buffer2,
-+ *			including headers and CRC.
-+ * @source:		Indicates which section feed is the source of the
-+ *			callback.
-+ *
-+ * This function callback prototype, provided by the client of the demux API,
-+ * is called from the demux code. The function is only called when
-+ * filtering of sections has been enabled using the function
-+ * &dmx_ts_feed.@start_filtering. When the demux driver has received a
-+ * complete section that matches at least one section filter, the client
-+ * is notified via this callback function. Normally this function is called
-+ * for each received section; however, it is also possible to deliver
-+ * multiple sections with one callback, for example when the system load
-+ * is high. If an error occurs while receiving a section, this
-+ * function should be called with the corresponding error type set in the
-+ * success field, whether or not there is data to deliver. The Section Feed
-+ * implementation should maintain a circular buffer for received sections.
-+ * However, this is not necessary if the Section Feed API is implemented as
-+ * a client of the TS Feed API, because the TS Feed implementation then
-+ * buffers the received data. The size of the circular buffer can be
-+ * configured using the &dmx_ts_feed.@set function in the Section Feed API.
-+ * If there is no room in the circular buffer when a new section is received,
-+ * the section must be discarded. If this happens, the value of the success
-+ * parameter should be DMX_OVERRUN_ERROR on the next callback.
-+ */
- typedef int (*dmx_section_cb)(const u8 *buffer1,
- 			      size_t buffer1_len,
- 			      const u8 *buffer2,
- 			      size_t buffer2_len,
--			     struct dmx_section_filter *source);
-+			      struct dmx_section_filter *source);
- 
- /*--------------------------------------------------------------------------*/
- /* DVB Front-End */
--- 
-2.4.3
+OK.
 
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+>  
+>  	default:
