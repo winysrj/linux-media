@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:34796 "EHLO
-	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753002AbbJZIV1 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44943 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751713AbbJLP4m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 04:21:27 -0400
-Received: by oies66 with SMTP id s66so96012314oie.1
-        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 01:21:26 -0700 (PDT)
+	Mon, 12 Oct 2015 11:56:42 -0400
+Date: Mon, 12 Oct 2015 18:56:38 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Current status of MC patches?
+Message-ID: <20151012155638.GM26916@valkosipuli.retiisi.org.uk>
+References: <561BB0D1.1030102@xs4all.nl>
+ <20151012121153.75691744@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <562DDBE2.80504@intel.com>
-References: <CALxjpLP7jPBTvbMsJFMU+GgJo8i37WcfwLPxJL6+27jpJd0Ukw@mail.gmail.com>
- <562DDBE2.80504@intel.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Mon, 26 Oct 2015 09:21:07 +0100
-Message-ID: <CAH-u=81N45XhXUiaPQG4u-DyNiNd65L-eb=ae7z4UYdLGmib-Q@mail.gmail.com>
-Subject: Re: Is IIO the appropriate subsystem for a thermal camera sensor?
-To: Daniel Baluta <daniel.baluta@intel.com>
-Cc: Lucas Magasweran <lucas.magasweran@daqri.com>,
-	"linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151012121153.75691744@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lucas,
+Hi Mauro and Hans,
 
-2015-10-26 8:53 GMT+01:00 Daniel Baluta <daniel.baluta@intel.com>:
-> Hi Lucas,
->
-> Adding linux-iio and linux-media, I hope you don't mind.
->
-> On 10/23/2015 06:58 PM, Lucas Magasweran wrote:
->>
->> Hi Daniel,
->>
->> My colleague, Roberto Cornetti, attended your IIO talk at LinuxCon
->> recently and is using the IIO subsystem for an I2C IMU.
->>
->
-> Glad to hear that :)
->
->> My question is if IIO the appropriate subsystem for a thermal camera
->> sensor. The driver needs to acquire frames over SPI and configure the
->> sensor via I2C. It also has to respond to a GPIO interrupt to
->> synchronize with the camera.
->
->
-> I am not sure exactly about this. My feeling is that this should go with the
-> v4l subsystem thus Cc-ing linux-media.
+On Mon, Oct 12, 2015 at 12:11:53PM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 12 Oct 2015 15:08:33 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > Can you give an update of the current status of the MC work? To be honest,
+> > I've lost track.
+> > 
+> > In particular, is there anything I and/or others need to review before you
+> > can start merging patches?
+> 
+> Basically, we're still waiting for Laurent and Sakari's review.
 
-This is definitely a V4L2 driver. Note however that AFAIK, no sensor
-is currently sending frames from SPI right now... Nothing impossible
-though :).
+Could you resend what you have to the list, please? Currently it's a number
+of sets some of which contain updates only on particular patches. It'd be
+easier to review that way.
 
-> Do you have any datasheet for this sensor?
->
-> At some point [1] we considered introducing the fingerprint sensor as an IIO
-> device, but that didn't quite fit. So, we reconsidered using v4l.
-> I this is your case too :).
->
-> Hope this helps.
-> Daniel.
->
->
-> [1] http://marc.info/?l=linux-kernel&m=141769805614596&w=2
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I've been working on top of the set to add support for unlimited number of
+entities, so unfortunately I've had less time for reviews. These patches are
+still required before the rest can be applied so I've priorised them.
+
+> > This is also relevant for the workshop agenda. I plan to put any MC topics
+> > at the end of the workshop. As you mentioned in a mail exchange with Shuah,
+> > as long as these patches aren't merged there is not all that much point in
+> > discussing future work.
+> 
+> Yep. There's no sense to even discuss MC at the workshop while the
+> current work is not reviewed, as the other MC topic for discussion
+> is related to dynamic support, to be added after the MC next gen
+> support for G_TOPOLOGY.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
