@@ -1,46 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 50-247-246-185-static.hfc.comcastbusiness.net ([50.247.246.185]:35264
-	"EHLO MAIL.NILP.ORG" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872AbbJZDxd convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58798 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751255AbbJLLwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2015 23:53:33 -0400
-Content-Type: text/plain; charset=US-ASCII
+	Mon, 12 Oct 2015 07:52:43 -0400
+Message-ID: <561B9E97.4050909@xs4all.nl>
+Date: Mon, 12 Oct 2015 13:50:47 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Administrative Notice
-To: <linux-media@vger.kernel.org>
-From: Help Desk <jbower@NILP.ORG>
-Date: Mon, 26 Oct 2015 11:48:05 +0800
-Reply-To: help.desk.team015@tech-center.com
-Message-ID: <28afdfd3-07dc-4cf4-842e-1cbfdcc8d518@MAIL.NILP.ORG>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
+	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	lars@opdenkamp.eu, kamil@wypas.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv9 06/15] rc: Add HDMI CEC protocol handling
+References: <cover.1441633456.git.hansverk@cisco.com> <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com> <20151006180540.GR21513@n2100.arm.linux.org.uk>
+In-Reply-To: <20151006180540.GR21513@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Help Desk
+On 10/06/2015 08:05 PM, Russell King - ARM Linux wrote:
+> On Mon, Sep 07, 2015 at 03:44:35PM +0200, Hans Verkuil wrote:
+>> From: Kamil Debski <kamil@wypas.org>
+>>
+>> Add handling of remote control events coming from the HDMI CEC bus.
+>> This patch includes a new keymap that maps values found in the CEC
+>> messages to the keys pressed and released. Also, a new protocol has
+>> been added to the core.
+>>
+>> Signed-off-by: Kamil Debski <kamil@wypas.org>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> (Added Mauro)
+> 
+> Hmm, how is rc-cec supposed to be loaded?
 
+Is CONFIG_RC_MAP enabled in your config? Ran 'depmod -a'? (Sorry, I'm sure you've done
+that, just checking...)
 
-Scheduled Maintenance & Upgrade
+It's optional as I understand it, since you could configure the keytable from
+userspace instead of using this module.
 
-Your account is in the process of being upgraded to a newest  
-Windows-based servers and an enhanced online email interface inline with internet infrastructure Maintenance. The new servers will provide better anti-spam and anti-virus functions, along with IMAP Support for mobile devices to enhance your usage.
+For the record (just tried it), it does load fine on my setup.
 
-To ensure that your account is not disrupted but active during and after this upgrade, you are required to kindly confirm your account by stating the details below:
+BTW, I am still on the fence whether using the kernel RC subsystem is the
+right thing to do. There are a number of CEC RC commands that use extra parameters
+that cannot be mapped to the RC API, so you still need to handle those manually.
 
-* Domain\user name: 
-* Password: 
+I know Mauro would like to see this integration, but I am wondering whether it
+really makes sense.
 
-This will prompt the upgrade of your account.
+What is your opinion on this?
 
-Failure to acknowledge the receipt of this notification, might result to a temporary deactivation of your account from our database. Your account shall remain active upon your confirmation of your login details.
+Perhaps I should split it off into a separate patch and keep it out from the initial
+pull request once we're ready for that.
 
-During this maintenance window, there may be periods of interruption to email services.  This will include sending and receiving email in Outlook, on webmail, and on mobile devices. Also, if you leave your Mailbox open during the maintenance period, you may be prompted to close and reopen. 
- 
-We appreciate your patience as this maintenance is performed and we do apologize for any inconveniences caused.
+Regards,
 
-Sincerely,
+	Hans
 
-Customer Care Team
+> 
+> At boot, I see:
+> 
+> [   16.577704] IR keymap rc-cec not found
+> [   16.586675] Registered IR keymap rc-empty
+> [   16.591668] input: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1/input3
+> [   16.597769] rc1: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1
+> 
+> Yet the rc-cec is a module in the filesystem, but it doesn't seem to
+> be loaded automatically - even after the system has booted, the module
+> hasn't been loaded.
+> 
+> It looks like it _should_ be loaded, but this plainly isn't working:
+> 
+>         map = seek_rc_map(name);
+> #ifdef MODULE
+>         if (!map) {
+>                 int rc = request_module("%s", name);
+>                 if (rc < 0) {
+>                         printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
+>                         return NULL;
+>                 }
+>                 msleep(20);     /* Give some time for IR to register */
+> 
+>                 map = seek_rc_map(name);
+>         }
+> #endif
+>         if (!map) {
+>                 printk(KERN_ERR "IR keymap %s not found\n", name);
+>                 return NULL;
+>         }
+> 
+> Any ideas?
+> 
 
-
-(c) Copyright 2015, All Rights Reserved.
