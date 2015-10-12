@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:51206 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:48452 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830AbbJDQur (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Oct 2015 12:50:47 -0400
-Date: Sun, 4 Oct 2015 18:50:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
+	id S1751808AbbJLQ3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2015 12:29:55 -0400
+Date: Mon, 12 Oct 2015 13:29:50 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 4/5] media: atmel-isi: setup YCC_SWAP correctly when
- using preview path
-In-Reply-To: <1442898875-7147-5-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1510041849370.26834@axis700.grange>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
- <1442898875-7147-5-git-send-email-josh.wu@atmel.com>
+Subject: Re: Current status of MC patches?
+Message-ID: <20151012132950.5227c0fd@recife.lan>
+In-Reply-To: <561BDDE1.1040900@xs4all.nl>
+References: <561BB0D1.1030102@xs4all.nl>
+	<20151012121153.75691744@recife.lan>
+	<20151012155638.GM26916@valkosipuli.retiisi.org.uk>
+	<561BDDE1.1040900@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 22 Sep 2015, Josh Wu wrote:
+Em Mon, 12 Oct 2015 18:20:49 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> The preview path only can convert UYVY format to RGB data.
+> On 10/12/2015 05:56 PM, Sakari Ailus wrote:
+> > Hi Mauro and Hans,
+> > 
+> > On Mon, Oct 12, 2015 at 12:11:53PM -0300, Mauro Carvalho Chehab wrote:
+> >> Em Mon, 12 Oct 2015 15:08:33 +0200
+> >> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>
+> >>> Hi Mauro,
+> >>>
+> >>> Can you give an update of the current status of the MC work? To be honest,
+> >>> I've lost track.
+> >>>
+> >>> In particular, is there anything I and/or others need to review before you
+> >>> can start merging patches?
+> >>
+> >> Basically, we're still waiting for Laurent and Sakari's review.
+> > 
+> > Could you resend what you have to the list, please? Currently it's a number
+> > of sets some of which contain updates only on particular patches. It'd be
+> > easier to review that way.
 > 
-> To make preview path work correctly, we need to set up YCC_SWAP
-> according to sensor output and convert them to UYVY.
+> I would actually appreciate that as well. That way I can see which patches I
+> have and which I haven't reviewed.
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index bbf6449..e87d354 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -127,6 +127,22 @@ static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
->  			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
->  			break;
->  		}
-> +	} else if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_RGB565) {
-> +		/* Preview path is enabled, it will convert UYVY to RGB format.
-> +		 * But if sensor output format is not UYVY, we need to set
-> +		 * YCC_SWAP_MODE to convert it as UYVY.
-> +		 */
+> If you don't want to spam the ml, then you can also send it directly, but I
+> think it is OK to include the ml. Up to you, though.
 
-Please, fix multiline comment style:
+Let me send the patches then to the Workshop ML. There are 83 patches.
+That's too many to flood at the main list, specially since all patches
+there are already at the main ML.
 
-		/*
-		 * ...
-		 * ...
-		 */
-
-> +		switch (xlate->code) {
-> +		case MEDIA_BUS_FMT_VYUY8_2X8:
-> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
-> +			break;
-> +		case MEDIA_BUS_FMT_YUYV8_2X8:
-> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
-> +			break;
-> +		case MEDIA_BUS_FMT_YVYU8_2X8:
-> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
-> +			break;
-> +		}
->  	}
->  
->  	return cfg2_yuv_swap;
-> -- 
-> 1.9.1
-> 
+Regards,
+Mauro
