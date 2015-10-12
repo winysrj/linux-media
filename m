@@ -1,86 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57843 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbbJBJ7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 05:59:52 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
-	Format Codec (MFC)...)
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: [PATCH 2/2] s5p-mfc: use MFC_BUF_FLAG_EOS to identify last buffers in
- decoder capture queue
-Date: Fri, 02 Oct 2015 11:58:54 +0200
-Message-id: <1443779934-30088-2-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1443779934-30088-1-git-send-email-a.hajda@samsung.com>
-References: <1443779934-30088-1-git-send-email-a.hajda@samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56220 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753096AbbJLC43 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Oct 2015 22:56:29 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1A6AB2A009D
+	for <linux-media@vger.kernel.org>; Mon, 12 Oct 2015 04:54:34 +0200 (CEST)
+Date: Mon, 12 Oct 2015 04:54:34 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151012025434.1A6AB2A009D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC driver never delivered EOS event to apps feeding constantly its capture
-buffer with fresh buffers. The patch fixes it by marking last buffers returned
-by MFC with MFC_BUF_FLAG_EOS flag and firing EOS event on de-queuing such
-buffers.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 21 +++++++++++++--------
- 2 files changed, 14 insertions(+), 8 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 21c424e..f1e537e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -196,6 +196,7 @@ static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- 		vb2_set_plane_payload(dst_buf->b, 0, 0);
- 		vb2_set_plane_payload(dst_buf->b, 1, 0);
- 		list_del(&dst_buf->list);
-+		dst_buf->flags |= MFC_BUF_FLAG_EOS;
- 		ctx->dst_queue_cnt--;
- 		dst_buf->b->v4l2_buf.sequence = (ctx->sequence++);
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index aebe4fd..7866eda 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -645,17 +645,22 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- 		mfc_err("Call on DQBUF after unrecoverable error\n");
- 		return -EIO;
- 	}
--	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
--		ret = vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
--	else if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+
-+	switch (buf->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
--		if (ret == 0 && ctx->state == MFCINST_FINISHED &&
--				list_empty(&ctx->vq_dst.done_list))
-+		if (ret)
-+			return ret;
-+
-+		if (ctx->state == MFCINST_FINISHED &&
-+		    (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
- 			v4l2_event_queue_fh(&ctx->fh, &ev);
--	} else {
--		ret = -EINVAL;
-+		return 0;
-+	default:
-+		return -EINVAL;
- 	}
--	return ret;
- }
- 
- /* Export DMA buffer */
--- 
-1.9.1
+date:		Mon Oct 12 04:00:16 CEST 2015
+git branch:	test
+git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
