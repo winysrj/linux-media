@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43988 "EHLO
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39286 "EHLO
 	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbbJLJgy (ORCPT
+	by vger.kernel.org with ESMTP id S1750888AbbJLKwY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 05:36:54 -0400
-Message-ID: <561B7EC1.9060008@xs4all.nl>
-Date: Mon, 12 Oct 2015 11:34:57 +0200
+	Mon, 12 Oct 2015 06:52:24 -0400
+Message-ID: <561B906F.9020508@xs4all.nl>
+Date: Mon, 12 Oct 2015 12:50:23 +0200
 From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Antonio Ospite <ao2@ao2.it>, linux-media@vger.kernel.org
-CC: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: gspca/ov534 gets two failures with v4l2-compliance
-References: <20151003164428.1dbf4e95936e6e4e62aabb37@ao2.it>
-In-Reply-To: <20151003164428.1dbf4e95936e6e4e62aabb37@ao2.it>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Hans Verkuil <hansverk@cisco.com>
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
+	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	lars@opdenkamp.eu, kamil@wypas.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv9 14/15] cec: s5p-cec: Add s5p-cec driver
+References: <cover.1441633456.git.hansverk@cisco.com> <b55a5c1ff9318211aa472b28d03a978aad23770b.1441633456.git.hansverk@cisco.com> <20151005223207.GM21513@n2100.arm.linux.org.uk>
+In-Reply-To: <20151005223207.GM21513@n2100.arm.linux.org.uk>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/2015 04:44 PM, Antonio Ospite wrote:
-> Hi,
+On 10/06/2015 12:32 AM, Russell King - ARM Linux wrote:
+> On Mon, Sep 07, 2015 at 03:44:43PM +0200, Hans Verkuil wrote:
+>> +	if (status & CEC_STATUS_TX_DONE) {
+>> +		if (status & CEC_STATUS_TX_ERROR) {
+>> +			dev_dbg(cec->dev, "CEC_STATUS_TX_ERROR set\n");
+>> +			cec->tx = STATE_ERROR;
+>> +		} else {
+>> +			dev_dbg(cec->dev, "CEC_STATUS_TX_DONE\n");
+>> +			cec->tx = STATE_DONE;
+>> +		}
+>> +		s5p_clr_pending_tx(cec);
+>> +	}
 > 
-> I tried running v4l2-compliance with the PS3 Eye and I got these two
-> failures:
-> 
-> ...
-> Test input 0:
->         ...
->         Format ioctls:
->                 fail: v4l2-test-formats.cpp(122): found frame intervals for invalid size 321x240
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
->                 test VIDIOC_G/S_PARM: OK
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 fail: v4l2-test-formats.cpp(425): unknown pixelformat 56595559 for buftype 1
->                 test VIDIOC_G_FMT: FAIL
->                 test VIDIOC_TRY_FMT: OK (Not Supported)
->                 test VIDIOC_S_FMT: OK (Not Supported)
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                 test Cropping: OK (Not Supported)
->                 test Composing: OK (Not Supported)
->                 test Scaling: OK
-> 
-> About the first failure: by looking at the kernel code in gspca.c it
-> looks like the supported frame sizes are declared as
-> V4L2_FRMSIZE_TYPE_DISCRETE in vidioc_enum_framesizes(), but then the
-> driver accepts invalid ones when listing frameintervals trying to find
-> the "closest" size for width and height using wxh_to_mode().
-> 
-> Can this discrepancy be what makes v4l2-compliance fail?
+> Your CEC implementation seems to be written around the idea that there
+> are only two possible outcomes from a CEC message - "done" and "error",
+> which get translated to:
 
-Yes, that's the reason it fails.
+This code is for the Samsung exynos CEC implementation. Marek, is this all
+that the exynos CEC hardware returns?
 
 > 
-> If you think it's OK to change the gspca behavior to be stricter about
-> what frame sizes are considered valid, I may take a shot at it.
+>> +	case STATE_DONE:
+>> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_OK);
+>> +		cec->tx = STATE_IDLE;
+>> +		break;
+>> +	case STATE_ERROR:
+>> +		cec_transmit_done(cec->adap, CEC_TX_STATUS_RETRY_TIMEOUT);
+>> +		cec->tx = STATE_IDLE;
+> 
+> "okay" and "retry_timeout".  So, if we have an adapter which can report
+> (eg) a NACK, we have to report it as the obscure "retry timeout" status?
+> Why this obscure naming - why can't we have something that uses the
+> terminology in the spec?
+> 
 
-I would say this is OK to change. UVC is also strict about this, so apps should
-do this correct, otherwise they would fail with uvc webcams.
+Actually, a NACK should lead to a re-transmission (up to 5 times), see CEC 7.1.
+The assumption of the CEC framework is that this is done by the CEC adapter
+driver, not by the framework. So if after repeated retransmissions there is
+still no Ack, the CEC_TX_STATUS_RETRY_TIMEOUT error is returned. I could
+change this to _MAX_RETRIES_REACHED if you prefer.
 
-> By looking at the v4l2-compliance code I think the second failure will
-> go away once the first one is fixed: node->buftype_pixfmts does not get
-> populated because of the first failure.
-
-Correct.
+The CEC_TX_STATUS_ macros were based on what the adv drivers support (except
+for CEC_TX_STATUS_REPLY_TIMEOUT which is specific to the framework).
 
 Regards,
 
