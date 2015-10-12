@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:48610 "EHLO
-	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752295AbbJOUu6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2015 16:50:58 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 0/2] Add mixer and control interface media entities
-Date: Thu, 15 Oct 2015 14:50:51 -0600
-Message-Id: <cover.1444941680.git.shuahkh@osg.samsung.com>
+Received: from mail.kernel.org ([198.145.29.136]:60296 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751627AbbJLPmm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2015 11:42:42 -0400
+Date: Mon, 12 Oct 2015 17:42:38 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCHv5 10/13] hackrf: add support for transmitter
+Message-ID: <20151012154238.GA28125@earth>
+References: <201510110807.WZHKJhfM%fengguang.wu@intel.com>
+ <561A753D.8010600@iki.fi>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="qDbXVdCdHGoSgWSk"
+Content-Disposition: inline
+In-Reply-To: <561A753D.8010600@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds the following:
 
-Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
-each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
-entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
-entity corresponds to the control device for the card.
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Change au0828_create_media_graph() to create pad link between
-MEDIA_ENT_F_AUDIO_MIXER entity and decoder's AU8522_PAD_AUDIO_OUT.
+Hi,
 
-This patch series is dependent on an earlier patch series:
+On Sun, Oct 11, 2015 at 05:42:05PM +0300, Antti Palosaari wrote:
+> Moikka!
+> IMHO it is false positive. Variable which is defined on line 777 is used
+> just few lines later on line 782 as can be seen easily. I think it is
+> because option CONFIG_DYNAMIC_DEBUG is not set => dev_dbg_ratelimited()
+> macro is likely just NOP and gives that warning. Maybe some more logic to is
+> needed in order to avoid that kind of warnings.
 
-Update ALSA, and au0828 drivers to use Managed Media Controller API:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg92752.html
+You can flag it with __maybe_unused:
 
-Please find the media graph with mixer and control interface nodes:
-https://drive.google.com/folderview?id=0B0NIL0BQg-Alb3JFb2diMXRoQlU&usp=sharing
-New file:
-graph_mixer.png
+struct usb_interface __maybe_unused *intf = dev->intf;
 
-Shuah Khan (2):
-  sound/usb: Create media mixer function and control interface entities
-  media: au0828 create link between ALSA Mixer and decoder
+-- Sebastian
 
- drivers/media/usb/au0828/au0828-core.c | 12 +++++
- drivers/media/usb/au0828/au0828.h      |  1 +
- sound/usb/card.c                       |  5 ++
- sound/usb/media.c                      | 85 ++++++++++++++++++++++++++++++++++
- sound/usb/media.h                      |  4 ++
- sound/usb/mixer.h                      |  1 +
- sound/usb/usbaudio.h                   |  1 +
- 7 files changed, 109 insertions(+)
+--qDbXVdCdHGoSgWSk
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-2.1.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iQIcBAEBCgAGBQJWG9TqAAoJENju1/PIO/qa11YQAJtG31ZHiAWZqF6OAV1Vv7r4
+Tch6M20ajOWGLukA/nz56qXjQhrcVocWG2iNExlVxccPq61BkE8lc1YoizSXiOaq
+HVEwmiyNScjjsRLKw48qv+tDh3XdUJjKFA6f5UTPNKm4ouYKDvoMZCZUMRz8wF5a
+4vmTxTIlFztEYNba5gTMazk3Yg16x5IJrKICtBk5hKgL3NLYmrMofq9ahVD5AHb5
+shABMC6lFCs6vJP/QqkstR0FvwxwyqlcVBTcYk2RMsOTX6H4T1ZGKbCwGSk2KJlW
+LqDN9Dfhy4M8yfcCYOTGPjJdFB829yS6eLaOyuUwYur3vGVHDClVozi1t95/s8y9
+MEYgvNkH39CDJjcH4DeQ1DqkWpwUTGz2owOMVPS6yWX9XeL8G4X3x95SzapvEstT
+CwvJq0pE86KdmTeWZgbg8TUBekOtCIyubeMTJS76/MACaGMWB6V5W3i82zCfgpwZ
+01qAzzhfmFJ5X69hYF/bH1OQ/imr95xcLtzEwMAMMNMklUh1kGHSdViB6SZmZzAw
+aDdITMULaHMg46sSkS22ulYZLg9yy98qR0hzS0vPO/p3Ii/NJcXwzQ/AyxPPhOMv
+a24J/43yw/a/z20oOHjGHamtFcHO+dQn+m0HoHu9ly+KaerUAdocZhHsFO5OztgJ
+JbE+maaPqkPZtcpHvM5T
+=LpRS
+-----END PGP SIGNATURE-----
+
+--qDbXVdCdHGoSgWSk--
