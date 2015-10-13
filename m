@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53770 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751819AbbJLK02 (ORCPT
+Received: from mail-io0-f172.google.com ([209.85.223.172]:35286 "EHLO
+	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852AbbJMWVj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 06:26:28 -0400
-Message-ID: <561B8A61.1010406@xs4all.nl>
-Date: Mon, 12 Oct 2015 12:24:33 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 13 Oct 2015 18:21:39 -0400
+Received: by iofl186 with SMTP id l186so37150041iof.2
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2015 15:21:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	"Matwey V. Kornilov" <matwey.kornilov@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: v4l2 api: supported resolution negotiation
-References: <muqr5s$f1j$2@ger.gmane.org> <20151004184923.GH26916@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20151004184923.GH26916@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Date: Tue, 13 Oct 2015 17:21:39 -0500
+Message-ID: <CAFZT-jJ0bhiJa743rv_WCB12i5c6UrcoF9=rnvXXpb9Ga7zoQg@mail.gmail.com>
+Subject: [Possible Bug] ddbridge: Do not release the acquired lock if
+ dvb_attach fails
+From: Ahmed Tamrawi <ahmedtamrawi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Christopher Reimer <linux@creimer.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/2015 08:49 PM, Sakari Ailus wrote:
-> On Sun, Oct 04, 2015 at 12:23:08PM +0300, Matwey V. Kornilov wrote:
->> Hello,
->>
->> I learned from V2L2 API how to detect all supported formats using
->> VIDIOC_ENUM_FMT.
->> When I perform VIDIOC_S_FMT I don't know how to fill fmt.pix.width and
->> fmt.pix.height, since I know only format.
->> How should I negotiate device resolution? Could you point me?
-> 
-> VIDIOC_ENUM_FRAMESIZES may give you hints, but it's optional. You can use
-> values you prefer to try if drivers support them; I think the GStreamer
-> v4lsrc tries very small and very large values. The driver will clamp them to
-> a supported values which are passed to the application from the IOCTL.
-> 
-> <URL:http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-framesizes>
-> 
+Source file correspondence on the master branch:
+https://github.com/torvalds/linux/blob/master/drivers/media/pci/ddbridge/ddbridge-core.c#L595
 
-You can also call G_FMT first, then change the pixelformat and call S_FMT.
-This will only change the pixelformat and leave the resolution the same (unless
-the driver has some restrictions for the new pixelformat, but that's unlikely).
+Summary:
+The lock acquired on (port->i2c_gate_lock) is never released if
+function (tuner_attach_tda18271) returns on line 605.
 
-Regards,
+Details:
+Function tuner_attach_tda18271 (line 595) acquires a lock on
+port->i2c_gate_lock via the call to the function pointer
+(input->fe->ops.i2c_gate_ctrl(input->fe, 1)) (line 601) which calls
+function (drxk_gate_ctrl). However, when the call to function
+(dvb_attach) on line 602 fails (returns NULL), the lock on
+(port->i2c_gate_lock) is never released.
 
-	Hans
+Thanks,
+~Ahmed
