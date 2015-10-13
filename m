@@ -1,158 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45705 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925AbbJCIOV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2015 04:14:21 -0400
-Subject: Re: [PATCH] [media] gspca: ov534/topro: prevent a division by 0
-References: <1443817993-32406-1-git-send-email-ao2@ao2.it>
-Cc: Antonio Ospite <ao2@ao2.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	moinejf@free.fr, Anders Blomdell <anders.blomdell@control.lth.se>,
-	Thomas Champagne <lafeuil@gmail.com>, stable@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <560F8E59.4090104@redhat.com>
-Date: Sat, 3 Oct 2015 10:14:17 +0200
-MIME-Version: 1.0
-In-Reply-To: <1443817993-32406-1-git-send-email-ao2@ao2.it>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:45355 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752795AbbJMC4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Oct 2015 22:56:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id CE5142A0095
+	for <linux-media@vger.kernel.org>; Tue, 13 Oct 2015 04:54:35 +0200 (CEST)
+Date: Tue, 13 Oct 2015 04:54:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151013025435.CE5142A0095@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 02-10-15 22:33, Antonio Ospite wrote:
-> v4l2-compliance sends a zeroed struct v4l2_streamparm in
-> v4l2-test-formats.cpp::testParmType(), and this results in a division by
-> 0 in some gspca subdrivers:
->
->    divide error: 0000 [#1] SMP
->    Modules linked in: gspca_ov534 gspca_main ...
->    CPU: 0 PID: 17201 Comm: v4l2-compliance Not tainted 4.3.0-rc2-ao2 #1
->    Hardware name: System manufacturer System Product Name/M2N-E SLI, BIOS
->      ASUS M2N-E SLI ACPI BIOS Revision 1301 09/16/2010
->    task: ffff8800818306c0 ti: ffff880095c4c000 task.ti: ffff880095c4c000
->    RIP: 0010:[<ffffffffa079bd62>]  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
->    RSP: 0018:ffff880095c4fce8  EFLAGS: 00010296
->    RAX: 0000000000000000 RBX: ffff8800c9522000 RCX: ffffffffa077a140
->    RDX: 0000000000000000 RSI: ffff880095e0c100 RDI: ffff8800c9522000
->    RBP: ffff880095e0c100 R08: ffffffffa077a100 R09: 00000000000000cc
->    R10: ffff880067ec7740 R11: 0000000000000016 R12: ffffffffa07bb400
->    R13: 0000000000000000 R14: ffff880081b6a800 R15: 0000000000000000
->    FS:  00007fda0de78740(0000) GS:ffff88012fc00000(0000) knlGS:0000000000000000
->    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->    CR2: 00000000014630f8 CR3: 00000000cf349000 CR4: 00000000000006f0
->    Stack:
->     ffffffffa07a6431 ffff8800c9522000 ffffffffa077656e 00000000c0cc5616
->     ffff8800c9522000 ffffffffa07a5e20 ffff880095e0c100 0000000000000000
->     ffff880067ec7740 ffffffffa077a140 ffff880067ec7740 0000000000000016
->    Call Trace:
->     [<ffffffffa07a6431>] ? v4l_s_parm+0x21/0x50 [videodev]
->     [<ffffffffa077656e>] ? vidioc_s_parm+0x4e/0x60 [gspca_main]
->     [<ffffffffa07a5e20>] ? __video_do_ioctl+0x280/0x2f0 [videodev]
->     [<ffffffffa07a5ba0>] ? video_ioctl2+0x20/0x20 [videodev]
->     [<ffffffffa07a59b9>] ? video_usercopy+0x319/0x4e0 [videodev]
->     [<ffffffff81182dc1>] ? page_add_new_anon_rmap+0x71/0xa0
->     [<ffffffff811afb92>] ? mem_cgroup_commit_charge+0x52/0x90
->     [<ffffffff81179b18>] ? handle_mm_fault+0xc18/0x1680
->     [<ffffffffa07a15cc>] ? v4l2_ioctl+0xac/0xd0 [videodev]
->     [<ffffffff811c846f>] ? do_vfs_ioctl+0x28f/0x480
->     [<ffffffff811c86d4>] ? SyS_ioctl+0x74/0x80
->     [<ffffffff8154a8b6>] ? entry_SYSCALL_64_fastpath+0x16/0x75
->    Code: c7 93 d9 79 a0 5b 5d e9 f1 f3 9a e0 0f 1f 00 66 2e 0f 1f 84 00
->      00 00 00 00 66 66 66 66 90 53 31 d2 48 89 fb 48 83 ec 08 8b 46 10 <f7>
->      76 0c 80 bf ac 0c 00 00 00 88 87 4e 0e 00 00 74 09 80 bf 4f
->    RIP  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
->     RSP <ffff880095c4fce8>
->    ---[ end trace 279710c2c6c72080 ]---
->
-> Following what the doc says about a zeroed timeperframe (see
-> http://www.linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-parm.html):
->
->    ...
->    To reset manually applications can just set this field to zero.
->
-> fix the issue by resetting the frame rate to a default value in case of
-> an unusable timeperframe.
->
-> The fix is done in the subdrivers instead of gspca.c because only the
-> subdrivers have notion of a default frame rate to reset the camera to.
->
-> Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> Cc: stable@vger.kernel.org
+Results of the daily build of media_tree:
 
-Good catch:
+date:		Tue Oct 13 04:00:16 CEST 2015
+git branch:	test
+git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Mauro can you pick this one up directly, and include it in your
-next pull-req for 4.3 please ?
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Hans
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-> ---
->
-> Hi,
->
-> I think the problem in the gspca subdrivers has always been there, so the
-> patch could be applied to any relevant stable releases.
->
-> After the fix, v4l2-compliance runs fine but it gets two failures, I'll send
-> another mail about those.
->
-> After this change gets merged I will also send a patch to use defines for the
-> default framerates used below as the same value is used in multiple places.
->
-> Ah, I ran the patch through scripts/checkpatch.pl from 4.3-rc2 and it
-> complained about the commit message but I think it may be a false positive.
->
-> Ciao ciao,
->     Antonio
->
->
->   drivers/media/usb/gspca/ov534.c | 9 +++++++--
->   drivers/media/usb/gspca/topro.c | 6 +++++-
->   2 files changed, 12 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-> index 146071b..bfff1d1 100644
-> --- a/drivers/media/usb/gspca/ov534.c
-> +++ b/drivers/media/usb/gspca/ov534.c
-> @@ -1491,8 +1491,13 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
->   	struct v4l2_fract *tpf = &cp->timeperframe;
->   	struct sd *sd = (struct sd *) gspca_dev;
->
-> -	/* Set requested framerate */
-> -	sd->frame_rate = tpf->denominator / tpf->numerator;
-> +	if (tpf->numerator == 0 || tpf->denominator == 0)
-> +		/* Set default framerate */
-> +		sd->frame_rate = 30;
-> +	else
-> +		/* Set requested framerate */
-> +		sd->frame_rate = tpf->denominator / tpf->numerator;
-> +
->   	if (gspca_dev->streaming)
->   		set_frame_rate(gspca_dev);
->
-> diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
-> index c70ff40..c028a5c 100644
-> --- a/drivers/media/usb/gspca/topro.c
-> +++ b/drivers/media/usb/gspca/topro.c
-> @@ -4802,7 +4802,11 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
->   	struct v4l2_fract *tpf = &cp->timeperframe;
->   	int fr, i;
->
-> -	sd->framerate = tpf->denominator / tpf->numerator;
-> +	if (tpf->numerator == 0 || tpf->denominator == 0)
-> +		sd->framerate = 30;
-> +	else
-> +		sd->framerate = tpf->denominator / tpf->numerator;
-> +
->   	if (gspca_dev->streaming)
->   		setframerate(gspca_dev, v4l2_ctrl_g_ctrl(gspca_dev->exposure));
->
->
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
