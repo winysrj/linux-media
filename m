@@ -1,148 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:51997 "EHLO
-	resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751670AbbJBWHj (ORCPT
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:35993 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880AbbJMHn5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:39 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 00/20] Update ALSA, and au0828 drivers to use Managed Media Controller API
-Date: Fri,  2 Oct 2015 16:07:12 -0600
-Message-Id: <cover.1443822799.git.shuahkh@osg.samsung.com>
+	Tue, 13 Oct 2015 03:43:57 -0400
+Received: by oihr205 with SMTP id r205so5020205oih.3
+        for <linux-media@vger.kernel.org>; Tue, 13 Oct 2015 00:43:56 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1421938721.3084.35.camel@pengutronix.de>
+References: <CAOMZO5BgYVQQY4_jJK0h1jMW-Tpb8DHqAkfi2MerhmndMSZr3w@mail.gmail.com>
+ <1418308963.2320.14.camel@collabora.com> <5489AE9A.8030204@xs4all.nl> <1421938721.3084.35.camel@pengutronix.de>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Tue, 13 Oct 2015 09:43:37 +0200
+Message-ID: <CAH-u=80tqSeR36tbVrbPDbQd0H0TBZm7Z_ZD5RACKjDmdHfTCA@mail.gmail.com>
+Subject: Re: coda: not generating EOS event
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Fabio Estevam <festevam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+	=?UTF-8?B?RnLDqWTDqXJpYyBTdXJlYXU=?= <frederic.sureau@vodalys.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series updates ALSA driver, and au0828 core driver to
-use Managed Media controller API to share tuner. Please note that
-Managed Media Controller API and DVB and V4L2 drivers updates to
-use Media Controller API have been added in a prior patch series.
+Hi all,
 
-Media Controller API is enhanced with two new interfaces to
-register and unregister entity_notify hooks to allow drivers
-to take appropriate actions when as new entities get added to
-the shared media device.
+2015-01-22 15:58 GMT+01:00 Philipp Zabel <p.zabel@pengutronix.de>:
+> Hi,
+>
+> Am Donnerstag, den 11.12.2014, 15:47 +0100 schrieb Hans Verkuil:
+>> Hi Pawel,
+>>
+>> On 12/11/14 15:42, Nicolas Dufresne wrote:
+>> > Le jeudi 11 décembre 2014 à 11:00 -0200, Fabio Estevam a écrit :
+>> >> Hi,
+>> >>
+>> >> I am running Gstreamer 1.4.4 with on a imx6q-sabresd board and I am
+>> >> able to decode a video through the coda driver.
+>> >>
+>> >> The pipeline I use is:
+>> >> gst-launch-1.0 filesrc
+>> >> location=/home/H264_test1_Talkinghead_mp4_480x360.mp4 ! qtdemux !
+>> >> h264parse ! v4l2video1dec ! videoconvert ! fbdevsink
+>> >
+>> > This is a known issue. The handling of EOS and draining is ill defined
+>> > in V4L2 specification. We should be clarifying this soon. Currently
+>> > GStreamer implements what was originally done in Exynos MFC driver. This
+>> > consist of sending empty buffer to the V4L2 Output (the input), until we
+>> > get an empty buffer (bytesused = 0) on the V4L2 Capture (output).
+>> >
+>> > The CODA driver uses the new method to initiate the drain, which is to
+>> > send V4L2_DEC_CMD_STOP, this was not implemented by any driver when GST
+>> > v4l2 support was added. This is the right thing to do. This is tracked
+>> > at (contribution welcome of course):
+>> >
+>> > https://bugzilla.gnome.org/show_bug.cgi?id=733864
+>> >
+>> > Finally, CODA indicate that all buffer has been sent through an event,
+>> > V4L2_EVENT_EOS. This event was designed for another use case, it should
+>> > in fact be sent when the decoder is done with the encoded buffers,
+>> > rather then when the last decoded buffer has been queued. When correctly
+>> > implemented, this event cannot be used to figure-out when the last
+>> > decoded buffer has been dequeued.
+>> >
+>> > During last workshop, it has been proposed to introduce a flag on the
+>> > last decoded buffer, _LAST. This flag could also be put on an empty
+>>
+>> Are you planning to work on this? That was my assumption, but it's probably
+>> a good idea to check in case we are waiting for one another :-)
+>
+> I had another look at the ELC-E 2014 V4L2 codec API document and have
+> tried to implement the proposed decoder draining flow in an RFC:
+> "Signalling last decoded frame by V4L2_BUF_FLAG_LAST and -EPIPE":
+>
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/87152
+>
+> Are you planning to pour the workshop's codec API document into a V4L2
+> documentation patch?
 
-Tested exclusion between digital, analog, and audio to ensure
-when tuner has an active link to DVB FE, analog, and audio will
-detect and honor the tuner busy conditions and vice versa.
+I am now working on the encoder part (for coda) which should do the same.
+But everything is documented from a decoder POV, not the encoder's...
+Is the mecanism already there, and the only thing which should be
+added is the ENC_CMD_STOP command ?
 
-Please find the graphs generated using mc_nextgen_test tool at
-various points during testing at:
-
-https://drive.google.com/folderview?id=0B0NIL0BQg-Alb3JFb2diMXRoQlU&usp=sharing
-
-This patch series is the port of the same work that was done in
-the following patch series to use Media Controller Next Gen API.
-
-Patch v3 - Media Controller API:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg92572.html
-
-References and History:
-
-Changes since v2:
-http://www.spinics.net/lists/linux-media/msg91926.html
-
-1. An important change in this patch series is made to ALSA
-   to check for resources and hold in snd_usb_hw_params(),
-   and release from snd_usb_hw_free(). This change fixed the
-   lockdep warnings seen when resources were held in
-   TRIGGER_START and released from TRIGGER_STOP which could
-   run in IRQ context. I acknowledge Clemens Ladisch for
-   suggesting the correct places to hold/free resources to
-   avoid IRQ path complications.
-2. With the above change, the patch series is simpler without
-   the need to change the graph_mutex into a spinlock.
-3. I split the patches up differently for easy reviews - no code
-   bloat from v2.
-4. A second important change is now the Bridge driver (au0828)
-   owns and drives the graph creation as well as enabling and
-   disabling tuner. It also keeps state information to avoid
-   graph walks in enable_source and disable_source handler.
-   I acknowledge Hans Verkuil for his suggestions and ideas
-   for this change.
-
-History:
-This patch series has been updated to address comments from
-3 previous versions of this series. Links to v3 version
-for reference are:
-
-https://www.mail-archive.com/linux-media%40vger.kernel.org/msg89491.html
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg89492.html
-https://www.mail-archive.com/linux-media%40vger.kernel.org/msg89493.html
-Shuah Khan (20):
-  media: Media Controller register/unregister entity_notify API
-  media: Add ALSA Media Controller function entities
-  media: Media Controller enable/disable source handler API
-  media: Media Controller fix to not let stream_count go negative
-  media: Media Controller export non locking __media_entity_setup_link()
-  media: Media Controller non-locking
-    __media_entity_pipeline_start/stop()
-  media: v4l-core add v4l_enable/disable_media_tuner() helper functions
-  media: Move au8522_media_pads enum to au8522.h from au8522_priv.h
-  media: au8522 change to create MC pad for ALSA Audio Out
-  media: au0828 Use au8522_media_pads enum for pad defines
-  media: au0828 fix au0828_create_media_graph() entity checks
-  media: Change v4l-core to check for tuner availability
-  media: dvb-frontend invoke enable/disable_source handlers
-  media: au0828 video remove au0828_enable_analog_tuner()
-  media: au0828 video change to use v4l_enable_media_tuner()
-  media: au0828 change to use Managed Media Controller API
-  media: au0828 change to register/unregister entity_notify hook
-  media: au0828 implement enable_source and disable_source handlers
-  media: dvb-core create tuner to demod pad link in disabled state
-  sound/usb: Update ALSA driver to use Managed Media Controller API
-
- drivers/media/dvb-core/dvb_frontend.c        | 139 ++---------
- drivers/media/dvb-core/dvb_frontend.h        |   3 +
- drivers/media/dvb-core/dvbdev.c              |   3 +-
- drivers/media/dvb-frontends/au8522.h         |   8 +
- drivers/media/dvb-frontends/au8522_decoder.c |   1 +
- drivers/media/dvb-frontends/au8522_priv.h    |   8 -
- drivers/media/media-device.c                 |  43 ++++
- drivers/media/media-entity.c                 |  64 +++--
- drivers/media/usb/au0828/au0828-core.c       | 337 ++++++++++++++++++++-------
- drivers/media/usb/au0828/au0828-video.c      |  75 +-----
- drivers/media/usb/au0828/au0828.h            |   8 +
- drivers/media/v4l2-core/v4l2-dev.c           |  27 +++
- drivers/media/v4l2-core/v4l2-fh.c            |   1 +
- drivers/media/v4l2-core/v4l2-ioctl.c         |  29 +++
- drivers/media/v4l2-core/videobuf2-core.c     |   3 +
- include/media/media-device.h                 |  44 ++++
- include/media/media-entity.h                 |   3 +
- include/media/v4l2-dev.h                     |   4 +
- include/uapi/linux/media.h                   |   9 +-
- sound/usb/Makefile                           |  15 +-
- sound/usb/card.c                             |   5 +
- sound/usb/card.h                             |   1 +
- sound/usb/media.c                            | 201 ++++++++++++++++
- sound/usb/media.h                            |  53 +++++
- sound/usb/mixer.c                            |   1 +
- sound/usb/pcm.c                              |  29 ++-
- sound/usb/quirks-table.h                     |   1 +
- sound/usb/quirks.c                           |   9 +-
- sound/usb/stream.c                           |   2 +
- sound/usb/usbaudio.h                         |   1 +
- 30 files changed, 823 insertions(+), 304 deletions(-)
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
-
--- 
-2.1.4
-
+Thanks,
+JM
