@@ -1,67 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.netup.ru ([77.72.80.15]:45000 "EHLO imap.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751101AbbJGIDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2015 04:03:36 -0400
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33356 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255AbbJMX0f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Oct 2015 19:26:35 -0400
+Date: Wed, 14 Oct 2015 00:26:24 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kamil Debski <kamil@wypas.org>, Hans Verkuil <hansverk@cisco.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	thomas@tommie-lie.de, sean@mess.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	lars@opdenkamp.eu, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv9 14/15] cec: s5p-cec: Add s5p-cec driver
+Message-ID: <20151013232624.GO32532@n2100.arm.linux.org.uk>
+References: <cover.1441633456.git.hansverk@cisco.com>
+ <b55a5c1ff9318211aa472b28d03a978aad23770b.1441633456.git.hansverk@cisco.com>
+ <20151005223207.GM21513@n2100.arm.linux.org.uk>
+ <561B906F.9020508@xs4all.nl>
+ <CAP3TMiFj47GMYEqnNTXQv3vKbwnDGKhRDcMrwTY42RVUH-_d4Q@mail.gmail.com>
+ <561BAA0E.4040905@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1443885579-7094-9-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de> <1443885579-7094-9-git-send-email-hch@lst.de>
-From: Abylay Ospan <aospan@netup.ru>
-Date: Wed, 7 Oct 2015 11:03:13 +0300
-Message-ID: <CAK3bHNXJp70C3DC8OPsKHmiTeLu-J70VKSfKwDgUd5F=uorEWw@mail.gmail.com>
-Subject: Re: [PATCH 08/15] netup_unidvb: use pci_set_dma_mask insted of pci_dma_supported
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Don Fry <pcnet32@frontier.com>,
-	Oliver Neukum <oneukum@suse.com>,
-	linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media <linux-media@vger.kernel.org>,
-	netdev@vger.kernel.org, linux-parisc@vger.kernel.org,
-	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <561BAA0E.4040905@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, Oct 12, 2015 at 02:39:42PM +0200, Hans Verkuil wrote:
+> On 10/12/2015 02:33 PM, Kamil Debski wrote:
+> > The possible status values that are implemented in the CEC framework
+> > are following:
+> > 
+> > +/* cec status field */
+> > +#define CEC_TX_STATUS_OK               (0)
+> > +#define CEC_TX_STATUS_ARB_LOST         (1 << 0)
+> > +#define CEC_TX_STATUS_RETRY_TIMEOUT    (1 << 1)
+> > +#define CEC_TX_STATUS_FEATURE_ABORT    (1 << 2)
+> > +#define CEC_TX_STATUS_REPLY_TIMEOUT    (1 << 3)
+> > +#define CEC_RX_STATUS_READY            (0)
+> > 
+> > The only two ones I could match with the Exynos CEC module status bits are
+> > CEC_TX_STATUS_OK and  CEC_TX_STATUS_RETRY_TIMEOUT.
+> > 
+> > The status bits in Exynos HW are:
+> > - Tx_Error
+> > - Tx_Done
+> > - Tx_Transferring
+> > - Tx_Running
+> > - Tx_Bytes_Transferred
+> > 
+> > - Tx_Wait
+> > - Tx_Sending_Status_Bit
+> > - Tx_Sending_Hdr_Blk
+> > - Tx_Sending_Data_Blk
+> > - Tx_Latest_Initiator
+> > 
+> > - Tx_Wait_SFT_Succ
+> > - Tx_Wait_SFT_New
+> > - Tx_Wait_SFT_Retran
+> > - Tx_Retrans_Cnt
+> > - Tx_ACK_Failed
+> 
+> So are these all intermediate states? And every transfer always ends with Tx_Done or
+> Tx_Error state?
+> 
+> It does look that way...
 
-Acked-by: Abylay Ospan <aospan@netup.ru>
+For the Synopsis DW CEC, I have:
 
-thanks !
+Bit Field	Description
+4   ERROR_INIT	An error is detected on cec line (for initiator only).
+3   ARB_LOST	The initiator losses the CEC line arbitration to a second
+		initiator. (specification CEC 9).
+2   NACK	A frame is not acknowledged in a directly addressed message.
+		Or a frame is negatively acknowledged in a broadcast message
+		(for initiator only).
+0   DONE	The current transmission is successful (for initiator only).
 
-2015-10-03 18:19 GMT+03:00 Christoph Hellwig <hch@lst.de>:
-> This ensures the dma mask that is supported by the driver is recorded
-> in the device structure.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> index 6d8bf627..511144f 100644
-> --- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> +++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-> @@ -809,7 +809,7 @@ static int netup_unidvb_initdev(struct pci_dev *pci_dev,
->                 "%s(): board vendor 0x%x, revision 0x%x\n",
->                 __func__, board_vendor, board_revision);
->         pci_set_master(pci_dev);
-> -       if (!pci_dma_supported(pci_dev, 0xffffffff)) {
-> +       if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
->                 dev_err(&pci_dev->dev,
->                         "%s(): 32bit PCI DMA is not supported\n", __func__);
->                 goto pci_detect_err;
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+That's about as much of a description that there is for this hardware.
+Quite what comprises an "ERROR_INIT", I don't know.
 
 -- 
-Abylay Ospan,
-NetUP Inc.
-http://www.netup.tv
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
