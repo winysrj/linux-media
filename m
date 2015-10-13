@@ -1,84 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:51542 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbbJBWHl (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56983 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932140AbbJMNS1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:41 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 08/20] media: Move au8522_media_pads enum to au8522.h from au8522_priv.h
-Date: Fri,  2 Oct 2015 16:07:20 -0600
-Message-Id: <2d0214f44644c53e5180635d3fe8023b04449a5c.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+	Tue, 13 Oct 2015 09:18:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	iommu@lists.linux-foundation.org, robin.murphy@arm.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>, sakari.ailus@iki.fi,
+	Shuah Khan <shuahkhan@gmail.com>
+Subject: [RFC/PATCH] media: omap3isp: Set maximum DMA segment size
+Date: Tue, 13 Oct 2015 16:18:36 +0300
+Message-Id: <1444742316-27986-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the au8522_media_pads enum to au8522.h from au8522_priv.h.
-This will allow au0828-core to use these defines instead of
-hard-coding the pad values when it creates media graph linking
-decode pads to other entities.
+The maximum DMA segment size controls the IOMMU mapping granularity. Its
+default value is 64kB, resulting in potentially non-contiguous IOMMU
+mappings. Configure it to 4GB to ensure that buffers get mapped
+contiguously.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/au8522.h      | 7 +++++++
- drivers/media/dvb-frontends/au8522_priv.h | 8 --------
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/media/platform/omap3isp/isp.c | 4 ++++
+ drivers/media/platform/omap3isp/isp.h | 1 +
+ 2 files changed, 5 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
-index dde6158..3c72f40 100644
---- a/drivers/media/dvb-frontends/au8522.h
-+++ b/drivers/media/dvb-frontends/au8522.h
-@@ -90,4 +90,11 @@ enum au8522_audio_input {
- 	AU8522_AUDIO_SIF,
- };
+I'm posting this as an RFC because I'm not happy with the patch, even if it
+gets the job done.
+
+On ARM the maximum DMA segment size is used when creating IOMMU mappings. As
+a large number of devices require contiguous memory buffers (this is a very
+common requirement for video-related embedded devices) the default 64kB value
+doesn't work.
+
+I haven't investigated the history behind this API in details but I have a
+feeling something is not quite right. We force most drivers to explicitly set
+the maximum segment size from a default that seems valid for specific use
+cases only. Furthermore, as the DMA parameters are not stored directly in
+struct device this require allocation of external memory for which we have no
+proper management rule, making automatic handling of the DMA parameters in
+frameworks or helper functions cumbersome (for a discussion on this topic see
+http://www.spinics.net/lists/linux-media/msg92467.html and
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html).
+
+Is it time to fix this mess ?
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 17430a6ed85a..ebf7dc76e94d 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2444,6 +2444,10 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto error;
  
-+enum au8522_media_pads {
-+	AU8522_PAD_INPUT,
-+	AU8522_PAD_VID_OUT,
-+	AU8522_PAD_VBI_OUT,
++	isp->dev->dma_parms = &isp->dma_parms;
++	dma_set_max_seg_size(isp->dev, DMA_BIT_MASK(32));
++	dma_set_seg_boundary(isp->dev, 0xffffffff);
 +
-+	AU8522_NUM_PADS
-+};
- #endif /* __AU8522_H__ */
-diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
-index d6209d9..4c2a6ed 100644
---- a/drivers/media/dvb-frontends/au8522_priv.h
-+++ b/drivers/media/dvb-frontends/au8522_priv.h
-@@ -39,14 +39,6 @@
- #define AU8522_DIGITAL_MODE 1
- #define AU8522_SUSPEND_MODE 2
+ 	platform_set_drvdata(pdev, isp);
  
--enum au8522_media_pads {
--	AU8522_PAD_INPUT,
--	AU8522_PAD_VID_OUT,
--	AU8522_PAD_VBI_OUT,
--
--	AU8522_NUM_PADS
--};
--
- struct au8522_state {
- 	struct i2c_client *c;
- 	struct i2c_adapter *i2c;
+ 	/* Regulators */
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index e579943175c4..4b2231cf01be 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -193,6 +193,7 @@ struct isp_device {
+ 	u32 syscon_offset;
+ 	u32 phy_type;
+ 
++	struct device_dma_parameters dma_parms;
+ 	struct dma_iommu_mapping *mapping;
+ 
+ 	/* ISP Obj */
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
