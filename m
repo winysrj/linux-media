@@ -1,248 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vega.shootfor.net ([37.221.192.211]:45116 "EHLO
-	vega.shootfor.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932885AbbI3Sa7 convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53501 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751914AbbJMKmF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Sep 2015 14:30:59 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by vega.shootfor.net (Postfix) with ESMTP id AD9E73012DF
-	for <linux-media@vger.kernel.org>; Wed, 30 Sep 2015 20:22:50 +0200 (CEST)
-Received: from vega.shootfor.net ([127.0.0.1])
-	by localhost (vega.shootfor.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id UcR9sl2Y0dfg for <linux-media@vger.kernel.org>;
-	Wed, 30 Sep 2015 20:22:44 +0200 (CEST)
-Received: from [IPv6:2003:58:a70c:c100:ec54:8220:6a0b:a62c] (p20030058A70CC100EC5482206A0BA62C.dip0.t-ipconnect.de [IPv6:2003:58:a70c:c100:ec54:8220:6a0b:a62c])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by vega.shootfor.net (Postfix) with ESMTPSA id B7446300E1D
-	for <linux-media@vger.kernel.org>; Wed, 30 Sep 2015 20:22:43 +0200 (CEST)
-From: Mathias Kohrt <mkohrt@shootfor.net>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: MSI Movie VOX Mini Plus ... not working
-Message-Id: <CBA2A69C-17F5-4D83-9D10-56A77B94A738@shootfor.net>
-Date: Wed, 30 Sep 2015 20:22:42 +0200
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+	Tue, 13 Oct 2015 06:42:05 -0400
+Message-ID: <561CDFA2.7070206@xs4all.nl>
+Date: Tue, 13 Oct 2015 12:40:34 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v6 0/4] Refactoring Videobuf2 for common use
+References: <1444124269-1084-1-git-send-email-jh1009.sung@samsung.com> <561BABB9.4010804@xs4all.nl> <561CD063.6010400@samsung.com>
+In-Reply-To: <561CD063.6010400@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[    4.392391] em2860 #0: found i2c device @ 0xa0 on bus 0 [eeprom]
-[    4.395446] em2860 #0: found i2c device @ 0xb8 on bus 0 [tvp5150a]
-[    4.403657] em2860 #0: Your board has no unique USB ID and thus need a hint to be detected.
-[    4.403674] em2860 #0: You may try to use card=<n> insmod option to workaround that.
-[    4.403682] em2860 #0: Please send an email with this log to:
-[    4.403690] em2860 #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-[    4.403697] em2860 #0: Board eeprom hash is 0x00000000
-[    4.403705] em2860 #0: Board i2c devicelist hash is 0x27800080
-[    4.403712] em2860 #0: Here is a list of valid choices for the card=<n> insmod option:
-[    4.403720] em2860 #0:     card=0 -> Unknown EM2800 video grabber
-[    4.403729] em2860 #0:     card=1 -> Unknown EM2750/28xx video grabber
-[    4.403737] em2860 #0:     card=2 -> Terratec Cinergy 250 USB
-[    4.403745] em2860 #0:     card=3 -> Pinnacle PCTV USB 2
-[    4.403752] em2860 #0:     card=4 -> Hauppauge WinTV USB 2
-[    4.403760] em2860 #0:     card=5 -> MSI VOX USB 2.0
-[    4.403768] em2860 #0:     card=6 -> Terratec Cinergy 200 USB
-[    4.403776] em2860 #0:     card=7 -> Leadtek Winfast USB II
-[    4.403784] em2860 #0:     card=8 -> Kworld USB2800
-[    4.403793] em2860 #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 / Plextor ConvertX PX-AV100U
-[    4.403802] em2860 #0:     card=10 -> Hauppauge WinTV HVR 900
-[    4.403810] em2860 #0:     card=11 -> Terratec Hybrid XS
-[    4.403818] em2860 #0:     card=12 -> Kworld PVR TV 2800 RF
-[    4.403826] em2860 #0:     card=13 -> Terratec Prodigy XS
-[    4.403835] em2860 #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV USB 2.0
-[    4.403843] em2860 #0:     card=15 -> V-Gear PocketTV
-[    4.403852] em2860 #0:     card=16 -> Hauppauge WinTV HVR 950
-[    4.403860] em2860 #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[    4.403868] em2860 #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[    4.403876] em2860 #0:     card=19 -> EM2860/SAA711X Reference Design
-[    4.403885] em2860 #0:     card=20 -> AMD ATI TV Wonder HD 600
-[    4.403893] em2860 #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-[    4.403901] em2860 #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[    4.403909] em2860 #0:     card=23 -> Huaqi DLCW-130
-[    4.403917] em2860 #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[    4.403926] em2860 #0:     card=25 -> Gadmei UTV310
-[    4.403934] em2860 #0:     card=26 -> Hercules Smart TV USB 2.0
-[    4.403942] em2860 #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-[    4.403950] em2860 #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[    4.403958] em2860 #0:     card=29 -> EM2860/TVP5150 Reference Design
-[    4.403967] em2860 #0:     card=30 -> Videology 20K14XUSB USB2.0
-[    4.403974] em2860 #0:     card=31 -> Usbgear VD204v9
-[    4.403983] em2860 #0:     card=32 -> Supercomp USB 2.0 TV
-[    4.403991] em2860 #0:     card=33 -> Elgato Video Capture
-[    4.403999] em2860 #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[    4.404007] em2860 #0:     card=35 -> Typhoon DVD Maker
-[    4.404016] em2860 #0:     card=36 -> NetGMBH Cam
-[    4.404024] em2860 #0:     card=37 -> Gadmei UTV330
-[    4.404032] em2860 #0:     card=38 -> Yakumo MovieMixer
-[    4.404040] em2860 #0:     card=39 -> KWorld PVRTV 300U
-[    4.404048] em2860 #0:     card=40 -> Plextor ConvertX PX-TV100U
-[    4.404056] em2860 #0:     card=41 -> Kworld 350 U DVB-T
-[    4.404064] em2860 #0:     card=42 -> Kworld 355 U DVB-T
-[    4.404072] em2860 #0:     card=43 -> Terratec Cinergy T XS
-[    4.404080] em2860 #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[    4.404088] em2860 #0:     card=45 -> Pinnacle PCTV DVB-T
-[    4.404096] em2860 #0:     card=46 -> Compro, VideoMate U3
-[    4.404104] em2860 #0:     card=47 -> KWorld DVB-T 305U
-[    4.404112] em2860 #0:     card=48 -> KWorld DVB-T 310U
-[    4.404120] em2860 #0:     card=49 -> MSI DigiVox A/D
-[    4.404128] em2860 #0:     card=50 -> MSI DigiVox A/D II
-[    4.404136] em2860 #0:     card=51 -> Terratec Hybrid XS Secam
-[    4.404144] em2860 #0:     card=52 -> DNT DA2 Hybrid
-[    4.404152] em2860 #0:     card=53 -> Pinnacle Hybrid Pro
-[    4.404160] em2860 #0:     card=54 -> Kworld VS-DVB-T 323UR
-[    4.404168] em2860 #0:     card=55 -> Terratec Cinnergy Hybrid T USB XS (em2882)
-[    4.404176] em2860 #0:     card=56 -> Pinnacle Hybrid Pro (330e)
-[    4.404184] em2860 #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[    4.404193] em2860 #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[    4.404201] em2860 #0:     card=59 -> Pinnacle PCTV HD Mini
-[    4.404209] em2860 #0:     card=60 -> Hauppauge WinTV HVR 850
-[    4.404217] em2860 #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[    4.404225] em2860 #0:     card=62 -> Gadmei TVR200
-[    4.404233] em2860 #0:     card=63 -> Kaiomy TVnPC U2
-[    4.404241] em2860 #0:     card=64 -> Easy Cap Capture DC-60
-[    4.404249] em2860 #0:     card=65 -> IO-DATA GV-MVP/SZ
-[    4.404257] em2860 #0:     card=66 -> Empire dual TV
-[    4.404265] em2860 #0:     card=67 -> Terratec Grabby
-[    4.404273] em2860 #0:     card=68 -> Terratec AV350
-[    4.404281] em2860 #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[    4.404289] em2860 #0:     card=70 -> Evga inDtube
-[    4.404298] em2860 #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[    4.404306] em2860 #0:     card=72 -> Gadmei UTV330+
-[    4.404314] em2860 #0:     card=73 -> Reddo DVB-C USB TV Box
-[    4.404322] em2860 #0:     card=74 -> Actionmaster/LinXcel/Digitus VC211A
-[    4.404330] em2860 #0:     card=75 -> Dikom DK300
-[    4.404338] em2860 #0:     card=76 -> KWorld PlusTV 340U or UB435-Q (ATSC)
-[    4.404346] em2860 #0:     card=77 -> EM2874 Leadership ISDBT
-[    4.404354] em2860 #0:     card=78 -> PCTV nanoStick T2 290e
-[    4.404362] em2860 #0:     card=79 -> Terratec Cinergy H5
-[    4.404371] em2860 #0:     card=80 -> PCTV DVB-S2 Stick (460e)
-[    4.404379] em2860 #0:     card=81 -> Hauppauge WinTV HVR 930C
-[    4.404387] em2860 #0:     card=82 -> Terratec Cinergy HTC Stick
-[    4.404395] em2860 #0:     card=83 -> Honestech Vidbox NW03
-[    4.404403] em2860 #0:     card=84 -> MaxMedia UB425-TC
-[    4.404411] em2860 #0:     card=85 -> PCTV QuatroStick (510e)
-[    4.404419] em2860 #0:     card=86 -> PCTV QuatroStick nano (520e)
-[    4.404427] em2860 #0:     card=87 -> Terratec Cinergy HTC USB XS
-[    4.404435] em2860 #0:     card=88 -> C3 Tech Digital Duo HDTV/SDTV USB
-[    4.404443] em2860 #0:     card=89 -> Delock 61959
-[    4.404452] em2860 #0:     card=90 -> KWorld USB ATSC TV Stick UB435-Q V2
-[    4.404461] em2860 #0:     card=91 -> SpeedLink Vicious And Devine Laplace webcam
-[    4.404469] em2860 #0:     card=92 -> PCTV DVB-S2 Stick (461e)
-[    4.404477] em2860 #0:     card=93 -> KWorld USB ATSC TV Stick UB435-Q V3
-[    4.404486] em2860 #0:     card=94 -> PCTV tripleStick (292e)
-[    4.404494] em2860 #0:     card=95 -> Leadtek VC100
-[    4.404502] em2860 #0:     card=96 -> Terratec Cinergy T2 Stick HD
-[    4.404510] em2860 #0:     card=97 -> Elgato EyeTV Hybrid 2008 INT
-[    4.404518] em2860 #0: Board not discovered
-[    4.404526] em2860 #0: Identified as Unknown EM2750/28xx video grabber (card=1)
-[    4.404535] em2860 #0: Your board has no unique USB ID and thus need a hint to be detected.
-[    4.404543] em2860 #0: You may try to use card=<n> insmod option to workaround that.
-[    4.404549] em2860 #0: Please send an email with this log to:
-[    4.404556] em2860 #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-[    4.404564] em2860 #0: Board eeprom hash is 0x00000000
-[    4.404571] em2860 #0: Board i2c devicelist hash is 0x27800080
-[    4.404578] em2860 #0: Here is a list of valid choices for the card=<n> insmod option:
-[    4.404586] em2860 #0:     card=0 -> Unknown EM2800 video grabber
-[    4.404594] em2860 #0:     card=1 -> Unknown EM2750/28xx video grabber
-[    4.404602] em2860 #0:     card=2 -> Terratec Cinergy 250 USB
-[    4.404609] em2860 #0:     card=3 -> Pinnacle PCTV USB 2
-[    4.404617] em2860 #0:     card=4 -> Hauppauge WinTV USB 2
-[    4.404624] em2860 #0:     card=5 -> MSI VOX USB 2.0
-[    4.404632] em2860 #0:     card=6 -> Terratec Cinergy 200 USB
-[    4.404640] em2860 #0:     card=7 -> Leadtek Winfast USB II
-[    4.404647] em2860 #0:     card=8 -> Kworld USB2800
-[    4.404656] em2860 #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 / Plextor ConvertX PX-AV100U
-[    4.404665] em2860 #0:     card=10 -> Hauppauge WinTV HVR 900
-[    4.404673] em2860 #0:     card=11 -> Terratec Hybrid XS
-[    4.404680] em2860 #0:     card=12 -> Kworld PVR TV 2800 RF
-[    4.404688] em2860 #0:     card=13 -> Terratec Prodigy XS
-[    4.404696] em2860 #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV USB 2.0
-[    4.404704] em2860 #0:     card=15 -> V-Gear PocketTV
-[    4.404712] em2860 #0:     card=16 -> Hauppauge WinTV HVR 950
-[    4.404720] em2860 #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[    4.404728] em2860 #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[    4.404736] em2860 #0:     card=19 -> EM2860/SAA711X Reference Design
-[    4.404744] em2860 #0:     card=20 -> AMD ATI TV Wonder HD 600
-[    4.404752] em2860 #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-[    4.404761] em2860 #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[    4.404768] em2860 #0:     card=23 -> Huaqi DLCW-130
-[    4.404776] em2860 #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[    4.404784] em2860 #0:     card=25 -> Gadmei UTV310
-[    4.404792] em2860 #0:     card=26 -> Hercules Smart TV USB 2.0
-[    4.404800] em2860 #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-[    4.404808] em2860 #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[    4.404816] em2860 #0:     card=29 -> EM2860/TVP5150 Reference Design
-[    4.404824] em2860 #0:     card=30 -> Videology 20K14XUSB USB2.0
-[    4.404832] em2860 #0:     card=31 -> Usbgear VD204v9
-[    4.404840] em2860 #0:     card=32 -> Supercomp USB 2.0 TV
-[    4.404847] em2860 #0:     card=33 -> Elgato Video Capture
-[    4.404855] em2860 #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[    4.404863] em2860 #0:     card=35 -> Typhoon DVD Maker
-[    4.404871] em2860 #0:     card=36 -> NetGMBH Cam
-[    4.404878] em2860 #0:     card=37 -> Gadmei UTV330
-[    4.404886] em2860 #0:     card=38 -> Yakumo MovieMixer
-[    4.404894] em2860 #0:     card=39 -> KWorld PVRTV 300U
-[    4.404902] em2860 #0:     card=40 -> Plextor ConvertX PX-TV100U
-[    4.404910] em2860 #0:     card=41 -> Kworld 350 U DVB-T
-[    4.404917] em2860 #0:     card=42 -> Kworld 355 U DVB-T
-[    4.404925] em2860 #0:     card=43 -> Terratec Cinergy T XS
-[    4.404933] em2860 #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[    4.404941] em2860 #0:     card=45 -> Pinnacle PCTV DVB-T
-[    4.404949] em2860 #0:     card=46 -> Compro, VideoMate U3
-[    4.404957] em2860 #0:     card=47 -> KWorld DVB-T 305U
-[    4.404965] em2860 #0:     card=48 -> KWorld DVB-T 310U
-[    4.404972] em2860 #0:     card=49 -> MSI DigiVox A/D
-[    4.404980] em2860 #0:     card=50 -> MSI DigiVox A/D II
-[    4.404988] em2860 #0:     card=51 -> Terratec Hybrid XS Secam
-[    4.404996] em2860 #0:     card=52 -> DNT DA2 Hybrid
-[    4.405003] em2860 #0:     card=53 -> Pinnacle Hybrid Pro
-[    4.405011] em2860 #0:     card=54 -> Kworld VS-DVB-T 323UR
-[    4.405019] em2860 #0:     card=55 -> Terratec Cinnergy Hybrid T USB XS (em2882)
-[    4.405027] em2860 #0:     card=56 -> Pinnacle Hybrid Pro (330e)
-[    4.405035] em2860 #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[    4.405043] em2860 #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[    4.405051] em2860 #0:     card=59 -> Pinnacle PCTV HD Mini
-[    4.405059] em2860 #0:     card=60 -> Hauppauge WinTV HVR 850
-[    4.405066] em2860 #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[    4.405074] em2860 #0:     card=62 -> Gadmei TVR200
-[    4.405083] em2860 #0:     card=63 -> Kaiomy TVnPC U2
-[    4.405090] em2860 #0:     card=64 -> Easy Cap Capture DC-60
-[    4.405098] em2860 #0:     card=65 -> IO-DATA GV-MVP/SZ
-[    4.405106] em2860 #0:     card=66 -> Empire dual TV
-[    4.405113] em2860 #0:     card=67 -> Terratec Grabby
-[    4.405121] em2860 #0:     card=68 -> Terratec AV350
-[    4.405129] em2860 #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[    4.405137] em2860 #0:     card=70 -> Evga inDtube
-[    4.405145] em2860 #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[    4.405152] em2860 #0:     card=72 -> Gadmei UTV330+
-[    4.405160] em2860 #0:     card=73 -> Reddo DVB-C USB TV Box
-[    4.405168] em2860 #0:     card=74 -> Actionmaster/LinXcel/Digitus VC211A
-[    4.405176] em2860 #0:     card=75 -> Dikom DK300
-[    4.405184] em2860 #0:     card=76 -> KWorld PlusTV 340U or UB435-Q (ATSC)
-[    4.405192] em2860 #0:     card=77 -> EM2874 Leadership ISDBT
-[    4.405199] em2860 #0:     card=78 -> PCTV nanoStick T2 290e
-[    4.405207] em2860 #0:     card=79 -> Terratec Cinergy H5
-[    4.405215] em2860 #0:     card=80 -> PCTV DVB-S2 Stick (460e)
-[    4.405223] em2860 #0:     card=81 -> Hauppauge WinTV HVR 930C
-[    4.405231] em2860 #0:     card=82 -> Terratec Cinergy HTC Stick
-[    4.405239] em2860 #0:     card=83 -> Honestech Vidbox NW03
-[    4.405246] em2860 #0:     card=84 -> MaxMedia UB425-TC
-[    4.405254] em2860 #0:     card=85 -> PCTV QuatroStick (510e)
-[    4.405262] em2860 #0:     card=86 -> PCTV QuatroStick nano (520e)
-[    4.405270] em2860 #0:     card=87 -> Terratec Cinergy HTC USB XS
-[    4.405278] em2860 #0:     card=88 -> C3 Tech Digital Duo HDTV/SDTV USB
-[    4.405286] em2860 #0:     card=89 -> Delock 61959
-[    4.405294] em2860 #0:     card=90 -> KWorld USB ATSC TV Stick UB435-Q V2
-[    4.405302] em2860 #0:     card=91 -> SpeedLink Vicious And Devine Laplace webcam
-[    4.405310] em2860 #0:     card=92 -> PCTV DVB-S2 Stick (461e)
-[    4.405318] em2860 #0:     card=93 -> KWorld USB ATSC TV Stick UB435-Q V3
-[    4.405326] em2860 #0:     card=94 -> PCTV tripleStick (292e)
-[    4.405334] em2860 #0:     card=95 -> Leadtek VC100
-[    4.405342] em2860 #0:     card=96 -> Terratec Cinergy T2 Stick HD
-[    4.405350] em2860 #0:     card=97 -> Elgato EyeTV Hybrid 2008 INT
-[    4.405361] em2860 #0: analog set to isoc mode.
-[    4.405647] em28xx audio device (eb1a:2861): interface 1, class 1
-[    4.405714] em28xx audio device (eb1a:2861): interface 2, class 1
-[    4.405870] usbcore: registered new interface driver em28xx
-[    4.488556] usbcore: registered new interface driver snd-usb-audio
+On 10/13/15 11:35, Junghak Sung wrote:
+> 
+> 
+> On 10/12/2015 09:46 PM, Hans Verkuil wrote:
+>> Hi Junghak,
+>>
+>> I've accepted this v6 series and made a pull request for Mauro.
+>>
+> 
+> Hi Hans & Mauro,
+> 
+> First of all, thank you for your acceptance.
+> But, I have received some build warning reports for this
+> vb2-refactoring patch from kbuild robot. So, I'd like to fix them
+> firstly with next patch (v7).
+
+If this was a missing const in fimc-lite, then I fixed that myself in
+your patch. If it was for other things as well, then let me know.
+
+> Furthermore, I have tried to find out the way to move things related
+> with vb2_thread to vb2-core. And then.. finally I can come close to
+> resolve that.
+> Please, wait for patch v7 if you don't mind.
+> I will/can send it by this weekend.
+
+OK. Please do this vb2_thread work as a patch on top of the existing series.
+I would like to get what we have today merged asap (with warnings fixed) and
+this vb2_thread work can always be added later.
+
+Regards,
+
+	Hans
+
+>> I am still not happy about the queue_setup patch, but that can be changed
+>> later.
+> 
+> Yes, queue_setup issue needs to be dealt with regardless of
+> this refactoring patch.
+> 
+> Best regards,
+> Junghak
+> 
+>>
+>> Regards,
+>>
+>>     Hans
+>>
+>> On 10/06/2015 11:37 AM, Junghak Sung wrote:
+>>> Hello everybody,
+>>>
+>>> This is the 6th round for refactoring Videobuf2(a.k.a VB2).
+>>> The purpose of this patch series is to separate existing VB2 framework
+>>> into core part and V4L2 specific part. So that not only V4L2 but also other
+>>> frameworks can use them to manage buffer and utilize queue.
+>>>
+>>> Why do we try to make the VB2 framework to be common?
+>>>
+>>> As you may know, current DVB framework uses ringbuffer mechanism to demux
+>>> MPEG-2 TS data and pass it to userspace. However, this mechanism requires
+>>> extra memory copy because DVB framework provides only read() system call for
+>>> application - read() system call copies the kernel data to user-space buffer.
+>>> So if we can use VB2 framework which supports streaming I/O and buffer
+>>> sharing mechanism, then we could enhance existing DVB framework by removing
+>>> the extra memory copy - with VB2 framework, application can access the kernel
+>>> data directly through mmap system call.
+>>>
+>>> We have a plan for this work as follows:
+>>> 1. Separate existing VB2 framework into three parts - VB2 core, VB2 v4l2.
+>>>     Of course, this change will not affect other v4l2-based
+>>>     device drivers. This patch series corresponds to this step.
+>>>
+>>> 2. Add and implement new APIs for DVB streaming I/O.
+>>>     We can remove unnecessary memory copy between kernel-space and user-space
+>>>     by using these new APIs. However, we leaves legacy interfaces as-is
+>>>     for backward compatibility.
+>>>
+>>> This patch series is the first step for it.
+>>> The previous version of this patch series can be found at belows.
+>>>
+>>> [1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
+>>> [2] RFC PATCH v2 - http://www.spinics.net/lists/linux-media/msg92130.html
+>>> [3] RFC PATCH v3 - http://www.spinics.net/lists/linux-media/msg92953.html
+>>> [4] RFC PATCH v4 - http://www.spinics.net/lists/linux-media/msg93421.html
+>>> [5] RFC PATCH v5 - http://www.spinics.net/lists/linux-media/msg93810.html
+>>>
+>>> Changes since v5
+>>> 1. v5 is merged partially to media_tree
+>>> 4 of 8 patches - restructuring vb2_buffer for common use - are merged to
+>>> media_tree. So, v6 is rebased on later version than that.
+>>>
+>>> 2. vb2_format is reverted to void *
+>>> vb2_format - which is newly defined for queue_setup() in v5 to deliver
+>>> the format information from user-space to device driver - is reverted to
+>>> void pointer. This change requires more discussion about the way to do
+>>> the format validation and decide the image size.
+>>> So, in this version, I would like to revert it to original version.
+>>>
+>>> 3. The change related with v4l2_buf_ops is moved
+>>> The change related with v4l2_buf_ops seems to be a sort of functional change.
+>>> So, it was moved to patch 3/4 - which includes the most of functional changes.
+>>>
+>>>
+>>> Changes since v4
+>>> 1. Rebase on 4.3-rc1
+>>> Kernel 4.3-rc1 was released. So, this patch set is made based on
+>>> that version.
+>>>
+>>> 2. Modify queue_setup() argument
+>>> In previous patch set, struct v4l2_format, which is a parameter of
+>>> queue_setup(), is abstracted by using void pointer. But, it is better way to
+>>> pass the parameter with presise meaning than abstracting it.
+>>> So, replace void * with struct vb2_format which is newly defined to contain
+>>> the format information for common use.
+>>>
+>>> 3. Add a code to check if VB2_MAX_* match with VIDEO_MAX_*
+>>> Add a check code to videobuf2-v4l2.c where the compiler compares VIDEO_MAX_FRAME
+>>> and VB2_MAX_FRAME (and ditto for MAX_PLANES) and throws an #error if they
+>>> do not match.
+>>>
+>>> 4. Change the commit order
+>>> For easier review, the patch that just move things around without doing any
+>>> functional change is moved to the last.
+>>>
+>>> All ideas above are from Hans and it seems to be better and right way.
+>>>
+>>>
+>>> Changes since v3
+>>>
+>>> 1. Resolve build errors
+>>> In previous patch set, the build errors prevented reviewers from applying
+>>> the patch. So, in this patch, I tryed to fix the build errors but I hadn't
+>>> the build test on all architectures except for x86 and ARM.
+>>>
+>>> 2. Modify descriptions for DocBook
+>>> Descriptions not complying with the DocBook rule are modified,
+>>> which was pointed out by Mauro.
+>>>
+>>> 3. Initialize reserved fields explicitly
+>>> The reserved fields of v4l2_buffer are initialized by 0 explicitly
+>>> when the vb2_buffer information is returned to userspace,
+>>> which was pointed out by Hans.
+>>>
+>>> 4. Remove unnecessary type-cast
+>>> According to Mauro's advice, the unnecessary type-cast are removed
+>>> because it's better for the compiler - rather than human - to check those
+>>> things.
+>>>
+>>> 5. Sperate the patch - not easy to review - into two patches
+>>> In previous patch set, patch 5 was too difficult to review. So accoring to
+>>> Hans' opinion, it separated the patch without any functional changes.
+>>>
+>>>
+>>> Changes since v2
+>>>
+>>> 1. Remove v4l2 stuffs completely from vb2_buffer
+>>> The v4l2 stuffs - v4l2_buf and v4l2_planes - are removed completely from
+>>> struct vb2_buffer. New member variables - index, type, memory - are added
+>>> to struct vb2_buffer, all of which can be used commonly. And bytesused,
+>>> length, offset, userptr, fd, data_offset are added to struct vb2_plane
+>>> for the same reason. So, we can manage video buffer by only using
+>>> struct vb2_buffer.
+>>> And, v4l2 stuffs - flags, field, timestamp, timecode, sequence - are defined
+>>> as member variables of struct vb2_v4l2_buffer.
+>>>
+>>> 2. Create new header file for VB2 internal use
+>>> videobuf2-internal.h is created, which is referred by videobuf2-core
+>>> and videobuf2-v4l2. The header file contains dprintk() for debug,
+>>> macro functions to invoke various callbacks, and vb2_core_* function prototypes
+>>> referred by inside of videobuf2.
+>>>
+>>> 3. Remove buffer-specific callbacks as much as possible
+>>> There were many callback functions to handle video buffer information
+>>> in previous patch series. In this patch series, I try to remove these callbacks
+>>> as much as possible without breaking the existing function flow.
+>>> As a result, only four callbacks are remained - fill_user_buffer(),
+>>> fill_vb2_buffer(), fill_vb2_timestamp() and is_last().
+>>>
+>>> All ideas above are from Hans and it seems to be better and right way.
+>>>
+>>>
+>>> Changes since v1
+>>>
+>>> 1. Divide patch set into more pieces
+>>> v1 was not reviewed normally because the 2/3 patch is failed to send to mailing
+>>> list with size problem - over 300kb. So I have divided the patch set into five
+>>> pieces and refined them neatly, which was pointed by Hans.
+>>>
+>>> 2. Add shell scripts for renaming patch
+>>> In case of renaming patch, shell scripts are included inside the body of the
+>>> patches by Mauro's advice. 1/5 and 5/5 patches include these scripts, which can
+>>> be used by reviewers or maintainers to regenerate big patch file if something
+>>> goes wrong during patch apply.
+>>>
+>>> 3. Remove dependency on v4l2 from videobuf2
+>>> In previous patch set, videobuf2-core uses v4l2-specific stuff as it is.
+>>> e.g. enum v4l2_buf_type and enum v4l2_memory. That prevented other frameworks
+>>> from using videobuf2 independently and made them forced to include
+>>> v4l2-specific stuff.
+>>> In this version, these dependent stuffs are replaced with VB2 own stuffs.
+>>> e.g. enum vb2_buf_type and enum vb2_memory. So, v4l2-specific header file isn't
+>>> required to use videobuf2 in other modules. Please, note that videobuf2 stuffs
+>>> will be translated to v4l2-specific stuffs in videobuf2-v4l2.c file for
+>>> backward compatibility.
+>>>
+>>> 4. Unify duplicated definitions
+>>> VB2_DEBUG() is newly defined in videobuf2-core header file in order to unify
+>>> duplicated macro functions that invoke callback functions implemented in vb2
+>>> backends - i.e., videobuf2-vmalloc and videobuf2-dma-sg - and queue relevant
+>>> callbacks of device drivers.
+>>> In previous patch set, these macro functions were defined
+>>> in both videobuf2-core.c and videobuf2-v4l2.c.
+>>>
+>>>
+>>> This patch series is based on media_tree.git [6]. I have applied this patches
+>>> to my own git [7] for review, and tested this patch series on ubuntu
+>>> PC(Intel i7-3770) for x86 system and odroid-xu3(exynos5422) for ARM.
+>>>
+>>> [6] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git/
+>>> [7] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git/
+>>>      (branch: vb2-refactoring)
+>>>
+>>> Any suggestions and comments are welcome.
+>>>
+>>> Regards,
+>>> Junghak
+>>
+>>
