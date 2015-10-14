@@ -1,102 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:22179 "EHLO mga11.intel.com"
+Received: from mout.gmx.net ([212.227.15.15]:61632 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752787AbbJPLtS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 07:49:18 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: aviv.d.greenberg@intel.com, Aviv Greenberg <avivgr@gmail.com>
-Subject: [PATCH 1/1] UVC: Add support for ds4 depth camera.
-Date: Fri, 16 Oct 2015 14:48:51 +0300
-Message-Id: <1444996131-29284-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1753826AbbJNWLS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2015 18:11:18 -0400
+Received: from minime.bse ([77.20.40.102]) by mail.gmx.com (mrgmx001) with
+ ESMTPSA (Nemesis) id 0LgptO-1aOJjW1IYw-00oDXo for
+ <linux-media@vger.kernel.org>; Thu, 15 Oct 2015 00:11:16 +0200
+Date: Thu, 15 Oct 2015 00:11:24 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] rtl28xxu: fix control message flaws
+Message-ID: <20151014221124.GA31954@minime.bse>
+References: <1444495530-1674-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1444495530-1674-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aviv Greenberg <avivgr@gmail.com>
+On Sat, Oct 10, 2015 at 07:45:30PM +0300, Antti Palosaari wrote:
+> Add lock to prevent concurrent access for control message as control
+> message function uses shared buffer. Without the lock there may be
+> remote control polling which messes the buffer causing IO errors.
 
-Add support for Intel DS4 depth camera in uvc driver.
-This includes adding new uvc GUIDs for the new pixel formats,
-adding new V4L pixel format definition to user api headers,
-and updating the uvc driver GUID-to-4cc tables with the new formats.
+This patch fixes the Problems I had with my Astrometa stick's I2C bus
+locking up at the end of each dvbv5-scan run until it is disconnected.
+There is another source of IO errors in the current driver, though.
+The delayed work closing the I2C gate to the tuner is often executed
+after rtl2832_power_ctrl has disabled the PLL. This will cause the
+USB transfer accessing the gate control register to fail with -EPIPE.
 
-Change-Id: If240d95a7d4edc8dcc3e02d58cd8267a6bbf6fcb
-Tested-by: Greenberg, Aviv D <aviv.d.greenberg@intel.com>
-Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
- include/uapi/linux/videodev2.h     |  3 +++
- 3 files changed, 35 insertions(+)
+Best regards,
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 4b5b3e8..bcbb6cf 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -147,6 +147,26 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_H264,
- 		.fcc		= V4L2_PIX_FMT_H264,
- 	},
-+	{
-+		.name		= "Greyscale 8 L/R (Y8I)",
-+		.guid		= UVC_GUID_FORMAT_Y8I,
-+		.fcc		= V4L2_PIX_FMT_Y8I,
-+	},
-+	{
-+		.name		= "Greyscale 12 L/R (Y12I)",
-+		.guid		= UVC_GUID_FORMAT_Y12I,
-+		.fcc		= V4L2_PIX_FMT_Y12I,
-+	},
-+	{
-+		.name		= "Depth data 16-bit (Z16)",
-+		.guid		= UVC_GUID_FORMAT_Z16,
-+		.fcc		= V4L2_PIX_FMT_Z16,
-+	},
-+	{
-+		.name		= "Bayer 10-bit (SRGGB10P)",
-+		.guid		= UVC_GUID_FORMAT_RW10,
-+		.fcc		= V4L2_PIX_FMT_SRGGB10P,
-+	},
- };
- 
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 816dd1a..b38bb2e 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -119,6 +119,18 @@
- #define UVC_GUID_FORMAT_H264 \
- 	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y8I \
-+	{ 'Y',  '8',  'I',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y12I \
-+	{ 'Y',  '1',  '2',  'I', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Z16 \
-+	{ 'Z',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_RW10 \
-+	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- 
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3228fbe..14274c1 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -606,6 +606,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
- #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
- #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
-+#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
-+#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
-+#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- 
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
--- 
-2.1.0.231.g7484e3b
-
+  Daniel
