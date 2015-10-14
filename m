@@ -1,117 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:54349 "EHLO
-	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbbJBWHp (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:2036 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750807AbbJNGqT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:45 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 16/20] media: au0828 change to use Managed Media Controller API
-Date: Fri,  2 Oct 2015 16:07:28 -0600
-Message-Id: <d172317cfda2af728b64f24e6553e33f696aa76c.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+	Wed, 14 Oct 2015 02:46:19 -0400
+Subject: Re: [PATCH 1/5] media: atmel-isi: correct yuv swap according to
+ different sensor outputs
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+ <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1510041751480.26834@axis700.grange>
+ <Pine.LNX.4.64.1510041903460.26834@axis700.grange>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <561DFA36.2070705@atmel.com>
+Date: Wed, 14 Oct 2015 14:46:14 +0800
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1510041903460.26834@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828 to use Managed Media Controller API to coordinate
-creating/deleting media device on parent usb device it shares
-with the snd-usb-audio driver. With this change, au0828 uses
-media_device_get_devres() to allocate a new media device devres
-or return an existing one, if it finds one.
+Dear Gueannadi,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 45 +++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 23 deletions(-)
+On 10/5/2015 1:04 AM, Guennadi Liakhovetski wrote:
+> Even simpler:
+>
+> On Sun, 4 Oct 2015, Guennadi Liakhovetski wrote:
+>
+>> Hi Josh,
+>>
+>> On Tue, 22 Sep 2015, Josh Wu wrote:
+>>
+>>> we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
+>>> sensor output and Atmel ISI output format.
+>>>
+>>> Current there are two cases Atmel ISI supported:
+>>>    1. Atmel ISI outputs YUYV format.
+>>>       This case we need to setup YCC_SWAP according to sensor output
+>>>       format.
+>>>    2. Atmel ISI output a pass-through formats, which means no swap.
+>>>       Just setup YCC_SWAP as default with no swap.
+>>>
+>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>>> ---
+>>>
+>>>   drivers/media/platform/soc_camera/atmel-isi.c | 43 ++++++++++++++++++++-------
+>>>   1 file changed, 33 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>>> index 45e304a..df64294 100644
+>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>>> @@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>>>   	return readl(isi->regs + reg);
+>>>   }
+>>>   
+>>> +static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
+>>> +		const struct soc_camera_format_xlate *xlate)
+>>> +{
+>> This function will be called only for the four media codes from the
+>> switch-case statement below, namely for
+>>
+>> MEDIA_BUS_FMT_VYUY8_2X8
+>> MEDIA_BUS_FMT_UYVY8_2X8
+>> MEDIA_BUS_FMT_YVYU8_2X8
+>> MEDIA_BUS_FMT_YUYV8_2X8
+>>
+>>> +	/* By default, no swap for the codec path of Atmel ISI. So codec
+>>> +	* output is same as sensor's output.
+>>> +	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
+>>> +	* And if sensor's output is UYVY, then codec outputs UYVY.
+>>> +	*/
+>>> +	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
+>> Then this ISI_CFG2_YCC_SWAP_DEFAULT will only hold for
+>> MEDIA_BUS_FMT_YUYV8_2X8? Why don't you just add one more case below? Don't
+>> think this initialisation is really justified.
+>>
+>>> +
+>>> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
+>>> +		/* all convert to YUYV */
+>>> +		switch (xlate->code) {
+>>> +		case MEDIA_BUS_FMT_VYUY8_2X8:
+>>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
+>>> +			break;
+> Why don't you just return the result value here directly? Then you don't
+> need the variable at all
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 4fd7db8..544d304 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -135,9 +135,9 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- {
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (dev->media_dev) {
-+	if (dev->media_dev &&
-+	    media_devnode_is_registered(&dev->media_dev->devnode)) {
- 		media_device_unregister(dev->media_dev);
--		kfree(dev->media_dev);
- 		dev->media_dev = NULL;
- 	}
- #endif
-@@ -222,31 +222,30 @@ static void au0828_media_device_register(struct au0828_dev *dev,
- 	struct media_device *mdev;
- 	int ret;
- 
--	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	mdev = media_device_get_devres(&udev->dev);
- 	if (!mdev)
- 		return;
- 
--	mdev->dev = &udev->dev;
--
--	if (!dev->board.name)
--		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
--	else
--		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
--	if (udev->serial)
--		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
--	strcpy(mdev->bus_info, udev->devpath);
--	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
--	mdev->driver_version = LINUX_VERSION_CODE;
--
--	ret = media_device_register(mdev);
--	if (ret) {
--		pr_err(
--			"Couldn't create a media device. Error: %d\n",
--			ret);
--		kfree(mdev);
--		return;
-+	if (!media_devnode_is_registered(&mdev->devnode)) {
-+		/* register media device */
-+		mdev->dev = &udev->dev;
-+
-+		if (udev->product)
-+			strlcpy(mdev->model, udev->product,
-+				sizeof(mdev->model));
-+		if (udev->serial)
-+			strlcpy(mdev->serial, udev->serial,
-+				sizeof(mdev->serial));
-+		strcpy(mdev->bus_info, udev->devpath);
-+		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
-+		ret = media_device_register(mdev);
-+		if (ret) {
-+			dev_err(&udev->dev,
-+				"Couldn't create a media device. Error: %d\n",
-+				ret);
-+			return;
-+		}
- 	}
--
- 	dev->media_dev = mdev;
- #endif
- }
--- 
-2.1.4
+yes, This sounds good. I'll take rid of the cfg2_yuv_swap variable. Thanks.
+
+Best Regards,
+Josh Wu
+>
+>>> +		case MEDIA_BUS_FMT_UYVY8_2X8:
+>>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
+>>> +			break;
+>>> +		case MEDIA_BUS_FMT_YVYU8_2X8:
+>>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
+>>> +			break;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	return cfg2_yuv_swap;
+>>> +}
+>>> +
+>>>   static void configure_geometry(struct atmel_isi *isi, u32 width,
+>>> -			u32 height, u32 code)
+>>> +		u32 height, const struct soc_camera_format_xlate *xlate)
+>>>   {
+>>>   	u32 cfg2;
+>>>   
+>>>   	/* According to sensor's output format to set cfg2 */
+>>> -	switch (code) {
+>>> +	switch (xlate->code) {
+>>>   	default:
+>>>   	/* Grey */
+>>>   	case MEDIA_BUS_FMT_Y8_1X8:
+>>> @@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+>>>   		break;
+>>>   	/* YUV */
+>>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
+>>> -		break;
+>>>   	case MEDIA_BUS_FMT_UYVY8_2X8:
+>>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
+>>> -		break;
+>>>   	case MEDIA_BUS_FMT_YVYU8_2X8:
+>>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
+>>> -		break;
+>>>   	case MEDIA_BUS_FMT_YUYV8_2X8:
+>>> -		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
+>>> +		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
+>>> +				setup_cfg2_yuv_swap(isi, xlate);
+>>>   		break;
+>>>   	/* RGB, TODO */
+>>>   	}
+>> I would move this switch-case completely inside setup_cfg2_yuv_swap().
+>> Just do
+>>
+>> 	cfg2 = setup_cfg2_yuv_swap(isi, xlate);
+>>
+>> and handle the
+>>
+>>   	case MEDIA_BUS_FMT_Y8_1X8:
+>>
+>> in the function too. These two switch-case statements really look
+>> redundant.
+>>
+>>> @@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>>>   
+>>>   	configure_geometry(isi, icd->user_width, icd->user_height,
+>>> -				icd->current_fmt->code);
+>>> +				icd->current_fmt);
+>>>   
+>>>   	spin_lock_irq(&isi->lock);
+>>>   	/* Clear any pending interrupt */
+>>> -- 
+>>> 1.9.1
+>>>
+>> Thanks
+>> Guennadi
+>>
 
