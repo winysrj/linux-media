@@ -1,141 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:50020 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbbJaQn5 (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:5708 "EHLO
+	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750817AbbJNG5p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Oct 2015 12:43:57 -0400
-Date: Sat, 31 Oct 2015 17:43:49 +0100
-From: Luc Verhaegen <libv@skynet.be>
-To: mesa-dev@lists.freedesktop.org, xorg-devel@lists.x.org,
-	dri-devel@lists.freedesktop.org,
-	wayland-devel@lists.freedesktop.org,
-	xorg-announce@lists.freedesktop.org, mir-devel@lists.ubuntu.com,
-	linux-media@vger.kernel.org
-Subject: FOSDEM16: Graphics DevRoom: call for speakers.
-Message-ID: <20151031164349.GA28446@skynet.be>
+	Wed, 14 Oct 2015 02:57:45 -0400
+Subject: Re: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor
+ output YUV formats
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+ <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <561DFCE4.8090508@atmel.com>
+Date: Wed, 14 Oct 2015 14:57:40 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Dear Guennadi,
 
-At FOSDEM on sunday 31st of january 2016, there will be another graphics 
-DevRoom. URL: https://fosdem.org/2016/
+Thanks for the review.
 
-At first, I wanted to skip another year (like in 2011), as speaker 
-turn-out was disgracefully low last year. But when i heard from some 
-usual speaker suspects earlier this month (the first time anyone asked 
-me about a FOSDEM16 devroom btw), followed by the fact that the devroom 
-request deadline was sheduled a month later than the last few years, i 
-did end up filing, but this time for a single day only. Claiming two 
-days would simply not have been fair towards all the other projects 
-that usually get rejected (FOSDEM typically rejects half the requests, 
-leading to only about 25 devrooms in parallel). Anyway...
+On 10/5/2015 1:02 AM, Guennadi Liakhovetski wrote:
+> On Tue, 22 Sep 2015, Josh Wu wrote:
+>
+>> This patch enable Atmel ISI preview path to convert the YUV to RGB format.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 38 ++++++++++++++++++++-------
+>>   1 file changed, 29 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index e87d354..e33a16a 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device *icd,
+>>   	case V4L2_PIX_FMT_UYVY:
+>>   	case V4L2_PIX_FMT_YVYU:
+>>   	case V4L2_PIX_FMT_VYUY:
+>> +	/* RGB */
+>> +	case V4L2_PIX_FMT_RGB565:
+>>   		return true;
+>> -	/* RGB, TODO */
+>>   	default:
+>>   		return false;
+>>   	}
+>>   }
+>>   
+>> +static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
+>> +{
+>> +	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
+>> +			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
+>> +}
+>> +
+> Why not just pass fourcc to this function? Or maybe just embed it in
+> start_streaming - it won't clutter it a lot.
 
-The focus of this DevRoom is of course the same as the last few years, 
-namely:
-* Graphics drivers: from display to media to 3d drivers, both in kernel 
-  or userspace. Be it part of DRM, KMS, (direct)FB, V4L, Xorg, Mesa...
-* Input drivers: kernel and userspace.
-* Windowing systems: X, Wayland, Mir, directFB, ...
-* Even colour management, low level toolkit stuff, and other areas which 
-  i might have overlooked above are accepted.
+I think pass fourcc to the function is good.
+Since configure_geometry() is hardware related, and the 
+enable_preview_path is also hardware related, so I prefer initialize 
+enable_preview_path in configure_geometry().
 
-Slots are 50 minutes long, and scheduled hourly. This partly to avoid 
-confusion and people running all over the place all the time. As a 
-speaker, you do not have to fill your whole hour, gaps are never wasted 
-time.
+>
+>>   static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+>>   {
+>>   	if (isi->active) {
+>> @@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>   	struct atmel_isi *isi = ici->priv;
+>>   	int ret;
+>>   
+>> +	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
+>> +
+>>   	pm_runtime_get_sync(ici->v4l2_dev.dev);
+>>   
+>>   	/* Reset ISI */
+>> @@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
+>>   		.order			= SOC_MBUS_ORDER_LE,
+>>   		.layout			= SOC_MBUS_LAYOUT_PACKED,
+>>   	},
+>> +	{
+>> +		.fourcc			= V4L2_PIX_FMT_RGB565,
+>> +		.name			= "RGB565",
+>> +		.bits_per_sample	= 8,
+>> +		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
+>> +		.order			= SOC_MBUS_ORDER_LE,
+>> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
+>> +	},
+>>   };
+>>   
+>>   /* This will be corrected as we get more formats */
+>> @@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+>>   				  struct soc_camera_format_xlate *xlate)
+>>   {
+>>   	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>> -	int formats = 0, ret;
+>> +	int formats = 0, ret, i, n;
+>>   	/* sensor format */
+>>   	struct v4l2_subdev_mbus_code_enum code = {
+>>   		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+>> @@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>>   	case MEDIA_BUS_FMT_YUYV8_2X8:
+>>   	case MEDIA_BUS_FMT_YVYU8_2X8:
+>> -		formats++;
+>> -		if (xlate) {
+>> -			xlate->host_fmt	= &isi_camera_formats[0];
+>> -			xlate->code	= code.code;
+>> -			xlate++;
+>> -			dev_dbg(icd->parent, "Providing format %s using code %d\n",
+>> -				isi_camera_formats[0].name, code.code);
+>> +		n = ARRAY_SIZE(isi_camera_formats);
+>> +		formats += n;
+>> +		for (i = 0; i < n; i++) {
+>> +			if (xlate) {
+> I'd put if outside of the loop, or just do
+>
+> +		for (i = 0; xlate && i < n; i++) {
 
-Slots will be handed out on a first come, first serve basis. The best 
-slots will go to those who apply the earliest. The amount of slots is 
-currently not known yet, but there are only 8 slots available, so act 
-quickly.
+yes, that simpler one. I'll take it. Thanks.
 
-Talk Submission:
-----------------
+Best Regards,
+Josh Wu
+>
+>
+>> +				xlate->host_fmt	= &isi_camera_formats[i];
+>> +				xlate->code	= code.code;
+>> +				dev_dbg(icd->parent, "Providing format %s using code %d\n",
+>> +					isi_camera_formats[0].name, code.code);
+>> +				xlate++;
+>> +			}
+>>   		}
+>>   		break;
+>>   	default:
+>> -- 
+>> 1.9.1
+>>
 
-Like the last few years, the pentabarf system will be used for talk 
-submission. It is not perfect from a devroom organizer and talk 
-submitters usability point-of-view, but the new interface is not fully 
-implemented yet, and the fosdem organizers have reverted to the old one 
-for this year. It is however workable and it ended up working out 
-pretty well these last few years.
-
-https://penta.fosdem.org/submission/FOSDEM16
-
-Remember that FOSDEM is not like XDC, it's not some 50 odd people 
-meeting with a sliding schedule which only gets filled out on the last 
-day. Upwards of 8000 people are visiting this event, and most of them 
-get a printed booklet or use the schedule on the FOSDEM website or an 
-app for their phone to figure out what to watch or participate in next. 
-So please put some effort in your talk submission and details.
-
-Since this an open source community event, please refrain from turning 
-in a talk that is a pure corporate or product commercial. Also, if you 
-are unsure on whether you can come or not (this is FOSDEM, why are you 
-not there anyway?), please wait with submitting your talk. Submitting a 
-talk and then not turning up because you could not be bothered is a 
-sure-fire way to get larted and then to never be allowed to talk again.
-
-Also, all talks will be recorded, and will be made available as CC-BY 
-after a bit of time. Since we have only a single day devroom, we 
-probably will not end up being streamed live.
-
-As for deadlines, the fosdem organizers are doing their booklet 
-differently again, and they need to have the schedule finished by the 
-18th of december. Given that there are only 8 slots, i trust that this 
-will not be an issue this year.
-
-Don't count on this deadline: first come first serve! There are perhaps 
-only 8 slots. And the worst slots will be assigned to those who come 
-last. Do you really want to talk on sunday at 9:00 when people are still 
-in zombie mode after 2 nights at the delirium bar, if they are here at all?
-
-Use your account from last year, so you can try to recycle some of your 
-data from last year. If you have forgotten your password, then you can 
-reset it here: https://penta.fosdem.org/user/forgot_password
-
-Necessary information:
-----------------------
-
-Below is a list of what i need to see filled in when you apply for a 
-devroom before i consider it a valid submission. Remember: first come, 
-first serve. The best slots are for the earliest submissions and there 
-are only 8 slots.
-
-On your personal page:
-* General:
-  * First and last name
-  * Nickname
-  * Image
-* Contact:
-  * email
-  * mobile number (this is a very hard requirement as there will be no 
-   other reliable form of emergency communication on the day)
-* Description:
-  * Abstract
-  * Description
-
-Create an event:
-* On the General page:
-  * Event title
-  * Event subtitle.
-  * Track: Graphics Devroom
-  * Event type: Lecture (talk) or Meeting (BoF)
-* Persons:
-  * Add yourself as speaker.
-* Description:
-  * Abstract:
-  * Full Description
-* Links:
-  * Add relevant links.
-
-Everything else can be ignored or will be filled in by me or the FOSDEM
-organizers. Remember, i will only schedule your talk after the basics 
-are somewhat filled in (you still can change them until december 18th).
-
-That's about it. Hope to see you all at FOSDEM :)
-
-Luc Verhaegen.
