@@ -1,139 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:8541 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750983AbbJBUj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 16:39:29 -0400
-From: Antonio Ospite <ao2@ao2.it>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, moinejf@free.fr,
-	Anders Blomdell <anders.blomdell@control.lth.se>,
-	Thomas Champagne <lafeuil@gmail.com>,
-	Antonio Ospite <ao2@ao2.it>, stable@vger.kernel.org
-Subject: [PATCH] [media] gspca: ov534/topro: prevent a division by 0
-Date: Fri,  2 Oct 2015 22:33:13 +0200
-Message-Id: <1443817993-32406-1-git-send-email-ao2@ao2.it>
+Received: from nasmtp02.atmel.com ([204.2.163.16]:12910 "EHLO
+	SJOEDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750816AbbJNGnK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Oct 2015 02:43:10 -0400
+Subject: Re: [PATCH 1/5] media: atmel-isi: correct yuv swap according to
+ different sensor outputs
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+ <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1510041751480.26834@axis700.grange>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Josh Wu <josh.wu@atmel.com>
+Message-ID: <561DF979.9050501@atmel.com>
+Date: Wed, 14 Oct 2015 14:43:05 +0800
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1510041751480.26834@axis700.grange>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-compliance sends a zeroed struct v4l2_streamparm in
-v4l2-test-formats.cpp::testParmType(), and this results in a division by
-0 in some gspca subdrivers:
+Hi, Dear Guennadi
 
-  divide error: 0000 [#1] SMP
-  Modules linked in: gspca_ov534 gspca_main ...
-  CPU: 0 PID: 17201 Comm: v4l2-compliance Not tainted 4.3.0-rc2-ao2 #1
-  Hardware name: System manufacturer System Product Name/M2N-E SLI, BIOS
-    ASUS M2N-E SLI ACPI BIOS Revision 1301 09/16/2010
-  task: ffff8800818306c0 ti: ffff880095c4c000 task.ti: ffff880095c4c000
-  RIP: 0010:[<ffffffffa079bd62>]  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
-  RSP: 0018:ffff880095c4fce8  EFLAGS: 00010296
-  RAX: 0000000000000000 RBX: ffff8800c9522000 RCX: ffffffffa077a140
-  RDX: 0000000000000000 RSI: ffff880095e0c100 RDI: ffff8800c9522000
-  RBP: ffff880095e0c100 R08: ffffffffa077a100 R09: 00000000000000cc
-  R10: ffff880067ec7740 R11: 0000000000000016 R12: ffffffffa07bb400
-  R13: 0000000000000000 R14: ffff880081b6a800 R15: 0000000000000000
-  FS:  00007fda0de78740(0000) GS:ffff88012fc00000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 00000000014630f8 CR3: 00000000cf349000 CR4: 00000000000006f0
-  Stack:
-   ffffffffa07a6431 ffff8800c9522000 ffffffffa077656e 00000000c0cc5616
-   ffff8800c9522000 ffffffffa07a5e20 ffff880095e0c100 0000000000000000
-   ffff880067ec7740 ffffffffa077a140 ffff880067ec7740 0000000000000016
-  Call Trace:
-   [<ffffffffa07a6431>] ? v4l_s_parm+0x21/0x50 [videodev]
-   [<ffffffffa077656e>] ? vidioc_s_parm+0x4e/0x60 [gspca_main]
-   [<ffffffffa07a5e20>] ? __video_do_ioctl+0x280/0x2f0 [videodev]
-   [<ffffffffa07a5ba0>] ? video_ioctl2+0x20/0x20 [videodev]
-   [<ffffffffa07a59b9>] ? video_usercopy+0x319/0x4e0 [videodev]
-   [<ffffffff81182dc1>] ? page_add_new_anon_rmap+0x71/0xa0
-   [<ffffffff811afb92>] ? mem_cgroup_commit_charge+0x52/0x90
-   [<ffffffff81179b18>] ? handle_mm_fault+0xc18/0x1680
-   [<ffffffffa07a15cc>] ? v4l2_ioctl+0xac/0xd0 [videodev]
-   [<ffffffff811c846f>] ? do_vfs_ioctl+0x28f/0x480
-   [<ffffffff811c86d4>] ? SyS_ioctl+0x74/0x80
-   [<ffffffff8154a8b6>] ? entry_SYSCALL_64_fastpath+0x16/0x75
-  Code: c7 93 d9 79 a0 5b 5d e9 f1 f3 9a e0 0f 1f 00 66 2e 0f 1f 84 00
-    00 00 00 00 66 66 66 66 90 53 31 d2 48 89 fb 48 83 ec 08 8b 46 10 <f7>
-    76 0c 80 bf ac 0c 00 00 00 88 87 4e 0e 00 00 74 09 80 bf 4f
-  RIP  [<ffffffffa079bd62>] sd_set_streamparm+0x12/0x60 [gspca_ov534]
-   RSP <ffff880095c4fce8>
-  ---[ end trace 279710c2c6c72080 ]---
+Thanks for the review.
 
-Following what the doc says about a zeroed timeperframe (see
-http://www.linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-parm.html):
+On 10/5/2015 12:43 AM, Guennadi Liakhovetski wrote:
+> Hi Josh,
+>
+> On Tue, 22 Sep 2015, Josh Wu wrote:
+>
+>> we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
+>> sensor output and Atmel ISI output format.
+>>
+>> Current there are two cases Atmel ISI supported:
+>>    1. Atmel ISI outputs YUYV format.
+>>       This case we need to setup YCC_SWAP according to sensor output
+>>       format.
+>>    2. Atmel ISI output a pass-through formats, which means no swap.
+>>       Just setup YCC_SWAP as default with no swap.
+>>
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>
+>>   drivers/media/platform/soc_camera/atmel-isi.c | 43 ++++++++++++++++++++-------
+>>   1 file changed, 33 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 45e304a..df64294 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+>>   	return readl(isi->regs + reg);
+>>   }
+>>   
+>> +static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
+>> +		const struct soc_camera_format_xlate *xlate)
+>> +{
+> This function will be called only for the four media codes from the
+> switch-case statement below, namely for
+>
+> MEDIA_BUS_FMT_VYUY8_2X8
+> MEDIA_BUS_FMT_UYVY8_2X8
+> MEDIA_BUS_FMT_YVYU8_2X8
+> MEDIA_BUS_FMT_YUYV8_2X8
+>
+>> +	/* By default, no swap for the codec path of Atmel ISI. So codec
+>> +	* output is same as sensor's output.
+>> +	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
+>> +	* And if sensor's output is UYVY, then codec outputs UYVY.
+>> +	*/
+>> +	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
+> Then this ISI_CFG2_YCC_SWAP_DEFAULT will only hold for
+> MEDIA_BUS_FMT_YUYV8_2X8? Why don't you just add one more case below? Don't
+> think this initialisation is really justified.
+This default initial value is for all host_fmt_fourcc case. Not just for 
+V4L2_PIX_FMT_YUYV this case.
 
-  ...
-  To reset manually applications can just set this field to zero.
+>
+>> +
+>> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
+>> +		/* all convert to YUYV */
+>> +		switch (xlate->code) {
+>> +		case MEDIA_BUS_FMT_VYUY8_2X8:
+>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
+>> +			break;
+>> +		case MEDIA_BUS_FMT_UYVY8_2X8:
+>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
+>> +			break;
+>> +		case MEDIA_BUS_FMT_YVYU8_2X8:
+>> +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	return cfg2_yuv_swap;
+>> +}
+>> +
+>>   static void configure_geometry(struct atmel_isi *isi, u32 width,
+>> -			u32 height, u32 code)
+>> +		u32 height, const struct soc_camera_format_xlate *xlate)
+>>   {
+>>   	u32 cfg2;
+>>   
+>>   	/* According to sensor's output format to set cfg2 */
+>> -	switch (code) {
+>> +	switch (xlate->code) {
+>>   	default:
+>>   	/* Grey */
+>>   	case MEDIA_BUS_FMT_Y8_1X8:
+>> @@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+>>   		break;
+>>   	/* YUV */
+>>   	case MEDIA_BUS_FMT_VYUY8_2X8:
+>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
+>> -		break;
+>>   	case MEDIA_BUS_FMT_UYVY8_2X8:
+>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
+>> -		break;
+>>   	case MEDIA_BUS_FMT_YVYU8_2X8:
+>> -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
+>> -		break;
+>>   	case MEDIA_BUS_FMT_YUYV8_2X8:
+>> -		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
+>> +		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
+>> +				setup_cfg2_yuv_swap(isi, xlate);
+>>   		break;
+>>   	/* RGB, TODO */
+>>   	}
+> I would move this switch-case completely inside setup_cfg2_yuv_swap().
+> Just do
+>
+> 	cfg2 = setup_cfg2_yuv_swap(isi, xlate);
+>
+> and handle the
+>
+>   	case MEDIA_BUS_FMT_Y8_1X8:
+>
+> in the function too. These two switch-case statements really look
+> redundant.
+Technically, you can do that. But for my point of view, the 
+setup_cfg2_yuv_swap() only need to setup the yuv swap register field.
 
-fix the issue by resetting the frame rate to a default value in case of
-an unusable timeperframe.
+And other cfg2 field need to be configured as well, especially in the 
+case sensor output a RGB data. That should be implement soon.
 
-The fix is done in the subdrivers instead of gspca.c because only the
-subdrivers have notion of a default frame rate to reset the camera to.
+>
+>> @@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>>   
+>>   	configure_geometry(isi, icd->user_width, icd->user_height,
+>> -				icd->current_fmt->code);
+>> +				icd->current_fmt);
+>>   
+>>   	spin_lock_irq(&isi->lock);
+>>   	/* Clear any pending interrupt */
+>> -- 
+>> 1.9.1
+>>
+> Thanks
+> Guennadi
 
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
-Cc: stable@vger.kernel.org
----
-
-Hi,
-
-I think the problem in the gspca subdrivers has always been there, so the
-patch could be applied to any relevant stable releases.
-
-After the fix, v4l2-compliance runs fine but it gets two failures, I'll send
-another mail about those.
-
-After this change gets merged I will also send a patch to use defines for the
-default framerates used below as the same value is used in multiple places.
-
-Ah, I ran the patch through scripts/checkpatch.pl from 4.3-rc2 and it
-complained about the commit message but I think it may be a false positive.
-
-Ciao ciao,
-   Antonio
-
-
- drivers/media/usb/gspca/ov534.c | 9 +++++++--
- drivers/media/usb/gspca/topro.c | 6 +++++-
- 2 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
-index 146071b..bfff1d1 100644
---- a/drivers/media/usb/gspca/ov534.c
-+++ b/drivers/media/usb/gspca/ov534.c
-@@ -1491,8 +1491,13 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
- 	struct v4l2_fract *tpf = &cp->timeperframe;
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	/* Set requested framerate */
--	sd->frame_rate = tpf->denominator / tpf->numerator;
-+	if (tpf->numerator == 0 || tpf->denominator == 0)
-+		/* Set default framerate */
-+		sd->frame_rate = 30;
-+	else
-+		/* Set requested framerate */
-+		sd->frame_rate = tpf->denominator / tpf->numerator;
-+
- 	if (gspca_dev->streaming)
- 		set_frame_rate(gspca_dev);
- 
-diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
-index c70ff40..c028a5c 100644
---- a/drivers/media/usb/gspca/topro.c
-+++ b/drivers/media/usb/gspca/topro.c
-@@ -4802,7 +4802,11 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
- 	struct v4l2_fract *tpf = &cp->timeperframe;
- 	int fr, i;
- 
--	sd->framerate = tpf->denominator / tpf->numerator;
-+	if (tpf->numerator == 0 || tpf->denominator == 0)
-+		sd->framerate = 30;
-+	else
-+		sd->framerate = tpf->denominator / tpf->numerator;
-+
- 	if (gspca_dev->streaming)
- 		setframerate(gspca_dev, v4l2_ctrl_g_ctrl(gspca_dev->exposure));
- 
--- 
-2.6.0
+Best Regards,
+Josh Wu
 
