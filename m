@@ -1,40 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33670 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750796AbbJTGZM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60292 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751997AbbJOXXA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 02:25:12 -0400
-Message-ID: <5625DDCA.2040203@xs4all.nl>
-Date: Tue, 20 Oct 2015 08:23:06 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: PCIe capture driver
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-In-Reply-To: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 15 Oct 2015 19:23:00 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/1] staging: omap4iss: Compiling V4L2 framework and I2C as modules is fine
+Date: Fri, 16 Oct 2015 02:21:13 +0300
+Message-Id: <1444951273-22350-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/19/2015 10:26 PM, Ran Shalit wrote:
-> Hello,
-> 
-> When writing a device driver for  capturing video coming from PCIe,
-> does it need to be used as v4l device (video for linux) , ?
+Don't require V4L2 framework and I2C being linked to the kernel directly.
 
-Yes. If you don't then 1) you will never be able to upstream the driver,
-2) any application that wants to use your driver will need custom code to
-talk to your driver, 3) it will be a lot more work to write the driver
-since you can't use the V4L2 kernel frameworks it provides or ask for
-help.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/staging/media/omap4iss/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Basically, by deciding to reinvent the wheel you're screwing over your
-customers and yourself.
+diff --git a/drivers/staging/media/omap4iss/Kconfig b/drivers/staging/media/omap4iss/Kconfig
+index 8d4e3bd..4618346 100644
+--- a/drivers/staging/media/omap4iss/Kconfig
++++ b/drivers/staging/media/omap4iss/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_OMAP4
+ 	tristate "OMAP 4 Camera support"
+-	depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+ 	depends on HAS_DMA
+ 	select MFD_SYSCON
+ 	select VIDEOBUF2_DMA_CONTIG
+-- 
+2.1.4
 
-Here is a nice PCI(e) template driver that you can use as your starting
-point: Documentation/video4linux/v4l2-pci-skeleton.c
-
-Regards,
-
-	Hans
