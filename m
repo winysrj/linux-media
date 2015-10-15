@@ -1,139 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37394 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752363AbbJUCZX (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56238 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750856AbbJORrb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 22:25:23 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3A8702A008E
-	for <linux-media@vger.kernel.org>; Wed, 21 Oct 2015 04:23:14 +0200 (CEST)
-Date: Wed, 21 Oct 2015 04:23:14 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151021022314.3A8702A008E@tschai.lan>
+	Thu, 15 Oct 2015 13:47:31 -0400
+Message-ID: <561FE637.1050609@xs4all.nl>
+Date: Thu, 15 Oct 2015 19:45:27 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv9 07/15] cec: add HDMI CEC framework
+References: <cover.1441633456.git.hansverk@cisco.com> <60de2f33f0d4c809f06d23cdac75e3b798aaae4b.1441633456.git.hansverk@cisco.com> <20151006170635.GQ21513@n2100.arm.linux.org.uk> <561B9B1A.4020001@xs4all.nl> <20151013225147.GM32532@n2100.arm.linux.org.uk> <561DF658.3090002@xs4all.nl> <20151015173404.GG32532@n2100.arm.linux.org.uk>
+In-Reply-To: <20151015173404.GG32532@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 10/15/2015 07:34 PM, Russell King - ARM Linux wrote:
+> On Wed, Oct 14, 2015 at 08:29:44AM +0200, Hans Verkuil wrote:
+>> On 10/14/2015 12:51 AM, Russell King - ARM Linux wrote:
+>>> On Mon, Oct 12, 2015 at 01:35:54PM +0200, Hans Verkuil wrote:
+>>>> On 10/06/2015 07:06 PM, Russell King - ARM Linux wrote:
+>>>>> Surely you aren't proposing that drivers should write directly to
+>>>>> adap->phys_addr without calling some notification function that the
+>>>>> physical address has changed?
+>>>>
+>>>> Userspace is informed through CEC_EVENT_STATE_CHANGE when the adapter is
+>>>> enabled/disabled. When the adapter is enabled and CEC_CAP_PHYS_ADDR is
+>>>> not set (i.e. the kernel takes care of this), then calling CEC_ADAP_G_PHYS_ADDR
+>>>> returns the new physical address.
+>>>
+>>> Okay, so when I see the EDID arrive, I should be doing:
+>>>
+>>>                 phys = parse_hdmi_addr(block->edid);
+>>>                 cec->adap->phys_addr = phys;
+>>>                 cec_enable(cec->adap, true);
+>>>
+>>> IOW, you _are_ expecting adap->phys_addr to be written, but only while
+>>> the adapter is disabled?
+>>
+>> Right.
+>>
+>> And when the hotplug goes down you should call cec_enable(cec->adap, false).
+>> While the adapter is disabled, CEC_ADAP_G_PHYS_ADDR will always return
+>> CEC_PHYS_ADDR_INVALID regardless of the cec->adap->phys_addr value.
+> 
+> There seems to be a few bugs.  Is there a way to monitor (in a similar
+> way to tcpdump) the activity on the bus?
 
-Results of the daily build of media_tree:
+To monitor the bus use:
 
-date:		Wed Oct 21 04:00:41 CEST 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+cec-ctl -m
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-rc1-i686: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+This will monitor any CEC messages sent by the CEC adapter, any CEC broadcast
+messages received and any CEC messages directed to the configured logical
+address(es) of the CEC adapter.
 
-Detailed results are available here:
+I have yet to see hardware that can see CEC messages directed to other
+devices. If your HW can do that, then it would be nice to add support for that
+to the CEC framework.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> What I'm seeing is that if the TV is switched to the appropriate AV
+> input, and then I do:
+> 
+> 	cec-ctl --playback
+> 
+> to use the kernel to pick up a playback logical address, I then can't
+> use the remote control media playback keys until I switch away from
+> the AV input and back to it.
+> 
 
-Full logs are available here:
+I've found cec-ctl -m very useful for debugging, it's hard to see what's
+going on otherwise.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
