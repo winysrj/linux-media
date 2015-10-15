@@ -1,146 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:40461 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751246AbbJGIFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2015 04:05:37 -0400
-Date: Wed, 7 Oct 2015 10:05:24 +0200
-From: Antonio Ospite <ao2@ao2.it>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: v4l2-ctrl is unable to set autogain to 0 with gspca/ov534
-Message-Id: <20151007100524.3fc05282628a153591f5c13e@ao2.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:56317 "EHLO
+	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752582AbbJOUu6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Oct 2015 16:50:58 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
+	chehabrafael@gmail.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen 2/2] media: au0828 create link between ALSA Mixer and decoder
+Date: Thu, 15 Oct 2015 14:50:53 -0600
+Message-Id: <5d44b252378049b68a9cf6ad966c1b1978848676.1444941680.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1444941680.git.shuahkh@osg.samsung.com>
+References: <cover.1444941680.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1444941680.git.shuahkh@osg.samsung.com>
+References: <cover.1444941680.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Change au0828_create_media_graph() to create pad link
+between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
+AU8522_PAD_AUDIO_OUT.
 
-It looks like it is not possible to set the autogain from 1 to 0 using
-v4l2-ctrl with the driver I am using.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 12 ++++++++++++
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 13 insertions(+)
 
-I am testing with the gspca/ov534 driver, and this sequence of commands
-does not change the value of the control:
-
-  v4l2-ctl --set-ctrl=gain_automatic=1
-  v4l2-ctl --list-ctrls | grep gain_automatic
-  # The following does not work
-  v4l2-ctl --set-ctrl=gain_automatic=0
-  v4l2-ctl --list-ctrls | grep gain_automatic
-
-The same thing happens with guvcview, but setting the control with qv4l2
-works fine.
-
-After a little investigation I figured out some more details: in my use
-case the autogain is a master control in an auto cluster, and switching
-it from auto to manual does not work when using VIDIOC_S_CTRL i.e. when
-calling set_ctrl().
-
-It works with qv4l2 because it uses VIDIOC_S_EXT_CTRLS.
-
-So the difference is between v4l2-ctrls.c::v4l2_s_ctrl() and
-v4l2-ctrls.c::v4l2_s_ext_ctrls().
-
-Wrt. auto clusters going from auto to manual the two functions do
-basically this:
-
-
-  v4l2_s_ctrl()
-    set_ctrl_lock()
-      user_to_new()
-      set_ctrl()
-        update_from_auto_cluster(master)
-        try_or_set_cluster()
-      cur_to_user()
-        
-    
-  v4l2_s_ext_ctrls()
-    try_set_ext_ctrls()
-      update_from_auto_cluster(master)
-      user_to_new() for each control
-      try_or_set_cluster()
-      new_to_user()
-
-
-I think the problem is that when update_from_auto_cluster(master) is
-called it overrides the new master control value from userspace by
-calling cur_to_new(). This also happens when calling VIDIOC_S_EXT_CTRLS
-(in try_set_ext_ctrls), but in that case, AFTER the call to
-update_from_auto_cluster(master), the code calls user_to_new() that sets
-back again the correct new value in the control before making the value
-permanent with try_or_set_cluster().
-
-The regression may have been introduced in
-5d0360a4f027576e5419d4a7c711c9ca0f1be8ca, in fact by just reverting
-these two interdependent commits:
-
-7a7f1ab37dc8f66cf0ef10f3d3f1b79ac4bc67fc
-5d0360a4f027576e5419d4a7c711c9ca0f1be8ca
-
-the problem goes away, so the regression is about user_to_new() not
-being called AFTER update_from_auto_cluster(master) anymore in
-set_ctrl(), as per 5d0360a4f027576e5419d4a7c711c9ca0f1be8ca.
-
-A quick and dirty fixup could look like this:
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6b7dcc..55d78fc 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3198,8 +3198,11 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
-           manual mode we have to update the current volatile values since
-           those will become the initial manual values after such a switch. */
-        if (master->is_auto && master->has_volatiles && ctrl == master &&
--           !is_cur_manual(master) && ctrl->val == master->manual_mode_value)
-+           !is_cur_manual(master) && ctrl->val == master->manual_mode_value) {
-+               s32 new_auto_val = master->val;
-                update_from_auto_cluster(master);
-+               master->val = new_auto_val;
-+       }
-
-        ctrl->is_new = 1;
-        return try_or_set_cluster(fh, master, true, ch_flags);
-
-
-However I think that calling user_to_new() after
-update_from_auto_cluster() has always been masking a bug in the latter.
-
-Maybe this is a better fix, in place of the one above.
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index b6b7dcc..19fc06e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -3043,7 +3043,7 @@ static void update_from_auto_cluster(struct v4l2_ctrl *master)
- {
-        int i;
-
--       for (i = 0; i < master->ncontrols; i++)
-+       for (i = 1; i < master->ncontrols; i++)
-                cur_to_new(master->cluster[i]);
-        if (!call_op(master, g_volatile_ctrl))
-                for (i = 1; i < master->ncontrols; i++)
-
-
-We can assume that the master control in an auto cluster is always the
-first one, can't we? With the change above we don't override the new
-value of the master control, in this case when it's being changed from
-auto to manual.
-
-I may be missing some details tho, so I am asking if my reasoning is
-correct before sending a proper patch. And should I CC stable on it as
-the change fixes a regression?
-
-Thanks,
-   Antonio
-
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 7af5d0d..84b2405 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -225,6 +225,7 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ 	struct media_entity *entity;
+ 	struct media_entity *tuner = NULL, *decoder = NULL;
+ 	struct media_entity *audio_capture = NULL;
++	struct media_entity *mixer = NULL;
+ 	int i, ret;
+ 
+ 	if (!mdev)
+@@ -245,6 +246,9 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ 		case MEDIA_ENT_F_AUDIO_CAPTURE:
+ 			audio_capture = entity;
+ 			break;
++		case MEDIA_ENT_F_AUDIO_MIXER:
++			mixer = entity;
++			break;
+ 		}
+ 	}
+ 
+@@ -316,6 +320,14 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ 		if (ret == 0)
+ 			dev->audio_capture_linked = 1;
+ 	}
++
++	if (mixer && !dev->mixer_linked) {
++		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
++					    mixer, 0,
++					    MEDIA_LNK_FL_ENABLED);
++		if (ret == 0)
++			dev->mixer_linked = 1;
++	}
+ #endif
+ }
+ 
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 2f4d597..6dd81b2 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -288,6 +288,7 @@ struct au0828_dev {
+ 	bool vdev_linked;
+ 	bool vbi_linked;
+ 	bool audio_capture_linked;
++	bool mixer_linked;
+ 	struct media_link *active_link;
+ 	struct media_entity *active_link_owner;
+ #endif
 -- 
-Antonio Ospite
-http://ao2.it
+2.1.4
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
