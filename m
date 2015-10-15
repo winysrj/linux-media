@@ -1,238 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:36544 "EHLO
-	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751692AbbJBWHq (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:38609 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbbJOReX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:46 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 18/20] media: au0828 implement enable_source and disable_source handlers
-Date: Fri,  2 Oct 2015 16:07:30 -0600
-Message-Id: <5f3004783b21f44d93ae0f12ff7f53f1f0c61107.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+	Thu, 15 Oct 2015 13:34:23 -0400
+Date: Thu, 15 Oct 2015 18:34:04 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, thomas@tommie-lie.de, sean@mess.org,
+	dmitry.torokhov@gmail.com, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	kamil@wypas.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCHv9 07/15] cec: add HDMI CEC framework
+Message-ID: <20151015173404.GG32532@n2100.arm.linux.org.uk>
+References: <cover.1441633456.git.hansverk@cisco.com>
+ <60de2f33f0d4c809f06d23cdac75e3b798aaae4b.1441633456.git.hansverk@cisco.com>
+ <20151006170635.GQ21513@n2100.arm.linux.org.uk>
+ <561B9B1A.4020001@xs4all.nl>
+ <20151013225147.GM32532@n2100.arm.linux.org.uk>
+ <561DF658.3090002@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <561DF658.3090002@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implements enable_source and disable_source handlers for other
-drivers (v4l2-core, dvb-core, and ALSA) to use to check for
-tuner connected to the decoder and activate the link if tuner
-is free, and deactivate and free the tuner when it is no longer
-needed.
+On Wed, Oct 14, 2015 at 08:29:44AM +0200, Hans Verkuil wrote:
+> On 10/14/2015 12:51 AM, Russell King - ARM Linux wrote:
+> > On Mon, Oct 12, 2015 at 01:35:54PM +0200, Hans Verkuil wrote:
+> >> On 10/06/2015 07:06 PM, Russell King - ARM Linux wrote:
+> >>> Surely you aren't proposing that drivers should write directly to
+> >>> adap->phys_addr without calling some notification function that the
+> >>> physical address has changed?
+> >>
+> >> Userspace is informed through CEC_EVENT_STATE_CHANGE when the adapter is
+> >> enabled/disabled. When the adapter is enabled and CEC_CAP_PHYS_ADDR is
+> >> not set (i.e. the kernel takes care of this), then calling CEC_ADAP_G_PHYS_ADDR
+> >> returns the new physical address.
+> > 
+> > Okay, so when I see the EDID arrive, I should be doing:
+> > 
+> >                 phys = parse_hdmi_addr(block->edid);
+> >                 cec->adap->phys_addr = phys;
+> >                 cec_enable(cec->adap, true);
+> > 
+> > IOW, you _are_ expecting adap->phys_addr to be written, but only while
+> > the adapter is disabled?
+> 
+> Right.
+> 
+> And when the hotplug goes down you should call cec_enable(cec->adap, false).
+> While the adapter is disabled, CEC_ADAP_G_PHYS_ADDR will always return
+> CEC_PHYS_ADDR_INVALID regardless of the cec->adap->phys_addr value.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 149 ++++++++++++++++++++++++++++++++-
- drivers/media/usb/au0828/au0828.h      |   2 +
- 2 files changed, 149 insertions(+), 2 deletions(-)
+There seems to be a few bugs.  Is there a way to monitor (in a similar
+way to tcpdump) the activity on the bus?
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index ade89d9..7af5d0d 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -256,9 +256,9 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 
- 	if (tuner && !dev->tuner_linked) {
- 		dev->tuner = tuner;
-+		/* create tuner to decoder link in deactivated state */
- 		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
--					    decoder, 0,
--				            MEDIA_LNK_FL_ENABLED);
-+					    decoder, 0, 0);
- 		if (ret == 0)
- 			dev->tuner_linked = 1;
- 	}
-@@ -319,6 +319,146 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- #endif
- }
- 
-+static int au0828_enable_source(struct media_entity *entity,
-+				struct media_pipeline *pipe)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_entity  *source;
-+	struct media_entity *sink;
-+	struct media_link *link, *found_link = NULL;
-+	int ret = 0;
-+	struct media_device *mdev = entity->graph_obj.mdev;
-+	struct au0828_dev *dev;
-+
-+	if (!mdev)
-+		return -ENODEV;
-+
-+	/* for Audio and Video entities, source is the decoder */
-+	mutex_lock(&mdev->graph_mutex);
-+
-+	dev = mdev->source_priv;
-+	if (!dev->tuner || !dev->decoder) {
-+		ret = -ENODEV;
-+		goto end;
-+	}
-+
-+	/*
-+	 * For Audio and V4L2 entity, find the link to which decoder
-+	 * is the sink. Look for an active link between decoder and
-+	 * tuner, if one exists, nothing to do. If not, look for any
-+	 * active links between tuner and any other entity. If one
-+	 * exists, tuner is busy. If tuner is free, setup link and
-+	 * start pipeline from source (tuner).
-+	 * For DVB FE entity, the source for the link is the tuner.
-+	 * Check if tuner is available and setup link and start
-+	 * pipeline.
-+	*/
-+	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-+		sink = dev->decoder;
-+	else
-+		sink = entity;
-+
-+	/* Is an active link between sink and tuner */
-+	if (dev->active_link) {
-+		if (dev->active_link->sink->entity == sink &&
-+		    dev->active_link->source->entity == dev->tuner) {
-+			ret = 0;
-+			goto end;
-+		} else {
-+			ret = -EBUSY;
-+			goto end;
-+		}
-+	}
-+
-+	list_for_each_entry(link, &sink->links, list) {
-+		/* Check sink, and source */
-+		if (link->sink->entity == sink &&
-+		    link->source->entity == dev->tuner) {
-+			found_link = link;
-+			break;
-+		}
-+	}
-+
-+	if (!found_link) {
-+		ret = -ENODEV;
-+		goto end;
-+	}
-+
-+	/* activate link between source and sink and start pipeline */
-+	source = found_link->source->entity;
-+	ret = __media_entity_setup_link(found_link, MEDIA_LNK_FL_ENABLED);
-+	if (ret) {
-+		pr_err(
-+			"Activate tuner link %s->%s. Error %d\n",
-+			source->name, sink->name, ret);
-+		goto end;
-+	}
-+
-+	ret = __media_entity_pipeline_start(entity, pipe);
-+	if (ret) {
-+		pr_err("Start Pipeline: %s->%s Error %d\n",
-+			source->name, entity->name, ret);
-+		ret = __media_entity_setup_link(found_link, 0);
-+		pr_err("Deactive link Error %d\n", ret);
-+		goto end;
-+	}
-+	/* save active link and active link owner to avoid audio
-+	   deactivating video owned link from disable_source and
-+	   vice versa */
-+	dev->active_link = found_link;
-+	dev->active_link_owner = entity;
-+end:
-+	mutex_unlock(&mdev->graph_mutex);
-+	pr_debug("au0828_enable_source() end %s %d %d\n",
-+		entity->name, entity->function, ret);
-+	return ret;
-+#endif
-+	return 0;
-+}
-+
-+static void au0828_disable_source(struct media_entity *entity)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_entity *sink;
-+	int ret = 0;
-+	struct media_device *mdev = entity->graph_obj.mdev;
-+	struct au0828_dev *dev;
-+
-+	if (!mdev)
-+		return;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	dev = mdev->source_priv;
-+	if (!dev->tuner || !dev->decoder || !dev->active_link) {
-+		ret = -ENODEV;
-+		goto end;
-+	}
-+
-+	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-+		sink = dev->decoder;
-+	else
-+		sink = entity;
-+
-+	/* link is active - stop pipeline from source (tuner) */
-+	if (dev->active_link && dev->active_link->sink->entity == sink &&
-+	    dev->active_link->source->entity == dev->tuner) {
-+		/* prevent video from deactivating link when audio
-+		   has active pipeline */
-+		if (dev->active_link_owner != entity)
-+			goto end;
-+		__media_entity_pipeline_stop(entity);
-+		ret = __media_entity_setup_link(dev->active_link, 0);
-+		if (ret)
-+			pr_err("Deactive link Error %d\n", ret);
-+		dev->active_link = NULL;
-+		dev->active_link_owner = NULL;
-+	}
-+
-+end:
-+	mutex_unlock(&mdev->graph_mutex);
-+#endif
-+}
-+
- static void au0828_media_device_register(struct au0828_dev *dev,
- 					  struct usb_device *udev)
- {
-@@ -355,6 +495,11 @@ static void au0828_media_device_register(struct au0828_dev *dev,
- 	dev->entity_notify.notify = au0828_create_media_graph;
- 	media_device_register_entity_notify(mdev, &dev->entity_notify);
- 
-+	/* set enable_source */
-+	mdev->source_priv = (void *) dev;
-+	mdev->enable_source = au0828_enable_source;
-+	mdev->disable_source = au0828_disable_source;
-+
- 	dev->media_dev = mdev;
- #endif
- }
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 3874906f..2f4d597 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -288,6 +288,8 @@ struct au0828_dev {
- 	bool vdev_linked;
- 	bool vbi_linked;
- 	bool audio_capture_linked;
-+	struct media_link *active_link;
-+	struct media_entity *active_link_owner;
- #endif
- };
- 
+What I'm seeing is that if the TV is switched to the appropriate AV
+input, and then I do:
+
+	cec-ctl --playback
+
+to use the kernel to pick up a playback logical address, I then can't
+use the remote control media playback keys until I switch away from
+the AV input and back to it.
+
 -- 
-2.1.4
-
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
