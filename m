@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60603 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbbJAR0U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Oct 2015 13:26:20 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 4/5] [media] DocBook: fix most of warnings at videobuf2-core.h
-Date: Thu,  1 Oct 2015 14:26:01 -0300
-Message-Id: <32d81b41cd4f2021ef1b6378b4f6029307687df2.1443720347.git.mchehab@osg.samsung.com>
-In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
-References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
-In-Reply-To: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
-References: <1ccd66cca96a377ef924d2ee76fbb753a7bec9ea.1443720347.git.mchehab@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:57550 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753540AbbJOGyb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Oct 2015 02:54:31 -0400
+Received: from dyn3-82-128-191-173.psoas.suomi.net ([82.128.191.173] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1ZmcQo-0002N8-21
+	for linux-media@vger.kernel.org; Thu, 15 Oct 2015 09:54:30 +0300
+Subject: Re: [PATCH] rtl28xxu: fix control message flaws
+To: linux-media@vger.kernel.org
+References: <1444495530-1674-1-git-send-email-crope@iki.fi>
+ <20151014221124.GA31954@minime.bse>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <561F4DA5.2040806@iki.fi>
+Date: Thu, 15 Oct 2015 09:54:29 +0300
+MIME-Version: 1.0
+In-Reply-To: <20151014221124.GA31954@minime.bse>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	include/media/videobuf2-core.h:112: warning: No description found for parameter 'get_dmabuf'
-	include/media/videobuf2-core.h:146: warning: No description found for parameter 'm'
-	include/media/videobuf2-core.h:146: warning: Excess struct/union/enum/typedef member 'mem_offset' description in 'vb2_plane'
+On 10/15/2015 01:11 AM, Daniel Glöckner wrote:
+> On Sat, Oct 10, 2015 at 07:45:30PM +0300, Antti Palosaari wrote:
+>> Add lock to prevent concurrent access for control message as control
+>> message function uses shared buffer. Without the lock there may be
+>> remote control polling which messes the buffer causing IO errors.
+>
+> This patch fixes the Problems I had with my Astrometa stick's I2C bus
+> locking up at the end of each dvbv5-scan run until it is disconnected.
+> There is another source of IO errors in the current driver, though.
+> The delayed work closing the I2C gate to the tuner is often executed
+> after rtl2832_power_ctrl has disabled the PLL. This will cause the
+> USB transfer accessing the gate control register to fail with -EPIPE.
 
-There are still several warnings, but those are hard to fix,
-as they're actually a bug at DocBook. Those should be fixed on
-separate patches.
+I saw that few times too, but it does not cause any other harm than 
+error printing. It went away when canceled that delayed gate closing 
+timer during demod sleep. But that was device which doesn't have slave 
+demod at all, so it does not apply to your case as integrated demod 
+sleep is not called at all. I think some callback which does opposite 
+than "enable_slave_ts()" is needed. Like "disable_slave_ts()" which 
+kills that timer before demod is powered off.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+regards
+Antti
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 108fa160168a..128b15ad5497 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -36,6 +36,8 @@ struct vb2_threadio_data;
-  *		no other users of this buffer are present); the buf_priv
-  *		argument is the allocator private per-buffer structure
-  *		previously returned from the alloc callback.
-+ * @get_dmabuf: acquire userspace memory for a hardware operation; used for
-+ *		 DMABUF memory types.
-  * @get_userptr: acquire userspace memory for a hardware operation; used for
-  *		 USERPTR memory types; vaddr is the address passed to the
-  *		 videobuf layer when queuing a video buffer of USERPTR type;
-@@ -118,7 +120,7 @@ struct vb2_mem_ops {
-  * @dbuf_mapped:	flag to show whether dbuf is mapped or not
-  * @bytesused:	number of bytes occupied by data in the plane (payload)
-  * @length:	size of this plane (NOT the payload) in bytes
-- * @mem_offset:	when memory in the associated struct vb2_buffer is
-+ * @offset:	when memory in the associated struct vb2_buffer is
-  *		VB2_MEMORY_MMAP, equals the offset from the start of
-  *		the device memory for this plane (or is a "cookie" that
-  *		should be passed to mmap() called on the video node)
-@@ -126,6 +128,8 @@ struct vb2_mem_ops {
-  *		pointing to this plane
-  * @fd:		when memory is VB2_MEMORY_DMABUF, a userspace file
-  *		descriptor associated with this plane
-+ * @m:		Union with memtype-specific data (@offset, @userptr or
-+ *		@fd).
-  * @data_offset:	offset in the plane to the start of data; usually 0,
-  *		unless there is a header in front of the data
-  * Should contain enough information to be able to cover all the fields
 -- 
-2.4.3
-
+http://palosaari.fi/
