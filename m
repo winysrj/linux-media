@@ -1,72 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55504 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757024AbbJVIse (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:58724 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbbJPG2F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2015 04:48:34 -0400
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Pawel Osciak <posciak@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] DocBook media: s/input stream/capture stream/
-Message-ID: <5628A27D.80503@xs4all.nl>
-Date: Thu, 22 Oct 2015 10:46:53 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 16 Oct 2015 02:28:05 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NWA01O1LVA9ED20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Oct 2015 15:27:45 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v7 1/7] media: videobuf2: Fix a build warning on fimc-lite.c
+Date: Fri, 16 Oct 2015 15:27:37 +0900
+Message-id: <1444976863-3657-2-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
+References: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The term "input stream" is confusing since it is not clear whether this is an
-input stream from the point of view of the application or from the point of
-view of the hardware. So replace it with the more standard term "capture stream".
+Fix a warning on fimc-lite.c reported by kbuild robot.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 7bbc2a4..87d34ff 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -699,7 +699,7 @@ linkend="v4l2-buf-type" /></entry>
- buffer. It depends on the negotiated data format and may change with
- each buffer for compressed variable size data like JPEG images.
- Drivers must set this field when <structfield>type</structfield>
--refers to an input stream, applications when it refers to an output stream.
-+refers to a capture stream, applications when it refers to an output stream.
- If the application sets this to 0 for an output stream, then
- <structfield>bytesused</structfield> will be set to the size of the
- buffer (see the <structfield>length</structfield> field of this struct) by
-@@ -720,14 +720,14 @@ linkend="buffer-flags" />.</entry>
- 	    <entry>Indicates the field order of the image in the
- buffer, see <xref linkend="v4l2-field" />. This field is not used when
- the buffer contains VBI data. Drivers must set it when
--<structfield>type</structfield> refers to an input stream,
-+<structfield>type</structfield> refers to a capture stream,
- applications when it refers to an output stream.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>struct timeval</entry>
- 	    <entry><structfield>timestamp</structfield></entry>
- 	    <entry></entry>
--	    <entry><para>For input streams this is time when the first data
-+	    <entry><para>For capture streams this is time when the first data
- 	    byte was captured, as returned by the
- 	    <function>clock_gettime()</function> function for the relevant
- 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
-@@ -866,7 +866,7 @@ must set this to 0.</entry>
- 	    <entry></entry>
- 	    <entry>The number of bytes occupied by data in the plane
- 	      (its payload). Drivers must set this field when <structfield>type</structfield>
--	      refers to an input stream, applications when it refers to an output stream.
-+	      refers to a capture stream, applications when it refers to an output stream.
- 	      If the application sets this to 0 for an output stream, then
- 	      <structfield>bytesused</structfield> will be set to the size of the
- 	      plane (see the <structfield>length</structfield> field of this struct)
-@@ -919,7 +919,7 @@ must set this to 0.</entry>
- 	    <entry></entry>
- 	    <entry>Offset in bytes to video data in the plane.
- 	      Drivers must set this field when <structfield>type</structfield>
--	      refers to an input stream, applications when it refers to an output stream.
-+	      refers to a capture stream, applications when it refers to an output stream.
- 	      Note that data_offset is included in <structfield>bytesused</structfield>.
- 	      So the size of the image in the plane is
- 	      <structfield>bytesused</structfield>-<structfield>data_offset</structfield> at
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index d93d03d..60660c3 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -359,7 +359,7 @@ static int queue_setup(struct vb2_queue *vq, const void *parg,
+ 		       unsigned int *num_buffers, unsigned int *num_planes,
+ 		       unsigned int sizes[], void *allocators[])
+ {
+-	struct v4l2_format *pfmt = parg;
++	const struct v4l2_format *pfmt = parg;
+ 	const struct v4l2_pix_format_mplane *pixm = NULL;
+ 	struct fimc_lite *fimc = vq->drv_priv;
+ 	struct flite_frame *frame = &fimc->out_frame;
+-- 
+1.7.9.5
+
