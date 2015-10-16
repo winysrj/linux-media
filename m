@@ -1,79 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39196 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751668AbbJJNgQ (ORCPT
+Received: from www.netup.ru ([77.72.80.15]:49246 "EHLO imap.netup.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753369AbbJPQF4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: [PATCH 00/26] Some improvements for the media API
-Date: Sat, 10 Oct 2015 10:35:43 -0300
-Message-Id: <cover.1444483819.git.mchehab@osg.samsung.com>
+	Fri, 16 Oct 2015 12:05:56 -0400
+MIME-Version: 1.0
+In-Reply-To: <1445011330-22698-1-git-send-email-aryabinin@virtuozzo.com>
+References: <20151005110923.GA16831@wfg-t540p.sh.intel.com> <1445011330-22698-1-git-send-email-aryabinin@virtuozzo.com>
+From: Abylay Ospan <aospan@netup.ru>
+Date: Fri, 16 Oct 2015 19:05:33 +0300
+Message-ID: <CAK3bHNWBhSKCLVcJBwsNF6HL3vpGH9dGO2zm_c_v8at1v3BYJw@mail.gmail.com>
+Subject: Re: [PATCH] Disable -Wframe-larger-than warnings with KASAN=y
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>,
+	Andi Kleen <ak@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve documentation for the media core subsystems. The initial patches
-of this series improve the documentation for V4L2 core and RC core,
-adding documentation for tuner, tveeprom and lirc.
+Hello,
 
-The remaining patches are focused on the DVB API, adding documentation
-for the remaining stuff at dvb_ca and moving the kABI functions from the
-API docbook into the device-drivers (kdapi.xml), making sure that what's 
-documented is what's there at the Kernel. The kdapi.xml was broken for a long
-time, since before 2005, when I started maintaining the DVB. After this patch
-series, it is now in a better shape.
+Acked-by: Abylay Ospan <aospan@netup.ru>
 
-Mauro Carvalho Chehab (26):
-  [media] DocBook: Document include/media/tuner.h
-  [media] tuner.h: Make checkpatch.pl happier
-  [media] DocBook: convert struct tuner_parms to doc-nano format
-  [media] DocBook: add documentation for tuner-types.h
-  [media] tveeprom: Remove two unused fields from struct
-  [media] DocBook: Document tveeprom.h
-  [media] DocBook: Convert struct lirc_driver to doc-nano format
-  [media] lirc_dev.h: Make checkpatch happy
-  [media] DocBook: document struct dvb_ca_en50221
-  [media] dvb_ca_en50221.h: Make checkpatch.pl happy
-  [media] DocBook: Move struct dmx_demux kABI doc to demux.h
-  [media] DocBook: update documented fields at struct dmx_demux
-  [media] dvb: don't keep support for undocumented features
-  [media] DocBook: finish documenting struct dmx_demux
-  [media] dvb: get rid of enum dmx_success
-  [media] dvb: Remove unused frontend sources at demux.h and sync doc
-  [media] DocBook: document the other structs/enums of demux.h
-  [media] demux.h: make checkpatch.ph happy
-  kernel-doc: Add a parser for function typedefs
-  kernel-doc: better format typedef function output
-  [media] DocBook: document typedef dmx_ts_cb at demux.h
-  [media] DocBook: document typedef dmx_section_cb at demux.h
-  [media] demux.h: Convert TS filter type into enum
-  [media] demux.h: Convert MPEG-TS demux caps to an enum
-  [media] DocBook: Add documentation about the demux API
-  [media] DocBook: Remove kdapi.xml
 
- Documentation/DocBook/device-drivers.tmpl  |   80 +-
- Documentation/DocBook/media/dvb/dvbapi.xml |    3 -
- Documentation/DocBook/media/dvb/kdapi.xml  | 2309 ----------------------------
- drivers/media/dvb-core/demux.h             |  613 ++++++--
- drivers/media/dvb-core/dmxdev.c            |   10 +-
- drivers/media/dvb-core/dvb_ca_en50221.h    |   99 +-
- drivers/media/dvb-core/dvb_demux.c         |   11 +-
- drivers/media/dvb-core/dvb_net.c           |    5 +-
- drivers/media/pci/ttpci/av7110.c           |    9 +-
- drivers/media/pci/ttpci/av7110_av.c        |    6 +-
- drivers/media/usb/ttusb-dec/ttusb_dec.c    |   12 +-
- include/media/lirc_dev.h                   |  120 +-
- include/media/tuner-types.h                |  182 ++-
- include/media/tuner.h                      |  152 +-
- include/media/tveeprom.h                   |   83 +-
- scripts/kernel-doc                         |   25 +
- 16 files changed, 1005 insertions(+), 2714 deletions(-)
- delete mode 100644 Documentation/DocBook/media/dvb/kdapi.xml
+
+2015-10-16 19:02 GMT+03:00 Andrey Ryabinin <aryabinin@virtuozzo.com>:
+> When the kernel compiled with KASAN=y, GCC adds redzones
+> for each variable on stack. This enlarges function's stack
+> frame and causes:
+>         'warning: the frame size of X bytes is larger than Y bytes'
+>
+> The worst case I've seen for now is following:
+>  ../net/wireless/nl80211.c: In function ‘nl80211_send_wiphy’:
+>  ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+>   }
+>    ^
+> That kind of warning becomes useless with KASAN=y. It doesn't necessarily
+> indicate that there is some problem in the code, thus we should turn it off.
+>
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+> ---
+>  lib/Kconfig.debug | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+> index ab76b99..1d1521c 100644
+> --- a/lib/Kconfig.debug
+> +++ b/lib/Kconfig.debug
+> @@ -197,6 +197,7 @@ config ENABLE_MUST_CHECK
+>  config FRAME_WARN
+>         int "Warn for stack frames larger than (needs gcc 4.4)"
+>         range 0 8192
+> +       default 0 if KASAN
+>         default 1024 if !64BIT
+>         default 2048 if 64BIT
+>         help
+> --
+> 2.4.9
+>
+
+
 
 -- 
-2.4.3
-
-
+Abylay Ospan,
+NetUP Inc.
+http://www.netup.tv
