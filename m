@@ -1,132 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:23281 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666AbbJWJ75 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2015 05:59:57 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH 1/1] libv4l2subdev: Add support for interlacing in format
-Date: Fri, 23 Oct 2015 12:59:25 +0300
-Message-Id: <1445594365-13501-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:37279 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582AbbJPG1s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 02:27:48 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NWA00VC5VAAC370@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Oct 2015 15:27:46 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v7 5/7] media: videobuf2: last_buffer_queued is checked at
+ fill_v4l2_buffer()
+Date: Fri, 16 Oct 2015 15:27:41 +0900
+Message-id: <1444976863-3657-6-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
+References: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use '=' to tell the interlacing type in format. This is optional to
-maintain compatibility with existing users.
+The location to set last_buffer_queued is moved to fill_v4l2_buffer().
+So, vb2_core_dqbuf() can be used instead of vb2_internal_dqbuf()
+in __vb2_perform_fileio().
 
-For instance, the following can be used to select interlaced SGRBG8 format
-using size 1024x768:
-
-	media-ctl -V 'entity:pad [fmt:SGRBG8=INTERLACED/1024x768]'
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
 ---
-Hi folks,
+ drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-What's missing so far is printing the field in media-ctl test program.
-Conversion functions could be added to libv4l2subdev API if needed, I'm
-not sure they are.
-
- utils/media-ctl/libv4l2subdev.c | 44 +++++++++++++++++++++++++++++++++++++++--
- utils/media-ctl/options.c       |  5 ++++-
- 2 files changed, 46 insertions(+), 3 deletions(-)
-
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 8015330..84551d0 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -307,7 +307,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
- 				    const char *p, char **endp)
- {
- 	enum v4l2_mbus_pixelcode code;
--	unsigned int width, height;
-+	unsigned int width, height, field;
- 	char *end;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 8ea4d9e..dabcb6d 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
  
- 	/*
-@@ -316,7 +316,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
- 	 */
- 	for (; isspace(*p); ++p);
- 	for (end = (char *)p;
--	     *end != '/' && *end != ' ' && *end != '\0'; ++end);
-+	     *end != '=' && *end != '/' && *end != ' ' && *end != '\0'; ++end);
- 
- 	code = v4l2_subdev_string_to_pixelcode(p, end - p);
- 	if (code == (enum v4l2_mbus_pixelcode)-1) {
-@@ -324,6 +324,45 @@ static int v4l2_subdev_parse_format(struct media_device *media,
- 		return -EINVAL;
- 	}
- 
-+	/* Parse interlacing */
-+	if (*end == '=') {
-+		static const struct {
-+			unsigned int field;
-+			char *str;
-+		} __f[] = {
-+			{ V4L2_FIELD_ANY, "ANY", },
-+			{ V4L2_FIELD_NONE, "NONE", },
-+			{ V4L2_FIELD_TOP, "TOP", },
-+			{ V4L2_FIELD_BOTTOM, "BOTTOM", },
-+			{ V4L2_FIELD_INTERLACED, "INTERLACED", },
-+			{ V4L2_FIELD_SEQ_TB, "SEQ_TB", },
-+			{ V4L2_FIELD_SEQ_BT, "SEQ_BT", },
-+			{ V4L2_FIELD_ALTERNATE, "ALTERNATE", },
-+			{ V4L2_FIELD_INTERLACED_TB, "INTERLACED_TB", },
-+			{ V4L2_FIELD_INTERLACED_BT, "INTERLACED_BT", },
-+			{ 0 },
-+		}, *f = __f;
++	if (!q->is_output &&
++		b->flags & V4L2_BUF_FLAG_DONE &&
++		b->flags & V4L2_BUF_FLAG_LAST)
++		q->last_buffer_dequeued = true;
 +
-+
-+		p = end + 1;
-+		for (end = (char *)p;
-+		     *end != '/' && *end != ' ' && *end != '\0'; ++end);
-+
-+		for (; f->str; f++) {
-+			if (strlen(f->str) != end - p ||
-+			    strncasecmp(f->str, p, end - p))
-+				continue;
-+			field = f->field;
-+			break;
-+		}
-+
-+		if (!f->str) {
-+			media_dbg(media, "Invalid interlacing '%.*s'\n",
-+				  end - p, p);
-+			return -EINVAL;
-+		}
-+	}
-+
- 	p = end + 1;
- 	width = strtoul(p, &end, 10);
- 	if (*end != 'x') {
-@@ -339,6 +378,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
- 	format->width = width;
- 	format->height = height;
- 	format->code = code;
-+	format->field = field;
- 
  	return 0;
  }
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index ffaffcd..a241699 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -58,10 +58,13 @@ static void usage(const char *argv0)
- 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
- 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
- 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
--	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ;\n");
-+	printf("\tv4l2-mbusfmt    = 'fmt:' fcc { '=' v4l2-interlace } '/' size ;\n");
- 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
- 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
- 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
-+	printf("\tv4l2-interlace  = 'ANY' | 'NONE' | 'TOP' | 'BOTTOM' | 'INTERLACED'\n");
-+	printf("\t                | 'SEQ_TB' | 'SEQ_BT' | 'ALTERNATE'\n");
-+	printf("\t                | 'INTERLACED_TB' | 'INTERLACED_BT'\n");
- 	printf("\n");
- 	printf("\trectangle       = '(' left ',' top, ')' '/' size ;\n");
- 	printf("\tsize            = width 'x' height ;\n");
+ 
+@@ -580,10 +585,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 
+ 	ret = vb2_core_dqbuf(q, b, nonblocking);
+ 
+-	if (!ret && !q->is_output &&
+-			b->flags & V4L2_BUF_FLAG_LAST)
+-		q->last_buffer_dequeued = true;
+-
+ 	return ret;
+ }
+ 
 -- 
-2.1.0.231.g7484e3b
+1.7.9.5
 
