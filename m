@@ -1,82 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56983 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140AbbJMNS1 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:58724 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282AbbJPG2G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2015 09:18:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	iommu@lists.linux-foundation.org, robin.murphy@arm.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Lars-Peter Clausen <lars@metafoo.de>, sakari.ailus@iki.fi,
-	Shuah Khan <shuahkhan@gmail.com>
-Subject: [RFC/PATCH] media: omap3isp: Set maximum DMA segment size
-Date: Tue, 13 Oct 2015 16:18:36 +0300
-Message-Id: <1444742316-27986-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 16 Oct 2015 02:28:06 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NWA01O1NVA9ED20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Oct 2015 15:27:45 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v7 4/7] media: videobuf2: Separate vb2_poll()
+Date: Fri, 16 Oct 2015 15:27:40 +0900
+Message-id: <1444976863-3657-5-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
+References: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The maximum DMA segment size controls the IOMMU mapping granularity. Its
-default value is 64kB, resulting in potentially non-contiguous IOMMU
-mappings. Configure it to 4GB to ensure that buffers get mapped
-contiguously.
+Separate vb2_poll() into core and v4l2 part.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 4 ++++
- drivers/media/platform/omap3isp/isp.h | 1 +
- 2 files changed, 5 insertions(+)
+ drivers/media/v4l2-core/videobuf2-v4l2.c |   80 +++++++++++++++++++-----------
+ 1 file changed, 52 insertions(+), 28 deletions(-)
 
-I'm posting this as an RFC because I'm not happy with the patch, even if it
-gets the job done.
-
-On ARM the maximum DMA segment size is used when creating IOMMU mappings. As
-a large number of devices require contiguous memory buffers (this is a very
-common requirement for video-related embedded devices) the default 64kB value
-doesn't work.
-
-I haven't investigated the history behind this API in details but I have a
-feeling something is not quite right. We force most drivers to explicitly set
-the maximum segment size from a default that seems valid for specific use
-cases only. Furthermore, as the DMA parameters are not stored directly in
-struct device this require allocation of external memory for which we have no
-proper management rule, making automatic handling of the DMA parameters in
-frameworks or helper functions cumbersome (for a discussion on this topic see
-http://www.spinics.net/lists/linux-media/msg92467.html and
-http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html).
-
-Is it time to fix this mess ?
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 17430a6ed85a..ebf7dc76e94d 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2444,6 +2444,10 @@ static int isp_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto error;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 525f4c7..8ea4d9e 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -746,7 +746,7 @@ void vb2_queue_release(struct vb2_queue *q)
+ EXPORT_SYMBOL_GPL(vb2_queue_release);
  
-+	isp->dev->dma_parms = &isp->dma_parms;
-+	dma_set_max_seg_size(isp->dev, DMA_BIT_MASK(32));
-+	dma_set_seg_boundary(isp->dev, 0xffffffff);
+ /**
+- * vb2_poll() - implements poll userspace operation
++ * vb2_core_poll() - implements poll userspace operation
+  * @q:		videobuf2 queue
+  * @file:	file argument passed to the poll file operation handler
+  * @wait:	wait argument passed to the poll file operation handler
+@@ -758,33 +758,20 @@ EXPORT_SYMBOL_GPL(vb2_queue_release);
+  * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
+  * will be reported as available for writing.
+  *
+- * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
+- * pending events.
+- *
+  * The return values from this function are intended to be directly returned
+  * from poll handler in driver.
+  */
+-unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
++unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
++		poll_table *wait)
+ {
+-	struct video_device *vfd = video_devdata(file);
+ 	unsigned long req_events = poll_requested_events(wait);
+ 	struct vb2_buffer *vb = NULL;
+-	unsigned int res = 0;
+ 	unsigned long flags;
+ 
+-	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
+-		struct v4l2_fh *fh = file->private_data;
+-
+-		if (v4l2_event_pending(fh))
+-			res = POLLPRI;
+-		else if (req_events & POLLPRI)
+-			poll_wait(file, &fh->wait, wait);
+-	}
+-
+ 	if (!q->is_output && !(req_events & (POLLIN | POLLRDNORM)))
+-		return res;
++		return 0;
+ 	if (q->is_output && !(req_events & (POLLOUT | POLLWRNORM)))
+-		return res;
++		return 0;
+ 
+ 	/*
+ 	 * Start file I/O emulator only if streaming API has not been used yet.
+@@ -793,16 +780,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 		if (!q->is_output && (q->io_modes & VB2_READ) &&
+ 				(req_events & (POLLIN | POLLRDNORM))) {
+ 			if (__vb2_init_fileio(q, 1))
+-				return res | POLLERR;
++				return POLLERR;
+ 		}
+ 		if (q->is_output && (q->io_modes & VB2_WRITE) &&
+ 				(req_events & (POLLOUT | POLLWRNORM))) {
+ 			if (__vb2_init_fileio(q, 0))
+-				return res | POLLERR;
++				return POLLERR;
+ 			/*
+ 			 * Write to OUTPUT queue can be done immediately.
+ 			 */
+-			return res | POLLOUT | POLLWRNORM;
++			return POLLOUT | POLLWRNORM;
+ 		}
+ 	}
+ 
+@@ -811,21 +798,21 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	 * error flag is set.
+ 	 */
+ 	if (!vb2_is_streaming(q) || q->error)
+-		return res | POLLERR;
++		return POLLERR;
+ 	/*
+ 	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+ 	 * return POLLERR as well. This only affects capture queues, output
+ 	 * queues will always initialize waiting_for_buffers to false.
+ 	 */
+ 	if (q->waiting_for_buffers)
+-		return res | POLLERR;
++		return POLLERR;
+ 
+ 	/*
+ 	 * For output streams you can write as long as there are fewer buffers
+ 	 * queued than there are buffers available.
+ 	 */
+ 	if (q->is_output && q->queued_count < q->num_buffers)
+-		return res | POLLOUT | POLLWRNORM;
++		return POLLOUT | POLLWRNORM;
+ 
+ 	if (list_empty(&q->done_list)) {
+ 		/*
+@@ -833,7 +820,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 		 * return immediately. DQBUF will return -EPIPE.
+ 		 */
+ 		if (q->last_buffer_dequeued)
+-			return res | POLLIN | POLLRDNORM;
++			return POLLIN | POLLRDNORM;
+ 
+ 		poll_wait(file, &q->done_wq, wait);
+ 	}
+@@ -850,10 +837,47 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	if (vb && (vb->state == VB2_BUF_STATE_DONE
+ 			|| vb->state == VB2_BUF_STATE_ERROR)) {
+ 		return (q->is_output) ?
+-				res | POLLOUT | POLLWRNORM :
+-				res | POLLIN | POLLRDNORM;
++				POLLOUT | POLLWRNORM :
++				POLLIN | POLLRDNORM;
+ 	}
+-	return res;
++	return 0;
++}
 +
- 	platform_set_drvdata(pdev, isp);
++/**
++ * vb2_poll() - implements poll userspace operation
++ * @q:		videobuf2 queue
++ * @file:	file argument passed to the poll file operation handler
++ * @wait:	wait argument passed to the poll file operation handler
++ *
++ * This function implements poll file operation handler for a driver.
++ * For CAPTURE queues, if a buffer is ready to be dequeued, the userspace will
++ * be informed that the file descriptor of a video device is available for
++ * reading.
++ * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
++ * will be reported as available for writing.
++ *
++ * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
++ * pending events.
++ *
++ * The return values from this function are intended to be directly returned
++ * from poll handler in driver.
++ */
++unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
++{
++	struct video_device *vfd = video_devdata(file);
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned int res = 0;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++		struct v4l2_fh *fh = file->private_data;
++
++		if (v4l2_event_pending(fh))
++			res = POLLPRI;
++		else if (req_events & POLLPRI)
++			poll_wait(file, &fh->wait, wait);
++	}
++
++	return res | vb2_core_poll(q, file, wait);
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
  
- 	/* Regulators */
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index e579943175c4..4b2231cf01be 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -193,6 +193,7 @@ struct isp_device {
- 	u32 syscon_offset;
- 	u32 phy_type;
- 
-+	struct device_dma_parameters dma_parms;
- 	struct dma_iommu_mapping *mapping;
- 
- 	/* ISP Obj */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
