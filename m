@@ -1,218 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39183 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbbJJNgQ (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:55374 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbbJPG1w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:16 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 03/26] [media] DocBook: convert struct tuner_parms to doc-nano format
-Date: Sat, 10 Oct 2015 10:35:46 -0300
-Message-Id: <65fc64090ed3dc750d40474b07a6f8ad734440cc.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+	Fri, 16 Oct 2015 02:27:52 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NWA0204NVAALWD0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Oct 2015 15:27:46 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v7 6/7] media: videobuf2: Refactor vb2_fileio_data and
+ vb2_thread
+Date: Fri, 16 Oct 2015 15:27:42 +0900
+Message-id: <1444976863-3657-7-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
+References: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct tuner_params is almost fully documented, but
-using a non-standard way. Convert it to doc-nano format,
-and add descriptions for the parameters that aren't
-documented yet.
+Replace v4l2-stuffs with common things in struct vb2_fileio_data and
+vb2_thread().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c |  113 +++++++++++++++---------------
+ 1 file changed, 58 insertions(+), 55 deletions(-)
 
-diff --git a/include/media/tuner-types.h b/include/media/tuner-types.h
-index ab03c5344209..011b4a20ee22 100644
---- a/include/media/tuner-types.h
-+++ b/include/media/tuner-types.h
-@@ -19,91 +19,119 @@ struct tuner_range {
- 	unsigned char cb;
- };
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index dabcb6d..ea5ab37 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -882,6 +882,15 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
  
-+/**
-+ * struct tuner_params - Parameters to be used to setup the tuner. Those
-+ *			 are used by drivers/media/tuners/tuner-types.c in
-+ *			 order to specify the tuner properties. Most of
-+ *			 the parameters are for tuners based on tda9887 IF-PLL
-+ *			 multi-standard analog TV/Radio demodulator, with is
-+ *			 very common on legacy analog tuners.
-+ *
-+ * @type:			Type of the tuner parameters, as defined at
-+ *				enum param_type. If the tuner supports multiple
-+ *				standards, an array should be used, with one
-+ *				row per different standard.
-+ * @cb_first_if_lower_freq:	Many Philips-based tuners have a comment in
-+ *				their datasheet like
-+ *				"For channel selection involving band
-+ *				switching, and to ensure smooth tuning to the
-+ *				desired channel without causing unnecessary
-+ *				charge pump action, it is recommended to
-+ *				consider the difference between wanted channel
-+ *				frequency and the current channel frequency.
-+ *				Unnecessary charge pump action will result
-+ *				in very low tuning voltage which may drive the
-+ *				oscillator to extreme conditions".
-+ *				Set cb_first_if_lower_freq to 1, if this check
-+ *				is required for this tuner. I tested this for
-+ *				PAL by first setting the TV frequency to
-+ *				203 MHz and then switching to 96.6 MHz FM
-+ *				radio. The result was static unless the
-+ *				control byte was sent first.
-+ * @has_tda9887:		Set to 1 if this tuner uses a tda9887
-+ * @port1_fm_high_sensitivity:	Many Philips tuners use tda9887 PORT1 to select
-+ *				the FM radio sensitivity. If this setting is 1,
-+ *				then set PORT1 to 1 to get proper FM reception.
-+ * @port2_fm_high_sensitivity:	Some Philips tuners use tda9887 PORT2 to select
-+ *				the FM radio sensitivity. If this setting is 1,
-+ *				then set PORT2 to 1 to get proper FM reception.
-+ * @fm_gain_normal:		Some Philips tuners use tda9887 cGainNormal to
-+ *				select the FM radio sensitivity. If this
-+ *				setting is 1, e register will use cGainNormal
-+ *				instead of cGainLow.
-+ * @intercarrier_mode:		Most tuners with a tda9887 use QSS mode.
-+ *				Some (cheaper) tuners use Intercarrier mode.
-+ *				If this setting is 1, then the tuner needs to
-+ *				be set to intercarrier mode.
-+ * @port1_active:		This setting sets the default value for PORT1.
-+ *				0 means inactive, 1 means active. Note: the
-+ *				actual bit value written to the tda9887 is
-+ *				inverted. So a 0 here means a 1 in the B6 bit.
-+ * @port2_active:		This setting sets the default value for PORT2.
-+ *				0 means inactive, 1 means active. Note: the
-+ *				actual bit value written to the tda9887 is
-+ *				inverted. So a 0 here means a 1 in the B7 bit.
-+ * @port1_invert_for_secam_lc:	Sometimes PORT1 is inverted when the SECAM-L'
-+ *				standard is selected. Set this bit to 1 if this
-+ *				is needed.
-+ * @port2_invert_for_secam_lc:	Sometimes PORT2 is inverted when the SECAM-L'
-+ *				standard is selected. Set this bit to 1 if this
-+ *				is needed.
-+ * @port1_set_for_fm_mono:	Some cards require PORT1 to be 1 for mono Radio
-+ *				FM and 0 for stereo.
-+ * @default_pll_gating_18:	Select 18% (or according to datasheet 0%)
-+ *				L standard PLL gating, vs the driver default
-+ *				of 36%.
-+ * @radio_if:			IF to use in radio mode.  Tuners with a
-+ *				separate radio IF filter seem to use 10.7,
-+ *				while those without use 33.3 for PAL/SECAM
-+ *				tuners and 41.3 for NTSC tuners.
-+ *				0 = 10.7, 1 = 33.3, 2 = 41.3
-+ * @default_top_low:		Default tda9887 TOP value in dB for the low
-+ *				band. Default is 0. Range: -16:+15
-+ * @default_top_mid:		Default tda9887 TOP value in dB for the mid
-+ *				band. Default is 0. Range: -16:+15
-+ * @default_top_high:		Default tda9887 TOP value in dB for the high
-+ *				band. Default is 0. Range: -16:+15
-+ * @default_top_secam_low:	Default tda9887 TOP value in dB for SECAM-L/L'
-+ *				for the low band. Default is 0. Several tuners
-+ *				require a different TOP value for the
-+ *				SECAM-L/L' standards. Range: -16:+15
-+ * @default_top_secam_mid:	Default tda9887 TOP value in dB for SECAM-L/L'
-+ *				for the mid band. Default is 0. Several tuners
-+ *				require a different TOP value for the
-+ *				SECAM-L/L' standards. Range: -16:+15
-+ * @default_top_secam_high:	Default tda9887 TOP value in dB for SECAM-L/L'
-+ *				for the high band. Default is 0. Several tuners
-+ *				require a different TOP value for the
-+ *				SECAM-L/L' standards. Range: -16:+15
-+ * @iffreq:			Intermediate frequency (IF) used by the tuner
-+ *				on digital mode.
-+ * @count:			Size of the ranges array.
-+ * @ranges:			Array with the frequency ranges supported by
-+ *				the tuner.
-+ */
- struct tuner_params {
- 	enum param_type type;
++static void vb2_get_timestamp(struct timeval *tv)
++{
++	struct timespec ts;
++
++	ktime_get_ts(&ts);
++	tv->tv_sec = ts.tv_sec;
++	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++}
++
+ /**
+  * struct vb2_fileio_buf - buffer context used by file io emulator
+  *
+@@ -921,9 +930,10 @@ struct vb2_fileio_buf {
+  * or write function.
+  */
+ struct vb2_fileio_data {
+-	struct v4l2_requestbuffers req;
+-	struct v4l2_plane p;
+-	struct v4l2_buffer b;
++	unsigned int count;
++	unsigned int type;
++	unsigned int memory;
++	struct vb2_buffer *b;
+ 	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
+ 	unsigned int cur_index;
+ 	unsigned int initial_index;
+@@ -976,6 +986,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	if (fileio == NULL)
+ 		return -ENOMEM;
  
--	/* Many Philips based tuners have a comment like this in their
--	 * datasheet:
--	 *
--	 *   For channel selection involving band switching, and to ensure
--	 *   smooth tuning to the desired channel without causing
--	 *   unnecessary charge pump action, it is recommended to consider
--	 *   the difference between wanted channel frequency and the
--	 *   current channel frequency.  Unnecessary charge pump action
--	 *   will result in very low tuning voltage which may drive the
--	 *   oscillator to extreme conditions.
--	 *
--	 * Set cb_first_if_lower_freq to 1, if this check is
--	 * required for this tuner.
--	 *
--	 * I tested this for PAL by first setting the TV frequency to
--	 * 203 MHz and then switching to 96.6 MHz FM radio. The result was
--	 * static unless the control byte was sent first.
--	 */
- 	unsigned int cb_first_if_lower_freq:1;
--	/* Set to 1 if this tuner uses a tda9887 */
- 	unsigned int has_tda9887:1;
--	/* Many Philips tuners use tda9887 PORT1 to select the FM radio
--	   sensitivity. If this setting is 1, then set PORT1 to 1 to
--	   get proper FM reception. */
- 	unsigned int port1_fm_high_sensitivity:1;
--	/* Some Philips tuners use tda9887 PORT2 to select the FM radio
--	   sensitivity. If this setting is 1, then set PORT2 to 1 to
--	   get proper FM reception. */
- 	unsigned int port2_fm_high_sensitivity:1;
--	/* Some Philips tuners use tda9887 cGainNormal to select the FM radio
--	   sensitivity. If this setting is 1, e register will use cGainNormal
--	   instead of cGainLow. */
- 	unsigned int fm_gain_normal:1;
--	/* Most tuners with a tda9887 use QSS mode. Some (cheaper) tuners
--	   use Intercarrier mode. If this setting is 1, then the tuner
--	   needs to be set to intercarrier mode. */
- 	unsigned int intercarrier_mode:1;
--	/* This setting sets the default value for PORT1.
--	   0 means inactive, 1 means active. Note: the actual bit
--	   value written to the tda9887 is inverted. So a 0 here
--	   means a 1 in the B6 bit. */
- 	unsigned int port1_active:1;
--	/* This setting sets the default value for PORT2.
--	   0 means inactive, 1 means active. Note: the actual bit
--	   value written to the tda9887 is inverted. So a 0 here
--	   means a 1 in the B7 bit. */
- 	unsigned int port2_active:1;
--	/* Sometimes PORT1 is inverted when the SECAM-L' standard is selected.
--	   Set this bit to 1 if this is needed. */
- 	unsigned int port1_invert_for_secam_lc:1;
--	/* Sometimes PORT2 is inverted when the SECAM-L' standard is selected.
--	   Set this bit to 1 if this is needed. */
- 	unsigned int port2_invert_for_secam_lc:1;
--	/* Some cards require PORT1 to be 1 for mono Radio FM and 0 for stereo. */
- 	unsigned int port1_set_for_fm_mono:1;
--	/* Select 18% (or according to datasheet 0%) L standard PLL gating,
--	   vs the driver default of 36%. */
- 	unsigned int default_pll_gating_18:1;
--	/* IF to use in radio mode.  Tuners with a separate radio IF filter
--	   seem to use 10.7, while those without use 33.3 for PAL/SECAM tuners
--	   and 41.3 for NTSC tuners. 0 = 10.7, 1 = 33.3, 2 = 41.3 */
- 	unsigned int radio_if:2;
--	/* Default tda9887 TOP value in dB for the low band. Default is 0.
--	   Range: -16:+15 */
- 	signed int default_top_low:5;
--	/* Default tda9887 TOP value in dB for the mid band. Default is 0.
--	   Range: -16:+15 */
- 	signed int default_top_mid:5;
--	/* Default tda9887 TOP value in dB for the high band. Default is 0.
--	   Range: -16:+15 */
- 	signed int default_top_high:5;
--	/* Default tda9887 TOP value in dB for SECAM-L/L' for the low band.
--	   Default is 0. Several tuners require a different TOP value for
--	   the SECAM-L/L' standards. Range: -16:+15 */
- 	signed int default_top_secam_low:5;
--	/* Default tda9887 TOP value in dB for SECAM-L/L' for the mid band.
--	   Default is 0. Several tuners require a different TOP value for
--	   the SECAM-L/L' standards. Range: -16:+15 */
- 	signed int default_top_secam_mid:5;
--	/* Default tda9887 TOP value in dB for SECAM-L/L' for the high band.
--	   Default is 0. Several tuners require a different TOP value for
--	   the SECAM-L/L' standards. Range: -16:+15 */
- 	signed int default_top_secam_high:5;
++	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
++	if (fileio->b == NULL)
++		return -ENOMEM;
++
+ 	fileio->read_once = q->fileio_read_once;
+ 	fileio->write_immediately = q->fileio_write_immediately;
  
- 	u16 iffreq;
+@@ -983,11 +997,11 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 * Request buffers and use MMAP type to force driver
+ 	 * to allocate buffers by itself.
+ 	 */
+-	fileio->req.count = count;
+-	fileio->req.memory = VB2_MEMORY_MMAP;
+-	fileio->req.type = q->type;
++	fileio->count = count;
++	fileio->memory = VB2_MEMORY_MMAP;
++	fileio->type = q->type;
+ 	q->fileio = fileio;
+-	ret = vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
++	ret = vb2_core_reqbufs(q, fileio->memory, &fileio->count);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+@@ -1016,24 +1030,17 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 * Read mode requires pre queuing of all buffers.
+ 	 */
+ 	if (read) {
+-		bool is_multiplanar = q->is_multiplanar;
+-
+ 		/*
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			struct v4l2_buffer *b = &fileio->b;
++			struct vb2_buffer *b = fileio->b;
+ 
+-			memset(b, 0, sizeof(*b));
++			memset(b, 0, q->buf_struct_size);
+ 			b->type = q->type;
+-			if (is_multiplanar) {
+-				memset(&fileio->p, 0, sizeof(fileio->p));
+-				b->m.planes = &fileio->p;
+-				b->length = 1;
+-			}
+ 			b->memory = q->memory;
+ 			b->index = i;
+-			ret = vb2_internal_qbuf(q, b);
++			ret = vb2_core_qbuf(q, i, b);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -1056,8 +1063,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	return ret;
+ 
+ err_reqbufs:
+-	fileio->req.count = 0;
+-	vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
++	fileio->count = 0;
++	vb2_core_reqbufs(q, fileio->memory, &fileio->count);
+ 
+ err_kfree:
+ 	q->fileio = NULL;
+@@ -1076,8 +1083,9 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q)
+ 	if (fileio) {
+ 		vb2_core_streamoff(q, q->type);
+ 		q->fileio = NULL;
+-		fileio->req.count = 0;
+-		vb2_reqbufs(q, &fileio->req);
++		fileio->count = 0;
++		vb2_core_reqbufs(q, fileio->memory, &fileio->count);
++		kfree(fileio->b);
+ 		kfree(fileio);
+ 		dprintk(3, "file io emulator closed\n");
+ 	}
+@@ -1130,24 +1138,21 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 */
+ 	index = fileio->cur_index;
+ 	if (index >= q->num_buffers) {
++		struct vb2_buffer *b = fileio->b;
++
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
+-		if (is_multiplanar) {
+-			memset(&fileio->p, 0, sizeof(fileio->p));
+-			fileio->b.m.planes = &fileio->p;
+-			fileio->b.length = 1;
+-		}
+-		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
++		ret = vb2_core_dqbuf(q, b, nonblock);
+ 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+ 		fileio->dq_count += 1;
+ 
+-		fileio->cur_index = index = fileio->b.index;
++		fileio->cur_index = index = b->index;
+ 		buf = &fileio->bufs[index];
+ 
+ 		/*
+@@ -1159,8 +1164,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 				 : vb2_plane_size(q->bufs[index], 0);
+ 		/* Compensate for data_offset on read in the multiplanar case. */
+ 		if (is_multiplanar && read &&
+-		    fileio->b.m.planes[0].data_offset < buf->size) {
+-			buf->pos = fileio->b.m.planes[0].data_offset;
++				b->planes[0].data_offset < buf->size) {
++			buf->pos = b->planes[0].data_offset;
+ 			buf->size -= buf->pos;
+ 		}
+ 	} else {
+@@ -1199,6 +1204,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 * Queue next buffer if required.
+ 	 */
+ 	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
++		struct vb2_buffer *b = fileio->b;
++
+ 		/*
+ 		 * Check if this is the last buffer to read.
+ 		 */
+@@ -1210,20 +1217,15 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		/*
+ 		 * Call vb2_qbuf and give buffer to the driver.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
+-		fileio->b.index = index;
+-		fileio->b.bytesused = buf->pos;
+-		if (is_multiplanar) {
+-			memset(&fileio->p, 0, sizeof(fileio->p));
+-			fileio->p.bytesused = buf->pos;
+-			fileio->b.m.planes = &fileio->p;
+-			fileio->b.length = 1;
+-		}
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
++		b->index = index;
++		b->planes[0].bytesused = buf->pos;
++
+ 		if (set_timestamp)
+-			v4l2_get_timestamp(&fileio->b.timestamp);
+-		ret = vb2_internal_qbuf(q, &fileio->b);
++			vb2_get_timestamp(&b->timestamp);
++		ret = vb2_core_qbuf(q, index, b);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -1300,20 +1302,21 @@ static int vb2_thread(void *data)
+ 
+ 	for (;;) {
+ 		struct vb2_buffer *vb;
++		struct vb2_buffer *b = fileio->b;
+ 
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
+ 		if (prequeue) {
+-			fileio->b.index = index++;
++			b->index = index++;
+ 			prequeue--;
+ 		} else {
+ 			call_void_qop(q, wait_finish, q);
+ 			if (!threadio->stop)
+-				ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++				ret = vb2_core_dqbuf(q, b, 0);
+ 			call_void_qop(q, wait_prepare, q);
+ 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+ 		}
+@@ -1321,15 +1324,15 @@ static int vb2_thread(void *data)
+ 			break;
+ 		try_to_freeze();
+ 
+-		vb = q->bufs[fileio->b.index];
+-		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
++		vb = q->bufs[b->index];
++		if (b->state == VB2_BUF_STATE_DONE)
+ 			if (threadio->fnc(vb, threadio->priv))
+ 				break;
+ 		call_void_qop(q, wait_finish, q);
+ 		if (set_timestamp)
+-			v4l2_get_timestamp(&fileio->b.timestamp);
++			vb2_get_timestamp(&b->timestamp);
+ 		if (!threadio->stop)
+-			ret = vb2_internal_qbuf(q, &fileio->b);
++			ret = vb2_core_qbuf(q, b->index, b);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
 -- 
-2.4.3
-
+1.7.9.5
 
