@@ -1,139 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38845 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750924AbbJBCjC (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:37279 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752378AbbJPG1r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2015 22:39:02 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F19C42A0376
-	for <linux-media@vger.kernel.org>; Fri,  2 Oct 2015 04:37:20 +0200 (CEST)
-Date: Fri, 02 Oct 2015 04:37:20 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151002023720.F19C42A0376@tschai.lan>
+	Fri, 16 Oct 2015 02:27:47 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NWA00VC3VA9C370@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Oct 2015 15:27:45 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v7 3/7] media: videobuf2: Add set_timestamp to struct
+ vb2_queue
+Date: Fri, 16 Oct 2015 15:27:39 +0900
+Message-id: <1444976863-3657-4-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
+References: <1444976863-3657-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add set_timestamp to struct vb2_queue as a flag set if vb2-core should
+set timestamps.
 
-Results of the daily build of media_tree:
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c |   19 +++++++------------
+ include/media/videobuf2-core.h           |    2 ++
+ 2 files changed, 9 insertions(+), 12 deletions(-)
 
-date:		Fri Oct  2 04:00:17 CEST 2015
-git branch:	test
-git hash:	ca739eb086155007d7264be7ccc07f894d5a7bbe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index b1334d6..525f4c7 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -118,8 +118,7 @@ static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
+ 		 * For output buffers copy the timestamp if needed,
+ 		 * and the timecode field and flag if needed.
+ 		 */
+-		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-				V4L2_BUF_FLAG_TIMESTAMP_COPY)
++		if (q->set_timestamp)
+ 			vb->timestamp = b->timestamp;
+ 		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
+ 		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
+@@ -238,8 +237,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	 */
+ 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+ 	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+-	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++	if (!q->set_timestamp) {
+ 		/*
+ 		 * For non-COPY timestamps, drop timestamp source bits
+ 		 * and obtain the timestamp source from the queue.
+@@ -404,8 +402,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ 
+ 	/* Zero flags that the vb2 core handles */
+ 	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
+-	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
++	if (!vb->vb2_queue->set_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 		/*
+ 		 * Non-COPY timestamps and non-OUTPUT queues will get
+ 		 * their timestamp and timestamp source flags from the
+@@ -723,6 +720,8 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	q->buf_ops = &v4l2_buf_ops;
+ 	q->is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
+ 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
++	q->set_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
++			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_core_queue_init(q);
+ }
+@@ -1080,9 +1079,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 * should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
+ 	 * else is able to provide this information with the write() operation.
+ 	 */
+-	bool set_timestamp = !read &&
+-		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-		V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	bool set_timestamp = !read && q->set_timestamp;
+ 	int ret, index;
+ 
+ 	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
+@@ -1271,9 +1268,7 @@ static int vb2_thread(void *data)
+ 
+ 	if (q->is_output) {
+ 		prequeue = q->num_buffers;
+-		set_timestamp =
+-			(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-			V4L2_BUF_FLAG_TIMESTAMP_COPY;
++		set_timestamp = q->set_timestamp;
+ 	}
+ 
+ 	set_freezable();
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index f1e7169..6ef7da7 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -431,6 +431,7 @@ struct vb2_buf_ops {
+  *		called since poll() needs to return POLLERR in that situation.
+  * @is_multiplanar: set if buffer type is multiplanar
+  * @is_output:	set if buffer type is output
++ * @copy_timestamp: set if vb2-core should set timestamps
+  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+  *		last decoded buffer was already dequeued. Set for capture queues
+  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
+@@ -480,6 +481,7 @@ struct vb2_queue {
+ 	unsigned int			waiting_for_buffers:1;
+ 	unsigned int			is_multiplanar:1;
+ 	unsigned int			is_output:1;
++	unsigned int			set_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+-- 
+1.7.9.5
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
