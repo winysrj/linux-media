@@ -1,60 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48452 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751808AbbJLQ3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 12:29:55 -0400
-Date: Mon, 12 Oct 2015 13:29:50 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Current status of MC patches?
-Message-ID: <20151012132950.5227c0fd@recife.lan>
-In-Reply-To: <561BDDE1.1040900@xs4all.nl>
-References: <561BB0D1.1030102@xs4all.nl>
-	<20151012121153.75691744@recife.lan>
-	<20151012155638.GM26916@valkosipuli.retiisi.org.uk>
-	<561BDDE1.1040900@xs4all.nl>
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:36114 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbbJPV7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 17:59:44 -0400
+Received: by ykdz2 with SMTP id z2so12799328ykd.3
+        for <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 14:59:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4801142.TL3UEFHxhL@wuerfel>
+References: <10110482.QkOJ1nlAsE@wuerfel>
+	<CABxcv=n_N-176+iOsBaroJoGy0kj35YELyfLnaXJGmsi9xkDOg@mail.gmail.com>
+	<4801142.TL3UEFHxhL@wuerfel>
+Date: Fri, 16 Oct 2015 23:59:43 +0200
+Message-ID: <CABxcv=kMgPkaA8ZHZhiQOGtX-3CWAs=rEQP98o-Zw4Cv6unhkA@mail.gmail.com>
+Subject: Re: [PATCH] [media] lnbh25: fix lnbh25_attach inline wrapper
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sergey Kozlov <serjk@netup.ru>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 12 Oct 2015 18:20:49 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hello Arnd,
 
-> On 10/12/2015 05:56 PM, Sakari Ailus wrote:
-> > Hi Mauro and Hans,
-> > 
-> > On Mon, Oct 12, 2015 at 12:11:53PM -0300, Mauro Carvalho Chehab wrote:
-> >> Em Mon, 12 Oct 2015 15:08:33 +0200
-> >> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>
-> >>> Hi Mauro,
-> >>>
-> >>> Can you give an update of the current status of the MC work? To be honest,
-> >>> I've lost track.
-> >>>
-> >>> In particular, is there anything I and/or others need to review before you
-> >>> can start merging patches?
-> >>
-> >> Basically, we're still waiting for Laurent and Sakari's review.
-> > 
-> > Could you resend what you have to the list, please? Currently it's a number
-> > of sets some of which contain updates only on particular patches. It'd be
-> > easier to review that way.
-> 
-> I would actually appreciate that as well. That way I can see which patches I
-> have and which I haven't reviewed.
-> 
-> If you don't want to spam the ml, then you can also send it directly, but I
-> think it is OK to include the ml. Up to you, though.
+On Fri, Oct 16, 2015 at 11:49 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 16 October 2015 23:45:46 Javier Martinez Canillas wrote:
+>>
+>> On Fri, Oct 16, 2015 at 10:32 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > The 'static inline' version of lnbh25_attach() has an incorrect
+>> > prototype which results in a build error when
+>> > CONFIG_DVB_LNBH25 is disabled:
+>> >
+>> > In file included from /git/arm-soc/drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
+>> > /git/arm-soc/drivers/media/dvb-frontends/lnbh25.h:46:86: error: unknown type name 'dvb_frontend'
+>> >
+>> > This changes the code to have the correct prototype.
+>> >
+>> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> > Fixes: e025273b86fb ("[media] lnbh25: LNBH25 SEC controller driver")
+>> > ---
+>>
+>> Same for this patch, the same change is already in the media fixes branch [0].
+>>
+>> [0]: http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?h=fixes&id=b36a55cf298127a285806c52d8777c49548f3785
+>
+> Ah, I see. The patches must have crossed then, it was still broken in linux-next
+> this morning.
+>
 
-Let me send the patches then to the Workshop ML. There are 83 patches.
-That's too many to flood at the main list, specially since all patches
-there are already at the main ML.
+Well, I don't see that branch listed in
+http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/Next/Trees
 
-Regards,
-Mauro
+>         Arnd
+
+Best regards,
+Javier
