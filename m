@@ -1,205 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8592 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbbJBJ7t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 05:59:49 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
-	Format Codec (MFC)...)
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Subject: [PATCH 1/2] s5p-mfc: end-of-stream handling for newer encoders
-Date: Fri, 02 Oct 2015 11:58:53 +0200
-Message-id: <1443779934-30088-1-git-send-email-a.hajda@samsung.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52572 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753777AbbJPPxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 11:53:38 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 57BE02A0080
+	for <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 17:51:37 +0200 (CEST)
+Message-ID: <56211D09.1010903@xs4all.nl>
+Date: Fri, 16 Oct 2015 17:51:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.4] Various fixes + SDR TX
+References: <5620C167.9080801@xs4all.nl>
+In-Reply-To: <5620C167.9080801@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC encoder supports end-of-stream handling for encoder
-in version 5 of hardware. This patch adds it also for newer version.
-It was successfully tested on MFC-v8.
+On 10/16/2015 11:20 AM, Hans Verkuil wrote:
+> This pull request fixes various bugs, but the main change is Antti's support
+> for SDR transmitters.
+> 
+> BTW, I have v4l2-ctl and v4l2-compliance support ready for this feature as
+> well. Available here:
+> 
+> http://git.linuxtv.org/cgit.cgi/hverkuil/v4l-utils.git/log/?h=sdr
+> 
+> Note: this needs some cleanup as the patches are a bit messy.
+> 
+> Once this pull request is merged I'll cleanup my v4l-utils code and push it.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c        | 25 ++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  5 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 40 ++++++++++++++++++-------
- 3 files changed, 44 insertions(+), 26 deletions(-)
+Note: please merged the vb2 split pull request first: https://patchwork.linuxtv.org/patch/31670/ 
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 8de61dc..21c424e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -181,13 +181,6 @@ unlock:
- 		mutex_unlock(&dev->mfc_mutex);
- }
- 
--static void s5p_mfc_clear_int_flags(struct s5p_mfc_dev *dev)
--{
--	mfc_write(dev, 0, S5P_FIMV_RISC_HOST_INT);
--	mfc_write(dev, 0, S5P_FIMV_RISC2HOST_CMD);
--	mfc_write(dev, 0xffff, S5P_FIMV_SI_RTN_CHID);
--}
--
- static void s5p_mfc_handle_frame_all_extracted(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_buf *dst_buf;
-@@ -573,17 +566,13 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
- 	}
- }
- 
--static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx,
--				 unsigned int reason, unsigned int err)
-+static void s5p_mfc_handle_stream_complete(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	struct s5p_mfc_buf *mb_entry;
- 
- 	mfc_debug(2, "Stream completed\n");
- 
--	s5p_mfc_clear_int_flags(dev);
--	ctx->int_type = reason;
--	ctx->int_err = err;
- 	ctx->state = MFCINST_FINISHED;
- 
- 	spin_lock(&dev->irqlock);
-@@ -640,6 +629,13 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 		if (ctx->c_ops->post_frame_start) {
- 			if (ctx->c_ops->post_frame_start(ctx))
- 				mfc_err("post_frame_start() failed\n");
-+
-+			if (ctx->state == MFCINST_FINISHING &&
-+						list_empty(&ctx->ref_queue)) {
-+				s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
-+				s5p_mfc_handle_stream_complete(ctx);
-+				break;
-+			}
- 			s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
- 			wake_up_ctx(ctx, reason, err);
- 			WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
-@@ -685,7 +681,10 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 		break;
- 
- 	case S5P_MFC_R2H_CMD_COMPLETE_SEQ_RET:
--		s5p_mfc_handle_stream_complete(ctx, reason, err);
-+		s5p_mfc_hw_call_void(dev->mfc_ops, clear_int_flags, dev);
-+		ctx->int_type = reason;
-+		ctx->int_err = err;
-+		s5p_mfc_handle_stream_complete(ctx);
- 		break;
- 
- 	case S5P_MFC_R2H_CMD_DPB_FLUSH_RET:
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2e57e9f..5280592 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -902,9 +902,9 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
- 			list_add_tail(&mb_entry->list, &ctx->ref_queue);
- 			ctx->ref_queue_cnt++;
- 		}
--		mfc_debug(2, "enc src count: %d, enc ref count: %d\n",
--			  ctx->src_queue_cnt, ctx->ref_queue_cnt);
- 	}
-+	mfc_debug(2, "enc src count: %d, enc ref count: %d\n",
-+		  ctx->src_queue_cnt, ctx->ref_queue_cnt);
- 	if ((ctx->dst_queue_cnt > 0) && (strm_size > 0)) {
- 		mb_entry = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf,
- 									list);
-@@ -927,6 +927,7 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
- 	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	if ((ctx->src_queue_cnt == 0) || (ctx->dst_queue_cnt == 0))
- 		clear_work_bit(ctx);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index e5cb30e..af4b936 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -554,7 +554,7 @@ static void s5p_mfc_get_enc_frame_buffer_v6(struct s5p_mfc_ctx *ctx,
- 	enc_recon_y_addr = readl(mfc_regs->e_recon_luma_dpb_addr);
- 	enc_recon_c_addr = readl(mfc_regs->e_recon_chroma_dpb_addr);
- 
--	mfc_debug(2, "recon y addr: 0x%08lx\n", enc_recon_y_addr);
-+	mfc_debug(2, "recon y addr: 0x%08lx y_addr: 0x%08lx\n", enc_recon_y_addr, *y_addr);
- 	mfc_debug(2, "recon c addr: 0x%08lx\n", enc_recon_c_addr);
- }
- 
-@@ -1483,6 +1483,7 @@ static int s5p_mfc_encode_one_frame_v6(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
-+	int cmd;
- 
- 	mfc_debug(2, "++\n");
- 
-@@ -1493,9 +1494,13 @@ static int s5p_mfc_encode_one_frame_v6(struct s5p_mfc_ctx *ctx)
- 
- 	s5p_mfc_set_slice_mode(ctx);
- 
-+	if (ctx->state != MFCINST_FINISHING)
-+		cmd = S5P_FIMV_CH_FRAME_START_V6;
-+	else
-+		cmd = S5P_FIMV_CH_LAST_FRAME_V6;
-+
- 	writel(ctx->inst_no, mfc_regs->instance_id);
--	s5p_mfc_hw_call_void(dev->mfc_cmds, cmd_host2risc, dev,
--			S5P_FIMV_CH_FRAME_START_V6, NULL);
-+	s5p_mfc_hw_call_void(dev->mfc_cmds, cmd_host2risc, dev, cmd, NULL);
- 
- 	mfc_debug(2, "--\n");
- 
-@@ -1592,7 +1597,7 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 
- 	spin_lock_irqsave(&dev->irqlock, flags);
- 
--	if (list_empty(&ctx->src_queue)) {
-+	if (list_empty(&ctx->src_queue) && ctx->state != MFCINST_FINISHING) {
- 		mfc_debug(2, "no src buffers.\n");
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 		return -EAGAIN;
-@@ -1604,15 +1609,28 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
- 		return -EAGAIN;
- 	}
- 
--	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
--	src_mb->flags |= MFC_BUF_FLAG_USED;
--	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
--	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
-+	if (list_empty(&ctx->src_queue)) {
-+		/* send null frame */
-+		s5p_mfc_set_enc_frame_buffer_v6(ctx, 0, 0);
-+		src_mb = NULL;
-+	} else {
-+		src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
-+		src_mb->flags |= MFC_BUF_FLAG_USED;
-+		if (src_mb->b->v4l2_planes[0].bytesused == 0) {
-+			s5p_mfc_set_enc_frame_buffer_v6(ctx, 0, 0);
-+			ctx->state = MFCINST_FINISHING;
-+		} else {
-+			src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
-+			src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
- 
--	mfc_debug(2, "enc src y addr: 0x%08lx\n", src_y_addr);
--	mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
-+			mfc_debug(2, "enc src y addr: 0x%08lx\n", src_y_addr);
-+			mfc_debug(2, "enc src c addr: 0x%08lx\n", src_c_addr);
- 
--	s5p_mfc_set_enc_frame_buffer_v6(ctx, src_y_addr, src_c_addr);
-+			s5p_mfc_set_enc_frame_buffer_v6(ctx, src_y_addr, src_c_addr);
-+			if (src_mb->flags & MFC_BUF_FLAG_EOS)
-+				ctx->state = MFCINST_FINISHING;
-+		}
-+	}
- 
- 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
- 	dst_mb->flags |= MFC_BUF_FLAG_USED;
--- 
-1.9.1
+There may be some fall-out from that that affects this pull request. I haven't tested that
+(forgot about it).
+
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit efe98010b80ec4516b2779e1b4e4a8ce16bf89fe:
+> 
+>   [media] DocBook: Fix remaining issues with VB2 core documentation (2015-10-05 09:12:56 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.4e
+> 
+> for you to fetch changes up to eaae4b60943fa2ee07ca1d1600489ed9051ffc0f:
+> 
+>   DocBook media: update copyright/version numbers (2015-10-16 11:13:01 +0200)
+> 
+> ----------------------------------------------------------------
+> Antonio Ospite (1):
+>       media/v4l2-ctrls: fix setting autocluster to manual with VIDIOC_S_CTRL
+> 
+> Antti Palosaari (13):
+>       v4l2: rename V4L2_TUNER_ADC to V4L2_TUNER_SDR
+>       v4l2: add RF gain control
+>       DocBook: document tuner RF gain control
+>       v4l2: add support for SDR transmitter
+>       DocBook: document SDR transmitter
+>       v4l: add type field to v4l2_modulator struct
+>       DocBook: add modulator type field
+>       hackrf: add control for RF amplifier
+>       hackrf: switch to single function which configures everything
+>       hackrf: add support for transmitter
+>       hackrf: do not set human readable name for formats
+>       DocBook: add SDR specific info to G_TUNER / S_TUNER
+>       DocBook: add SDR specific info to G_MODULATOR / S_MODULATOR
+> 
+> Hans Verkuil (1):
+>       DocBook media: update copyright/version numbers
+> 
+> Jan Kara (1):
+>       ivtv: Convert to get_user_pages_unlocked()
+> 
+> Jean-Michel Hautbois (1):
+>       DocBook media: Fix a typo in encoder cmd
+> 
+> Salva Peiró (1):
+>       media/vivid-osd: fix info leak in ioctl
+> 
+>  Documentation/DocBook/media/v4l/compat.xml             |   20 ++
+>  Documentation/DocBook/media/v4l/controls.xml           |   14 +
+>  Documentation/DocBook/media/v4l/dev-sdr.xml            |   32 +-
+>  Documentation/DocBook/media/v4l/io.xml                 |   10 +-
+>  Documentation/DocBook/media/v4l/pixfmt.xml             |    2 +-
+>  Documentation/DocBook/media/v4l/v4l2.xml               |   13 +-
+>  Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml |    2 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml       |    2 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-modulator.xml |   14 +-
+>  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml     |   16 +
+>  Documentation/DocBook/media/v4l/vidioc-querycap.xml    |    6 +
+>  Documentation/DocBook/media_api.tmpl                   |    2 +-
+>  drivers/media/pci/ivtv/ivtv-yuv.c                      |   12 +-
+>  drivers/media/platform/vivid/vivid-osd.c               |    1 +
+>  drivers/media/usb/hackrf/hackrf.c                      | 1082 ++++++++++++++++++++++++++++++++++++++------------------
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c          |    2 +
+>  drivers/media/v4l2-core/v4l2-ctrls.c                   |    4 +-
+>  drivers/media/v4l2-core/v4l2-dev.c                     |   14 +-
+>  drivers/media/v4l2-core/v4l2-ioctl.c                   |   49 ++-
+>  drivers/media/v4l2-core/videobuf-core.c                |    4 +-
+>  include/media/v4l2-ioctl.h                             |    8 +
+>  include/trace/events/v4l2.h                            |    1 +
+>  include/uapi/linux/v4l2-controls.h                     |    1 +
+>  include/uapi/linux/videodev2.h                         |   13 +-
+>  24 files changed, 952 insertions(+), 372 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
