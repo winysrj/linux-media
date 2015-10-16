@@ -1,84 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46780 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([134.134.136.65]:27557 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752118AbbJJQqA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 12:46:00 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl28xxu: fix control message flaws
-Date: Sat, 10 Oct 2015 19:45:30 +0300
-Message-Id: <1444495530-1674-1-git-send-email-crope@iki.fi>
+	id S1753920AbbJPQrB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 12:47:01 -0400
+Date: Fri, 16 Oct 2015 09:47:00 -0700
+From: Andi Kleen <ak@linux.intel.com>
+To: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
+	linux-media@vger.kernel.org, Abylay Ospan <aospan@netup.ru>
+Subject: Re: [PATCH] Disable -Wframe-larger-than warnings with KASAN=y
+Message-ID: <20151016164700.GC15102@tassilo.jf.intel.com>
+References: <20151005110923.GA16831@wfg-t540p.sh.intel.com>
+ <1445011330-22698-1-git-send-email-aryabinin@virtuozzo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1445011330-22698-1-git-send-email-aryabinin@virtuozzo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add lock to prevent concurrent access for control message as control
-message function uses shared buffer. Without the lock there may be
-remote control polling which messes the buffer causing IO errors.
-Increase buffer size and add check for maximum supported message
-length.
+On Fri, Oct 16, 2015 at 07:02:10PM +0300, Andrey Ryabinin wrote:
+> When the kernel compiled with KASAN=y, GCC adds redzones
+> for each variable on stack. This enlarges function's stack
+> frame and causes:
+> 	'warning: the frame size of X bytes is larger than Y bytes'
+> 
+> The worst case I've seen for now is following:
+>  ../net/wireless/nl80211.c: In function ‘nl80211_send_wiphy’:
+>  ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+>   }
+>    ^
+> That kind of warning becomes useless with KASAN=y. It doesn't necessarily
+> indicate that there is some problem in the code, thus we should turn it off.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=103391
-Fixes: c56222a6b25c ("[media] rtl28xxu: move usb buffers to state")
-Cc: <stable@vger.kernel.org> # 4.0+
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 15 +++++++++++++--
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  2 +-
- 2 files changed, 14 insertions(+), 3 deletions(-)
+If KASAN is really bloating the stack that much you may need to consider
+increasing the stack size with KASAN on. We have 16K now, but even that
+may not be enough if you more than double it.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c3cac4c..197a4f2 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -34,6 +34,14 @@ static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
- 	unsigned int pipe;
- 	u8 requesttype;
- 
-+	mutex_lock(&d->usb_mutex);
-+
-+	if (req->size > sizeof(dev->buf)) {
-+		dev_err(&d->intf->dev, "too large message %u\n", req->size);
-+		ret = -EINVAL;
-+		goto err_mutex_unlock;
-+	}
-+
- 	if (req->index & CMD_WR_FLAG) {
- 		/* write */
- 		memcpy(dev->buf, req->data, req->size);
-@@ -50,14 +58,17 @@ static int rtl28xxu_ctrl_msg(struct dvb_usb_device *d, struct rtl28xxu_req *req)
- 	dvb_usb_dbg_usb_control_msg(d->udev, 0, requesttype, req->value,
- 			req->index, dev->buf, req->size);
- 	if (ret < 0)
--		goto err;
-+		goto err_mutex_unlock;
- 
- 	/* read request, copy returned data to return buf */
- 	if (requesttype == (USB_TYPE_VENDOR | USB_DIR_IN))
- 		memcpy(req->data, dev->buf, req->size);
- 
-+	mutex_unlock(&d->usb_mutex);
-+
- 	return 0;
--err:
-+err_mutex_unlock:
-+	mutex_unlock(&d->usb_mutex);
- 	dev_dbg(&d->intf->dev, "failed=%d\n", ret);
- 	return ret;
- }
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 9f6115a..1380629 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -71,7 +71,7 @@
- 
- 
- struct rtl28xxu_dev {
--	u8 buf[28];
-+	u8 buf[128];
- 	u8 chip_id;
- 	u8 tuner;
- 	char *tuner_name;
--- 
-http://palosaari.fi/
+Otherwise it may just crash with KASAN on in more complex setups.
 
+-Andi
