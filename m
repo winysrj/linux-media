@@ -1,107 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53395 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005AbbJ1AwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 20:52:00 -0400
-Date: Wed, 28 Oct 2015 09:51:55 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 13/19] media: Keep using the same graph walk object for
- a given pipeline
-Message-ID: <20151028095155.545a2090@concha.lan>
-In-Reply-To: <1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
+Received: from mout.kundenserver.de ([212.227.126.130]:60105 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753458AbbJPU1m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 16:27:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org
+Subject: [PATCH] [media] sh-vou: clarify videobuf2 dependency
+Date: Fri, 16 Oct 2015 22:27:29 +0200
+Message-ID: <9667468.98avsAXYlo@wuerfel>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:44 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+The sh-vou driver has been converted from videobuf to videobuf2, but
+the Kconfig file still lists VIDEOBUF_DMA_CONTIG as a dependency.
+Consequently we can build the driver without VIDEOBUF2_DMA_CONTIG
+and get a link error:
 
-> Initialise a given graph walk object once, and then keep using it whilst
-> the same pipeline is running. Once the pipeline is stopped, release the
-> graph walk object.
+drivers/built-in.o: In function `sh_vou_probe':
+vf610-ocotp.c:(.text+0x2dbf5c): undefined reference to `vb2_dma_contig_init_ctx'
+vf610-ocotp.c:(.text+0x2dc0b4): undefined reference to `vb2_dma_contig_cleanup_ctx'
+vf610-ocotp.c:(.text+0x2dc144): undefined reference to `vb2_dma_contig_memops'
+drivers/built-in.o: In function `sh_vou_remove':
+vf610-ocotp.c:(.text+0x2dc190): undefined reference to `vb2_dma_contig_cleanup_ctx'
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This changes the dependency to VIDEOBUF2_DMA_CONTIG instead.
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 17 +++++++++++------
->  include/media/media-entity.h |  1 +
->  2 files changed, 12 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 7429c03..137aa09d 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> -	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-> -	if (ret) {
-> -		mutex_unlock(&mdev->graph_mutex);
-> -		return ret;
-> +	if (!pipe->streaming_count++) {
-> +		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-> +		if (ret)
-> +			goto error_graph_walk_start;
->  	}
->  
->  	media_entity_graph_walk_start(&pipe->graph, entity);
-> @@ -592,7 +592,9 @@ error:
->  			break;
->  	}
->  
-> -	media_entity_graph_walk_cleanup(graph);
-> +error_graph_walk_start:
-> +	if (!--pipe->streaming_count)
-> +		media_entity_graph_walk_cleanup(graph);
->  
->  	mutex_unlock(&mdev->graph_mutex);
->  
-> @@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  {
->  	struct media_device *mdev = entity->graph_obj.mdev;
->  	struct media_entity_graph *graph = &entity->pipe->graph;
-> +	struct media_pipeline *pipe = entity->pipe;
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> +	BUG_ON(!pipe->streaming_count);
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> @@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  			entity->pipe = NULL;
->  	}
->  
-> -	media_entity_graph_walk_cleanup(graph);
-> +	if (!--pipe->streaming_count)
-> +		media_entity_graph_walk_cleanup(graph);
->  
->  	mutex_unlock(&mdev->graph_mutex);
->  }
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 21fd07b..cc01e08 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -98,6 +98,7 @@ struct media_entity_graph {
->  };
->  
->  struct media_pipeline {
-> +	int streaming_count;
->  	/* For walking the graph in pipeline start / stop */
->  	struct media_entity_graph graph;
->  };
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 57af3ad59d95 ("[media] sh-vou: convert to vb2")
+---
+Found on ARM randconfig tests
 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index f88a6cfb7086..3ddf72f2d844 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -38,7 +38,7 @@ config VIDEO_SH_VOU
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	depends on VIDEO_DEV && I2C && HAS_DMA
+ 	depends on ARCH_SHMOBILE || COMPILE_TEST
+-	select VIDEOBUF_DMA_CONTIG
++	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+ 
 
--- 
-
-Cheers,
-Mauro
