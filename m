@@ -1,109 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51366 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753260AbbJCPYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:24:19 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Don Fry <pcnet32@frontier.com>,
-	Oliver Neukum <oneukum@suse.com>
-Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 15/15] dma: remove external references to dma_supported
-Date: Sat,  3 Oct 2015 17:19:39 +0200
-Message-Id: <1443885579-7094-16-git-send-email-hch@lst.de>
-In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de>
+Received: from mout.gmx.net ([212.227.17.20]:51275 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751401AbbJPS0B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Oct 2015 14:26:01 -0400
+Received: from linux.local ([178.10.176.231]) by mail.gmx.com (mrgmx103) with
+ ESMTPSA (Nemesis) id 0MDzGN-1ZmObZ2xl1-00HSUY for
+ <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 20:25:58 +0200
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v1] dvb/keytable: fix libintl linking
+Date: Fri, 16 Oct 2015 20:25:57 +0200
+Message-Id: <1445019957-31061-1-git-send-email-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- Documentation/DMA-API.txt       | 13 -------------
- drivers/usb/host/ehci-hcd.c     |  2 +-
- drivers/usb/host/fotg210-hcd.c  |  2 +-
- drivers/usb/host/fusbh200-hcd.c |  2 +-
- drivers/usb/host/oxu210hp-hcd.c |  2 +-
- 5 files changed, 4 insertions(+), 17 deletions(-)
+Fix libintl linking for uclibc (see [1] for details).
 
-diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
-index edccacd..55f48684 100644
---- a/Documentation/DMA-API.txt
-+++ b/Documentation/DMA-API.txt
-@@ -142,19 +142,6 @@ Part Ic - DMA addressing limitations
- ------------------------------------
+[1] http://lists.busybox.net/pipermail/buildroot/2015-October/142032.html
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+---
+ utils/dvb/Makefile.am      | 8 ++++----
+ utils/keytable/Makefile.am | 1 +
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/utils/dvb/Makefile.am b/utils/dvb/Makefile.am
+index 6aae408..a96a1a2 100644
+--- a/utils/dvb/Makefile.am
++++ b/utils/dvb/Makefile.am
+@@ -2,19 +2,19 @@ bin_PROGRAMS = dvb-fe-tool dvbv5-zap dvbv5-scan dvb-format-convert
+ man_MANS = dvb-fe-tool.1 dvbv5-zap.1 dvbv5-scan.1 dvb-format-convert.1
  
- int
--dma_supported(struct device *dev, u64 mask)
--
--Checks to see if the device can support DMA to the memory described by
--mask.
--
--Returns: 1 if it can and 0 if it can't.
--
--Notes: This routine merely tests to see if the mask is possible.  It
--won't change the current mask settings.  It is more intended as an
--internal API for use by the platform than an external API for use by
--driver writers.
--
--int
- dma_set_mask_and_coherent(struct device *dev, u64 mask)
+ dvb_fe_tool_SOURCES = dvb-fe-tool.c
+-dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la
++dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
+ dvb_fe_tool_LDFLAGS = $(ARGP_LIBS) -lm
  
- Checks to see if the mask is possible and updates the device
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index c63d82c..48c92bf 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -589,7 +589,7 @@ static int ehci_run (struct usb_hcd *hcd)
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
-diff --git a/drivers/usb/host/fotg210-hcd.c b/drivers/usb/host/fotg210-hcd.c
-index 000ed80..c5fc3ef 100644
---- a/drivers/usb/host/fotg210-hcd.c
-+++ b/drivers/usb/host/fotg210-hcd.c
-@@ -5258,7 +5258,7 @@ static int fotg210_run(struct usb_hcd *hcd)
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
-diff --git a/drivers/usb/host/fusbh200-hcd.c b/drivers/usb/host/fusbh200-hcd.c
-index 1fd8718..4a1243a 100644
---- a/drivers/usb/host/fusbh200-hcd.c
-+++ b/drivers/usb/host/fusbh200-hcd.c
-@@ -5181,7 +5181,7 @@ static int fusbh200_run (struct usb_hcd *hcd)
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
-diff --git a/drivers/usb/host/oxu210hp-hcd.c b/drivers/usb/host/oxu210hp-hcd.c
-index fe3bd1c..1f139d8 100644
---- a/drivers/usb/host/oxu210hp-hcd.c
-+++ b/drivers/usb/host/oxu210hp-hcd.c
-@@ -2721,7 +2721,7 @@ static int oxu_run(struct usb_hcd *hcd)
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
+ dvbv5_zap_SOURCES = dvbv5-zap.c
+-dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la
++dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
+ dvbv5_zap_LDFLAGS = $(ARGP_LIBS) -lm
+ 
+ dvbv5_scan_SOURCES = dvbv5-scan.c
+-dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la
++dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
+ dvbv5_scan_LDFLAGS = $(ARGP_LIBS) -lm
+ 
+ dvb_format_convert_SOURCES = dvb-format-convert.c
+-dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la
++dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
+ dvb_format_convert_LDFLAGS = $(ARGP_LIBS) -lm
+ 
+ EXTRA_DIST = README
+diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
+index 925c8ea..8444ac2 100644
+--- a/utils/keytable/Makefile.am
++++ b/utils/keytable/Makefile.am
+@@ -5,6 +5,7 @@ keytablesystem_DATA = $(srcdir)/rc_keymaps/*
+ udevrules_DATA = 70-infrared.rules
+ 
+ ir_keytable_SOURCES = keytable.c parse.h
++ir_keytable_LDADD = @LIBINTL@
+ ir_keytable_LDFLAGS = $(ARGP_LIBS)
+ 
+ EXTRA_DIST = 70-infrared.rules rc_keymaps rc_keymaps_userspace gen_keytables.pl ir-keytable.1 rc_maps.cfg
 -- 
-1.9.1
+2.1.4
 
