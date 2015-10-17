@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39240 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbbJJNgU (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:40494
+	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751329AbbJQJn2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:20 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Johannes Berg <johannes.berg@intel.com>,
-	=?UTF-8?q?J=C3=A9r=C3=A9my=20Bobbio?= <lunar@debian.org>,
-	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
-	Bart Van Assche <bart.vanassche@sandisk.com>
-Subject: [PATCH 19/26] kernel-doc: Add a parser for function typedefs
-Date: Sat, 10 Oct 2015 10:36:02 -0300
-Message-Id: <3a80a766328fe73df5951639b5c9013ddba6efec.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+	Sat, 17 Oct 2015 05:43:28 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Sergey Kozlov <serjk@netup.ru>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] [media] netup_unidvb: delete null dereference
+Date: Sat, 17 Oct 2015 11:32:20 +0200
+Message-Id: <1445074340-21955-3-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1445074340-21955-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1445074340-21955-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current typedef parser only works for non-function typedefs.
+The calls to dev_dbg will not work properly when spi is NULL.  Just use
+pr_debug instead.
 
-As we need to also document some function typedefs, add a
-parser for it.
+Problem found using scripts/coccinelle/null/deref_null.cocci
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 9a08fb5c1af6..55ce47ffa02d 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1886,6 +1886,18 @@ sub dump_typedef($$) {
- 			    'purpose' => $declaration_purpose
- 			   });
-     }
-+    elsif ($x =~ /typedef\s+\w+\s*\(\*\s*(\w\S+)\s*\)\s*\(/) { # functions
-+	$declaration_name = $1;
-+
-+	output_declaration($declaration_name,
-+			   'typedef',
-+			   {'typedef' => $declaration_name,
-+			    'module' => $modulename,
-+			    'sectionlist' => \@sectionlist,
-+			    'sections' => \%sections,
-+			    'purpose' => $declaration_purpose
-+			   });
-+    }
-     else {
- 	print STDERR "${file}:$.: error: Cannot parse typedef!\n";
- 	++$errors;
--- 
-2.4.3
+---
+ drivers/media/pci/netup_unidvb/netup_unidvb_spi.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_spi.c b/drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
+index f55b327..026895f 100644
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
++++ b/drivers/media/pci/netup_unidvb/netup_unidvb_spi.c
+@@ -81,8 +81,7 @@ irqreturn_t netup_spi_interrupt(struct netup_spi *spi)
+ 	unsigned long flags;
+ 
+ 	if (!spi) {
+-		dev_dbg(&spi->master->dev,
+-			"%s(): SPI not initialized\n", __func__);
++		pr_debug("%s(): SPI not initialized\n", __func__);
+ 		return IRQ_NONE;
+ 	}
+ 	spin_lock_irqsave(&spi->lock, flags);
+@@ -235,8 +234,7 @@ void netup_spi_release(struct netup_unidvb_dev *ndev)
+ 	struct netup_spi *spi = ndev->spi;
+ 
+ 	if (!spi) {
+-		dev_dbg(&spi->master->dev,
+-			"%s(): SPI not initialized\n", __func__);
++		pr_debug("%s(): SPI not initialized\n", __func__);
+ 		return;
+ 	}
+ 	spin_lock_irqsave(&spi->lock, flags);
 
