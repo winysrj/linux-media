@@ -1,60 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:35198 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbbJBJGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 05:06:21 -0400
-Received: by obbzf10 with SMTP id zf10so77553385obb.2
-        for <linux-media@vger.kernel.org>; Fri, 02 Oct 2015 02:06:21 -0700 (PDT)
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:33212 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784AbbJSLIo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2015 07:08:44 -0400
+Received: by lffv3 with SMTP id v3so109782532lff.0
+        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2015 04:08:42 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1443775046.3445.49.camel@pengutronix.de>
-References: <1437063883-23981-1-git-send-email-p.zabel@pengutronix.de>
- <1437063883-23981-6-git-send-email-p.zabel@pengutronix.de>
- <55B255CD.3050304@xs4all.nl> <CAH-u=81qpYNgMvkKocc6weDqoWB3tW0r5csmVZfxSYfQ-74wsQ@mail.gmail.com>
- <1443775046.3445.49.camel@pengutronix.de>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Fri, 2 Oct 2015 11:06:01 +0200
-Message-ID: <CAH-u=82YoBzV4KWGP+eSdzOEnk8UuRreL_sH6NU+smNnjDanuw@mail.gmail.com>
-Subject: Re: [PATCH v3 5/5] [media] imx-ipu: Add i.MX IPUv3 scaler driver
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, David Airlie <airlied@linux.ie>,
-	ML dri-devel <dri-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Steve Longerbeam <slongerbeam@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Ian Molton <imolton@ad-holdings.co.uk>,
-	Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Michael Olbrich <m.olbrich@pengutronix.de>
+In-Reply-To: <55FABD50.8050900@xs4all.nl>
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com>
+ <55E978DA.1040604@xs4all.nl> <55FABD50.8050900@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 19 Oct 2015 13:08:23 +0200
+Message-ID: <CAPybu_2FfMxMQmgHP0d1PYEifCxQ88LDxpLpDBOzAgSmKRAbiA@mail.gmail.com>
+Subject: Re: [PATCH v2 06/10] usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-10-02 10:37 GMT+02:00 Philipp Zabel <p.zabel@pengutronix.de>:
-> Hi Jean-Michel,
->
-> Am Donnerstag, den 01.10.2015, 09:55 +0200 schrieb Jean-Michel Hautbois:
->> Hi Philipp, Hans,
->>
->>
->> 2015-07-24 17:12 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> [...]
->> What is the status of this driver ?
->> I can test it here, Philipp, are you planning to take Hans remarks
->> into account in one of your trees ?
->
-> Thank you for the reminder!
->
-> I have fixed most of the issues Hans pointed out, but got distracted at
-> some point and left for other things. I'll prepare a new version of this
-> series.
+Hello Laurent
 
-OK, don't hesitate if you need some tests ;-).
-BTW, I am modifying coda support V4L2_ENC_CMD_STOP.
-I will propose a patch during the day, it is probably not perfect, so
-your review will be appreciated :).
+Could you take a look to this patch.
 
-JM
-PS: Will you be there at ELCE next week ?
+
+Thanks!
+
+On Thu, Sep 17, 2015 at 3:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 09/04/15 12:56, Hans Verkuil wrote:
+>> Laurent, can you review this?
+>
+> Ping! If I have an Ack on Monday at the latest, then I can make a pull request
+> for this series before I leave for 2 1/2 weeks.
+>
+> Regards,
+>
+>         Hans
+>
+>>
+>> Regards,
+>>
+>>       Hans
+>>
+>> On 08/21/2015 03:19 PM, Ricardo Ribalda Delgado wrote:
+>>> This driver does not use the control infrastructure.
+>>> Add support for the new field which on structure
+>>>  v4l2_ext_controls
+>>>
+>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>> ---
+>>>  drivers/media/usb/uvc/uvc_v4l2.c | 14 +++++++++++++-
+>>>  1 file changed, 13 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+>>> index 2764f43607c1..e6d3a1bcfa2f 100644
+>>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>>> @@ -980,6 +980,7 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>>>      struct uvc_fh *handle = fh;
+>>>      struct uvc_video_chain *chain = handle->chain;
+>>>      struct v4l2_ext_control *ctrl = ctrls->controls;
+>>> +    struct v4l2_queryctrl qc;
+>>>      unsigned int i;
+>>>      int ret;
+>>>
+>>> @@ -988,7 +989,14 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+>>>              return ret;
+>>>
+>>>      for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+>>> -            ret = uvc_ctrl_get(chain, ctrl);
+>>> +            if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+>>> +                    qc.id = ctrl->id;
+>>> +                    ret = uvc_query_v4l2_ctrl(chain, &qc);
+>>> +                    if (!ret)
+>>> +                            ctrl->value = qc.default_value;
+>>> +            } else
+>>> +                    ret = uvc_ctrl_get(chain, ctrl);
+>>> +
+>>>              if (ret < 0) {
+>>>                      uvc_ctrl_rollback(handle);
+>>>                      ctrls->error_idx = i;
+>>> @@ -1010,6 +1018,10 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+>>>      unsigned int i;
+>>>      int ret;
+>>>
+>>> +    /* Default value cannot be changed */
+>>> +    if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+>>> +            return -EINVAL;
+>>> +
+>>>      ret = uvc_ctrl_begin(chain);
+>>>      if (ret < 0)
+>>>              return ret;
+>>>
+>>
+
+
+
+-- 
+Ricardo Ribalda
