@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33806 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbbJWJhz (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:34241 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018AbbJSWIL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2015 05:37:55 -0400
-Date: Fri, 23 Oct 2015 07:37:48 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Antonio Ospite <ao2@ao2.it>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	moinejf@free.fr, Anders Blomdell <anders.blomdell@control.lth.se>,
-	Thomas Champagne <lafeuil@gmail.com>, stable@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca: ov534/topro: prevent a division by 0
-Message-ID: <20151023073748.34cdf937@recife.lan>
-In-Reply-To: <20151023111356.f76b8ec65a91baa2df8a9d36@ao2.it>
-References: <1443817993-32406-1-git-send-email-ao2@ao2.it>
-	<560F8E59.4090104@redhat.com>
-	<20151023111356.f76b8ec65a91baa2df8a9d36@ao2.it>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 19 Oct 2015 18:08:11 -0400
+Received: by lbbwb3 with SMTP id wb3so97513630lbb.1
+        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2015 15:08:09 -0700 (PDT)
+From: Valentine Barshak <valentine.barshak@cogentembedded.com>
+To: linux-media@vger.kernel.org, valentine.barshak@cogentembedded.com
+Subject: [PATCH] [media] test
+Date: Tue, 20 Oct 2015 01:08:07 +0300
+Message-Id: <1445292487-22427-1-git-send-email-valentine.barshak@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 23 Oct 2015 11:13:56 +0200
-Antonio Ospite <ao2@ao2.it> escreveu:
+From: valentine.barshak@cogentembedded.com
 
-> On Sat, 3 Oct 2015 10:14:17 +0200
-> Hans de Goede <hdegoede@redhat.com> wrote:
-> 
-> > Hi,
-> >
-> 
-> Hi HdG,
-> 
-> > On 02-10-15 22:33, Antonio Ospite wrote:
-> [...]
-> > > Signed-off-by: Antonio Ospite <ao2@ao2.it>
-> > > Cc: stable@vger.kernel.org
-> > 
-> > Good catch:
-> > 
-> > Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> > 
-> > Mauro can you pick this one up directly, and include it in your
-> > next pull-req for 4.3 please ?
+test
+---
+ drivers/media/platform/soc_camera/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Hans, I'm removing the delegation at patchwork. Next time, please don't
-forget to remove the delegation there, as I generally don't bother
-about delegated patches, as my scripts just ignore them.
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index dddca60..6540847 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -43,12 +43,14 @@ config VIDEO_RCAR_VIN
+ config VIDEO_SH_MOBILE_CSI2
+ 	tristate "SuperH Mobile MIPI CSI-2 Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAVE_CLK
++	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH MIPI CSI-2 Interface
+ 
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
++	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+-- 
+1.9.3
 
-I'm afraid that it is too late for 4.3, though, as we'll all be
-next week at KS.
-
-Regards,
-Mauro
