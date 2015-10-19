@@ -1,29 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:55384 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752972AbbJAOdY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Oct 2015 10:33:24 -0400
-Received: from [192.168.11.10] ([80.219.76.43]) by mail.gmx.com (mrgmx003)
- with ESMTPSA (Nemesis) id 0Lmqxo-1aI7GY08tg-00h3YX for
- <linux-media@vger.kernel.org>; Thu, 01 Oct 2015 16:33:22 +0200
-From: =?UTF-8?Q?David_M=c3=bcller?= <dave.mueller@gmx.ch>
-Subject: iMX6 CSI capture support?
-To: Linux Media <linux-media@vger.kernel.org>
-Message-ID: <560D4440.6030904@gmx.ch>
-Date: Thu, 1 Oct 2015 16:33:36 +0200
+Received: from mail-am1hn0252.outbound.protection.outlook.com ([157.56.112.252]:15328
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753025AbbJSSUS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Oct 2015 14:20:18 -0400
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: GREETINGS
+To: Recipients@vger.kernel.org
+From: Liliane@vger.kernel.org, Bettencourt@vger.kernel.org
+Date: Mon, 19 Oct 2015 19:20:05 +0100
+Reply-To: <lil_bettencourt12@yahoo.fr>
+Message-ID: <DB5PR03MB11917E740C486AACC02623DDB83A0@DB5PR03MB1191.eurprd03.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+I, Liliane authenticate this email, you can read about me on:
+http://en.wikipedia.org/wiki/Liliane_Bettencourt  I write to you because I
+intend to give you a portion of my Net-worth which I have been banking. I
+want to cede it out as gift hoping it would be of help to you and others
+too. Respond for confirmation.
 
-Some time ago, there were some patches around implementing CSI capture
-support for the iMX6 IPU.
+My Private Email: lil_bettencourt_1@yahoo.fr
 
-It seems like these patches never made it into the vanilla kernel tree.
+---
+This email has been checked for viruses by Avast antivirus software.
+http://www.avast.com
 
-What is the status of iMX6 CSI capture support?
-
-Thank you
