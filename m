@@ -1,125 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44069 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107AbbJHCiq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2015 22:38:46 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DC1FC2A0097
-	for <linux-media@vger.kernel.org>; Thu,  8 Oct 2015 04:36:56 +0200 (CEST)
-Date: Thu, 08 Oct 2015 04:36:56 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151008023656.DC1FC2A0097@tschai.lan>
+Received: from mout.gmx.net ([212.227.17.22]:63159 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752576AbbJSBsU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Oct 2015 21:48:20 -0400
+Date: Mon, 19 Oct 2015 03:48:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/5] media: atmel-isi: correct yuv swap according to
+ different sensor outputs
+In-Reply-To: <561DF979.9050501@atmel.com>
+Message-ID: <Pine.LNX.4.64.1510190212340.26684@axis700.grange>
+References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
+ <1442898875-7147-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1510041751480.26834@axis700.grange> <561DF979.9050501@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Josh,
 
-Results of the daily build of media_tree:
+On Wed, 14 Oct 2015, Josh Wu wrote:
 
-date:		Thu Oct  8 04:00:21 CEST 2015
-git branch:	test
-git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+> Hi, Dear Guennadi
+> 
+> Thanks for the review.
+> 
+> On 10/5/2015 12:43 AM, Guennadi Liakhovetski wrote:
+> > Hi Josh,
+> > 
+> > On Tue, 22 Sep 2015, Josh Wu wrote:
+> > 
+> > > we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
+> > > sensor output and Atmel ISI output format.
+> > > 
+> > > Current there are two cases Atmel ISI supported:
+> > >    1. Atmel ISI outputs YUYV format.
+> > >       This case we need to setup YCC_SWAP according to sensor output
+> > >       format.
+> > >    2. Atmel ISI output a pass-through formats, which means no swap.
+> > >       Just setup YCC_SWAP as default with no swap.
+> > > 
+> > > Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> > > ---
+> > > 
+> > >   drivers/media/platform/soc_camera/atmel-isi.c | 43
+> > > ++++++++++++++++++++-------
+> > >   1 file changed, 33 insertions(+), 10 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+> > > b/drivers/media/platform/soc_camera/atmel-isi.c
+> > > index 45e304a..df64294 100644
+> > > --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> > > +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> > > @@ -103,13 +103,41 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+> > >   	return readl(isi->regs + reg);
+> > >   }
+> > >   +static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
+> > > +		const struct soc_camera_format_xlate *xlate)
+> > > +{
+> > This function will be called only for the four media codes from the
+> > switch-case statement below, namely for
+> > 
+> > MEDIA_BUS_FMT_VYUY8_2X8
+> > MEDIA_BUS_FMT_UYVY8_2X8
+> > MEDIA_BUS_FMT_YVYU8_2X8
+> > MEDIA_BUS_FMT_YUYV8_2X8
+> > 
+> > > +	/* By default, no swap for the codec path of Atmel ISI. So codec
+> > > +	* output is same as sensor's output.
+> > > +	* For instance, if sensor's output is YUYV, then codec outputs YUYV.
+> > > +	* And if sensor's output is UYVY, then codec outputs UYVY.
+> > > +	*/
+> > > +	u32 cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_DEFAULT;
+> > Then this ISI_CFG2_YCC_SWAP_DEFAULT will only hold for
+> > MEDIA_BUS_FMT_YUYV8_2X8? Why don't you just add one more case below? Don't
+> > think this initialisation is really justified.
+> This default initial value is for all host_fmt_fourcc case. Not just for
+> V4L2_PIX_FMT_YUYV this case.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Right, yes, missed this. How about this then:
 
-Detailed results are available here:
+	if (xlate->host_fmt->fourcc != V4L2_PIX_FMT_YUYV)
+		return ISI_CFG2_YCC_SWAP_DEFAULT;
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+	switch (xlate->code) {
+	case MEDIA_BUS_FMT_VYUY8_2X8:
+		return ISI_CFG2_YCC_SWAP_MODE_3;
+	case MEDIA_BUS_FMT_UYVY8_2X8:
+		return ISI_CFG2_YCC_SWAP_MODE_2;
+	case MEDIA_BUS_FMT_YVYU8_2X8:
+		return ISI_CFG2_YCC_SWAP_MODE_1;
+	}
 
-Full logs are available here:
+	return ISI_CFG2_YCC_SWAP_DEFAULT;
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Or even exactly as you have it in your patch only remove the cfg2_yuv_swap 
+variable and do "return" directly after each "case MEDIA_..." and one more 
+with SWAP_DEFAULT in the end.
 
-The Media Infrastructure API from this daily build is here:
+> > > +
+> > > +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
+> > > +		/* all convert to YUYV */
+> > > +		switch (xlate->code) {
+> > > +		case MEDIA_BUS_FMT_VYUY8_2X8:
+> > > +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_3;
+> > > +			break;
+> > > +		case MEDIA_BUS_FMT_UYVY8_2X8:
+> > > +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_2;
+> > > +			break;
+> > > +		case MEDIA_BUS_FMT_YVYU8_2X8:
+> > > +			cfg2_yuv_swap = ISI_CFG2_YCC_SWAP_MODE_1;
+> > > +			break;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	return cfg2_yuv_swap;
+> > > +}
+> > > +
+> > >   static void configure_geometry(struct atmel_isi *isi, u32 width,
+> > > -			u32 height, u32 code)
+> > > +		u32 height, const struct soc_camera_format_xlate *xlate)
+> > >   {
+> > >   	u32 cfg2;
+> > >     	/* According to sensor's output format to set cfg2 */
+> > > -	switch (code) {
+> > > +	switch (xlate->code) {
+> > >   	default:
+> > >   	/* Grey */
+> > >   	case MEDIA_BUS_FMT_Y8_1X8:
+> > > @@ -117,16 +145,11 @@ static void configure_geometry(struct atmel_isi
+> > > *isi, u32 width,
+> > >   		break;
+> > >   	/* YUV */
+> > >   	case MEDIA_BUS_FMT_VYUY8_2X8:
+> > > -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
+> > > -		break;
+> > >   	case MEDIA_BUS_FMT_UYVY8_2X8:
+> > > -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
+> > > -		break;
+> > >   	case MEDIA_BUS_FMT_YVYU8_2X8:
+> > > -		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
+> > > -		break;
+> > >   	case MEDIA_BUS_FMT_YUYV8_2X8:
+> > > -		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
+> > > +		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
+> > > +				setup_cfg2_yuv_swap(isi, xlate);
+> > >   		break;
+> > >   	/* RGB, TODO */
+> > >   	}
+> > I would move this switch-case completely inside setup_cfg2_yuv_swap().
+> > Just do
+> > 
+> > 	cfg2 = setup_cfg2_yuv_swap(isi, xlate);
+> > 
+> > and handle the
+> > 
+> >   	case MEDIA_BUS_FMT_Y8_1X8:
+> > 
+> > in the function too. These two switch-case statements really look
+> > redundant.
+> Technically, you can do that. But for my point of view, the
+> setup_cfg2_yuv_swap() only need to setup the yuv swap register field.
+> 
+> And other cfg2 field need to be configured as well, especially in the case
+> sensor output a RGB data. That should be implement soon.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Understand. I don't like redundant code and this certainly looks redundant 
+to me. I'd be glad if you could remove this redundancy, but if you feel 
+strongly about it, feel free to keep as is.
+
+Thanks
+Guennadi
+
+> > > @@ -407,7 +430,7 @@ static int start_streaming(struct vb2_queue *vq,
+> > > unsigned int count)
+> > >   	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+> > >     	configure_geometry(isi, icd->user_width, icd->user_height,
+> > > -				icd->current_fmt->code);
+> > > +				icd->current_fmt);
+> > >     	spin_lock_irq(&isi->lock);
+> > >   	/* Clear any pending interrupt */
+> > > -- 
+> > > 1.9.1
+> > > 
+> > Thanks
+> > Guennadi
+> 
+> Best Regards,
+> Josh Wu
+> 
