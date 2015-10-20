@@ -1,83 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.wa.amnet.net.au ([203.161.124.51]:33180 "EHLO
-	smtp2.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115AbbJEOfX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 10:35:23 -0400
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-To: Steven Toth <stoth@kernellabs.com>
-References: <5610B12B.8090201@tresar-electronics.com.au>
- <CALzAhNWuOhQNQFu-baXy6QzhV3AxCknh7XeKOBjp943nz66Qyw@mail.gmail.com>
- <5611D97B.9020101@tresar-electronics.com.au>
- <CALzAhNVVipTAE3T9Hpmi8_CT=ZS5Wd04W5LfMaf-X5QP2d0sQw@mail.gmail.com>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-From: Richard Tresidder <rtresidd@tresar-electronics.com.au>
-Message-ID: <56128AA6.8010106@tresar-electronics.com.au>
-Date: Mon, 5 Oct 2015 22:35:18 +0800
-MIME-Version: 1.0
-In-Reply-To: <CALzAhNVVipTAE3T9Hpmi8_CT=ZS5Wd04W5LfMaf-X5QP2d0sQw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:59498 "EHLO
+	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752150AbbJTXZV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2015 19:25:21 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
+	chehabrafael@gmail.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen v2 0/3] Add mixer and control interface media entities
+Date: Tue, 20 Oct 2015 17:25:13 -0600
+Message-Id: <cover.1445380851.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch v2 series adds the following:
 
+A fix to media_stream_delete() to remove intf devnode.
 
-On 05/10/15 22:22, Steven Toth wrote:
-> On Sun, Oct 4, 2015 at 9:59 PM, Richard Tresidder
-> <rtresidd@tresar-electronics.com.au> wrote:
->> Hi Steven
->>     Nope standard x86_64
->> kernel 3.10.0-229.14.1.el7.x86_64
-> Hmm.
->
->> Was rather surprised as all my quick reading indicates that the kernel
->> should quite happily do this...
->> Though looks like its the largest chunk you can request? I'm not well enough
->> up to speed with the nitty gritty..
-> Yeah, 4MB is the upper limit IIRC.
->
->> There is mention of something similar against this card on www linuxtv org
->> wiki index.php  Hauppauge_WinTV-HVR-2200
->>
->> ********
->> Note: Some kernels will not have enough free memory available for the
->> driver. The dmesg error will start with a message like this:
->> ] modprobe: page allocation failure: order:10, mode:0x2000d0
->> followed by a stack trace and other debugging information. While the driver
->> will load, no devices will be registered.
->> The simple workaround is to allocate more memory for the kernel:
->> sudo /bin/echo 16384 > /proc/sys/vm/min_free_kbytes
->> sudo rmmod saa7164
->> sudo modprobe saa7164
->> ********
-> Hmm. I wasn't aware people in the past has seen the issue either. I
-> assume you've tried the above and its not helping, or in fact growing
-> that number for experimentation purposes.
->
-> Do you have a large number of other devices / drivers loaded? I
-> suspect another driver is burning through kernel memory before the
-> saa7164 has a chance to be initialized.
-Nope nothing I can see Its actually the only addon card I have in this 
-system..
-I'd be buggered If 4GB of RAM is fragmented enough early on in the boot 
-stage...?
-I've hunted but can't find a nice way to determine what contiguous 
-blocks are available..
-Noted there was a simple module that could be compiled in to test such 
-things, I'll play with that and see what it turns up..
+Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
+each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
+entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
+entity corresponds to the control device for the card.
 
-> I took a quick look at saa7164-fw.c this morning, I see no reason why
-> the allocation is required at all. With a small patch the function
-> could be made to memcpy from 'src' directly, dropping the need to
-> allocate srcbuf what-so-ever. This would remove the need for the 4MB
-> temporary allocation, and might get you past this issue, likely on to
-> the next (user buffer allocations are also large - as I recall). Note
-> that the 4MB allocation is temporary, so its not a long term saving,
-> but it might get you past the hump.
-That was my thoughts exactly.. but I took a minimal fiddling approach to 
-begin with..
-I wasn't sure if there was some requirement for the memcpy_toio 
-requiring a specially allocated source..? can't see why..
-Was going to dig into that next as a side job..
+Change au0828_create_media_graph() to create pad link
+between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
+AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
+decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
+mixer's source pad
 
+Changes since v1:
+1. Included the fix to media_stream_delete() which was by mistake
+   not included in the patch v1.
+2. Fixed mixer to decoder link and mider to capture node links
+   based on Mauro Chehapb's review comments on the media graph.
+
+This patch series is dependent on an earlier patch series:
+
+Update ALSA, and au0828 drivers to use Managed Media Controller API:
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg92752.html
+
+Please find the media graphs for ALSA work with mixer and control
+interface nodes:
+
+https://drive.google.com/folderview?id=0B0NIL0BQg-AlLWE3SzAxazBJWm8&usp=sharing
+
+Shuah Khan (3):
+  sound/usb: Fix media_stream_delete() to remove intf devnode
+  sound/usb: Create media mixer function and control interface entities
+  media: au0828 create link between ALSA Mixer and decoder
+
+ drivers/media/usb/au0828/au0828-core.c | 17 +++++--
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ sound/usb/card.c                       |  5 ++
+ sound/usb/media.c                      | 90 ++++++++++++++++++++++++++++++++++
+ sound/usb/media.h                      | 20 ++++++++
+ sound/usb/mixer.h                      |  1 +
+ sound/usb/usbaudio.h                   |  1 +
+ 7 files changed, 132 insertions(+), 3 deletions(-)
+
+-- 
+2.1.4
 
