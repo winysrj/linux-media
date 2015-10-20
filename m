@@ -1,87 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.wa.amnet.net.au ([203.161.124.52]:42193 "EHLO
-	smtp3.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752269AbbJEQDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 12:03:49 -0400
-From: Richard Tresidder <rtresidd@tresar-electronics.com.au>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-To: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
-	linux-media@vger.kernel.org
-References: <5610B12B.8090201@tresar-electronics.com.au>
- <561270E1.1040707@gmail.com>
-Message-ID: <56129F60.4020706@tresar-electronics.com.au>
-Date: Tue, 6 Oct 2015 00:03:44 +0800
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47691 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752159AbbJTT5m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2015 15:57:42 -0400
+Message-ID: <56269C34.3000306@xs4all.nl>
+Date: Tue, 20 Oct 2015 21:55:32 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <561270E1.1040707@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Benoit Parrot <bparrot@ti.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [Patch v2 1/2] media: v4l: ti-vpe: Add CAL v4l2 camera capture
+ driver
+References: <1442865848-19280-1-git-send-email-bparrot@ti.com> <1442865848-19280-2-git-send-email-bparrot@ti.com> <562112B7.7090103@xs4all.nl>
+In-Reply-To: <562112B7.7090103@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sigh again
+On 10/16/2015 05:07 PM, Hans Verkuil wrote:
+> On 09/21/2015 10:04 PM, Benoit Parrot wrote:
+>> The Camera Adaptation Layer (CAL) is a block which consists of a dual
+>> port CSI2/MIPI camera capture engine.
+>> Port #0 can handle CSI2 camera connected to up to 4 data lanes.
+>> Port #1 can handle CSI2 camera connected to up to 2 data lanes.
+>> The driver implements the required API/ioctls to be V4L2 compliant.
+>> Driver supports the following:
+>>     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
+>>     - Asynchronous sensor sub device registration
+>>     - DT support
+>>
+>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+>> ---
+>>  drivers/media/platform/Kconfig           |   12 +
+>>  drivers/media/platform/Makefile          |    2 +
+>>  drivers/media/platform/ti-vpe/Makefile   |    4 +
+>>  drivers/media/platform/ti-vpe/cal.c      | 2161 ++++++++++++++++++++++++++++++
+>>  drivers/media/platform/ti-vpe/cal_regs.h |  779 +++++++++++
+>>  5 files changed, 2958 insertions(+)
+>>  create mode 100644 drivers/media/platform/ti-vpe/cal.c
+>>  create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
+>>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index dc75694ac12d..c7f5704c56a2 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -120,6 +120,18 @@ source "drivers/media/platform/s5p-tv/Kconfig"
+>>  source "drivers/media/platform/am437x/Kconfig"
+>>  source "drivers/media/platform/xilinx/Kconfig"
+>>  
+>> +config VIDEO_TI_CAL
+>> +	tristate "TI CAL (Camera Adaptation Layer) driver"
+>> +	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_DRA7XX
+>> +	depends on VIDEO_V4L2_SUBDEV_API
+>> +	depends on VIDEOBUF2_DMA_CONTIG
+> 
+> This should be:
+> 
+>        depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>        depends on SOC_DRA7XX || COMPILE_TEST
+>        select VIDEOBUF2_DMA_CONTIG
+> 
+>> +	default n
+>> +	---help---
+>> +	  Support for the TI CAL (Camera Adaptation Layer) block
+>> +	  found on DRA72X SoC.
+>> +	  In TI Technical Reference Manual this module is referred as
+>> +	  Camera Interface Subsystem (CAMSS).
+>> +
+>>  endif # V4L_PLATFORM_DRIVERS
+>>  
+>>  menuconfig V4L_MEM2MEM_DRIVERS
+> 
+> By compiling with COMPILE_TEST I found a number of compile warnings and it also no
+> longer compiled due to vb2 changes. Both are fixed in the patch below.
+> 
+> SoB for the patch: Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> That said, I'll postpone merging this until the remainder of the vb2 split patches
+> have been merged. When that's done this driver will have to be changed some more.
 
-Did a module only build for the i2c-mux and got it into the currently 
-running kernel with a force to bypass the no symbol version for 
-module_layout error.. figured it was safe enough given it was the 
-identical kernel config etc from the centos vault...
+OK, the vb2 split patches were just merged. Can you rebase and repost?
 
-Anyway still failed.. though the module seemed to install and is showing 
-with lsmod no dmesg barfs..
-I'll try a full kernel build tomorrow..
+Thanks,
 
-Regards
-   Richard Tresidder
-
-
-
-On 05/10/15 20:45, Tycho Lürsen wrote:
-> Hi, not sure if this is related.
-> I had to recompile the centos7 stock kernel with:
-> CONFIG_I2C_MUX=m
->
-> It was not enabled in the kernel config.
->
-> Op 04-10-15 om 06:55 schreef Richard Tresidder:
->> Sorry If I've posted this to the wrong section my first attempt..
->>
->> Hi
->>    I'm attempting to get an HVR2205 up and going.
->> CORE saa7164[1]: subsystem: 0070:f120, board: Hauppauge WinTV-HVR2205 
->> [card=13,autodetected]
->> Distribution is CentOS7 so I've pulled the v4l from media_build.git
->> Had to change a couple of things..  and another macro issue regarding 
->> clamp() ..
->> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c  was 
->> failing..
->> kept getting:  kernel: modprobe: page allocation failure: order:10, 
->> mode:0x10c0d0
->> Have plenty of RAM free so surprised about that one.. tried some of 
->> the tricks re increasing the vm.min_free_kbytes etc..
->>
->> Any way I modified the routine to only allocate a single chunk buffer 
->> based on dstsize and tweaked the chunk handling code..
->> seemed to fix that one.. fw downloaded and seemed to boot ok..
->>
->> Next I'm running into a problem with the saa7164_dvb_register() stage...
->>
->> saa7164[1]: Hauppauge eeprom: model=151609
->> saa7164_dvb_register() Frontend/I2C initialization failed
->> saa7164_initdev() Failed to register dvb adapters on porta
->>
->> I added some extra debug and identified that client_demod->dev.driver 
->> is null..
->>
->> However I'm now stuck as to what to tackle next..
->>
->> I can provide more info, just didn't want to spam the list for my 
->> first email..
->>
->> Regards
->>    Richard Tresidder
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-
+	Hans
