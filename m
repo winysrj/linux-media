@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60451 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38547 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbbJOXfD (ORCPT
+	with ESMTP id S1752282AbbJTMW2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2015 19:35:03 -0400
+	Tue, 20 Oct 2015 08:22:28 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 1/1] List supported formats with -f help
-Date: Fri, 16 Oct 2015 02:35:20 +0300
-Message-ID: <3000041.A8eUVloPiB@avalon>
-In-Reply-To: <1441887560-21768-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441887560-21768-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 1/1] staging: omap4iss: Compiling V4L2 framework and I2C as modules is fine
+Date: Tue, 20 Oct 2015 15:22:26 +0300
+Message-ID: <5654919.mNVcuqlhxs@avalon>
+In-Reply-To: <1444951273-22350-1-git-send-email-sakari.ailus@iki.fi>
+References: <1444951273-22350-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -20,62 +20,33 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Sakari,
 
-On Thursday 10 September 2015 15:19:20 Sakari Ailus wrote:
-> Passing format "help" to the -f option will list the supported formats and
-> exit.
-> 
+Thank you for the patch.
+
+On Friday 16 October 2015 02:21:13 Sakari Ailus wrote:
+> Don't require V4L2 framework and I2C being linked to the kernel directly.
+
+That's a leftover of when the driver had to be compiled in the kernel.
+
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Applied, thank you.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 > ---
->  yavta.c | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
+>  drivers/staging/media/omap4iss/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/yavta.c b/yavta.c
-> index 7d8ac8e..b627725 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -215,6 +215,20 @@ static struct v4l2_format_info {
->  	{ "MPEG", V4L2_PIX_FMT_MPEG, 1 },
->  };
-> 
-> +static void list_formats(void)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(pixel_formats); i++)
-> +		printf("%s (\"%c%c%c%c\", %u planes)\n",
-> +		       pixel_formats[i].name,
-> +		       pixel_formats[i].fourcc & 0xff,
-> +		       (pixel_formats[i].fourcc >> 8) & 0xff,
-> +		       (pixel_formats[i].fourcc >> 16) & 0xff,
-> +		       (pixel_formats[i].fourcc >> 24) & 0xff,
-> +		       pixel_formats[i].n_planes);
-> +}
-> +
->  static const struct v4l2_format_info *v4l2_format_by_fourcc(unsigned int
-> fourcc) {
->  	unsigned int i;
-> @@ -1734,6 +1748,7 @@ static void usage(const char *argv0)
->  	printf("-C, --check-overrun		Verify dequeued frames for buffer
-> overrun\n"); printf("-d, --delay			Delay (in ms) before requeuing
-> buffers\n"); printf("-f, --format format		Set the video format\n");
-> +	printf("				use -f help to list the supported formats\n");
->  	printf("-F, --file[=name]		Read/write frames from/to disk\n");
->  	printf("\tFor video capture devices, the first '#' character in the file
-> name is\n"); printf("\texpanded to the frame sequence number. The default
-> file name is\n"); @@ -1899,6 +1914,10 @@ int main(int argc, char *argv[])
->  			delay = atoi(optarg);
->  			break;
->  		case 'f':
-> +			if (!strcmp("help", optarg)) {
-> +				list_formats();
-> +				return 0;
-> +			}
->  			do_set_format = 1;
->  			info = v4l2_format_by_name(optarg);
->  			if (info == NULL) {
+> diff --git a/drivers/staging/media/omap4iss/Kconfig
+> b/drivers/staging/media/omap4iss/Kconfig index 8d4e3bd..4618346 100644
+> --- a/drivers/staging/media/omap4iss/Kconfig
+> +++ b/drivers/staging/media/omap4iss/Kconfig
+> @@ -1,6 +1,6 @@
+>  config VIDEO_OMAP4
+>  	tristate "OMAP 4 Camera support"
+> -	depends on VIDEO_V4L2=y && VIDEO_V4L2_SUBDEV_API && I2C=y && ARCH_OMAP4
+> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && I2C && ARCH_OMAP4
+>  	depends on HAS_DMA
+>  	select MFD_SYSCON
+>  	select VIDEOBUF2_DMA_CONTIG
 
 -- 
 Regards,
