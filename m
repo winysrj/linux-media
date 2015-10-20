@@ -1,60 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51350 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753242AbbJCPYQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:24:16 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Don Fry <pcnet32@frontier.com>,
-	Oliver Neukum <oneukum@suse.com>
-Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 14/15] pci: remove pci_dma_supported
-Date: Sat,  3 Oct 2015 17:19:38 +0200
-Message-Id: <1443885579-7094-15-git-send-email-hch@lst.de>
-In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de>
+Received: from mx1.redhat.com ([209.132.183.28]:46286 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753153AbbJTIU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Oct 2015 04:20:29 -0400
+Subject: Re: [PATCH] gspca: correctly checked failed allocation
+To: Insu Yun <wuninsu@gmail.com>, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1445272994-25312-1-git-send-email-wuninsu@gmail.com>
+Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu,
+	changwoo@gatech.edu
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <5625F947.7000209@redhat.com>
+Date: Tue, 20 Oct 2015 10:20:23 +0200
+MIME-Version: 1.0
+In-Reply-To: <1445272994-25312-1-git-send-email-wuninsu@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/parisc/ccio-dma.c            | 2 --
- include/asm-generic/pci-dma-compat.h | 6 ------
- 2 files changed, 8 deletions(-)
+Hi,
 
-diff --git a/drivers/parisc/ccio-dma.c b/drivers/parisc/ccio-dma.c
-index 957b421..8e11fb2 100644
---- a/drivers/parisc/ccio-dma.c
-+++ b/drivers/parisc/ccio-dma.c
-@@ -704,8 +704,6 @@ ccio_mark_invalid(struct ioc *ioc, dma_addr_t iova, size_t byte_cnt)
-  * ccio_dma_supported - Verify the IOMMU supports the DMA address range.
-  * @dev: The PCI device.
-  * @mask: A bit mask describing the DMA address range of the device.
-- *
-- * This function implements the pci_dma_supported function.
-  */
- static int 
- ccio_dma_supported(struct device *dev, u64 mask)
-diff --git a/include/asm-generic/pci-dma-compat.h b/include/asm-generic/pci-dma-compat.h
-index c110843..eafce7b 100644
---- a/include/asm-generic/pci-dma-compat.h
-+++ b/include/asm-generic/pci-dma-compat.h
-@@ -6,12 +6,6 @@
- 
- #include <linux/dma-mapping.h>
- 
--static inline int
--pci_dma_supported(struct pci_dev *hwdev, u64 mask)
--{
--	return dma_supported(hwdev == NULL ? NULL : &hwdev->dev, mask);
--}
--
- static inline void *
- pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
- 		     dma_addr_t *dma_handle)
--- 
-1.9.1
+On 19-10-15 18:43, Insu Yun wrote:
+> create_singlethread_workqueue can be failed in memory pressue.
+> So, check return value and return -ENOMEM
+>
+> Signed-off-by: Insu Yun <wuninsu@gmail.com>
+> ---
+>   drivers/media/usb/gspca/sq905.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/usb/gspca/sq905.c b/drivers/media/usb/gspca/sq905.c
+> index a7ae0ec..b1c25d9a 100644
+> --- a/drivers/media/usb/gspca/sq905.c
+> +++ b/drivers/media/usb/gspca/sq905.c
+> @@ -392,6 +392,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>   	}
+>   	/* Start the workqueue function to do the streaming */
+>   	dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
+> +	if (!dev->work_thread)
+> +		return -ENOMEM;
+>   	queue_work(dev->work_thread, &dev->work_struct);
+>
+>   	return 0;
 
+If the thread creation fails we should not send the start command,
+so the create_singlethread_workqueue call should be moved
+up in the function, while keeping the queue_work at the end.
+
+And if the sq905_command fails then the workqueue should
+be destroyed and dev->work_thread should be set to NULL
+before returning the sq905_command failure to the caller.
+
+Regards,
+
+Hans
