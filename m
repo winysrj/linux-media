@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:63278 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668AbbJPUcI (ORCPT
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:35003 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753500AbbJUT2g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 16:32:08 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Sergey Kozlov <serjk@netup.ru>, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] lnbh25: fix lnbh25_attach inline wrapper
-Date: Fri, 16 Oct 2015 22:32:02 +0200
-Message-ID: <10110482.QkOJ1nlAsE@wuerfel>
+	Wed, 21 Oct 2015 15:28:36 -0400
+Received: by lffy185 with SMTP id y185so26031488lff.2
+        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2015 12:28:34 -0700 (PDT)
+Received: from [192.168.100.28] (a88-115-254-86.elisa-laajakaista.fi. [88.115.254.86])
+        by smtp.gmail.com with ESMTPSA id a188sm1732222lfa.9.2015.10.21.12.28.33
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 21 Oct 2015 12:28:33 -0700 (PDT)
+Subject: Re: Trying to get Terratec Cinergy T XS to work
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <56267512.6080207@users.sourceforge.net>
+From: Alberto Mardegan <mardy@users.sourceforge.net>
+Message-ID: <5627E760.6030806@users.sourceforge.net>
+Date: Wed, 21 Oct 2015 22:28:32 +0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56267512.6080207@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'static inline' version of lnbh25_attach() has an incorrect
-prototype which results in a build error when
-CONFIG_DVB_LNBH25 is disabled:
+Thanks to another developer, I've made some progress and loaded the
+driver with the right tuner (mt2060). The /dev/dvb/* nodes are created.
 
-In file included from /git/arm-soc/drivers/media/pci/netup_unidvb/netup_unidvb_core.c:36:0:
-/git/arm-soc/drivers/media/dvb-frontends/lnbh25.h:46:86: error: unknown type name 'dvb_frontend'
+Now the problem is that when I run a scan, the mt2060_set_params()
+function is not called at all [1].
+I've set the "debug" and "frontend_debug" flags to 1, but I don't see
+any kernel messages when I'm scanning. (I'm using the "scan" command)
 
-This changes the code to have the correct prototype.
+Can please someone guide me a bit to debug this?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: e025273b86fb ("[media] lnbh25: LNBH25 SEC controller driver")
----
-Found on ARM randconfig builds
+Ciao,
+  Alberto
 
 
-diff --git a/drivers/media/dvb-frontends/lnbh25.h b/drivers/media/dvb-frontends/lnbh25.h
-index 69f30e21f6b3..1f329ef05acc 100644
---- a/drivers/media/dvb-frontends/lnbh25.h
-+++ b/drivers/media/dvb-frontends/lnbh25.h
-@@ -43,7 +43,7 @@ struct dvb_frontend *lnbh25_attach(
- 	struct lnbh25_config *cfg,
- 	struct i2c_adapter *i2c);
- #else
--static inline dvb_frontend *lnbh25_attach(
-+static inline struct dvb_frontend *lnbh25_attach(
- 	struct dvb_frontend *fe,
- 	struct lnbh25_config *cfg,
- 	struct i2c_adapter *i2c)
+[1]: I can tell that because I'se set the "debug=1" option on the mt2060
+module, and I can indeed see some other debugging stuff when that module
+is initialized, but the debug lines from the set_params() method are not
+printed.
 
+
+-- 
+http://blog.mardy.it <- geek in un lingua international!
