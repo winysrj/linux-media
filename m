@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:19933 "EHLO
+Received: from userp1040.oracle.com ([156.151.31.81]:17929 "EHLO
 	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756178AbbJVIql (ORCPT
+	with ESMTP id S1755578AbbJUU40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2015 04:46:41 -0400
-Date: Thu, 22 Oct 2015 11:46:34 +0300
+	Wed, 21 Oct 2015 16:56:26 -0400
+Date: Wed, 21 Oct 2015 23:56:05 +0300
 From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hans.verkuil@cisco.com
+To: crope@iki.fi
 Cc: linux-media@vger.kernel.org
-Subject: re: [media] go7007: don't continue if firmware can't be loaded
-Message-ID: <20151022084634.GA8196@mwanda>
+Subject: re: [media] hackrf: add support for transmitter
+Message-ID: <20151021205605.GE9839@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans Verkuil,
+Hello Antti Palosaari,
 
-The patch 59aea928d57f: "[media] go7007: don't continue if firmware
-can't be loaded" from Mar 17, 2013, leads to the following static
-checker warning:
+The patch 8bc4a9ed8504: "[media] hackrf: add support for transmitter"
+from Oct 10, 2015, leads to the following static checker warning:
 
-	drivers/media/usb/go7007/go7007-usb.c:1292 go7007_usb_probe()
-	warn: we tested 'board->flags & (1 << 0)' before and it was 'true'
+	drivers/media/usb/hackrf/hackrf.c:1533 hackrf_probe()
+	error: we previously assumed 'dev' could be null (see line 1366)
 
-drivers/media/usb/go7007/go7007-usb.c
-  1289  
-  1290          /* Allocate the URBs and buffers for receiving the audio stream */
-  1291          if ((board->flags & GO7007_USB_EZUSB) &&
-  1292              (board->flags & GO7007_BOARD_HAS_AUDIO)) {
+drivers/media/usb/hackrf/hackrf.c
+  1520          dev_notice(dev->dev, "SDR API is still slightly experimental and functionality changes may follow\n");
+  1521          return 0;
+  1522  err_video_unregister_device_rx:
+  1523          video_unregister_device(&dev->rx_vdev);
+  1524  err_v4l2_device_unregister:
+  1525          v4l2_device_unregister(&dev->v4l2_dev);
+  1526  err_v4l2_ctrl_handler_free_tx:
+  1527          v4l2_ctrl_handler_free(&dev->tx_ctrl_handler);
+  1528  err_v4l2_ctrl_handler_free_rx:
+  1529          v4l2_ctrl_handler_free(&dev->rx_ctrl_handler);
+  1530  err_kfree:
+  1531          kfree(dev);
+  1532  err:
+  1533          dev_dbg(dev->dev, "failed=%d\n", ret);
+                        ^^^
+"dev" is either freed or NULL.  Also this change is basically unrelated
+to adding transmitter support...  :/
 
-We used to test "go->audio_enabled" enabled here.  The GO7007_USB_EZUSB
-and GO7007_BOARD_HAS_AUDIO are different names for BIT(0).
-
-  1293                  for (i = 0; i < 8; ++i) {
-  1294                          usb->audio_urbs[i] = usb_alloc_urb(0, GFP_KERNEL);
-  1295                          if (usb->audio_urbs[i] == NULL)
-  1296                                  goto allocfail;
-  1297                          usb->audio_urbs[i]->transfer_buffer = kmalloc(4096,
-  1298                                                                  GFP_KERNEL);
-  1299                          if (usb->audio_urbs[i]->transfer_buffer == NULL)
-  1300                                  goto allocfail;
-  1301                          usb_fill_bulk_urb(usb->audio_urbs[i], usb->usbdev,
-  1302                                  usb_rcvbulkpipe(usb->usbdev, 8),
-  1303                                  usb->audio_urbs[i]->transfer_buffer, 4096,
-  1304                                  go7007_usb_read_audio_pipe_complete, go);
-  1305                  }
-  1306          }
-
+  1534          return ret;
+  1535  }
 
 regards,
 dan carpenter
