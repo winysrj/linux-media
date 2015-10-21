@@ -1,83 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f172.google.com ([209.85.223.172]:33322 "EHLO
-	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947AbbJ0NKW (ORCPT
+Received: from mail-lb0-f170.google.com ([209.85.217.170]:35063 "EHLO
+	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbbJUP6C convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 09:10:22 -0400
-Received: by iodd200 with SMTP id d200so57213287iod.0
-        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2015 06:10:22 -0700 (PDT)
+	Wed, 21 Oct 2015 11:58:02 -0400
+Received: by lbbes7 with SMTP id es7so41870150lbb.2
+        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2015 08:58:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-References: <1402592800-2925-1-git-send-email-p.zabel@pengutronix.de>
-Date: Tue, 27 Oct 2015 11:10:22 -0200
-Message-ID: <CAOMZO5Beow0HGHDVUTL=nwMGGOu6nKViYnRN7E=EAj2KsYvzLg@mail.gmail.com>
-Subject: Re: [RFC PATCH 00/26] i.MX5/6 IPUv3 CSI/IC
-From: Fabio Estevam <festevam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
+In-Reply-To: <alpine.LRH.2.20.1510220132490.6421@namei.org>
+References: <1445419340-11471-1-git-send-email-benjamin.gaignard@linaro.org>
+	<alpine.LRH.2.20.1510220132490.6421@namei.org>
+Date: Wed, 21 Oct 2015 17:58:00 +0200
+Message-ID: <CA+M3ks5ffmT6DOM3VK2b51xJzb2LLUpf34n=uisggQpCoeUMkQ@mail.gmail.com>
+Subject: Re: [PATCH v5 0/3] RFC: Secure Memory Allocation Framework
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: James Morris <jmorris@namei.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Rob Clark <robdclark@gmail.com>,
+	Thierry Reding <treding@nvidia.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Cooksey <tom.cooksey@arm.com>,
+	Daniel Stone <daniel.stone@collabora.com>,
+	linux-security-module@vger.kernel.org,
+	Xiaoquan Li <xiaoquan.li@vivantecorp.com>,
+	Laura Abbott <labbott@redhat.com>,
+	Tom Gall <tom.gall@linaro.org>,
+	Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-
-
-On Thu, Jun 12, 2014 at 2:06 PM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Hi,
+2015-10-21 16:34 GMT+02:00 James Morris <jmorris@namei.org>:
+> On Wed, 21 Oct 2015, Benjamin Gaignard wrote:
 >
-> attached is a series of our work in progress i.MX6 capture drivers.
-> I'm posting this now in reaction to Steve's i.MX6 Video capture series,
-> as a reference for further discussion.
-> Of the Image Converter (IC) we only use the postprocessor task, with
-> tiling for larger frames, to implement v4l2 mem2mem scaler/colorspace
-> converter and deinterlacer devices.
-> The capture code capture code already uses the media controller framework
-> and creates a subdevice representing the CSI, but the path to memory is
-> fixed to IDMAC via SMFC, which is the only possible path for grayscale
-> and  and anything with multiple output ports connected
-> to the CSIs (such as the CSI2IPU gasket on i.MX6) doesn't work yet. Also,
-> I think the CSI subdevice driver should be completely separate from the
-> capture driver.
+>>
+>> The outcome of the previous RFC about how do secure data path was the need
+>> of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
+>>
 >
-> regards
-> Philipp
+> Have you addressed all the questions raised by Alan here:
 >
-> Philipp Zabel (16):
->   gpu: ipu-v3: Add function to setup CP channel as interlaced
->   gpu: ipu-v3: Add ipu_cpmem_get_buffer function
->   gpu: ipu-v3: Add support for partial interleaved YCbCr 4:2:0 (NV12)
->     format
->   gpu: ipu-v3: Add support for planar YUV 4:2:2 (YUV422P) format
->   imx-drm: currently only IPUv3 is supported, make it mandatory
->   [media] Add i.MX SoC wide media device driver
->   [media] imx-ipu: Add i.MX IPUv3 capture driver
->   [media] ipuv3-csi: Skip 3 lines for NTSC BT.656
->   [media] imx-ipuv3-csi: Add support for temporarily stopping the stream
->     on sync loss
->   [media] imx-ipuv3-csi: Export sync lock event to userspace
->   [media] v4l2-subdev.h: Add lock status notification
->   [media] v4l2-subdev: Export v4l2_subdev_fops
->   mfd: syscon: add child device support
->   [media] imx: Add video switch
->   ARM: dts: Add IPU aliases on i.MX6
->   ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their
->     connections
+> https://lkml.org/lkml/2015/5/8/629
+
+SMAF create /dev/smaf where all allocations could be done and is the
+owner of the dmabuf.
+Secure module is called to check permissions before that the CPU could
+access to the memory.
+
+I hope this cover what Alan expected but I can't speak form him.
+
 >
-> Sascha Hauer (10):
->   gpu: ipu-v3: Add IC support
->   gpu: ipu-v3: Register IC with IPUv3
->   [media] imx-ipu: add ipu media common code
->   [media] imx-ipu: Add i.MX IPUv3 scaler driver
->   [media] imx-ipu: Add i.MX IPUv3 deinterlacer driver
->   [media] v4l2: subdev: Add v4l2_device_register_subdev_node function
->   [media] v4l2: Fix V4L2_CID_PIXEL_RATE
->   [media] v4l2 async: remove from notifier list
->   [media] ipuv3-csi: Pass ipucsi to v4l2_media_subdev_s_power
->   [media] ipuv3-csi: make subdev controls available on video device
+> Also, is there any application of this beyond DRM?
+>
 
-Do you have plans to resubmit this series?
+If you don't use the secure part you can consider that SMAF is a
+central allocator with helpers to select
+the best allocator for your hardware devices.
+While SMAF doesn't rely on DRM concepts (crypto, CENC, keys etc...) we
+can use it outside this context but obviously it that been first
+designed for DRM uses cases.
 
-Regards,
+>
+> - James
+> --
+> James Morris
+> <jmorris@namei.org>
+>
 
-Fabio Estevam
+
+
+-- 
+Benjamin Gaignard
+
+Graphic Working Group
+
+Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
