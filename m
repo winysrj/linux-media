@@ -1,69 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52851 "EHLO
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50703 "EHLO
 	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752611AbbJLQWr (ORCPT
+	by vger.kernel.org with ESMTP id S1756960AbbJVI6B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 12:22:47 -0400
-Message-ID: <561BDDE1.1040900@xs4all.nl>
-Date: Mon, 12 Oct 2015 18:20:49 +0200
+	Thu, 22 Oct 2015 04:58:01 -0400
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] go7007: fix broken test
+Message-ID: <5628A4B5.1050102@xs4all.nl>
+Date: Thu, 22 Oct 2015 10:56:21 +0200
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Current status of MC patches?
-References: <561BB0D1.1030102@xs4all.nl> <20151012121153.75691744@recife.lan> <20151012155638.GM26916@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20151012155638.GM26916@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/2015 05:56 PM, Sakari Ailus wrote:
-> Hi Mauro and Hans,
-> 
-> On Mon, Oct 12, 2015 at 12:11:53PM -0300, Mauro Carvalho Chehab wrote:
->> Em Mon, 12 Oct 2015 15:08:33 +0200
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>
->>> Hi Mauro,
->>>
->>> Can you give an update of the current status of the MC work? To be honest,
->>> I've lost track.
->>>
->>> In particular, is there anything I and/or others need to review before you
->>> can start merging patches?
->>
->> Basically, we're still waiting for Laurent and Sakari's review.
-> 
-> Could you resend what you have to the list, please? Currently it's a number
-> of sets some of which contain updates only on particular patches. It'd be
-> easier to review that way.
+The wrong flags field was tested for the GO7007_BOARD_HAS_AUDIO flag: that
+flag is in board->main_info.flags, not in board->flags.
 
-I would actually appreciate that as well. That way I can see which patches I
-have and which I haven't reviewed.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-If you don't want to spam the ml, then you can also send it directly, but I
-think it is OK to include the ml. Up to you, though.
+diff --git a/drivers/media/usb/go7007/go7007-usb.c b/drivers/media/usb/go7007/go7007-usb.c
+index 4857c46..aa9eca4 100644
+--- a/drivers/media/usb/go7007/go7007-usb.c
++++ b/drivers/media/usb/go7007/go7007-usb.c
+@@ -1289,7 +1289,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
 
-Regards,
-
-	Hans
-
-> 
-> I've been working on top of the set to add support for unlimited number of
-> entities, so unfortunately I've had less time for reviews. These patches are
-> still required before the rest can be applied so I've priorised them.
-> 
->>> This is also relevant for the workshop agenda. I plan to put any MC topics
->>> at the end of the workshop. As you mentioned in a mail exchange with Shuah,
->>> as long as these patches aren't merged there is not all that much point in
->>> discussing future work.
->>
->> Yep. There's no sense to even discuss MC at the workshop while the
->> current work is not reviewed, as the other MC topic for discussion
->> is related to dynamic support, to be added after the MC next gen
->> support for G_TOPOLOGY.
-> 
-
+ 	/* Allocate the URBs and buffers for receiving the audio stream */
+ 	if ((board->flags & GO7007_USB_EZUSB) &&
+-	    (board->flags & GO7007_BOARD_HAS_AUDIO)) {
++	    (board->main_info.flags & GO7007_BOARD_HAS_AUDIO)) {
+ 		for (i = 0; i < 8; ++i) {
+ 			usb->audio_urbs[i] = usb_alloc_urb(0, GFP_KERNEL);
+ 			if (usb->audio_urbs[i] == NULL)
