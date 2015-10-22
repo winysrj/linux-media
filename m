@@ -1,87 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53370 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751475AbbJ1Agz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 20:36:55 -0400
-Date: Wed, 28 Oct 2015 09:36:50 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 04/19] media: Move struct media_entity_graph definition
- up
-Message-ID: <20151028093650.67648946@concha.lan>
-In-Reply-To: <1445900510-1398-5-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-5-git-send-email-sakari.ailus@iki.fi>
+Received: from mail.hapco.com.sa ([188.117.99.82]:56657 "EHLO
+	mail.hapco.com.sa" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750758AbbJVB7h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Oct 2015 21:59:37 -0400
+To: undisclosed-recipients@vger.kernel.org
+From: "Dr.John Martins" <kmohammed@hapco.com.sa>
+Subject: Lieber Freund,
+Date: Thu, 22 Oct 2015 01:42:01 +0100
+Message-ID: <C0CCCA4554294BECAE677D5CF1D279AF.MAI@hapco.com.sa>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="--=_Part_62DBB64888384094A1D8DDE3823304CD"
+Reply-To: kmohammed@hapco.com.sa
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:35 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+This is a multi-part message in MIME format.
 
-> It will be needed in struct media_pipeline shortly.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+----=_Part_62DBB64888384094A1D8DDE3823304CD
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-(but see below)
-
-> ---
->  include/media/media-entity.h | 20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index fc54192..dde9a5f 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -87,6 +87,16 @@ struct media_entity_enum {
->  	int idx_max;
->  };
->  
-> +struct media_entity_graph {
-
-Not a problem on this patch itself, but since you're touching this
-struct, it would be nice to take the opportunity and document it ;)
-
-Regards,
-Mauro
-
-> +	struct {
-> +		struct media_entity *entity;
-> +		struct list_head *link;
-> +	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-> +
-> +	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
-> +	int top;
-> +};
-> +
->  struct media_pipeline {
->  };
->  
-> @@ -429,16 +439,6 @@ static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
->  	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
->  }
->  
-> -struct media_entity_graph {
-> -	struct {
-> -		struct media_entity *entity;
-> -		struct list_head *link;
-> -	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-> -
-> -	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
-> -	int top;
-> -};
-> -
->  #define gobj_to_entity(gobj) \
->  		container_of(gobj, struct media_entity, graph_obj)
->  
+Barclays Bank PLC
+Hauptstra=C3=9Fe 28
+Nottinghamshire
+Vereinigtes K=C3=B6nigreich
+NG1 2bd
 
 
--- 
+Lieber Freund,
 
-Cheers,
-Mauro
+
+Mein Name ist John k. Martins und ich bin der chief Officer von der Barclay=
+s Bank Nottingham, Vereinigtes K=C3=B6nigreich.
+
+Ich entdeckte eine Summe von =C2=A3 16,5 Millionen (sechzehn Millionen f=
+=C3=BCnf hundert tausend Pfund Sterling) in einem Konto, dass geh=C3=B6rt=
+ zu einem unserer ausl=C3=A4ndischen Kunden Late Business Mogul Mr. Mois=
+es Saba Masri Milliard=C3=A4r, ein Jude aus Mexiko, die ein Opfer eines =
+Hubschraubers wurde Anfang 2010 Absturz t=C3=B6tet ihn und Familienmitgl=
+ieder. Saba war 46 Jahre alt. Auch war in der Chopper zum Zeitpunkt des =
+Absturzes, seine Frau, ihr Sohn Avraham (Albert) und seiner Schwiegertoc=
+hter. Der Pilot war auch tot.
+
+Ich Suche Ihre Zustimmung an Sie als die n=C3=A4chsten Angeh=C3=B6rigen zu =
+pr=C3=A4sentieren / Will Beneficiary an den verstorbenen, so dass die Er=
+l=C3=B6se aus diesem Konto bei =C2=A3 16,5 Millionen Pfund gesch=C3=A4tz=
+t kann Ihnen bezahlt werden. Alles was ich jetzt brauchen ist Ihre ehrli=
+che Zusammenarbeit, Vertraulichkeit und vertrauen uns erm=C3=B6glichen d=
+iese Transaktion durchschauen. Ich garantiere Ihnen, dass dies unter ein=
+er legitimen Anordnung ausgef=C3=BChrt wird, die Sie aus einer Verletzun=
+g des Gesetzes zu sch=C3=BCtzen.
+
+
+Im Jahr 2008 traf ich Herrn Saba Moises in Venezuela und er schuf dieses Ko=
+nto in meiner Bank und teilte mir mit, dass er in Immobilien im Vereinig=
+ten K=C3=B6nigreich investieren wollte.
+
+Ich brauche dieses Geld von meiner Bank an Ihre Bank zu =C3=BCbertragen, so=
+ dass wir beide dieses Geld teilt und ich brauche die =C3=9Cbertragung d=
+ringend getan werden.
+
+Bitte schickt mir Folgendes, da wir 7 Tage nach es durchlaufen haben. Dies =
+ist sehr dringend bitte. =E2=80=93 Antworten =C3=BCber diese e-Mail-Adre=
+sse;
+
+
+1. vollst=C3=A4ndiger Name:
+2. Ihre direkte Handynummer:
+3. Ihre Kontaktadresse:
+
+
+John k.Martins
+
+
+----=_Part_62DBB64888384094A1D8DDE3823304CD--
