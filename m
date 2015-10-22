@@ -1,126 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53417 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375AbbJ1Bdf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 21:33:35 -0400
-Date: Wed, 28 Oct 2015 10:33:31 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 15/19] v4l: vsp1: Use media entity enumeration API
-Message-ID: <20151028103331.65669f3d@concha.lan>
-In-Reply-To: <1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55504 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757024AbbJVIse (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Oct 2015 04:48:34 -0400
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Pawel Osciak <posciak@chromium.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] DocBook media: s/input stream/capture stream/
+Message-ID: <5628A27D.80503@xs4all.nl>
+Date: Thu, 22 Oct 2015 10:46:53 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:46 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+The term "input stream" is confusing since it is not clear whether this is an
+input stream from the point of view of the application or from the point of
+view of the hardware. So replace it with the more standard term "capture stream".
 
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
->  1 file changed, 31 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-> index ce10d86..b3fd2be 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
->  					 struct vsp1_rwpf *output)
->  {
->  	struct vsp1_entity *entity;
-> -	unsigned int entities = 0;
-> +	struct media_entity_enum entities;
->  	struct media_pad *pad;
-> +	int rval;
->  	bool bru_found = false;
->  
->  	input->location.left = 0;
->  	input->location.top = 0;
->  
-> +	rval = media_entity_enum_init(
-> +		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
-> +	if (rval)
-> +		return rval;
-> +
->  	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
->  
->  	while (1) {
-> -		if (pad == NULL)
-> -			return -EPIPE;
-> +		if (pad == NULL) {
-> +			rval = -EPIPE;
-> +			goto out;
-> +		}
->  
->  		/* We've reached a video node, that shouldn't have happened. */
-> -		if (!is_media_entity_v4l2_subdev(pad->entity))
-> -			return -EPIPE;
-> +		if (!is_media_entity_v4l2_subdev(pad->entity)) {
-> +			rval = -EPIPE;
-> +			goto out;
-> +		}
->  
-> -		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-> +		entity = to_vsp1_entity(
-> +			media_entity_to_v4l2_subdev(pad->entity));
->  
->  		/* A BRU is present in the pipeline, store the compose rectangle
->  		 * location in the input RPF for use when configuring the RPF.
-> @@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
->  			break;
->  
->  		/* Ensure the branch has no loop. */
-> -		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
-> -			return -EPIPE;
-> -
-> -		entities |= 1 << media_entity_id(&entity->subdev.entity);
-> +		if (media_entity_enum_test_and_set(&entities,
-> +						   &entity->subdev.entity)) {
-> +			rval = -EPIPE;
-> +			goto out;
-> +		}
->  
->  		/* UDS can't be chained. */
->  		if (entity->type == VSP1_ENTITY_UDS) {
-> -			if (pipe->uds)
-> -				return -EPIPE;
-> +			if (pipe->uds) {
-> +				rval = -EPIPE;
-> +				goto out;
-> +			}
->  
->  			pipe->uds = entity;
->  			pipe->uds_input = bru_found ? pipe->bru
-> @@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
->  
->  	/* The last entity must be the output WPF. */
->  	if (entity != &output->entity)
-> -		return -EPIPE;
-> +		rval = -EPIPE;
->  
-> -	return 0;
-> +out:
-> +	media_entity_enum_cleanup(&entities);
-> +
-> +	return rval;
->  }
->  
->  static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
-
-
--- 
-
-Cheers,
-Mauro
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7bbc2a4..87d34ff 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -699,7 +699,7 @@ linkend="v4l2-buf-type" /></entry>
+ buffer. It depends on the negotiated data format and may change with
+ each buffer for compressed variable size data like JPEG images.
+ Drivers must set this field when <structfield>type</structfield>
+-refers to an input stream, applications when it refers to an output stream.
++refers to a capture stream, applications when it refers to an output stream.
+ If the application sets this to 0 for an output stream, then
+ <structfield>bytesused</structfield> will be set to the size of the
+ buffer (see the <structfield>length</structfield> field of this struct) by
+@@ -720,14 +720,14 @@ linkend="buffer-flags" />.</entry>
+ 	    <entry>Indicates the field order of the image in the
+ buffer, see <xref linkend="v4l2-field" />. This field is not used when
+ the buffer contains VBI data. Drivers must set it when
+-<structfield>type</structfield> refers to an input stream,
++<structfield>type</structfield> refers to a capture stream,
+ applications when it refers to an output stream.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>struct timeval</entry>
+ 	    <entry><structfield>timestamp</structfield></entry>
+ 	    <entry></entry>
+-	    <entry><para>For input streams this is time when the first data
++	    <entry><para>For capture streams this is time when the first data
+ 	    byte was captured, as returned by the
+ 	    <function>clock_gettime()</function> function for the relevant
+ 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+@@ -866,7 +866,7 @@ must set this to 0.</entry>
+ 	    <entry></entry>
+ 	    <entry>The number of bytes occupied by data in the plane
+ 	      (its payload). Drivers must set this field when <structfield>type</structfield>
+-	      refers to an input stream, applications when it refers to an output stream.
++	      refers to a capture stream, applications when it refers to an output stream.
+ 	      If the application sets this to 0 for an output stream, then
+ 	      <structfield>bytesused</structfield> will be set to the size of the
+ 	      plane (see the <structfield>length</structfield> field of this struct)
+@@ -919,7 +919,7 @@ must set this to 0.</entry>
+ 	    <entry></entry>
+ 	    <entry>Offset in bytes to video data in the plane.
+ 	      Drivers must set this field when <structfield>type</structfield>
+-	      refers to an input stream, applications when it refers to an output stream.
++	      refers to a capture stream, applications when it refers to an output stream.
+ 	      Note that data_offset is included in <structfield>bytesused</structfield>.
+ 	      So the size of the image in the plane is
+ 	      <structfield>bytesused</structfield>-<structfield>data_offset</structfield> at
