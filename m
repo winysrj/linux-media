@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:51275 "EHLO mout.gmx.net"
+Received: from mga09.intel.com ([134.134.136.24]:23281 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751401AbbJPS0B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Oct 2015 14:26:01 -0400
-Received: from linux.local ([178.10.176.231]) by mail.gmx.com (mrgmx103) with
- ESMTPSA (Nemesis) id 0MDzGN-1ZmObZ2xl1-00HSUY for
- <linux-media@vger.kernel.org>; Fri, 16 Oct 2015 20:25:58 +0200
-From: Peter Seiderer <ps.report@gmx.net>
+	id S1751666AbbJWJ75 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2015 05:59:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v1] dvb/keytable: fix libintl linking
-Date: Fri, 16 Oct 2015 20:25:57 +0200
-Message-Id: <1445019957-31061-1-git-send-email-ps.report@gmx.net>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH 1/1] libv4l2subdev: Add support for interlacing in format
+Date: Fri, 23 Oct 2015 12:59:25 +0300
+Message-Id: <1445594365-13501-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix libintl linking for uclibc (see [1] for details).
+Use '=' to tell the interlacing type in format. This is optional to
+maintain compatibility with existing users.
 
-[1] http://lists.busybox.net/pipermail/buildroot/2015-October/142032.html
+For instance, the following can be used to select interlaced SGRBG8 format
+using size 1024x768:
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+	media-ctl -V 'entity:pad [fmt:SGRBG8=INTERLACED/1024x768]'
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- utils/dvb/Makefile.am      | 8 ++++----
- utils/keytable/Makefile.am | 1 +
- 2 files changed, 5 insertions(+), 4 deletions(-)
+Hi folks,
 
-diff --git a/utils/dvb/Makefile.am b/utils/dvb/Makefile.am
-index 6aae408..a96a1a2 100644
---- a/utils/dvb/Makefile.am
-+++ b/utils/dvb/Makefile.am
-@@ -2,19 +2,19 @@ bin_PROGRAMS = dvb-fe-tool dvbv5-zap dvbv5-scan dvb-format-convert
- man_MANS = dvb-fe-tool.1 dvbv5-zap.1 dvbv5-scan.1 dvb-format-convert.1
+What's missing so far is printing the field in media-ctl test program.
+Conversion functions could be added to libv4l2subdev API if needed, I'm
+not sure they are.
+
+ utils/media-ctl/libv4l2subdev.c | 44 +++++++++++++++++++++++++++++++++++++++--
+ utils/media-ctl/options.c       |  5 ++++-
+ 2 files changed, 46 insertions(+), 3 deletions(-)
+
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 8015330..84551d0 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -307,7 +307,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
+ 				    const char *p, char **endp)
+ {
+ 	enum v4l2_mbus_pixelcode code;
+-	unsigned int width, height;
++	unsigned int width, height, field;
+ 	char *end;
  
- dvb_fe_tool_SOURCES = dvb-fe-tool.c
--dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvb_fe_tool_LDFLAGS = $(ARGP_LIBS) -lm
+ 	/*
+@@ -316,7 +316,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
+ 	 */
+ 	for (; isspace(*p); ++p);
+ 	for (end = (char *)p;
+-	     *end != '/' && *end != ' ' && *end != '\0'; ++end);
++	     *end != '=' && *end != '/' && *end != ' ' && *end != '\0'; ++end);
  
- dvbv5_zap_SOURCES = dvbv5-zap.c
--dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvbv5_zap_LDFLAGS = $(ARGP_LIBS) -lm
+ 	code = v4l2_subdev_string_to_pixelcode(p, end - p);
+ 	if (code == (enum v4l2_mbus_pixelcode)-1) {
+@@ -324,6 +324,45 @@ static int v4l2_subdev_parse_format(struct media_device *media,
+ 		return -EINVAL;
+ 	}
  
- dvbv5_scan_SOURCES = dvbv5-scan.c
--dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvbv5_scan_LDFLAGS = $(ARGP_LIBS) -lm
++	/* Parse interlacing */
++	if (*end == '=') {
++		static const struct {
++			unsigned int field;
++			char *str;
++		} __f[] = {
++			{ V4L2_FIELD_ANY, "ANY", },
++			{ V4L2_FIELD_NONE, "NONE", },
++			{ V4L2_FIELD_TOP, "TOP", },
++			{ V4L2_FIELD_BOTTOM, "BOTTOM", },
++			{ V4L2_FIELD_INTERLACED, "INTERLACED", },
++			{ V4L2_FIELD_SEQ_TB, "SEQ_TB", },
++			{ V4L2_FIELD_SEQ_BT, "SEQ_BT", },
++			{ V4L2_FIELD_ALTERNATE, "ALTERNATE", },
++			{ V4L2_FIELD_INTERLACED_TB, "INTERLACED_TB", },
++			{ V4L2_FIELD_INTERLACED_BT, "INTERLACED_BT", },
++			{ 0 },
++		}, *f = __f;
++
++
++		p = end + 1;
++		for (end = (char *)p;
++		     *end != '/' && *end != ' ' && *end != '\0'; ++end);
++
++		for (; f->str; f++) {
++			if (strlen(f->str) != end - p ||
++			    strncasecmp(f->str, p, end - p))
++				continue;
++			field = f->field;
++			break;
++		}
++
++		if (!f->str) {
++			media_dbg(media, "Invalid interlacing '%.*s'\n",
++				  end - p, p);
++			return -EINVAL;
++		}
++	}
++
+ 	p = end + 1;
+ 	width = strtoul(p, &end, 10);
+ 	if (*end != 'x') {
+@@ -339,6 +378,7 @@ static int v4l2_subdev_parse_format(struct media_device *media,
+ 	format->width = width;
+ 	format->height = height;
+ 	format->code = code;
++	format->field = field;
  
- dvb_format_convert_SOURCES = dvb-format-convert.c
--dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvb_format_convert_LDFLAGS = $(ARGP_LIBS) -lm
- 
- EXTRA_DIST = README
-diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
-index 925c8ea..8444ac2 100644
---- a/utils/keytable/Makefile.am
-+++ b/utils/keytable/Makefile.am
-@@ -5,6 +5,7 @@ keytablesystem_DATA = $(srcdir)/rc_keymaps/*
- udevrules_DATA = 70-infrared.rules
- 
- ir_keytable_SOURCES = keytable.c parse.h
-+ir_keytable_LDADD = @LIBINTL@
- ir_keytable_LDFLAGS = $(ARGP_LIBS)
- 
- EXTRA_DIST = 70-infrared.rules rc_keymaps rc_keymaps_userspace gen_keytables.pl ir-keytable.1 rc_maps.cfg
+ 	return 0;
+ }
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index ffaffcd..a241699 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -58,10 +58,13 @@ static void usage(const char *argv0)
+ 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
+ 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
+ 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
+-	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ;\n");
++	printf("\tv4l2-mbusfmt    = 'fmt:' fcc { '=' v4l2-interlace } '/' size ;\n");
+ 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
+ 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
+ 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
++	printf("\tv4l2-interlace  = 'ANY' | 'NONE' | 'TOP' | 'BOTTOM' | 'INTERLACED'\n");
++	printf("\t                | 'SEQ_TB' | 'SEQ_BT' | 'ALTERNATE'\n");
++	printf("\t                | 'INTERLACED_TB' | 'INTERLACED_BT'\n");
+ 	printf("\n");
+ 	printf("\trectangle       = '(' left ',' top, ')' '/' size ;\n");
+ 	printf("\tsize            = width 'x' height ;\n");
 -- 
-2.1.4
+2.1.0.231.g7484e3b
 
