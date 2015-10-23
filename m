@@ -1,66 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:59498 "EHLO
-	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752150AbbJTXZV (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:35613 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133AbbJWGgS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 19:25:21 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen v2 0/3] Add mixer and control interface media entities
-Date: Tue, 20 Oct 2015 17:25:13 -0600
-Message-Id: <cover.1445380851.git.shuahkh@osg.samsung.com>
+	Fri, 23 Oct 2015 02:36:18 -0400
+From: Nilesh Kokane <nilesh.kokane05@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	suneel.raikar@gmail.com, Nilesh Kokane <Nilesh.Kokane05@gmail.com>
+Subject: [PATCH] Staging: media: lirc Braces not needed for single statement
+Date: Fri, 23 Oct 2015 12:06:01 +0530
+Message-Id: <1445582161-6840-1-git-send-email-Nilesh.Kokane05@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch v2 series adds the following:
+Fixed the braces issue for single statement.
 
-A fix to media_stream_delete() to remove intf devnode.
+Signed-off-by: Nilesh Kokane <Nilesh.Kokane05@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_imon.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
-each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
-entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
-entity corresponds to the control device for the card.
-
-Change au0828_create_media_graph() to create pad link
-between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
-AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
-decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
-mixer's source pad
-
-Changes since v1:
-1. Included the fix to media_stream_delete() which was by mistake
-   not included in the patch v1.
-2. Fixed mixer to decoder link and mider to capture node links
-   based on Mauro Chehapb's review comments on the media graph.
-
-This patch series is dependent on an earlier patch series:
-
-Update ALSA, and au0828 drivers to use Managed Media Controller API:
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg92752.html
-
-Please find the media graphs for ALSA work with mixer and control
-interface nodes:
-
-https://drive.google.com/folderview?id=0B0NIL0BQg-AlLWE3SzAxazBJWm8&usp=sharing
-
-Shuah Khan (3):
-  sound/usb: Fix media_stream_delete() to remove intf devnode
-  sound/usb: Create media mixer function and control interface entities
-  media: au0828 create link between ALSA Mixer and decoder
-
- drivers/media/usb/au0828/au0828-core.c | 17 +++++--
- drivers/media/usb/au0828/au0828.h      |  1 +
- sound/usb/card.c                       |  5 ++
- sound/usb/media.c                      | 90 ++++++++++++++++++++++++++++++++++
- sound/usb/media.h                      | 20 ++++++++
- sound/usb/mixer.h                      |  1 +
- sound/usb/usbaudio.h                   |  1 +
- 7 files changed, 132 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 62ec9f7..a6cae49 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -785,13 +785,11 @@ static int imon_probe(struct usb_interface *interface,
+ 	}
+ 
+ 	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
+-	if (!driver) {
++	if (!driver)
+ 		goto free_context;
+-	}
+ 	rbuf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+-	if (!rbuf) {
++	if (!rbuf)
+ 		goto free_driver;
+-	}
+ 	if (lirc_buffer_init(rbuf, BUF_CHUNK_SIZE, BUF_SIZE)) {
+ 		dev_err(dev, "%s: lirc_buffer_init failed\n", __func__);
+ 		goto free_rbuf;
 -- 
-2.1.4
+1.9.1
 
