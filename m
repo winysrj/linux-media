@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:33939 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401AbbJOV1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2015 17:27:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <1444940565-30730-1-git-send-email-wuninsu@gmail.com>
-References: <1444940565-30730-1-git-send-email-wuninsu@gmail.com>
-Date: Thu, 15 Oct 2015 17:27:47 -0400
-Message-ID: <CAOcJUbxeaHRTy_YaE7CbYAFacHj4SeHSEQPJ2P2RMk6CsFEZnQ@mail.gmail.com>
-Subject: Re: [PATCH] mxl111sf: missing return values validation
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Insu Yun <wuninsu@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, taesoo@gatech.edu,
-	yeongjin.jang@gatech.edu, insu@gatech.edu
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:54284 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869AbbJWWId (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2015 18:08:33 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] hackrf: move RF gain ctrl enable behind module parameter
+Date: Sat, 24 Oct 2015 01:08:08 +0300
+Message-Id: <1445638088-7750-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 15, 2015 at 4:22 PM, Insu Yun <wuninsu@gmail.com> wrote:
-> Return values of mxl111sf_enable_usb_output and mxl1x1sf_top_master_ctrl
-> are not validated.
->
-> Signed-off-by: Insu Yun <wuninsu@gmail.com>
+Used Avago MGA-81563 RF amplifier could be destroyed pretty easily
+with too strong signal or transmitting to bad antenna.
+Add module parameter 'enable_rf_gain_ctrl' which allows enabling
+RF gain control - otherwise, default without the module parameter,
+RF gain control is set to 'grabbed' state which prevents setting
+value to the control.
 
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/hackrf/hackrf.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
+diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
+index 84e8a42..0fe5cb2 100644
+--- a/drivers/media/usb/hackrf/hackrf.c
++++ b/drivers/media/usb/hackrf/hackrf.c
+@@ -24,6 +24,15 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <media/videobuf2-vmalloc.h>
+ 
++/*
++ * Used Avago MGA-81563 RF amplifier could be destroyed pretty easily with too
++ * strong signal or transmitting to bad antenna.
++ * Set RF gain control to 'grabbed' state by default for sure.
++ */
++static bool hackrf_enable_rf_gain_ctrl;
++module_param_named(enable_rf_gain_ctrl, hackrf_enable_rf_gain_ctrl, bool, 0644);
++MODULE_PARM_DESC(enable_rf_gain_ctrl, "enable RX/TX RF amplifier control (warn: could damage amplifier)");
++
+ /* HackRF USB API commands (from HackRF Library) */
+ enum {
+ 	CMD_SET_TRANSCEIVER_MODE           = 0x01,
+@@ -1451,6 +1460,7 @@ static int hackrf_probe(struct usb_interface *intf,
+ 		dev_err(dev->dev, "Could not initialize controls\n");
+ 		goto err_v4l2_ctrl_handler_free_rx;
+ 	}
++	v4l2_ctrl_grab(dev->rx_rf_gain, !hackrf_enable_rf_gain_ctrl);
+ 	v4l2_ctrl_handler_setup(&dev->rx_ctrl_handler);
+ 
+ 	/* Register controls for transmitter */
+@@ -1471,6 +1481,7 @@ static int hackrf_probe(struct usb_interface *intf,
+ 		dev_err(dev->dev, "Could not initialize controls\n");
+ 		goto err_v4l2_ctrl_handler_free_tx;
+ 	}
++	v4l2_ctrl_grab(dev->tx_rf_gain, !hackrf_enable_rf_gain_ctrl);
+ 	v4l2_ctrl_handler_setup(&dev->tx_ctrl_handler);
+ 
+ 	/* Register the v4l2_device structure */
+-- 
+http://palosaari.fi/
 
-Eeek!  You're right!  ...and I'm the one who wrote the offending code.
-My bad O:-)
-
-Thank you for this patch.  Mauro, please apply it.
-
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
-
-
-
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> index bec12b0..b71b2e6 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> @@ -288,9 +288,9 @@ static int mxl111sf_adap_fe_init(struct dvb_frontend *fe)
->         err = mxl1x1sf_set_device_mode(state, adap_state->device_mode);
->
->         mxl_fail(err);
-> -       mxl111sf_enable_usb_output(state);
-> +       err = mxl111sf_enable_usb_output(state);
->         mxl_fail(err);
-> -       mxl1x1sf_top_master_ctrl(state, 1);
-> +       err = mxl1x1sf_top_master_ctrl(state, 1);
->         mxl_fail(err);
->
->         if ((MXL111SF_GPIO_MOD_DVBT != adap_state->gpio_mode) &&
-> --
-> 1.9.1
->
