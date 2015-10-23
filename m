@@ -1,42 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:49211 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751168AbbJKMIK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2015 08:08:10 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] mt9t001: constify v4l2_subdev_internal_ops structure
-Date: Sun, 11 Oct 2015 13:57:13 +0200
-Message-Id: <1444564633-19861-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from smtp206.alice.it ([82.57.200.102]:13033 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751023AbbJWJO2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Oct 2015 05:14:28 -0400
+Date: Fri, 23 Oct 2015 11:13:56 +0200
+From: Antonio Ospite <ao2@ao2.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	moinejf@free.fr, Anders Blomdell <anders.blomdell@control.lth.se>,
+	Thomas Champagne <lafeuil@gmail.com>, stable@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca: ov534/topro: prevent a division by 0
+Message-Id: <20151023111356.f76b8ec65a91baa2df8a9d36@ao2.it>
+In-Reply-To: <560F8E59.4090104@redhat.com>
+References: <1443817993-32406-1-git-send-email-ao2@ao2.it>
+	<560F8E59.4090104@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This v4l2_subdev_internal_ops structure is never modified.  All other
-v4l2_subdev_internal_ops structures are declared as const.
+On Sat, 3 Oct 2015 10:14:17 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Done with the help of Coccinelle.
+> Hi,
+>
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Hi HdG,
 
----
- drivers/media/i2c/mt9t001.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On 02-10-15 22:33, Antonio Ospite wrote:
+[...]
+> > Signed-off-by: Antonio Ospite <ao2@ao2.it>
+> > Cc: stable@vger.kernel.org
+> 
+> Good catch:
+> 
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Mauro can you pick this one up directly, and include it in your
+> next pull-req for 4.3 please ?
+> 
 
-diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-index 8ae99f7..4383a5d 100644
---- a/drivers/media/i2c/mt9t001.c
-+++ b/drivers/media/i2c/mt9t001.c
-@@ -834,7 +834,7 @@ static struct v4l2_subdev_ops mt9t001_subdev_ops = {
- 	.pad = &mt9t001_subdev_pad_ops,
- };
- 
--static struct v4l2_subdev_internal_ops mt9t001_subdev_internal_ops = {
-+static const struct v4l2_subdev_internal_ops mt9t001_subdev_internal_ops = {
- 	.registered = mt9t001_registered,
- 	.open = mt9t001_open,
- 	.close = mt9t001_close,
+Ping.
 
+On https://patchwork.linuxtv.org/patch/31561/ it says:
+Delegated to: 	Hans de Goede
+
+Who is going to handle this?
+
+Thanks,
+   Antonio
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
