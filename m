@@ -1,76 +1,1108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:60222 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751785AbbJYOIZ (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:37923 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751848AbbJXLjw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2015 10:08:25 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Hyun Kwon <hyun.kwon@xilinx.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?q?S=C3=B6ren=20Brinkmann?= <soren.brinkmann@xilinx.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jason Cooper <jason@lakedaemon.net>
-Subject: [PATCH 5/8] [media] v4l: xilinx-vipp: add missing of_node_put
-Date: Sun, 25 Oct 2015 14:57:04 +0100
-Message-Id: <1445781427-7110-6-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1445781427-7110-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1445781427-7110-1-git-send-email-Julia.Lawall@lip6.fr>
+	Sat, 24 Oct 2015 07:39:52 -0400
+Received: by wicll6 with SMTP id ll6so60642801wic.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Oct 2015 04:39:50 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 24 Oct 2015 12:39:50 +0100
+Message-ID: <CAOQWjw2_cuvUpGbE+eSJFr1f3Vf0ONZocopF5s2XNB+Hizg9Dg@mail.gmail.com>
+Subject: [PATCH] dtv-scan-tables: update dvb-s/Astra-28.2E
+From: Nick Morrott <knowledgejunkie@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-for_each_child_of_node performs an of_node_get on each iteration, so
-a break out of the loop requires an of_node_put.
+Update dvb-s/Astra28.2E to reflect changes to satellite availability.
 
-A simplified version of the semantic patch that fixes this problem is as
-follows (http://coccinelle.lip6.fr):
+Over the past few years there have been significant changes to the
+Astra 28.2E cluster. Astra 2A/B/D have been replaced by Astra 2E/F/G.
+Eurobird 1 was removed from the cluster a few months ago and
+repositioned at 33E.
 
-// <smpl>
-@@
-expression root,e;
-local idexpression child;
-@@
-
- for_each_child_of_node(root, child) {
-   ... when != of_node_put(child)
-       when != e = child
-(
-   return child;
-|
-+  of_node_put(child);
-?  return ...;
-)
-   ...
- }
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Nick Morrott <knowledgejunkie@gmail.com>
 ---
- drivers/media/platform/xilinx/xilinx-vipp.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+diff --git a/dvb-s/Astra-28.2E b/dvb-s/Astra-28.2E
+index c9588da..74ebb1a 100644
+--- a/dvb-s/Astra-28.2E
++++ b/dvb-s/Astra-28.2E
+@@ -1,50 +1,35 @@
+ # Astra 28.2E SDT info service transponder
+ # freq pol sr fec
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-index 7b7cb9c..b9bf24f 100644
---- a/drivers/media/platform/xilinx/xilinx-vipp.c
-+++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-@@ -476,8 +476,10 @@ static int xvip_graph_dma_init(struct xvip_composite_device *xdev)
- 
- 	for_each_child_of_node(ports, port) {
- 		ret = xvip_graph_dma_init_one(xdev, port);
--		if (ret < 0)
-+		if (ret < 0) {
-+			of_node_put(port);
- 			return ret;
-+		}
- 	}
- 
- 	return 0;
+-## Astra 2A
++## Astra 2E
+ # Transponder 1
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11720000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11719500
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 29500000
+     INNER_FEC = 3/4
+-    INVERSION = AUTO
+-
+-# Transponder 2
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11740000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
 
+ # Transponder 3
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 11758000
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 4
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11778000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 5
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 11798000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 29500000
+     INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 6
+@@ -54,6 +39,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 7
+@@ -62,16 +48,18 @@
+     FREQUENCY = 11836000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 8
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 11856000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 9
+@@ -81,6 +69,7 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 10
+@@ -90,6 +79,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 11
+@@ -98,7 +88,8 @@
+     FREQUENCY = 11914000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 12
+@@ -107,7 +98,8 @@
+     FREQUENCY = 11934000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 13
+@@ -117,107 +109,17 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 18
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12051000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 22
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12129000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 23
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12148000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 24
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12168000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 27
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12226000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 28
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12246000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 37
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12422000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 40
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12480000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-
+-## Astra 2B
+-# Transponder 14
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11973000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 15
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11992000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 16
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 12012000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 17
+@@ -227,6 +129,17 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 18
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS
++    FREQUENCY = 12051000
++    POLARIZATION = VERTICAL
++    SYMBOL_RATE = 27500000
++    INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 19
+@@ -235,16 +148,18 @@
+     FREQUENCY = 12070000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 20
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 12090000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 21
+@@ -253,25 +168,18 @@
+     FREQUENCY = 12110000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder 25
++# Transponder 28
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12188000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 26
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12207000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 12246000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 29
+@@ -280,99 +188,58 @@
+     FREQUENCY = 12266000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 30
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12285000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 31
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12304000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 32
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 12324000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 29500000
+     INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 33
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 12344000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 29500000
+     INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 34
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 12363000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 29500000
+     INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder 35
++# Transponder 40
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12382000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 36
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12402000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-# Transponder 38
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12441000
++    FREQUENCY = 12480000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder 39
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12460000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
+-    INVERSION = AUTO
+-
+-
+-## Astra 2D
+ # Transponder 41
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 10714000
++    FREQUENCY = 10714250
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 42
+@@ -382,6 +249,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 43
+@@ -391,6 +259,7 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 44
+@@ -400,6 +269,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 45
+@@ -409,6 +279,7 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 46
+@@ -418,6 +289,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 47
+@@ -427,6 +299,7 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 48
+@@ -436,6 +309,7 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 49
+@@ -445,33 +319,27 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 50
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 10847000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 22000000
+-    INNER_FEC = 5/6
+-    INVERSION = AUTO
+-
+-# Transponder 51
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 10862000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 22000000
+-    INNER_FEC = 5/6
++    SYMBOL_RATE = 23000000
++    INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+ # Transponder 52
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 10876000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 22000000
+-    INNER_FEC = 5/6
++    SYMBOL_RATE = 23000000
++    INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+ # Transponder 53
+@@ -481,6 +349,7 @@
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 54
+@@ -490,313 +359,408 @@
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 22000000
+     INNER_FEC = 5/6
+-    INVERSION = AUTO
+-
+-# Transponder 55
+-[CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 10921000
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 22000000
+-    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+ # Transponder 56
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
++    DELIVERY_SYSTEM = DVBS2
+     FREQUENCY = 10936000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 22000000
+-    INNER_FEC = 5/6
++    SYMBOL_RATE = 23000000
++    INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-
+-## Eurobird 1
+-# Transponder C1
++# Transponder 113
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11222170
++    FREQUENCY = 11385000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C2
++# Transponder 114
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11223670
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11385000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C2
++# Transponder 116
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11259000
++    FREQUENCY = 11426000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C1
++## Astra 2F
++# Transponder 23
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11261000
++    FREQUENCY = 12148000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C3
++# Transponder 24
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 12168000
++    POLARIZATION = VERTICAL
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 25
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11307000
++    FREQUENCY = 12188000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C4
++# Transponder 26
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11307000
++    FREQUENCY = 12207000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 27
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 12226500
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 38
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 12441000
++    POLARIZATION = VERTICAL
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 39
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 12460000
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 29500000
++    INNER_FEC = 3/4
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 109
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS
++    FREQUENCY = 11307000
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C4
++# Transponder 110
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11343000
++    FREQUENCY = 11307000
+     POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C3
++# Transponder 111
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+     FREQUENCY = 11344000
+     POLARIZATION = HORIZONTAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C5
++# Transponder 112
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11390000
+-    POLARIZATION = HORIZONTAL
++    FREQUENCY = 11344500
++    POLARIZATION = VERTICAL
+     SYMBOL_RATE = 27500000
+     INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C6
++## Astra 2G
++# Transponder 57
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11390000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    FREQUENCY = 10964000
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C5
++# Transponder 59
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11426000
++    FREQUENCY = 10994000
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder C6
++# Transponder 61
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11426000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11024000
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder D1
++# Transponder 63
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11469000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11052750
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder D2S
++# Transponder 64
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11488000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11068000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder D3S
++# Transponder 65
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11508000
++    FREQUENCY = 11081000
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D4S
++# Transponder 66
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11527000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11097000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder D5
++# Transponder 67
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11546000
++    FREQUENCY = 11112000
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D6
++# Transponder 68
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11565000
++    FREQUENCY = 11127000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D7
++# Transponder 69
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11585000
++    FREQUENCY = 11141250
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D8
++# Transponder 71
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11603850
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    FREQUENCY = 11170750
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D9
++# Transponder 89
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11623000
++    FREQUENCY = 11464250
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D10
++# Transponder 90
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11642000
++    FREQUENCY = 11479000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D11
++# Transponder 92
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11661540
+-    POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    FREQUENCY = 11508500
++    POLARIZATION = VERTICAL
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder D12
++# Transponder 93
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 11680770
++    FREQUENCY = 11523250
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder 94
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11538000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder F1
++# Transponder 95
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12524000
++    FREQUENCY = 11552750
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F2
++# Transponder 96
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12524000
++    FREQUENCY = 11567500
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F1
++# Transponder 97
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12560000
++    FREQUENCY = 11582250
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F2
++# Transponder 98
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12560000
++    FREQUENCY = 11597000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 2/3
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F4
++# Transponder 99
+ [CHANNEL]
+-    DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12596000
+-    POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 27500000
++    DELIVERY_SYSTEM = DVBS2
++    FREQUENCY = 11611750
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 23000000
+     INNER_FEC = 2/3
++    MODULATION = PSK/8
+     INVERSION = AUTO
+
+-# Transponder F3
++# Transponder 103
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12607000
++    FREQUENCY = 11671750
+     POLARIZATION = HORIZONTAL
+-    SYMBOL_RATE = 27500000
+-    INNER_FEC = 3/4
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F4
++# Transponder 104
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12629000
++    FREQUENCY = 11685500
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 6111000
+-    INNER_FEC = 3/4
++    SYMBOL_RATE = 22000000
++    INNER_FEC = 5/6
++    MODULATION = QPSK
++    INVERSION = AUTO
++
++# Transponder C1
++[CHANNEL]
++    DELIVERY_SYSTEM = DVBS
++    FREQUENCY = 11265000
++    POLARIZATION = HORIZONTAL
++    SYMBOL_RATE = 27500000
++    INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
+
+-# Transponder F5
++# Transponder C2
+ [CHANNEL]
+     DELIVERY_SYSTEM = DVBS
+-    FREQUENCY = 12692000
++    FREQUENCY = 11265000
+     POLARIZATION = VERTICAL
+-    SYMBOL_RATE = 19532000
+-    INNER_FEC = 1/2
++    SYMBOL_RATE = 27500000
++    INNER_FEC = 2/3
++    MODULATION = QPSK
+     INVERSION = AUTO
