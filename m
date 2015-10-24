@@ -1,51 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:33638 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbbJTGir (ORCPT
+Received: from smtp12.smtpout.orange.fr ([80.12.242.134]:31225 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388AbbJXPfn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Oct 2015 02:38:47 -0400
-Received: by igbkq10 with SMTP id kq10so65717402igb.0
-        for <linux-media@vger.kernel.org>; Mon, 19 Oct 2015 23:38:47 -0700 (PDT)
+	Sat, 24 Oct 2015 11:35:43 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+Date: Sat, 24 Oct 2015 11:59:32 +0200
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <87io5wwahg.fsf@belgarion.home>
 MIME-Version: 1.0
-In-Reply-To: <5625DDCA.2040203@xs4all.nl>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-	<5625DDCA.2040203@xs4all.nl>
-Date: Tue, 20 Oct 2015 09:38:46 +0300
-Message-ID: <CAJ2oMhL7LaKVjxC+fbg87GSY+2GEFth_rDGn7vgnRaKF8hT=-g@mail.gmail.com>
-Subject: Re: PCIe capture driver
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 20, 2015 at 9:23 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 10/19/2015 10:26 PM, Ran Shalit wrote:
->> Hello,
->>
->> When writing a device driver for  capturing video coming from PCIe,
->> does it need to be used as v4l device (video for linux) , ?
->
-> Yes. If you don't then 1) you will never be able to upstream the driver,
-> 2) any application that wants to use your driver will need custom code to
-> talk to your driver, 3) it will be a lot more work to write the driver
-> since you can't use the V4L2 kernel frameworks it provides or ask for
-> help.
->
-> Basically, by deciding to reinvent the wheel you're screwing over your
-> customers and yourself.
->
-> Here is a nice PCI(e) template driver that you can use as your starting
-> point: Documentation/video4linux/v4l2-pci-skeleton.c
->
-> Regards,
->
->         Hans
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-Hans,
+> Fix the error path where the video buffer wasn't allocated nor
+> mapped. In this case, in the driver free path don't try to unmap memory
+> which was not mapped in the first place.
+>
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+> Since v3: take into account the 2 paths possibilities to free_buffer()
+Okay Guennadi, it's been enough time.
+Could you you have another look at this serie please ?
 
-Many thanks for the detailed answer and the example !
+Cheers.
 
-Regards,
-Ran
+--
+Robert
