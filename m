@@ -1,125 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39932 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752667AbbJGCig (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39386 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752124AbbJYWzm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Oct 2015 22:38:36 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5E45F2A008E
-	for <linux-media@vger.kernel.org>; Wed,  7 Oct 2015 04:36:47 +0200 (CEST)
-Date: Wed, 07 Oct 2015 04:36:47 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151007023647.5E45F2A008E@tschai.lan>
+	Sun, 25 Oct 2015 18:55:42 -0400
+Subject: Re: PCIe capture driver
+To: Ran Shalit <ranshalit@gmail.com>
+References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
+ <5625DDCA.2040203@xs4all.nl>
+ <CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
+ <562B5178.5040303@xs4all.nl>
+ <CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <562D5DE2.5020406@xs4all.nl>
+Date: Sun, 25 Oct 2015 23:55:30 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Wed Oct  7 04:00:16 CEST 2015
-git branch:	test
-git hash:	efe98010b80ec4516b2779e1b4e4a8ce16bf89fe
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+On 10/25/2015 21:16, Ran Shalit wrote:
+> On Sat, Oct 24, 2015 at 11:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>>
+>> On 10/23/2015 23:57, Ran Shalit wrote:
+>>> On Tue, Oct 20, 2015 at 9:23 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 10/19/2015 10:26 PM, Ran Shalit wrote:
+>>>>> Hello,
+>>>>>
+>>>>> When writing a device driver for  capturing video coming from PCIe,
+>>>>> does it need to be used as v4l device (video for linux) , ?
+>>>>
+>>>> Yes. If you don't then 1) you will never be able to upstream the driver,
+>>>> 2) any application that wants to use your driver will need custom code to
+>>>> talk to your driver, 3) it will be a lot more work to write the driver
+>>>> since you can't use the V4L2 kernel frameworks it provides or ask for
+>>>> help.
+>>>>
+>>>> Basically, by deciding to reinvent the wheel you're screwing over your
+>>>> customers and yourself.
+>>>>
+>>>> Here is a nice PCI(e) template driver that you can use as your starting
+>>>> point: Documentation/video4linux/v4l2-pci-skeleton.c
+>>>>
+>>>> Regards,
+>>>>
+>>>>         Hans
+>>>
+>>> Hi Hans,
+>>>
+>>> I now understand, that I will be using media sdk (Intel) which is
+>>> based on DRM framework, and does not use v4l.
+>>
+>> DRM is for video output, not video capture. So this seems irrelevant.
+>>
+>>> So I probably need to do some custom driver for delivering video with PCIe.
+>>
+>> There is only one linux API for video capture: V4L2. What PCIe card are we
+>> talking about here? What are you trying to achieve?
+>>
+> 
+> I need to capture video from PCIe . The video stream will be delivered
+> from PC through PCIe to a custom board with Intel cpu using media sdk.
+> The purpose is to encode the raw video and save the encoded stream to
+> a file.
+> I guess I can build some custom driver which waits for frames and
+> deliver the received frames to the media sdk encoder.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+So the capture driver captures the video to memory and passes it on to
+the media sdk for encoding? That's V4L2: that API capures video into
+memory.
 
-Detailed results are available here:
+So don't reinvent the wheel but use V4L2 for your PCIe driver.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> Since media sdk does not use v4l anyway, so I guess such custom driver
+> is the best under this conditions, Right ?
 
-Full logs are available here:
+No, use V4L2. What you do with the frame after it has been captured
+into memory has no relevance to the API you use to capture into memory.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
