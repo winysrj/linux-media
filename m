@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51174 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbbJCPXb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:31 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Don Fry <pcnet32@frontier.com>,
-	Oliver Neukum <oneukum@suse.com>
-Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 01/15] pcnet32: use pci_set_dma_mask insted of pci_dma_supported
-Date: Sat,  3 Oct 2015 17:19:25 +0200
-Message-Id: <1443885579-7094-2-git-send-email-hch@lst.de>
-In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45015 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752093AbbJZXDw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2015 19:03:52 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 16/19] staging: omap4iss: Fix sub-device power management code
+Date: Tue, 27 Oct 2015 01:01:47 +0200
+Message-Id: <1445900510-1398-17-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures the dma mask that is supported by the driver is recorded
-in the device structure.
+The same bug was present in the omap4iss driver as was in the omap3isp
+driver. The code got copied to the omap4iss driver while broken. Fix the
+omap4iss driver as well.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/net/ethernet/amd/pcnet32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/media/omap4iss/iss.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/amd/pcnet32.c b/drivers/net/ethernet/amd/pcnet32.c
-index bc8b04f..e2afabf 100644
---- a/drivers/net/ethernet/amd/pcnet32.c
-+++ b/drivers/net/ethernet/amd/pcnet32.c
-@@ -1500,7 +1500,7 @@ pcnet32_probe_pci(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		return -ENODEV;
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 076ddd4..c097fd5 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -533,14 +533,14 @@ static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
+ 	int ret;
+ 
+ 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+-	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
++	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		/* Powering off entities is assumed to never fail. */
+ 		iss_pipeline_pm_power(source, -sink_use);
+ 		iss_pipeline_pm_power(sink, -source_use);
+ 		return 0;
  	}
  
--	if (!pci_dma_supported(pdev, PCNET32_DMA_MASK)) {
-+	if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
- 		if (pcnet32_debug & NETIF_MSG_PROBE)
- 			pr_err("architecture does not support 32bit PCI busmaster DMA\n");
- 		return -ENODEV;
+-	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+ 		(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		ret = iss_pipeline_pm_power(source, sink_use);
+ 		if (ret < 0)
 -- 
-1.9.1
+2.1.4
 
