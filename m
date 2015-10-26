@@ -1,112 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36632 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757914AbbJ2VXi (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45007 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751761AbbJZXDv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 17:23:38 -0400
-Received: by wmec75 with SMTP id c75so33074496wme.1
-        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:37 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 3/9] media: rc: nuvoton-cir: switch resource handling to devm
- functions
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56328D68.9050906@gmail.com>
-Date: Thu, 29 Oct 2015 22:19:36 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 26 Oct 2015 19:03:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 05/19] media: Move media graph state for streamon/off to the pipeline
+Date: Tue, 27 Oct 2015 01:01:36 +0200
+Message-Id: <1445900510-1398-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to managed resource handling using the devm_ functions.
+The struct media_entity_graph was allocated in the stack, limiting the
+number of entities that could be reasonably allocated. Instead, move the
+struct to struct media_pipeline which is typically allocated using
+kmalloc() instead.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+The intent is to keep the enumeration around for later use for the
+duration of the streaming. As streaming is eventually stopped, an
+unfortunate memory allocation failure would prevent stopping the
+streaming. As no memory will need to be allocated, the problem is avoided
+altogether.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/nuvoton-cir.c | 36 +++++++++++-------------------------
- 1 file changed, 11 insertions(+), 25 deletions(-)
+ drivers/media/media-entity.c | 16 ++++++++--------
+ include/media/media-entity.h |  2 ++
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 4d8e12f..a382e17 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -971,7 +971,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	struct rc_dev *rdev;
- 	int ret = -ENOMEM;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index fceaf44..667ab32 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -456,16 +456,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 					     struct media_pipeline *pipe)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_entity_graph graph;
++	struct media_entity_graph *graph = &pipe->graph;
+ 	struct media_entity *entity_err = entity;
+ 	struct media_link *link;
+ 	int ret;
  
--	nvt = kzalloc(sizeof(struct nvt_dev), GFP_KERNEL);
-+	nvt = devm_kzalloc(&pdev->dev, sizeof(struct nvt_dev), GFP_KERNEL);
- 	if (!nvt)
- 		return ret;
+ 	mutex_lock(&mdev->graph_mutex);
  
-@@ -1071,21 +1071,22 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
  
- 	ret = -EBUSY;
- 	/* now claim resources */
--	if (!request_region(nvt->cir_addr,
-+	if (!devm_request_region(&pdev->dev, nvt->cir_addr,
- 			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
- 		goto exit_unregister_device;
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
+ 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
  
--	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
--			NVT_DRIVER_NAME, (void *)nvt))
--		goto exit_release_cir_addr;
-+	if (devm_request_irq(&pdev->dev, nvt->cir_irq, nvt_cir_isr,
-+			     IRQF_SHARED, NVT_DRIVER_NAME, (void *)nvt))
-+		goto exit_unregister_device;
+@@ -546,9 +546,9 @@ error:
+ 	 * Link validation on graph failed. We revert what we did and
+ 	 * return the error.
+ 	 */
+-	media_entity_graph_walk_start(&graph, entity_err);
++	media_entity_graph_walk_start(graph, entity_err);
  
--	if (!request_region(nvt->cir_wake_addr,
-+	if (!devm_request_region(&pdev->dev, nvt->cir_wake_addr,
- 			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
--		goto exit_free_irq;
-+		goto exit_unregister_device;
+-	while ((entity_err = media_entity_graph_walk_next(&graph))) {
++	while ((entity_err = media_entity_graph_walk_next(graph))) {
+ 		entity_err->stream_count--;
+ 		if (entity_err->stream_count == 0)
+ 			entity_err->pipe = NULL;
+@@ -582,13 +582,13 @@ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
+ void media_entity_pipeline_stop(struct media_entity *entity)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_entity_graph graph;
++	struct media_entity_graph *graph = &entity->pipe->graph;
  
--	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
--			NVT_DRIVER_NAME, (void *)nvt))
--		goto exit_release_cir_wake_addr;
-+	if (devm_request_irq(&pdev->dev, nvt->cir_wake_irq,
-+			     nvt_cir_wake_isr, IRQF_SHARED,
-+			     NVT_DRIVER_NAME, (void *)nvt))
-+		goto exit_unregister_device;
+ 	mutex_lock(&mdev->graph_mutex);
  
- 	device_init_wakeup(&pdev->dev, true);
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
  
-@@ -1097,18 +1098,11 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		entity->stream_count--;
+ 		if (entity->stream_count == 0)
+ 			entity->pipe = NULL;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index dde9a5f..b2864cb 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -98,6 +98,8 @@ struct media_entity_graph {
+ };
  
- 	return 0;
+ struct media_pipeline {
++	/* For walking the graph in pipeline start / stop */
++	struct media_entity_graph graph;
+ };
  
--exit_release_cir_wake_addr:
--	release_region(nvt->cir_wake_addr, CIR_IOREG_LENGTH);
--exit_free_irq:
--	free_irq(nvt->cir_irq, nvt);
--exit_release_cir_addr:
--	release_region(nvt->cir_addr, CIR_IOREG_LENGTH);
- exit_unregister_device:
- 	rc_unregister_device(rdev);
- 	rdev = NULL;
- exit_free_dev_rdev:
- 	rc_free_device(rdev);
--	kfree(nvt);
- 
- 	return ret;
- }
-@@ -1126,15 +1120,7 @@ static void nvt_remove(struct pnp_dev *pdev)
- 	nvt_enable_wake(nvt);
- 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
--	/* free resources */
--	free_irq(nvt->cir_irq, nvt);
--	free_irq(nvt->cir_wake_irq, nvt);
--	release_region(nvt->cir_addr, CIR_IOREG_LENGTH);
--	release_region(nvt->cir_wake_addr, CIR_IOREG_LENGTH);
--
- 	rc_unregister_device(nvt->rdev);
--
--	kfree(nvt);
- }
- 
- static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
+ /**
 -- 
-2.6.2
-
+2.1.4
 
