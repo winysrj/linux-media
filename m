@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58801 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751679AbbJ2FCP (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45019 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751741AbbJZXDv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 01:02:15 -0400
-To: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vb2: fix a regression in poll() behavior for output,streams
-Message-ID: <5631A84E.7040101@xs4all.nl>
-Date: Thu, 29 Oct 2015 14:02:06 +0900
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 26 Oct 2015 19:03:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 10/19] v4l: xilinx: Use the new media_entity_graph_walk_start() interface
+Date: Tue, 27 Oct 2015 01:01:41 +0200
+Message-Id: <1445900510-1398-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the 3.17 kernel the poll() behavior changed for output streams:
-as long as not all buffers were queued up poll() would return that
-userspace can write. This is fine for the write() call, but when
-using stream I/O this changed the behavior since the expectation
-was that it would wait for buffers to become available for dequeuing.
-
-This patch only enables the check whether you can queue buffers
-for file I/O only, and skips it for stream I/O.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-Note: This patch should be applied to stable for 3.17 and up.
+ drivers/media/platform/xilinx/xilinx-dma.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- drivers/media/v4l2-core/videobuf2-v4l2.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index dda525b..3ca8a2e 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -860,10 +860,10 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 		return res | POLLERR;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index bc244a0..0a19824 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -182,10 +182,17 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int num_inputs = 0;
+ 	unsigned int num_outputs = 0;
++	int ret;
  
- 	/*
--	 * For output streams you can write as long as there are fewer buffers
--	 * queued than there are buffers available.
-+	 * For output streams you can call write() as long as there are fewer
-+	 * buffers queued than there are buffers available.
- 	 */
--	if (q->is_output && q->queued_count < q->num_buffers)
-+	if (q->is_output && q->fileio && q->queued_count < q->num_buffers)
- 		return res | POLLOUT | POLLWRNORM;
+ 	mutex_lock(&mdev->graph_mutex);
  
- 	if (list_empty(&q->done_list)) {
+ 	/* Walk the graph to locate the video nodes. */
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&mdev->graph_mutex);
++		return ret;
++	}
++
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+@@ -206,6 +213,8 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&graph);
++
+ 	/* We need exactly one output and zero or one input. */
+ 	if (num_outputs != 1 || num_inputs > 1)
+ 		return -EPIPE;
 -- 
-2.6.1
+2.1.4
 
