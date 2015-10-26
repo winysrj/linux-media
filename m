@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51261 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101AbbJCPX7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Oct 2015 11:23:59 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Don Fry <pcnet32@frontier.com>,
-	Oliver Neukum <oneukum@suse.com>
-Cc: linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 08/15] netup_unidvb: use pci_set_dma_mask insted of pci_dma_supported
-Date: Sat,  3 Oct 2015 17:19:32 +0200
-Message-Id: <1443885579-7094-9-git-send-email-hch@lst.de>
-In-Reply-To: <1443885579-7094-1-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59127 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752145AbbJ0AnH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Oct 2015 20:43:07 -0400
+In-Reply-To: <1445901232.9389.2.camel@gmail.com>
+References: <1445901232.9389.2.camel@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: PVR-250 Composite 3 unavailable [Re: ivtv driver]
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Mon, 26 Oct 2015 19:49:02 -0400
+To: Warren Sturm <warren.sturm@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	andy <andy@silverblocksystems.net>
+Message-ID: <77A58399-549F-4A8A-8F87-8F40B7756D3A@md.metrocast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures the dma mask that is supported by the driver is recorded
-in the device structure.
+On October 26, 2015 7:13:52 PM EDT, Warren Sturm <warren.sturm@gmail.com> wrote:
+>Hi Andy.
+>
+>I don't know whether this was intended but the pvr250 lost the
+>composite 3 input when going from kernel version 4.1.10 to 4.2.3.
+>
+>This is on a Fedora 22 x86_64 system.
+>
+>
+>Thanks for any insight.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Unintentional.
 
-diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-index 6d8bf627..511144f 100644
---- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-+++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-@@ -809,7 +809,7 @@ static int netup_unidvb_initdev(struct pci_dev *pci_dev,
- 		"%s(): board vendor 0x%x, revision 0x%x\n",
- 		__func__, board_vendor, board_revision);
- 	pci_set_master(pci_dev);
--	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
-+	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
- 		dev_err(&pci_dev->dev,
- 			"%s(): 32bit PCI DMA is not supported\n", __func__);
- 		goto pci_detect_err;
--- 
-1.9.1
+I'm guessing this commit was the problem:
 
+http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/drivers/media/pci/ivtv/ivtv-driver.c?id=09290cc885937cab3b2d60a6d48fe3d2d3e04061
+
+Could you confirm?
+
+R,
+Andy
