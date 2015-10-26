@@ -1,75 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:51553 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751504AbbJBWHm (ORCPT
+Received: from mail-oi0-f44.google.com ([209.85.218.44]:32963 "EHLO
+	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753071AbbJZO5q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Oct 2015 18:07:42 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	tiwai@suse.de, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz,
-	dan.carpenter@oracle.com, tskd08@gmail.com, arnd@arndb.de,
-	ruchandani.tina@gmail.com, corbet@lwn.net, k.kozlowski@samsung.com,
-	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
-	elfring@users.sourceforge.net, Julia.Lawall@lip6.fr,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, chris.j.arges@canonical.com,
-	pierre-louis.bossart@linux.intel.com, johan@oljud.se,
-	wsa@the-dreams.de, jcragg@gmail.com, clemens@ladisch.de,
-	daniel@zonque.org, gtmkramer@xs4all.nl, misterpib@gmail.com,
-	takamichiho@gmail.com, pmatilai@laiskiainen.org,
-	vladcatoi@gmail.com, damien@zamaudio.com, normalperson@yhbt.net,
-	joe@oampo.co.uk, jussi@sonarnerd.net, calcprogrammer1@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen 10/20] media: au0828 Use au8522_media_pads enum for pad defines
-Date: Fri,  2 Oct 2015 16:07:22 -0600
-Message-Id: <d319d6a1975a21f070b3e4524554c52b60bed0ca.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1443822799.git.shuahkh@osg.samsung.com>
-References: <cover.1443822799.git.shuahkh@osg.samsung.com>
+	Mon, 26 Oct 2015 10:57:46 -0400
+Received: by oiad129 with SMTP id d129so101646988oia.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 07:57:45 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 26 Oct 2015 15:57:45 +0100
+Message-ID: <CAPW4HR13x2Qk2C18QT_wHvUMqMzdiy28Bj-NojX2E59BzJeUvQ@mail.gmail.com>
+Subject: [RFC] Snapshot Mode and Interrupt Trigger
+From: =?UTF-8?Q?Carlos_Sanmart=C3=ADn_Bustos?= <carsanbu@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828-core to use au8522_media_pads enum defines
-instead of hard-coding the pad values when it creates
-media graph linking decode pads to other entities.
+Hi,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+I was searching in the list if there is some RFC to implement some
+kind of snapshot mode in the API. I found a conversation [1] but it
+turned to flash capabilities.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 1c12285..b04c2a5 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -20,6 +20,7 @@
-  */
- 
- #include "au0828.h"
-+#include "au8522.h"
- 
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -286,11 +287,13 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		if (ret)
- 			return ret;
- 	}
--	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-+				    &dev->vdev.entity, 0,
- 			 	    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
--	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-+				    &dev->vbi_dev.entity, 0,
- 				    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
+The thing is, there are sensors with hardware trigger modes (a.k.a.
+snapshot modes) but there is not any standard form to deal with it. We
+can use v4l-controls to set this modes and continue using streaming
+API, it's an option.
+
+But in the other hand, if our sensor hasn't got snapshot mode or we
+can't use it, could be a nice option trigger the sensor by software
+using interrupts, like IIO triggers' do.
+
+At that point I'm thinking if it's possible to define a snapshot API
+for use the sensor's snapshot mode or the software snapshot mode
+reusing the IIO API, maybe using MC Next Gen for that.
+
+Suggestions?
+
+
+[1] http://www.spinics.net/lists/linux-media/msg29368.html
+
+
 -- 
-2.1.4
-
+Carlos Sanmartín
