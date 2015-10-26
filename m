@@ -1,132 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56673 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107AbbJLMpJ (ORCPT
+Received: from mail-ig0-f178.google.com ([209.85.213.178]:35804 "EHLO
+	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751359AbbJZREY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Oct 2015 08:45:09 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6057C2A0095
-	for <linux-media@vger.kernel.org>; Mon, 12 Oct 2015 14:43:13 +0200 (CEST)
-Message-ID: <561BAAE1.3030608@xs4all.nl>
-Date: Mon, 12 Oct 2015 14:43:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 26 Oct 2015 13:04:24 -0400
+Received: by igbkq10 with SMTP id kq10so63393454igb.0
+        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 10:04:23 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v4.4] Split the vb2 code into a v4l2 and core part
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
+References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
+	<5625DDCA.2040203@xs4all.nl>
+	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
+	<562B5178.5040303@xs4all.nl>
+	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+	<562D5DE2.5020406@xs4all.nl>
+	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
+Date: Mon, 26 Oct 2015 19:04:23 +0200
+Message-ID: <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
+Subject: Re: PCIe capture driver
+From: Ran Shalit <ranshalit@gmail.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit efe98010b80ec4516b2779e1b4e4a8ce16bf89fe:
+On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>> No, use V4L2. What you do with the frame after it has been captured
+>> into memory has no relevance to the API you use to capture into memory.
+>
+> Ran, I've built many open and closed source Linux drivers over the
+> last 10 years - so I can speak with authority on this.
+>
+> Hans is absolutely correct, don't make the mistake of going
+> proprietary with your API. Take advantage of the massive amount of
+> video related frameworks the kernel has to offer. It will get you to
+> market faster, assuming your goal is to build a driver that is open
+> source. If your licensing prohibits an open source driver solution,
+> you'll have no choice but to build your own proprietary API.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
 
-  [media] DocBook: Fix remaining issues with VB2 core documentation (2015-10-05 09:12:56 -0300)
+Hi,
 
-are available in the git repository at:
+Thank you very much for these valuable comments.
+If I may ask one more on this issue:
+Is there an example in linux tree, for a pci device which is used both
+as a capture and a display device ? (I've made a search but did not
+find any)
+The PCIe device we are using will be both a capture device and output
+video device (for display).
 
-  git://linuxtv.org/hverkuil/media_tree.git vb2-split
-
-for you to fetch changes up to d9b227c16a31f9cd9296376e7cf39f2e460bf3ce:
-
-  media: videobuf2: Move v4l2-specific stuff to videobuf2-v4l2 (2015-10-12 14:37:23 +0200)
-
-----------------------------------------------------------------
-Junghak Sung (4):
-      media: videobuf2: Change queue_setup argument
-      media: videobuf2: Replace v4l2-specific data with vb2 data.
-      media: videobuf2: Prepare to divide videobuf2
-      media: videobuf2: Move v4l2-specific stuff to videobuf2-v4l2
-
- Documentation/video4linux/v4l2-pci-skeleton.c            |    4 +-
- drivers/input/touchscreen/sur40.c                        |    3 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c                |    2 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c                   |    4 +-
- drivers/media/pci/cx23885/cx23885-417.c                  |    2 +-
- drivers/media/pci/cx23885/cx23885-dvb.c                  |    2 +-
- drivers/media/pci/cx23885/cx23885-vbi.c                  |    2 +-
- drivers/media/pci/cx23885/cx23885-video.c                |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c                |    3 +-
- drivers/media/pci/cx88/cx88-blackbird.c                  |    2 +-
- drivers/media/pci/cx88/cx88-dvb.c                        |    2 +-
- drivers/media/pci/cx88/cx88-vbi.c                        |    2 +-
- drivers/media/pci/cx88/cx88-video.c                      |    2 +-
- drivers/media/pci/dt3155/dt3155.c                        |    3 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c       |    2 +-
- drivers/media/pci/saa7134/saa7134-ts.c                   |    2 +-
- drivers/media/pci/saa7134/saa7134-vbi.c                  |    2 +-
- drivers/media/pci/saa7134/saa7134-video.c                |    2 +-
- drivers/media/pci/saa7134/saa7134.h                      |    2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c           |    2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c               |    2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c                  |    2 +-
- drivers/media/pci/tw68/tw68-video.c                      |    3 +-
- drivers/media/platform/am437x/am437x-vpfe.c              |    3 +-
- drivers/media/platform/blackfin/bfin_capture.c           |    3 +-
- drivers/media/platform/coda/coda-common.c                |    3 +-
- drivers/media/platform/davinci/vpbe_display.c            |    3 +-
- drivers/media/platform/davinci/vpif_capture.c            |    3 +-
- drivers/media/platform/davinci/vpif_display.c            |    3 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c              |    2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c         |    3 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c       |    3 +-
- drivers/media/platform/exynos4-is/fimc-lite.c            |    3 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c             |    2 +-
- drivers/media/platform/m2m-deinterlace.c                 |    2 +-
- drivers/media/platform/marvell-ccic/mcam-core.c          |    3 +-
- drivers/media/platform/mx2_emmaprp.c                     |    2 +-
- drivers/media/platform/omap3isp/ispvideo.c               |    2 +-
- drivers/media/platform/rcar_jpu.c                        |    3 +-
- drivers/media/platform/s3c-camif/camif-capture.c         |    3 +-
- drivers/media/platform/s5p-g2d/g2d.c                     |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c              |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c             |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c             |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c              |    2 +-
- drivers/media/platform/sh_veu.c                          |    3 +-
- drivers/media/platform/sh_vou.c                          |    3 +-
- drivers/media/platform/soc_camera/atmel-isi.c            |    2 +-
- drivers/media/platform/soc_camera/mx2_camera.c           |    3 +-
- drivers/media/platform/soc_camera/mx3_camera.c           |    3 +-
- drivers/media/platform/soc_camera/rcar_vin.c             |    3 +-
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c |    6 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c            |    3 +-
- drivers/media/platform/ti-vpe/vpe.c                      |    2 +-
- drivers/media/platform/vim2m.c                           |    3 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c             |    2 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c             |    7 +-
- drivers/media/platform/vivid/vivid-vbi-out.c             |    2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c             |    3 +-
- drivers/media/platform/vivid/vivid-vid-out.c             |    3 +-
- drivers/media/platform/vsp1/vsp1_video.c                 |    3 +-
- drivers/media/platform/xilinx/xilinx-dma.c               |    3 +-
- drivers/media/usb/airspy/airspy.c                        |    2 +-
- drivers/media/usb/au0828/au0828-vbi.c                    |    3 +-
- drivers/media/usb/au0828/au0828-video.c                  |    3 +-
- drivers/media/usb/em28xx/em28xx-vbi.c                    |    3 +-
- drivers/media/usb/em28xx/em28xx-video.c                  |    3 +-
- drivers/media/usb/go7007/go7007-v4l2.c                   |    2 +-
- drivers/media/usb/hackrf/hackrf.c                        |    2 +-
- drivers/media/usb/msi2500/msi2500.c                      |    2 +-
- drivers/media/usb/pwc/pwc-if.c                           |    2 +-
- drivers/media/usb/s2255/s2255drv.c                       |    2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c                  |    2 +-
- drivers/media/usb/usbtv/usbtv-video.c                    |    3 +-
- drivers/media/usb/uvc/uvc_queue.c                        |    3 +-
- drivers/media/v4l2-core/Makefile                         |    2 +-
- drivers/media/v4l2-core/v4l2-trace.c                     |    8 +-
- drivers/media/v4l2-core/vb2-trace.c                      |    9 +
- drivers/media/v4l2-core/videobuf2-core.c                 | 1961 ++++++------------------------------------------------
- drivers/media/v4l2-core/videobuf2-internal.h             |  161 +++++
- drivers/media/v4l2-core/videobuf2-v4l2.c                 | 1630 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/staging/media/davinci_vpfe/vpfe_video.c          |    2 +-
- drivers/staging/media/omap4iss/iss_video.c               |    2 +-
- drivers/usb/gadget/function/uvc_queue.c                  |    2 +-
- include/media/videobuf2-core.h                           |  153 ++---
- include/media/videobuf2-dvb.h                            |    8 +-
- include/media/videobuf2-v4l2.h                           |  104 +++
- include/trace/events/v4l2.h                              |   33 +-
- include/trace/events/vb2.h                               |   65 ++
- 89 files changed, 2369 insertions(+), 1967 deletions(-)
- create mode 100644 drivers/media/v4l2-core/vb2-trace.c
- create mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
- create mode 100644 include/trace/events/vb2.h
+Many Thanks,
+Ran
