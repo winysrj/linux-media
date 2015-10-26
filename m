@@ -1,272 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:38707 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772AbbJUJWk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45016 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751938AbbJZXDv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2015 05:22:40 -0400
-Received: by wicll6 with SMTP id ll6so64930379wic.1
-        for <linux-media@vger.kernel.org>; Wed, 21 Oct 2015 02:22:39 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, treding@nvidia.com, sumit.semwal@linaro.org,
-	tom.cooksey@arm.com, daniel.stone@collabora.com,
-	linux-security-module@vger.kernel.org, xiaoquan.li@vivantecorp.com,
-	labbott@redhat.com
-Cc: tom.gall@linaro.org, linaro-mm-sig@lists.linaro.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 2/3] SMAF: add CMA allocator
-Date: Wed, 21 Oct 2015 11:22:19 +0200
-Message-Id: <1445419340-11471-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1445419340-11471-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1445419340-11471-1-git-send-email-benjamin.gaignard@linaro.org>
+	Mon, 26 Oct 2015 19:03:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 08/19] v4l: omap3isp: Use the new media_entity_graph_walk_start() interface
+Date: Tue, 27 Oct 2015 01:01:39 +0200
+Message-Id: <1445900510-1398-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SMAF CMA allocator implement helpers functions to allow SMAF
-to allocate contiguous memory.
-
-match() each if at least one of the attached devices have coherent_dma_mask
-set to DMA_BIT_MASK(32).
-
-For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
-dma_alloc_writecombine to be compatible with ARM 64bits architecture
-
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/smaf/Kconfig    |   6 ++
- drivers/smaf/Makefile   |   1 +
- drivers/smaf/smaf-cma.c | 200 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 207 insertions(+)
- create mode 100644 drivers/smaf/smaf-cma.c
+ drivers/media/platform/omap3isp/isp.c      | 63 ++++++++++++++++++------------
+ drivers/media/platform/omap3isp/isp.h      |  4 +-
+ drivers/media/platform/omap3isp/ispvideo.c | 19 ++++++++-
+ drivers/media/platform/omap3isp/ispvideo.h |  1 +
+ 4 files changed, 60 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index d36651a..058ec4c 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -3,3 +3,9 @@ config SMAF
- 	depends on DMA_SHARED_BUFFER
- 	help
- 	  Choose this option to enable Secure Memory Allocation Framework
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 0d1249f..4a01a36 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -683,14 +683,14 @@ static irqreturn_t isp_isr(int irq, void *_isp)
+  *
+  * Return the total number of users of all video device nodes in the pipeline.
+  */
+-static int isp_pipeline_pm_use_count(struct media_entity *entity)
++static int isp_pipeline_pm_use_count(struct media_entity *entity,
++	struct media_entity_graph *graph)
+ {
+-	struct media_entity_graph graph;
+ 	int use = 0;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		if (is_media_entity_v4l2_io(entity))
+ 			use += entity->use_count;
+ 	}
+@@ -742,27 +742,27 @@ static int isp_pipeline_pm_power_one(struct media_entity *entity, int change)
+  *
+  * Return 0 on success or a negative error code on failure.
+  */
+-static int isp_pipeline_pm_power(struct media_entity *entity, int change)
++static int isp_pipeline_pm_power(struct media_entity *entity, int change,
++	struct media_entity_graph *graph)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *first = entity;
+ 	int ret = 0;
+ 
+ 	if (!change)
+ 		return 0;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
++	while (!ret && (entity = media_entity_graph_walk_next(graph)))
+ 		if (is_media_entity_v4l2_subdev(entity))
+ 			ret = isp_pipeline_pm_power_one(entity, change);
+ 
+ 	if (!ret)
+-		return 0;
++		return ret;
+ 
+-	media_entity_graph_walk_start(&graph, first);
++	media_entity_graph_walk_start(graph, first);
+ 
+-	while ((first = media_entity_graph_walk_next(&graph))
++	while ((first = media_entity_graph_walk_next(graph))
+ 	       && first != entity)
+ 		if (is_media_entity_v4l2_subdev(first))
+ 			isp_pipeline_pm_power_one(first, -change);
+@@ -782,7 +782,8 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+  * off is assumed to never fail. No failure can occur when the use parameter is
+  * set to 0.
+  */
+-int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
++int omap3isp_pipeline_pm_use(struct media_entity *entity, int use,
++			     struct media_entity_graph *graph)
+ {
+ 	int change = use ? 1 : -1;
+ 	int ret;
+@@ -794,7 +795,7 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ 	WARN_ON(entity->use_count < 0);
+ 
+ 	/* Apply power change to connected non-nodes. */
+-	ret = isp_pipeline_pm_power(entity, change);
++	ret = isp_pipeline_pm_power(entity, change, graph);
+ 	if (ret < 0)
+ 		entity->use_count -= change;
+ 
+@@ -820,35 +821,49 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
+ 				    unsigned int notification)
+ {
++	struct media_entity_graph *graph =
++		&container_of(link->graph_obj.mdev, struct isp_device,
++			      media_dev)->pm_count_graph;
+ 	struct media_entity *source = link->source->entity;
+ 	struct media_entity *sink = link->sink->entity;
+-	int source_use = isp_pipeline_pm_use_count(source);
+-	int sink_use = isp_pipeline_pm_use_count(sink);
+-	int ret;
++	int source_use;
++	int sink_use;
++	int ret = 0;
 +
-+config SMAF_CMA
-+	tristate "SMAF CMA allocator"
-+	depends on SMAF && HAVE_DMA_ATTRS
-+	help
-+	  Choose this option to enable CMA allocation within SMAF
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 40cd882..05bab01 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
-+obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
-new file mode 100644
-index 0000000..012edd3
---- /dev/null
-+++ b/drivers/smaf/smaf-cma.c
-@@ -0,0 +1,200 @@
-+/*
-+ * smaf-cma.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-allocator.h>
-+
-+struct smaf_cma_buffer_info {
-+	struct device *dev;
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+};
-+
-+/**
-+ * find_matching_device - iterate over the attached devices to find one
-+ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
-+ * Matching device (if any) will be used to aim CMA area.
-+ */
-+static struct device *find_matching_device(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
-+			return attach_obj->dev;
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
++		ret = media_entity_graph_walk_init(graph,
++						   link->graph_obj.mdev);
++		if (ret)
++			return ret;
 +	}
 +
-+	return NULL;
-+}
-+
-+/**
-+ * smaf_cma_match - return true if at least one device has been found
-+ */
-+static bool smaf_cma_match(struct dma_buf *dmabuf)
-+{
-+	return !!find_matching_device(dmabuf);
-+}
-+
-+static void smaf_cma_release(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	dma_free_attrs(info->dev, info->size, info->vaddr, info->paddr, &attrs);
-+
-+	kfree(info);
-+}
-+
-+static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
-+				     enum dma_data_direction direction)
-+{
-+	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return NULL;
-+
-+	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
-+			      info->paddr, info->size);
-+	if (ret < 0)
-+		goto out;
-+
-+	sg_dma_address(sgt->sgl) = info->paddr;
-+	return sgt;
-+
-+out:
-+	kfree(sgt);
-+	return NULL;
-+}
-+
-+static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
-+			   struct sg_table *sgt,
-+			   enum dma_data_direction direction)
-+{
-+	/* do nothing */
-+}
-+
-+static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	int ret;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	if (info->size < vma->vm_end - vma->vm_start)
-+		return -EINVAL;
-+
-+	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
-+			     info->size, &attrs);
++	source_use = isp_pipeline_pm_use_count(source, graph);
++	sink_use = isp_pipeline_pm_use_count(sink, graph);
+ 
+ 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+ 	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		/* Powering off entities is assumed to never fail. */
+-		isp_pipeline_pm_power(source, -sink_use);
+-		isp_pipeline_pm_power(sink, -source_use);
++		isp_pipeline_pm_power(source, -sink_use, graph);
++		isp_pipeline_pm_power(sink, -source_use, graph);
+ 		return 0;
+ 	}
+ 
+ 	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+ 		(flags & MEDIA_LNK_FL_ENABLED)) {
+ 
+-		ret = isp_pipeline_pm_power(source, sink_use);
++		ret = isp_pipeline_pm_power(source, sink_use, graph);
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		ret = isp_pipeline_pm_power(sink, source_use);
++		ret = isp_pipeline_pm_power(sink, source_use, graph);
+ 		if (ret < 0)
+-			isp_pipeline_pm_power(source, -sink_use);
+-
+-		return ret;
++			isp_pipeline_pm_power(source, -sink_use, graph);
+ 	}
+ 
+-	return 0;
++	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH)
++		media_entity_graph_walk_cleanup(graph);
 +
 +	return ret;
-+}
-+
-+static void *smaf_cma_vmap(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return info->vaddr;
-+}
-+
-+static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return (void *)info->vaddr + offset;
-+}
-+
-+static struct dma_buf_ops smaf_cma_ops = {
-+	.map_dma_buf = smaf_cma_map,
-+	.unmap_dma_buf = smaf_cma_unmap,
-+	.mmap = smaf_cma_mmap,
-+	.release = smaf_cma_release,
-+	.kmap_atomic = smaf_kmap_atomic,
-+	.kmap = smaf_kmap_atomic,
-+	.vmap = smaf_cma_vmap,
-+};
-+
-+static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
-+					 size_t length, unsigned int flags)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+	struct smaf_cma_buffer_info *info;
-+	struct dma_buf *cma_dmabuf;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 5acc2e6..b6f81f2 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -176,6 +176,7 @@ struct isp_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_async_notifier notifier;
+ 	struct media_device media_dev;
++	struct media_entity_graph pm_count_graph;
+ 	struct device *dev;
+ 	u32 revision;
+ 
+@@ -265,7 +266,8 @@ void omap3isp_subclk_enable(struct isp_device *isp,
+ void omap3isp_subclk_disable(struct isp_device *isp,
+ 			     enum isp_subclk_resource res);
+ 
+-int omap3isp_pipeline_pm_use(struct media_entity *entity, int use);
++int omap3isp_pipeline_pm_use(struct media_entity *entity, int use,
++			     struct media_entity_graph *graph);
+ 
+ int omap3isp_register_entities(struct platform_device *pdev,
+ 			       struct v4l2_device *v4l2_dev);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 52843ac..e68ec2f 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -227,8 +227,15 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct isp_video *far_end = NULL;
 +	int ret;
-+
-+	DEFINE_DMA_BUF_EXPORT_INFO(export);
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return NULL;
-+
-+	info->size = round_up(length, PAGE_SIZE);
-+	info->dev = find_matching_device(dmabuf);
-+
-+	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
-+				      GFP_KERNEL | __GFP_NOWARN, &attrs);
-+	if (!info->vaddr) {
-+		ret = -ENOMEM;
-+		goto error;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&mdev->graph_mutex);
++		return ret;
 +	}
 +
-+	export.ops = &smaf_cma_ops;
-+	export.size = info->size;
-+	export.flags = flags;
-+	export.priv = info;
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+@@ -252,6 +259,8 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&graph);
 +
-+	cma_dmabuf = dma_buf_export(&export);
-+	if (IS_ERR(cma_dmabuf))
-+		goto error;
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		pipe->input = far_end;
+ 		pipe->output = video;
+@@ -1242,7 +1251,12 @@ static int isp_video_open(struct file *file)
+ 		goto done;
+ 	}
+ 
+-	ret = omap3isp_pipeline_pm_use(&video->video.entity, 1);
++	ret = media_entity_graph_walk_init(&handle->graph,
++					   &video->isp->media_dev);
++	if (ret)
++		goto done;
 +
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		dma_buf_attach(cma_dmabuf, attach_obj->dev);
-+	}
-+
-+	return cma_dmabuf;
-+
-+error:
-+	kfree(info);
-+	return NULL;
-+}
-+
-+static struct smaf_allocator smaf_cma = {
-+	.match = smaf_cma_match,
-+	.allocate = smaf_cma_allocate,
-+	.name = "smaf-cma",
-+	.ranking = 0,
-+};
-+
-+static int __init smaf_cma_init(void)
-+{
-+	INIT_LIST_HEAD(&smaf_cma.list_node);
-+	return smaf_register_allocator(&smaf_cma);
-+}
-+module_init(smaf_cma_init);
-+
-+static void __exit smaf_cma_deinit(void)
-+{
-+	smaf_unregister_allocator(&smaf_cma);
-+}
-+module_exit(smaf_cma_deinit);
-+
-+MODULE_DESCRIPTION("SMAF CMA module");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
++	ret = omap3isp_pipeline_pm_use(&video->video.entity, 1, &handle->graph);
+ 	if (ret < 0) {
+ 		omap3isp_put(video->isp);
+ 		goto done;
+@@ -1273,6 +1287,7 @@ static int isp_video_open(struct file *file)
+ done:
+ 	if (ret < 0) {
+ 		v4l2_fh_del(&handle->vfh);
++		media_entity_graph_walk_cleanup(&handle->graph);
+ 		kfree(handle);
+ 	}
+ 
+@@ -1292,7 +1307,7 @@ static int isp_video_release(struct file *file)
+ 	vb2_queue_release(&handle->queue);
+ 	mutex_unlock(&video->queue_lock);
+ 
+-	omap3isp_pipeline_pm_use(&video->video.entity, 0);
++	omap3isp_pipeline_pm_use(&video->video.entity, 0, &handle->graph);
+ 
+ 	/* Release the file handle. */
+ 	v4l2_fh_del(vfh);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 4071dd7..6c498ea 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -189,6 +189,7 @@ struct isp_video_fh {
+ 	struct vb2_queue queue;
+ 	struct v4l2_format format;
+ 	struct v4l2_fract timeperframe;
++	struct media_entity_graph graph;
+ };
+ 
+ #define to_isp_video_fh(fh)	container_of(fh, struct isp_video_fh, vfh)
 -- 
-1.9.1
+2.1.4
 
