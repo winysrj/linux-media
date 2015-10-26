@@ -1,57 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:35804 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbbJZREY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45024 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752080AbbJZXDw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 13:04:24 -0400
-Received: by igbkq10 with SMTP id kq10so63393454igb.0
-        for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 10:04:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-	<5625DDCA.2040203@xs4all.nl>
-	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
-	<562B5178.5040303@xs4all.nl>
-	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
-	<562D5DE2.5020406@xs4all.nl>
-	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
-Date: Mon, 26 Oct 2015 19:04:23 +0200
-Message-ID: <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-Subject: Re: PCIe capture driver
-From: Ran Shalit <ranshalit@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Mon, 26 Oct 2015 19:03:52 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 13/19] media: Keep using the same graph walk object for a given pipeline
+Date: Tue, 27 Oct 2015 01:01:44 +0200
+Message-Id: <1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
->> No, use V4L2. What you do with the frame after it has been captured
->> into memory has no relevance to the API you use to capture into memory.
->
-> Ran, I've built many open and closed source Linux drivers over the
-> last 10 years - so I can speak with authority on this.
->
-> Hans is absolutely correct, don't make the mistake of going
-> proprietary with your API. Take advantage of the massive amount of
-> video related frameworks the kernel has to offer. It will get you to
-> market faster, assuming your goal is to build a driver that is open
-> source. If your licensing prohibits an open source driver solution,
-> you'll have no choice but to build your own proprietary API.
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
+Initialise a given graph walk object once, and then keep using it whilst
+the same pipeline is running. Once the pipeline is stopped, release the
+graph walk object.
 
-Hi,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-entity.c | 17 +++++++++++------
+ include/media/media-entity.h |  1 +
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
-Thank you very much for these valuable comments.
-If I may ask one more on this issue:
-Is there an example in linux tree, for a pci device which is used both
-as a capture and a display device ? (I've made a search but did not
-find any)
-The PCIe device we are using will be both a capture device and output
-video device (for display).
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 7429c03..137aa09d 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+-	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+-	if (ret) {
+-		mutex_unlock(&mdev->graph_mutex);
+-		return ret;
++	if (!pipe->streaming_count++) {
++		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
++		if (ret)
++			goto error_graph_walk_start;
+ 	}
+ 
+ 	media_entity_graph_walk_start(&pipe->graph, entity);
+@@ -592,7 +592,9 @@ error:
+ 			break;
+ 	}
+ 
+-	media_entity_graph_walk_cleanup(graph);
++error_graph_walk_start:
++	if (!--pipe->streaming_count)
++		media_entity_graph_walk_cleanup(graph);
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+@@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct media_entity_graph *graph = &entity->pipe->graph;
++	struct media_pipeline *pipe = entity->pipe;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
++	BUG_ON(!pipe->streaming_count);
+ 	media_entity_graph_walk_start(graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(graph))) {
+@@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+ 			entity->pipe = NULL;
+ 	}
+ 
+-	media_entity_graph_walk_cleanup(graph);
++	if (!--pipe->streaming_count)
++		media_entity_graph_walk_cleanup(graph);
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ }
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 21fd07b..cc01e08 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -98,6 +98,7 @@ struct media_entity_graph {
+ };
+ 
+ struct media_pipeline {
++	int streaming_count;
+ 	/* For walking the graph in pipeline start / stop */
+ 	struct media_entity_graph graph;
+ };
+-- 
+2.1.4
 
-Many Thanks,
-Ran
