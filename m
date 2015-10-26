@@ -1,185 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:22953 "EHLO
-	DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752191AbbJSCvR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45007 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752085AbbJZXDw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Oct 2015 22:51:17 -0400
-Subject: Re: [PATCH 5/5] media: atmel-isi: support RGB565 output when sensor
- output YUV formats
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1442898875-7147-1-git-send-email-josh.wu@atmel.com>
- <1442898875-7147-6-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1510041852470.26834@axis700.grange>
- <561DFCE4.8090508@atmel.com>
- <Pine.LNX.4.64.1510190357000.26684@axis700.grange>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Josh Wu <josh.wu@atmel.com>
-Message-ID: <56245A84.6070907@atmel.com>
-Date: Mon, 19 Oct 2015 10:50:44 +0800
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1510190357000.26684@axis700.grange>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 26 Oct 2015 19:03:52 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 15/19] v4l: vsp1: Use media entity enumeration API
+Date: Tue, 27 Oct 2015 01:01:46 +0200
+Message-Id: <1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Guennadi,
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On 10/19/2015 10:03 AM, Guennadi Liakhovetski wrote:
-> Hi Josh,
->
-> On Wed, 14 Oct 2015, Josh Wu wrote:
->
->> Dear Guennadi,
->>
->> Thanks for the review.
->>
->> On 10/5/2015 1:02 AM, Guennadi Liakhovetski wrote:
->>> On Tue, 22 Sep 2015, Josh Wu wrote:
->>>
->>>> This patch enable Atmel ISI preview path to convert the YUV to RGB format.
->>>>
->>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>>> ---
->>>>
->>>>    drivers/media/platform/soc_camera/atmel-isi.c | 38
->>>> ++++++++++++++++++++-------
->>>>    1 file changed, 29 insertions(+), 9 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
->>>> b/drivers/media/platform/soc_camera/atmel-isi.c
->>>> index e87d354..e33a16a 100644
->>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->>>> @@ -201,13 +201,20 @@ static bool is_supported(struct soc_camera_device
->>>> *icd,
->>>>    	case V4L2_PIX_FMT_UYVY:
->>>>    	case V4L2_PIX_FMT_YVYU:
->>>>    	case V4L2_PIX_FMT_VYUY:
->>>> +	/* RGB */
->>>> +	case V4L2_PIX_FMT_RGB565:
->>>>    		return true;
->>>> -	/* RGB, TODO */
->>>>    	default:
->>>>    		return false;
->>>>    	}
->>>>    }
->>>>    +static bool is_output_rgb(const struct soc_mbus_pixelfmt *host_fmt)
->>>> +{
->>>> +	return host_fmt->fourcc == V4L2_PIX_FMT_RGB565 ||
->>>> +			host_fmt->fourcc == V4L2_PIX_FMT_RGB32;
->>>> +}
->>>> +
->>> Why not just pass fourcc to this function? Or maybe just embed it in
->>> start_streaming - it won't clutter it a lot.
->> I think pass fourcc to the function is good.
->> Since configure_geometry() is hardware related, and the enable_preview_path is
->> also hardware related, so I prefer initialize enable_preview_path in
->> configure_geometry().
-> But you don't, you do it in start_streaming() below.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
-Right, then I'll move it to configure_geometry() in v2..
-
-> But actually my
-> comment was not about _where_ to do it, but whether this calculation is
-> worth a separate function. I would just perform this calculation directly
-> where you're calling it:
->
-> static ... start_streaming(...)
-> {
-> 	...
-> 	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
->
-> 	isi->enable_preview_path = fourcc == V4L2_PIX_FMT_RGB565 ||
-> 				fourcc == V4L2_PIX_FMT_RGB32;
-
-I thought this "function" might be called in other place, but actually 
-no one call it.
-So yes, I think there is no need to have such separated function. I'll 
-fix it in v2. Thanks.
-
-Best Regards,
-Josh Wu
-
->
-> Thanks
-> Guennadi
->
->>>>    static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
->>>>    {
->>>>    	if (isi->active) {
->>>> @@ -467,6 +474,8 @@ static int start_streaming(struct vb2_queue *vq,
->>>> unsigned int count)
->>>>    	struct atmel_isi *isi = ici->priv;
->>>>    	int ret;
->>>>    +	isi->enable_preview_path = is_output_rgb(icd->current_fmt->host_fmt);
->>>> +
->>>>    	pm_runtime_get_sync(ici->v4l2_dev.dev);
->>>>      	/* Reset ISI */
->>>> @@ -688,6 +697,14 @@ static const struct soc_mbus_pixelfmt
->>>> isi_camera_formats[] = {
->>>>    		.order			= SOC_MBUS_ORDER_LE,
->>>>    		.layout			= SOC_MBUS_LAYOUT_PACKED,
->>>>    	},
->>>> +	{
->>>> +		.fourcc			= V4L2_PIX_FMT_RGB565,
->>>> +		.name			= "RGB565",
->>>> +		.bits_per_sample	= 8,
->>>> +		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
->>>> +		.order			= SOC_MBUS_ORDER_LE,
->>>> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
->>>> +	},
->>>>    };
->>>>      /* This will be corrected as we get more formats */
->>>> @@ -744,7 +761,7 @@ static int isi_camera_get_formats(struct
->>>> soc_camera_device *icd,
->>>>    				  struct soc_camera_format_xlate *xlate)
->>>>    {
->>>>    	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>>> -	int formats = 0, ret;
->>>> +	int formats = 0, ret, i, n;
->>>>    	/* sensor format */
->>>>    	struct v4l2_subdev_mbus_code_enum code = {
->>>>    		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
->>>> @@ -778,13 +795,16 @@ static int isi_camera_get_formats(struct
->>>> soc_camera_device *icd,
->>>>    	case MEDIA_BUS_FMT_VYUY8_2X8:
->>>>    	case MEDIA_BUS_FMT_YUYV8_2X8:
->>>>    	case MEDIA_BUS_FMT_YVYU8_2X8:
->>>> -		formats++;
->>>> -		if (xlate) {
->>>> -			xlate->host_fmt	= &isi_camera_formats[0];
->>>> -			xlate->code	= code.code;
->>>> -			xlate++;
->>>> -			dev_dbg(icd->parent, "Providing format %s using code
->>>> %d\n",
->>>> -				isi_camera_formats[0].name, code.code);
->>>> +		n = ARRAY_SIZE(isi_camera_formats);
->>>> +		formats += n;
->>>> +		for (i = 0; i < n; i++) {
->>>> +			if (xlate) {
->>> I'd put if outside of the loop, or just do
->>>
->>> +		for (i = 0; xlate && i < n; i++) {
->> yes, that simpler one. I'll take it. Thanks.
->>
->> Best Regards,
->> Josh Wu
->>>
->>>> +				xlate->host_fmt	= &isi_camera_formats[i];
->>>> +				xlate->code	= code.code;
->>>> +				dev_dbg(icd->parent, "Providing format %s
->>>> using code %d\n",
->>>> +					isi_camera_formats[0].name,
->>>> code.code);
->>>> +				xlate++;
->>>> +			}
->>>>    		}
->>>>    		break;
->>>>    	default:
->>>> -- 
->>>> 1.9.1
->>>>
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index ce10d86..b3fd2be 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 					 struct vsp1_rwpf *output)
+ {
+ 	struct vsp1_entity *entity;
+-	unsigned int entities = 0;
++	struct media_entity_enum entities;
+ 	struct media_pad *pad;
++	int rval;
+ 	bool bru_found = false;
+ 
+ 	input->location.left = 0;
+ 	input->location.top = 0;
+ 
++	rval = media_entity_enum_init(
++		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
++	if (rval)
++		return rval;
++
+ 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
+ 
+ 	while (1) {
+-		if (pad == NULL)
+-			return -EPIPE;
++		if (pad == NULL) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+ 		/* We've reached a video node, that shouldn't have happened. */
+-		if (!is_media_entity_v4l2_subdev(pad->entity))
+-			return -EPIPE;
++		if (!is_media_entity_v4l2_subdev(pad->entity)) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+-		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
++		entity = to_vsp1_entity(
++			media_entity_to_v4l2_subdev(pad->entity));
+ 
+ 		/* A BRU is present in the pipeline, store the compose rectangle
+ 		 * location in the input RPF for use when configuring the RPF.
+@@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 			break;
+ 
+ 		/* Ensure the branch has no loop. */
+-		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
+-			return -EPIPE;
+-
+-		entities |= 1 << media_entity_id(&entity->subdev.entity);
++		if (media_entity_enum_test_and_set(&entities,
++						   &entity->subdev.entity)) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+ 		/* UDS can't be chained. */
+ 		if (entity->type == VSP1_ENTITY_UDS) {
+-			if (pipe->uds)
+-				return -EPIPE;
++			if (pipe->uds) {
++				rval = -EPIPE;
++				goto out;
++			}
+ 
+ 			pipe->uds = entity;
+ 			pipe->uds_input = bru_found ? pipe->bru
+@@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 
+ 	/* The last entity must be the output WPF. */
+ 	if (entity != &output->entity)
+-		return -EPIPE;
++		rval = -EPIPE;
+ 
+-	return 0;
++out:
++	media_entity_enum_cleanup(&entities);
++
++	return rval;
+ }
+ 
+ static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
+-- 
+2.1.4
 
