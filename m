@@ -1,78 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f46.google.com ([209.85.215.46]:35410 "EHLO
-	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756638AbbJ2KKo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44994 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751751AbbJZXDu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 06:10:44 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Isely <isely@pobox.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 5/6] media/usb/pvrusb2: Support for V4L2_CTRL_WHICH_DEF_VAL
-Date: Thu, 29 Oct 2015 11:10:31 +0100
-Message-Id: <1446113432-27390-6-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1446113432-27390-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1446113432-27390-1-git-send-email-ricardo.ribalda@gmail.com>
+	Mon, 26 Oct 2015 19:03:50 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 00/19] Unrestricted media entity ID range support
+Date: Tue, 27 Oct 2015 01:01:31 +0200
+Message-Id: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver does not use the control infrastructure.
-Add support for the new field which on structure
- v4l2_ext_controls
+Hi,
 
-Acked-by: Mike Isely <isely@pobox.com>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+This is an update to my previous RFC patchset here:
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 1c5f85bf7ed4..81f788b7b242 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -628,6 +628,7 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
- 	struct v4l2_ext_control *ctrl;
-+	struct pvr2_ctrl *cptr;
- 	unsigned int idx;
- 	int val;
- 	int ret;
-@@ -635,8 +636,15 @@ static int pvr2_g_ext_ctrls(struct file *file, void *priv,
- 	ret = 0;
- 	for (idx = 0; idx < ctls->count; idx++) {
- 		ctrl = ctls->controls + idx;
--		ret = pvr2_ctrl_get_value(
--				pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id), &val);
-+		cptr = pvr2_hdw_get_ctrl_v4l(hdw, ctrl->id);
-+		if (cptr) {
-+			if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
-+				pvr2_ctrl_get_def(cptr, &val);
-+			else
-+				ret = pvr2_ctrl_get_value(cptr, &val);
-+		} else
-+			ret = -EINVAL;
-+
- 		if (ret) {
- 			ctls->error_idx = idx;
- 			return ret;
-@@ -658,6 +666,10 @@ static int pvr2_s_ext_ctrls(struct file *file, void *priv,
- 	unsigned int idx;
- 	int ret;
- 
-+	/* Default value cannot be changed */
-+	if (ctls->which == V4L2_CTRL_WHICH_DEF_VAL)
-+		return -EINVAL;
-+
- 	ret = 0;
- 	for (idx = 0; idx < ctls->count; idx++) {
- 		ctrl = ctls->controls + idx;
+<URL:http://www.spinics.net/lists/linux-media/msg93481.html>
+
+In addition to the problems the patchset previously resolved and features
+it implemented:
+
+- unrestricted media entity ID support and
+- API to manage entity enumerations
+
+this set now solves one additional problem:
+
+- unrestricted number of media entities.
+
+The set also paves way to dynamic media entity registration but does not
+implement it yet. In a completely dynamic system there's a lot more
+mandatory error handling and difficult corner cases that one has to deal
+with. There are cases where entity enumeration or graph walk may not fail
+such as stopping streaming or power count calculation in link
+enabling/disabling. This can be resolved by allocating entity enumerations
+at a safe time and keeping them around until when they're needed and
+releasing when they're no longer needed.
+
+Keeping around entity enumerations together with dynamic entity
+enumeration allocation brings up another problem: how do you ensure an
+entity enumeration is large enough for all the entities that can be
+encountered?
+
+These additional problems are left for the future. This set does not
+intend to address them.
+
+The set has been tested with the omap3isp driver while the exynos4-is,
+xilinx, vsp1 and omap4iss driver have been compile tested only. I'd
+appreciate if others who have access to the hardware tested them.
+
+What's changed is that the media entity enumerations are now dynamically
+allocated if the number of entities in an enumeration exceeds a certain
+constant value (which is now 64). The implication is that now error
+handling is mandatory in entity enum initialisation (and thus graph walk
+as well) as memory allocation may fail. Enumerations are allocated and
+re-used in a few occasions in file handle open/close and pipeline
+start/stop in order to guarantee successful graph walk, for instance.
+
+The set also contains a fix for the omap4iss power management code. I kept
+it in the set since another omap4iss driver patch depends on it.
+
+Reviews would be very welcome.
+
 -- 
-2.6.1
-
+Kind regards,
+Sakari
