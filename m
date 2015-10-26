@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:38657 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674AbbJEMpW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 08:45:22 -0400
-Received: by wiclk2 with SMTP id lk2so112791763wic.1
-        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 05:45:20 -0700 (PDT)
-Message-ID: <561270E1.1040707@gmail.com>
-Date: Mon, 05 Oct 2015 14:45:21 +0200
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51205 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594AbbJZBUf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Oct 2015 21:20:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Hyun Kwon <hyun.kwon@xilinx.com>, kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Andrew Lunn <andrew@lunn.ch>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Jason Cooper <jason@lakedaemon.net>
+Subject: Re: [PATCH 5/8] [media] v4l: xilinx-vipp: add missing of_node_put
+Date: Mon, 26 Oct 2015 03:20:36 +0200
+Message-ID: <8217156.HJH9oYGKMG@avalon>
+In-Reply-To: <1445781427-7110-6-git-send-email-Julia.Lawall@lip6.fr>
+References: <1445781427-7110-1-git-send-email-Julia.Lawall@lip6.fr> <1445781427-7110-6-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
-To: Richard Tresidder <rtresidd@tresar-electronics.com.au>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-References: <5610B12B.8090201@tresar-electronics.com.au>
-In-Reply-To: <5610B12B.8090201@tresar-electronics.com.au>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, not sure if this is related.
-I had to recompile the centos7 stock kernel with:
-CONFIG_I2C_MUX=m
+Hi Julia,
 
-It was not enabled in the kernel config.
+Thank you for the patch.
 
-Op 04-10-15 om 06:55 schreef Richard Tresidder:
-> Sorry If I've posted this to the wrong section my first attempt..
->
-> Hi
->    I'm attempting to get an HVR2205 up and going.
-> CORE saa7164[1]: subsystem: 0070:f120, board: Hauppauge WinTV-HVR2205 
-> [card=13,autodetected]
-> Distribution is CentOS7 so I've pulled the v4l from media_build.git
-> Had to change a couple of things..  and another macro issue regarding 
-> clamp() ..
-> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c  was failing..
-> kept getting:  kernel: modprobe: page allocation failure: order:10, 
-> mode:0x10c0d0
-> Have plenty of RAM free so surprised about that one.. tried some of 
-> the tricks re increasing the vm.min_free_kbytes etc..
->
-> Any way I modified the routine to only allocate a single chunk buffer 
-> based on dstsize and tweaked the chunk handling code..
-> seemed to fix that one.. fw downloaded and seemed to boot ok..
->
-> Next I'm running into a problem with the saa7164_dvb_register() stage...
->
-> saa7164[1]: Hauppauge eeprom: model=151609
-> saa7164_dvb_register() Frontend/I2C initialization failed
-> saa7164_initdev() Failed to register dvb adapters on porta
->
-> I added some extra debug and identified that client_demod->dev.driver 
-> is null..
->
-> However I'm now stuck as to what to tackle next..
->
-> I can provide more info, just didn't want to spam the list for my 
-> first email..
->
-> Regards
->    Richard Tresidder
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sunday 25 October 2015 14:57:04 Julia Lawall wrote:
+> for_each_child_of_node performs an of_node_get on each iteration, so
+> a break out of the loop requires an of_node_put.
+> 
+> A simplified version of the semantic patch that fixes this problem is as
+> follows (http://coccinelle.lip6.fr):
+> 
+> // <smpl>
+> @@
+> expression root,e;
+> local idexpression child;
+> @@
+> 
+>  for_each_child_of_node(root, child) {
+>    ... when != of_node_put(child)
+>        when != e = child
+> (
+>    return child;
+> 
+> +  of_node_put(child);
+> ?  return ...;
+> )
+>    ...
+>  }
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/xilinx/xilinx-vipp.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
+> b/drivers/media/platform/xilinx/xilinx-vipp.c index 7b7cb9c..b9bf24f 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> @@ -476,8 +476,10 @@ static int xvip_graph_dma_init(struct
+> xvip_composite_device *xdev)
+> 
+>  	for_each_child_of_node(ports, port) {
+>  		ret = xvip_graph_dma_init_one(xdev, port);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			of_node_put(port);
+>  			return ret;
+> +		}
+>  	}
+> 
+>  	return 0;
+
+-- 
+Regards,
+
+Laurent Pinchart
 
