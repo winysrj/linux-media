@@ -1,121 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:33323 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbbJMXKO (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48148 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752526AbbJ0D4a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Oct 2015 19:10:14 -0400
-Date: Wed, 14 Oct 2015 00:09:57 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv9 06/15] rc: Add HDMI CEC protocol handling
-Message-ID: <20151013230957.GN32532@n2100.arm.linux.org.uk>
-References: <cover.1441633456.git.hansverk@cisco.com>
- <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com>
- <20151006180540.GR21513@n2100.arm.linux.org.uk>
- <561B9E97.4050909@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <561B9E97.4050909@xs4all.nl>
+	Mon, 26 Oct 2015 23:56:30 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0D1BF2A0095
+	for <linux-media@vger.kernel.org>; Tue, 27 Oct 2015 04:54:14 +0100 (CET)
+Date: Tue, 27 Oct 2015 04:54:13 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151027035414.0D1BF2A0095@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 12, 2015 at 01:50:47PM +0200, Hans Verkuil wrote:
-> On 10/06/2015 08:05 PM, Russell King - ARM Linux wrote:
-> > On Mon, Sep 07, 2015 at 03:44:35PM +0200, Hans Verkuil wrote:
-> >> From: Kamil Debski <kamil@wypas.org>
-> >>
-> >> Add handling of remote control events coming from the HDMI CEC bus.
-> >> This patch includes a new keymap that maps values found in the CEC
-> >> messages to the keys pressed and released. Also, a new protocol has
-> >> been added to the core.
-> >>
-> >> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > (Added Mauro)
-> > 
-> > Hmm, how is rc-cec supposed to be loaded?
-> 
-> Is CONFIG_RC_MAP enabled in your config? Ran 'depmod -a'? (Sorry, I'm sure you've done
-> that, just checking...)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-CONFIG_RC_MAP=m
+Results of the daily build of media_tree:
 
-and yes, if depmod hadn't have been run, modprobing rc-cec would not
-have worked - modprobe always looks up in the depmod information to
-find out where the module is located, and also to determine any
-dependencies.
+date:		Tue Oct 27 04:00:15 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-> It's optional as I understand it, since you could configure the keytable from
-> userspace instead of using this module.
-> 
-> For the record (just tried it), it does load fine on my setup.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Immediately after boot, I have:
+Detailed results are available here:
 
-# lsmod
-Module                  Size  Used by
-...
-coda                   54685  0
-v4l2_mem2mem           14517  1 coda
-videobuf2_dma_contig     9478  1 coda
-videobuf2_vmalloc       5529  1 coda
-videobuf2_memops        1888  2 videobuf2_dma_contig,videobuf2_vmalloc
-cecd_dw_hdmi            3129  0
-# modprobe rc-cec
-# lsmod
-Module                  Size  Used by
-rc_cec                  1785  0
-...
-coda                   54685  0
-v4l2_mem2mem           14517  1 coda
-videobuf2_dma_contig     9478  1 coda
-videobuf2_vmalloc       5529  1 coda
-videobuf2_memops        1888  2 videobuf2_dma_contig,videobuf2_vmalloc
-cecd_dw_hdmi            3129  0
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-So, rc-cec is perfectly loadable, it just doesn't get loaded at boot.
-Manually loading it like this is useless though - I have to unload
-cecd_dw_hdmi and then re-load it after rc-cec is loaded for rc-cec to
-be seen.  At that point, (and with the help of a userspace program)
-things start working as expected.
+Full logs are available here:
 
-> BTW, I am still on the fence whether using the kernel RC subsystem is
-> the right thing to do. There are a number of CEC RC commands that use
-> extra parameters that cannot be mapped to the RC API, so you still
-> need to handle those manually.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Even though it is a remote control which is being forwarded for the
-most part, but there are operation codes which aren't related to
-key presses specified by the standard.  I don't think there's anything
-wrong with having a RC interface present, but allowing other interfaces
-as a possibility is a good thing too - it allows a certain amount of
-flexibility.
+The Media Infrastructure API from this daily build is here:
 
-For example, with rc-cec loaded and properly bound, I can control at
-least rhythmbox within gnome using the TVs remote control with no
-modifications - and that happens because the X server passes on the
-events it receives via the event device.
-
-Given the range of media applications, I think that's key - it needs
-to at least have the capability to plug into the existing ways of doing
-things, even if those ways are not perfect.
-
-> Perhaps I should split it off into a separate patch and keep it out
-> from the initial pull request once we're ready for that.
-
-I'm biased because it is an enablement feature - it allows CEC to work
-out of the box with at least some existing media apps. :)
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+http://www.xs4all.nl/~hverkuil/spec/media.html
