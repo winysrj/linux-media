@@ -1,91 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51205 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752594AbbJZBUf (ORCPT
+Received: from mail-io0-f174.google.com ([209.85.223.174]:33917 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753532AbbJ0N4X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2015 21:20:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Hyun Kwon <hyun.kwon@xilinx.com>, kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH 5/8] [media] v4l: xilinx-vipp: add missing of_node_put
-Date: Mon, 26 Oct 2015 03:20:36 +0200
-Message-ID: <8217156.HJH9oYGKMG@avalon>
-In-Reply-To: <1445781427-7110-6-git-send-email-Julia.Lawall@lip6.fr>
-References: <1445781427-7110-1-git-send-email-Julia.Lawall@lip6.fr> <1445781427-7110-6-git-send-email-Julia.Lawall@lip6.fr>
+	Tue, 27 Oct 2015 09:56:23 -0400
+Received: by iody8 with SMTP id y8so66138305iod.1
+        for <linux-media@vger.kernel.org>; Tue, 27 Oct 2015 06:56:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <562EA780.7070706@xs4all.nl>
+References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
+	<5625DDCA.2040203@xs4all.nl>
+	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
+	<562B5178.5040303@xs4all.nl>
+	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+	<562D5DE2.5020406@xs4all.nl>
+	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
+	<CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
+	<562EA780.7070706@xs4all.nl>
+Date: Tue, 27 Oct 2015 15:56:22 +0200
+Message-ID: <CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
+Subject: Re: PCIe capture driver
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>
+> On 10/27/2015 02:04, Ran Shalit wrote:
+>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>>>> No, use V4L2. What you do with the frame after it has been captured
+>>>> into memory has no relevance to the API you use to capture into memory.
+>>>
+>>> Ran, I've built many open and closed source Linux drivers over the
+>>> last 10 years - so I can speak with authority on this.
+>>>
+>>> Hans is absolutely correct, don't make the mistake of going
+>>> proprietary with your API. Take advantage of the massive amount of
+>>> video related frameworks the kernel has to offer. It will get you to
+>>> market faster, assuming your goal is to build a driver that is open
+>>> source. If your licensing prohibits an open source driver solution,
+>>> you'll have no choice but to build your own proprietary API.
+>>>
+>>> --
+>>> Steven Toth - Kernel Labs
+>>> http://www.kernellabs.com
+>>
+>> Hi,
+>>
+>> Thank you very much for these valuable comments.
+>> If I may ask one more on this issue:
+>> Is there an example in linux tree, for a pci device which is used both
+>> as a capture and a display device ? (I've made a search but did not
+>> find any)
+>> The PCIe device we are using will be both a capture device and output
+>> video device (for display).
+>
+> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
+>
+> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
+>
+> Regards,
+>
+>         Hans
 
-Thank you for the patch.
+Hi Hans,
 
-On Sunday 25 October 2015 14:57:04 Julia Lawall wrote:
-> for_each_child_of_node performs an of_node_get on each iteration, so
-> a break out of the loop requires an of_node_put.
-> 
-> A simplified version of the semantic patch that fixes this problem is as
-> follows (http://coccinelle.lip6.fr):
-> 
-> // <smpl>
-> @@
-> expression root,e;
-> local idexpression child;
-> @@
-> 
->  for_each_child_of_node(root, child) {
->    ... when != of_node_put(child)
->        when != e = child
-> (
->    return child;
-> 
-> +  of_node_put(child);
-> ?  return ...;
-> )
->    ...
->  }
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Thank you very much for the reference.
+I see that the cobalt card is not for sale ?  If it was it could help
+us in our development.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In our case it is more custom design which is based on FPGA:
 
-> ---
->  drivers/media/platform/xilinx/xilinx-vipp.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
-> b/drivers/media/platform/xilinx/xilinx-vipp.c index 7b7cb9c..b9bf24f 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -476,8 +476,10 @@ static int xvip_graph_dma_init(struct
-> xvip_composite_device *xdev)
-> 
->  	for_each_child_of_node(ports, port) {
->  		ret = xvip_graph_dma_init_one(xdev, port);
-> -		if (ret < 0)
-> +		if (ret < 0) {
-> +			of_node_put(port);
->  			return ret;
-> +		}
->  	}
-> 
->  	return 0;
+Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
 
--- 
-Regards,
+As I understand there is no product chip which can do the above
+(3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
+the board design.
 
-Laurent Pinchart
-
+Best Regards,
+Ran
