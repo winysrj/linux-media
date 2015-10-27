@@ -1,125 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54191 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753773AbbJVC4e (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42280 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753202AbbJ0Wu1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Oct 2015 22:56:34 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C788F2A0097
-	for <linux-media@vger.kernel.org>; Thu, 22 Oct 2015 04:54:22 +0200 (CEST)
-Date: Thu, 22 Oct 2015 04:54:22 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151022025422.C788F2A0097@tschai.lan>
+	Tue, 27 Oct 2015 18:50:27 -0400
+Subject: Re: PCIe capture driver
+To: Ran Shalit <ranshalit@gmail.com>
+References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
+ <5625DDCA.2040203@xs4all.nl>
+ <CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
+ <562B5178.5040303@xs4all.nl>
+ <CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+ <562D5DE2.5020406@xs4all.nl>
+ <CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
+ <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
+ <562EA780.7070706@xs4all.nl>
+ <CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
+Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <562FFF9D.3070502@xs4all.nl>
+Date: Wed, 28 Oct 2015 07:50:05 +0900
+MIME-Version: 1.0
+In-Reply-To: <CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
 
-date:		Thu Oct 22 04:00:21 CEST 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+On 10/27/2015 22:56, Ran Shalit wrote:
+> On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>
+>>
+>> On 10/27/2015 02:04, Ran Shalit wrote:
+>>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>>>>> No, use V4L2. What you do with the frame after it has been captured
+>>>>> into memory has no relevance to the API you use to capture into memory.
+>>>>
+>>>> Ran, I've built many open and closed source Linux drivers over the
+>>>> last 10 years - so I can speak with authority on this.
+>>>>
+>>>> Hans is absolutely correct, don't make the mistake of going
+>>>> proprietary with your API. Take advantage of the massive amount of
+>>>> video related frameworks the kernel has to offer. It will get you to
+>>>> market faster, assuming your goal is to build a driver that is open
+>>>> source. If your licensing prohibits an open source driver solution,
+>>>> you'll have no choice but to build your own proprietary API.
+>>>>
+>>>> --
+>>>> Steven Toth - Kernel Labs
+>>>> http://www.kernellabs.com
+>>>
+>>> Hi,
+>>>
+>>> Thank you very much for these valuable comments.
+>>> If I may ask one more on this issue:
+>>> Is there an example in linux tree, for a pci device which is used both
+>>> as a capture and a display device ? (I've made a search but did not
+>>> find any)
+>>> The PCIe device we are using will be both a capture device and output
+>>> video device (for display).
+>>
+>> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
+>>
+>> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
+>>
+>> Regards,
+>>
+>>         Hans
+> 
+> Hi Hans,
+> 
+> Thank you very much for the reference.
+> I see that the cobalt card is not for sale ?  If it was it could help
+> us in our development.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+No, sorry. It's a Cisco-internal card only.
+ 
+> In our case it is more custom design which is based on FPGA:
+> 
+> Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
+> 
+> As I understand there is no product chip which can do the above
+> (3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
+> the board design.
 
-Detailed results are available here:
+The ivtv driver (drivers/media/pci/ivtv) has SD input and output, so that can be a
+useful reference for that as well. The Hauppauge PVR-350 board is no longer
+sold, but you might be able to pick one up on ebay.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
