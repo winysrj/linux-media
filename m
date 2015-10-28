@@ -1,107 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:33854 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbbJ2KKh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Oct 2015 06:10:37 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mike Isely <isely@pobox.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Vincent Palatin <vpalatin@chromium.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 0/6] Support getting default values from any control
-Date: Thu, 29 Oct 2015 11:10:26 +0100
-Message-Id: <1446113432-27390-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:53365 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751116AbbJ1AUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 20:20:24 -0400
+Date: Wed, 28 Oct 2015 09:20:20 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 02/19] media: Introduce internal index for media
+ entities
+Message-ID: <20151028092020.33a1e509@concha.lan>
+In-Reply-To: <1445900510-1398-3-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-3-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Integer controls provide a way to get their default/initial value, but
-any other control (p_u32, p_u8.....) provide no other way to get the
-initial value than unloading the module and loading it back.
+Em Tue, 27 Oct 2015 01:01:33 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-*What is the actual problem?
-I have a custom control with WIDTH integer values. Every value
-represents the calibrated FPN (fixed pattern noise) correction value for that
-column
--Application A changes the FPN correction value
--Application B wants to restore the calibrated value but it cant :(
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> The internal index can be used internally by the framework in order to keep
+> track of entities for a purpose or another. The internal index is constant
+> while it's registered to a media device, but the same index may be re-used
+> once the entity having that index is unregistered.
 
-*What is the proposed solution?
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-(Kudos to Hans Verkuil!!!)
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-device.c | 17 +++++++++++++++++
+>  include/media/media-device.h |  4 ++++
+>  include/media/media-entity.h |  3 +++
+>  3 files changed, 24 insertions(+)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index c181758..ebb84cb 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -22,6 +22,7 @@
+>  
+>  #include <linux/compat.h>
+>  #include <linux/export.h>
+> +#include <linux/idr.h>
+>  #include <linux/ioctl.h>
+>  #include <linux/media.h>
+>  #include <linux/types.h>
+> @@ -546,6 +547,7 @@ void media_device_init(struct media_device *mdev)
+>  	INIT_LIST_HEAD(&mdev->links);
+>  	spin_lock_init(&mdev->lock);
+>  	mutex_init(&mdev->graph_mutex);
+> +	ida_init(&mdev->entity_internal_idx);
+>  
+>  	dev_dbg(mdev->dev, "Media device initialized\n");
+>  }
+> @@ -558,6 +560,8 @@ EXPORT_SYMBOL_GPL(media_device_init);
+>   */
+>  void media_device_cleanup(struct media_device *mdev)
+>  {
+> +	ida_destroy(&mdev->entity_internal_idx);
+> +	mdev->entity_internal_idx_max = 0;
+>  	mutex_destroy(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_cleanup);
+> @@ -658,6 +662,17 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  	INIT_LIST_HEAD(&entity->links);
+>  
+>  	spin_lock(&mdev->lock);
+> +
+> +	entity->internal_idx = ida_simple_get(&mdev->entity_internal_idx, 1, 0,
+> +					      GFP_KERNEL);
+> +	if (entity->internal_idx < 0) {
+> +		spin_unlock(&mdev->lock);
+> +		return entity->internal_idx;
+> +	}
+> +
+> +	mdev->entity_internal_idx_max =
+> +		max(mdev->entity_internal_idx_max, entity->internal_idx);
+> +
+>  	/* Initialize media_gobj embedded at the entity */
+>  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+>  
+> @@ -690,6 +705,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  
+>  	spin_lock(&mdev->lock);
+>  
+> +	ida_simple_remove(&mdev->entity_internal_idx, entity->internal_idx);
+> +
+>  	/* Remove interface links with this entity on it */
+>  	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
+>  		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index a2c7570..c0e1764 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -30,6 +30,7 @@
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+>  
+> +struct ida;
+>  struct device;
+>  
+>  /**
+> @@ -47,6 +48,7 @@ struct device;
+>   * @pad_id:	Unique ID used on the last pad registered
+>   * @link_id:	Unique ID used on the last link registered
+>   * @intf_devnode_id: Unique ID used on the last interface devnode registered
+> + * @entity_internal_idx: Allocated internal entity indices
+>   * @entities:	List of registered entities
+>   * @interfaces:	List of registered interfaces
+>   * @pads:	List of registered pads
+> @@ -82,6 +84,8 @@ struct media_device {
+>  	u32 pad_id;
+>  	u32 link_id;
+>  	u32 intf_devnode_id;
+> +	struct ida entity_internal_idx;
+> +	int entity_internal_idx_max;
+>  
+>  	struct list_head entities;
+>  	struct list_head interfaces;
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index eebdd24..d3d3a39 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -159,6 +159,8 @@ struct media_entity_operations {
+>   * @num_pads:	Number of sink and source pads.
+>   * @num_links:	Number of existing links, both enabled and disabled.
+>   * @num_backlinks: Number of backlinks
+> + * @internal_idx: An unique internal entity specific number. The numbers are
+> + *		re-used if entities are unregistered or registered again.
+>   * @pads:	Pads array with the size defined by @num_pads.
+>   * @links:	Linked list for the data links.
+>   * @ops:	Entity operations.
+> @@ -187,6 +189,7 @@ struct media_entity {
+>  	u16 num_pads;
+>  	u16 num_links;
+>  	u16 num_backlinks;
+> +	int internal_idx;
+>  
+>  	struct media_pad *pads;
+>  	struct list_head links;
 
-The key change is in struct v4l2_ext_controls where the __u32 ctrl_class field
-is changed to:
-
-        union {
-                __u32 ctrl_class;
-                __u32 which;
-        };
-
-And two new defines are added:
-
-#define V4L2_CTRL_WHICH_CUR_VAL        0
-#define V4L2_CTRL_WHICH_DEF_VAL        0x0f000000
-
-The 'which' field tells you which controls are get/set/tried.
-
-V4L2_CTRL_WHICH_CUR_VAL: the current value of the controls
-V4L2_CTRL_WHICH_DEF_VAL: the default value of the controls
-V4L2_CTRL_CLASS_*: the current value of the controls belonging to the specified class.
-        Note: this is deprecated usage and is only there for backwards compatibility.
-        Which is also why I don't think there is a need to add V4L2_CTRL_WHICH_
-        aliases for these defines.
-
-
-I have posted a copy of my working tree to:
-
-https://github.com/ribalda/linux/tree/which_def_v5
-
-
-
-Changelog v2 (compared to Support getting default values from any control
-
-Rebase to latest version
-Remove saa7164-* patches (Hans already ported them to v4l2-ctrl)
-Update doc dates
-
-Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-
-Fixes for the uvc implementation (error in lock handling) (Thanks!)
-
-
-Changelog v1 (compared to v5 of New ioct VIDIOC_G_DEF_EXT_CTRLS):
-
-Suggested by Hans Verkuil <hverkuil@xs4all.nl>:
-
-Replace ioctl implementation with a new union on the struct v4l2_ext_controls
-THANKS!
-
-Ricardo Ribalda Delgado (6):
-  videodev2.h: Extend struct v4l2_ext_controls
-  media/core: Replace ctrl_class with which
-  media/v4l2-core: struct struct v4l2_ext_controls param which
-  usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
-  media/usb/pvrusb2: Support for V4L2_CTRL_WHICH_DEF_VAL
-  Docbook: media: Document changes on struct v4l2_ext_controls
-
- Documentation/DocBook/media/v4l/v4l2.xml           | 10 ++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 28 +++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c           | 16 ++++++-
- drivers/media/usb/uvc/uvc_v4l2.c                   | 20 ++++++++
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |  6 +--
- drivers/media/v4l2-core/v4l2-ctrls.c               | 54 ++++++++++++++++------
- drivers/media/v4l2-core/v4l2-ioctl.c               | 14 +++---
- include/uapi/linux/videodev2.h                     | 12 ++++-
- 10 files changed, 131 insertions(+), 33 deletions(-)
 
 -- 
-2.6.1
 
+Cheers,
+Mauro
