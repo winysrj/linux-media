@@ -1,82 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37705 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:53440 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685AbbJKOmK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2015 10:42:10 -0400
-Subject: Re: [PATCHv5 10/13] hackrf: add support for transmitter
-To: kbuild test robot <lkp@intel.com>
-References: <201510110807.WZHKJhfM%fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <561A753D.8010600@iki.fi>
-Date: Sun, 11 Oct 2015 17:42:05 +0300
+	id S1753617AbbJ1CBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 22:01:23 -0400
+Date: Wed, 28 Oct 2015 11:01:19 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 17/19] staging: v4l: omap4iss: Use media entity enum API
+Message-ID: <20151028110119.596a3494@concha.lan>
+In-Reply-To: <1445900510-1398-18-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-18-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201510110807.WZHKJhfM%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-IMHO it is false positive. Variable which is defined on line 777 is used 
-just few lines later on line 782 as can be seen easily. I think it is 
-because option CONFIG_DYNAMIC_DEBUG is not set => dev_dbg_ratelimited() 
-macro is likely just NOP and gives that warning. Maybe some more logic 
-to is needed in order to avoid that kind of warnings.
+Em Tue, 27 Oct 2015 01:01:48 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-regards
-Antti
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On 10/11/2015 03:55 AM, kbuild test robot wrote:
-> Hi Antti,
->
-> [auto build test WARNING on linuxtv-media/master -- if it's inappropriate base, please ignore]
->
-> config: i386-randconfig-i1-201541 (attached as .config)
-> reproduce:
->          # save the attached .config to linux build tree
->          make ARCH=i386
->
-> All warnings (new ones prefixed by >>):
->
->     drivers/media/usb/hackrf/hackrf.c: In function 'hackrf_buf_queue':
->>> drivers/media/usb/hackrf/hackrf.c:777:24: warning: unused variable 'intf' [-Wunused-variable]
->       struct usb_interface *intf = dev->intf;
->                             ^
->
-> vim +/intf +777 drivers/media/usb/hackrf/hackrf.c
->
->     761	
->     762		/* Need at least 8 buffers */
->     763		if (vq->num_buffers + *nbuffers < 8)
->     764			*nbuffers = 8 - vq->num_buffers;
->     765		*nplanes = 1;
->     766		sizes[0] = PAGE_ALIGN(dev->buffersize);
->     767	
->     768		dev_dbg(dev->dev, "nbuffers=%d sizes[0]=%d\n", *nbuffers, sizes[0]);
->     769		return 0;
->     770	}
->     771	
->     772	static void hackrf_buf_queue(struct vb2_buffer *vb)
->     773	{
->     774		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
->     775		struct vb2_queue *vq = vb->vb2_queue;
->     776		struct hackrf_dev *dev = vb2_get_drv_priv(vq);
->   > 777		struct usb_interface *intf = dev->intf;
->     778		struct hackrf_buffer *buffer = container_of(vbuf, struct hackrf_buffer, vb);
->     779		struct list_head *buffer_list;
->     780		unsigned long flags;
->     781	
->     782		dev_dbg_ratelimited(&intf->dev, "\n");
->     783	
->     784		if (vq->type == V4L2_BUF_TYPE_SDR_CAPTURE)
->     785			buffer_list = &dev->rx_buffer_list;
->
+Where are the comments?
+
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
->
+>  drivers/staging/media/omap4iss/iss.c       | 15 +++++++++++----
+>  drivers/staging/media/omap4iss/iss.h       |  4 ++--
+>  drivers/staging/media/omap4iss/iss_video.c | 13 +++++++++++--
+>  drivers/staging/media/omap4iss/iss_video.h |  4 ++--
+>  4 files changed, 26 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+> index c097fd5..7b0561f 100644
+> --- a/drivers/staging/media/omap4iss/iss.c
+> +++ b/drivers/staging/media/omap4iss/iss.c
+> @@ -606,7 +606,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+>  			 * crashed. Mark it as such, the ISS will be reset when
+>  			 * applications will release it.
+>  			 */
+> -			iss->crashed |= 1U << media_entity_id(&subdev->entity);
+> +			media_entity_enum_set(&iss->crashed, &subdev->entity);
+>  			failure = -ETIMEDOUT;
+>  		}
+>  	}
+> @@ -641,7 +641,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+>  	 * pipeline won't start anyway (those entities would then likely fail to
+>  	 * stop, making the problem worse).
+>  	 */
+> -	if (pipe->entities & iss->crashed)
+> +	if (media_entity_enum_intersects(&pipe->entities, &iss->crashed))
+>  		return -EIO;
+
+Should return error if the enum sizes are different.
+
+>  
+>  	spin_lock_irqsave(&pipe->lock, flags);
+> @@ -761,7 +761,8 @@ static int iss_reset(struct iss_device *iss)
+>  		return -ETIMEDOUT;
+>  	}
+>  
+> -	iss->crashed = 0;
+> +	media_entity_enum_zero(&iss->crashed);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1090,7 +1091,7 @@ void omap4iss_put(struct iss_device *iss)
+>  		 * be worth investigating whether resetting the ISP only can't
+>  		 * fix the problem in some cases.
+>  		 */
+> -		if (iss->crashed)
+> +		if (!media_entity_enum_empty(&iss->crashed))
+>  			iss_reset(iss);
+>  		iss_disable_clocks(iss);
+>  	}
+> @@ -1490,6 +1491,10 @@ static int iss_probe(struct platform_device *pdev)
+>  	if (ret < 0)
+>  		goto error_modules;
+>  
+> +	ret = media_entity_enum_init(&iss->crashed, &iss->media_dev);
+> +	if (ret)
+> +		goto error_entities;
+> +
+>  	ret = iss_create_pads_links(iss);
+>  	if (ret < 0)
+>  		goto error_entities;
+> @@ -1500,6 +1505,7 @@ static int iss_probe(struct platform_device *pdev)
+>  
+>  error_entities:
+>  	iss_unregister_entities(iss);
+> +	media_entity_enum_cleanup(&iss->crashed);
+>  error_modules:
+>  	iss_cleanup_modules(iss);
+>  error_iss:
+> @@ -1517,6 +1523,7 @@ static int iss_remove(struct platform_device *pdev)
+>  	struct iss_device *iss = platform_get_drvdata(pdev);
+>  
+>  	iss_unregister_entities(iss);
+> +	media_entity_enum_cleanup(&iss->crashed);
+>  	iss_cleanup_modules(iss);
+>  
+>  	return 0;
+> diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+> index 35df8b4..5dd0d99 100644
+> --- a/drivers/staging/media/omap4iss/iss.h
+> +++ b/drivers/staging/media/omap4iss/iss.h
+> @@ -82,7 +82,7 @@ struct iss_reg {
+>  /*
+>   * struct iss_device - ISS device structure.
+>   * @syscon: Regmap for the syscon register space
+> - * @crashed: Bitmask of crashed entities (indexed by entity ID)
+> + * @crashed: Crashed entities
+>   */
+>  struct iss_device {
+>  	struct v4l2_device v4l2_dev;
+> @@ -101,7 +101,7 @@ struct iss_device {
+>  	u64 raw_dmamask;
+>  
+>  	struct mutex iss_mutex;	/* For handling ref_count field */
+> -	unsigned int crashed;
+> +	struct media_entity_enum crashed;
+>  	int has_context;
+>  	int ref_count;
+>  
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+> index cbe5783..b56f999 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -761,6 +761,10 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	if (type != video->type)
+>  		return -EINVAL;
+>  
+> +	ret = media_entity_enum_init(&pipe->entities, entity->graph_obj.mdev);
+> +	if (ret)
+> +		return ret;
+> +
+>  	mutex_lock(&video->stream_lock);
+>  
+>  	/* Start streaming on the pipeline. No link touching an entity in the
+> @@ -771,7 +775,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	pipe->external = NULL;
+>  	pipe->external_rate = 0;
+>  	pipe->external_bpp = 0;
+> -	pipe->entities = 0;
+>  
+>  	if (video->iss->pdata->set_constraints)
+>  		video->iss->pdata->set_constraints(video->iss, true);
+> @@ -783,7 +786,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	entity = &video->video.entity;
+>  	media_entity_graph_walk_start(&graph, entity);
+>  	while ((entity = media_entity_graph_walk_next(&graph)))
+> -		pipe->entities |= 1 << media_entity_id(entity);
+> +		media_entity_enum_set(&pipe->entities, entity);
+>  
+>  	/* Verify that the currently configured format matches the output of
+>  	 * the connected subdev.
+> @@ -854,6 +857,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	}
+>  
+>  	mutex_unlock(&video->stream_lock);
+> +
+>  	return 0;
+>  
+>  err_omap4iss_set_stream:
+> @@ -866,6 +870,9 @@ err_media_entity_pipeline_start:
+>  	video->queue = NULL;
+>  
+>  	mutex_unlock(&video->stream_lock);
+> +
+> +	media_entity_enum_cleanup(&pipe->entities);
+> +
+>  	return ret;
+>  }
+>  
+> @@ -903,6 +910,8 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+>  	vb2_streamoff(&vfh->queue, type);
+>  	video->queue = NULL;
+>  
+> +	media_entity_enum_cleanup(&pipe->entities);
+> +
+>  	if (video->iss->pdata->set_constraints)
+>  		video->iss->pdata->set_constraints(video->iss, false);
+>  	media_entity_pipeline_stop(&video->video.entity);
+> diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+> index f11fce2..b5d3a96 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.h
+> +++ b/drivers/staging/media/omap4iss/iss_video.h
+> @@ -77,7 +77,7 @@ enum iss_pipeline_state {
+>  
+>  /*
+>   * struct iss_pipeline - An OMAP4 ISS hardware pipeline
+> - * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
+> + * @entities: Entities in the pipeline
+>   * @error: A hardware error occurred during capture
+>   */
+>  struct iss_pipeline {
+> @@ -87,7 +87,7 @@ struct iss_pipeline {
+>  	enum iss_pipeline_stream_state stream_state;
+>  	struct iss_video *input;
+>  	struct iss_video *output;
+> -	unsigned int entities;
+> +	struct media_entity_enum entities;
+>  	atomic_t frame_number;
+>  	bool do_propagation; /* of frame number */
+>  	bool error;
+
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
