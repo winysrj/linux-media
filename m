@@ -1,38 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f53.google.com ([209.85.213.53]:35115 "EHLO
-	mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757094AbbJIEal (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Oct 2015 00:30:41 -0400
-Received: by vkao3 with SMTP id o3so44528852vka.2
-        for <linux-media@vger.kernel.org>; Thu, 08 Oct 2015 21:30:39 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:53370 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751475AbbJ1Agz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 20:36:55 -0400
+Date: Wed, 28 Oct 2015 09:36:50 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 04/19] media: Move struct media_entity_graph definition
+ up
+Message-ID: <20151028093650.67648946@concha.lan>
+In-Reply-To: <1445900510-1398-5-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-5-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Date: Fri, 9 Oct 2015 10:00:39 +0530
-Message-ID: <CAPrYoTGkiMcHY=59ZRewQrk_SWrc0ekcTQKs=rG0FuX553oOKg@mail.gmail.com>
-Subject: VB2 will returning -ERESTARTSYS to userland
-From: Chetan Nanda <chetannanda@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Tue, 27 Oct 2015 01:01:35 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-I am working on V4L2 base videodecoder,
-I have two threads say A and B. Thread A is for configuration and
-Thread B for queuing/de-queuing buffers.
+> It will be needed in struct media_pipeline shortly.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-In one usecase,
-- Thread B is blocked on VIDIOC_DQBUF,
-- and at same time Thread A do the flush and do, STREAMOFF, QBUF, STREAMON.
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+(but see below)
 
-Once thread A do this, Thread B waked up (as a result of STREAMOFF)
-and return -ERESTARTSYS (from wait_interrupt_interruptible) from
-DQBUF.
+> ---
+>  include/media/media-entity.h | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index fc54192..dde9a5f 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -87,6 +87,16 @@ struct media_entity_enum {
+>  	int idx_max;
+>  };
+>  
+> +struct media_entity_graph {
 
-ERESTARTSYS is for kernel internal and should not be passed to
-userside, and even ERESTARTSYS is not available at user side.
+Not a problem on this patch itself, but since you're touching this
+struct, it would be nice to take the opportunity and document it ;)
 
-Shouldn't VB2 catch ERESTARTSYS and return -RESTART or some other error?
+Regards,
+Mauro
 
-Thanks,
-Chetan Nanda
+> +	struct {
+> +		struct media_entity *entity;
+> +		struct list_head *link;
+> +	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+> +
+> +	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+> +	int top;
+> +};
+> +
+>  struct media_pipeline {
+>  };
+>  
+> @@ -429,16 +439,6 @@ static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
+>  	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
+>  }
+>  
+> -struct media_entity_graph {
+> -	struct {
+> -		struct media_entity *entity;
+> -		struct list_head *link;
+> -	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+> -
+> -	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+> -	int top;
+> -};
+> -
+>  #define gobj_to_entity(gobj) \
+>  		container_of(gobj, struct media_entity, graph_obj)
+>  
+
+
+-- 
+
+Cheers,
+Mauro
