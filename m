@@ -1,55 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:34198 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752697AbbJFPuz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2015 11:50:55 -0400
-Received: by ykdg206 with SMTP id g206so205719362ykd.1
-        for <linux-media@vger.kernel.org>; Tue, 06 Oct 2015 08:50:54 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:53388 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752330AbbJ1AsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 20:48:11 -0400
+Date: Wed, 28 Oct 2015 09:48:07 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 12/19] media: Use entity enums in graph walk
+Message-ID: <20151028094807.589cb4c1@concha.lan>
+In-Reply-To: <1445900510-1398-13-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-13-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201510050538.k3ZpNf2w%fengguang.wu@intel.com>
-References: <201510050538.k3ZpNf2w%fengguang.wu@intel.com>
-Date: Tue, 6 Oct 2015 17:50:54 +0200
-Message-ID: <CABxcv=mssUPcMdHonxee+EY1P_Hk8DXmMXhB7-Ok8HeJPiWdgA@mail.gmail.com>
-Subject: Re: drivers/media/pci/netup_unidvb/netup_unidvb_core.c:417:18: error:
- too many arguments to function 'horus3a_attach'
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: Kozlov Sergey <serjk@netup.ru>, kbuild-all@01.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Fengguang,
+Em Tue, 27 Oct 2015 01:01:43 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On Sun, Oct 4, 2015 at 11:43 PM, kbuild test robot
-<fengguang.wu@intel.com> wrote:
-> Hi Kozlov,
->
-> FYI, the error/warning still remains.
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> head:   049e6dde7e57f0054fdc49102e7ef4830c698b46
-> commit: 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e [media] netup_unidvb: NetUP Universal DVB-S/S2/T/T2/C PCI-E card driver
-> date:   8 weeks ago
-> config: x86_64-randconfig-n0-10050530 (attached as .config)
-> reproduce:
->         git checkout 52b1eaf4c59a3bbd07afbb4ab4f43418a807d02e
->         # save the attached .config to linux build tree
->         make ARCH=x86_64
->
-> All error/warnings (new ones prefixed by >>):
->
->    In file included from drivers/media/pci/netup_unidvb/netup_unidvb_core.c:34:0:
->    drivers/media/dvb-frontends/horus3a.h:51:13: warning: 'struct cxd2820r_config' declared inside parameter list
->          struct i2c_adapter *i2c)
->
+> This will also mean that the necessary graph related data structures will
+> be allocated dynamically, removing the need for maximum ID checks.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-A fix for this build issue is already queued [0] in the media_tree
-fixes branch and AFAIU it will be pushed to mainline soon.
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Best regards,
-Javier
+> ---
+>  drivers/media/media-entity.c | 16 ++++++----------
+>  include/media/media-entity.h |  2 +-
+>  2 files changed, 7 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 4161dc7..7429c03 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -366,7 +366,7 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+>  __must_check int media_entity_graph_walk_init(
+>  	struct media_entity_graph *graph, struct media_device *mdev)
+>  {
+> -	return 0;
+> +	return media_entity_enum_init(&graph->entities, mdev);
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
+>  
+> @@ -376,6 +376,7 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
+>   */
+>  void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
+>  {
+> +	media_entity_enum_cleanup(&graph->entities);
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
+>  
+> @@ -395,14 +396,11 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
+>  void media_entity_graph_walk_start(struct media_entity_graph *graph,
+>  				   struct media_entity *entity)
+>  {
+> +	media_entity_enum_zero(&graph->entities);
+> +	media_entity_enum_set(&graph->entities, entity);
+> +
+>  	graph->top = 0;
+>  	graph->stack[graph->top].entity = NULL;
+> -	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
+> -
+> -	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
+> -		return;
+> -
+> -	__set_bit(media_entity_id(entity), graph->entities);
+>  	stack_push(graph, entity);
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+> @@ -445,11 +443,9 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+>  
+>  		/* Get the entity in the other end of the link . */
+>  		next = media_entity_other(entity, link);
+> -		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
+> -			return NULL;
+>  
+>  		/* Has the entity already been visited? */
+> -		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
+> +		if (media_entity_enum_test_and_set(&graph->entities, next)) {
+>  			link_top(graph) = link_top(graph)->next;
+>  			continue;
+>  		}
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 6e12b53..21fd07b 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -93,8 +93,8 @@ struct media_entity_graph {
+>  		struct list_head *link;
+>  	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+>  
+> -	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+>  	int top;
+> +	struct media_entity_enum entities;
+>  };
+>  
+>  struct media_pipeline {
 
-[0]: http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?h=fixes&id=de5abc98bf34e06d7accd943c4057843db921f00
+
+-- 
+
+Cheers,
+Mauro
