@@ -1,98 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:36949 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250AbbJEKLy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 06:11:54 -0400
-Received: by wicfx3 with SMTP id fx3so106888587wic.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 03:11:53 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, treding@nvidia.com, sumit.semwal@linaro.org,
-	tom.cooksey@arm.com, daniel.stone@collabora.com,
-	linux-security-module@vger.kernel.org, xiaoquan.li@vivantecorp.com
-Cc: tom.gall@linaro.org, linaro-mm-sig@lists.linaro.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v4 0/2] RFC: Secure Memory Allocation Framework
-Date: Mon,  5 Oct 2015 12:11:36 +0200
-Message-Id: <1444039898-7927-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from lists.s-osg.org ([54.187.51.154]:53417 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375AbbJ1Bdf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 21:33:35 -0400
+Date: Wed, 28 Oct 2015 10:33:31 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 15/19] v4l: vsp1: Use media entity enumeration API
+Message-ID: <20151028103331.65669f3d@concha.lan>
+In-Reply-To: <1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-16-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 4 changes:
- - rebased on kernel 4.3-rc3
- - fix missing EXPORT_SYMBOL for smaf_create_handle()
+Em Tue, 27 Oct 2015 01:01:46 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-version 3 changes:
- - Remove ioctl for allocator selection instead provide the name of
-   the targeted allocator with allocation request.
-   Selecting allocator from userland isn't the prefered way of working
-   but is needed when the first user of the buffer is a software component.
- - Fix issues in case of error while creating smaf handle.
- - Fix module license.
- - Update libsmaf and tests to care of the SMAF API evolution
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-version 2 changes:
- - Add one ioctl to allow allocator selection from userspace.
-   This is required for the uses case where the first user of
-   the buffer is a software IP which can't perform dma_buf attachement.
- - Add name and ranking to allocator structure to be able to sort them.
- - Create a tiny library to test SMAF:
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - Fix one issue when try to secure buffer without secure module registered
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
+>  1 file changed, 31 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index ce10d86..b3fd2be 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  					 struct vsp1_rwpf *output)
+>  {
+>  	struct vsp1_entity *entity;
+> -	unsigned int entities = 0;
+> +	struct media_entity_enum entities;
+>  	struct media_pad *pad;
+> +	int rval;
+>  	bool bru_found = false;
+>  
+>  	input->location.left = 0;
+>  	input->location.top = 0;
+>  
+> +	rval = media_entity_enum_init(
+> +		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
+> +	if (rval)
+> +		return rval;
+> +
+>  	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
+>  
+>  	while (1) {
+> -		if (pad == NULL)
+> -			return -EPIPE;
+> +		if (pad == NULL) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+>  		/* We've reached a video node, that shouldn't have happened. */
+> -		if (!is_media_entity_v4l2_subdev(pad->entity))
+> -			return -EPIPE;
+> +		if (!is_media_entity_v4l2_subdev(pad->entity)) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+> -		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> +		entity = to_vsp1_entity(
+> +			media_entity_to_v4l2_subdev(pad->entity));
+>  
+>  		/* A BRU is present in the pipeline, store the compose rectangle
+>  		 * location in the input RPF for use when configuring the RPF.
+> @@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  			break;
+>  
+>  		/* Ensure the branch has no loop. */
+> -		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
+> -			return -EPIPE;
+> -
+> -		entities |= 1 << media_entity_id(&entity->subdev.entity);
+> +		if (media_entity_enum_test_and_set(&entities,
+> +						   &entity->subdev.entity)) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+>  		/* UDS can't be chained. */
+>  		if (entity->type == VSP1_ENTITY_UDS) {
+> -			if (pipe->uds)
+> -				return -EPIPE;
+> +			if (pipe->uds) {
+> +				rval = -EPIPE;
+> +				goto out;
+> +			}
+>  
+>  			pipe->uds = entity;
+>  			pipe->uds_input = bru_found ? pipe->bru
+> @@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  
+>  	/* The last entity must be the output WPF. */
+>  	if (entity != &output->entity)
+> -		return -EPIPE;
+> +		rval = -EPIPE;
+>  
+> -	return 0;
+> +out:
+> +	media_entity_enum_cleanup(&entities);
+> +
+> +	return rval;
+>  }
+>  
+>  static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
 
-The outcome of the previous RFC about how do secure data path was the need
-of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
-
-SMAF goal is to provide a framework that allow allocating and securing
-memory by using dma_buf. Each platform have it own way to perform those two
-features so SMAF design allow to register helper modules to perform them.
-
-To be sure to select the best allocation method for devices SMAF implement
-deferred allocation mechanism: memory allocation is only done when the first
-device effectively required it.
-Allocator modules have to implement a match() to let SMAF know if they are
-compatibles with devices needs.
-This patch set provide an example of allocator module which use
-dma_{alloc/free/mmap}_attrs() and check if at least one device have
-coherent_dma_mask set to DMA_BIT_MASK(32) in match function. 
-I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if 
-a better name could be found for this file.
-
-Secure modules are responsibles of granting and revoking devices access rights
-on the memory. Secure module is also called to check if CPU map memory into
-kernel and user address spaces.
-An example of secure module implementation can be found here:
-http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-This code isn't yet part of the patch set because it depends on generic TEE
-which is still under discussion (https://lwn.net/Articles/644646/)
-
-For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-constraint aware allocator.
-
-Benjamin Gaignard (2):
-  create SMAF module
-  SMAF: add CMA allocator
-
- drivers/Kconfig                |   2 +
- drivers/Makefile               |   1 +
- drivers/smaf/Kconfig           |  11 +
- drivers/smaf/Makefile          |   2 +
- drivers/smaf/smaf-cma.c        | 200 +++++++++++
- drivers/smaf/smaf-core.c       | 736 +++++++++++++++++++++++++++++++++++++++++
- include/linux/smaf-allocator.h |  54 +++
- include/linux/smaf-secure.h    |  72 ++++
- include/uapi/linux/smaf.h      |  52 +++
- 9 files changed, 1130 insertions(+)
- create mode 100644 drivers/smaf/Kconfig
- create mode 100644 drivers/smaf/Makefile
- create mode 100644 drivers/smaf/smaf-cma.c
- create mode 100644 drivers/smaf/smaf-core.c
- create mode 100644 include/linux/smaf-allocator.h
- create mode 100644 include/linux/smaf-secure.h
- create mode 100644 include/uapi/linux/smaf.h
 
 -- 
-1.9.1
 
+Cheers,
+Mauro
