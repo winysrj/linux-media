@@ -1,70 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39228 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752037AbbJJNgT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Oct 2015 09:36:19 -0400
+Received: from lists.s-osg.org ([54.187.51.154]:53395 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751005AbbJ1AwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 20:52:00 -0400
+Date: Wed, 28 Oct 2015 09:51:55 +0900
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 14/26] [media] DocBook: finish documenting struct dmx_demux
-Date: Sat, 10 Oct 2015 10:35:57 -0300
-Message-Id: <4bc645df7d46253836062ecb1e2969034d5ebd11.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1444483819.git.mchehab@osg.samsung.com>
-References: <cover.1444483819.git.mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 13/19] media: Keep using the same graph walk object for
+ a given pipeline
+Message-ID: <20151028095155.545a2090@concha.lan>
+In-Reply-To: <1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-14-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are two callbacks still not documented:
-	.//drivers/media/dvb-core/demux.h:422: warning: No description found for parameter 'get_pes_pids'
-	.//drivers/media/dvb-core/demux.h:422: warning: No description found for parameter 'get_stc'
+Em Tue, 27 Oct 2015 01:01:44 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-The purpose of first one is clear. The second one is used only
-on the obsolete av7110 driver, and its purpose is not clear,
-as it just returns a 64-bit word from the firmware to userspace.
+> Initialise a given graph walk object once, and then keep using it whilst
+> the same pipeline is running. Once the pipeline is stopped, release the
+> graph walk object.
 
-Let's document get_pes_pids and mark get_stc as private, adding
-a comment to not use it, while this is not documented.
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 17 +++++++++++------
+>  include/media/media-entity.h |  1 +
+>  2 files changed, 12 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 7429c03..137aa09d 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+>  
+> -	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+> -	if (ret) {
+> -		mutex_unlock(&mdev->graph_mutex);
+> -		return ret;
+> +	if (!pipe->streaming_count++) {
+> +		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+> +		if (ret)
+> +			goto error_graph_walk_start;
+>  	}
+>  
+>  	media_entity_graph_walk_start(&pipe->graph, entity);
+> @@ -592,7 +592,9 @@ error:
+>  			break;
+>  	}
+>  
+> -	media_entity_graph_walk_cleanup(graph);
+> +error_graph_walk_start:
+> +	if (!--pipe->streaming_count)
+> +		media_entity_graph_walk_cleanup(graph);
+>  
+>  	mutex_unlock(&mdev->graph_mutex);
+>  
+> @@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>  {
+>  	struct media_device *mdev = entity->graph_obj.mdev;
+>  	struct media_entity_graph *graph = &entity->pipe->graph;
+> +	struct media_pipeline *pipe = entity->pipe;
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+>  
+> +	BUG_ON(!pipe->streaming_count);
+>  	media_entity_graph_walk_start(graph, entity);
+>  
+>  	while ((entity = media_entity_graph_walk_next(graph))) {
+> @@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>  			entity->pipe = NULL;
+>  	}
+>  
+> -	media_entity_graph_walk_cleanup(graph);
+> +	if (!--pipe->streaming_count)
+> +		media_entity_graph_walk_cleanup(graph);
+>  
+>  	mutex_unlock(&mdev->graph_mutex);
+>  }
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 21fd07b..cc01e08 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -98,6 +98,7 @@ struct media_entity_graph {
+>  };
+>  
+>  struct media_pipeline {
+> +	int streaming_count;
+>  	/* For walking the graph in pipeline start / stop */
+>  	struct media_entity_graph graph;
+>  };
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 53c82514ede5..b045a598fb2d 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -381,6 +381,16 @@ struct dmx_frontend {
-  *	It returns
-  *		0 on success;
-  *		-EINVAL on bad parameter.
-+ *
-+ * @get_pes_pids: Get the PIDs for DMX_PES_AUDIO0, DMX_PES_VIDEO0,
-+ *	DMX_PES_TELETEXT0, DMX_PES_SUBTITLE0 and DMX_PES_PCR0.
-+ *	The @demux function parameter contains a pointer to the demux API and
-+ *	instance data.
-+ *	The @pids function parameter contains an array with five u16 elements
-+ *	where the PIDs will be stored.
-+ *	It returns
-+ *		0 on success;
-+ *		-EINVAL on bad parameter.
-  */
- 
- struct dmx_demux {
-@@ -416,7 +426,11 @@ struct dmx_demux {
- 	int (*get_caps) (struct dmx_demux* demux, struct dmx_caps *caps);
- 	int (*set_source) (struct dmx_demux* demux, const dmx_source_t *src);
- #endif
--	/* public: */
-+	/*
-+	 * private: Only used at av7110, to read some data from firmware.
-+	 *	As this was never documented, we have no clue about what's
-+	 * 	there, and its usage on other drivers aren't encouraged.
-+	 */
- 	int (*get_stc) (struct dmx_demux* demux, unsigned int num,
- 			u64 *stc, unsigned int *base);
- };
+
 -- 
-2.4.3
 
-
+Cheers,
+Mauro
