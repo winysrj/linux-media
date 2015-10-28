@@ -1,93 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51199 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbbJZBTl (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.243]:12390 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965491AbbJ1Jmz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2015 21:19:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Hyun Kwon <hyun.kwon@xilinx.com>, kernel-janitors@vger.kernel.org,
+	Wed, 28 Oct 2015 05:42:55 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?ISO-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Andrew Lunn <andrew@lunn.ch>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Jason Cooper <jason@lakedaemon.net>
-Subject: Re: [PATCH 6/8] [media] v4l: xilinx-tpg: add missing of_node_put
-Date: Mon, 26 Oct 2015 03:19:42 +0200
-Message-ID: <1798308.03Tu29vvmA@avalon>
-In-Reply-To: <1445781427-7110-7-git-send-email-Julia.Lawall@lip6.fr>
-References: <1445781427-7110-1-git-send-email-Julia.Lawall@lip6.fr> <1445781427-7110-7-git-send-email-Julia.Lawall@lip6.fr>
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH 3/4] v4l2-clk: add new definition: V4L2_CLK_NAME_SIZE
+Date: Wed, 28 Oct 2015 17:48:54 +0800
+Message-ID: <1446025735-26849-4-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1446025735-26849-1-git-send-email-josh.wu@atmel.com>
+References: <1446025735-26849-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+Make all v4l2-clk's clock name use V4L2_CLK_NAME_SIZE definition.
 
-Thank you for the patch.
+In future, if the string increased we just need to change the
+V4L2_CLK_NAME_SIZE once.
 
-On Sunday 25 October 2015 14:57:05 Julia Lawall wrote:
-> for_each_child_of_node performs an of_node_get on each iteration, so
-> a break out of the loop requires an of_node_put.
-> 
-> A simplified version of the semantic patch that fixes this problem is as
-> follows (http://coccinelle.lip6.fr):
-> 
-> // <smpl>
-> @@
-> expression root,e;
-> local idexpression child;
-> @@
-> 
->  for_each_child_of_node(root, child) {
->    ... when != of_node_put(child)
->        when != e = child
-> (
->    return child;
-> 
-> +  of_node_put(child);
-> ?  return ...;
-> )
->    ...
->  }
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ drivers/media/platform/soc_camera/soc_camera.c | 6 +++---
+ drivers/media/usb/em28xx/em28xx-camera.c       | 2 +-
+ include/media/v4l2-clk.h                       | 2 ++
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-> ---
->  drivers/media/platform/xilinx/xilinx-tpg.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-tpg.c
-> b/drivers/media/platform/xilinx/xilinx-tpg.c index b5f7d5e..8bd7e37 100644
-> --- a/drivers/media/platform/xilinx/xilinx-tpg.c
-> +++ b/drivers/media/platform/xilinx/xilinx-tpg.c
-> @@ -731,6 +731,7 @@ static int xtpg_parse_of(struct xtpg_device *xtpg)
->  		format = xvip_of_get_format(port);
->  		if (IS_ERR(format)) {
->  			dev_err(dev, "invalid format in DT");
-> +			of_node_put(port);
->  			return PTR_ERR(format);
->  		}
-> 
-> @@ -739,6 +740,7 @@ static int xtpg_parse_of(struct xtpg_device *xtpg)
->  			xtpg->vip_format = format;
->  		} else if (xtpg->vip_format != format) {
->  			dev_err(dev, "in/out format mismatch in DT");
-> +			of_node_put(port);
->  			return -EINVAL;
->  		}
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 673f1d4..506a569 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1362,7 +1362,7 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 	struct soc_camera_host_desc *shd = &sdesc->host_desc;
+ 	struct i2c_adapter *adap;
+ 	struct v4l2_subdev *subdev;
+-	char clk_name[V4L2_SUBDEV_NAME_SIZE];
++	char clk_name[V4L2_CLK_NAME_SIZE];
+ 	int ret;
+ 
+ 	/* First find out how we link the main client */
+@@ -1528,7 +1528,7 @@ static int scan_async_group(struct soc_camera_host *ici,
+ 	struct soc_camera_async_client *sasc;
+ 	struct soc_camera_device *icd;
+ 	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
+-	char clk_name[V4L2_SUBDEV_NAME_SIZE];
++	char clk_name[V4L2_CLK_NAME_SIZE];
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -1634,7 +1634,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+ 	struct soc_camera_async_client *sasc;
+ 	struct soc_of_info *info;
+ 	struct i2c_client *client;
+-	char clk_name[V4L2_SUBDEV_NAME_SIZE + 32];
++	char clk_name[V4L2_CLK_NAME_SIZE];
+ 	int ret;
+ 
+ 	/* allocate a new subdev and add match info to it */
+diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
+index ed0b3a8..121cdfc 100644
+--- a/drivers/media/usb/em28xx/em28xx-camera.c
++++ b/drivers/media/usb/em28xx/em28xx-camera.c
+@@ -322,7 +322,7 @@ int em28xx_detect_sensor(struct em28xx *dev)
+ 
+ int em28xx_init_camera(struct em28xx *dev)
+ {
+-	char clk_name[V4L2_SUBDEV_NAME_SIZE];
++	char clk_name[V4L2_CLK_NAME_SIZE];
+ 	struct i2c_client *client = &dev->i2c_client[dev->def_i2c_bus];
+ 	struct i2c_adapter *adap = &dev->i2c_adap[dev->def_i2c_bus];
+ 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+index 34891ea..2b94662 100644
+--- a/include/media/v4l2-clk.h
++++ b/include/media/v4l2-clk.h
+@@ -65,6 +65,8 @@ static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
+ 	return __v4l2_clk_register_fixed(dev_id, rate, THIS_MODULE);
+ }
+ 
++#define V4L2_CLK_NAME_SIZE 64
++
+ #define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
+ 			  "%d-%04x", adap, client)
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
