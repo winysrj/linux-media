@@ -1,183 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48316 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751227AbbJWJ2P (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33860 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751526AbbJ1D4O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Oct 2015 05:28:15 -0400
-Date: Fri, 23 Oct 2015 12:27:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] media-ctl: Add field support for the media bus format
-Message-ID: <20151023092741.GS26916@valkosipuli.retiisi.org.uk>
-References: <1445591901-10650-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1445591901-10650-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 27 Oct 2015 23:56:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2B5BF2A008D
+	for <linux-media@vger.kernel.org>; Wed, 28 Oct 2015 04:53:57 +0100 (CET)
+Date: Wed, 28 Oct 2015 04:53:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151028035357.2B5BF2A008D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch. A few comments below.
+Results of the daily build of media_tree:
 
-On Fri, Oct 23, 2015 at 12:18:21PM +0300, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  utils/media-ctl/libv4l2subdev.c | 62 +++++++++++++++++++++++++++++++++++++++++
->  utils/media-ctl/media-ctl.c     |  3 ++
->  utils/media-ctl/v4l2subdev.h    | 25 ++++++++++++++++-
->  3 files changed, 89 insertions(+), 1 deletion(-)
-> 
-> Old patch that was dying of boredom alone in my tree. As Sakari needs this
-> features it seems to be a good time to remove the dust and submit it.
-> 
-> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> index 8015330ddb3c..ad3bb727aa07 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -473,6 +473,24 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
->  			continue;
->  		}
->  
-> +		if (strhazit("field:", &p)) {
-> +			enum v4l2_field field;
-> +
-> +			for (end = (char *)p; isalpha(*end) || *end == '-'; ++end);
-> +
-> +			field = v4l2_subdev_string_to_field(p, end - p);
-> +			if (field == (enum v4l2_field)-1) {
-> +				media_dbg(media, "Invalid field value '%*s'\n", end - p, p);
+date:		Wed Oct 28 04:00:15 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Over 80 characaters per line.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> +				*endp = (char *)p;
-> +				return NULL;
-> +			}
-> +
-> +			format->field = field;
-> +
-> +			p = end;
-> +			continue;
-> +		}
-> +
->  		/*
->  		 * Backward compatibility: crop rectangles can be specified
->  		 * implicitly without the 'crop:' property name.
-> @@ -755,3 +773,47 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
->  
->  	return mbus_formats[i].code;
->  }
-> +
-> +static struct {
-> +	const char *name;
-> +	enum v4l2_field field;
-> +} fields[] = {
-> +	{ "any", V4L2_FIELD_ANY },
-> +	{ "none", V4L2_FIELD_NONE },
-> +	{ "top", V4L2_FIELD_TOP },
-> +	{ "bottom", V4L2_FIELD_BOTTOM },
-> +	{ "interlaced", V4L2_FIELD_INTERLACED },
-> +	{ "seq-tb", V4L2_FIELD_SEQ_TB },
-> +	{ "seq-bt", V4L2_FIELD_SEQ_BT },
-> +	{ "alternate", V4L2_FIELD_ALTERNATE },
-> +	{ "interlaced-tb", V4L2_FIELD_INTERLACED_TB },
-> +	{ "interlaced-bt", V4L2_FIELD_INTERLACED_BT },
-> +};
-> +
-> +const char *v4l2_subdev_field_to_string(enum v4l2_field field)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-> +		if (fields[i].field == field)
-> +			return fields[i].name;
-> +	}
-> +
-> +	return "unknown";
-> +}
-> +
-> +enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-> +					    unsigned int length)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-> +		if (strncmp(fields[i].name, string, length) == 0)
+Detailed results are available here:
 
-How about using strncasecmp() instead? The definitions are upper case in the
-header.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-> +			break;
+Full logs are available here:
 
-You should return fields[i].field here.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-> +	}
-> +
-> +	if (i == ARRAY_SIZE(fields))
-> +		return (enum v4l2_field)-1;
-> +
-> +	return fields[i].field;
-> +}
-> diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-> index d3f6e041db7b..3002fb7e4e12 100644
-> --- a/utils/media-ctl/media-ctl.c
-> +++ b/utils/media-ctl/media-ctl.c
-> @@ -90,6 +90,9 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
->  	       v4l2_subdev_pixelcode_to_string(format.code),
->  	       format.width, format.height);
->  
-> +	if (format.field)
-> +		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
-> +
->  	ret = v4l2_subdev_get_selection(entity, &rect, pad,
->  					V4L2_SEL_TGT_CROP_BOUNDS,
->  					which);
-> diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-> index 1cb53ffbcfab..9138b87e0976 100644
-> --- a/utils/media-ctl/v4l2subdev.h
-> +++ b/utils/media-ctl/v4l2subdev.h
-> @@ -247,7 +247,7 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
->  /**
->   * @brief Parse string to media bus pixel code.
->   * @param string - input string
-> - * @param lenght - length of the string
-> + * @param length - length of the string
->   *
->   * Parse human readable string @a string to an media bus pixel code.
->   *
-> @@ -255,4 +255,27 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
->   */
->  enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
->  							 unsigned int length);
-> +
-> +/**
-> + * @brief Convert a field order to string.
-> + * @param field - field order
-> + *
-> + * Convert field order @a field to a human-readable string.
-> + *
-> + * @return A pointer to a string on success, NULL on failure.
-> + */
-> +const char *v4l2_subdev_field_to_string(enum v4l2_field field);
-> +
-> +/**
-> + * @brief Parse string to field order.
-> + * @param string - input string
-> + * @param length - length of the string
-> + *
-> + * Parse human readable string @a string to field order.
-> + *
-> + * @return field order on success, -1 on failure.
-> + */
-> +enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-> +					    unsigned int length);
-> +
->  #endif
+The Media Infrastructure API from this daily build is here:
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/spec/media.html
