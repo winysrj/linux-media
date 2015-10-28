@@ -1,66 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:33217 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbbJEOnH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Oct 2015 10:43:07 -0400
-Received: by igbkq10 with SMTP id kq10so64313417igb.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Oct 2015 07:43:06 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:53464 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754077AbbJ1CKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Oct 2015 22:10:18 -0400
+Date: Wed, 28 Oct 2015 11:10:14 +0900
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 19/19] media: Rename MEDIA_ENTITY_ENUM_MAX_ID as
+ MEDIA_ENTITY_ENUM_STACK_ALLOC
+Message-ID: <20151028111014.20f99a43@concha.lan>
+In-Reply-To: <1445900510-1398-20-git-send-email-sakari.ailus@iki.fi>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	<1445900510-1398-20-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <56128AA6.8010106@tresar-electronics.com.au>
-References: <5610B12B.8090201@tresar-electronics.com.au>
-	<CALzAhNWuOhQNQFu-baXy6QzhV3AxCknh7XeKOBjp943nz66Qyw@mail.gmail.com>
-	<5611D97B.9020101@tresar-electronics.com.au>
-	<CALzAhNVVipTAE3T9Hpmi8_CT=ZS5Wd04W5LfMaf-X5QP2d0sQw@mail.gmail.com>
-	<56128AA6.8010106@tresar-electronics.com.au>
-Date: Mon, 5 Oct 2015 10:43:05 -0400
-Message-ID: <CALzAhNVDYgBbCfW5XSwVXJKqm7CgB23=xpsf25Y2Z0yY=tEKBQ@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-From: Steven Toth <stoth@kernellabs.com>
-To: Richard Tresidder <rtresidd@tresar-electronics.com.au>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Do you have a large number of other devices / drivers loaded? I
->> suspect another driver is burning through kernel memory before the
->> saa7164 has a chance to be initialized.
->
-> Nope nothing I can see Its actually the only addon card I have in this
-> system..
-> I'd be buggered If 4GB of RAM is fragmented enough early on in the boot
-> stage...?
+Em Tue, 27 Oct 2015 01:01:50 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-I agree.
+> The purpose of the macro has changed, rename it accordingly. It is not and
+> should no longer be used in drivers directly, but only for the purpose for
+> defining how many bits can be allocated from the stack for entity
+> enumerations.
 
-> I've hunted but can't find a nice way to determine what contiguous blocks
-> are available..
-> Noted there was a simple module that could be compiled in to test such
-> things, I'll play with that and see what it turns up..
+See my comments on patch 03/19.
 
-Let us know how that goes.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 2 +-
+>  include/media/media-entity.h | 8 ++++----
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 137aa09d..feca976 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -222,7 +222,7 @@ void media_gobj_remove(struct media_gobj *gobj)
+>   */
+>  int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
+>  {
+> -	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
+> +	if (idx_max > MEDIA_ENTITY_ENUM_STACK_ALLOC) {
+>  		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
+>  			       sizeof(long), GFP_KERNEL);
+>  		if (!e->e)
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index cc01e08..5cab165 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -72,17 +72,17 @@ struct media_gobj {
+>  };
+>  
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+> -#define MEDIA_ENTITY_ENUM_MAX_ID	64
+> +#define MEDIA_ENTITY_ENUM_STACK_ALLOC	64
+>  
+>  /*
+>   * The number of pads can't be bigger than the number of entities,
+>   * as the worse-case scenario is to have one entity linked up to
+> - * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
+> + * MEDIA_ENTITY_ENUM_STACK_ALLOC - 1 entities.
+>   */
+> -#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
+> +#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_STACK_ALLOC - 1)
+>  
+>  struct media_entity_enum {
+> -	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
+> +	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_STACK_ALLOC);
+>  	unsigned long *e;
+>  	int idx_max;
+>  };
 
->
->> I took a quick look at saa7164-fw.c this morning, I see no reason why
->> the allocation is required at all. With a small patch the function
->> could be made to memcpy from 'src' directly, dropping the need to
->> allocate srcbuf what-so-ever. This would remove the need for the 4MB
->> temporary allocation, and might get you past this issue, likely on to
->> the next (user buffer allocations are also large - as I recall). Note
->> that the 4MB allocation is temporary, so its not a long term saving,
->> but it might get you past the hump.
->
-> That was my thoughts exactly.. but I took a minimal fiddling approach to
-> begin with..
-> I wasn't sure if there was some requirement for the memcpy_toio requiring a
-> specially allocated source..? can't see why..
-> Was going to dig into that next as a side job..
-
-At this stage the code is 7-8 years old, so I don't recall the
-rationale for why I did that back in 2008(?) - but looking at it
-today, I think its needless.... and its a fairly trivial thing to
-remove and test.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+
+Cheers,
+Mauro
