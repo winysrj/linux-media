@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:38389 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752766AbbJOQP3 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36469 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750853AbbJ2E7q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Oct 2015 12:15:29 -0400
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] rc: allow rc modules to be loaded if rc-main is not a module
+	Thu, 29 Oct 2015 00:59:46 -0400
+Received: from [10.35.130.50] (unknown [58.123.138.205])
+	by tschai.lan (Postfix) with ESMTPSA id 1BF792A03F3
+	for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 05:57:26 +0100 (CET)
+To: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] vivid: fix compliance error
+Message-ID: <5631A7B9.2080409@xs4all.nl>
+Date: Thu, 29 Oct 2015 13:59:37 +0900
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <E1ZmlBc-0001Rn-M2@rmk-PC.arm.linux.org.uk>
-Date: Thu, 15 Oct 2015 17:15:24 +0100
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rc-main mistakenly uses #ifdef MODULE to determine whether it should
-load the rc keymap modules.  This symbol is only defined if rc-main
-is being built as a module itself, and bears no relation to whether
-the rc keymaps are modules.
+If vivid is loaded with the no_error_inj=1 option, then v4l2-compliance will
+fail for the video and vbi output nodes because the vivid control class has no
+controls.
 
-Fix this to use CONFIG_MODULES instead.
+Don't add the control class for video and vbi output if no_error_inj is true.
 
-Fixes: 631493ecacd8 ("[media] rc-core: merge rc-map.c into rc-main.c")
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/media/rc/rc-main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index a639ea653c7e..70af646ca397 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -61,7 +61,7 @@ struct rc_map *rc_map_get(const char *name)
- 	struct rc_map_list *map;
- 
- 	map = seek_rc_map(name);
--#ifdef MODULE
-+#ifdef CONFIG_MODULES
- 	if (!map) {
- 		int rc = request_module("%s", name);
- 		if (rc < 0) {
--- 
-2.1.0
-
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index f41ac0b..ae88afc0 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -1340,11 +1340,13 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	v4l2_ctrl_handler_init(hdl_vid_cap, 55);
+ 	v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vid_out, 26);
+-	v4l2_ctrl_new_custom(hdl_vid_out, &vivid_ctrl_class, NULL);
++	if (!no_error_inj)
++		v4l2_ctrl_new_custom(hdl_vid_out, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vbi_cap, 21);
+ 	v4l2_ctrl_new_custom(hdl_vbi_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vbi_out, 19);
+-	v4l2_ctrl_new_custom(hdl_vbi_out, &vivid_ctrl_class, NULL);
++	if (!no_error_inj)
++		v4l2_ctrl_new_custom(hdl_vbi_out, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_radio_rx, 17);
+ 	v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_radio_tx, 17);
