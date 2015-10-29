@@ -1,125 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37029 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752893AbbJZD4P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Oct 2015 23:56:15 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5E2A62A009D
-	for <linux-media@vger.kernel.org>; Mon, 26 Oct 2015 04:54:00 +0100 (CET)
-Date: Mon, 26 Oct 2015 04:54:00 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151026035400.5E2A62A009D@tschai.lan>
+Received: from mout.gmx.net ([212.227.15.15]:49512 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757729AbbJ2QBf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2015 12:01:35 -0400
+Date: Thu, 29 Oct 2015 17:01:17 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+In-Reply-To: <87twpcj6vj.fsf@belgarion.home>
+Message-ID: <Pine.LNX.4.64.1510291656580.694@axis700.grange>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+ <87io5wwahg.fsf@belgarion.home> <Pine.LNX.4.64.1510272306300.21185@axis700.grange>
+ <87twpcj6vj.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Robert,
 
-Results of the daily build of media_tree:
+On Tue, 27 Oct 2015, Robert Jarzmik wrote:
 
-date:		Mon Oct 26 04:00:15 CET 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > Hi Robert,
+> >
+> > Didn't you tell me, that your dmaengine patch got rejected and therefore 
+> > these your patches were on hold?
+> They were reverted, and then revamped into DMA_CTRL_REUSE, upstreamed and
+> merged, as in the commit 272420214d26 ("dmaengine: Add DMA_CTRL_REUSE"). I'd
+> 
+> Of course a pending fix is still underway
+> (http://www.serverphorums.com/read.php?12,1318680). But that shouldn't stop us
+> from reviewing to get ready to merge.
+> 
+> I want this serie to be ready, so that as soon as Vinod merges the fix, I can
+> ping you to trigger the merge into your tree, without doing (and waiting)
+> additional review cycles.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Thanks, understand now. As we discussed before, correct me if I am wrong, 
+this is your hobby project. PXA270 is a legacy platform, nobody except you 
+is interested in this work. I have nothing against hobby projects and I 
+want to support them as much as I can, but I hope you'll understand, that 
+I don't have too much free time, so I cannot handle such projects with a 
+high priority. I understand your desire to process these patches ASAP, 
+however, I'd like to try to minimise my work too. So, I can propose the 
+following: let us wait, until your PXA dmaengine patches are _indeed_ in 
+the mainline. Then you test your camera patches on top of that tree again, 
+perform any eventually necessary updates and either let me know, that 
+either your last version is ok and I can now review it, or submit a new 
+version, that _works_ on top of then current tree.
 
-Detailed results are available here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Cheers.
+> 
+> --
+> Robert
