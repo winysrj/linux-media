@@ -1,125 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39536 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752686AbbJYD4O (ORCPT
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:33883 "EHLO
+	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756342AbbJ2KKn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Oct 2015 23:56:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AFD662A0006
-	for <linux-media@vger.kernel.org>; Sun, 25 Oct 2015 04:54:01 +0100 (CET)
-Date: Sun, 25 Oct 2015 04:54:01 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151025035401.AFD662A0006@tschai.lan>
+	Thu, 29 Oct 2015 06:10:43 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH v2 4/6] usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+Date: Thu, 29 Oct 2015 11:10:30 +0100
+Message-Id: <1446113432-27390-5-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1446113432-27390-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1446113432-27390-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This driver does not use the control infrastructure.
+Add support for the new field which on structure
+ v4l2_ext_controls
 
-Results of the daily build of media_tree:
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-date:		Sun Oct 25 04:00:16 CET 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 2764f43607c1..d7723ce772b3 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -983,6 +983,22 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void *fh,
+ 	unsigned int i;
+ 	int ret;
+ 
++	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
++		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
++			struct v4l2_queryctrl qc = { .id = ctrl->id };
++
++			ret = uvc_query_v4l2_ctrl(chain, &qc);
++			if (ret < 0) {
++				ctrls->error_idx = i;
++				return ret;
++			}
++
++			ctrl->value = qc.default_value;
++		}
++
++		return 0;
++	}
++
+ 	ret = uvc_ctrl_begin(chain);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1010,6 +1026,10 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh *handle,
+ 	unsigned int i;
+ 	int ret;
+ 
++	/* Default value cannot be changed */
++	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
++		return -EINVAL;
++
+ 	ret = uvc_ctrl_begin(chain);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+2.6.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-rc1-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
