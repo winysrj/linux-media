@@ -1,120 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53375 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754705AbbJ1Aiv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 20:38:51 -0400
-Date: Wed, 28 Oct 2015 09:38:47 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 05/19] media: Move media graph state for streamon/off to
- the pipeline
-Message-ID: <20151028093847.2fd223ed@concha.lan>
-In-Reply-To: <1445900510-1398-6-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-6-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51190 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751226AbbJ2E0s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2015 00:26:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: jh1009.sung@samsung.com
+Subject: [PATCH 0/2] vb2: modify VIDIOC_CREATE_BUFS format handling
+Date: Thu, 29 Oct 2015 05:24:24 +0100
+Message-Id: <1446092666-2313-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:36 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> The struct media_entity_graph was allocated in the stack, limiting the
-> number of entities that could be reasonably allocated. Instead, move the
-> struct to struct media_pipeline which is typically allocated using
-> kmalloc() instead.
-> 
-> The intent is to keep the enumeration around for later use for the
-> duration of the streaming. As streaming is eventually stopped, an
-> unfortunate memory allocation failure would prevent stopping the
-> streaming. As no memory will need to be allocated, the problem is avoided
-> altogether.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 16 ++++++++--------
->  include/media/media-entity.h |  2 ++
->  2 files changed, 10 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index fceaf44..667ab32 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -456,16 +456,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  					     struct media_pipeline *pipe)
->  {
->  	struct media_device *mdev = entity->graph_obj.mdev;
-> -	struct media_entity_graph graph;
-> +	struct media_entity_graph *graph = &pipe->graph;
->  	struct media_entity *entity_err = entity;
->  	struct media_link *link;
->  	int ret;
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> -	media_entity_graph_walk_start(&graph, entity);
-> +	media_entity_graph_walk_start(graph, entity);
->  
-> -	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +	while ((entity = media_entity_graph_walk_next(graph))) {
->  		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
->  		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
->  
-> @@ -546,9 +546,9 @@ error:
->  	 * Link validation on graph failed. We revert what we did and
->  	 * return the error.
->  	 */
-> -	media_entity_graph_walk_start(&graph, entity_err);
-> +	media_entity_graph_walk_start(graph, entity_err);
->  
-> -	while ((entity_err = media_entity_graph_walk_next(&graph))) {
-> +	while ((entity_err = media_entity_graph_walk_next(graph))) {
->  		entity_err->stream_count--;
->  		if (entity_err->stream_count == 0)
->  			entity_err->pipe = NULL;
-> @@ -582,13 +582,13 @@ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
->  void media_entity_pipeline_stop(struct media_entity *entity)
->  {
->  	struct media_device *mdev = entity->graph_obj.mdev;
-> -	struct media_entity_graph graph;
-> +	struct media_entity_graph *graph = &entity->pipe->graph;
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> -	media_entity_graph_walk_start(&graph, entity);
-> +	media_entity_graph_walk_start(graph, entity);
->  
-> -	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +	while ((entity = media_entity_graph_walk_next(graph))) {
->  		entity->stream_count--;
->  		if (entity->stream_count == 0)
->  			entity->pipe = NULL;
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index dde9a5f..b2864cb 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -98,6 +98,8 @@ struct media_entity_graph {
->  };
->  
->  struct media_pipeline {
-> +	/* For walking the graph in pipeline start / stop */
-> +	struct media_entity_graph graph;
->  };
+During the Seoul media workshop earlier this week we decided to change the
+way the VIDIOC_CREATE_BUFS ioctl handles the format field.
 
-Please use the kernel-doc format for documenting struct.
+The spec specified that this field was validated by the driver, but the
+reality is that that never happened. Instead drivers would just take the
+sizeimage field and use that as the new buffer size with little or no
+other validation taking place.
 
-After this change:
+This patch series changes the documentation and code so the vb2 framework
+would extract the requested number of planes and plane sizes from the
+format field and pass that on to the core. The only thing drivers need
+to validate is whether the number of planes and plane sizes are valid.
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->  
->  /**
+This greatly simplifies the code and how the ioctl is to be used. Drivers
+are now also consistent in how they handle this ioctl.
 
+For the vb2 core this means that the void pointer is now dropped. Instead,
+drivers will check the *num_planes field: if it is 0, then it should ignore
+any requested sizes, otherwise it contains the requested number of planes
+and the sizes array contains the requested size per plane.
+
+I expect that this is also much more useful for DVB where you want to specify
+the size as well.
+
+Regards,
+
+        Hans
+
+
+Hans Verkuil (2):
+  vb2: drop v4l2_format argument from queue_setup
+  DocBook media: update VIDIOC_CREATE_BUFS documentation
+
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       | 30 ++++++-------
+ Documentation/video4linux/v4l2-pci-skeleton.c      | 10 ++---
+ drivers/input/touchscreen/sur40.c                  | 11 +++--
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
+ drivers/media/pci/cobalt/cobalt-v4l2.c             | 12 ++---
+ drivers/media/pci/cx23885/cx23885-417.c            |  2 +-
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  2 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  2 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |  2 +-
+ drivers/media/pci/cx25821/cx25821-video.c          | 12 ++---
+ drivers/media/pci/cx88/cx88-blackbird.c            |  2 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |  2 +-
+ drivers/media/pci/cx88/cx88-vbi.c                  |  2 +-
+ drivers/media/pci/cx88/cx88-video.c                |  2 +-
+ drivers/media/pci/dt3155/dt3155.c                  | 11 +++--
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  1 -
+ drivers/media/pci/saa7134/saa7134-ts.c             |  2 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  2 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |  2 +-
+ drivers/media/pci/saa7134/saa7134.h                |  2 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |  1 -
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         |  2 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |  2 +-
+ drivers/media/pci/tw68/tw68-video.c                | 20 ++++-----
+ drivers/media/platform/am437x/am437x-vpfe.c        | 17 ++++----
+ drivers/media/platform/blackfin/bfin_capture.c     | 12 +++--
+ drivers/media/platform/coda/coda-common.c          |  2 +-
+ drivers/media/platform/davinci/vpbe_display.c      | 13 +++---
+ drivers/media/platform/davinci/vpif_capture.c      | 17 ++++----
+ drivers/media/platform/davinci/vpif_display.c      | 13 +++---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  1 -
+ drivers/media/platform/exynos4-is/fimc-capture.c   | 31 +++++++------
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 31 ++++++-------
+ drivers/media/platform/exynos4-is/fimc-lite.c      | 31 ++++++-------
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  2 +-
+ drivers/media/platform/m2m-deinterlace.c           |  1 -
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 13 +++---
+ drivers/media/platform/mx2_emmaprp.c               |  1 -
+ drivers/media/platform/omap3isp/ispvideo.c         |  1 -
+ drivers/media/platform/rcar_jpu.c                  | 25 ++++++-----
+ drivers/media/platform/s3c-camif/camif-capture.c   | 33 +++++---------
+ drivers/media/platform/s5p-g2d/g2d.c               |  2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |  1 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  1 -
+ drivers/media/platform/s5p-tv/mixer_video.c        |  2 +-
+ drivers/media/platform/sh_veu.c                    | 31 ++++---------
+ drivers/media/platform/sh_vou.c                    | 11 +++--
+ drivers/media/platform/soc_camera/atmel-isi.c      |  2 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |  6 ---
+ drivers/media/platform/soc_camera/mx3_camera.c     | 38 +++-------------
+ drivers/media/platform/soc_camera/rcar_vin.c       | 40 +++--------------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     | 37 +++-------------
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 10 ++---
+ drivers/media/platform/ti-vpe/vpe.c                |  1 -
+ drivers/media/platform/vim2m.c                     | 13 ++----
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       | 22 +++-------
+ drivers/media/platform/vivid/vivid-vid-out.c       | 19 ++------
+ drivers/media/platform/vsp1/vsp1_video.c           | 51 +++++-----------------
+ drivers/media/platform/xilinx/xilinx-dma.c         | 12 +++--
+ drivers/media/usb/airspy/airspy.c                  |  2 +-
+ drivers/media/usb/au0828/au0828-vbi.c              | 14 ++----
+ drivers/media/usb/au0828/au0828-video.c            | 12 ++---
+ drivers/media/usb/em28xx/em28xx-vbi.c              | 20 ++++-----
+ drivers/media/usb/em28xx/em28xx-video.c            | 19 ++------
+ drivers/media/usb/go7007/go7007-v4l2.c             |  1 -
+ drivers/media/usb/hackrf/hackrf.c                  |  2 +-
+ drivers/media/usb/msi2500/msi2500.c                |  1 -
+ drivers/media/usb/pwc/pwc-if.c                     |  2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |  2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |  9 ++--
+ drivers/media/usb/uvc/uvc_queue.c                  | 14 +++---
+ drivers/media/v4l2-core/videobuf2-core.c           | 23 +++++++---
+ drivers/media/v4l2-core/videobuf2-v4l2.c           | 48 +++++++++++++++++---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  2 +-
+ drivers/staging/media/omap4iss/iss_video.c         |  1 -
+ drivers/usb/gadget/function/uvc_queue.c            |  2 +-
+ include/media/videobuf2-core.h                     | 40 +++++++++--------
+ 82 files changed, 370 insertions(+), 535 deletions(-)
 
 -- 
+2.1.4
 
-Cheers,
-Mauro
