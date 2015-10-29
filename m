@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60146 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751990AbbJGLZv (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:36357 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703AbbJ2Rkg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Oct 2015 07:25:51 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: tiffany.lin@mediatek.com
-Subject: [PATCH v3 1/2] media: vb2 dma-contig: Fully cache synchronise buffers in prepare and finish
-Date: Wed,  7 Oct 2015 14:23:32 +0300
-Message-Id: <1444217013-21156-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
-References: <1444217013-21156-1-git-send-email-sakari.ailus@iki.fi>
+	Thu, 29 Oct 2015 13:40:36 -0400
+Date: Fri, 30 Oct 2015 01:15:39 +0800
+From: Wang YanQing <udknight@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: torvalds@linux-foundation.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RFC] Documentation: dontdiff: remove media from dontdiff
+Message-ID: <20151029171539.GA5086@udknight>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tiffany Lin <tiffany.lin@mediatek.com>
+media will hide all the changes in drivers/media.
 
-In videobuf2 dma-contig memory type the prepare and finish ops, instead of
-passing the number of entries in the original scatterlist as the "nents"
-parameter to dma_sync_sg_for_device() and dma_sync_sg_for_cpu(), the value
-returned by dma_map_sg() was used. Albeit this has been suggested in
-comments of some implementations (which have since been corrected), this
-is wrong.
-
-Cc: stable@vger.kernel.org # for v3.8 and up
-Fixes: 199d101efdba ("v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator")
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Wang YanQing <udknight@gmail.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ I don't know whether it is still acceptable to patch dontdiff,
+ so I add Linus to CC list.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index ea33d69..c331272 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -100,7 +100,8 @@ static void vb2_dc_prepare(void *buf_priv)
- 	if (!sgt || buf->db_attach)
- 		return;
- 
--	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->orig_nents,
-+			       buf->dma_dir);
- }
- 
- static void vb2_dc_finish(void *buf_priv)
-@@ -112,7 +113,7 @@ static void vb2_dc_finish(void *buf_priv)
- 	if (!sgt || buf->db_attach)
- 		return;
- 
--	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-+	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
- }
- 
- /*********************************************/
+ Documentation/dontdiff | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/Documentation/dontdiff b/Documentation/dontdiff
+index 9de9813..8ea834f 100644
+--- a/Documentation/dontdiff
++++ b/Documentation/dontdiff
+@@ -165,7 +165,6 @@ mach-types.h
+ machtypes.h
+ map
+ map_hugetlb
+-media
+ mconf
+ miboot*
+ mk_elfconfig
 -- 
-2.1.4
-
+1.8.5.6.2.g3d8a54e.dirty
