@@ -1,103 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46833 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752982AbbJVSDZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Oct 2015 14:03:25 -0400
-Date: Thu, 22 Oct 2015 16:03:19 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.3] media fixes
-Message-ID: <20151022160319.014f3601@recife.lan>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:37700 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758072AbbJ2VXm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2015 17:23:42 -0400
+Received: by wicfv8 with SMTP id fv8so54102324wic.0
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:41 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 6/9] media: rc: nuvoton-cir: add support for the NCT6779D
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56328E0F.7080102@gmail.com>
+Date: Thu, 29 Oct 2015 22:22:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus
+Add support for the NCT6779D. It's found e.g. on the Zotac CI321 mini-pc
+and I successfully tested it on this device.
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v4.3-4
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 1 +
+ drivers/media/rc/nuvoton-cir.h | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-For some regression fixes and potential security issues:
-	- netup_unidvb: fix potential crash when spi is NULL
-	- rtl28xxu: fix control message flaws
-	- m88ds3103: fix a regression on Kernel 4.2;
-	- c8sectpfe: fix some issues on this new driver;
-	- v4l2-flash-led-class: fix a Kbuild dependency;
-	- si2157 and si2158: check for array boundary when uploading
-	  firmware files;
-	- horus3a and lnbh25: fix some building troubles when some options
-	  aren't selected;
-	- ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index df4b9cb..ff874fc 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -43,6 +43,7 @@ static const struct nvt_chip nvt_chips[] = {
+ 	{ "w83667hg", NVT_W83667HG },
+ 	{ "NCT6775F", NVT_6775F },
+ 	{ "NCT6776F", NVT_6776F },
++	{ "NCT6779D", NVT_6779D },
+ };
+ 
+ static inline bool is_w83667hg(struct nvt_dev *nvt)
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 81b5a09..c96a9d3 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -70,7 +70,8 @@ enum nvt_chip_ver {
+ 	NVT_UNKNOWN	= 0,
+ 	NVT_W83667HG	= 0xa510,
+ 	NVT_6775F	= 0xb470,
+-	NVT_6776F	= 0xc330
++	NVT_6776F	= 0xc330,
++	NVT_6779D	= 0xc560
+ };
+ 
+ struct nvt_chip {
+-- 
+2.6.2
 
-Thanks!
-Mauro
-
--
-
-PS.: Those patches are at linux next, but I had do do a rebase, as
-there were other patches there on my fixes branch that were meant
-to go only for 4.4. Normally, I would re-push and wait for it to be
-merged on -next, but Steven won't be releasing a -next version until
-Nov, 2.
-
-The following changes since commit 6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f:
-
-  Linux 4.3-rc1 (2015-09-12 16:35:56 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media media/v4.3-4
-
-for you to fetch changes up to 56ea37da3b93dfe46cb5c3ee0ee4cc44229ece47:
-
-  [media] m88ds3103: use own reg update_bits() implementation (2015-10-22 15:48:28 -0200)
-
-----------------------------------------------------------------
-media fixes for v4.3-rc7
-
-----------------------------------------------------------------
-Abylay Ospan (1):
-      [media] netup_unidvb: fix potential crash when spi is NULL
-
-Antti Palosaari (2):
-      [media] rtl28xxu: fix control message flaws
-      [media] m88ds3103: use own reg update_bits() implementation
-
-Colin Ian King (1):
-      [media] c8sectpfe: fix ininitialized error return on firmware load failure
-
-Jacek Anaszewski (1):
-      [media] v4l2-flash-led-class: Add missing VIDEO_V4L2 Kconfig dependency
-
-Javier Martinez Canillas (2):
-      [media] horus3a: Fix horus3a_attach() function parameters
-      [media] lnbh25: Fix lnbh25_attach() function return type
-
-Laura Abbott (2):
-      [media] si2157: Bounds check firmware
-      [media] si2168: Bounds check firmware
-
-Sudeep Holla (1):
-      [media] ir-hix5hd2: drop the use of IRQF_NO_SUSPEND
-
-Sudip Mukherjee (1):
-      [media] c8sectpfe: fix return of garbage
-
- drivers/media/dvb-frontends/horus3a.h                 |  4 +-
- drivers/media/dvb-frontends/lnbh25.h                  |  2 +-
- drivers/media/dvb-frontends/m88ds3103.c               | 73 +-
- drivers/media/dvb-frontends/si2168.c                  |  4 +
- drivers/media/pci/netup_unidvb/netup_unidvb_spi.c     | 12 +-
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c |  7 +-
- drivers/media/rc/ir-hix5hd2.c                         |  2 +-
- drivers/media/tuners/si2157.c                         |  4 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c               | 15 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h               |  2 +-
- drivers/media/v4l2-core/Kconfig                       |  2 +-
- 11 files changed, 81 insertions(+), 46 deletions(-)
 
