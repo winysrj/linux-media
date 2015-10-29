@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45019 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751741AbbJZXDv (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:33191 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752799AbbJ2ThO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Oct 2015 19:03:51 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 10/19] v4l: xilinx: Use the new media_entity_graph_walk_start() interface
-Date: Tue, 27 Oct 2015 01:01:41 +0200
-Message-Id: <1445900510-1398-11-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+	Thu, 29 Oct 2015 15:37:14 -0400
+Received: by wmeg8 with SMTP id g8so30616170wme.0
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 12:37:12 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: ir-sharp-decoder: add support for Denon variant of
+ the protocol
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Message-ID: <56327348.80807@gmail.com>
+Date: Thu, 29 Oct 2015 20:28:08 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Denon also uses the Sharp protocol, however with different check bits.
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index bc244a0..0a19824 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -182,10 +182,17 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	unsigned int num_inputs = 0;
- 	unsigned int num_outputs = 0;
-+	int ret;
+It would have been also possible to add this as a separate protocol
+but this may not be worth the effort.
+
+Successfully tested with a Denon RC-1002 remote control.
+
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/Kconfig            | 3 ++-
+ drivers/media/rc/ir-sharp-decoder.c | 4 +++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index b6e1311..bd4d685 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -101,7 +101,8 @@ config IR_SHARP_DECODER
  
- 	mutex_lock(&mdev->graph_mutex);
+ 	---help---
+ 	   Enable this option if you have an infrared remote control which
+-	   uses the Sharp protocol, and you need software decoding support.
++	   uses the Sharp protocol (Sharp, Denon), and you need software
++	   decoding support.
  
- 	/* Walk the graph to locate the video nodes. */
-+	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
-+	if (ret) {
-+		mutex_unlock(&mdev->graph_mutex);
-+		return ret;
-+	}
-+
- 	media_entity_graph_walk_start(&graph, entity);
+ config IR_MCE_KBD_DECODER
+ 	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index b7acdba..1f33164 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -118,7 +118,9 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
  
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-@@ -206,6 +213,8 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
- 
- 	mutex_unlock(&mdev->graph_mutex);
- 
-+	media_entity_graph_walk_cleanup(&graph);
-+
- 	/* We need exactly one output and zero or one input. */
- 	if (num_outputs != 1 || num_inputs > 1)
- 		return -EPIPE;
+ 		if (data->count == SHARP_NBITS) {
+ 			/* exp,chk bits should be 1,0 */
+-			if ((data->bits & 0x3) != 0x2)
++			if ((data->bits & 0x3) != 0x2 &&
++			/* DENON variant, both chk bits 0 */
++			    (data->bits & 0x3) != 0x0)
+ 				break;
+ 			data->state = STATE_ECHO_SPACE;
+ 		} else {
 -- 
-2.1.4
+2.6.2
 
