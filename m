@@ -1,77 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:43342 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718AbbJFSFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Oct 2015 14:05:53 -0400
-Date: Tue, 6 Oct 2015 19:05:40 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Hans Verkuil <hansverk@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	thomas@tommie-lie.de, sean@mess.org, dmitry.torokhov@gmail.com,
-	linux-input@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	lars@opdenkamp.eu, kamil@wypas.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCHv9 06/15] rc: Add HDMI CEC protocol handling
-Message-ID: <20151006180540.GR21513@n2100.arm.linux.org.uk>
-References: <cover.1441633456.git.hansverk@cisco.com>
- <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56261 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbbJ2AIJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Oct 2015 20:08:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Vincent Palatin <vpalatin@chromium.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 06/10] usb/uvc: Support for V4L2_CTRL_WHICH_DEF_VAL
+Date: Thu, 29 Oct 2015 02:08:07 +0200
+Message-ID: <1643612.KeQ8I7KJtY@avalon>
+In-Reply-To: <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com>
+References: <1440163169-18047-1-git-send-email-ricardo.ribalda@gmail.com> <1440163169-18047-7-git-send-email-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <345aeebe5561f8f6540f477ae160c5cbf1b0f6d5.1441633456.git.hansverk@cisco.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 07, 2015 at 03:44:35PM +0200, Hans Verkuil wrote:
-> From: Kamil Debski <kamil@wypas.org>
+Hi Ricardo,
+
+Thank you for the patch.
+
+On Friday 21 August 2015 15:19:25 Ricardo Ribalda Delgado wrote:
+> This driver does not use the control infrastructure.
+> Add support for the new field which on structure
+>  v4l2_ext_controls
 > 
-> Add handling of remote control events coming from the HDMI CEC bus.
-> This patch includes a new keymap that maps values found in the CEC
-> messages to the keys pressed and released. Also, a new protocol has
-> been added to the core.
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 14 +++++++++++++-
+>  1 file changed, 13 insertions(+), 1 deletion(-)
 > 
-> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index 2764f43607c1..e6d3a1bcfa2f 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -980,6 +980,7 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file, void
+> *fh, struct uvc_fh *handle = fh;
+>  	struct uvc_video_chain *chain = handle->chain;
+>  	struct v4l2_ext_control *ctrl = ctrls->controls;
+> +	struct v4l2_queryctrl qc;
+>  	unsigned int i;
+>  	int ret;
+> 
+> @@ -988,7 +989,14 @@ static int uvc_ioctl_g_ext_ctrls(struct file *file,
+> void *fh, return ret;
+> 
+>  	for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+> -		ret = uvc_ctrl_get(chain, ctrl);
+> +		if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+> +			qc.id = ctrl->id;
+> +			ret = uvc_query_v4l2_ctrl(chain, &qc);
 
-(Added Mauro)
+The uvc_ctrl_begin() call above locks chain->ctrl_mutex, and 
+uvc_query_v4l2_ctrl() will then try to acquire the same lock. That's not a 
+good idea :-)
 
-Hmm, how is rc-cec supposed to be loaded?
+I propose moving the ctrls->which check before the uvc_ctrl_begin() call and 
+implement it as
 
-At boot, I see:
+	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL) {
+		for (i = 0; i < ctrls->count; ++ctrl, ++i) {
+			struct v4l2_queryctrl qc = { .id = ctrl->id };
 
-[   16.577704] IR keymap rc-cec not found
-[   16.586675] Registered IR keymap rc-empty
-[   16.591668] input: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1/input3
-[   16.597769] rc1: RC for dw_hdmi as /devices/soc0/soc/120000.hdmi/rc/rc1
+			ret = uvc_query_v4l2_ctrl(chain, &qc);
+			if (ret < 0) {
+				ctrls->error_idx = i;
+				return ret;
+			}
 
-Yet the rc-cec is a module in the filesystem, but it doesn't seem to
-be loaded automatically - even after the system has booted, the module
-hasn't been loaded.
+			ctrl->value = qc.default_value;
+		}
 
-It looks like it _should_ be loaded, but this plainly isn't working:
+		return 0;
+	}
 
-        map = seek_rc_map(name);
-#ifdef MODULE
-        if (!map) {
-                int rc = request_module("%s", name);
-                if (rc < 0) {
-                        printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
-                        return NULL;
-                }
-                msleep(20);     /* Give some time for IR to register */
-
-                map = seek_rc_map(name);
-        }
-#endif
-        if (!map) {
-                printk(KERN_ERR "IR keymap %s not found\n", name);
-                return NULL;
-        }
-
-Any ideas?
+> +			if (!ret)
+> +				ctrl->value = qc.default_value;
+> +		} else
+> +			ret = uvc_ctrl_get(chain, ctrl);
+> +
+>  		if (ret < 0) {
+>  			uvc_ctrl_rollback(handle);
+>  			ctrls->error_idx = i;
+> @@ -1010,6 +1018,10 @@ static int uvc_ioctl_s_try_ext_ctrls(struct uvc_fh
+> *handle, unsigned int i;
+>  	int ret;
+> 
+> +	/* Default value cannot be changed */
+> +	if (ctrls->which == V4L2_CTRL_WHICH_DEF_VAL)
+> +		return -EINVAL;
+> +
+>  	ret = uvc_ctrl_begin(chain);
+>  	if (ret < 0)
+>  		return ret;
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Laurent Pinchart
+
