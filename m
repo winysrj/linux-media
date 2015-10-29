@@ -1,245 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50863 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750843AbbJCWkb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Oct 2015 18:40:31 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Mark Clarkstone <hello@markclarkstone.co.uk>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] m88ds3103: use own reg update_bits() implementation
-Date: Sun,  4 Oct 2015 01:25:36 +0300
-Message-Id: <1443911136-8096-1-git-send-email-crope@iki.fi>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:33805 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932530AbbJ2VXo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Oct 2015 17:23:44 -0400
+Received: by wmff134 with SMTP id f134so32384682wmf.1
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 14:23:43 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 8/9] media: rc: nuvoton-cir: replace nvt_pr with dev_
+ functions
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56328E35.20708@gmail.com>
+Date: Thu, 29 Oct 2015 22:23:01 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device stopped to tuning some channels after regmap conversion.
-Reason is that regmap_update_bits() works a bit differently for
-partially volatile registers than old homemade routine. Return
-back to old routine in order to fix issue.
+Replace nvt_pr with the respective dev_ functions thus slightly
+simplifying the code.
 
-Fixes: 478932b16052f5ded74685d096ae920cd17d6424
-Cc: <stable@kernel.org> # 4.2+
-Reported-by: Mark Clarkstone <hello@markclarkstone.co.uk>
-Tested-by: Mark Clarkstone <hello@markclarkstone.co.uk>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/dvb-frontends/m88ds3103.c | 73 +++++++++++++++++++++------------
- 1 file changed, 47 insertions(+), 26 deletions(-)
+ drivers/media/rc/nuvoton-cir.c | 15 ++++++++-------
+ drivers/media/rc/nuvoton-cir.h |  3 ---
+ 2 files changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
-index ff31e7a..feeeb70 100644
---- a/drivers/media/dvb-frontends/m88ds3103.c
-+++ b/drivers/media/dvb-frontends/m88ds3103.c
-@@ -18,6 +18,27 @@
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index ee1b14e..1ba9c99 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -274,9 +274,9 @@ static void nvt_hw_detect(struct nvt_dev *nvt)
  
- static struct dvb_frontend_ops m88ds3103_ops;
- 
-+/* write single register with mask */
-+static int m88ds3103_update_bits(struct m88ds3103_dev *dev,
-+				u8 reg, u8 mask, u8 val)
-+{
-+	int ret;
-+	u8 tmp;
-+
-+	/* no need for read if whole reg is written */
-+	if (mask != 0xff) {
-+		ret = regmap_bulk_read(dev->regmap, reg, &tmp, 1);
-+		if (ret)
-+			return ret;
-+
-+		val &= mask;
-+		tmp &= ~mask;
-+		val |= tmp;
-+	}
-+
-+	return regmap_bulk_write(dev->regmap, reg, &val, 1);
-+}
-+
- /* write reg val table using reg addr auto increment */
- static int m88ds3103_wr_reg_val_tab(struct m88ds3103_dev *dev,
- 		const struct m88ds3103_reg_val *tab, int tab_len)
-@@ -394,10 +415,10 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			u8tmp2 = 0x00; /* 0b00 */
- 			break;
- 		}
--		ret = regmap_update_bits(dev->regmap, 0x22, 0xc0, u8tmp1 << 6);
-+		ret = m88ds3103_update_bits(dev, 0x22, 0xc0, u8tmp1 << 6);
- 		if (ret)
- 			goto err;
--		ret = regmap_update_bits(dev->regmap, 0x24, 0xc0, u8tmp2 << 6);
-+		ret = m88ds3103_update_bits(dev, 0x24, 0xc0, u8tmp2 << 6);
- 		if (ret)
- 			goto err;
- 	}
-@@ -455,13 +476,13 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 			if (ret)
- 				goto err;
- 		}
--		ret = regmap_update_bits(dev->regmap, 0x9d, 0x08, 0x08);
-+		ret = m88ds3103_update_bits(dev, 0x9d, 0x08, 0x08);
- 		if (ret)
- 			goto err;
- 		ret = regmap_write(dev->regmap, 0xf1, 0x01);
- 		if (ret)
- 			goto err;
--		ret = regmap_update_bits(dev->regmap, 0x30, 0x80, 0x80);
-+		ret = m88ds3103_update_bits(dev, 0x30, 0x80, 0x80);
- 		if (ret)
- 			goto err;
- 	}
-@@ -498,7 +519,7 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	switch (dev->cfg->ts_mode) {
- 	case M88DS3103_TS_SERIAL:
- 	case M88DS3103_TS_SERIAL_D7:
--		ret = regmap_update_bits(dev->regmap, 0x29, 0x20, u8tmp1);
-+		ret = m88ds3103_update_bits(dev, 0x29, 0x20, u8tmp1);
- 		if (ret)
- 			goto err;
- 		u8tmp1 = 0;
-@@ -567,11 +588,11 @@ static int m88ds3103_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_update_bits(dev->regmap, 0x4d, 0x02, dev->cfg->spec_inv << 1);
-+	ret = m88ds3103_update_bits(dev, 0x4d, 0x02, dev->cfg->spec_inv << 1);
- 	if (ret)
- 		goto err;
- 
--	ret = regmap_update_bits(dev->regmap, 0x30, 0x10, dev->cfg->agc_inv << 4);
-+	ret = m88ds3103_update_bits(dev, 0x30, 0x10, dev->cfg->agc_inv << 4);
- 	if (ret)
- 		goto err;
- 
-@@ -625,13 +646,13 @@ static int m88ds3103_init(struct dvb_frontend *fe)
- 	dev->warm = false;
- 
- 	/* wake up device from sleep */
--	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x01);
-+	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x01);
- 	if (ret)
- 		goto err;
--	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x00);
-+	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x00);
- 	if (ret)
- 		goto err;
--	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x00);
-+	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x00);
- 	if (ret)
- 		goto err;
- 
-@@ -749,18 +770,18 @@ static int m88ds3103_sleep(struct dvb_frontend *fe)
- 		utmp = 0x29;
+ 	/* warn, but still let the driver load, if we don't know this chip */
+ 	if (!chip_name)
+-		nvt_pr(KERN_WARNING,
+-		       "unknown chip, id: 0x%02x 0x%02x, it may not work...",
+-		       nvt->chip_major, nvt->chip_minor);
++		dev_warn(&nvt->pdev->dev,
++			 "unknown chip, id: 0x%02x 0x%02x, it may not work...",
++			 nvt->chip_major, nvt->chip_minor);
  	else
- 		utmp = 0x27;
--	ret = regmap_update_bits(dev->regmap, utmp, 0x01, 0x00);
-+	ret = m88ds3103_update_bits(dev, utmp, 0x01, 0x00);
- 	if (ret)
- 		goto err;
+ 		nvt_dbg("found %s or compatible: chip id: 0x%02x 0x%02x",
+ 			chip_name, nvt->chip_major, nvt->chip_minor);
+@@ -482,8 +482,9 @@ static u32 nvt_rx_carrier_detect(struct nvt_dev *nvt)
+ 	duration *= SAMPLE_PERIOD;
  
- 	/* sleep */
--	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x00);
-+	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x00);
- 	if (ret)
- 		goto err;
--	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x01);
-+	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x01);
- 	if (ret)
- 		goto err;
--	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x10);
-+	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x10);
- 	if (ret)
- 		goto err;
- 
-@@ -992,12 +1013,12 @@ static int m88ds3103_set_tone(struct dvb_frontend *fe,
+ 	if (!count || !duration) {
+-		nvt_pr(KERN_NOTICE, "Unable to determine carrier! (c:%u, d:%u)",
+-		       count, duration);
++		dev_notice(&nvt->pdev->dev,
++			   "Unable to determine carrier! (c:%u, d:%u)",
++			   count, duration);
+ 		return 0;
  	}
  
- 	utmp = tone << 7 | dev->cfg->envelope_mode << 5;
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
- 	if (ret)
- 		goto err;
+@@ -658,7 +659,7 @@ static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
  
- 	utmp = 1 << 2;
--	ret = regmap_update_bits(dev->regmap, 0xa1, reg_a1_mask, utmp);
-+	ret = m88ds3103_update_bits(dev, 0xa1, reg_a1_mask, utmp);
- 	if (ret)
- 		goto err;
+ static void nvt_handle_rx_fifo_overrun(struct nvt_dev *nvt)
+ {
+-	nvt_pr(KERN_WARNING, "RX FIFO overrun detected, flushing data!");
++	dev_warn(&nvt->pdev->dev, "RX FIFO overrun detected, flushing data!");
  
-@@ -1047,7 +1068,7 @@ static int m88ds3103_set_voltage(struct dvb_frontend *fe,
- 	voltage_dis ^= dev->cfg->lnb_en_pol;
+ 	nvt->pkts = 0;
+ 	nvt_clear_cir_fifo(nvt);
+@@ -1087,7 +1088,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
  
- 	utmp = voltage_dis << 1 | voltage_sel << 0;
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0x03, utmp);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0x03, utmp);
- 	if (ret)
- 		goto err;
+ 	device_init_wakeup(&pdev->dev, true);
  
-@@ -1080,7 +1101,7 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 	}
+-	nvt_pr(KERN_NOTICE, "driver has been successfully loaded\n");
++	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
+ 	if (debug) {
+ 		cir_dump_regs(nvt);
+ 		cir_wake_dump_regs(nvt);
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index c96a9d3..0ad15d3 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -35,9 +35,6 @@
+ static int debug;
  
- 	utmp = dev->cfg->envelope_mode << 5;
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
- 	if (ret)
- 		goto err;
  
-@@ -1115,12 +1136,12 @@ static int m88ds3103_diseqc_send_master_cmd(struct dvb_frontend *fe,
- 	} else {
- 		dev_dbg(&client->dev, "diseqc tx timeout\n");
- 
--		ret = regmap_update_bits(dev->regmap, 0xa1, 0xc0, 0x40);
-+		ret = m88ds3103_update_bits(dev, 0xa1, 0xc0, 0x40);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0xc0, 0x80);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0xc0, 0x80);
- 	if (ret)
- 		goto err;
- 
-@@ -1152,7 +1173,7 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	}
- 
- 	utmp = dev->cfg->envelope_mode << 5;
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0xe0, utmp);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0xe0, utmp);
- 	if (ret)
- 		goto err;
- 
-@@ -1194,12 +1215,12 @@ static int m88ds3103_diseqc_send_burst(struct dvb_frontend *fe,
- 	} else {
- 		dev_dbg(&client->dev, "diseqc tx timeout\n");
- 
--		ret = regmap_update_bits(dev->regmap, 0xa1, 0xc0, 0x40);
-+		ret = m88ds3103_update_bits(dev, 0xa1, 0xc0, 0x40);
- 		if (ret)
- 			goto err;
- 	}
- 
--	ret = regmap_update_bits(dev->regmap, 0xa2, 0xc0, 0x80);
-+	ret = m88ds3103_update_bits(dev, 0xa2, 0xc0, 0x80);
- 	if (ret)
- 		goto err;
- 
-@@ -1435,13 +1456,13 @@ static int m88ds3103_probe(struct i2c_client *client,
- 		goto err_kfree;
- 
- 	/* sleep */
--	ret = regmap_update_bits(dev->regmap, 0x08, 0x01, 0x00);
-+	ret = m88ds3103_update_bits(dev, 0x08, 0x01, 0x00);
- 	if (ret)
- 		goto err_kfree;
--	ret = regmap_update_bits(dev->regmap, 0x04, 0x01, 0x01);
-+	ret = m88ds3103_update_bits(dev, 0x04, 0x01, 0x01);
- 	if (ret)
- 		goto err_kfree;
--	ret = regmap_update_bits(dev->regmap, 0x23, 0x10, 0x10);
-+	ret = m88ds3103_update_bits(dev, 0x23, 0x10, 0x10);
- 	if (ret)
- 		goto err_kfree;
- 
+-#define nvt_pr(level, text, ...) \
+-	printk(level KBUILD_MODNAME ": " text, ## __VA_ARGS__)
+-
+ #define nvt_dbg(text, ...) \
+ 	if (debug) \
+ 		printk(KERN_DEBUG \
 -- 
-http://palosaari.fi/
+2.6.2
+
 
