@@ -1,84 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53464 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754077AbbJ1CKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Oct 2015 22:10:18 -0400
-Date: Wed, 28 Oct 2015 11:10:14 +0900
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	javier@osg.samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 19/19] media: Rename MEDIA_ENTITY_ENUM_MAX_ID as
- MEDIA_ENTITY_ENUM_STACK_ALLOC
-Message-ID: <20151028111014.20f99a43@concha.lan>
-In-Reply-To: <1445900510-1398-20-git-send-email-sakari.ailus@iki.fi>
-References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
-	<1445900510-1398-20-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:38824 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759212AbbJ3JSX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2015 05:18:23 -0400
+Received: by igbdj2 with SMTP id dj2so6914163igb.1
+        for <linux-media@vger.kernel.org>; Fri, 30 Oct 2015 02:18:23 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <562FFF9D.3070502@xs4all.nl>
+References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
+	<5625DDCA.2040203@xs4all.nl>
+	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
+	<562B5178.5040303@xs4all.nl>
+	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
+	<562D5DE2.5020406@xs4all.nl>
+	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
+	<CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
+	<562EA780.7070706@xs4all.nl>
+	<CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
+	<562FFF9D.3070502@xs4all.nl>
+Date: Fri, 30 Oct 2015 11:18:23 +0200
+Message-ID: <CAJ2oMhLc_EkBMYpA49kw13E4Pw9piwDPiXZGe1mWoT7QzuE3cg@mail.gmail.com>
+Subject: Re: PCIe capture driver
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Oct 2015 01:01:50 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On Wed, Oct 28, 2015 at 12:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>
+> On 10/27/2015 22:56, Ran Shalit wrote:
+>> On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>>
+>>> On 10/27/2015 02:04, Ran Shalit wrote:
+>>>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>>>>>> No, use V4L2. What you do with the frame after it has been captured
+>>>>>> into memory has no relevance to the API you use to capture into memory.
+>>>>>
+>>>>> Ran, I've built many open and closed source Linux drivers over the
+>>>>> last 10 years - so I can speak with authority on this.
+>>>>>
+>>>>> Hans is absolutely correct, don't make the mistake of going
+>>>>> proprietary with your API. Take advantage of the massive amount of
+>>>>> video related frameworks the kernel has to offer. It will get you to
+>>>>> market faster, assuming your goal is to build a driver that is open
+>>>>> source. If your licensing prohibits an open source driver solution,
+>>>>> you'll have no choice but to build your own proprietary API.
+>>>>>
+>>>>> --
+>>>>> Steven Toth - Kernel Labs
+>>>>> http://www.kernellabs.com
+>>>>
+>>>> Hi,
+>>>>
+>>>> Thank you very much for these valuable comments.
+>>>> If I may ask one more on this issue:
+>>>> Is there an example in linux tree, for a pci device which is used both
+>>>> as a capture and a display device ? (I've made a search but did not
+>>>> find any)
+>>>> The PCIe device we are using will be both a capture device and output
+>>>> video device (for display).
+>>>
+>>> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
+>>>
+>>> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>
+>> Hi Hans,
+>>
+>> Thank you very much for the reference.
+>> I see that the cobalt card is not for sale ?  If it was it could help
+>> us in our development.
+>
+> No, sorry. It's a Cisco-internal card only.
+>
+>> In our case it is more custom design which is based on FPGA:
+>>
+>> Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
+>>
+>> As I understand there is no product chip which can do the above
+>> (3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
+>> the board design.
+>
+> The ivtv driver (drivers/media/pci/ivtv) has SD input and output, so that can be a
+> useful reference for that as well. The Hauppauge PVR-350 board is no longer
+> sold, but you might be able to pick one up on ebay.
+>
+> Regards,
+>
+>         Hans
 
-> The purpose of the macro has changed, rename it accordingly. It is not and
-> should no longer be used in drivers directly, but only for the purpose for
-> defining how many bits can be allocated from the stack for entity
-> enumerations.
+I've been delving in V4l Wikis,  API,   and the PCI driver examples code.
 
-See my comments on patch 03/19.
+I think a good starting point for the development will be
+v4l2-pci-skeleton.c , becuase it is much simpler than the more
+production examples,
+do you recommend it as a starting point ?
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 2 +-
->  include/media/media-entity.h | 8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 137aa09d..feca976 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -222,7 +222,7 @@ void media_gobj_remove(struct media_gobj *gobj)
->   */
->  int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
->  {
-> -	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-> +	if (idx_max > MEDIA_ENTITY_ENUM_STACK_ALLOC) {
->  		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
->  			       sizeof(long), GFP_KERNEL);
->  		if (!e->e)
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index cc01e08..5cab165 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -72,17 +72,17 @@ struct media_gobj {
->  };
->  
->  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> -#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> +#define MEDIA_ENTITY_ENUM_STACK_ALLOC	64
->  
->  /*
->   * The number of pads can't be bigger than the number of entities,
->   * as the worse-case scenario is to have one entity linked up to
-> - * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> + * MEDIA_ENTITY_ENUM_STACK_ALLOC - 1 entities.
->   */
-> -#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> +#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_STACK_ALLOC - 1)
->  
->  struct media_entity_enum {
-> -	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-> +	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_STACK_ALLOC);
->  	unsigned long *e;
->  	int idx_max;
->  };
+I am just not sure that the pci skeleton supports the HD & SD channels
+at the same time:
+I think it will open only one device (for example /dev/video0) , so
+that the application will need to select which input is used (not
+both) ?
 
-
--- 
-
-Cheers,
-Mauro
+Best Regards,
+Ran
