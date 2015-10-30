@@ -1,116 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:36058 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbbJKHdZ (ORCPT
+Received: from mail-vk0-f46.google.com ([209.85.213.46]:34076 "EHLO
+	mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752569AbbJ3BSN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Oct 2015 03:33:25 -0400
-Received: by wicgb1 with SMTP id gb1so114589189wic.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Oct 2015 00:33:24 -0700 (PDT)
-Received: from [192.168.1.5] (52484E89.cm-4-1b.dynamic.ziggo.nl. [82.72.78.137])
-        by smtp.googlemail.com with ESMTPSA id x9sm5007950wjf.44.2015.10.11.00.33.24
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Sun, 11 Oct 2015 00:33:24 -0700 (PDT)
-Message-ID: <561A10C1.2090102@gmail.com>
-Date: Sun, 11 Oct 2015 09:33:21 +0200
-From: =?UTF-8?B?VHljaG8gTMO8cnNlbg==?= <tycholursen@gmail.com>
+	Thu, 29 Oct 2015 21:18:13 -0400
+Received: by vkgs66 with SMTP id s66so38585050vkg.1
+        for <linux-media@vger.kernel.org>; Thu, 29 Oct 2015 18:18:12 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV-HVR2205 driver feedback
-References: <5610B12B.8090201@tresar-electronics.com.au> <561270E1.1040707@gmail.com> <5619FF1C.1020605@tresar-electronics.com.au>
-In-Reply-To: <5619FF1C.1020605@tresar-electronics.com.au>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <562E5AE4.9070001@arm.com>
+References: <cover.1443718557.git.robin.murphy@arm.com> <ab8e1caa40d6da1afa4a49f30242ef4e6e1f17df.1443718557.git.robin.murphy@arm.com>
+ <1445867094.30736.14.camel@mhfsdcap03> <562E5AE4.9070001@arm.com>
+From: Daniel Kurtz <djkurtz@chromium.org>
+Date: Fri, 30 Oct 2015 09:17:52 +0800
+Message-ID: <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
+Subject: Re: [PATCH v6 1/3] iommu: Implement common IOMMU ops for DMA mapping
+To: Robin Murphy <robin.murphy@arm.com>,
+	Pawel Osciak <pawel@osciak.com>
+Cc: Yong Wu <yong.wu@mediatek.com>, Joerg Roedel <joro@8bytes.org>,
+	Will Deacon <will.deacon@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, thunder.leizhen@huawei.com,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	laurent.pinchart+renesas@ideasonboard.com,
+	Thierry Reding <treding@nvidia.com>,
+	Lin PoChun <pochun.lin@mediatek.com>,
+	"Bobby Batacharia (via Google Docs)" <Bobby.Batacharia@arm.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
++linux-media & VIDEOBUF2 FRAMEWORK maintainers since this is about the
+v4l2-contig's usage of the DMA API.
+
+Hi Robin,
+
+On Tue, Oct 27, 2015 at 12:55 AM, Robin Murphy <robin.murphy@arm.com> wrote:
+> On 26/10/15 13:44, Yong Wu wrote:
+>>
+>> On Thu, 2015-10-01 at 20:13 +0100, Robin Murphy wrote:
+>> [...]
+>>>
+>>> +/*
+>>> + * The DMA API client is passing in a scatterlist which could describe
+>>> + * any old buffer layout, but the IOMMU API requires everything to be
+>>> + * aligned to IOMMU pages. Hence the need for this complicated bit of
+>>> + * impedance-matching, to be able to hand off a suitably-aligned list,
+>>> + * but still preserve the original offsets and sizes for the caller.
+>>> + */
+>>> +int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+>>> +               int nents, int prot)
+>>> +{
+>>> +       struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
+>>> +       struct iova_domain *iovad = domain->iova_cookie;
+>>> +       struct iova *iova;
+>>> +       struct scatterlist *s, *prev = NULL;
+>>> +       dma_addr_t dma_addr;
+>>> +       size_t iova_len = 0;
+>>> +       int i;
+>>> +
+>>> +       /*
+>>> +        * Work out how much IOVA space we need, and align the segments
+>>> to
+>>> +        * IOVA granules for the IOMMU driver to handle. With some clever
+>>> +        * trickery we can modify the list in-place, but reversibly, by
+>>> +        * hiding the original data in the as-yet-unused DMA fields.
+>>> +        */
+>>> +       for_each_sg(sg, s, nents, i) {
+>>> +               size_t s_offset = iova_offset(iovad, s->offset);
+>>> +               size_t s_length = s->length;
+>>> +
+>>> +               sg_dma_address(s) = s->offset;
+>>> +               sg_dma_len(s) = s_length;
+>>> +               s->offset -= s_offset;
+>>> +               s_length = iova_align(iovad, s_length + s_offset);
+>>> +               s->length = s_length;
+>>> +
+>>> +               /*
+>>> +                * The simple way to avoid the rare case of a segment
+>>> +                * crossing the boundary mask is to pad the previous one
+>>> +                * to end at a naturally-aligned IOVA for this one's
+>>> size,
+>>> +                * at the cost of potentially over-allocating a little.
+>>> +                */
+>>> +               if (prev) {
+>>> +                       size_t pad_len = roundup_pow_of_two(s_length);
+>>> +
+>>> +                       pad_len = (pad_len - iova_len) & (pad_len - 1);
+>>> +                       prev->length += pad_len;
+>>
+>>
+>> Hi Robin,
+>>        While our v4l2 testing, It seems that we met a problem here.
+>>        Here we update prev->length again, Do we need update
+>> sg_dma_len(prev) again too?
+>>
+>>        Some function like vb2_dc_get_contiguous_size[1] always get
+>> sg_dma_len(s) to compare instead of s->length. so it may break
+>> unexpectedly while sg_dma_len(s) is not same with s->length.
+>
+>
+> This is just tweaking the faked-up length that we hand off to iommu_map_sg()
+> (see also the iova_align() above), to trick it into bumping this segment up
+> to a suitable starting IOVA. The real length at this point is stashed in
+> sg_dma_len(s), and will be copied back into s->length in __finalise_sg(), so
+> both will hold the same true length once we return to the caller.
+>
+> Yes, it does mean that if you have a list where the segment lengths are page
+> aligned but not monotonically decreasing, e.g. {64k, 16k, 64k}, then you'll
+> still end up with a gap between the second and third segments, but that's
+> fine because the DMA API offers no guarantees about what the resulting DMA
+> addresses will be (consider the no-IOMMU case where they would each just be
+> "mapped" to their physical address). If that breaks v4l, then it's probably
+> v4l's DMA API use that needs looking at (again).
+
+Hmm, I thought the DMA API maps a (possibly) non-contiguous set of
+memory pages into a contiguous block in device memory address space.
+This would allow passing a dma mapped buffer to device dma using just
+a device address and length.
+IIUC, the change above breaks this model by inserting gaps in how the
+buffer is mapped to device memory, such that the buffer is no longer
+contiguous in dma address space.
+
+Here is the code in question from
+drivers/media/v4l2-core/videobuf2-dma-contig.c :
+
+static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
+{
+        struct scatterlist *s;
+        dma_addr_t expected = sg_dma_address(sgt->sgl);
+        unsigned int i;
+        unsigned long size = 0;
+
+        for_each_sg(sgt->sgl, s, sgt->nents, i) {
+                if (sg_dma_address(s) != expected)
+                        break;
+                expected = sg_dma_address(s) + sg_dma_len(s);
+                size += sg_dma_len(s);
+        }
+        return size;
+}
 
 
-Op 11-10-15 om 08:18 schreef Richard Tresidder:
-> Hi Again
->   Yep that fixed pulling in the saa7164: si2168 frontends:
->
-> [ 6778.591548] i2c i2c-15: Added multiplexed i2c bus 16
-> [ 6778.591556] si2168 15-0064: Silicon Labs Si2168 successfully attached
-> [ 6778.596252] si2157 13-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [ 6778.597229] DVB: registering new adapter (saa7164)
-> YAY!!
-Bottoms up!
->
-> What a painful process... first time I built the kernel from the rpm
-> source I must have stuffed something up and the resultant installed
-> rpm didn't have the module turned on.. aaarrrrggghhhhh...
-> Trying to rebuild the srpm again after tweaking the .config file and
-> copying it around to the various locations again just didn't work..
-> Eventually gave up and had to rip it all out and start afresh..
-It's not that hard once you get the hang of it. I had to recompile 
-anyway, as I need saa716x, dvbloopback and backported drivers for DVBSky 
-T982, plus I need more then 8 dvb adapters. Semi-automated this of course:
-https://github.com/bas-t/centos7-kernel
->
-> Well spotted on that one.. What a pain that the call to the i2c mux
-> create didn't result in a error :/
->
-> Now I just need to shutoff kernel updates..
-> Really need to push this up into the centos config.. I've noted that
-> it has been turned back on in other releases..
-> Will submit a bug.
-Excellent idea. But as stated, I'll have to recompile anyway...
->
-> Regards
->    Richard Tresidder
->
-> On 05/10/15 20:45, Tycho Lürsen wrote:
->> Hi, not sure if this is related.
->> I had to recompile the centos7 stock kernel with:
->> CONFIG_I2C_MUX=m
->>
->> It was not enabled in the kernel config.
->>
->> Op 04-10-15 om 06:55 schreef Richard Tresidder:
->>> Sorry If I've posted this to the wrong section my first attempt..
->>>
->>> Hi
->>>    I'm attempting to get an HVR2205 up and going.
->>> CORE saa7164[1]: subsystem: 0070:f120, board: Hauppauge
->>> WinTV-HVR2205 [card=13,autodetected]
->>> Distribution is CentOS7 so I've pulled the v4l from media_build.git
->>> Had to change a couple of things..  and another macro issue
->>> regarding clamp() ..
->>> Seems the kzalloc(4 * 1048576, GFP_KERNEL) in saa7164-fw.c was
->>> failing..
->>> kept getting:  kernel: modprobe: page allocation failure: order:10,
->>> mode:0x10c0d0
->>> Have plenty of RAM free so surprised about that one.. tried some of
->>> the tricks re increasing the vm.min_free_kbytes etc..
->>>
->>> Any way I modified the routine to only allocate a single chunk
->>> buffer based on dstsize and tweaked the chunk handling code..
->>> seemed to fix that one.. fw downloaded and seemed to boot ok..
->>>
->>> Next I'm running into a problem with the saa7164_dvb_register()
->>> stage...
->>>
->>> saa7164[1]: Hauppauge eeprom: model=151609
->>> saa7164_dvb_register() Frontend/I2C initialization failed
->>> saa7164_initdev() Failed to register dvb adapters on porta
->>>
->>> I added some extra debug and identified that
->>> client_demod->dev.driver is null..
->>>
->>> However I'm now stuck as to what to tackle next..
->>>
->>> I can provide more info, just didn't want to spam the list for my
->>> first email..
->>>
->>> Regards
->>>    Richard Tresidder
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
+static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+        unsigned long size, enum dma_data_direction dma_dir)
+{
+        struct vb2_dc_conf *conf = alloc_ctx;
+        struct vb2_dc_buf *buf;
+        struct frame_vector *vec;
+        unsigned long offset;
+        int n_pages, i;
+        int ret = 0;
+        struct sg_table *sgt;
+        unsigned long contig_size;
+        unsigned long dma_align = dma_get_cache_alignment();
+        DEFINE_DMA_ATTRS(attrs);
 
+        dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+
+        buf = kzalloc(sizeof *buf, GFP_KERNEL);
+        buf->dma_dir = dma_dir;
+
+        offset = vaddr & ~PAGE_MASK;
+        vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+        buf->vec = vec;
+        n_pages = frame_vector_count(vec);
+
+        sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+
+        ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), n_pages,
+                offset, size, GFP_KERNEL);
+
+        sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+                                      buf->dma_dir, &attrs);
+
+        contig_size = vb2_dc_get_contiguous_size(sgt);
+        if (contig_size < size) {
+
+    <<<===   if the original buffer had sg entries that were not
+aligned on the "natural" alignment for their size, the new arm64 iommu
+core code inserts  a 'gap' in the iommu mapping, which causes
+vb2_dc_get_contiguous_size() to exit early (and return a smaller size
+than expected).
+
+                pr_err("contiguous mapping is too small %lu/%lu\n",
+                        contig_size, size);
+                ret = -EFAULT;
+                goto fail_map_sg;
+        }
+
+
+So, is the videobuf2-dma-contig.c based on an incorrect assumption
+about how the DMA API is supposed to work?
+Is it even possible to map a "contiguous-in-iova-range" mapping for a
+buffer given as an sg_table with an arbitrary set of pages?
+
+Thanks for helping to move this forward.
+
+-Dan
