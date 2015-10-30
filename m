@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:24888 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965336AbbJ1Jmv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Oct 2015 05:42:51 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Wu <josh.wu@atmel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH 2/4] v4l2-clk: add new macro for v4l2_clk_name_of()
-Date: Wed, 28 Oct 2015 17:48:53 +0800
-Message-ID: <1446025735-26849-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1446025735-26849-1-git-send-email-josh.wu@atmel.com>
-References: <1446025735-26849-1-git-send-email-josh.wu@atmel.com>
+Received: from 8bytes.org ([81.169.241.247]:41694 "EHLO theia.8bytes.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966004AbbJ3OJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Oct 2015 10:09:26 -0400
+Date: Fri, 30 Oct 2015 15:09:24 +0100
+From: Joerg Roedel <joro@8bytes.org>
+To: Daniel Kurtz <djkurtz@chromium.org>
+Cc: Robin Murphy <robin.murphy@arm.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Yong Wu <yong.wu@mediatek.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	"open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, thunder.leizhen@huawei.com,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	laurent.pinchart+renesas@ideasonboard.com,
+	Thierry Reding <treding@nvidia.com>,
+	Lin PoChun <pochun.lin@mediatek.com>,
+	"Bobby Batacharia (via Google Docs)" <Bobby.Batacharia@arm.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v6 1/3] iommu: Implement common IOMMU ops for DMA mapping
+Message-ID: <20151030140923.GJ27420@8bytes.org>
+References: <cover.1443718557.git.robin.murphy@arm.com>
+ <ab8e1caa40d6da1afa4a49f30242ef4e6e1f17df.1443718557.git.robin.murphy@arm.com>
+ <1445867094.30736.14.camel@mhfsdcap03>
+ <562E5AE4.9070001@arm.com>
+ <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This macro is used to generate a OF string for a v4l2 clock.
+On Fri, Oct 30, 2015 at 09:17:52AM +0800, Daniel Kurtz wrote:
+> Hmm, I thought the DMA API maps a (possibly) non-contiguous set of
+> memory pages into a contiguous block in device memory address space.
+> This would allow passing a dma mapped buffer to device dma using just
+> a device address and length.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
+If you are speaking of the dma_map_sg interface, than there is absolutly
+no guarantee from the API side that the buffers you pass in will end up
+mapped contiguously.
+IOMMU drivers handle this differently, and when there is no IOMMU at all
+there is also no way to map these buffers together.
 
- drivers/media/platform/soc_camera/soc_camera.c | 4 ++--
- include/media/v4l2-clk.h                       | 3 +++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+> So, is the videobuf2-dma-contig.c based on an incorrect assumption
+> about how the DMA API is supposed to work?
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index d165bff..673f1d4 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1680,8 +1680,8 @@ static int soc_of_bind(struct soc_camera_host *ici,
- 		v4l2_clk_name_i2c(clk_name, sizeof(clk_name),
- 				  client->adapter->nr, client->addr);
- 	else
--		snprintf(clk_name, sizeof(clk_name), "of-%s",
--			 of_node_full_name(remote));
-+		v4l2_clk_name_of(clk_name, sizeof(clk_name),
-+				 of_node_full_name(remote));
- 
- 	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, icd);
- 	if (IS_ERR(icd->clk)) {
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-index 3ef6e3d..34891ea 100644
---- a/include/media/v4l2-clk.h
-+++ b/include/media/v4l2-clk.h
-@@ -68,4 +68,7 @@ static inline struct v4l2_clk *v4l2_clk_register_fixed(const char *dev_id,
- #define v4l2_clk_name_i2c(name, size, adap, client) snprintf(name, size, \
- 			  "%d-%04x", adap, client)
- 
-+#define v4l2_clk_name_of(name, size, of_full_name) snprintf(name, size, \
-+			  "of-%s", of_full_name)
-+
- #endif
--- 
-1.9.1
+If it makes the above assumption, then yes.
+
+
+
+	Joerg
 
