@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ex2010cas1.ss.ucla.edu ([128.97.186.46]:28173 "EHLO
-	EX2010CAS1.SS.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbbJSXEG (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58742 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753599AbbJ3PoR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Oct 2015 19:04:06 -0400
-From: David Liontooth <lionteeth@cogweb.net>
-Subject: Brazilian television capture device
-To: <linux-media@vger.kernel.org>
-Message-ID: <562576E1.6070400@cogweb.net>
-Date: Tue, 20 Oct 2015 01:04:01 +0200
+	Fri, 30 Oct 2015 11:44:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: small cleanup in uvc_video_clock_update()
+Date: Fri, 30 Oct 2015 17:44:14 +0200
+Message-ID: <1682612.NLBs1S0Qsv@avalon>
+In-Reply-To: <20151022090905.GB9202@mwanda>
+References: <20151022090905.GB9202@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Dan,
 
-Does anyone know of a tv capture device for Brazil (ISDB-T) that is 
-supported in Linux and available for sale?
+Thank you for the patch.
 
-I'm having a hard time finding any of the devices listed under 
-http://www.linuxtv.org/wiki/index.php/ISDB-T_USB_Devices or ISDB-T PCIe 
-devices --
+On Thursday 22 October 2015 12:09:05 Dan Carpenter wrote:
+> Smatch is not smart enough to see that "&stream->clock.lock" and
+> "&clock->lock" are the same thing so it complains about the locking
+> here.  Let's make it more consistent.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-* Pixelview SBTVD 
-(http://www.kabum.com.br/produto/6784/receptor-de-tv-digital-pixelview-playtv-usb-2-0-sbtvd-full-seg-pv-d231urn-f) 
-is out of stock
-* Geniatech/MyGica X8507 PCI-Express Hybrid Card 
-(http://www.linuxtv.org/wiki/index.php/Geniatech/MyGica_X8507_PCI-Express_Hybrid_Card)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I see the Aver3d Hybrid Volar Xpro (H869 -- 
-http://avertv.avermedia.com/avertv/Upload/ProductImages/DS_H869_EN_140415.pdf) 
-at americanas.com 
-(http://www.americanas.com.br/produto/9869979/placa-captura-de-tv-aver3d-hybrid-volar-xpro) 
--- is it supported?
+and applied to my tree.
 
-I'm advising friends remotely, so I can't just purchase it and try it out.
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 2b276ab..4abe3e9 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -709,7 +709,7 @@ void uvc_video_clock_update(struct uvc_streaming
+> *stream, vbuf->timestamp.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+> 
+>  done:
+> -	spin_unlock_irqrestore(&stream->clock.lock, flags);
+> +	spin_unlock_irqrestore(&clock->lock, flags);
+>  }
+> 
+>  /* ------------------------------------------------------------------------
 
-Cheers,
-Dave
+-- 
+Regards,
+
+Laurent Pinchart
 
