@@ -1,54 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from filter02.dlls.pa.frontiernet.net ([199.224.80.229]:54142 "EHLO
-	filter02.dlls.pa.frontiernet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750934AbbJFEFs (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:38625 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751128AbbJaD5B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Oct 2015 00:05:48 -0400
-Message-ID: <1444103874.5667.7.camel@Lunix2.home>
-Subject: Re: [PATCH 01/15] pcnet32: use pci_set_dma_mask insted of
- pci_dma_supported
-From: Don Fry <pcnet32@frontier.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Oliver Neukum <oneukum@suse.com>,
-	linux-net-drivers@solarflare.com, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, netdev@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linux-serial@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 05 Oct 2015 20:57:54 -0700
-In-Reply-To: <1443885579-7094-2-git-send-email-hch@lst.de>
-References: <1443885579-7094-1-git-send-email-hch@lst.de>
-	 <1443885579-7094-2-git-send-email-hch@lst.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 30 Oct 2015 23:57:01 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3181E2A0080
+	for <linux-media@vger.kernel.org>; Sat, 31 Oct 2015 04:54:39 +0100 (CET)
+Date: Sat, 31 Oct 2015 04:54:39 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151031035439.3181E2A0080@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2015-10-03 at 17:19 +0200, Christoph Hellwig wrote:
-> This ensures the dma mask that is supported by the driver is recorded
-> in the device structure.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/net/ethernet/amd/pcnet32.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Don Fry <pcnet32@frontier.com>
+Results of the daily build of media_tree:
 
-> diff --git a/drivers/net/ethernet/amd/pcnet32.c b/drivers/net/ethernet/amd/pcnet32.c
-> index bc8b04f..e2afabf 100644
-> --- a/drivers/net/ethernet/amd/pcnet32.c
-> +++ b/drivers/net/ethernet/amd/pcnet32.c
-> @@ -1500,7 +1500,7 @@ pcnet32_probe_pci(struct pci_dev *pdev, const struct pci_device_id *ent)
->  		return -ENODEV;
->  	}
->  
-> -	if (!pci_dma_supported(pdev, PCNET32_DMA_MASK)) {
-> +	if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
->  		if (pcnet32_debug & NETIF_MSG_PROBE)
->  			pr_err("architecture does not support 32bit PCI busmaster DMA\n");
->  		return -ENODEV;
+date:		Sat Oct 31 04:00:17 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
