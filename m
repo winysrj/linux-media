@@ -1,88 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34212 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbbJBPOx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Oct 2015 11:14:53 -0400
-Message-ID: <1443798890.3445.122.camel@pengutronix.de>
-Subject: Re: Coda encoder stop
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Zahari Doychev <zahari.doychev@linux.com>
-Date: Fri, 02 Oct 2015 17:14:50 +0200
-In-Reply-To: <CAH-u=819gNJw+bP72cNqDSbntm=kVPcwGTjyOOhei-uAQWo67w@mail.gmail.com>
-References: <CAH-u=82892OHC6BzkB0z+Rc=ig7FiAZfOz6Y7WboNWq2+nxuZw@mail.gmail.com>
-	 <CAH-u=819gNJw+bP72cNqDSbntm=kVPcwGTjyOOhei-uAQWo67w@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-out.m-online.net ([212.18.0.10]:50020 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbbJaQn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Oct 2015 12:43:57 -0400
+Date: Sat, 31 Oct 2015 17:43:49 +0100
+From: Luc Verhaegen <libv@skynet.be>
+To: mesa-dev@lists.freedesktop.org, xorg-devel@lists.x.org,
+	dri-devel@lists.freedesktop.org,
+	wayland-devel@lists.freedesktop.org,
+	xorg-announce@lists.freedesktop.org, mir-devel@lists.ubuntu.com,
+	linux-media@vger.kernel.org
+Subject: FOSDEM16: Graphics DevRoom: call for speakers.
+Message-ID: <20151031164349.GA28446@skynet.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 02.10.2015, 16:59 +0200 schrieb Jean-Michel Hautbois:
-[...]
-> Oups, forgot to paste the kernel output :
-> 
-> [  324.390498] ------------[ cut here ]------------
-> [  324.395163] WARNING: CPU: 1 PID: 1434 at
-> /run/media/jm/SSD_JM/Projets/git_mirrors/linux-2.6-imx/kernel/locking/lockdep.c:3382
-> lock_release+0x2b0/0x6d4()
-> [  324.408821] DEBUG_LOCKS_WARN_ON(depth <= 0)
-> [  324.412840] Modules linked in:
-> [  324.415917]  ath9k_htc ath9k_common ath9k_hw ath snd_soc_adv76xx
-> snd_soc_vbx3_fpga vbx3_fpga_vswitch smsc95xx usbnet mx6_camera(C)
-> imx_ipu_scaler imx_ipu vbx3_fpga adv7604 snd_soc_sgtl5000 lmh0395
-> snd_soc_vbx3sdi vbx3_sdi fbcon bitblit softcursor font
-> [  324.437279] CPU: 1 PID: 1434 Comm: video-h264:src Tainted: G
->  C      4.2.0 #106
-> [  324.445204] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
-> [  324.451741] Backtrace:
-> [  324.454226] [<8001524c>] (dump_backtrace) from [<80015494>]
-> (show_stack+0x20/0x24)
-> [  324.461804]  r6:80fb1a60 r5:00000000 r4:00000000 r3:00000000
-> [  324.467562] [<80015474>] (show_stack) from [<808fdd6c>]
-> (dump_stack+0x98/0xc8)
-> [  324.474803] [<808fdcd4>] (dump_stack) from [<800304f0>]
-> (warn_slowpath_common+0x8c/0xc8)
-> [  324.482902]  r6:8007ffbc r5:00000009 r4:a4eafab8 r3:00000001
-> [  324.488652] [<80030464>] (warn_slowpath_common) from [<8003056c>]
-> (warn_slowpath_fmt+0x40/0x48)
-> [  324.497359]  r8:80fb1b60 r7:80904b3c r6:a636c9c0 r5:a6c9f368 r4:80c1e150
-> [  324.504168] [<80030530>] (warn_slowpath_fmt) from [<8007ffbc>]
-> (lock_release+0x2b0/0x6d4)
-> [  324.512353]  r3:80c246fc r2:80c1e150
-> [  324.515971]  r4:a6c9f32c
-> [  324.518541] [<8007fd0c>] (lock_release) from [<80904a34>]
-> (__mutex_unlock_slowpath+0xc4/0x1b4)
-> [  324.527160]  r10:00000000 r9:a4531281 r8:00000000 r7:8185231c
-> r6:80904b3c r5:600f0013
-> [  324.535091]  r4:a6c9f32c
-> [  324.537657] [<80904970>] (__mutex_unlock_slowpath) from
-> [<80904b3c>] (mutex_unlock+0x18/0x1c)
-> [  324.546189]  r7:00000000 r6:a4eafcd4 r5:00000041 r4:a5e1b000
-> [  324.551945] [<80904b24>] (mutex_unlock) from [<80602fe8>]
-> (v4l2_m2m_fop_poll+0x5c/0x64)
-> [  324.559970] [<80602f8c>] (v4l2_m2m_fop_poll) from [<805ec694>]
-> (v4l2_poll+0x6c/0xa0)
-> [  324.567722]  r6:a4eafbec r5:00000000 r4:a6c9e090 r3:80602f8c
-> [  324.573481] [<805ec628>] (v4l2_poll) from [<80174d04>]
-> (do_sys_poll+0x230/0x4d0)
-> [  324.580886]  r5:00000000 r4:a4eafbe4
-> [  324.584515] [<80174ad4>] (do_sys_poll) from [<801752e0>]
-> (SyS_ppoll+0x1d4/0x1fc)
-> [  324.591917]  r10:00000000 r9:a4eae000 r8:00000000 r7:00000000
-> r6:74a14790 r5:00000002
-> [  324.599846]  r4:00000000
-> [  324.602419] [<8017510c>] (SyS_ppoll) from [<80010b00>]
-> (ret_fast_syscall+0x0/0x54)
-> [  324.609996]  r8:80010ce4 r7:00000150 r6:74a14790 r5:00000002 r4:00000008
-> [  324.616798] ---[ end trace 0012dc3dcc1c27d5 ]---
+Hi,
 
-Hm, that looks very similar to the issue Zahari's "[media] m2m: fix bad
-unlock balance" is supposed to fix:
-https://patchwork.linuxtv.org/patch/30906/
+At FOSDEM on sunday 31st of january 2016, there will be another graphics 
+DevRoom. URL: https://fosdem.org/2016/
 
-regards
-Philipp
+At first, I wanted to skip another year (like in 2011), as speaker 
+turn-out was disgracefully low last year. But when i heard from some 
+usual speaker suspects earlier this month (the first time anyone asked 
+me about a FOSDEM16 devroom btw), followed by the fact that the devroom 
+request deadline was sheduled a month later than the last few years, i 
+did end up filing, but this time for a single day only. Claiming two 
+days would simply not have been fair towards all the other projects 
+that usually get rejected (FOSDEM typically rejects half the requests, 
+leading to only about 25 devrooms in parallel). Anyway...
 
+The focus of this DevRoom is of course the same as the last few years, 
+namely:
+* Graphics drivers: from display to media to 3d drivers, both in kernel 
+  or userspace. Be it part of DRM, KMS, (direct)FB, V4L, Xorg, Mesa...
+* Input drivers: kernel and userspace.
+* Windowing systems: X, Wayland, Mir, directFB, ...
+* Even colour management, low level toolkit stuff, and other areas which 
+  i might have overlooked above are accepted.
+
+Slots are 50 minutes long, and scheduled hourly. This partly to avoid 
+confusion and people running all over the place all the time. As a 
+speaker, you do not have to fill your whole hour, gaps are never wasted 
+time.
+
+Slots will be handed out on a first come, first serve basis. The best 
+slots will go to those who apply the earliest. The amount of slots is 
+currently not known yet, but there are only 8 slots available, so act 
+quickly.
+
+Talk Submission:
+----------------
+
+Like the last few years, the pentabarf system will be used for talk 
+submission. It is not perfect from a devroom organizer and talk 
+submitters usability point-of-view, but the new interface is not fully 
+implemented yet, and the fosdem organizers have reverted to the old one 
+for this year. It is however workable and it ended up working out 
+pretty well these last few years.
+
+https://penta.fosdem.org/submission/FOSDEM16
+
+Remember that FOSDEM is not like XDC, it's not some 50 odd people 
+meeting with a sliding schedule which only gets filled out on the last 
+day. Upwards of 8000 people are visiting this event, and most of them 
+get a printed booklet or use the schedule on the FOSDEM website or an 
+app for their phone to figure out what to watch or participate in next. 
+So please put some effort in your talk submission and details.
+
+Since this an open source community event, please refrain from turning 
+in a talk that is a pure corporate or product commercial. Also, if you 
+are unsure on whether you can come or not (this is FOSDEM, why are you 
+not there anyway?), please wait with submitting your talk. Submitting a 
+talk and then not turning up because you could not be bothered is a 
+sure-fire way to get larted and then to never be allowed to talk again.
+
+Also, all talks will be recorded, and will be made available as CC-BY 
+after a bit of time. Since we have only a single day devroom, we 
+probably will not end up being streamed live.
+
+As for deadlines, the fosdem organizers are doing their booklet 
+differently again, and they need to have the schedule finished by the 
+18th of december. Given that there are only 8 slots, i trust that this 
+will not be an issue this year.
+
+Don't count on this deadline: first come first serve! There are perhaps 
+only 8 slots. And the worst slots will be assigned to those who come 
+last. Do you really want to talk on sunday at 9:00 when people are still 
+in zombie mode after 2 nights at the delirium bar, if they are here at all?
+
+Use your account from last year, so you can try to recycle some of your 
+data from last year. If you have forgotten your password, then you can 
+reset it here: https://penta.fosdem.org/user/forgot_password
+
+Necessary information:
+----------------------
+
+Below is a list of what i need to see filled in when you apply for a 
+devroom before i consider it a valid submission. Remember: first come, 
+first serve. The best slots are for the earliest submissions and there 
+are only 8 slots.
+
+On your personal page:
+* General:
+  * First and last name
+  * Nickname
+  * Image
+* Contact:
+  * email
+  * mobile number (this is a very hard requirement as there will be no 
+   other reliable form of emergency communication on the day)
+* Description:
+  * Abstract
+  * Description
+
+Create an event:
+* On the General page:
+  * Event title
+  * Event subtitle.
+  * Track: Graphics Devroom
+  * Event type: Lecture (talk) or Meeting (BoF)
+* Persons:
+  * Add yourself as speaker.
+* Description:
+  * Abstract:
+  * Full Description
+* Links:
+  * Add relevant links.
+
+Everything else can be ignored or will be filled in by me or the FOSDEM
+organizers. Remember, i will only schedule your talk after the basics 
+are somewhat filled in (you still can change them until december 18th).
+
+That's about it. Hope to see you all at FOSDEM :)
+
+Luc Verhaegen.
