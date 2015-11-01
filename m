@@ -1,76 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44966 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682AbbKIRdT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 12:33:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dennis Chen <barracks510@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] USB: uvc: add support for the Microsoft Surface Pro 3 Cameras
-Date: Mon, 09 Nov 2015 19:33:29 +0200
-Message-ID: <3251528.3ev8VpgUrP@avalon>
-In-Reply-To: <1434053610.2501.5.camel@gmail.com>
-References: <1433879614.3036.3.camel@gmail.com> <6864236.zlxWyD7sh8@avalon> <1434053610.2501.5.camel@gmail.com>
+Received: from [69.165.66.84] ([69.165.66.84]:60572 "EHLO a.wangyeyy.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752499AbbKAKh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Nov 2015 05:37:56 -0500
+Received: from ttqnvgh (unknown [118.186.129.205])
+	by a.wangyeyy.com (Postfix) with ESMTPA id 0D41A4346
+	for <linux-media@vger.kernel.org>; Sun,  1 Nov 2015 16:48:00 +0800 (CST)
+Date: Sun, 1 Nov 2015 16:50:08 +0800
+From: "Allen" <info@asianlanguagesolutions.com>
+Reply-To: info@asianlanguagesolutions.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Chinese Freelance Translator and interpreter
+Message-ID: <201511011650082036503@a.wangyeyy.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Denis,
-
-On Thursday 11 June 2015 13:13:30 Dennis Chen wrote:
-> > Could you please send me the output of 'lsusb -v -d 045e:07be' and
-> > 'lsusb -v -
-> > d 045e:07bf' (running as root if possible) ?
-> 
-> Bus 001 Device 004: ID 045e:07bf Microsoft Corp.
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass          239 Miscellaneous Device
->   bDeviceSubClass         2 ?
->   bDeviceProtocol         1 Interface Association
->   bMaxPacketSize0        64
->   idVendor           0x045e Microsoft Corp.
->   idProduct          0x07bf
->   bcdDevice           21.52
->   iManufacturer           1 QCM
->   iProduct                2 Microsoft LifeCam Rear
->   iSerial                 0
->   bNumConfigurations      1
-
-[snip]
-
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       0
->       bNumEndpoints           1
->       bInterfaceClass        14 Video
->       bInterfaceSubClass      1 Video Control
->       bInterfaceProtocol      1
->       iInterface              2 Microsoft LifeCam Rear
-
-[snip]
-
-I see where the problem comes from now. I had missed it before, but your 
-device sets the bInterfaceProtocol value to 1 as it's UVC 1.5 compliant, as 
-opposed to value 0 for UVC 1.1.
-
-The uvcvideo driver doesn't support UVC 1.5 yet. It looks like your camera 
-supports the UVC 1.1 protocol as well, but that's not true of all UVC devices 
-in general. I expect that enabling detection of UVC 1.5 support in the driver 
-will result in issues with UVC 1.5 devices, but on the other hand those 
-devices are currently not supported at all. I'll thus submit a patch to enable 
-UVC 1.5 device detection, and we'll see how that goes. I'll CC you and would 
-appreciate if you could test the patch.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+RGVhciBsaW51eC1tZWRpYSwNCg0KQXNpYW4gTGFuZ3VhZ2UgU29sdXRpb25zIENvbXBhbnkgKEFM
+UykgaXMgYSBsYW5ndWFnZSBzb2x1dGlvbiBwcm92aWRlciByaWdodCBoZXJlIGluIENoaW5hLiBX
+ZSBoYXZlIGEgbmV0d29yayBvZiBwcm9mZXNzaW9uYWwgYW5kIGV4cGVyaWVuY2VkIHRyYW5zbGF0
+b3JzIGFuZCBpbnRlcnByZXRlcnMuDQpPdXIgaW50ZXJwcmV0ZXJzIGhhdmUgeWVhcnMnIGV4cGVy
+aWVuY2UgaW4gdmFyaW91cyBpbmR1c3RyaWVzIHN1Y2ggYXMgT2lsICYgR2FzLCBBZ3JpY3VsdHVy
+ZSwgRW52aXJvbm1lbnQsIEhpLXRlY2gsIEJ1c2luZXNzLCBGaW5hbmNlIGFuZCBzbyBvbi4gDQpF
+c2NvcnQgSW50ZXJwcmV0aW5nLCBjb25zZWN1dGl2ZSBpbnRlcnByZXRhdGluZywgU2ltdWx0YW5l
+b3VzIEludGVycHJldGluZyBhbmQgdHJhbnNsYXRpb24gYXJlIHdoYXQgd2UgY291bGQgZG8gaW4g
+ZXZlcnkgY2l0eSBvZiBDaGluYS4NCkJlc2lkZXMsIHdlIGhhdmUgb3VyIG93biBlcXVpcG1lbnRz
+IChCT1NDSCBJSSkgdG8gYmUgdXNlZCBpbiBzaW11bHRhbmVvdXMgaW50ZXJwcmV0aW5nLiBJbiB0
+aGlzIHdheSwgd2UgY291bGQgcHJvdmlkZSB5b3Ugb25lLXN0b3Agc2VydmljZSBhbmQgc2F2ZSB5
+b3VyIGNvc3QgYW5kIHRpbWUuDQpJZiB5b3UgYXJlIGludGVyZXN0ZWQgaW4gQUxTIGFuZCBmaW5k
+IG91ciBzZXJ2aWNlIGp1c3QgbWVldGluZyB5b3VyIHJlcXVlc3QsIHBsZWFzZSBmZWVsIGZyZWUg
+dG8gY29udGFjdCBtZS4NCg0KSSB3aWxsIGJlIGF0IHlvdXIgZGlzcG9zYWwgZm9yIGFueSBmdXJ0
+aGVyIGluZm9ybWF0aW9uLg0KDQpyZWdhcmRzLA0KQWxsZW4=
