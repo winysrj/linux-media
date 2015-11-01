@@ -1,69 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42660 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbbKBEnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 23:43:55 -0500
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NX6017KF7T0YT00@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Nov 2015 13:43:48 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v8 4/6] media: videobuf2: last_buffer_queued is set at
- fill_v4l2_buffer()
-Date: Mon, 02 Nov 2015 13:43:43 +0900
-Message-id: <1446439425-13242-5-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
-References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33898 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753116AbbKAVsj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Nov 2015 16:48:39 -0500
+Message-ID: <563688B2.1080006@xs4all.nl>
+Date: Sun, 01 Nov 2015 22:48:34 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Ran Shalit <ranshalit@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: videobuf & read/write operation
+References: <CAJ2oMhJOu8Ltra-bbb6FW3gLrCab1yKKu_zdSTNmqT5ecMkELQ@mail.gmail.com>	<56366A80.5090001@xs4all.nl> <CAJ2oMhJ9st3-Wcuv_Q69wf_cr6eoB4q_b5=1n2OgZmP9WTvdng@mail.gmail.com>
+In-Reply-To: <CAJ2oMhJ9st3-Wcuv_Q69wf_cr6eoB4q_b5=1n2OgZmP9WTvdng@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
-So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
-vb2_internal_dqbuf().
+On 11/01/2015 09:13 PM, Ran Shalit wrote:
+>> Don't use videobuf! Use videobuf2, just like the skeleton driver.
+>>
+>> The old videobuf framework is deprecated and you shouldn't use it as it is
+>> horrible.
+>>
+>> Why on earth are you trying to use videobuf if the skeleton driver clearly
+>> uses vb2?
+>>
+> 
+> Right,
+> I now see that I was examining code which is quite old (2.6.37 from
+> SDK I'm using).
+> 
+> In case we only need read/write operation, do we still need to
+> implement all videobuf2 APIs ?
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+vb2 only got merged in 2.6.39. For what kernel are you doing this? 2.6.37 is ancient.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 5be9ed8e..1468b30 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -274,6 +274,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	if (vb2_buffer_in_use(q, vb))
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
- 
-+	if (!q->is_output &&
-+		b->flags & V4L2_BUF_FLAG_DONE &&
-+		b->flags & V4L2_BUF_FLAG_LAST)
-+		q->last_buffer_dequeued = true;
-+
- 	return 0;
- }
- 
-@@ -584,10 +589,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 
- 	ret = vb2_core_dqbuf(q, b, nonblocking);
- 
--	if (!ret && !q->is_output &&
--			b->flags & V4L2_BUF_FLAG_LAST)
--		q->last_buffer_dequeued = true;
--
- 	return ret;
- }
- 
--- 
-1.7.9.5
+Anyway, for read/write you implement exactly the same vb2 callbacks as for stream I/O.
+Read/write is implemented in the vb2 framework on top of stream I/O.
+
+Typically drivers will have to implement queue_setup, buf_queue and start/stop_streaming
+at minimum. The wait_prepare/finish callbacks are also needed, but you can typically use
+the vb2_ops_wait_prepare/finish helper functions for that. Again, follow what the skeleton
+driver does.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> Regards,
+> Ran
+> 
+> 
+>>
+>>> When the documentation refers to " I/O stream" , does it also include
+>>> the read/write operation or only streaming I/O method ?
+>>>
+>>> In case I am using only read/write, do I need to implement all these 4  APIs:
+>>>
+>>> struct videobuf_queue_ops {
+>>>  int (*buf_setup)(struct videobuf_queue *q,
+>>>  unsigned int *count, unsigned int *size);
+>>>  int (*buf_prepare)(struct videobuf_queue *q,
+>>>  struct videobuf_buffer *vb,
+>>> enum v4l2_field field);
+>>>  void (*buf_queue)(struct videobuf_queue *q,
+>>>  struct videobuf_buffer *vb);
+>>>  void (*buf_release)(struct videobuf_queue *q,
+>>>  struct videobuf_buffer *vb);
+>>> };
+>>>
+>>> Are these APIs relevant for both read/write and streaminf I/O ?
+>>>
+>>> Best Regards,
+>>> Ran
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
 
