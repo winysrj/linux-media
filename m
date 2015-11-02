@@ -1,88 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48063 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032203AbbKEHuO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Nov 2015 02:50:14 -0500
-Message-ID: <563B0A2A.3030905@xs4all.nl>
-Date: Thu, 05 Nov 2015 08:50:02 +0100
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:38435 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753256AbbKBU7F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Nov 2015 15:59:05 -0500
+Received: by wicll6 with SMTP id ll6so57996596wic.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Nov 2015 12:59:03 -0800 (PST)
 MIME-Version: 1.0
-To: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	pawel@osciak.com
-CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com
-Subject: Re: [RFC PATCH v9 1/6] media: videobuf2: Move timestamp to vb2_buffer
-References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com> <1446545802-28496-2-git-send-email-jh1009.sung@samsung.com> <5639F9EA.7080400@xs4all.nl> <563AC908.9070708@samsung.com>
-In-Reply-To: <563AC908.9070708@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAK_-F2+UfGOKSNYffVdRau96TF_ZdrpM1aD8=e73PQvfOY5TbA@mail.gmail.com>
+References: <CAK_-F2+UfGOKSNYffVdRau96TF_ZdrpM1aD8=e73PQvfOY5TbA@mail.gmail.com>
+Date: Mon, 2 Nov 2015 13:59:02 -0700
+Message-ID: <CAEEHgGXEcqEmvZN6D4Ua7AOG9zsA2+G1MHJyfq6L23wJsghcmQ@mail.gmail.com>
+Subject: Re: au0828: start_urb_transfer: failed big buffer allocation, err = -12
+From: Tim Mester <tmester@ieee.org>
+To: Ken Harris <kjh@hokulea.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/05/2015 04:12 AM, Junghak Sung wrote:
->>> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
->>> index 83cc6d3..b0ad054 100644
->>> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
->>> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
->>> @@ -441,7 +441,7 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->>>   	 * "Start of Exposure".
->>>   	 */
->>>   	if (dev->tstamp_src_is_soe)
->>> -		v4l2_get_timestamp(&buf->vb.timestamp);
->>> +		buf->vb.vb2_buf.timestamp = ktime_get_ns();
->>>   	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
->>>   		/*
->>>   		 * 60 Hz standards start with the bottom field, 50 Hz standards
->>> @@ -558,8 +558,9 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->>>   	 * the timestamp now.
->>>   	 */
->>>   	if (!dev->tstamp_src_is_soe)
->>> -		v4l2_get_timestamp(&buf->vb.timestamp);
->>> -	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
->>> +		buf->vb.vb2_buf.timestamp = ktime_get_ns();
->>> +	buf->vb.vb2_buf.timestamp +=
->>> +			((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->>
->> I'd do this differently: make time_wrap_offset of type u64 and assign it
->> accordingly with nanoseconds. That way you can just do:
->>
->> 	timestamp += dev->time_wrap_offset
->>
->> vivid-ctrls.c also needs to be modified (vivid_streaming_s_ctrl(), VIVID_CID_TIME_WRAP
->> case) to:
->>
->> 	dev->time_wrap_offset = (0x100000000ULL - 16) * NSEC_PER_SEC - ktime_get_ns();
->>
->> The v4l2_get_timestamp() call there can be dropped.
->>
-> 
-> I agree with your opinion. But it is too hard to read the code
-> getting time_wrap_offset.
-> How about this way?
-> 
->   in vivid_streaming_s_ctrl() of vivid-ctrls.c
->          dev->time_wrap_offset = ktime_get_ns() + 16 * NSEC_PER_SEC;
->   and in vivid_fillbuff() of vivid-kthread-cap.c
-> 	buf->vb.vb2_buf.timestamp -= dev->time_wrap_offset;
+Ken,
 
-That doesn't do what I want it to do, which is to wrap around in the struct timeval
-where seconds are 32 bits. The code above is actually wrong since I forgot that
-tv_sec in struct timeval is signed, so 0x100000000ULL should be 0x80000000ULL.
-Also, that code will fail after 2038, so that's no good either.
+  You could set the module parameter preallocate_big_buffers=1 when
+you insmod the au8028 kernel module.  When this parameter is set, the
+driver will allocate the big buffers once when the module is loaded
+instead of every time the device is opened for streaming.
 
-On a related note I send out a question to Arnd whether a timestamp should be u64
-or s64. It's not clear to me which should be used as ktime_get_ns() returns a s64.
+  Thanks,
 
-Once we return the full 64 bits to userspace, then we have a second wrap around when
-the u64 (or s64) wraps. I'll add a second wrap-around control to vivid at that time.
+  Tim
 
-I'll wait for Arnd to answer before fixing the time_wrap_offset calculation since I
-need to know whether a timestamp is u64 or s64.
-
-Regards,
-
-	Hans
+On Fri, Oct 30, 2015 at 12:07 PM, Ken Harris <kjh@hokulea.org> wrote:
+> Greetings
+>
+> Dunno if this is the right place to post this.  Let me know if there
+> is a better place.
+>
+> I'm recording with a "DViCO FusionHDTV USB" gadget.
+>
+> It records for an hour or so just fine, but when it starts up the
+> second time, it doesn't work and I get a lot of kernel messages that
+> seem to trace back to :
+>
+> au0828: start_urb_transfer: failed big buffer allocation, err = -12
+>
+> This is a Fedora 22 system ( Linux 4.2.3-200.fc22.i686+PAE )
+>
+> Attached is dmesg output.
+>
+> Any tips are appreciated.
+>
+> Thanks,
+> Ken
