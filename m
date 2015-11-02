@@ -1,80 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59083 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbbKKU2z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 15:28:55 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Sergey Lapin <slapin@ossfans.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Harald Welte <laforge@openezx.org>, devel@driverdev.osuosl.org,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	openezx-devel@lists.openezx.org,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-samsung-soc@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Daniel Ribeiro <drwyrm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Inki Dae <inki.dae@samsung.com>,
-	Simon Horman <horms@verge.net.au>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	linux-omap@vger.kernel.org, Stefan Schmidt <stefan@openezx.org>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH 2/2] [media] include/media: move platform driver headers to a separate dir
-Date: Wed, 11 Nov 2015 21:26:31 +0100
-Message-ID: <4220808.QEkJDXYE1T@wuerfel>
-In-Reply-To: <09e182fa61a7122356b790cd2a4a7f622dabb4ce.1447261977.git.mchehab@osg.samsung.com>
-References: <413d2bb0b813a7e62867de7a94b0ab61e16cb1cb.1447261977.git.mchehab@osg.samsung.com> <09e182fa61a7122356b790cd2a4a7f622dabb4ce.1447261977.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.samsung.com ([203.254.224.34]:41811 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbbKBEn6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 23:43:58 -0500
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NX602EI87T0YQE0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 02 Nov 2015 13:43:48 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v8 3/6] media: videobuf2: Separate vb2_poll()
+Date: Mon, 02 Nov 2015 13:43:42 +0900
+Message-id: <1446439425-13242-4-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
+References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 11 November 2015 15:14:48 Mauro Carvalho Chehab wrote:
->  rename include/media/{ => platform}/exynos-fimc.h (100%)
->  rename include/media/{ => platform}/mmp-camera.h (100%)
->  rename include/media/{ => platform}/omap1_camera.h (100%)
->  rename include/media/{ => platform}/omap4iss.h (100%)
->  rename include/media/{ => platform}/s3c_camif.h (100%)
->  rename include/media/{ => platform}/s5p_hdmi.h (100%)
->  rename include/media/{ => platform}/sh_mobile_ceu.h (100%)
->  rename include/media/{ => platform}/sh_mobile_csi2.h (100%)
->  rename include/media/{ => platform}/sh_vou.h (100%)
->  rename include/media/{ => platform}/sii9234.h (100%)
->  rename include/media/{ => platform}/soc_camera.h (100%)
->  rename include/media/{ => platform}/soc_camera_platform.h (98%)
->  rename include/media/{ => platform}/soc_mediabus.h (100%)
+Separate vb2_poll() into core and v4l2 part.
 
-This still seems to be a mix of various things. Some of these are interfaces
-between drivers, while others declare a foo_platform_data structure that
-is used to interface between platform code and the driver.
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c |   80 +++++++++++++++++++-----------
+ 1 file changed, 52 insertions(+), 28 deletions(-)
 
-I think the latter should go into include/linux/platform_data/media/*.h instead.
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 21857d6..5be9ed8e 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -750,7 +750,7 @@ void vb2_queue_release(struct vb2_queue *q)
+ EXPORT_SYMBOL_GPL(vb2_queue_release);
+ 
+ /**
+- * vb2_poll() - implements poll userspace operation
++ * vb2_core_poll() - implements poll userspace operation
+  * @q:		videobuf2 queue
+  * @file:	file argument passed to the poll file operation handler
+  * @wait:	wait argument passed to the poll file operation handler
+@@ -762,33 +762,20 @@ EXPORT_SYMBOL_GPL(vb2_queue_release);
+  * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
+  * will be reported as available for writing.
+  *
+- * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
+- * pending events.
+- *
+  * The return values from this function are intended to be directly returned
+  * from poll handler in driver.
+  */
+-unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
++unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
++		poll_table *wait)
+ {
+-	struct video_device *vfd = video_devdata(file);
+ 	unsigned long req_events = poll_requested_events(wait);
+ 	struct vb2_buffer *vb = NULL;
+-	unsigned int res = 0;
+ 	unsigned long flags;
+ 
+-	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
+-		struct v4l2_fh *fh = file->private_data;
+-
+-		if (v4l2_event_pending(fh))
+-			res = POLLPRI;
+-		else if (req_events & POLLPRI)
+-			poll_wait(file, &fh->wait, wait);
+-	}
+-
+ 	if (!q->is_output && !(req_events & (POLLIN | POLLRDNORM)))
+-		return res;
++		return 0;
+ 	if (q->is_output && !(req_events & (POLLOUT | POLLWRNORM)))
+-		return res;
++		return 0;
+ 
+ 	/*
+ 	 * Start file I/O emulator only if streaming API has not been used yet.
+@@ -797,16 +784,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 		if (!q->is_output && (q->io_modes & VB2_READ) &&
+ 				(req_events & (POLLIN | POLLRDNORM))) {
+ 			if (__vb2_init_fileio(q, 1))
+-				return res | POLLERR;
++				return POLLERR;
+ 		}
+ 		if (q->is_output && (q->io_modes & VB2_WRITE) &&
+ 				(req_events & (POLLOUT | POLLWRNORM))) {
+ 			if (__vb2_init_fileio(q, 0))
+-				return res | POLLERR;
++				return POLLERR;
+ 			/*
+ 			 * Write to OUTPUT queue can be done immediately.
+ 			 */
+-			return res | POLLOUT | POLLWRNORM;
++			return POLLOUT | POLLWRNORM;
+ 		}
+ 	}
+ 
+@@ -815,21 +802,21 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	 * error flag is set.
+ 	 */
+ 	if (!vb2_is_streaming(q) || q->error)
+-		return res | POLLERR;
++		return POLLERR;
+ 	/*
+ 	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+ 	 * return POLLERR as well. This only affects capture queues, output
+ 	 * queues will always initialize waiting_for_buffers to false.
+ 	 */
+ 	if (q->waiting_for_buffers)
+-		return res | POLLERR;
++		return POLLERR;
+ 
+ 	/*
+ 	 * For output streams you can write as long as there are fewer buffers
+ 	 * queued than there are buffers available.
+ 	 */
+ 	if (q->is_output && q->queued_count < q->num_buffers)
+-		return res | POLLOUT | POLLWRNORM;
++		return POLLOUT | POLLWRNORM;
+ 
+ 	if (list_empty(&q->done_list)) {
+ 		/*
+@@ -837,7 +824,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 		 * return immediately. DQBUF will return -EPIPE.
+ 		 */
+ 		if (q->last_buffer_dequeued)
+-			return res | POLLIN | POLLRDNORM;
++			return POLLIN | POLLRDNORM;
+ 
+ 		poll_wait(file, &q->done_wq, wait);
+ 	}
+@@ -854,10 +841,47 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	if (vb && (vb->state == VB2_BUF_STATE_DONE
+ 			|| vb->state == VB2_BUF_STATE_ERROR)) {
+ 		return (q->is_output) ?
+-				res | POLLOUT | POLLWRNORM :
+-				res | POLLIN | POLLRDNORM;
++				POLLOUT | POLLWRNORM :
++				POLLIN | POLLRDNORM;
+ 	}
+-	return res;
++	return 0;
++}
++
++/**
++ * vb2_poll() - implements poll userspace operation
++ * @q:		videobuf2 queue
++ * @file:	file argument passed to the poll file operation handler
++ * @wait:	wait argument passed to the poll file operation handler
++ *
++ * This function implements poll file operation handler for a driver.
++ * For CAPTURE queues, if a buffer is ready to be dequeued, the userspace will
++ * be informed that the file descriptor of a video device is available for
++ * reading.
++ * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
++ * will be reported as available for writing.
++ *
++ * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
++ * pending events.
++ *
++ * The return values from this function are intended to be directly returned
++ * from poll handler in driver.
++ */
++unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
++{
++	struct video_device *vfd = video_devdata(file);
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned int res = 0;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++		struct v4l2_fh *fh = file->private_data;
++
++		if (v4l2_event_pending(fh))
++			res = POLLPRI;
++		else if (req_events & POLLPRI)
++			poll_wait(file, &fh->wait, wait);
++	}
++
++	return res | vb2_core_poll(q, file, wait);
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+ 
+-- 
+1.7.9.5
 
-	Arnd
