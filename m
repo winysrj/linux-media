@@ -1,52 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:47979 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754327AbbKLMWF (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56664 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753628AbbKBMZz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 07:22:05 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 03/16] dts: exynos4412-odroid*: enable the HDMI CEC device
-Date: Thu, 12 Nov 2015 13:21:32 +0100
-Message-Id: <7ef1997ed75b7085261f46ee88d292099b4e2f15.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
+	Mon, 2 Nov 2015 07:25:55 -0500
+Message-ID: <5637564A.6010400@xs4all.nl>
+Date: Mon, 02 Nov 2015 13:25:46 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+CC: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v8 1/6] media: videobuf2: Move timestamp to vb2_buffer
+References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com> <1446439425-13242-2-git-send-email-jh1009.sung@samsung.com>
+In-Reply-To: <1446439425-13242-2-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+On 11/02/2015 05:43 AM, Junghak Sung wrote:
+> Move timestamp from struct vb2_v4l2_buffer to struct vb2_buffer
+> for common use, and change its type to struct timespec in order to handling
+> y2038 problem. This patch also includes all device drivers' changes related to
+> this restructuring.
+> 
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
+> ---
 
-Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-family of SoCs.
+<snip>
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4210-universal_c210.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+> diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
+> index 51d4a17..34525dc 100644
+> --- a/drivers/usb/gadget/function/uvc_queue.c
+> +++ b/drivers/usb/gadget/function/uvc_queue.c
+> @@ -329,7 +329,7 @@ struct uvc_buffer *uvcg_queue_next_buffer(struct uvc_video_queue *queue,
+>  
+>  	buf->buf.field = V4L2_FIELD_NONE;
+>  	buf->buf.sequence = queue->sequence++;
+> -	v4l2_get_timestamp(&buf->buf.timestamp);
+> +	ktime_get_ts(&buf->buf.vb2_buf.timestamp);
+>  
+>  	vb2_set_plane_payload(&buf->buf.vb2_buf, 0, buf->bytesused);
+>  	vb2_buffer_done(&buf->buf.vb2_buf, VB2_BUF_STATE_DONE);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 647ebfe..3fe6600 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -211,6 +211,7 @@ struct vb2_queue;
+>   * @num_planes:		number of planes in the buffer
+>   *			on an internal driver queue
+>   * @planes:		private per-plane information; do not change
+> + * @timestamp:		frame timestamp
+>   */
+>  struct vb2_buffer {
+>  	struct vb2_queue	*vb2_queue;
+> @@ -219,6 +220,7 @@ struct vb2_buffer {
+>  	unsigned int		memory;
+>  	unsigned int		num_planes;
+>  	struct vb2_plane	planes[VB2_MAX_PLANES];
+> +	struct timespec		timestamp;
 
-diff --git a/arch/arm/boot/dts/exynos4210-universal_c210.dts b/arch/arm/boot/dts/exynos4210-universal_c210.dts
-index eb37952..5c4393d 100644
---- a/arch/arm/boot/dts/exynos4210-universal_c210.dts
-+++ b/arch/arm/boot/dts/exynos4210-universal_c210.dts
-@@ -222,6 +222,10 @@
- 		enable-active-high;
- 	};
- 
-+	cec@100B0000 {
-+		status = "okay";
-+	};
-+
- 	hdmi_ddc: i2c-ddc {
- 		compatible = "i2c-gpio";
- 		gpios = <&gpe4 2 0 &gpe4 3 0>;
--- 
-2.6.2
+This should be a __u64 containing nanoseconds. That is the recommended way of
+storing timestamps according to the y2038 team. The timespec struct is not
+y2038 safe, whereas using __u64 is OK.
 
+Please change!
+
+And instead of using ktime_get_ts() in drivers use ktime_get_ns().
+
+Regards,
+
+	Hans
