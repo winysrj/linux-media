@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:47280 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1162616AbbKTOzo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 09:55:44 -0500
-Subject: Re: cobalt & dma
-To: Ran Shalit <ranshalit@gmail.com>
-References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
- <564ADD04.90700@xs4all.nl>
- <CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <564F346B.3090504@xs4all.nl>
-Date: Fri, 20 Nov 2015 15:55:39 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:42660 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbbKBEnw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 23:43:52 -0500
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NX602NXO7T0I9D0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 02 Nov 2015 13:43:48 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v8 2/6] media: videobuf2: Add set_timestamp to struct
+ vb2_queue
+Date: Mon, 02 Nov 2015 13:43:41 +0900
+Message-id: <1446439425-13242-3-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
+References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/20/2015 03:49 PM, Ran Shalit wrote:
-> Hello,
-> 
-> 
-> 
->>
->> No. All video capture/output devices all use DMA since it would be prohibitively
->> expensive for the CPU to do otherwise. So just dig in and implement it.
-> 
-> I am trying to better understand how read() operation actually use the
-> dma, but I can't yet understand it from code.
-> 
->>
->> No. The vmalloc variant is typically used for USB devices. For PCI(e) you'll
->> use videobuf2-dma-contig if the DMA engine requires physically contiguous DMA,
->> or videobuf2-dma-sg if the DMA engine supports scatter-gather DMA. You can
->> start with dma-contig since the DMA code tends to be simpler, but it is
->> harder to get the required physically contiguous memory if memory fragmentation
->> takes place. So you may not be able to allocate the buffers. dma-sg works much
->> better with virtual memory.
->>
->>
-> 
-> 
-> 1. I tried to understand the code implementation of videobuf2 with
-> regards to read():
-> read() ->
->     vb2_read() ->
->           __vb2_perform_fileio()->
->              vb2_internal_dqbuf() &  copy_to_user()
-> 
-> Where is the actual allocation of dma contiguous memory ? Is done with
-> the userspace calloc() call in userspace (as shown in the v4l2 API
-> example) ? As I understand the calloc/malloc are not guaranteed to be
-> contiguous.
->      How do I know if the try to allocate contigious memory has failed or not ?
+Add set_timestamp to struct vb2_queue as a flag set if vb2-core should
+set timestamps.
 
-The actual allocation happens in videobuf2-vmalloc/dma-contig/dma-sg depending
-on the flavor of buffers you want (virtual memory, DMA into physically contiguous
-memory or DMA into scatter-gather memory). The alloc operation is the one that
-allocates the memory.
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c |   19 +++++++------------
+ include/media/videobuf2-core.h           |    2 ++
+ 2 files changed, 9 insertions(+), 12 deletions(-)
 
-> 
-> 
-> 2. Is the call to copy_to_user results is performance degredation of
-> read() in compare to mmap() method ?
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 2552250..21857d6 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -118,8 +118,7 @@ static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
+ 		 * For output buffers copy the timestamp if needed,
+ 		 * and the timecode field and flag if needed.
+ 		 */
+-		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-				V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++		if (q->set_timestamp) {
+ 			vb->timestamp.tv_sec = b->timestamp.tv_sec;
+ 			vb->timestamp.tv_nsec
+ 				= b->timestamp.tv_usec * NSEC_PER_USEC;
+@@ -242,8 +241,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	 */
+ 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+ 	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+-	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++	if (!q->set_timestamp) {
+ 		/*
+ 		 * For non-COPY timestamps, drop timestamp source bits
+ 		 * and obtain the timestamp source from the queue.
+@@ -408,8 +406,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ 
+ 	/* Zero flags that the vb2 core handles */
+ 	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
+-	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
++	if (!vb->vb2_queue->set_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 		/*
+ 		 * Non-COPY timestamps and non-OUTPUT queues will get
+ 		 * their timestamp and timestamp source flags from the
+@@ -727,6 +724,8 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	q->buf_ops = &v4l2_buf_ops;
+ 	q->is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
+ 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
++	q->set_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
++			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_core_queue_init(q);
+ }
+@@ -1084,9 +1083,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 * should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
+ 	 * else is able to provide this information with the write() operation.
+ 	 */
+-	bool set_timestamp = !read &&
+-		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-		V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	bool set_timestamp = !read && q->set_timestamp;
+ 	int ret, index;
+ 
+ 	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
+@@ -1275,9 +1272,7 @@ static int vb2_thread(void *data)
+ 
+ 	if (q->is_output) {
+ 		prequeue = q->num_buffers;
+-		set_timestamp =
+-			(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-			V4L2_BUF_FLAG_TIMESTAMP_COPY;
++		set_timestamp = q->set_timestamp;
+ 	}
+ 
+ 	set_freezable();
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 3fe6600..a532cf2 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -431,6 +431,7 @@ struct vb2_buf_ops {
+  *		called since poll() needs to return POLLERR in that situation.
+  * @is_multiplanar: set if buffer type is multiplanar
+  * @is_output:	set if buffer type is output
++ * @copy_timestamp: set if vb2-core should set timestamps
+  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+  *		last decoded buffer was already dequeued. Set for capture queues
+  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
+@@ -480,6 +481,7 @@ struct vb2_queue {
+ 	unsigned int			waiting_for_buffers:1;
+ 	unsigned int			is_multiplanar:1;
+ 	unsigned int			is_output:1;
++	unsigned int			set_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+-- 
+1.7.9.5
 
-Correct. But if you use the vb2 framework then you get stream I/O and the
-read/write operations for free. vb2_read() sits on top of the stream I/O
-implementation. It basically requests buffers and loops while queuing and
-dequeuing buffers and calling copy_to_user() to copy the data into the
-read() buffer.
-
-This is (very) inefficient and applications should use the V4L2 stream I/O
-mechanism directly.
-
-Regards,
-
-	Hans
