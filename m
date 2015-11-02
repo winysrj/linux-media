@@ -1,162 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39770 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752481AbbK2TWq (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36428 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750935AbbKBDyW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:46 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sun, 1 Nov 2015 22:54:22 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D78F82A0082
+	for <linux-media@vger.kernel.org>; Mon,  2 Nov 2015 04:54:16 +0100 (CET)
+Date: Mon, 02 Nov 2015 04:54:16 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v2 20/22] staging: v4l: davinci_vpbe: Use the new media_entity_graph_walk_start() interface
-Date: Sun, 29 Nov 2015 21:20:21 +0200
-Message-Id: <1448824823-10372-21-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151102035416.D78F82A0082@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 37 ++++++++++++++++++-------
- drivers/staging/media/davinci_vpfe/vpfe_video.h |  1 +
- 2 files changed, 28 insertions(+), 10 deletions(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 2dbf14b..1bacd19 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -127,13 +127,14 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
- }
- 
- /* make a note of pipeline details */
--static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
-+static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
- {
-+	struct media_entity_graph graph;
- 	struct media_entity *entity = &video->video_dev.entity;
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct vpfe_pipeline *pipe = &video->pipe;
- 	struct vpfe_video_device *far_end = NULL;
--	struct media_entity_graph graph;
-+	int ret;
- 
- 	pipe->input_num = 0;
- 	pipe->output_num = 0;
-@@ -144,6 +145,11 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 		pipe->outputs[pipe->output_num++] = video;
- 
- 	mutex_lock(&mdev->graph_mutex);
-+	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
-+	if (ret) {
-+		mutex_unlock(&video->lock);
-+		return -ENOMEM;
-+	}
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
-@@ -156,7 +162,10 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 		else
- 			pipe->outputs[pipe->output_num++] = far_end;
- 	}
-+	media_entity_graph_walk_cleanup(&graph);
- 	mutex_unlock(&mdev->graph_mutex);
-+
-+	return 0;
- }
- 
- /* update pipe state selected by user */
-@@ -165,7 +174,9 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
- 	struct vpfe_pipeline *pipe = &video->pipe;
- 	int ret;
- 
--	vpfe_prepare_pipeline(video);
-+	ret = vpfe_prepare_pipeline(video);
-+	if (ret)
-+		return ret;
- 
- 	/* Find out if there is any input video
- 	  if yes, it is single shot.
-@@ -276,11 +287,10 @@ static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
-  */
- static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- {
--	struct media_entity_graph graph;
- 	struct media_entity *entity;
- 	struct v4l2_subdev *subdev;
- 	struct media_device *mdev;
--	int ret = 0;
-+	int ret;
- 
- 	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
- 		entity = vpfe_get_input_entity(pipe->outputs[0]);
-@@ -289,8 +299,12 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 
- 	mdev = entity->graph_obj.mdev;
- 	mutex_lock(&mdev->graph_mutex);
--	media_entity_graph_walk_start(&graph, entity);
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	ret = media_entity_graph_walk_init(&pipe->graph,
-+					   entity->graph_obj.mdev);
-+	if (ret)
-+		goto out;
-+	media_entity_graph_walk_start(&pipe->graph, entity);
-+	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
- 
- 		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
-@@ -299,6 +313,9 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 		if (ret < 0 && ret != -ENOIOCTLCMD)
- 			break;
- 	}
-+out:
-+	if (ret)
-+		media_entity_graph_walk_cleanup(&pipe->graph);
- 	mutex_unlock(&mdev->graph_mutex);
- 	return ret;
- }
-@@ -316,7 +333,6 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
-  */
- static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- {
--	struct media_entity_graph graph;
- 	struct media_entity *entity;
- 	struct v4l2_subdev *subdev;
- 	struct media_device *mdev;
-@@ -329,9 +345,9 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 
- 	mdev = entity->graph_obj.mdev;
- 	mutex_lock(&mdev->graph_mutex);
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(&pipe->graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
- 
- 		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
-@@ -342,6 +358,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 	}
- 	mutex_unlock(&mdev->graph_mutex);
- 
-+	media_entity_graph_walk_cleanup(&pipe->graph);
- 	return ret ? -ETIMEDOUT : 0;
- }
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 1b1b6c4..81f7698 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -51,6 +51,7 @@ enum vpfe_video_state {
- struct vpfe_pipeline {
- 	/* media pipeline */
- 	struct media_pipeline		*pipe;
-+	struct media_entity_graph	graph;
- 	/* state of the pipeline, continuous,
- 	 * single-shot or stopped
- 	 */
--- 
-2.1.4
+Results of the daily build of media_tree:
 
+date:		Mon Nov  2 04:00:24 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-rc1-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
