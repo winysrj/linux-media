@@ -1,118 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29672 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892AbbKIN0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2015 08:26:17 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Date: Mon,  9 Nov 2015 15:25:25 +0200
-Message-Id: <1447075525-32321-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from nasmtp01.atmel.com ([192.199.1.246]:42523 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751854AbbKCFij (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 00:38:39 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v2 1/5] media: atmel-isi: correct yuv swap according to different sensor outputs
+Date: Tue, 3 Nov 2015 13:45:08 +0800
+Message-ID: <1446529512-19109-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1446529512-19109-1-git-send-email-josh.wu@atmel.com>
+References: <1446529512-19109-1-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new topic option for -h to allow listing supported media bus codes
-in conversion functions. This is useful in figuring out which media bus
-codes are actually supported by the library. The numeric values of the
-codes are listed as well.
+we need to configure the YCC_SWAP bits in ISI_CFG2 according to current
+sensor output and Atmel ISI output format.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Current there are two cases Atmel ISI supported:
+  1. Atmel ISI outputs YUYV format.
+     This case we need to setup YCC_SWAP according to sensor output
+     format.
+  2. Atmel ISI output a pass-through formats, which means no swap.
+     Just setup YCC_SWAP as default with no swap.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 75d7ad7..e0f1ff5 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -22,7 +22,9 @@
- #include <getopt.h>
- #include <stdio.h>
- #include <stdlib.h>
-+#include <string.h>
- #include <unistd.h>
-+#include <v4l2subdev.h>
+Changes in v2:
+- remove the duplicated variable: cfg2_yuv_swap.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 39 ++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 45e304a..ce87a16 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -103,13 +103,37 @@ static u32 isi_readl(struct atmel_isi *isi, u32 reg)
+ 	return readl(isi->regs + reg);
+ }
  
- #include <linux/videodev2.h>
- 
-@@ -45,7 +47,8 @@ static void usage(const char *argv0)
- 	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
- 	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
- 	printf("    --set-dv pad	Configure DV timings on a given pad\n");
--	printf("-h, --help		Show verbose help and exit\n");
-+	printf("-h, --help[=topic]	Show verbose help and exit\n");
-+	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
- 	printf("-i, --interactive	Modify links interactively\n");
- 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
- 	printf("-p, --print-topology	Print the device topology\n");
-@@ -100,7 +103,7 @@ static struct option opts[] = {
- 	{"get-format", 1, 0, OPT_GET_FORMAT},
- 	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
- 	{"set-dv", 1, 0, OPT_SET_DV},
--	{"help", 0, 0, 'h'},
-+	{"help", 2, 0, 'h'},
- 	{"interactive", 0, 0, 'i'},
- 	{"links", 1, 0, 'l'},
- 	{"print-dot", 0, 0, OPT_PRINT_DOT},
-@@ -109,6 +112,27 @@ static struct option opts[] = {
- 	{"verbose", 0, 0, 'v'},
- };
- 
-+void list_mbus_formats(void)
++static u32 setup_cfg2_yuv_swap(struct atmel_isi *isi,
++		const struct soc_camera_format_xlate *xlate)
 +{
-+	unsigned int i;
-+
-+	printf("Supported media bus pixel codes\n");
-+
-+	for (i = 0; ; i++) {
-+		unsigned int code = v4l2_subdev_pixelcode_list(i);
-+		const char *str = v4l2_subdev_pixelcode_to_string(code);
-+		int spaces = 30 - (int)strlen(str);
-+
-+		if (code == -1)
-+			break;
-+
-+		if (spaces < 0)
-+			spaces = 0;
-+
-+		printf("\t%s %*c (0x%8.8x)\n", str, spaces, ' ', code);
++	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUYV) {
++		/* all convert to YUYV */
++		switch (xlate->code) {
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++			return ISI_CFG2_YCC_SWAP_MODE_3;
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++			return ISI_CFG2_YCC_SWAP_MODE_2;
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++			return ISI_CFG2_YCC_SWAP_MODE_1;
++		}
 +	}
++
++	/*
++	 * By default, no swap for the codec path of Atmel ISI. So codec
++	 * output is same as sensor's output.
++	 * For instance, if sensor's output is YUYV, then codec outputs YUYV.
++	 * And if sensor's output is UYVY, then codec outputs UYVY.
++	 */
++	return ISI_CFG2_YCC_SWAP_DEFAULT;
 +}
 +
- int parse_cmdline(int argc, char **argv)
+ static void configure_geometry(struct atmel_isi *isi, u32 width,
+-			u32 height, u32 code)
++		u32 height, const struct soc_camera_format_xlate *xlate)
  {
- 	int opt;
-@@ -119,7 +143,8 @@ int parse_cmdline(int argc, char **argv)
+ 	u32 cfg2;
+ 
+ 	/* According to sensor's output format to set cfg2 */
+-	switch (code) {
++	switch (xlate->code) {
+ 	default:
+ 	/* Grey */
+ 	case MEDIA_BUS_FMT_Y8_1X8:
+@@ -117,16 +141,11 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+ 		break;
+ 	/* YUV */
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_3 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_2 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_YVYU8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_MODE_1 | ISI_CFG2_COL_SPACE_YCbCr;
+-		break;
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+-		cfg2 = ISI_CFG2_YCC_SWAP_DEFAULT | ISI_CFG2_COL_SPACE_YCbCr;
++		cfg2 = ISI_CFG2_COL_SPACE_YCbCr |
++				setup_cfg2_yuv_swap(isi, xlate);
+ 		break;
+ 	/* RGB, TODO */
  	}
+@@ -407,7 +426,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
  
- 	/* parse options */
--	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:", opts, NULL)) != -1) {
-+	while ((opt = getopt_long(argc, argv, "d:e:f:h::il:prvV:",
-+				  opts, NULL)) != -1) {
- 		switch (opt) {
- 		case 'd':
- 			media_opts.devname = optarg;
-@@ -141,7 +166,16 @@ int parse_cmdline(int argc, char **argv)
- 			break;
+ 	configure_geometry(isi, icd->user_width, icd->user_height,
+-				icd->current_fmt->code);
++				icd->current_fmt);
  
- 		case 'h':
--			usage(argv[0]);
-+			if (optarg) {
-+				if (!strcmp(optarg, "mbus-fmt"))
-+					list_mbus_formats();
-+				else
-+					fprintf(stderr,
-+						"Unknown topic \"%s\"\n",
-+						optarg);
-+			} else {
-+				usage(argv[0]);
-+			}
- 			exit(0);
- 
- 		case 'i':
+ 	spin_lock_irq(&isi->lock);
+ 	/* Clear any pending interrupt */
 -- 
-2.1.0.231.g7484e3b
+1.9.1
 
