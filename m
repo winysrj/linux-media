@@ -1,96 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39774 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752431AbbK2TWo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:44 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v2 13/22] media: Use entity enums in graph walk
-Date: Sun, 29 Nov 2015 21:20:14 +0200
-Message-Id: <1448824823-10372-14-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+Received: from down.free-electrons.com ([37.187.137.238]:44586 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755339AbbKCU6p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 15:58:45 -0500
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [v4l-utils 0/5] Misc build fixes
+Date: Tue,  3 Nov 2015 21:58:35 +0100
+Message-Id: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will also mean that the necessary graph related data structures will
-be allocated dynamically, removing the need for maximum ID checks.
+Hello,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 16 ++++++----------
- include/media/media-entity.h |  2 +-
- 2 files changed, 7 insertions(+), 11 deletions(-)
+Here is a small set of fixes against v4l-utils that we have
+accumulated in the Buildroot project to fix a number of build
+issues. Those build issues are related to linking with the musl C
+library, or do linking with the libintl library when the gettext
+functions are not provided by the C library (which is what happens the
+uClibc C library is used).
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 4161dc7..7429c03 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -366,7 +366,7 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- __must_check int media_entity_graph_walk_init(
- 	struct media_entity_graph *graph, struct media_device *mdev)
- {
--	return 0;
-+	return media_entity_enum_init(&graph->entities, mdev);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
- 
-@@ -376,6 +376,7 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
-  */
- void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
- {
-+	media_entity_enum_cleanup(&graph->entities);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
- 
-@@ -395,14 +396,11 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 				   struct media_entity *entity)
- {
-+	media_entity_enum_zero(&graph->entities);
-+	media_entity_enum_set(&graph->entities, entity);
-+
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
--	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
--
--	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
--		return;
--
--	__set_bit(media_entity_id(entity), graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -445,11 +443,9 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
--			return NULL;
- 
- 		/* Has the entity already been visited? */
--		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
-+		if (media_entity_enum_test_and_set(&graph->entities, next)) {
- 			link_top(graph) = link_top(graph)->next;
- 			continue;
- 		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index f0652e2..8122736 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -109,8 +109,8 @@ struct media_entity_graph {
- 		struct list_head *link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
- 
--	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
- 	int top;
-+	struct media_entity_enum entities;
- };
- 
- /*
+Thanks,
+
+Thomas
+
+Peter Seiderer (1):
+  dvb/keytable: fix missing libintl linking
+
+Thomas Petazzoni (4):
+  libv4lsyscall-priv.h: Use off_t instead of __off_t
+  utils: Properly use ENABLE_NLS for locale related code
+  utils/v4l2-compliance: Include <fcntl.h> instead of <sys/fcntl.h>
+  libv4lsyscall-priv.h: Only define SYS_mmap2 if needed
+
+ lib/libv4l1/v4l1compat.c               |  3 +--
+ lib/libv4l2/v4l2convert.c              |  5 ++---
+ lib/libv4lconvert/libv4lsyscall-priv.h | 13 +++++--------
+ utils/dvb/Makefile.am                  |  8 ++++----
+ utils/dvb/dvb-fe-tool.c                |  2 ++
+ utils/dvb/dvb-format-convert.c         |  2 ++
+ utils/dvb/dvbv5-scan.c                 |  2 ++
+ utils/dvb/dvbv5-zap.c                  |  2 ++
+ utils/keytable/Makefile.am             |  1 +
+ utils/keytable/keytable.c              |  2 ++
+ utils/v4l2-compliance/v4l-helpers.h    |  2 +-
+ 11 files changed, 24 insertions(+), 18 deletions(-)
+
 -- 
-2.1.4
+2.6.2
 
