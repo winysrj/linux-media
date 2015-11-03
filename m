@@ -1,138 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53673 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752125AbbKLAZr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 19:25:47 -0500
-Subject: Re: Slow path and cpu lock warnings - MC Next Gen
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <5640C0F2.9070000@osg.samsung.com>
- <5640C1DA.7040100@osg.samsung.com> <20151111103053.448ac440@recife.lan>
- <56434F37.9070007@osg.samsung.com> <20151111133610.0d2f0923@recife.lan>
- <5643637C.3010205@osg.samsung.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5643DC88.10300@osg.samsung.com>
-Date: Wed, 11 Nov 2015 17:25:44 -0700
-MIME-Version: 1.0
-In-Reply-To: <5643637C.3010205@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.samsung.com ([203.254.224.25]:53311 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751782AbbKCKQs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 05:16:48 -0500
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NX802I24HVW5M60@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 03 Nov 2015 19:16:44 +0900 (KST)
+From: Junghak Sung <jh1009.sung@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
+Subject: [RFC PATCH v9 4/6] media: videobuf2: last_buffer_queued is set at
+ fill_v4l2_buffer()
+Date: Tue, 03 Nov 2015 19:16:40 +0900
+Message-id: <1446545802-28496-5-git-send-email-jh1009.sung@samsung.com>
+In-reply-to: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2015 08:49 AM, Shuah Khan wrote:
-> On 11/11/2015 08:36 AM, Mauro Carvalho Chehab wrote:
->> Em Wed, 11 Nov 2015 07:22:47 -0700
->> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
->>
->>> On 11/11/2015 05:30 AM, Mauro Carvalho Chehab wrote:
->>>> Em Mon, 09 Nov 2015 08:55:06 -0700
->>>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
->>>>
->>>>> On 11/09/2015 08:51 AM, Shuah Khan wrote:
->>>>>> As I mentioned on the IRC, here is the log for the problems I am seeing.
->>>>>> I have to do eject HVR 950Q TV stick to see the problem.
->>>>>>
->>>>>> mc_next_gen.v8.4 branch with no changes.
->>>>>>
->>>>>> I can test and debug this week.
->>>>>>
->>>>>> thanks,
->>>>>> -- Shuah
->>>>>>   
->>>>>
->>>>> Forgot to cc linux-media, just in case others are interested
->>>>> and have ideas on debugging.
->>>>>
+The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
+So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
+vb2_internal_dqbuf().
 
-snip
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
->>>>
->>>> Sorry, but I fail to see how this is related to the V4L2 subsystem.
->>>>
->>>> At least on my eyes, it seems that the bug is somewhere at the Radeon
->>>> driver.
->>>>
->>>
->>> Mauro,
->>>
->>> I think you didn't look down the dmesg far enough. The following is the
->>> problem I am talking about and you will see media_device_unregister()
->>> on the stack. This occurs as soon as the device is removed.
->>
->> Shuah,
->>
->> I saw that, but it is clear, from the above log, that the Radeon
->> driver is broken and it has some bad lock dependencies with the
->> driver_attach locks. Any other bad lock report related to the
->> Radeon driver or driver binding/unbiding code are very likely
->> related to the above bug.
->>
->> You should either fix the bad lock at the Radeon driver or not
->> load it at all, in order to be able to get any reliable results
->> about possible locking troubles with the MC drivers with the Kernel
->> lock tests.
->>
-> 
-> Yeah Radeon driver bug could be making things worse. Did you see
-> any problems with device removal during your testing?
-> 
-> ok found the following commit that fixes the problem:
-> 7231ed1a813e0a9d249bbbe58e66ca058aee83e1
-> 
-> This went into 4.2-rc4 or rc5. I will test applying just this
-> one patch to mc_next_gen.v8.4 branch and see if device removal
-> problem also goes away.
-> 
-
-Applied the acpi backlight fix and now kernel hangs solid when
-device is removed. I managed to get stack trace enabling sysrq
-and that showed media_device_unregister_entity() attempt to hold
-spin_lock() -> raw_spin_lock() on the stack trace. It is same as
-the one seen in the dmesg I sent.
-
-I think we have several calls to media_device_unregister_entity()
-from various media core drivers (dvb, v4l2, bridge driver) during
-device removal from their unregister paths. This adds lot of
-contention on the mdev->lock.
-
-media_device_unregister() calls media_device_unregister_entity()
-as well on all the mdev entities.
-
-I am not testing with my ALSA patches at the moment. When that
-gets added, media_devnode_is_registered() check to ensure only
-one of them (bridge driver or snd-usb-audio) runs
-media_device_unregister() won't work as the MEDIA_FLAG_REGISTERED
-flag gets cleared towards the end of media_device_unregister().
-media_device_unregister() needs to be safe to be run by these two
-drivers and still do the work only once. media_device_unregister()
-does a lot (removes interface links, interfaces, and then then
-unregister entities before it removes the media device devnode
-file and call media_devnode_unregister() to clear the
-MEDIA_FLAG_REGISTERED bit.
-
-I see two problems to solve:
-
-- ensure media_device_unregister() is safe to be called by one
-  or more drivers during device removal (usb disconnect in this
-  case)
-- Reduce contention on mdev->lock during device removal
-
-I have some ideas on how to do this. I can work on them and send
-patches. Sounds like a plan?
-
-thanks,
--- Shuah
-
-
-
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0ca9f23..b0293df 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+ 
++	if (!q->is_output &&
++		b->flags & V4L2_BUF_FLAG_DONE &&
++		b->flags & V4L2_BUF_FLAG_LAST)
++		q->last_buffer_dequeued = true;
++
+ 	return 0;
+ }
+ 
+@@ -579,10 +584,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 
+ 	ret = vb2_core_dqbuf(q, b, nonblocking);
+ 
+-	if (!ret && !q->is_output &&
+-			b->flags & V4L2_BUF_FLAG_LAST)
+-		q->last_buffer_dequeued = true;
+-
+ 	return ret;
+ }
+ 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.7.9.5
+
