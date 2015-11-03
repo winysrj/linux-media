@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:58631 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751131AbbKJUq5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55117 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754494AbbKCWmh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 15:46:57 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen v3 1/6] sound/usb: Fix media_stream_delete() to remove intf devnode
-Date: Tue, 10 Nov 2015 13:40:44 -0700
-Message-Id: <192c21ec5392e122c22caeca2b19f50fea4440b0.1447184000.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
+	Tue, 3 Nov 2015 17:42:37 -0500
+Date: Wed, 4 Nov 2015 00:42:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 07/19] media: Use the new media_entity_graph_walk_start()
+Message-ID: <20151103224233.GL17128@valkosipuli.retiisi.org.uk>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+ <1445900510-1398-8-git-send-email-sakari.ailus@iki.fi>
+ <20151028094343.009cbcf9@concha.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151028094343.009cbcf9@concha.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_stream_delete() doesn't remove intf_devnode. Fix it to
-call media_devnode_remove() to remove the intf_devnode.
+Hi Mauro,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- sound/usb/media.c | 1 +
- 1 file changed, 1 insertion(+)
+On Wed, Oct 28, 2015 at 09:43:43AM +0900, Mauro Carvalho Chehab wrote:
+> Em Tue, 27 Oct 2015 01:01:38 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Please add some documentation at the body for all patches.
+> 
+> Btw, IMHO, it would be best to fold this patch and the following ones
+> that are related to media_entity_graph_walk_init() altogether, as it
+> makes easier to review if all places were covered.
 
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index 9b455ad..0cbfee6 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -173,6 +173,7 @@ void media_stream_delete(struct snd_usb_substream *subs)
- 		mdev = media_device_find_devres(&subs->dev->dev);
- 		if (mdev) {
- 			media_entity_remove_links(&mctl->media_entity);
-+			media_devnode_remove(mctl->intf_devnode);
- 			media_device_unregister_entity(&mctl->media_entity);
- 			media_entity_cleanup(&mctl->media_entity);
- 		}
+I think patches such as the 8th are easier to review as they are.
+
+For the coverage,
+
+$ git grep -l -E '^	*media_entity_graph_walk_start' 
+Documentation/media-framework.txt
+drivers/media/media-entity.c
+drivers/media/platform/exynos4-is/media-dev.c
+drivers/media/platform/omap3isp/isp.c
+drivers/media/platform/omap3isp/ispvideo.c
+drivers/media/platform/vsp1/vsp1_video.c
+drivers/media/platform/xilinx/xilinx-dma.c
+drivers/staging/media/davinci_vpfe/vpfe_video.c
+drivers/staging/media/omap4iss/iss.c
+drivers/staging/media/omap4iss/iss_video.c
+
+Which suggests that I'm probably missing a few patches, indeed. I'll take
+that into account in the next submission.
+
 -- 
-2.5.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
