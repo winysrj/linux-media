@@ -1,133 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56012 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbbKPUV1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 15:21:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Lad Prabhakar <prabhakar.csengg@gmail.com>,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] [media] i2c: constify v4l2_ctrl_ops structures
-Date: Mon, 16 Nov 2015 22:21:34 +0200
-Message-ID: <1528138.k1hTttqLyu@avalon>
-In-Reply-To: <1447452318-19028-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1447452318-19028-1-git-send-email-Julia.Lawall@lip6.fr>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from down.free-electrons.com ([37.187.137.238]:44588 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756008AbbKCU6q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 15:58:46 -0500
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [v4l-utils 1/5] libv4lsyscall-priv.h: Use off_t instead of __off_t
+Date: Tue,  3 Nov 2015 21:58:36 +0100
+Message-Id: <1446584320-25016-2-git-send-email-thomas.petazzoni@free-electrons.com>
+In-Reply-To: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
+References: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+__off_t is a kernel internal symbol, which happens to be user-visible
+with glibc, but not necessarily with other C libraries such as
+musl. In v4l-utils code, it's mainly used for the mmap() prototype,
+but the mmap() manpage really uses off_t, not __off_t.
 
-Thank you for the patch.
+Switching from __off_t to off_t allows the code to build properly with
+musl.
 
-On Friday 13 November 2015 23:05:17 Julia Lawall wrote:
-> These v4l2_ctrl_ops structures are never modified, like all the other
-> v4l2_ctrl_ops structures, so declare them as const.
-> 
-> Done with the help of Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ lib/libv4l1/v4l1compat.c               |  3 +--
+ lib/libv4l2/v4l2convert.c              |  5 ++---
+ lib/libv4lconvert/libv4lsyscall-priv.h | 11 +++--------
+ 3 files changed, 6 insertions(+), 13 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I've prefixed the subject line with "v4l: i2c" instead 
-of just "i2c".
-
-> ---
->  drivers/media/i2c/mt9m032.c |    2 +-
->  drivers/media/i2c/mt9p031.c |    2 +-
->  drivers/media/i2c/mt9t001.c |    2 +-
->  drivers/media/i2c/mt9v011.c |    2 +-
->  drivers/media/i2c/mt9v032.c |    2 +-
->  drivers/media/i2c/ov2659.c  |    2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-> index 8ae99f7..3486bc8 100644
-> --- a/drivers/media/i2c/mt9t001.c
-> +++ b/drivers/media/i2c/mt9t001.c
-> @@ -626,7 +626,7 @@ static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops mt9t001_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops mt9t001_ctrl_ops = {
->  	.s_ctrl = mt9t001_s_ctrl,
->  };
-> 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index a68ce94..b8e80c0 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -703,7 +703,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops mt9v032_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops mt9v032_ctrl_ops = {
->  	.s_ctrl = mt9v032_s_ctrl,
->  };
-> 
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 0db15f5..1e78aa2 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -817,7 +817,7 @@ static int mt9p031_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops mt9p031_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops mt9p031_ctrl_ops = {
->  	.s_ctrl = mt9p031_s_ctrl,
->  };
-> 
-> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
-> index a4a5c39..c681b3b 100644
-> --- a/drivers/media/i2c/mt9v011.c
-> +++ b/drivers/media/i2c/mt9v011.c
-> @@ -454,7 +454,7 @@ static int mt9v011_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops mt9v011_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops mt9v011_ctrl_ops = {
->  	.s_ctrl = mt9v011_s_ctrl,
->  };
-> 
-> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> index 49109f4..b952e7d 100644
-> --- a/drivers/media/i2c/ov2659.c
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -1249,7 +1249,7 @@ static int ov2659_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops ov2659_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops ov2659_ctrl_ops = {
->  	.s_ctrl = ov2659_s_ctrl,
->  };
-> 
-> diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
-> index c7747bd..eec064e 100644
-> --- a/drivers/media/i2c/mt9m032.c
-> +++ b/drivers/media/i2c/mt9m032.c
-> @@ -671,7 +671,7 @@ static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
->  	return 0;
->  }
-> 
-> -static struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
-> +static const struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
->  	.s_ctrl = mt9m032_set_ctrl,
->  	.try_ctrl = mt9m032_try_ctrl,
->  };
-
+diff --git a/lib/libv4l1/v4l1compat.c b/lib/libv4l1/v4l1compat.c
+index 393896c..cb79629 100644
+--- a/lib/libv4l1/v4l1compat.c
++++ b/lib/libv4l1/v4l1compat.c
+@@ -26,7 +26,6 @@
+ #include <stdarg.h>
+ #include <fcntl.h>
+ #include <libv4l1.h>
+-#include "../libv4lconvert/libv4lsyscall-priv.h" /* for __off_t */
+ 
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+@@ -116,7 +115,7 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
+ }
+ 
+ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
+-		__off_t offset)
++		off_t offset)
+ {
+ 	return v4l1_mmap(start, length, prot, flags, fd, offset);
+ }
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index 0384c13..6abccbf 100644
+--- a/lib/libv4l2/v4l2convert.c
++++ b/lib/libv4l2/v4l2convert.c
+@@ -36,7 +36,6 @@
+ #include <string.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
+-#include "../libv4lconvert/libv4lsyscall-priv.h"
+ #include <linux/videodev2.h>
+ #include <libv4l2.h>
+ 
+@@ -148,14 +147,14 @@ LIBV4L_PUBLIC ssize_t read(int fd, void *buffer, size_t n)
+ }
+ 
+ LIBV4L_PUBLIC void *mmap(void *start, size_t length, int prot, int flags, int fd,
+-		__off_t offset)
++		off_t offset)
+ {
+ 	return v4l2_mmap(start, length, prot, flags, fd, offset);
+ }
+ 
+ #if defined(linux) && defined(__GLIBC__)
+ LIBV4L_PUBLIC void *mmap64(void *start, size_t length, int prot, int flags, int fd,
+-		__off64_t offset)
++		off64_t offset)
+ {
+ 	return v4l2_mmap(start, length, prot, flags, fd, offset);
+ }
+diff --git a/lib/libv4lconvert/libv4lsyscall-priv.h b/lib/libv4lconvert/libv4lsyscall-priv.h
+index f548fb2..f87eff4 100644
+--- a/lib/libv4lconvert/libv4lsyscall-priv.h
++++ b/lib/libv4lconvert/libv4lsyscall-priv.h
+@@ -59,11 +59,6 @@
+ #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
+ #define	MAP_ANONYMOUS MAP_ANON
+ #define	MMAP2_PAGE_SHIFT 0
+-typedef off_t __off_t;
+-#endif
+-
+-#if defined(ANDROID)
+-typedef off_t __off_t;
+ #endif
+ 
+ #undef SYS_OPEN
+@@ -95,15 +90,15 @@ typedef off_t __off_t;
+ #if defined(__FreeBSD__)
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
+ #elif defined(__FreeBSD_kernel__)
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
+ #else
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap2, (void *)(addr), (size_t)(len), \
+-			(int)(prot), (int)(flags), (int)(fd), (__off_t)((off) >> MMAP2_PAGE_SHIFT))
++			(int)(prot), (int)(flags), (int)(fd), (off_t)((off) >> MMAP2_PAGE_SHIFT))
+ #endif
+ 
+ #define SYS_MUNMAP(addr, len) \
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.2
 
