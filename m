@@ -1,397 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43677 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbbKYRie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 12:38:34 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH v2 2/9] [media] tvp5150: add userspace subdev API
-Date: Wed, 25 Nov 2015 18:38:29 +0100
-Message-Id: <1448473116-24735-2-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
-References: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:56874 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752295AbbKCQnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Nov 2015 11:43:51 -0500
+Subject: Re: [PATCH MC Next Gen v2 2/3] sound/usb: Create media mixer function
+ and control interface entities
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1445380851.git.shuahkh@osg.samsung.com>
+ <2f95ce0190c05e994e02bdc4393be21ec7609adf.1445380851.git.shuahkh@osg.samsung.com>
+ <s5hzizbweye.wl-tiwai@suse.de> <562D4B9E.7010006@osg.samsung.com>
+ <5638DB95.3070007@osg.samsung.com> <s5hy4efnjad.wl-tiwai@suse.de>
+Cc: mchehab@osg.samsung.com, perex@perex.cz, chehabrafael@gmail.com,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5638E445.50900@osg.samsung.com>
+Date: Tue, 3 Nov 2015 09:43:49 -0700
+MIME-Version: 1.0
+In-Reply-To: <s5hy4efnjad.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On 11/03/2015 09:23 AM, Takashi Iwai wrote:
+> On Tue, 03 Nov 2015 17:06:45 +0100,
+> Shuah Khan wrote:
+>>
+>> On 10/25/2015 03:37 PM, Shuah Khan wrote:
+>>> On 10/22/2015 01:16 AM, Takashi Iwai wrote:
+>>>> On Wed, 21 Oct 2015 01:25:15 +0200,
+>>>> Shuah Khan wrote:
+>>>>>
+>>>>> Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
+>>>>> each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
+>>>>> entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
+>>>>> entity corresponds to the control device for the card.
+>>>>>
+>>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>>> ---
+>>>>>   sound/usb/card.c     |  5 +++
+>>>>>   sound/usb/media.c    | 89
+>>>>> ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>   sound/usb/media.h    | 20 ++++++++++++
+>>>>>   sound/usb/mixer.h    |  1 +
+>>>>>   sound/usb/usbaudio.h |  1 +
+>>>>>   5 files changed, 116 insertions(+)
+>>>>>
+>>>>> diff --git a/sound/usb/card.c b/sound/usb/card.c
+>>>>> index 469d2bf..d004cb4 100644
+>>>>> --- a/sound/usb/card.c
+>>>>> +++ b/sound/usb/card.c
+>>>>> @@ -560,6 +560,9 @@ static int usb_audio_probe(struct usb_interface
+>>>>> *intf,
+>>>>>       if (err < 0)
+>>>>>           goto __error;
+>>>>>
+>>>>> +    /* Create media entities for mixer and control dev */
+>>>>> +    media_mixer_init(chip);
+>>>>> +
+>>>>>       usb_chip[chip->index] = chip;
+>>>>>       chip->num_interfaces++;
+>>>>>       chip->probing = 0;
+>>>>> @@ -616,6 +619,8 @@ static void usb_audio_disconnect(struct
+>>>>> usb_interface *intf)
+>>>>>           list_for_each(p, &chip->midi_list) {
+>>>>>               snd_usbmidi_disconnect(p);
+>>>>>           }
+>>>>> +        /* delete mixer media resources */
+>>>>> +        media_mixer_delete(chip);
+>>>>>           /* release mixer resources */
+>>>>>           list_for_each_entry(mixer, &chip->mixer_list, list) {
+>>>>>               snd_usb_mixer_disconnect(mixer);
+>>>>> diff --git a/sound/usb/media.c b/sound/usb/media.c
+>>>>> index 0cbfee6..a26ea8b 100644
+>>>>> --- a/sound/usb/media.c
+>>>>> +++ b/sound/usb/media.c
+>>>>> @@ -199,4 +199,93 @@ void media_stop_pipeline(struct
+>>>>> snd_usb_substream *subs)
+>>>>>       if (mctl)
+>>>>>           media_disable_source(mctl);
+>>>>>   }
+>>>>> +
+>>>>> +int media_mixer_init(struct snd_usb_audio *chip)
+>>>>> +{
+>>>>> +    struct device *ctl_dev = &chip->card->ctl_dev;
+>>>>> +    struct media_intf_devnode *ctl_intf;
+>>>>> +    struct usb_mixer_interface *mixer;
+>>>>> +    struct media_device *mdev;
+>>>>> +    struct media_mixer_ctl *mctl;
+>>>>> +    u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
+>>>>> +    int ret;
+>>>>> +
+>>>>> +    mdev = media_device_find_devres(&chip->dev->dev);
+>>>>> +    if (!mdev)
+>>>>> +        return -ENODEV;
+>>>>> +
+>>>>> +    ctl_intf = (struct media_intf_devnode *)
+>>>>> chip->ctl_intf_media_devnode;
+>>>>
+>>>> Why do we need cast?  Can't chip->ctl_intf_media_devnode itself be
+>>>> struct media_intf_devndoe pointer?
+>>>
+>>> Yeah. There is no need to cast here. I will fix it.
+>>
+>> Sorry I misspoke. The reason for this cast is ctl_intf_media_devnode
+>> is void to avoid including media.h and other media files in usbaudio.h
+> 
+> You can declare the struct without definition in each header file.
+> So just declare it and use it in usbaudio.h like:
+> 
+> struct media_intf_devnode;
+> 
+> struct snd_usb_audio {
+> 	....
+> 	struct media_intf_devnode *ctl_intf_media_devnode;
+> 	....
+> 
+> And even if you're using a void pointer there instead of the explicit
+> struct pointer, the cast is superfluous.  The implicit cast between a
+> void pointer and any other pointer is valid in plain C.
+> 
 
-This patch adds userspace V4L2 subdevice API support.
+Yes. cast is definitely not necessary. I will drop the cast and leave
+the rest alone.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
-v2: Allow the driver to be built without MEDIA_CONTROLLER and
-    VIDEO_V4L2_SUBDEV_API, to keep it working for devices that
-    don't want or need the userspace subdev API.
----
- drivers/media/i2c/tvp5150.c | 282 +++++++++++++++++++++++++++++++++++---------
- 1 file changed, 223 insertions(+), 59 deletions(-)
+thanks,
+-- Shuah
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index a7495d2856c3..3eab4d918c54 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -36,7 +36,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- 
- struct tvp5150 {
- 	struct v4l2_subdev sd;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_mbus_framefmt format;
- 	struct v4l2_rect rect;
- 	struct regmap *regmap;
- 
-@@ -819,38 +821,68 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_format *format)
-+static void tvp5150_try_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
-+			       v4l2_std_id std)
- {
--	struct v4l2_mbus_framefmt *f;
--	struct tvp5150 *decoder = to_tvp5150(sd);
-+	unsigned int hmax;
- 
--	if (!format || format->pad)
--		return -EINVAL;
-+	/* Clamp the crop rectangle boundaries to tvp5150 limits */
-+	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
-+	rect->width = clamp(rect->width,
-+			    TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
-+			    TVP5150_H_MAX - rect->left);
-+	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
- 
--	f = &format->format;
-+	/* tvp5150 has some special limits */
-+	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
-+	rect->width = clamp_t(unsigned int, rect->width,
-+			      TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
-+			      TVP5150_H_MAX - rect->left);
-+	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
-+
-+	/* Calculate height based on current standard */
-+	if (std & V4L2_STD_525_60)
-+		hmax = TVP5150_V_MAX_525_60;
-+	else
-+		hmax = TVP5150_V_MAX_OTHERS;
- 
--	tvp5150_reset(sd, 0);
-+	rect->height = clamp(rect->height,
-+			     hmax - TVP5150_MAX_CROP_TOP - rect->top,
-+			     hmax - rect->top);
-+}
- 
--	f->width = decoder->rect.width;
--	f->height = decoder->rect.height;
-+static void tvp5150_set_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
-+			       v4l2_std_id std)
-+{
-+	struct regmap *map = decoder->regmap;
-+	unsigned int hmax;
- 
--	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	f->field = V4L2_FIELD_SEQ_TB;
--	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	if (std & V4L2_STD_525_60)
-+		hmax = TVP5150_V_MAX_525_60;
-+	else
-+		hmax = TVP5150_V_MAX_OTHERS;
- 
--	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
--			f->height);
--	return 0;
-+	regmap_write(map, TVP5150_VERT_BLANKING_START, rect->top);
-+	regmap_write(map, TVP5150_VERT_BLANKING_STOP,
-+		     rect->top + rect->height - hmax);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_ST_MSB,
-+		     rect->left >> TVP5150_CROP_SHIFT);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_ST_LSB,
-+		     rect->left | (1 << TVP5150_CROP_SHIFT));
-+	regmap_write(map, TVP5150_ACT_VD_CROP_STP_MSB,
-+		     (rect->left + rect->width - TVP5150_MAX_CROP_LEFT) >>
-+		     TVP5150_CROP_SHIFT);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_STP_LSB,
-+		     rect->left + rect->width - TVP5150_MAX_CROP_LEFT);
-+
-+	decoder->rect = *rect;
- }
- 
- static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- {
--	struct v4l2_rect rect = a->c;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct v4l2_rect rect = a->c;
- 	v4l2_std_id std;
--	unsigned int hmax;
- 
- 	v4l2_dbg(1, debug, sd, "%s left=%d, top=%d, width=%d, height=%d\n",
- 		__func__, rect.left, rect.top, rect.width, rect.height);
-@@ -858,42 +890,13 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	/* tvp5150 has some special limits */
--	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
--	rect.width = clamp_t(unsigned int, rect.width,
--			     TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
--			     TVP5150_H_MAX - rect.left);
--	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
--
--	/* Calculate height based on current standard */
- 	if (decoder->norm == V4L2_STD_ALL)
- 		std = tvp5150_read_std(sd);
- 	else
- 		std = decoder->norm;
- 
--	if (std & V4L2_STD_525_60)
--		hmax = TVP5150_V_MAX_525_60;
--	else
--		hmax = TVP5150_V_MAX_OTHERS;
--
--	rect.height = clamp_t(unsigned int, rect.height,
--			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
--			      hmax - rect.top);
--
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
--		      rect.top + rect.height - hmax);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
--		      rect.left >> TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
--		      rect.left | (1 << TVP5150_CROP_SHIFT));
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
--		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
--		      TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
--		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
--
--	decoder->rect = rect;
-+	tvp5150_try_crop(decoder, &rect, std);
-+	tvp5150_set_crop(decoder, &rect, std);
- 
- 	return 0;
- }
-@@ -1049,6 +1052,153 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static struct v4l2_mbus_framefmt *
-+tvp5150_get_pad_format(struct tvp5150 *decoder, struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-+			 enum v4l2_subdev_format_whence which)
-+{
-+	switch (which) {
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+#endif
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &decoder->format;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static struct v4l2_rect *
-+tvp5150_get_pad_crop(struct tvp5150 *decoder, struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-+		       enum v4l2_subdev_format_whence which)
-+{
-+	switch (which) {
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_crop(sd, cfg, pad);
-+#endif
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &decoder->rect;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
-+	if (fse->index > 0 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
-+		return -EINVAL;
-+
-+	fse->min_width = TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT;
-+	fse->max_width = TVP5150_H_MAX;
-+
-+	/* Calculate height based on current standard */
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	if (std & V4L2_STD_525_60) {
-+		fse->min_height = TVP5150_V_MAX_525_60 - TVP5150_MAX_CROP_TOP;
-+		fse->max_height = TVP5150_V_MAX_525_60;
-+	} else {
-+		fse->min_height = TVP5150_V_MAX_OTHERS - TVP5150_MAX_CROP_TOP;
-+		fse->max_height = TVP5150_V_MAX_OTHERS;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tvp5150_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *format)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct v4l2_mbus_framefmt *mbus_format;
-+
-+	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg,
-+					     format->pad, format->which);
-+	if (!mbus_format)
-+		return -ENOTTY;
-+
-+	format->format = *mbus_format;
-+
-+	return 0;
-+}
-+
-+static int tvp5150_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *format)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct v4l2_mbus_framefmt *mbus_format;
-+	struct v4l2_rect *crop;
-+
-+	crop = tvp5150_get_pad_crop(decoder, sd, cfg, format->pad,
-+				    format->which);
-+	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg, format->pad,
-+					     format->which);
-+	if (!crop || !mbus_format)
-+		return -ENOTTY;
-+
-+	mbus_format->width = crop->width;
-+	mbus_format->height = crop->height;
-+
-+	format->format = *mbus_format;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		tvp5150_reset(sd, 0);
-+
-+	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
-+			mbus_format->height);
-+
-+	return 0;
-+}
-+
-+static void tvp5150_set_default(v4l2_std_id std, struct v4l2_rect *crop,
-+				struct v4l2_mbus_framefmt *format)
-+{
-+	crop->left = 0;
-+	crop->width = TVP5150_H_MAX;
-+	crop->top = 0;
-+	if (std & V4L2_STD_525_60)
-+		crop->height = TVP5150_V_MAX_525_60;
-+	else
-+		crop->height = TVP5150_V_MAX_OTHERS;
-+
-+	format->width = crop->width;
-+	format->height = crop->height;
-+	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	format->field = V4L2_FIELD_SEQ_TB;
-+	format->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+}
-+
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+static int tvp5150_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
-+				 v4l2_subdev_get_try_format(fh, 0));
-+	return 0;
-+}
-+#endif
-+
-+/* ----------------------------------------------------------------------- */
-+
- static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
- 	.s_ctrl = tvp5150_s_ctrl,
- };
-@@ -1083,8 +1233,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
- 
- static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
- 	.enum_mbus_code = tvp5150_enum_mbus_code,
--	.set_fmt = tvp5150_fill_fmt,
--	.get_fmt = tvp5150_fill_fmt,
-+	.enum_frame_size = tvp5150_enum_frame_size,
-+	.get_fmt = tvp5150_get_format,
-+	.set_fmt = tvp5150_set_format,
- };
- 
- static const struct v4l2_subdev_ops tvp5150_ops = {
-@@ -1095,6 +1246,11 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 	.pad = &tvp5150_pad_ops,
- };
- 
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
-+	.open = tvp5150_open,
-+};
-+#endif
- 
- /****************************************************************************
- 			I2C Client & Driver
-@@ -1197,6 +1353,19 @@ static int tvp5150_probe(struct i2c_client *c,
- 	sd = &core->sd;
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
- 
-+#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
-+	sd->internal_ops = &tvp5150_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+#endif
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	core->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	res = media_entity_init(&sd->entity, 1, &core->pad, 0);
-+	if (res < 0)
-+		return res;
-+#endif
-+
- 	/* 
- 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
- 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
-@@ -1250,14 +1419,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 	v4l2_ctrl_handler_setup(&core->hdl);
- 
- 	/* Default is no cropping */
--	core->rect.top = 0;
--	if (tvp5150_read_std(sd) & V4L2_STD_525_60)
--		core->rect.height = TVP5150_V_MAX_525_60;
--	else
--		core->rect.height = TVP5150_V_MAX_OTHERS;
--	core->rect.left = 0;
--	core->rect.width = TVP5150_H_MAX;
-+	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
- 
-+	sd->dev = &c->dev;
- 	res = v4l2_async_register_subdev(sd);
- 	if (res < 0)
- 		goto err;
+
 -- 
-2.6.2
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
