@@ -1,148 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37101 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755271AbbK0WDG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 17:03:06 -0500
-Received: by wmww144 with SMTP id w144so71907287wmw.0
-        for <linux-media@vger.kernel.org>; Fri, 27 Nov 2015 14:03:05 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] media: rc: raw: improve FIFO handling
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
-Message-ID: <5658D2FE.2000603@gmail.com>
-Date: Fri, 27 Nov 2015 23:02:38 +0100
+Received: from nasmtp01.atmel.com ([192.199.1.246]:43257 "EHLO
+	DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752580AbbKCFkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 00:40:53 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH v2 5/5] media: atmel-isi: support RGB565 output when sensor output YUV formats
+Date: Tue, 3 Nov 2015 13:45:12 +0800
+Message-ID: <1446529512-19109-6-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1446529512-19109-1-git-send-email-josh.wu@atmel.com>
+References: <1446529512-19109-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The FIFO is used for ir_raw_event records, however for some historic
-reason the FIFO is used on a per byte basis. IMHO this adds unneeded
-complexity. Therefore set up the FIFO for ir_raw_event records.
+This patch enable Atmel ISI preview path to convert the YUV to RGB format.
 
-This also allows to define the FIFO statically as part of
-ir_raw_event_ctrl instead of having to allocate the FIFO dynamically.
-In addition:
-
-- When writing into the FIFO and it's full return ENOSPC instead of
-  ENOMEM thus making it easier to tell between "FIFO full" and
-  "Dynamic memory allocation failed" when the error is propagated to
-  a higher level.
-  Also add an error message.
-
-- When reading from the FIFO check whether it's empty.
-  This is not strictly needed here but kfifo_out is annotated
-  "must check" anyway.
-
-Successfully tested it with the nuvoton-cir driver.
-
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- drivers/media/rc/rc-core-priv.h |  6 +++++-
- drivers/media/rc/rc-ir-raw.c    | 23 ++++++++---------------
- 2 files changed, 13 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 7359f3d..585d5e5 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -16,6 +16,9 @@
- #ifndef _RC_CORE_PRIV
- #define _RC_CORE_PRIV
- 
-+/* Define the max number of pulse/space transitions to buffer */
-+#define	MAX_IR_EVENT_SIZE	512
+Changes in v2:
+- According to Guennadi's suggestion, remove the is_output_rgb() function
+  which only used once. Also move the code into the for loop.
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 826d04e..8abeeeb 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -146,6 +146,10 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+ 		u32 height, const struct soc_camera_format_xlate *xlate)
+ {
+ 	u32 cfg2, psize;
++	u32 fourcc = xlate->host_fmt->fourcc;
 +
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <media/rc-core.h>
-@@ -35,7 +38,8 @@ struct ir_raw_event_ctrl {
- 	struct list_head		list;		/* to keep track of raw clients */
- 	struct task_struct		*thread;
- 	spinlock_t			lock;
--	struct kfifo_rec_ptr_1		kfifo;		/* fifo for the pulse/space durations */
-+	/* fifo for the pulse/space durations */
-+	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
- 	ktime_t				last_event;	/* when last event occurred */
- 	enum raw_event_type		last_type;	/* last event type */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index c69807f..144304c 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -20,9 +20,6 @@
- #include <linux/freezer.h>
- #include "rc-core-priv.h"
++	isi->enable_preview_path = (fourcc == V4L2_PIX_FMT_RGB565 ||
++				    fourcc == V4L2_PIX_FMT_RGB32);
  
--/* Define the max number of pulse/space transitions to buffer */
--#define MAX_IR_EVENT_SIZE      512
--
- /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
- static LIST_HEAD(ir_raw_client_list);
+ 	/* According to sensor's output format to set cfg2 */
+ 	switch (xlate->code) {
+@@ -195,8 +199,9 @@ static bool is_supported(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YVYU:
+ 	case V4L2_PIX_FMT_VYUY:
++	/* RGB */
++	case V4L2_PIX_FMT_RGB565:
+ 		return true;
+-	/* RGB, TODO */
+ 	default:
+ 		return false;
+ 	}
+@@ -682,6 +687,14 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 		.layout			= SOC_MBUS_LAYOUT_PACKED,
+ 	},
++	{
++		.fourcc			= V4L2_PIX_FMT_RGB565,
++		.name			= "RGB565",
++		.bits_per_sample	= 8,
++		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
++		.order			= SOC_MBUS_ORDER_LE,
++		.layout			= SOC_MBUS_LAYOUT_PACKED,
++	},
+ };
  
-@@ -36,14 +33,12 @@ static int ir_raw_event_thread(void *data)
- 	struct ir_raw_event ev;
- 	struct ir_raw_handler *handler;
- 	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
--	int retval;
- 
- 	while (!kthread_should_stop()) {
- 
- 		spin_lock_irq(&raw->lock);
--		retval = kfifo_len(&raw->kfifo);
- 
--		if (retval < sizeof(ev)) {
-+		if (!kfifo_len(&raw->kfifo)) {
- 			set_current_state(TASK_INTERRUPTIBLE);
- 
- 			if (kthread_should_stop())
-@@ -54,7 +49,8 @@ static int ir_raw_event_thread(void *data)
- 			continue;
+ /* This will be corrected as we get more formats */
+@@ -738,7 +751,7 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 				  struct soc_camera_format_xlate *xlate)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+-	int formats = 0, ret;
++	int formats = 0, ret, i, n;
+ 	/* sensor format */
+ 	struct v4l2_subdev_mbus_code_enum code = {
+ 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+@@ -772,11 +785,11 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 	case MEDIA_BUS_FMT_VYUY8_2X8:
+ 	case MEDIA_BUS_FMT_YUYV8_2X8:
+ 	case MEDIA_BUS_FMT_YVYU8_2X8:
+-		formats++;
+-		if (xlate) {
+-			xlate->host_fmt	= &isi_camera_formats[0];
++		n = ARRAY_SIZE(isi_camera_formats);
++		formats += n;
++		for (i = 0; xlate && i < n; i++, xlate++) {
++			xlate->host_fmt	= &isi_camera_formats[i];
+ 			xlate->code	= code.code;
+-			xlate++;
+ 			dev_dbg(icd->parent, "Providing format %s using code %d\n",
+ 				isi_camera_formats[0].name, code.code);
  		}
- 
--		retval = kfifo_out(&raw->kfifo, &ev, sizeof(ev));
-+		if(!kfifo_out(&raw->kfifo, &ev, 1))
-+			dev_err(&raw->dev->dev, "IR event FIFO is empty!\n");
- 		spin_unlock_irq(&raw->lock);
- 
- 		mutex_lock(&ir_raw_handler_lock);
-@@ -87,8 +83,10 @@ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
- 	IR_dprintk(2, "sample: (%05dus %s)\n",
- 		   TO_US(ev->duration), TO_STR(ev->pulse));
- 
--	if (kfifo_in(&dev->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
--		return -ENOMEM;
-+	if (!kfifo_put(&dev->raw->kfifo, *ev)) {
-+		dev_err(&dev->dev, "IR event FIFO is full!\n");
-+		return -ENOSPC;
-+	}
- 
- 	return 0;
- }
-@@ -273,11 +271,7 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	dev->raw->dev = dev;
- 	dev->change_protocol = change_protocol;
--	rc = kfifo_alloc(&dev->raw->kfifo,
--			 sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE,
--			 GFP_KERNEL);
--	if (rc < 0)
--		goto out;
-+	INIT_KFIFO(dev->raw->kfifo);
- 
- 	spin_lock_init(&dev->raw->lock);
- 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-@@ -319,7 +313,6 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
--	kfifo_free(&dev->raw->kfifo);
- 	kfree(dev->raw);
- 	dev->raw = NULL;
- }
 -- 
-2.6.2
+1.9.1
 
