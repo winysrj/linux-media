@@ -1,141 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:33504 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033AbbKPTyE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 14:54:04 -0500
-Received: by wmec201 with SMTP id c201so194732820wme.0
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 11:54:02 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 2/8] media: rc: preparation for on-demand decoder module
- loading
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
-Message-ID: <564A33E8.3020301@gmail.com>
-Date: Mon, 16 Nov 2015 20:52:08 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:56864 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752062AbbKCQGy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Nov 2015 11:06:54 -0500
+Subject: Re: [PATCH MC Next Gen v2 2/3] sound/usb: Create media mixer function
+ and control interface entities
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1445380851.git.shuahkh@osg.samsung.com>
+ <2f95ce0190c05e994e02bdc4393be21ec7609adf.1445380851.git.shuahkh@osg.samsung.com>
+ <s5hzizbweye.wl-tiwai@suse.de> <562D4B9E.7010006@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, perex@perex.cz, chehabrafael@gmail.com,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	chris.j.arges@canonical.com, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5638DB95.3070007@osg.samsung.com>
+Date: Tue, 3 Nov 2015 09:06:45 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <562D4B9E.7010006@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare on-demand decoder module loading by adding a module_name member
-to struct proto_names and introducing the related load function.
+On 10/25/2015 03:37 PM, Shuah Khan wrote:
+> On 10/22/2015 01:16 AM, Takashi Iwai wrote:
+>> On Wed, 21 Oct 2015 01:25:15 +0200,
+>> Shuah Khan wrote:
+>>>
+>>> Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
+>>> each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
+>>> entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
+>>> entity corresponds to the control device for the card.
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>>   sound/usb/card.c     |  5 +++
+>>>   sound/usb/media.c    | 89
+>>> ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>   sound/usb/media.h    | 20 ++++++++++++
+>>>   sound/usb/mixer.h    |  1 +
+>>>   sound/usb/usbaudio.h |  1 +
+>>>   5 files changed, 116 insertions(+)
+>>>
+>>> diff --git a/sound/usb/card.c b/sound/usb/card.c
+>>> index 469d2bf..d004cb4 100644
+>>> --- a/sound/usb/card.c
+>>> +++ b/sound/usb/card.c
+>>> @@ -560,6 +560,9 @@ static int usb_audio_probe(struct usb_interface
+>>> *intf,
+>>>       if (err < 0)
+>>>           goto __error;
+>>>
+>>> +    /* Create media entities for mixer and control dev */
+>>> +    media_mixer_init(chip);
+>>> +
+>>>       usb_chip[chip->index] = chip;
+>>>       chip->num_interfaces++;
+>>>       chip->probing = 0;
+>>> @@ -616,6 +619,8 @@ static void usb_audio_disconnect(struct
+>>> usb_interface *intf)
+>>>           list_for_each(p, &chip->midi_list) {
+>>>               snd_usbmidi_disconnect(p);
+>>>           }
+>>> +        /* delete mixer media resources */
+>>> +        media_mixer_delete(chip);
+>>>           /* release mixer resources */
+>>>           list_for_each_entry(mixer, &chip->mixer_list, list) {
+>>>               snd_usb_mixer_disconnect(mixer);
+>>> diff --git a/sound/usb/media.c b/sound/usb/media.c
+>>> index 0cbfee6..a26ea8b 100644
+>>> --- a/sound/usb/media.c
+>>> +++ b/sound/usb/media.c
+>>> @@ -199,4 +199,93 @@ void media_stop_pipeline(struct
+>>> snd_usb_substream *subs)
+>>>       if (mctl)
+>>>           media_disable_source(mctl);
+>>>   }
+>>> +
+>>> +int media_mixer_init(struct snd_usb_audio *chip)
+>>> +{
+>>> +    struct device *ctl_dev = &chip->card->ctl_dev;
+>>> +    struct media_intf_devnode *ctl_intf;
+>>> +    struct usb_mixer_interface *mixer;
+>>> +    struct media_device *mdev;
+>>> +    struct media_mixer_ctl *mctl;
+>>> +    u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
+>>> +    int ret;
+>>> +
+>>> +    mdev = media_device_find_devres(&chip->dev->dev);
+>>> +    if (!mdev)
+>>> +        return -ENODEV;
+>>> +
+>>> +    ctl_intf = (struct media_intf_devnode *)
+>>> chip->ctl_intf_media_devnode;
+>>
+>> Why do we need cast?  Can't chip->ctl_intf_media_devnode itself be
+>> struct media_intf_devndoe pointer?
+> 
+> Yeah. There is no need to cast here. I will fix it.
 
-After this patch of the series the decoder modules are still loaded
-unconditionally.
+Sorry I misspoke. The reason for this cast is ctl_intf_media_devnode
+is void to avoid including media.h and other media files in usbaudio.h
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/rc-main.c | 72 +++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 59 insertions(+), 13 deletions(-)
+The same approach I took for card.h when adding media_ctl to
+struct snd_usb_substream
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index c47ed33..cede8bc 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -780,27 +780,28 @@ static struct class rc_class = {
- static struct {
- 	u64	type;
- 	char	*name;
-+	const char	*module_name;
- } proto_names[] = {
--	{ RC_BIT_NONE,		"none"		},
--	{ RC_BIT_OTHER,		"other"		},
--	{ RC_BIT_UNKNOWN,	"unknown"	},
-+	{ RC_BIT_NONE,		"none",		NULL			},
-+	{ RC_BIT_OTHER,		"other",	NULL			},
-+	{ RC_BIT_UNKNOWN,	"unknown",	NULL			},
- 	{ RC_BIT_RC5 |
--	  RC_BIT_RC5X,		"rc-5"		},
--	{ RC_BIT_NEC,		"nec"		},
-+	  RC_BIT_RC5X,		"rc-5",		"ir-rc5-decoder"	},
-+	{ RC_BIT_NEC,		"nec",		"ir-nec-decoder"	},
- 	{ RC_BIT_RC6_0 |
- 	  RC_BIT_RC6_6A_20 |
- 	  RC_BIT_RC6_6A_24 |
- 	  RC_BIT_RC6_6A_32 |
--	  RC_BIT_RC6_MCE,	"rc-6"		},
--	{ RC_BIT_JVC,		"jvc"		},
-+	  RC_BIT_RC6_MCE,	"rc-6",		"ir-rc6-decoder"	},
-+	{ RC_BIT_JVC,		"jvc",		"ir-jvc-decoder"	},
- 	{ RC_BIT_SONY12 |
- 	  RC_BIT_SONY15 |
--	  RC_BIT_SONY20,	"sony"		},
--	{ RC_BIT_RC5_SZ,	"rc-5-sz"	},
--	{ RC_BIT_SANYO,		"sanyo"		},
--	{ RC_BIT_SHARP,		"sharp"		},
--	{ RC_BIT_MCE_KBD,	"mce_kbd"	},
--	{ RC_BIT_XMP,		"xmp"		},
-+	  RC_BIT_SONY20,	"sony",		"ir-sony-decoder"	},
-+	{ RC_BIT_RC5_SZ,	"rc-5-sz",	"ir-rc5-decoder"	},
-+	{ RC_BIT_SANYO,		"sanyo",	"ir-sanyo-decoder"	},
-+	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
-+	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
-+	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
- };
- 
- /**
-@@ -979,6 +980,48 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
- 	return count;
- }
- 
-+static void ir_raw_load_modules(u64 *protocols)
-+
-+{
-+	u64 available;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+		if (proto_names[i].type == RC_BIT_NONE ||
-+		    proto_names[i].type & (RC_BIT_OTHER | RC_BIT_UNKNOWN))
-+			continue;
-+
-+		available = ir_raw_get_allowed_protocols();
-+		if (!(*protocols & proto_names[i].type & ~available))
-+			continue;
-+
-+		if (!proto_names[i].module_name) {
-+			pr_err("Can't enable IR protocol %s\n",
-+			       proto_names[i].name);
-+			*protocols &= ~proto_names[i].type;
-+			continue;
-+		}
-+
-+		ret = request_module("%s", proto_names[i].module_name);
-+		if (ret < 0) {
-+			pr_err("Couldn't load IR protocol module %s\n",
-+			       proto_names[i].module_name);
-+			*protocols &= ~proto_names[i].type;
-+			continue;
-+		}
-+		msleep(20);
-+		available = ir_raw_get_allowed_protocols();
-+		if (!(*protocols & proto_names[i].type & ~available))
-+			continue;
-+
-+		pr_err("Loaded IR protocol module %s, \
-+		       but protocol %s still not available\n",
-+		       proto_names[i].module_name,
-+		       proto_names[i].name);
-+		*protocols &= ~proto_names[i].type;
-+	}
-+}
-+
- /**
-  * store_protocols() - changes the current/wakeup IR protocol(s)
-  * @device:	the device descriptor
-@@ -1045,6 +1088,9 @@ static ssize_t store_protocols(struct device *device,
- 		goto out;
- 	}
- 
-+	if (dev->driver_type == RC_DRIVER_IR_RAW)
-+		ir_raw_load_modules(&new_protocols);
-+
- 	if (new_protocols != old_protocols) {
- 		*current_protocols = new_protocols;
- 		IR_dprintk(1, "Protocols changed to 0x%llx\n",
+Does this sound reasonable or would you rather see these to be
+their respective struct pointers which would require including
+media.h in these headers?
+
+thanks,
+-- Shuah
+
 -- 
-2.6.2
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
