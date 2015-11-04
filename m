@@ -1,172 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54645 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751167AbbKMW5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 17:57:42 -0500
-Date: Fri, 13 Nov 2015 20:57:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Sergey Lapin <slapin@ossfans.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Harald Welte <laforge@openezx.org>, devel@driverdev.osuosl.org,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	openezx-devel@lists.openezx.org,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	D aniel Ribeiro <drwyrm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Inki Dae <inki.dae@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	linux-omap@vger.kernel.org, Stefan Schmidt <stefan@openezx.org>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Simon Horman <horms@verge.net.au>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH 2/2] [media] include/media: move platform driver headers
- to a separate dir
-Message-ID: <20151113205728.39c12b7b@recife.lan>
-In-Reply-To: <4273019.OjrpsKyH2t@wuerfel>
-References: <413d2bb0b813a7e62867de7a94b0ab61e16cb1cb.1447261977.git.mchehab@osg.samsung.com>
-	<4220808.QEkJDXYE1T@wuerfel>
-	<20151113171341.0972ef7a@recife.lan>
-	<4273019.OjrpsKyH2t@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42767 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754792AbbKDDvH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Nov 2015 22:51:07 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 857D42A008E
+	for <linux-media@vger.kernel.org>; Wed,  4 Nov 2015 04:50:56 +0100 (CET)
+Date: Wed, 04 Nov 2015 04:50:56 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151104035056.857D42A008E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Nov 2015 22:31:15 +0100
-Arnd Bergmann <arnd@arndb.de> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Friday 13 November 2015 17:13:41 Mauro Carvalho Chehab wrote:
-> > Em Wed, 11 Nov 2015 21:26:31 +0100
-> > Arnd Bergmann <arnd@arndb.de> escreveu:
-> > 
-> 
-> >  include/media/{ => drv-intf}/cx2341x.h                   | 0
-> >  include/media/{ => drv-intf}/cx25840.h                   | 0
-> >  include/media/{ => drv-intf}/exynos-fimc.h               | 0
-> >  include/media/{ => drv-intf}/msp3400.h                   | 0
-> >  include/media/{ => drv-intf}/s3c_camif.h                 | 0
-> >  include/media/{ => drv-intf}/saa7146.h                   | 0
-> >  include/media/{ => drv-intf}/saa7146_vv.h                | 2 +-
-> >  include/media/{ => drv-intf}/sh_mobile_ceu.h             | 0
-> >  include/media/{ => drv-intf}/sh_mobile_csi2.h            | 0
-> >  include/media/{ => drv-intf}/sh_vou.h                    | 0
-> >  include/media/{ => drv-intf}/si476x.h                    | 0
-> >  include/media/{ => drv-intf}/soc_mediabus.h              | 0
-> >  include/media/{ => drv-intf}/tea575x.h                   | 0
-> >  include/media/i2c/tw9910.h                               | 2 +-
-> >  include/media/{ => platform_data}/gpio-ir-recv.h         | 0
-> >  include/media/{ => platform_data}/ir-rx51.h              | 0
-> >  include/media/{ => platform_data}/mmp-camera.h           | 0
-> >  include/media/{ => platform_data}/omap1_camera.h         | 0
-> >  include/media/{ => platform_data}/omap4iss.h             | 0
-> >  include/media/{ => platform_data}/s5p_hdmi.h             | 0
-> >  include/media/{ => platform_data}/si4713.h               | 0
-> >  include/media/{ => platform_data}/sii9234.h              | 0
-> >  include/media/{ => platform_data}/smiapp.h               | 0
-> >  include/media/{ => platform_data}/soc_camera.h           | 0
-> >  include/media/{ => platform_data}/soc_camera_platform.h  | 2 +-
-> >  include/media/{ => platform_data}/timb_radio.h           | 0
-> >  include/media/{ => platform_data}/timb_video.h           | 0
-> >  sound/pci/es1968.c                                       | 2 +-
-> >  sound/pci/fm801.c                                        | 2 +-
-> >  155 files changed, 158 insertions(+), 158 deletions(-)
-> 
-> As Geert said, include/linux/platform_data/media/ would be nicer for
-> consistency with other subsystems.
+Results of the daily build of media_tree:
 
-OK! I have a new series of patches almost ready. I'll be sending it
-tomorrow, after addressing your concerns.
+date:		Wed Nov  4 04:00:20 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-> 
-> > diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > index ede2bdbb5dd5..44ba1f28bb34 100644
-> > --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> > @@ -33,7 +33,7 @@
-> >  #include <linux/dma-mapping.h>
-> >  #include <linux/leds.h>
-> >  #include <linux/platform_data/asoc-mx27vis.h>
-> > -#include <media/soc_camera.h>
-> > +#include <media/platform_data/soc_camera.h>
-> >  #include <sound/tlv320aic32x4.h>
-> >  #include <asm/mach-types.h>
-> >  #include <asm/mach/arch.h>
-> 
-> This looks like a mistake: the header contains the string 'platform_data',
-> but it is not actually a platform data header file in the sense
-> that it defines the interface between platform and driver.
-> 
-> Maybe soc_camera.h is important enough to still leave it as a core
-> file in the existing location? Or possibly a separate directory for
-> media/soc_camera/*.h
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Ok, I'll fix it. 
+Detailed results are available here:
 
-> 
-> > @@ -24,7 +24,7 @@
-> >  #include <linux/slab.h>
-> >  #include <linux/kfifo.h>
-> >  #include <linux/module.h>
-> > -#include <media/cx25840.h>
-> > +#include <media/drv-intf/cx25840.h>
-> >  #include <media/rc-core.h>
-> >  
-> >  #include "cx25840-core.h"
-> 
-> For this case, I think the original patch to move it into include/media/i2c
-> was more logical as it mirrors the file structure. I was mainly talking
-> about the platform_data being different from the rest.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-cx25840 is not (always) an I2C. On most devices, this is actually an IP
-block inside the bridge chipset. 
+Full logs are available here:
 
-That's why I didn't include it on patch 1/1. There's one thing to
-notice about that, though: while most of the header is describing
-the driver interface, it does contain one platform_data in the end:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-/* pvr150_workaround activates a workaround for a hardware bug that is
-   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
-   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
-   audio autodetect fails on some channels for these models and the workaround
-   is to select the audio standard explicitly. Many thanks to Hauppauge for
-   providing this information.
-   This platform data only needs to be supplied by the ivtv driver. */
-struct cx25840_platform_data {
-	int pvr150_workaround;
-};
+The Media Infrastructure API from this daily build is here:
 
-While we might split it, I guess it is not worth, specially since
-I don't think we'll see any new driver using it.
-
-Also, this is actually a hack used only by the ivtv driver.
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
