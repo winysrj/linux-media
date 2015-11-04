@@ -1,118 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45110 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672AbbKITRr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 14:17:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] omap3isp: Move starting the sensor from streamon IOCTL handler to VB2 QOP
-Date: Mon, 09 Nov 2015 21:17:57 +0200
-Message-ID: <1465641.kaD0S8lILY@avalon>
-In-Reply-To: <1411077469-29178-3-git-send-email-sakari.ailus@iki.fi>
-References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi> <1411077469-29178-3-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-yk0-f173.google.com ([209.85.160.173]:34295 "EHLO
+	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932169AbbKDBwy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 20:52:54 -0500
+Received: by ykdr3 with SMTP id r3so48536661ykd.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2015 17:52:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Felipe Eduardo Concha Avello <felipec84@gmail.com>
+Date: Tue, 3 Nov 2015 22:52:24 -0300
+Message-ID: <CADR3MB+gkJcqLUWfi775pW+7d+0d3XtFN4CJmJ=7y2gR1czv2A@mail.gmail.com>
+Subject: [PATCH] libdvbv5: fix the count of partial receptions
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Currently the number of elements are counted wrong, its divided by the size
+of a pointer and not the size of the struct
+isdb_desc_partial_reception (uint16_t).
 
-Thank you for the patch.
+I noticed this when using "dvbv5-scan -v" in order to debug an ISDB-T table.
 
-On Friday 19 September 2014 00:57:48 Sakari Ailus wrote:
-> Move the starting of the sensor from the VIDIOC_STREAMON handler to the
-> videobuf2 queue op start_streaming. This avoids failing starting the stream
-> after vb2_streamon() has already finished.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Felipe Concha Avello <felipec84@gmail.com>
+---
+diff --git a/lib/libdvbv5/descriptors/desc_partial_reception.c
+b/lib/libdvbv5/descriptors/desc_partial_reception.c
+index ce40882..63b8a07 100644
+--- a/lib/libdvbv5/descriptors/desc_partial_reception.c
++++ b/lib/libdvbv5/descriptors/desc_partial_reception.c
+@@ -38,7 +38,7 @@ int isdb_desc_partial_reception_init(struct
+dvb_v5_fe_parms *parms,
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+        memcpy(d->partial_reception, p, d->length);
 
-and applied to my tree.
+-       len = d->length / sizeof(d->partial_reception);
++       len = d->length / sizeof(*d->partial_reception);
 
-> ---
->  drivers/media/platform/omap3isp/ispvideo.c |   49 +++++++++++++++---------
->  1 file changed, 30 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index bc38c88..b233c8e 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -425,10 +425,40 @@ static void isp_video_buffer_queue(struct vb2_buffer
-> *buf) }
->  }
-> 
-> +static int isp_video_start_streaming(struct vb2_queue *queue,
-> +				     unsigned int count)
-> +{
-> +	struct isp_video_fh *vfh = vb2_get_drv_priv(queue);
-> +	struct isp_video *video = vfh->video;
-> +	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	/* In sensor-to-memory mode, the stream can be started synchronously
-> +	 * to the stream on command. In memory-to-memory mode, it will be
-> +	 * started when buffers are queued on both the input and output.
-> +	 */
-> +	if (pipe->input)
-> +		return 0;
-> +
-> +	ret = omap3isp_pipeline_set_stream(pipe,
-> +					   ISP_PIPELINE_STREAM_CONTINUOUS);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	spin_lock_irqsave(&video->irqlock, flags);
-> +	if (list_empty(&video->dmaqueue))
-> +		video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
-> +	spin_unlock_irqrestore(&video->irqlock, flags);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct vb2_ops isp_video_queue_ops = {
->  	.queue_setup = isp_video_queue_setup,
->  	.buf_prepare = isp_video_buffer_prepare,
->  	.buf_queue = isp_video_buffer_queue,
-> +	.start_streaming = isp_video_start_streaming,
->  };
-> 
->  /*
-> @@ -1077,28 +1107,9 @@ isp_video_streamon(struct file *file, void *fh, enum
-> v4l2_buf_type type) if (ret < 0)
->  		goto err_check_format;
-> 
-> -	/* In sensor-to-memory mode, the stream can be started synchronously
-> -	 * to the stream on command. In memory-to-memory mode, it will be
-> -	 * started when buffers are queued on both the input and output.
-> -	 */
-> -	if (pipe->input == NULL) {
-> -		ret = omap3isp_pipeline_set_stream(pipe,
-> -					      ISP_PIPELINE_STREAM_CONTINUOUS);
-> -		if (ret < 0)
-> -			goto err_set_stream;
-> -		spin_lock_irqsave(&video->irqlock, flags);
-> -		if (list_empty(&video->dmaqueue))
-> -			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
-> -		spin_unlock_irqrestore(&video->irqlock, flags);
-> -	}
-> -
->  	mutex_unlock(&video->stream_lock);
->  	return 0;
-> 
-> -err_set_stream:
-> -	mutex_lock(&video->queue_lock);
-> -	vb2_streamoff(&vfh->queue, type);
-> -	mutex_unlock(&video->queue_lock);
->  err_check_format:
->  	media_entity_pipeline_stop(&video->video.entity);
->  err_pipeline_start:
+        for (i = 0; i < len; i++)
+                bswap16(d->partial_reception[i].service_id);
+@@ -58,7 +58,7 @@ void isdb_desc_partial_reception_print(struct
+dvb_v5_fe_parms *parms, const stru
+        int i;
+        size_t len;
 
--- 
-Regards,
+-       len = d->length / sizeof(d->partial_reception);
++       len = d->length / sizeof(*d->partial_reception);
 
-Laurent Pinchart
+        for (i = 0; i < len; i++) {
+                dvb_loginfo("|           service ID[%d]     %d", i,
+d->partial_reception[i].service_id);
+diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
+index 1ffb98a..38f558b 100644
+--- a/lib/libdvbv5/dvb-scan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -905,7 +905,7 @@ static void add_update_nit_1seg(struct dvb_table_nit *nit,
+        if (!tr->update)
+                return;
 
+-       len = d->length / sizeof(d->partial_reception);
++       len = d->length / sizeof(*d->partial_reception);
+
+        for (i = 0; i < len; i++) {
+                if (tr->entry->service_id ==
+d->partial_reception[i].service_id) {
