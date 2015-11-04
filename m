@@ -1,124 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48597 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752886AbbKLDzX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 22:55:23 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6EF1CE38A8
-	for <linux-media@vger.kernel.org>; Thu, 12 Nov 2015 04:55:18 +0100 (CET)
-Date: Thu, 12 Nov 2015 04:55:18 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151112035518.6EF1CE38A8@tschai.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:32884 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007AbbKDNnk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2015 08:43:40 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH] [media] device-drivers.tmpl: better organize DVB function calls
+Date: Wed,  4 Nov 2015 11:43:08 -0200
+Message-Id: <21ed3d634adf42684cec35c31943da826c235688.1446644584.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Classify the functions at the DVB core per API. That makes easier
+to understand how they're related to the userspace API.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-date:		Thu Nov 12 04:00:17 CET 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	host hardware:	x86_64
-host os:	4.2.0-164
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index c2bc8f779a9b..7defa42c4b24 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -238,19 +238,25 @@ X!Isound/sound_firmware.c
+ !Iinclude/media/videobuf2-memops.h
+      </sect1>
+      <sect1><title>Digital TV (DVB) devices</title>
+-!Idrivers/media/dvb-core/dvb_ca_en50221.h
+-!Idrivers/media/dvb-core/dvb_frontend.h
++	<sect1><title>Digital TV Common functions</title>
+ !Idrivers/media/dvb-core/dvb_math.h
+ !Idrivers/media/dvb-core/dvb_ringbuffer.h
+ !Idrivers/media/dvb-core/dvbdev.h
+-     <sect1><title>Digital TV Demux API</title>
++	</sect1>
++	<sect1><title>Digital TV Frontend API</title>
++!Idrivers/media/dvb-core/dvb_frontend.h
++	</sect1>
++	<sect1><title>Digital TV Demux API</title>
+ !Pdrivers/media/dvb-core/demux.h Digital TV Demux API
+-     </sect1>
+-     <sect1><title>Demux Callback API</title>
++	<sect1><title>Demux Callback API</title>
+ !Pdrivers/media/dvb-core/demux.h Demux Callback API
+-     </sect1>
++	</sect1>
+ !Idrivers/media/dvb-core/demux.h
+-    </sect1>
++	</sect1>
++	<sect1><title>Digital TV Conditional Access API</title>
++!Idrivers/media/dvb-core/dvb_ca_en50221.h
++	</sect1>
++     </sect1>
+     <sect1><title>Remote Controller devices</title>
+ !Iinclude/media/rc-core.h
+ !Iinclude/media/lirc_dev.h
+-- 
+2.4.3
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
