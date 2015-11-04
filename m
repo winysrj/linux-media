@@ -1,167 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39157 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549AbbKWUBP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 15:01:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
-	<chehabrafael@gmail.com>, Shuah Khan <shuahkh@osg.samsung.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: Re: [PATCH 01/18] [media] tuner-core: add an input pad
-Date: Mon, 23 Nov 2015 22:01:23 +0200
-Message-ID: <2280184.FRmr0h2MEz@avalon>
-In-Reply-To: <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:33032 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932303AbbKDJtM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2015 04:49:12 -0500
+Received: by obbww6 with SMTP id ww6so8929128obb.0
+        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2015 01:49:12 -0800 (PST)
+Received: from mail-oi0-f54.google.com (mail-oi0-f54.google.com. [209.85.218.54])
+        by smtp.gmail.com with ESMTPSA id e3sm153699obv.12.2015.11.04.01.49.10
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 04 Nov 2015 01:49:10 -0800 (PST)
+Received: by oifu63 with SMTP id u63so25246425oif.2
+        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2015 01:49:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20151104092748.GI8644@n2100.arm.linux.org.uk>
+References: <cover.1443718557.git.robin.murphy@arm.com> <ab8e1caa40d6da1afa4a49f30242ef4e6e1f17df.1443718557.git.robin.murphy@arm.com>
+ <1445867094.30736.14.camel@mhfsdcap03> <562E5AE4.9070001@arm.com>
+ <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
+ <56337E4D.1010304@arm.com> <CAGS+omAmxbb4uVzaQh1xPmkFtcF6KP-HSV-40=sm1BRTdh+=OQ@mail.gmail.com>
+ <CAAFQd5C_dkWBZrQXtyO59ARw7q-0fg-Wk98yApC5VHdQ8-AmNw@mail.gmail.com>
+ <5638F1C4.3000900@arm.com> <CAAFQd5A4TcvkDMFezqEpkfWL+7yO2v=Hm=twk=p-NpADPpvqEQ@mail.gmail.com>
+ <20151104092748.GI8644@n2100.arm.linux.org.uk>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Wed, 4 Nov 2015 18:48:50 +0900
+Message-ID: <CAAFQd5ApSFC6Pm4tDhZbJOVZ7szCx=diKUtGXq=M9a5Y_4qzOQ@mail.gmail.com>
+Subject: Re: [PATCH v6 1/3] iommu: Implement common IOMMU ops for DMA mapping
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Robin Murphy <robin.murphy@arm.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Joerg Roedel <joro@8bytes.org>,
+	Will Deacon <will.deacon@arm.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Yong Wu <yong.wu@mediatek.com>,
+	"open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
+	"Bobby Batacharia (via Google Docs)" <Bobby.Batacharia@arm.com>,
+	linux-mediatek@lists.infradead.org,
+	Lin PoChun <pochun.lin@mediatek.com>,
+	thunder.leizhen@huawei.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	Thierry Reding <treding@nvidia.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, Nov 4, 2015 at 6:27 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Nov 04, 2015 at 02:12:03PM +0900, Tomasz Figa wrote:
+>> My understanding of a scatterlist was that it represents a buffer as a
+>> whole, by joining together its physically discontinuous segments.
+>
+> Correct, and it may also be scattered in CPU virtual space as well.
+>
+>> I don't see how single segments (layout of which is completely up to
+>> the allocator; often just single pages) would be usable for hardware
+>> that needs to do some work more serious than just writing a byte
+>> stream continuously to subsequent buffers. In case of such simple
+>> devices you don't even need an IOMMU (for means other than protection
+>> and/or getting over address space limitations).
+>
+> All that's required is that the addresses described in the scatterlist
+> are accessed as an apparently contiguous series of bytes.  They don't
+> have to be contiguous in any address view, provided the device access
+> appears to be contiguous.  How that is done is really neither here nor
+> there.
+>
+> IOMMUs are normally there as an address translator - for example, the
+> underlying device may not have the capability to address a scatterlist
+> (eg, because it makes effectively random access) and in order to be
+> accessible to the device, it needs to be made contiguous in device
+> address space.
+>
+> Another scenario is that you have more bits of physical address than
+> a device can generate itself for DMA purposes, and you need an IOMMU
+> to create a (possibly scattered) mapping in device address space
+> within the ability of the device to address.
+>
+> The requirements here depend on the device behind the IOMMU.
 
-Thank you for the patch.
+I fully agree with you.
 
-On Sunday 06 September 2015 14:30:44 Mauro Carvalho Chehab wrote:
-> Tuners actually have at least one connector on its
-> input.
-> 
-> Add a PAD to connect it.
+The problem is that the code being discussed here breaks the case of
+devices that don't have the capability of addressing a scatterlist,
+supposedly for the sake of devices that have such capability (but as I
+suggested, they both could be happily supported, by distinguishing
+special values of DMA max segment size and boundary mask).
 
-The patch looks fine to me, but have you checked that there are no driver 
-instantiating a tuner that would get confused by this additional pad, for 
-instance in graph traversal code ?
+>> However, IMHO the most important use case of an IOMMU is to make
+>> buffers, which are contiguous in CPU virtual address space (VA),
+>> contiguous in device's address space (IOVA).
+>
+> No - there is no requirement for CPU virtual contiguous buffers to also
+> be contiguous in the device address space.
 
-Additionally it should be documented somewhere that drivers instantiating 
-tuners are responsible for creating and linking a connector to the tuner 
-input.
+There is no requirement, but shouldn't it be desired for the mapping
+code to map them as such? Otherwise, how could the IOMMU use case you
+described above (address translator for devices which don't have the
+capability to address a scatterlist) be handled properly?
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c
-> b/drivers/media/dvb-core/dvbdev.c index f00f1a5f279c..a8e7e2398f7a 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -34,6 +34,9 @@
->  #include <linux/mutex.h>
->  #include "dvbdev.h"
-> 
-> +/* Due to enum tuner_pad_index */
-> +#include <media/tuner.h>
-> +
->  static DEFINE_MUTEX(dvbdev_mutex);
->  static int dvbdev_debug;
-> 
-> @@ -552,7 +555,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	}
-> 
->  	if (tuner && demod)
-> -		media_create_pad_link(tuner, 0, demod, 0, 0);
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, demod, 0, 0);
-> 
->  	if (demod && demux)
->  		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/usb/au0828/au0828-core.c
-> b/drivers/media/usb/au0828/au0828-core.c index e28cabe65934..f54c7d10f350
-> 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -27,6 +27,9 @@
->  #include <media/v4l2-common.h>
->  #include <linux/mutex.h>
-> 
-> +/* Due to enum tuner_pad_index */
-> +#include <media/tuner.h>
-> +
->  /*
->   * 1 = General debug messages
->   * 2 = USB handling
-> @@ -260,7 +263,7 @@ static void au0828_create_media_graph(struct au0828_dev
-> *dev) return;
-> 
->  	if (tuner)
-> -		media_create_pad_link(tuner, 0, decoder, 0,
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
->  				      MEDIA_LNK_FL_ENABLED);
->  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
->  			      MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> b/drivers/media/usb/cx231xx/cx231xx-cards.c index
-> 3b5c9ae39ad3..1070d87efc65 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -1264,7 +1264,7 @@ static void cx231xx_create_media_graph(struct cx231xx
-> *dev) return;
-> 
->  	if (tuner)
-> -		media_create_pad_link(tuner, 0, decoder, 0,
-> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
->  					 MEDIA_LNK_FL_ENABLED);
->  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
->  				 MEDIA_LNK_FL_ENABLED);
-> diff --git a/drivers/media/v4l2-core/tuner-core.c
-> b/drivers/media/v4l2-core/tuner-core.c index 100b8f069640..b90f2a52db96
-> 100644
-> --- a/drivers/media/v4l2-core/tuner-core.c
-> +++ b/drivers/media/v4l2-core/tuner-core.c
-> @@ -134,8 +134,9 @@ struct tuner {
->  	unsigned int        type; /* chip type id */
->  	void                *config;
->  	const char          *name;
-> +
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	struct media_pad	pad;
-> +	struct media_pad	pad[TUNER_NUM_PADS];
->  #endif
->  };
-> 
-> @@ -695,11 +696,12 @@ static int tuner_probe(struct i2c_client *client,
->  	/* Should be just before return */
->  register_client:
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	t->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-> +	t->pad[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
->  	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
->  	t->sd.entity.name = t->name;
-> 
-> -	ret = media_entity_init(&t->sd.entity, 1, &t->pad);
-> +	ret = media_entity_init(&t->sd.entity, TUNER_NUM_PADS, &t->pad[0]);
->  	if (ret < 0) {
->  		tuner_err("failed to initialize media entity!\n");
->  		kfree(t);
-> diff --git a/include/media/tuner.h b/include/media/tuner.h
-> index b46ebb48fe74..95835c8069dd 100644
-> --- a/include/media/tuner.h
-> +++ b/include/media/tuner.h
-> @@ -25,6 +25,14 @@
-> 
->  #include <linux/videodev2.h>
-> 
-> +/* Tuner PADs */
-> +/* FIXME: is this the right place for it? */
-> +enum tuner_pad_index {
-> +	TUNER_PAD_RF_INPUT,
-> +	TUNER_PAD_IF_OUTPUT,
-> +	TUNER_NUM_PADS
-> +};
-> +
->  #define ADDR_UNSET (255)
-> 
->  #define TUNER_TEMIC_PAL			0        /* 4002 FH5 (3X 7756, 9483) */
+Is the general conclusion now that dma_map_sg() should not be used to
+create IOMMU mappings and we should make a step backwards making all
+drivers (or frameworks, such as videobuf2) do that manually? That
+would be really backwards, because code not aware of IOMMU existence
+at all would have to become aware of it.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Best regards,
+Tomasz
