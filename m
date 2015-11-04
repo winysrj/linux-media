@@ -1,112 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38618 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755389AbbKROVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 09:21:41 -0500
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-To: Vinod Koul <vinod.koul@intel.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
- <20150529093317.GF3140@localhost>
- <CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
- <20150529101846.GG3140@localhost> <55687892.7050606@ti.com>
- <20150602125535.GS3140@localhost> <5570758E.6030302@ti.com>
- <20150612125837.GJ28601@localhost> <5587F1F4.1060905@ti.com>
- <20150624162401.GP19530@localhost>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <564C8966.9080406@ti.com>
-Date: Wed, 18 Nov 2015 16:21:26 +0200
-MIME-Version: 1.0
-In-Reply-To: <20150624162401.GP19530@localhost>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:45614 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750746AbbKDNHs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2015 08:07:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH] demux.h: move documentation overview from device-drivers.tmpl
+Date: Wed,  4 Nov 2015 11:07:09 -0200
+Message-Id: <b8cc97e8a7c4761f6113b289205ebf11f0c9933f.1446642341.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vinod,
+It is better to keep the documentation overview at the header file,
+as this makes easier for developers to remember to fix when needed.
 
-bringing this old thread back to life as I just started to work on this.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On 06/24/2015 07:24 PM, Vinod Koul wrote:
+---
 
->> We would end up with the following APIs, all returning with error code on failure:
->> dma_request_slave_channel(dev, name);
->> dma_request_channel_legacy(mask, fn, fn_param);
->> dma_request_slave_channel_compat(mask, fn, fn_param, dev, name);
->> dma_request_any_channel(mask);
-> This is good idea but still we end up with 4 APIs. Why not just converge to
-> two API, one legacy + memcpy + filer fn and one untimate API for slave?
+As suggested during the KS Workshop, the best is to use the !P meta-tag , and keep
+the documentation overview at the header file.
 
-Looked at the current API and it's use and, well, it is a bit confusing.
-
-What I hoped that we can separate users to two category:
-1. Slave channel requests, where we request a specific channel to handle HW
-requests/triggers.
-For this we could have:
-dma_request_slave_channel(dev, name, fn, fn_param);
-
-In DT/ACPI only drivers we can NULL out the fn and fn_param, in pure legacy
-mode we null out the name, I would keep the dev so we could print dev specific
-error in dmaengine core, but it could be optional, IN case of drivers used
-both DT/ACPI and legacy mode all parameter can be filled and the core will
-decide what to do.
-For the legacy needs the dmaengine code would provide the mask dows with
-DMA_SLAVE flag set.
-
-2. non slave channel requests, where only the functionality matters, like
-memcpy, interleaved, memset, etc.
-We could have a simple:
-dma_request_channel(mask);
-
-But looking at the drivers using dmaengine legacy dma_request_channel() API:
-Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAVE:
-drivers/misc/carma/carma-fpga.c			DMA_INTERRUPT|DMA_SLAVE|DMA_SG
-drivers/misc/carma/carma-fpga-program.c		DMA_MEMCPY|DMA_SLAVE|DMA_SG
-drivers/media/platform/soc_camera/mx3_camera.c	DMA_SLAVE|DMA_PRIVATE
-sound/soc/intel/common/sst-firmware.c		DMA_SLAVE|DMA_MEMCPY
-
-as examples.
-Not sure how valid are these...
-
-Some drivers do pass fn and fn_param when requesting channel for DMA_MEMCPY
-drivers/misc/mic/host/mic_device.h
-drivers/mtd/nand/fsmc_nand.c
-sound/soc/intel/common/sst-firmware.c (well, this request DMA_SLAVE capability
-at the same time).
-
-Some driver sets the fn_param w/o fn, which means fn_param is ignored.
-
-So the
-dma_request_slave_channel(dev, name, fn, fn_param);
-dma_request_channel(mask);
-
-almost covers the current users and would be pretty clean ;)
-
-If we add the mask to the slave channel API - which will become universal,
-drop in replacement for dma_request_channel, and we might have only one API:
-
-dma_request_channel(dev, name, mask, fn, fn_param);
-
-> 
-> Internally we may have 4 APIs for cleaner handling...
-> 
-> Thoughts... ??
-
-Yes, as we need to arrange the code internally to keep things neat.
-
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index 42a2d8593e39..c2bc8f779a9b 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -243,71 +243,12 @@ X!Isound/sound_firmware.c
+ !Idrivers/media/dvb-core/dvb_math.h
+ !Idrivers/media/dvb-core/dvb_ringbuffer.h
+ !Idrivers/media/dvb-core/dvbdev.h
+-	<sect1><title>Digital TV Demux API</title>
+-	    <para>The kernel demux API defines a driver-internal interface for
+-	    registering low-level, hardware specific driver to a hardware
+-	    independent demux layer. It is only of interest for Digital TV
+-	    device driver writers. The header file for this API is named
+-	    <constant>demux.h</constant> and located in
+-	    <constant>drivers/media/dvb-core</constant>.</para>
+-
+-	<para>The demux API should be implemented for each demux in the
+-	system. It is used to select the TS source of a demux and to manage
+-	the demux resources. When the demux client allocates a resource via
+-	the demux API, it receives a pointer to the API of that
+-	resource.</para>
+-	<para>Each demux receives its TS input from a DVB front-end or from
+-	memory, as set via this demux API. In a system with more than one
+-	front-end, the API can be used to select one of the DVB front-ends
+-	as a TS source for a demux, unless this is fixed in the HW platform.
+-	The demux API only controls front-ends regarding to their connections
+-	with demuxes; the APIs used to set the other front-end parameters,
+-	such as tuning, are not defined in this document.</para>
+-	<para>The functions that implement the abstract interface demux should
+-	be defined static or module private and registered to the Demux
+-	core for external access. It is not necessary to implement every
+-	function in the struct <constant>dmx_demux</constant>. For example,
+-	a demux interface might support Section filtering, but not PES
+-	filtering. The API client is expected to check the value of any
+-	function pointer before calling the function: the value of NULL means
+-	that the &#8220;function is not available&#8221;.</para>
+-	<para>Whenever the functions of the demux API modify shared data,
+-	the possibilities of lost update and race condition problems should
+-	be addressed, e.g. by protecting parts of code with mutexes.</para>
+-	<para>Note that functions called from a bottom half context must not
+-	sleep. Even a simple memory allocation without using GFP_ATOMIC can
+-	result in a kernel thread being put to sleep if swapping is needed.
+-	For example, the Linux kernel calls the functions of a network device
+-	interface from a bottom half context. Thus, if a demux API function
+-	is called from network device code, the function must not sleep.
+-	</para>
+-    </sect1>
+-
+-    <section id="demux_callback_api">
+-	<title>Demux Callback API</title>
+-	<para>This kernel-space API comprises the callback functions that
+-	deliver filtered data to the demux client. Unlike the other DVB
+-	kABIs, these functions are provided by the client and called from
+-	the demux code.</para>
+-	<para>The function pointers of this abstract interface are not
+-	packed into a structure as in the other demux APIs, because the
+-	callback functions are registered and used independent of each
+-	other. As an example, it is possible for the API client to provide
+-	several callback functions for receiving TS packets and no
+-	callbacks for PES packets or sections.</para>
+-	<para>The functions that implement the callback API need not be
+-	re-entrant: when a demux driver calls one of these functions,
+-	the driver is not allowed to call the function again before
+-	the original call returns. If a callback is triggered by a
+-	hardware interrupt, it is recommended to use the Linux
+-	&#8220;bottom half&#8221; mechanism or start a tasklet instead of
+-	making the callback function call directly from a hardware
+-	interrupt.</para>
+-	<para>This mechanism is implemented by
+-	<link linkend='API-dmx-ts-cb'>dmx_ts_cb()</link> and
+-	<link linkend='API-dmx-section-cb'>dmx_section_cb()</link>.</para>
+-    </section>
+-
++     <sect1><title>Digital TV Demux API</title>
++!Pdrivers/media/dvb-core/demux.h Digital TV Demux API
++     </sect1>
++     <sect1><title>Demux Callback API</title>
++!Pdrivers/media/dvb-core/demux.h Demux Callback API
++     </sect1>
+ !Idrivers/media/dvb-core/demux.h
+     </sect1>
+     <sect1><title>Remote Controller devices</title>
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index ccc1f43cb9a9..f8014aabf37b 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -32,6 +32,49 @@
+ #include <linux/time.h>
+ #include <linux/dvb/dmx.h>
+ 
++/**
++ * DOC: Digital TV Demux API
++ *
++ * The kernel demux API defines a driver-internal interface for registering
++ * low-level, hardware specific driver to a hardware independent demux layer.
++ * It is only of interest for Digital TV device driver writers.
++ * The header file for this API is named demux.h and located in
++ * drivers/media/dvb-core.
++ *
++ * The demux API should be implemented for each demux in the system. It is
++ * used to select the TS source of a demux and to manage the demux resources.
++ * When the demux client allocates a resource via the demux API, it receives
++ * a pointer to the API of that	resource.
++ *
++ * Each demux receives its TS input from a DVB front-end or from memory, as
++ * set via this demux API. In a system with more than one front-end, the API
++ * can be used to select one of the DVB front-ends as a TS source for a demux,
++ * unless this is fixed in the HW platform.
++ *
++ * The demux API only controls front-ends regarding to their connections with
++ * demuxes; the APIs used to set the other front-end parameters, such as
++ * tuning, are not defined in this document.
++ *
++ * The functions that implement the abstract interface demux should be defined
++ * static or module private and registered to the Demux core for external
++ * access. It is not necessary to implement every function in the struct
++ * &dmx_demux. For example, a demux interface might support Section filtering,
++ * but not PES filtering. The API client is expected to check the value of any
++ * function pointer before calling the function: the value of NULL means
++ * that the function is not available.
++ *
++ * Whenever the functions of the demux API modify shared data, the
++ * possibilities of lost update and race condition problems should be
++ * addressed, e.g. by protecting parts of code with mutexes.
++ *
++ * Note that functions called from a bottom half context must not sleep.
++ * Even a simple memory allocation without using %GFP_ATOMIC can result in a
++ * kernel thread being put to sleep if swapping is needed. For example, the
++ * Linux Kernel calls the functions of a network device interface from a
++ * bottom half context. Thus, if a demux API function is called from network
++ * device code, the function must not sleep.
++ */
++
+ /*
+  * Common definitions
+  */
+@@ -187,8 +230,28 @@ struct dmx_section_feed {
+ 	int (*stop_filtering)(struct dmx_section_feed *feed);
+ };
+ 
+-/*
+- * Callback functions
++/**
++ * DOC: Demux Callback API
++ *
++ * This kernel-space API comprises the callback functions that deliver filtered
++ * data to the demux client. Unlike the other DVB kABIs, these functions are
++ * provided by the client and called from the demux code.
++ *
++ * The function pointers of this abstract interface are not packed into a
++ * structure as in the other demux APIs, because the callback functions are
++ * registered and used independent of each other. As an example, it is possible
++ * for the API client to provide several callback functions for receiving TS
++ * packets and no callbacks for PES packets or sections.
++ *
++ * The functions that implement the callback API need not be re-entrant: when
++ * a demux driver calls one of these functions, the driver is not allowed to
++ * call the function again before the original call returns. If a callback is
++ * triggered by a hardware interrupt, it is recommended to use the Linux
++ * bottom half mechanism or start a tasklet instead of making the callback
++ * function call directly from a hardware interrupt.
++ *
++ * This mechanism is implemented by dmx_ts_cb() and dmx_section_cb()
++ * callbacks.
+  */
+ 
+ /**
 -- 
-Péter
+2.4.3
+
+
