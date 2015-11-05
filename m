@@ -1,128 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:54808
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751026AbbKVKoo (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33145 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755693AbbKEDwK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2015 05:44:44 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media, sound: tea575x: constify snd_tea575x_ops structures
-Date: Sun, 22 Nov 2015 11:32:53 +0100
-Message-Id: <1448188373-27089-1-git-send-email-Julia.Lawall@lip6.fr>
+	Wed, 4 Nov 2015 22:52:10 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6EEE22A0097
+	for <linux-media@vger.kernel.org>; Thu,  5 Nov 2015 04:51:59 +0100 (CET)
+Date: Thu, 05 Nov 2015 04:51:59 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151105035159.6EEE22A0097@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The snd_tea575x_ops structures are never modified, so declare them as
-const.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Done with the help of Coccinelle.
+Results of the daily build of media_tree:
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+date:		Thu Nov  5 04:00:26 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
----
- drivers/media/pci/bt8xx/bttv-cards.c  |    2 +-
- drivers/media/radio/radio-maxiradio.c |    2 +-
- drivers/media/radio/radio-sf16fmr2.c  |    2 +-
- drivers/media/radio/radio-shark.c     |    2 +-
- include/media/drv-intf/tea575x.h      |    2 +-
- sound/pci/es1968.c                    |    2 +-
- sound/pci/fm801.c                     |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/sound/pci/es1968.c b/sound/pci/es1968.c
-index cb38cd1..514f260 100644
---- a/sound/pci/es1968.c
-+++ b/sound/pci/es1968.c
-@@ -2605,7 +2605,7 @@ static void snd_es1968_tea575x_set_direction(struct snd_tea575x *tea, bool outpu
- 	}
- }
- 
--static struct snd_tea575x_ops snd_es1968_tea_ops = {
-+static const struct snd_tea575x_ops snd_es1968_tea_ops = {
- 	.set_pins = snd_es1968_tea575x_set_pins,
- 	.get_pins = snd_es1968_tea575x_get_pins,
- 	.set_direction = snd_es1968_tea575x_set_direction,
-diff --git a/sound/pci/fm801.c b/sound/pci/fm801.c
-index 5144a7f..759295a 100644
---- a/sound/pci/fm801.c
-+++ b/sound/pci/fm801.c
-@@ -815,7 +815,7 @@ static void snd_fm801_tea575x_set_direction(struct snd_tea575x *tea, bool output
- 	fm801_writew(chip, GPIO_CTRL, reg);
- }
- 
--static struct snd_tea575x_ops snd_fm801_tea_ops = {
-+static const struct snd_tea575x_ops snd_fm801_tea_ops = {
- 	.set_pins = snd_fm801_tea575x_set_pins,
- 	.get_pins = snd_fm801_tea575x_get_pins,
- 	.set_direction = snd_fm801_tea575x_set_direction,
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index 7a08102..8a17cc0 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -3808,7 +3808,7 @@ static void bttv_tea575x_set_direction(struct snd_tea575x *tea, bool output)
- 		gpio_inout(mask, (1 << gpio.clk) | (1 << gpio.wren));
- }
- 
--static struct snd_tea575x_ops bttv_tea_ops = {
-+static const struct snd_tea575x_ops bttv_tea_ops = {
- 	.set_pins = bttv_tea575x_set_pins,
- 	.get_pins = bttv_tea575x_get_pins,
- 	.set_direction = bttv_tea575x_set_direction,
-diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
-index 8e4f1d1..dc81d42 100644
---- a/drivers/media/radio/radio-sf16fmr2.c
-+++ b/drivers/media/radio/radio-sf16fmr2.c
-@@ -82,7 +82,7 @@ static void fmr2_tea575x_set_direction(struct snd_tea575x *tea, bool output)
- {
- }
- 
--static struct snd_tea575x_ops fmr2_tea_ops = {
-+static const struct snd_tea575x_ops fmr2_tea_ops = {
- 	.set_pins = fmr2_tea575x_set_pins,
- 	.get_pins = fmr2_tea575x_get_pins,
- 	.set_direction = fmr2_tea575x_set_direction,
-diff --git a/include/media/drv-intf/tea575x.h b/include/media/drv-intf/tea575x.h
-index 5d09657..fb272d4 100644
---- a/include/media/drv-intf/tea575x.h
-+++ b/include/media/drv-intf/tea575x.h
-@@ -63,7 +63,7 @@ struct snd_tea575x {
- 	u32 band;			/* 0: FM, 1: FM-Japan, 2: AM */
- 	u32 freq;			/* frequency */
- 	struct mutex mutex;
--	struct snd_tea575x_ops *ops;
-+	const struct snd_tea575x_ops *ops;
- 	void *private_data;
- 	u8 card[32];
- 	u8 bus_info[32];
-diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-index 409fac1..85667a9 100644
---- a/drivers/media/radio/radio-shark.c
-+++ b/drivers/media/radio/radio-shark.c
-@@ -150,7 +150,7 @@ static u32 shark_read_val(struct snd_tea575x *tea)
- 	return val;
- }
- 
--static struct snd_tea575x_ops shark_tea_ops = {
-+static const struct snd_tea575x_ops shark_tea_ops = {
- 	.write_val = shark_write_val,
- 	.read_val  = shark_read_val,
- };
-diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
-index 41c1652..70fd8e8 100644
---- a/drivers/media/radio/radio-maxiradio.c
-+++ b/drivers/media/radio/radio-maxiradio.c
-@@ -108,7 +108,7 @@ static void maxiradio_tea575x_set_direction(struct snd_tea575x *tea, bool output
- {
- }
- 
--static struct snd_tea575x_ops maxiradio_tea_ops = {
-+static const struct snd_tea575x_ops maxiradio_tea_ops = {
- 	.set_pins = maxiradio_tea575x_set_pins,
- 	.get_pins = maxiradio_tea575x_get_pins,
- 	.set_direction = maxiradio_tea575x_set_direction,
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
