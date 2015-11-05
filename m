@@ -1,59 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:55732 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415AbbKLMWC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 07:22:02 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 02/16] dts: exynos4: add node for the HDMI CEC device
-Date: Thu, 12 Nov 2015 13:21:31 +0100
-Message-Id: <15e22f701c6e2ba18aa321a166e4dbee94275103.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
+Received: from mout.kundenserver.de ([212.227.126.130]:62620 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030329AbbKEIgg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Nov 2015 03:36:36 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	y2038@lists.linaro.org, Junghak Sung <jh1009.sung@samsung.com>
+Subject: Re: Which type to use for timestamps: u64 or s64?
+Date: Thu, 05 Nov 2015 09:36:24 +0100
+Message-ID: <10717379.s8aWAKUxAs@wuerfel>
+In-Reply-To: <563B0817.2060508@xs4all.nl>
+References: <563B0817.2060508@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+On Thursday 05 November 2015 08:41:11 Hans Verkuil wrote:
+> Hi Arnd,
+> 
+> We're redesigning the timestamp handling in the video4linux subsystem moving away
+> from struct timeval to a single timestamp in ns (what ktime_get_ns() gives us).
+> But I was wondering: ktime_get_ns() gives a s64, so should we use s64 as well as
+> the timestamp type we'll eventually be returning to the user, or should we use u64?
+> 
+> The current patch series we made uses a u64, but I am now beginning to doubt that
+> decision.
 
-This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
+I would lean towards u64, but I don't think it really matters either way,
+especially since all the drivers should be using monotonic timestamps now.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 98c0a36..7baff26 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -720,6 +720,18 @@
- 		status = "disabled";
- 	};
- 
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "disabled";
-+	};
-+
- 	mixer: mixer@12C10000 {
- 		compatible = "samsung,exynos4210-mixer";
- 		interrupts = <0 91 0>;
--- 
-2.6.2
-
+	Arnd
