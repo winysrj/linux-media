@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12985 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099AbbKPNev (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48476 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1032186AbbKELKr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 08:34:51 -0500
-Message-id: <5649DB76.5020500@samsung.com>
-Date: Mon, 16 Nov 2015 14:34:46 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pavel@ucw.cz, andrew@lunn.ch, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 10/10] media: flash: use led_set_brightness_sync for
- torch brightness
-References: <1444209048-29415-1-git-send-email-j.anaszewski@samsung.com>
- <1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
- <5649A37A.2050902@samsung.com> <5649A64E.8050907@linux.intel.com>
-In-reply-to: <5649A64E.8050907@linux.intel.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Thu, 5 Nov 2015 06:10:47 -0500
+Subject: Re: [RFC PATCH v9 5/6] media: videobuf2: Refactor vb2_fileio_data and
+ vb2_thread
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+ <1446545802-28496-6-git-send-email-jh1009.sung@samsung.com>
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <563B392C.10600@xs4all.nl>
+Date: Thu, 5 Nov 2015 12:10:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <1446545802-28496-6-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/16/2015 10:47 AM, Sakari Ailus wrote:
-> Jacek Anaszewski wrote:
->> This patch depends on the preceding LED core improvements patches
->> from this patch set, and it would be best if it was merged through
->> the LED tree. Can I get your ack for this? I've already obtained acks
->> for the whole set from Sakari.
->
-> I agree with this going through the LED tree.
->
+On 11/03/15 11:16, Junghak Sung wrote:
+> Replace v4l2-stuffs with common things in struct vb2_fileio_data and
+> vb2_thread().
+> 
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
 
-Applied this patch set, with fixed version of the patch 4/10 [1],
-thanks.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-[1] http://www.spinics.net/lists/linux-leds/msg05045.html
--- 
-Best Regards,
-Jacek Anaszewski
+Thanks!
+
+	Hans
