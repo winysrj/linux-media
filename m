@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34564 "EHLO mga11.intel.com"
+Received: from mout.web.de ([212.227.15.3]:49593 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753903AbbKLJCG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 04:02:06 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Tommi Franttila <tommi.franttila@intel.com>
-Subject: [PATCH v2 1/1] v4l2-device: Don't unregister ACPI/Device Tree based devices
-Date: Thu, 12 Nov 2015 11:01:07 +0200
-Message-Id: <1447318867-20537-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <564348C1.1050503@xs4all.nl>
-References: <564348C1.1050503@xs4all.nl>
+	id S1751765AbbKESuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2015 13:50:08 -0500
+Subject: [PATCH 1/2] [media] c8sectpfe: Delete unnecessary checks before two
+ function calls
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	kernel@stlinux.com
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net> <563BA3CC.4040709@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <563BA4B0.5090708@users.sourceforge.net>
+Date: Thu, 5 Nov 2015 19:49:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <563BA3CC.4040709@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tommi Franttila <tommi.franttila@intel.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 5 Nov 2015 18:55:19 +0100
 
-When a V4L2 sub-device backed by a DT or ACPI based device was removed,
-the device was unregistered as well which certainly was not intentional,
-as the client device would not be re-created by simply reinstating the
-V4L2 sub-device (indeed the device would have to be there first!).
+The functions i2c_put_adapter() and module_put() test whether their
+argument is NULL and then return immediately.
+Thus the tests around their calls are not needed.
 
-Skip unregistering the device in case it has non-NULL of_node or fwnode.
+This issue was detected by using the Coccinelle software.
 
-Signed-off-by: Tommi Franttila <tommi.franttila@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Hi Hans,
-
-Thanks for the comment! How about this one?
-
-Regards,
-Sakari
-
- drivers/media/v4l2-core/v4l2-device.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 5b0a30b..7129e43 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -118,11 +118,20 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
- 		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
- 			struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--			/* We need to unregister the i2c client explicitly.
--			   We cannot rely on i2c_del_adapter to always
--			   unregister clients for us, since if the i2c bus
--			   is a platform bus, then it is never deleted. */
--			if (client)
-+			/*
-+			 * We need to unregister the i2c client
-+			 * explicitly. We cannot rely on
-+			 * i2c_del_adapter to always unregister
-+			 * clients for us, since if the i2c bus is a
-+			 * platform bus, then it is never deleted.
-+			 *
-+			 * Device tree or ACPI based devices must not
-+			 * be unregistered as they have not been
-+			 * registered by us, and would not be
-+			 * re-created by just probing the V4L2 driver.
-+			 */
-+			if (client &&
-+			    !client->dev.of_node && !client->dev.fwnode)
- 				i2c_unregister_device(client);
- 			continue;
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
+index 95223ab..07fd6d9 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
+@@ -214,12 +214,11 @@ void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
+ 			dvb_frontend_detach(tsin->frontend);
  		}
-@@ -131,7 +140,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
- 		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
- 			struct spi_device *spi = v4l2_get_subdevdata(sd);
  
--			if (spi)
-+			if (spi && !spi->dev.of_node && !spi->dev.fwnode)
- 				spi_unregister_device(spi);
- 			continue;
+-		if (tsin && tsin->i2c_adapter)
++		if (tsin)
+ 			i2c_put_adapter(tsin->i2c_adapter);
+ 
+ 		if (tsin && tsin->i2c_client) {
+-			if (tsin->i2c_client->dev.driver->owner)
+-				module_put(tsin->i2c_client->dev.driver->owner);
++			module_put(tsin->i2c_client->dev.driver->owner);
+ 			i2c_unregister_device(tsin->i2c_client);
  		}
+ 	}
 -- 
-2.1.0.231.g7484e3b
+2.6.2
 
