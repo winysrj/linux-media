@@ -1,101 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f195.google.com ([209.85.214.195]:36195 "EHLO
-	mail-ob0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225AbbKMUPu (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56742 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030867AbbKEKAL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 15:15:50 -0500
+	Thu, 5 Nov 2015 05:00:11 -0500
+Subject: Re: [RFC PATCH v9 4/6] media: videobuf2: last_buffer_queued is set at
+ fill_v4l2_buffer()
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+ <1446545802-28496-5-git-send-email-jh1009.sung@samsung.com>
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <563B28A0.8080202@xs4all.nl>
+Date: Thu, 5 Nov 2015 11:00:00 +0100
 MIME-Version: 1.0
-In-Reply-To: <20151113171341.0972ef7a@recife.lan>
-References: <413d2bb0b813a7e62867de7a94b0ab61e16cb1cb.1447261977.git.mchehab@osg.samsung.com>
-	<09e182fa61a7122356b790cd2a4a7f622dabb4ce.1447261977.git.mchehab@osg.samsung.com>
-	<4220808.QEkJDXYE1T@wuerfel>
-	<20151113171341.0972ef7a@recife.lan>
-Date: Fri, 13 Nov 2015 21:15:49 +0100
-Message-ID: <CAMuHMdUBmMOHZ1mo3S5_K0B=0YywA3Xm5VyZ1Kk1UOsLUt_fPQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media] include/media: move platform driver headers
- to a separate dir
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sergey Lapin <slapin@ossfans.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Harald Welte <laforge@openezx.org>,
-	driverdevel <devel@driverdev.osuosl.org>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	openezx-devel <openezx-devel@lists.openezx.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>, Kukjin Kim <kgene@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	D aniel Ribeiro <drwyrm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Inki Dae <inki.dae@samsung.com>,
-	Simon Horman <horms@verge.net.au>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Stefan Schmidt <stefan@openezx.org>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Josh Wu <josh.wu@atmel.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Daniel Mack <daniel@zonque.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1446545802-28496-5-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 13, 2015 at 8:13 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
->> I think the latter should go into include/linux/platform_data/media/*.h instead.
->
-> Agreed.
->
-> Please see the enclosed patch:
->
->
-> Subject: [PATCH] [media] include/media: move platform driver headers to a
->  separate dirs
->
-> Let's not mix headers used by the core with those headers that
-> are needed by some specific platform drivers or by platform data.
->
-> This patch was made via this script:
->         mkdir include/media/platform mkdir include/media/platform_data
->         (cd include/media/; git mv $(grep -l platform_data *.h|grep -v v4l2)
+On 11/03/15 11:16, Junghak Sung wrote:
+> The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
+> So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
+> vb2_internal_dqbuf().
+> 
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
 
-I think include/linux/platform_data/media/, like Arnd suggested,
-would be better.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Then we can make it a common goal to empty include/linux/platform_data/ ;-)
+One comment: I think the struct vb2_buf_ops callbacks can all return void
+instead of int. I don't think they should ever be allowed to fail.
 
-Gr{oetje,eeting}s,
+If you agree, then that can be changed in a separate later.
 
-                        Geert
+Regards,
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+	Hans
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> ---
+>  drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> index 0ca9f23..b0293df 100644
+> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> @@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	if (vb2_buffer_in_use(q, vb))
+>  		b->flags |= V4L2_BUF_FLAG_MAPPED;
+>  
+> +	if (!q->is_output &&
+> +		b->flags & V4L2_BUF_FLAG_DONE &&
+> +		b->flags & V4L2_BUF_FLAG_LAST)
+> +		q->last_buffer_dequeued = true;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -579,10 +584,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+>  
+>  	ret = vb2_core_dqbuf(q, b, nonblocking);
+>  
+> -	if (!ret && !q->is_output &&
+> -			b->flags & V4L2_BUF_FLAG_LAST)
+> -		q->last_buffer_dequeued = true;
+> -
+>  	return ret;
+>  }
+>  
+> 
