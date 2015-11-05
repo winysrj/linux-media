@@ -1,244 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39261 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbbKWVJ4 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46886 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031125AbbKELOx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 16:09:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v8 53/55] [media] v4l2-core: create MC interfaces for devnodes
-Date: Mon, 23 Nov 2015 23:10:04 +0200
-Message-ID: <1645986.8pcHtPeim4@avalon>
-In-Reply-To: <c9b312c5cff8d2024ebb48871b62b6366e73ea8c.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <c9b312c5cff8d2024ebb48871b62b6366e73ea8c.1441540862.git.mchehab@osg.samsung.com>
+	Thu, 5 Nov 2015 06:14:53 -0500
+Subject: Re: [RFC PATCH v9 6/6] media: videobuf2: Move vb2_fileio_data and
+ vb2_thread to core part
+To: Junghak Sung <jh1009.sung@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	pawel@osciak.com
+References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+ <1446545802-28496-7-git-send-email-jh1009.sung@samsung.com>
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <563B3A24.5030209@xs4all.nl>
+Date: Thu, 5 Nov 2015 12:14:44 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1446545802-28496-7-git-send-email-jh1009.sung@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Thank you for the patch.
-
-On Sunday 06 September 2015 09:03:13 Mauro Carvalho Chehab wrote:
-> V4L2 device (and subdevice) nodes should create an interface, if the
-> Media Controller support is enabled.
+On 11/03/15 11:16, Junghak Sung wrote:
+> Move things related with vb2 file I/O and vb2_thread without doing any
+> functional changes. After that, videobuf2-internal.h is removed because
+> it is not necessary any more.
 > 
-> Please notice that radio devices should not create an entity, as radio
-> input/output is either via wires or via ALSA.
+> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Acked-by: Inki Dae <inki.dae@samsung.com>
 
-I'd go one step further, video nodes should not create an entity, ever. This 
-was one of the design principles behind the MC rework. We'll need to patch 
-drivers to create DMA engine entity explicitly, possibly through a helper 
-function (maybe a function to create and initialize a DMA engine entity based 
-on a struct video_device). This can of course be done on a separate patch, but 
-removing the entity field from struct video_device should be part of the 
-series.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Nice to see that videobuf2-internal.h has now disappeared!
+
+One note (something for a separate patch):
+
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c     |  777 +++++++++++++++++++++++++-
+>  drivers/media/v4l2-core/videobuf2-internal.h |  161 ------
+>  drivers/media/v4l2-core/videobuf2-v4l2.c     |  630 +--------------------
+>  include/media/videobuf2-core.h               |   43 ++
+>  include/media/videobuf2-v4l2.h               |   38 +-
+>  5 files changed, 824 insertions(+), 825 deletions(-)
+>  delete mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> b/drivers/media/v4l2-core/v4l2-dev.c index 44b330589787..07123dd569c4
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -194,9 +194,12 @@ static void v4l2_device_release(struct device *cd)
->  	mutex_unlock(&videodev_lock);
-> 
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -	if (v4l2_dev->mdev &&
-> -	    vdev->vfl_type != VFL_TYPE_SUBDEV)
-> -		media_device_unregister_entity(&vdev->entity);
-> +	if (v4l2_dev->mdev) {
-> +		/* Remove interfaces and interface links */
-> +		media_devnode_remove(vdev->intf_devnode);
-> +		if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN)
-> +			media_device_unregister_entity(&vdev->entity);
-> +	}
->  #endif
-> 
->  	/* Do not call v4l2_device_put if there is no release callback set.
-> @@ -713,6 +716,92 @@ static void determine_valid_ioctls(struct video_device
-> *vdev) BASE_VIDIOC_PRIVATE);
->  }
-> 
-> +
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 33bdd81..f62c548 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
 
-Extra blank line.
+<snip>
 
-> +static int video_register_media_controller(struct video_device *vdev, int
-> type)
-> +{
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	u32 intf_type;
-> +	int ret;
-> +
-> +	if (!vdev->v4l2_dev->mdev)
-> +		return 0;
-> +
-> +	vdev->entity.type = MEDIA_ENT_T_UNKNOWN;
-> +
-> +	switch (type) {
-> +	case VFL_TYPE_GRABBER:
-> +		intf_type = MEDIA_INTF_T_V4L_VIDEO;
-> +		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
-> +		break;
-> +	case VFL_TYPE_VBI:
-> +		intf_type = MEDIA_INTF_T_V4L_VBI;
-> +		vdev->entity.type = MEDIA_ENT_T_V4L2_VBI;
-> +		break;
-> +	case VFL_TYPE_SDR:
-> +		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
-> +		vdev->entity.type = MEDIA_ENT_T_V4L2_SWRADIO;
-> +		break;
-> +	case VFL_TYPE_RADIO:
-> +		intf_type = MEDIA_INTF_T_V4L_RADIO;
-> +		/*
-> +		 * Radio doesn't have an entity at the V4L2 side to represent
-> +		 * radio input or output. Instead, the audio input/output goes
-> +		 * via either physical wires or ALSA.
-> +		 */
-> +		break;
-> +	case VFL_TYPE_SUBDEV:
-> +		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
-> +		/* Entity will be created via v4l2_device_register_subdev() */
-> +		break;
-> +	default:
-> +		return 0;
-> +	}
-> +
-> +	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-> +		vdev->entity.name = vdev->name;
-> +
-> +		/* Needed just for backward compatibility with legacy MC API */
-> +		vdev->entity.info.dev.major = VIDEO_MAJOR;
-> +		vdev->entity.info.dev.minor = vdev->minor;
-> +
-> +		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> +						   &vdev->entity);
-> +		if (ret < 0) {
-> +			printk(KERN_WARNING
-> +				"%s: media_device_register_entity failed\n",
-> +				__func__);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	vdev->intf_devnode = media_devnode_create(vdev->v4l2_dev->mdev,
-> +						  intf_type,
-> +						  0, VIDEO_MAJOR,
-> +						  vdev->minor,
-> +						  GFP_KERNEL);
-> +	if (!vdev->intf_devnode) {
-> +		media_device_unregister_entity(&vdev->entity);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-> +		struct media_link *link;
-> +
-> +		link = media_create_intf_link(&vdev->entity,
-> +					      &vdev->intf_devnode->intf, 0);
-> +		if (!link) {
-> +			media_devnode_remove(vdev->intf_devnode);
-> +			media_device_unregister_entity(&vdev->entity);
-> +			return -ENOMEM;
-> +		}
-> +	}
-> +
-> +	/* FIXME: how to create the other interface links? */
-
-If they're needed (and I'm still not sure they are) they should be created by 
-drivers, possibly with the help of helper functions.
-
-> +
-> +#endif
-> +	return 0;
+> +	q->threadio = NULL;
+> +	return err;
 > +}
+> +EXPORT_SYMBOL_GPL(vb2_thread_stop);
 > +
->  /**
->   *	__video_register_device - register video4linux devices
->   *	@vdev: video device structure we want to register
-> @@ -908,22 +997,9 @@ int __video_register_device(struct video_device *vdev,
-> int type, int nr, /* Increase v4l2_device refcount */
->  	v4l2_device_get(vdev->v4l2_dev);
-> 
-> -#if defined(CONFIG_MEDIA_CONTROLLER)
->  	/* Part 5: Register the entity. */
-> -	if (vdev->v4l2_dev->mdev &&
-> -	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
-> -		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
-> -		vdev->entity.name = vdev->name;
-> -		vdev->entity.info.dev.major = VIDEO_MAJOR;
-> -		vdev->entity.info.dev.minor = vdev->minor;
-> -		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> -			&vdev->entity);
-> -		if (ret < 0)
-> -			printk(KERN_WARNING
-> -			       "%s: media_device_register_entity failed\n",
-> -			       __func__);
-> -	}
-> -#endif
-> +	ret = video_register_media_controller(vdev, type);
-> +
->  	/* Part 6: Activate this minor. The char device can now be used. */
->  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-device.c
-> b/drivers/media/v4l2-core/v4l2-device.c index 5b0a30b9252b..e788a085ba96
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-device.c
-> +++ b/drivers/media/v4l2-core/v4l2-device.c
-> @@ -249,6 +249,17 @@ int v4l2_device_register_subdev_nodes(struct
-> v4l2_device *v4l2_dev) #if defined(CONFIG_MEDIA_CONTROLLER)
->  		sd->entity.info.dev.major = VIDEO_MAJOR;
->  		sd->entity.info.dev.minor = vdev->minor;
-> +
-> +		/* Interface is created by __video_register_device() */
-> +		if (vdev->v4l2_dev->mdev) {
-> +			struct media_link *link;
-> +
-> +			link = media_create_intf_link(&sd->entity,
-> +						      &vdev->intf_devnode->intf,
-> +						      0);
-> +			if (!link)
-> +				goto clean_up;
-> +		}
->  #endif
->  		sd->devnode = vdev;
->  	}
-> @@ -285,7 +296,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
-> *sd)
-> 
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	if (v4l2_dev->mdev) {
-> -		media_entity_remove_links(&sd->entity);
-> +		/*
-> +		 * No need to explicitly remove links, as both pads and
-> +		 * links are removed by the function below, in the right order
-> +		 */
->  		media_device_unregister_entity(&sd->entity);
->  	}
->  #endif
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index acbcd2f5fe7f..eeabf20e87a6 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -86,6 +86,7 @@ struct video_device
->  {
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	struct media_entity entity;
-> +	struct media_intf_devnode *intf_devnode;
->  #endif
->  	/* device ops */
->  	const struct v4l2_file_operations *fops;
+>  MODULE_DESCRIPTION("Driver helper framework for Video for Linux 2");
 
--- 
+This description should be updated as it is no longer a v4l2 framework but a
+more generic media framework.
+
+>  MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>, Marek Szyprowski");
+>  MODULE_LICENSE("GPL");
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
