@@ -1,179 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:32994 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932992AbbKRPBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 10:01:51 -0500
-Date: Wed, 18 Nov 2015 13:01:46 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/6] mt2060: add i2c bindings
-Message-ID: <20151118130146.1ab0490d@recife.lan>
-In-Reply-To: <1437996130-23735-2-git-send-email-crope@iki.fi>
-References: <1437996130-23735-1-git-send-email-crope@iki.fi>
-	<1437996130-23735-2-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:33020 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870AbbKFRgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2015 12:36:11 -0500
+Received: by pabfh17 with SMTP id fh17so128852645pab.0
+        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2015 09:36:10 -0800 (PST)
+Message-ID: <1446831368.20743.7.camel@gmail.com>
+Subject: Re: PVR-250 Composite 3 unavailable [Re: ivtv driver]
+From: Warren Sturm <warren.sturm@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	andy <andy@silverblocksystems.net>
+Date: Fri, 06 Nov 2015 10:36:08 -0700
+In-Reply-To: <77A58399-549F-4A8A-8F87-8F40B7756D3A@md.metrocast.net>
+References: <1445901232.9389.2.camel@gmail.com>
+	 <77A58399-549F-4A8A-8F87-8F40B7756D3A@md.metrocast.net>
+Content-Type: multipart/mixed; boundary="=-ILKHnyw5Qz79jZapJqQq"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 27 Jul 2015 14:22:05 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
 
-> Add proper i2c driver model bindings.
+--=-ILKHnyw5Qz79jZapJqQq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Hi Antti,
-
-What's the status of this patch series? You submitted them on July, but
-never sent me a pull request...
-
-Regards,
-Mauro
-
+On Mon, 2015-10-26 at 19:49 -0400, Andy Walls wrote:
+> On October 26, 2015 7:13:52 PM EDT, Warren Sturm <
+> warren.sturm@gmail.com> wrote:
+> > Hi Andy.
+> > 
+> > I don't know whether this was intended but the pvr250 lost the
+> > composite 3 input when going from kernel version 4.1.10 to 4.2.3.
+> > 
+> > This is on a Fedora 22 x86_64 system.
+> > 
+> > 
+> > Thanks for any insight.
 > 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
->  drivers/media/tuners/mt2060.h      | 20 +++++++++
->  drivers/media/tuners/mt2060_priv.h |  2 +
->  3 files changed, 105 insertions(+)
+> Unintentional.
 > 
-> diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
-> index b87b254..aa8280a 100644
-> --- a/drivers/media/tuners/mt2060.c
-> +++ b/drivers/media/tuners/mt2060.c
-> @@ -397,6 +397,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
->  }
->  EXPORT_SYMBOL(mt2060_attach);
->  
-> +static int mt2060_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	struct mt2060_platform_data *pdata = client->dev.platform_data;
-> +	struct dvb_frontend *fe;
-> +	struct mt2060_priv *dev;
-> +	int ret;
-> +	u8 chip_id;
-> +
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	if (!pdata) {
-> +		dev_err(&client->dev, "Cannot proceed without platform data\n");
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
-> +	if (!dev) {
-> +		ret = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	fe = pdata->dvb_frontend;
-> +	dev->config.i2c_address = client->addr;
-> +	dev->config.clock_out = pdata->clock_out;
-> +	dev->cfg = &dev->config;
-> +	dev->i2c = client->adapter;
-> +	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
-> +	dev->client = client;
-> +
-> +	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
-> +	if (ret) {
-> +		ret = -ENODEV;
-> +		goto err;
-> +	}
-> +
-> +	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
-> +
-> +	if (chip_id != PART_REV) {
-> +		ret = -ENODEV;
-> +		goto err;
-> +	}
-> +
-> +	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
-> +	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
-> +	fe->ops.tuner_ops.release = NULL;
-> +	fe->tuner_priv = dev;
-> +	i2c_set_clientdata(client, dev);
-> +
-> +	mt2060_calibrate(dev);
-> +
-> +	return 0;
-> +err:
-> +	dev_dbg(&client->dev, "failed=%d\n", ret);
-> +	return ret;
-> +}
-> +
-> +static int mt2060_remove(struct i2c_client *client)
-> +{
-> +	dev_dbg(&client->dev, "\n");
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id mt2060_id_table[] = {
-> +	{"mt2060", 0},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
-> +
-> +static struct i2c_driver mt2060_driver = {
-> +	.driver = {
-> +		.name = "mt2060",
-> +		.suppress_bind_attrs = true,
-> +	},
-> +	.probe		= mt2060_probe,
-> +	.remove		= mt2060_remove,
-> +	.id_table	= mt2060_id_table,
-> +};
-> +
-> +module_i2c_driver(mt2060_driver);
-> +
->  MODULE_AUTHOR("Olivier DANET");
->  MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
-> index 6efed35..05c0d55 100644
-> --- a/drivers/media/tuners/mt2060.h
-> +++ b/drivers/media/tuners/mt2060.h
-> @@ -25,6 +25,26 @@
->  struct dvb_frontend;
->  struct i2c_adapter;
->  
-> +/*
-> + * I2C address
-> + * 0x60, ...
-> + */
-> +
-> +/**
-> + * struct mt2060_platform_data - Platform data for the mt2060 driver
-> + * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
-> + * @if1: First IF used [MHz]. 0 defaults to 1220.
-> + * @dvb_frontend: DVB frontend.
-> + */
-> +
-> +struct mt2060_platform_data {
-> +	u8 clock_out;
-> +	u16 if1;
-> +	struct dvb_frontend *dvb_frontend;
-> +};
-> +
-> +
-> +/* configuration struct for mt2060_attach() */
->  struct mt2060_config {
->  	u8 i2c_address;
->  	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
-> diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
-> index 2b60de6..dfc4a06 100644
-> --- a/drivers/media/tuners/mt2060_priv.h
-> +++ b/drivers/media/tuners/mt2060_priv.h
-> @@ -95,6 +95,8 @@
->  struct mt2060_priv {
->  	struct mt2060_config *cfg;
->  	struct i2c_adapter   *i2c;
-> +	struct i2c_client *client;
-> +	struct mt2060_config config;
->  
->  	u32 frequency;
->  	u16 if1_freq;
+> I'm guessing this commit was the problem:
+> 
+> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/drivers/media/p
+> ci/ivtv/ivtv-driver.c?id=09290cc885937cab3b2d60a6d48fe3d2d3e04061
+> 
+> Could you confirm?
+> 
+> R,
+> Andy
+
+Ok.  I rebuilt the SRPM for kernel-4.2.5-201 with the patch reverted
+and installed it.
+
+uname -a
+Linux wrs 4.2.5-201.fc22.x86_64 #1 SMP Fri Nov 6 00:13:17 MST 2015 x86_64 x86_64 x86_64 GNU/Linux
+
+Attached are the v4l2-ctl --list-inputs for the respective kernels.
+
+Hope this is sufficient confirmation.
+
+
+
+
+--=-ILKHnyw5Qz79jZapJqQq
+Content-Disposition: attachment; filename="pvr250-inputs-kern-4.2.5-post-patch-reversal"
+Content-Type: text/plain; name="pvr250-inputs-kern-4.2.5-post-patch-reversal";
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
+VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgw
+MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
+IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
+MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
+IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
+dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
+ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
+MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
+IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
+MHgwMDAwMDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
+RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
+ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
+MDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
+KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA1CglOYW1lICAgIDog
+Q29tcG9zaXRlIDMKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAwMDAwNwoJ
+VHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYgKCBQQUwg
+TlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
+
+
+--=-ILKHnyw5Qz79jZapJqQq
+Content-Disposition: attachment; filename="pvr250-inputs-kern-4.2.5"
+Content-Type: text/plain; name="pvr250-inputs-kern-4.2.5"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
+VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgw
+MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
+IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
+MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
+IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
+dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
+ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
+MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
+IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
+MHgwMDAwMDAwMwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
+RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
+ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
+MDAwMwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
+KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
+
+
+--=-ILKHnyw5Qz79jZapJqQq
+Content-Disposition: attachment; filename="pvr250-inputs-kern-4.1.10"
+Content-Type: text/plain; name="pvr250-inputs-kern-4.1.10"; charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
+VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgw
+MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
+IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
+MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
+IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
+dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
+ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
+MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
+IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
+MHgwMDAwMDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
+RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
+ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
+MDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
+KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA1CglOYW1lICAgIDog
+Q29tcG9zaXRlIDMKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAwMDAwNwoJ
+VHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYgKCBQQUwg
+TlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
+
+
+--=-ILKHnyw5Qz79jZapJqQq--
+
