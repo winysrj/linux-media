@@ -1,66 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44974 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279AbbKIRdx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 12:33:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44296 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031741AbbKFDwh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Nov 2015 22:52:37 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0E2BA2A00AF
+	for <linux-media@vger.kernel.org>; Fri,  6 Nov 2015 04:52:26 +0100 (CET)
+Date: Fri, 06 Nov 2015 04:52:25 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Dennis Chen <barracks510@gmail.com>,
-	Pawel Osciak <posciak@chromium.org>
-Subject: [PATCH] uvcvideo: Enable UVC 1.5 device detection
-Date: Mon,  9 Nov 2015 19:33:58 +0200
-Message-Id: <1447090438-28681-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151106035226.0E2BA2A00AF@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-UVC 1.5 devices report a bInterfaceProtocol value set to 1 in their
-interface descriptors. The uvcvideo driver only matches on
-bInterfaceProtocol 0, preventing those devices from being detected.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-More changes to the driver are needed for full UVC 1.5 compatibility.
-However, at least the UVC 1.5 Microsoft Surface Pro 3 cameras have been
-reported to work out of the box with the driver with an updated match
-table.
+Results of the daily build of media_tree:
 
-Enable UVC 1.5 support in the match table to support the devices that
-can work with the current driver implementation. Devices that can't will
-fail, but that's hardly a regression as they're currently not detected
-at all anyway.
+date:		Fri Nov  6 04:00:27 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	0.4.1-3153-g7d56ab3
+host hardware:	x86_64
+host os:	4.0.0-3.slh.1-amd64
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 3 ++-
- include/uapi/linux/usb/video.h     | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f8e7793e2056..a978f7d9b81d 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2597,7 +2597,8 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
- 	/* Generic USB Video Class */
--	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
-+	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
-+	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
- 	{}
- };
- 
-diff --git a/include/uapi/linux/usb/video.h b/include/uapi/linux/usb/video.h
-index 3b3b95e01f71..69ab695fad2e 100644
---- a/include/uapi/linux/usb/video.h
-+++ b/include/uapi/linux/usb/video.h
-@@ -28,6 +28,7 @@
- 
- /* A.3. Video Interface Protocol Codes */
- #define UVC_PC_PROTOCOL_UNDEFINED			0x00
-+#define UVC_PC_PROTOCOL_15				0x01
- 
- /* A.5. Video Class-Specific VC Interface Descriptor Subtypes */
- #define UVC_VC_DESCRIPTOR_UNDEFINED			0x00
--- 
-Regards,
+Detailed results are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
