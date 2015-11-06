@@ -1,56 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:64629 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbbKIUa6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 15:30:58 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: y2038@lists.linaro.org
+Received: from mail.kernel.org ([198.145.29.136]:40852 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161222AbbKFU2p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Nov 2015 15:28:45 -0500
+Date: Fri, 6 Nov 2015 14:28:40 -0600
+From: Rob Herring <robh@kernel.org>
+To: Markus Pargmann <mpa@pengutronix.de>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [Y2038] [PATCH v2 9/9] [media] omap3isp: support 64-bit version of omap3isp_stat_data
-Date: Mon, 09 Nov 2015 21:30:41 +0100
-Message-ID: <3870339.ZAkvtJ2orM@wuerfel>
-In-Reply-To: <5733951.qvCn4pc5g5@avalon>
-References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <1442524780-781677-10-git-send-email-arnd@arndb.de> <5733951.qvCn4pc5g5@avalon>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] [media] mt9v032: Add reset and standby gpios
+Message-ID: <20151106202840.GA19748@rob-hp-laptop>
+References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 09 November 2015 22:09:26 Laurent Pinchart wrote:
-> Hi Arnd,
+On Fri, Nov 06, 2015 at 02:13:43PM +0100, Markus Pargmann wrote:
+> Add optional reset and standby gpios. The reset gpio is used to reset
+> the chip in power_on().
 > 
-> Thank you for the patch.
+> The standby gpio is not used currently. It is just unset, so the chip is
+> not in standby.
 > 
-> On Thursday 17 September 2015 23:19:40 Arnd Bergmann wrote:
-> > C libraries with 64-bit time_t use an incompatible format for
-> > struct omap3isp_stat_data. This changes the kernel code to
-> > support either version, by moving over the normal handling
-> > to the 64-bit variant, and adding compatiblity code to handle
-> > the old binary format with the existing ioctl command code.
-> > 
-> > Fortunately, the command code includes the size of the structure,
-> > so the difference gets handled automatically.
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
+
+Acked-by: Rob Herring <robh@kernel.org>
+
+>  drivers/media/i2c/mt9v032.c                        | 23 ++++++++++++++++++++++
+>  2 files changed, 25 insertions(+)
 > 
-> We plan to design a new interface to handle statistics in V4L2. That API 
-> should support proper 64-bit timestamps out of the box, and will be 
-> implemented by the OMAP3 ISP driver. Userspace should then move to it. I 
-> wonder if it's worth it to fix the existing VIDIOC_OMAP3ISP_STAT_REQ ioctl 
-> given that I expect it to have a handful of users at most.
-
-We still need to do something to the driver. The alternative would
-be to make the existing ioctl command optional at kernel compile-time
-so we can still build the driver once we remove the 'struct timeval'
-definition. That patch would add slightly less complexity here
-but also lose functionality.
-
-As my patch here depends on the struct v4l2_timeval I introduced in
-an earlier patch of the series, we will have to change it anyways,
-but I'd prefer to keep the basic idea. Let's get back to this one
-after the v4l_buffer replacement work is done.
-
-	Arnd
+> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> index 202565313e82..100f0ae43269 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> @@ -20,6 +20,8 @@ Optional Properties:
+>  
+>  - link-frequencies: List of allowed link frequencies in Hz. Each frequency is
+>  	expressed as a 64-bit big-endian integer.
+> +- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
+> +- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
+>  
+>  For further reading on port node refer to
+>  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index a68ce94ee097..4aefde9634f5 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/v4l2-mediabus.h>
+>  #include <linux/module.h>
+> +#include <linux/gpio/consumer.h>
+>  
+>  #include <media/mt9v032.h>
+>  #include <media/v4l2-ctrls.h>
+> @@ -251,6 +252,8 @@ struct mt9v032 {
+>  
+>  	struct regmap *regmap;
+>  	struct clk *clk;
+> +	struct gpio_desc *reset_gpio;
+> +	struct gpio_desc *standby_gpio;
+>  
+>  	struct mt9v032_platform_data *pdata;
+>  	const struct mt9v032_model_info *model;
+> @@ -312,16 +315,26 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	struct regmap *map = mt9v032->regmap;
+>  	int ret;
+>  
+> +	gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
+> +
+>  	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	/* system clock has to be enabled before releasing the reset */
+>  	ret = clk_prepare_enable(mt9v032->clk);
+>  	if (ret)
+>  		return ret;
+>  
+>  	udelay(1);
+>  
+> +	gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
+> +
+> +	/*
+> +	 * After releasing reset, it can take up to 1us until the chip is done
+> +	 */
+> +	udelay(1);
+> +
+>  	/* Reset the chip and stop data read out */
+>  	ret = regmap_write(map, MT9V032_RESET, 1);
+>  	if (ret < 0)
+> @@ -954,6 +967,16 @@ static int mt9v032_probe(struct i2c_client *client,
+>  	if (IS_ERR(mt9v032->clk))
+>  		return PTR_ERR(mt9v032->clk);
+>  
+> +	mt9v032->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
+> +						      GPIOD_OUT_HIGH);
+> +	if (IS_ERR(mt9v032->reset_gpio))
+> +		return PTR_ERR(mt9v032->reset_gpio);
+> +
+> +	mt9v032->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
+> +							GPIOD_OUT_LOW);
+> +	if (IS_ERR(mt9v032->standby_gpio))
+> +		return PTR_ERR(mt9v032->standby_gpio);
+> +
+>  	mutex_init(&mt9v032->power_lock);
+>  	mt9v032->pdata = pdata;
+>  	mt9v032->model = (const void *)did->driver_data;
+> -- 
+> 2.6.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
