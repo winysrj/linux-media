@@ -1,151 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45140 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbbKITim (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 14:38:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] omap3isp: Return buffers back to videobuf2 if pipeline streamon fails
-Date: Mon, 09 Nov 2015 21:38:53 +0200
-Message-ID: <1972373.8eK0dXsn1v@avalon>
-In-Reply-To: <1411077469-29178-4-git-send-email-sakari.ailus@iki.fi>
-References: <1411077469-29178-1-git-send-email-sakari.ailus@iki.fi> <1411077469-29178-4-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57124 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161346AbbKFNOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2015 08:14:25 -0500
+From: Markus Pargmann <mpa@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH 1/3] [media] mt9v032: Add reset and standby gpios
+Date: Fri,  6 Nov 2015 14:13:43 +0100
+Message-Id: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Add optional reset and standby gpios. The reset gpio is used to reset
+the chip in power_on().
 
-Thank you for the patch.
+The standby gpio is not used currently. It is just unset, so the chip is
+not in standby.
 
-On Friday 19 September 2014 00:57:49 Sakari Ailus wrote:
-> When the video buffer queue was stopped before the stream source was started
-> in omap3isp_streamon(), the buffers were not returned back to videobuf2.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/platform/omap3isp/isp.c      |    4 ++--
->  drivers/media/platform/omap3isp/ispvideo.c |   16 ++++++++++------
->  drivers/media/platform/omap3isp/ispvideo.h |    3 ++-
->  3 files changed, 14 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 72265e5..2aa0a8e 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1062,9 +1062,9 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline
-> *pipe, void omap3isp_pipeline_cancel_stream(struct isp_pipeline *pipe)
->  {
->  	if (pipe->input)
-> -		omap3isp_video_cancel_stream(pipe->input);
-> +		omap3isp_video_cancel_stream(pipe->input, VB2_BUF_STATE_ERROR);
->  	if (pipe->output)
-> -		omap3isp_video_cancel_stream(pipe->output);
-> +		omap3isp_video_cancel_stream(pipe->output, VB2_BUF_STATE_ERROR);
->  }
-> 
->  /*
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index b233c8e..73c0194 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -443,8 +443,10 @@ static int isp_video_start_streaming(struct vb2_queue
-> *queue,
-> 
->  	ret = omap3isp_pipeline_set_stream(pipe,
->  					   ISP_PIPELINE_STREAM_CONTINUOUS);
-> -	if (ret < 0)
-> +	if (ret < 0) {
-> +		omap3isp_video_cancel_stream(video, VB2_BUF_STATE_QUEUED);
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
+ drivers/media/i2c/mt9v032.c                        | 23 ++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-This will set video->error to true. As the flag is only reset to false when 
-stopping the stream in isp_video_streamoff we'll have a problem here.
-
-One option would be to split the buffer handling part of 
-omap3isp_video_cancel_stream() to a separate function 
-omap3isp_video_return_buffers() and call that one when stream start fails.
-
->  		return ret;
-> +	}
-> 
->  	spin_lock_irqsave(&video->irqlock, flags);
->  	if (list_empty(&video->dmaqueue))
-> @@ -566,10 +568,12 @@ struct isp_buffer *omap3isp_video_buffer_next(struct
-> isp_video *video) * omap3isp_video_cancel_stream - Cancel stream on a video
-> node
->   * @video: ISP video object
-
-You're missing documentation of the state parameter here.
-
->   *
-> - * Cancelling a stream mark all buffers on the video node as erroneous and
-> makes
-> - * sure no new buffer can be queued.
-> + * Cancelling a stream mark all buffers on the video node as erroneous
-> + * and makes sure no new buffer can be queued. Buffers are returned
-> + * back to videobuf2 in the given state.
-
-The buffer isn't marked as erroneous when the state is set to 
-VB2_BUF_STATE_QUEUED. How about
-
-"Cancelling a stream returns all buffers queued on the video node to videobuf2
-in the given state and makes sure no new buffer can be queued. The buffer
-state should be VB2_BUF_STATE_QUEUED when the stream is cancelled due to an
-error when starting the stream, or VB2_BUF_STATE_ERROR otherwise."
-
-I've pushed a new version of the patch that fixes all this to
-
-	git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-(http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/commit/?h=omap3isp/next&id=da80a526014da7a2c07af9978aaafc47d816e103)
-
-If you like it there's no need to resubmit.
-
->   */
-> -void omap3isp_video_cancel_stream(struct isp_video *video)
-> +void omap3isp_video_cancel_stream(struct isp_video *video,
-> +				  enum vb2_buffer_state state)
->  {
->  	unsigned long flags;
-> 
-> @@ -581,7 +585,7 @@ void omap3isp_video_cancel_stream(struct isp_video
-> *video) buf = list_first_entry(&video->dmaqueue,
->  				       struct isp_buffer, irqlist);
->  		list_del(&buf->irqlist);
-> -		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> +		vb2_buffer_done(&buf->vb, state);
->  	}
-> 
->  	video->error = true;
-> @@ -1166,7 +1170,7 @@ isp_video_streamoff(struct file *file, void *fh, enum
-> v4l2_buf_type type)
-> 
->  	/* Stop the stream. */
->  	omap3isp_pipeline_set_stream(pipe, ISP_PIPELINE_STREAM_STOPPED);
-> -	omap3isp_video_cancel_stream(video);
-> +	omap3isp_video_cancel_stream(video, VB2_BUF_STATE_ERROR);
-> 
->  	mutex_lock(&video->queue_lock);
->  	vb2_streamoff(&vfh->queue, type);
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.h
-> b/drivers/media/platform/omap3isp/ispvideo.h index 0b7efed..7e4732a 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.h
-> +++ b/drivers/media/platform/omap3isp/ispvideo.h
-> @@ -201,7 +201,8 @@ int omap3isp_video_register(struct isp_video *video,
->  			    struct v4l2_device *vdev);
->  void omap3isp_video_unregister(struct isp_video *video);
->  struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video);
-> -void omap3isp_video_cancel_stream(struct isp_video *video);
-> +void omap3isp_video_cancel_stream(struct isp_video *video,
-> +				  enum vb2_buffer_state state);
->  void omap3isp_video_resume(struct isp_video *video, int continuous);
->  struct media_pad *omap3isp_video_remote_pad(struct isp_video *video);
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+index 202565313e82..100f0ae43269 100644
+--- a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
++++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+@@ -20,6 +20,8 @@ Optional Properties:
+ 
+ - link-frequencies: List of allowed link frequencies in Hz. Each frequency is
+ 	expressed as a 64-bit big-endian integer.
++- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
++- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
+ 
+ For further reading on port node refer to
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index a68ce94ee097..4aefde9634f5 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -24,6 +24,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/module.h>
++#include <linux/gpio/consumer.h>
+ 
+ #include <media/mt9v032.h>
+ #include <media/v4l2-ctrls.h>
+@@ -251,6 +252,8 @@ struct mt9v032 {
+ 
+ 	struct regmap *regmap;
+ 	struct clk *clk;
++	struct gpio_desc *reset_gpio;
++	struct gpio_desc *standby_gpio;
+ 
+ 	struct mt9v032_platform_data *pdata;
+ 	const struct mt9v032_model_info *model;
+@@ -312,16 +315,26 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+ 	struct regmap *map = mt9v032->regmap;
+ 	int ret;
+ 
++	gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
++
+ 	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* system clock has to be enabled before releasing the reset */
+ 	ret = clk_prepare_enable(mt9v032->clk);
+ 	if (ret)
+ 		return ret;
+ 
+ 	udelay(1);
+ 
++	gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
++
++	/*
++	 * After releasing reset, it can take up to 1us until the chip is done
++	 */
++	udelay(1);
++
+ 	/* Reset the chip and stop data read out */
+ 	ret = regmap_write(map, MT9V032_RESET, 1);
+ 	if (ret < 0)
+@@ -954,6 +967,16 @@ static int mt9v032_probe(struct i2c_client *client,
+ 	if (IS_ERR(mt9v032->clk))
+ 		return PTR_ERR(mt9v032->clk);
+ 
++	mt9v032->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
++						      GPIOD_OUT_HIGH);
++	if (IS_ERR(mt9v032->reset_gpio))
++		return PTR_ERR(mt9v032->reset_gpio);
++
++	mt9v032->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
++							GPIOD_OUT_LOW);
++	if (IS_ERR(mt9v032->standby_gpio))
++		return PTR_ERR(mt9v032->standby_gpio);
++
+ 	mutex_init(&mt9v032->power_lock);
+ 	mt9v032->pdata = pdata;
+ 	mt9v032->model = (const void *)did->driver_data;
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.1
 
