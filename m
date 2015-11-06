@@ -1,29 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-am1hn0250.outbound.protection.outlook.com ([157.56.112.250]:14656
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753268AbbKZRNE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2015 12:13:04 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from emxs.zdas.cz ([91.139.12.27]:59444 "EHLO emxs.zdas.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1032433AbbKFJKU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Nov 2015 04:10:20 -0500
+Received: from fwzdas.zdas.cz (fw.zdas.cz [91.139.12.13])
+	by emxs.zdas.cz (8.14.4/8.14.4/Debian-4) with ESMTP id tA692KSi025397
+	for <linux-media@vger.kernel.org>; Fri, 6 Nov 2015 10:02:20 +0100
+Subject: Fwd: Dvb-fe-tool add features
+Reply-To: tomas.vitek@zdas.cz
+References: <55E94875.9050402@zdas.cz>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: =?UTF-8?B?VG9tw6HFoSBWw610ZWs=?= <tomas.vitek@zdas.cz>
+Message-ID: <563C6C95.5050703@zdas.cz>
+Date: Fri, 6 Nov 2015 10:02:13 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Private Message!!
-From: linux-media-owner@vger.kernel.org
-To: Recipients@vger.kernel.org
-Date: Thu, 26 Nov 2015 17:12:52 +0000
-Reply-To: <leecheung09@yahoo.com.hk>
-Message-ID: <AM3PR06MB002D359749FD0B78A7E8803B8040@AM3PR06MB002.eurprd06.prod.outlook.com>
+In-Reply-To: <55E94875.9050402@zdas.cz>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good Day,
 
-I am Mr. Lee Cheung from Hang Seng Bank, Hong Kong, there is the sum of $30,000,000.00 in my bank and i need you to work together with me to claim it, and we shall then share in the ratio of 60% for me, 40% for you. If interested please contact me as soon as possible for further details.
 
-I will prefer you to reach me on my private Email address below:
-Email: leecheung09@yahoo.com.hk
+           Hello Mauro,
 
-Kind Regards,
-Mr. Lee Cheung.
+
+    Please add to dvb-fe-tool function as a femon from dvb-apps.
+
+    ,,-c number : samples to take (default 0 = infinite),,
+
+    This is the number of repetitions of reading signal.
+
+    It's important for my statistics adapter.     Thanks.
+
+     
+
+
