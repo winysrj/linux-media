@@ -1,58 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38926 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104AbbKWRyI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 12:54:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 12/18] [media] media-entity: must check media_create_pad_link()
-Date: Mon, 23 Nov 2015 19:54:17 +0200
-Message-ID: <3963361.pdRumI6NVS@avalon>
-In-Reply-To: <4dc311149dc667420c59ba7060846ba993cef507.1441559233.git.mchehab@osg.samsung.com>
-References: <cover.1441559233.git.mchehab@osg.samsung.com> <4dc311149dc667420c59ba7060846ba993cef507.1441559233.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga01.intel.com ([192.55.52.88]:32775 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752400AbbKGVXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2015 16:23:44 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 1/2] libv4l2subdev: Add a forward definition for missing struct media_device
+Date: Sat,  7 Nov 2015 23:22:20 +0200
+Message-Id: <1446931341-29254-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1446931341-29254-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1446931341-29254-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This avoids a compiler warning if mediactl.h isn't included.
 
-Thank you for the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/v4l2subdev.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-On Sunday 06 September 2015 14:30:55 Mauro Carvalho Chehab wrote:
-> Drivers should check if media_create_pad_link() actually
-> worked.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 62f882d872b1..8bdc10dcc5e7 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -348,8 +348,9 @@ int media_entity_init(struct media_entity *entity, u16
-> num_pads, struct media_pad *pads);
->  void media_entity_cleanup(struct media_entity *entity);
-> 
-> -int media_create_pad_link(struct media_entity *source, u16 source_pad,
-> -		struct media_entity *sink, u16 sink_pad, u32 flags);
-> +__must_check int media_create_pad_link(struct media_entity *source,
-> +			u16 source_pad,	struct media_entity *sink,
-
-s/,\t/, /
-
-> +			u16 sink_pad, u32 flags);
-
-And it would make sense to squash this with the patch that introduces 
-media_create_pad_link().
-
->  void __media_entity_remove_links(struct media_entity *entity);
->  void media_entity_remove_links(struct media_entity *entity);
-
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 1cb53ff..4961308 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/v4l2-subdev.h>
+ 
++struct media_device;
+ struct media_entity;
+ 
+ /**
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.0.231.g7484e3b
 
