@@ -1,126 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56167 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753198AbbKQDkj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33264 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753608AbbKGUkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 22:40:39 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B4AF2E3982
-	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 04:40:34 +0100 (CET)
-Date: Tue, 17 Nov 2015 04:40:34 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151117034034.B4AF2E3982@tschai.lan>
+	Sat, 7 Nov 2015 15:40:51 -0500
+Date: Sat, 7 Nov 2015 22:40:45 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, jh1009.sung@samsung.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/2] vb2: drop v4l2_format argument from queue_setup
+Message-ID: <20151107204045.GR17128@valkosipuli.retiisi.org.uk>
+References: <1446092666-2313-1-git-send-email-hverkuil@xs4all.nl>
+ <1446092666-2313-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1446092666-2313-2-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On Thu, Oct 29, 2015 at 05:24:25AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The queue_setup callback has a void pointer that is just for V4L2
+> and is the pointer to the v4l2_format struct that was passed to
+> VIDIOC_CREATE_BUFS. The idea was that drivers would use the information
+> from that struct to buffers suitable for the requested format.
+> 
+> After the vb2 split series this pointer is now a void pointer,
+> which is ugly, and the reality is that all existing drivers will
+> effectively just look at the sizeimage field of v4l2_format.
+> 
+> To make this more generic the queue_setup callback is changed:
+> the void pointer is dropped, instead if the *num_planes argument
+> is 0, then use the current format size, if it is non-zero, then
+> it contains the number of requested planes and the sizes array
+> contains the requested sizes. If either is unsupported, then return
+> -EINVAL, otherwise use the requested size(s).
 
-date:		Tue Nov 17 04:00:22 CET 2015
-git branch:	test
-git hash:	6747b39441925f247f15d04b89be3588f465ad57
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	host hardware:	x86_64
-host os:	4.2.0-164
+Please don't.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: OK
+This effectively prevents allocating new buffers while streaming if they're
+for a different format than that used by the stream. That was the very point
+in struct v4l2_format being part of the argument to the IOCTL.
 
-Detailed results are available here:
+If this is not used right now I could well imagine someone to need it sooner
+or later.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+-- 
+Kind regards,
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
