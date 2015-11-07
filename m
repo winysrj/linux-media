@@ -1,132 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52631 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932486AbbKQTlI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 14:41:08 -0500
-Date: Tue, 17 Nov 2015 13:41:00 -0600
-From: Rob Herring <robh@kernel.org>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [RESEND RFC/PATCH 4/8] dt-bindings: Add a binding for Mediatek
- Video Encoder
-Message-ID: <20151117194100.GA3028@rob-hp-laptop>
-References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
- <1447764885-23100-5-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1447764885-23100-5-git-send-email-tiffany.lin@mediatek.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:55065 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751250AbbKGDzi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Nov 2015 22:55:38 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A19E4E39E6
+	for <linux-media@vger.kernel.org>; Sat,  7 Nov 2015 04:55:32 +0100 (CET)
+Date: Sat, 07 Nov 2015 04:55:32 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151107035532.A19E4E39E6@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 17, 2015 at 08:54:41PM +0800, Tiffany Lin wrote:
-> add a DT binding documentation of Video Encoder for the
-> MT8173 SoC from Mediatek.
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
->  1 file changed, 58 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> new file mode 100644
-> index 0000000..fea4d7c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> @@ -0,0 +1,58 @@
-> +Mediatek Video Codec
-> +
-> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
-> +supports high resolution encoding functionalities.
-> +
-> +Required properties:
-> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
-> +- reg : Physical base address of the video codec registers and length of
-> +  memory mapped region.
-> +- interrupts : interrupt number to the cpu.
-> +- larb : must contain the larbes of current platform
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-What is this?
+Results of the daily build of media_tree:
 
-> +- clocks : list of clock specifiers, corresponding to entries in
-> +  the clock-names property;
-> +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
-> +- iommus : list of iommus specifiers should be enabled for hw encode.
-> +  There are 2 cells needed to enable/disable iommu.
-> +  The first one is local arbiter index(larbid), and the other is port
-> +  index(portid) within local arbiter. Specifies the larbid and portid
-> +  as defined in dt-binding/memory/mt8173-larb-port.h.
-> +- vpu : the node of video processor unit
+date:		Sat Nov  7 04:00:24 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	0.4.5-rc1
+smatch version:	host hardware:	x86_64
+host os:	4.2.0-164
 
-This should be prefixed with mediatek.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+smatch: OK
 
-> +
-> +Example:
-> +vcodec_enc: vcodec@0x18002000 {
-> +    compatible = "mediatek,mt8173-vcodec-enc";
-> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
-> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
-> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-> +    larb = <&larb3>,
-> +           <&larb5>;
-> +    iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
-> +    vpu = <&vpu>;
-> +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
-> +             <&topckgen CLK_TOP_VENC_LT_SEL>,
-> +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
-> +    clock-names = "vencpll",
-> +                  "venc_lt_sel",
-> +                  "vcodecpll_370p5_ck";
-> +  };
-> -- 
-> 1.7.9.5
-> 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
