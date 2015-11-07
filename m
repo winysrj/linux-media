@@ -1,241 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate16.nvidia.com ([216.228.121.65]:16810 "EHLO
-	hqemgate16.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468AbbKKTuu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 14:50:50 -0500
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>, <linux-tegra@vger.kernel.org>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <bmurthyv@nvidia.com>
-Subject: [PATCH 2/3] ARM64: add tegra-vi support in T210 device-tree
-Date: Wed, 11 Nov 2015 11:50:47 -0800
-Message-ID: <1447271448-30056-3-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1447271448-30056-1-git-send-email-pengw@nvidia.com>
-References: <1447271448-30056-1-git-send-email-pengw@nvidia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35961 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085AbbKGM0l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Nov 2015 07:26:41 -0500
+Received: from dyn3-82-128-185-10.psoas.suomi.net ([82.128.185.10] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1Zv2Zs-0007Ae-CL
+	for linux-media@vger.kernel.org; Sat, 07 Nov 2015 14:26:40 +0200
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL STABLE] airspy: increase USB control message buffer size
+Message-ID: <563DEE00.5050908@iki.fi>
+Date: Sat, 7 Nov 2015 14:26:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following device tree support for Tegra VI now:
- - "vi" node which might have 6 ports/endpoints
- - in TPG mode, "vi" node don't need to define any ports/endpoints
- - ports/endpoints defines the link between VI and external sensors.
+The following changes since commit 79f5b6ae960d380c829fb67d5dadcd1d025d2775:
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
----
- arch/arm64/boot/dts/nvidia/tegra210-p2571.dts |   8 ++
- arch/arm64/boot/dts/nvidia/tegra210.dtsi      | 174 +++++++++++++++++++++++++-
- 2 files changed, 181 insertions(+), 1 deletion(-)
+   [media] c8sectpfe: Remove select on 
+CONFIG_FW_LOADER_USER_HELPER_FALLBACK (2015-10-20 16:02:41 -0200)
 
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210-p2571.dts b/arch/arm64/boot/dts/nvidia/tegra210-p2571.dts
-index 50a3582..c573546 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210-p2571.dts
-+++ b/arch/arm64/boot/dts/nvidia/tegra210-p2571.dts
-@@ -7,6 +7,14 @@
- 	model = "NVIDIA Tegra210 P2571 reference board";
- 	compatible = "nvidia,p2571", "nvidia,tegra210";
- 
-+	host1x@0,50000000 {
-+		vi@0,54080000 {
-+			status = "okay";
-+
-+			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
-+		};
-+	};
-+
- 	pinmux: pinmux@0,700008d4 {
- 		pinctrl-names = "boot";
- 		pinctrl-0 = <&state_boot>;
-diff --git a/arch/arm64/boot/dts/nvidia/tegra210.dtsi b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-index 8048fc5..57ffc28 100644
---- a/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-+++ b/arch/arm64/boot/dts/nvidia/tegra210.dtsi
-@@ -123,9 +123,181 @@
- 
- 		vi@0,54080000 {
- 			compatible = "nvidia,tegra210-vi";
--			reg = <0x0 0x54080000 0x0 0x00040000>;
-+			reg = <0x0 0x54080000 0x0 0x800>;
- 			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
- 			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>;
-+			clock-names = "vi", "csi", "parent";
-+			resets = <&tegra_car 20>;
-+			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+
-+					vi_in0: endpoint {
-+						remote-endpoint = <&csi_out0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+
-+					vi_in1: endpoint {
-+						remote-endpoint = <&csi_out1>;
-+					};
-+				};
-+				port@2 {
-+					reg = <2>;
-+
-+					vi_in2: endpoint {
-+						remote-endpoint = <&csi_out2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+
-+					vi_in3: endpoint {
-+						remote-endpoint = <&csi_out3>;
-+					};
-+				};
-+				port@4 {
-+					reg = <4>;
-+
-+					vi_in4: endpoint {
-+						remote-endpoint = <&csi_out4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+
-+					vi_in5: endpoint {
-+						remote-endpoint = <&csi_out5>;
-+					};
-+				};
-+
-+			};
-+		};
-+
-+		csi@0,54080838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54080838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in0: endpoint@0 {
-+						reg = <0x0>;
-+					};
-+					csi_out0: endpoint@1 {
-+						reg = <0x1>;
-+						remote-endpoint = <&vi_in0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in1: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out1: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in1>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@1,54081038 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081038 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@2 {
-+					reg = <2>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in2: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out2: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in3: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out3: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in3>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@2,54081838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@4 {
-+					reg = <4>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in4: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out4: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in5: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out5: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in5>;
-+					};
-+				};
-+			};
- 		};
- 
- 		tsec@0,54100000 {
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git airspy
+
+for you to fetch changes up to 79d7c879f3a994da146d7c19feb71cd2ab6b2215:
+
+   airspy: increase USB control message buffer size (2015-11-05 05:01:30 
++0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       airspy: increase USB control message buffer size
+
+  drivers/media/usb/airspy/airspy.c | 2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
+
 -- 
-2.1.4
-
+http://palosaari.fi/
