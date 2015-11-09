@@ -1,111 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57124 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161346AbbKFNOZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2015 08:14:25 -0500
-From: Markus Pargmann <mpa@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
-	Markus Pargmann <mpa@pengutronix.de>
-Subject: [PATCH 1/3] [media] mt9v032: Add reset and standby gpios
-Date: Fri,  6 Nov 2015 14:13:43 +0100
-Message-Id: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45272 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893AbbKIVRu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 16:17:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 25/38] staging: media: davinci_vpfe: fix ipipe_mode type
+Date: Mon, 09 Nov 2015 23:18 +0200
+Message-ID: <2336989.CDC8Z195j7@avalon>
+In-Reply-To: <1442842450-29769-26-git-send-email-a.hajda@samsung.com>
+References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com> <1442842450-29769-26-git-send-email-a.hajda@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add optional reset and standby gpios. The reset gpio is used to reset
-the chip in power_on().
+Hi Andrzej,
 
-The standby gpio is not used currently. It is just unset, so the chip is
-not in standby.
+Thank you for the patch.
 
-Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
-Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
- drivers/media/i2c/mt9v032.c                        | 23 ++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+On Monday 21 September 2015 15:33:57 Andrzej Hajda wrote:
+> The variable can take negative values.
+> 
+> The problem has been detected using proposed semantic patch
+> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
+> 
+> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-index 202565313e82..100f0ae43269 100644
---- a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
-@@ -20,6 +20,8 @@ Optional Properties:
- 
- - link-frequencies: List of allowed link frequencies in Hz. Each frequency is
- 	expressed as a 64-bit big-endian integer.
-+- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
-+- standby-gpios: GPIO handle which is connected to the standby pin of the chip.
- 
- For further reading on port node refer to
- Documentation/devicetree/bindings/media/video-interfaces.txt.
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index a68ce94ee097..4aefde9634f5 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -24,6 +24,7 @@
- #include <linux/videodev2.h>
- #include <linux/v4l2-mediabus.h>
- #include <linux/module.h>
-+#include <linux/gpio/consumer.h>
- 
- #include <media/mt9v032.h>
- #include <media/v4l2-ctrls.h>
-@@ -251,6 +252,8 @@ struct mt9v032 {
- 
- 	struct regmap *regmap;
- 	struct clk *clk;
-+	struct gpio_desc *reset_gpio;
-+	struct gpio_desc *standby_gpio;
- 
- 	struct mt9v032_platform_data *pdata;
- 	const struct mt9v032_model_info *model;
-@@ -312,16 +315,26 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
- 	struct regmap *map = mt9v032->regmap;
- 	int ret;
- 
-+	gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
-+
- 	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
- 	if (ret < 0)
- 		return ret;
- 
-+	/* system clock has to be enabled before releasing the reset */
- 	ret = clk_prepare_enable(mt9v032->clk);
- 	if (ret)
- 		return ret;
- 
- 	udelay(1);
- 
-+	gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
-+
-+	/*
-+	 * After releasing reset, it can take up to 1us until the chip is done
-+	 */
-+	udelay(1);
-+
- 	/* Reset the chip and stop data read out */
- 	ret = regmap_write(map, MT9V032_RESET, 1);
- 	if (ret < 0)
-@@ -954,6 +967,16 @@ static int mt9v032_probe(struct i2c_client *client,
- 	if (IS_ERR(mt9v032->clk))
- 		return PTR_ERR(mt9v032->clk);
- 
-+	mt9v032->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
-+						      GPIOD_OUT_HIGH);
-+	if (IS_ERR(mt9v032->reset_gpio))
-+		return PTR_ERR(mt9v032->reset_gpio);
-+
-+	mt9v032->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
-+							GPIOD_OUT_LOW);
-+	if (IS_ERR(mt9v032->standby_gpio))
-+		return PTR_ERR(mt9v032->standby_gpio);
-+
- 	mutex_init(&mt9v032->power_lock);
- 	mt9v032->pdata = pdata;
- 	mt9v032->model = (const void *)did->driver_data;
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c index
+> 2a3a56b..b1d5e23 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+> @@ -254,7 +254,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
+>  	void __iomem *ipipe_base = ipipe->base_addr;
+>  	struct v4l2_mbus_framefmt *outformat;
+>  	u32 color_pat;
+> -	u32 ipipe_mode;
+> +	int ipipe_mode;
+>  	u32 data_path;
+> 
+>  	/* enable clock to IPIPE */
+
 -- 
-2.6.1
+Regards,
+
+Laurent Pinchart
 
