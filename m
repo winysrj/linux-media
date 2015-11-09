@@ -1,119 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56683 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbbKSOvs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 09:51:48 -0500
-Date: Thu, 19 Nov 2015 08:51:43 -0600
-From: Rob Herring <robh@kernel.org>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [Patch v5 2/2] media: v4l: ti-vpe: Document DRA72 CAL h/w module
-Message-ID: <20151119145143.GA21319@rob-hp-laptop>
-References: <1447879632-22635-1-git-send-email-bparrot@ti.com>
- <1447879632-22635-3-git-send-email-bparrot@ti.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44958 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109AbbKINcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 08:32:47 -0500
+From: Markus Pargmann <mpa@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] [media] mt9v032: Do not unset master_mode
+Date: Mon, 09 Nov 2015 14:32:42 +0100
+Message-ID: <1705584.DjrTFzEFXW@adelgunde>
+In-Reply-To: <1542250.4NFmqc20qx@avalon>
+References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de> <1446815625-18413-2-git-send-email-mpa@pengutronix.de> <1542250.4NFmqc20qx@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1447879632-22635-3-git-send-email-bparrot@ti.com>
+Content-Type: multipart/signed; boundary="nextPart2141150.UvXHX27rcF"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 18, 2015 at 02:47:12PM -0600, Benoit Parrot wrote:
-> Device Tree bindings for the DRA72 Camera Adaptation Layer (CAL)
-> H/W module.
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
 
-Acked-by: Rob Herring <robh@kernel.org>
+--nextPart2141150.UvXHX27rcF
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-> ---
->  Documentation/devicetree/bindings/media/ti-cal.txt | 72 ++++++++++++++++++++++
->  1 file changed, 72 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
-> new file mode 100644
-> index 000000000000..ae9b52f37576
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/ti-cal.txt
-> @@ -0,0 +1,72 @@
-> +Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
-> +------------------------------------------------------
-> +
-> +The Camera Adaptation Layer (CAL) is a key component for image capture
-> +applications. The capture module provides the system interface and the
-> +processing capability to connect CSI2 image-sensor modules to the
-> +DRA72x device.
-> +
-> +Required properties:
-> +- compatible: must be "ti,dra72-cal"
-> +- reg:	CAL Top level, Receiver Core #0, Receiver Core #1 and Camera RX
-> +	control address space
-> +- reg-names: cal_top, cal_rx_core0, cal_rx_core1, and camerrx_control
-> +	     registers
-> +- interrupts: should contain IRQ line for the CAL;
-> +
-> +CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
-> +should contain a 'port' child node with child 'endpoint' node. Please
-> +refer to the bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +	cal: cal@4845b000 {
-> +		compatible = "ti,dra72-cal";
-> +		ti,hwmods = "cal";
-> +		reg = <0x4845B000 0x400>,
-> +		      <0x4845B800 0x40>,
-> +		      <0x4845B900 0x40>,
-> +		      <0x4A002e94 0x4>;
-> +		reg-names = "cal_top",
-> +			    "cal_rx_core0",
-> +			    "cal_rx_core1",
-> +			    "camerrx_control";
-> +		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		ports {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			csi2_0: port@0 {
-> +				reg = <0>;
-> +				endpoint {
-> +					slave-mode;
-> +					remote-endpoint = <&ar0330_1>;
-> +				};
-> +			};
-> +			csi2_1: port@1 {
-> +				reg = <1>;
-> +			};
-> +		};
-> +	};
-> +
-> +	i2c5: i2c@4807c000 {
-> +		ar0330@10 {
-> +			compatible = "ti,ar0330";
-> +			reg = <0x10>;
-> +
-> +			port {
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +
-> +				ar0330_1: endpoint {
-> +					reg = <0>;
-> +					clock-lanes = <1>;
-> +					data-lanes = <0 2 3 4>;
-> +					remote-endpoint = <&csi2_0>;
-> +				};
-> +			};
-> +		};
-> +	};
-> -- 
-> 1.8.5.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Laurent,
+
+On Monday 09 November 2015 14:46:42 Laurent Pinchart wrote:
+> Hi Markus,
+>=20
+> Thank you for the patch.
+>=20
+> On Friday 06 November 2015 14:13:44 Markus Pargmann wrote:
+> > The power_on function of the driver resets the chip and sets the
+> > CHIP_CONTROL register to 0. This switches the operating mode to sla=
+ve.
+> > The s_stream function sets the correct mode. But this caused proble=
+ms on
+> > a board where the camera chip is operated as master. The camera sta=
+rted
+> > after a random amount of time streaming an image, I observed betwee=
+n 10
+> > and 300 seconds.
+> >=20
+> > The STRFM_OUT and STLN_OUT pins are not connected on this board whi=
+ch
+> > may cause some issues in slave mode. I could not find any documenta=
+tion
+> > about this.
+> >=20
+> > Keeping the chip in master mode after the reset helped to fix this
+> > issue for me.
+> >=20
+> > Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> > ---
+> >  drivers/media/i2c/mt9v032.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v03=
+2.c
+> > index 4aefde9634f5..943c3f39ea73 100644
+> > --- a/drivers/media/i2c/mt9v032.c
+> > +++ b/drivers/media/i2c/mt9v032.c
+> > @@ -344,7 +344,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9=
+v032)
+> >  =09if (ret < 0)
+> >  =09=09return ret;
+> >=20
+> > -=09return regmap_write(map, MT9V032_CHIP_CONTROL, 0);
+> > +=09return regmap_write(map, MT9V032_CHIP_CONTROL,
+> > +=09=09=09    MT9V032_CHIP_CONTROL_MASTER_MODE);
+>=20
+> This makes sense, but shouldn't you also fix the mt9v032_s_stream() f=
+unction=20
+> then ? It clears the MT9V032_CHIP_CONTROL_MASTER_MODE bit when turnin=
+g the=20
+> stream off.
+
+Oh yes, thanks. Will fix it for the next version.
+
+Best Regards,
+
+Markus
+
+=2D-=20
+Pengutronix e.K.                           |                           =
+  |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
+  |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
+5 |
+
+--nextPart2141150.UvXHX27rcF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJWQKB6AAoJEEpcgKtcEGQQWtgQAIz8EghM3Dx6wvJxwlsgIxHG
+V6sNuVi1nK2zU+1gLgGs9VwYpG2R95hH3WM90RjJmXebc7zyb2WxyQE9HL8yaq1U
+Vjub4Pvbka2Uaa+iG8DTyCr1iFh20Q8LCKeEqYoyfCUzLZi1UoQtk5UcxLYIiGqD
+r6bZvEJPP2qi8VCUfa4o5FQ1ZeUB3m0maLWoOi/HSIBkIZkK0k9raZQJk2eG10q8
+0dEkbkLnhdffphU80aMtWPPzUGSGT0TnJSHrm5hrBb6kHFiO+zJlcUutORwBwAYV
+qiMmMOvdoczcDc8a2N0sa1Fwg89TFPAhdgcO07eurf8OcqdqFuHsuKzcTecaimAq
+ED5o/4utSn1U2YiCWXanZe9J12M/jw4ZRxFufKYN/jCU7m1eApyLd+1thScN1NRh
+02AcBOYszP1J8TDD7wP3QXXyVbSmVDKYtWO2x3jHhKqyoGHtVlhc7KdIwwBr4XgE
+1L4Qv2B8apXy0CkPSj0ZaT4PlTW47rdRBA0hMIoheBbuV8/4IZ70FPtSnRUab5dJ
+/5QKWqNyeN2D6AAdN81LS5r7vJl9w4Q1QSjhap/0B49SkXVcO5OaSNNznW7Uo5Jz
+BHUZ/LQNe/H89VyECdn/jMKXeBLAc0eGGx+uDZjbNoko9epEwOQG9Nj1Q9qPgmFr
+b23P962mIagLI91eSpsZ
+=JFwC
+-----END PGP SIGNATURE-----
+
+--nextPart2141150.UvXHX27rcF--
+
