@@ -1,52 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp04.uk.clara.net ([195.8.89.37]:52992 "EHLO
-	claranet-outbound-smtp04.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750699AbbKYJxx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 04:53:53 -0500
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] cx18: Fix VIDIOC_TRY_FMT to fill in sizeimage and bytesperline
-Date: Wed, 25 Nov 2015 09:53:45 +0000
-Message-ID: <4726783.suCipCVCmC@f19simon>
-In-Reply-To: <CAH-u=81v76v0dYb64RAF-q0fuF2TCor=SKm3h3POpxOO5Fb4YA@mail.gmail.com>
-References: <1448388580-22082-1-git-send-email-simon.farnsworth@onelan.co.uk> <CAH-u=81v76v0dYb64RAF-q0fuF2TCor=SKm3h3POpxOO5Fb4YA@mail.gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44683 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109AbbKIOSh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 09:18:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	iommu@lists.linux-foundation.org, robin.murphy@arm.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Lars-Peter Clausen <lars@metafoo.de>, sakari.ailus@iki.fi,
+	Shuah Khan <shuahkhan@gmail.com>
+Subject: Re: [RFC/PATCH] media: omap3isp: Set maximum DMA segment size
+Date: Mon, 09 Nov 2015 16:18:48 +0200
+Message-ID: <1560214.1Y1q0qLZA4@avalon>
+In-Reply-To: <1444742316-27986-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1444742316-27986-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 24 November 2015 21:27:33 Jean-Michel Hautbois wrote:
+Hello everybody,
 
-> Hi, 
-> Le 24 nov. 2015 19:46, "Simon Farnsworth" <simon.farnsworth@onelan.co.uk> a écrit :
-> >
-> > I was having trouble capturing raw video from GStreamer; turns out that I
-> > now need VIDIOC_TRY_FMT to fill in sizeimage and bytesperline to make it work.
+Ping ?
+
+On Tuesday 13 October 2015 16:18:36 Laurent Pinchart wrote:
+> The maximum DMA segment size controls the IOMMU mapping granularity. Its
+> default value is 64kB, resulting in potentially non-contiguous IOMMU
+> mappings. Configure it to 4GB to ensure that buffers get mapped
+> contiguously.
 > 
-> You could have used v4l2-compliance tool it would give you at least (I don't have the HW to test) this error. Would save your time :-) 
-
-It only took me 2 minutes to find - I'd have spent longer getting
-v4l2-compliance running :)
-
-As I'm not going to have access to the hardware after Friday, I'll leave
-getting a full v4l2-compliance pass to someone else.
-
-> > Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-> > ---
-> >
-> > I'm leaving ONELAN on Friday, so this is a drive-by patch being sent for the
-> > benefit of anyone else trying to use raw capture from a cx18 card. If it's
-> > not suitable for applying as-is, please feel free to just leave it in the
-> > archives so that someone else hitting the same problem can find my fix.
-> >
-<snip>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.c | 4 ++++
+>  drivers/media/platform/omap3isp/isp.h | 1 +
+>  2 files changed, 5 insertions(+)
+> 
+> I'm posting this as an RFC because I'm not happy with the patch, even if it
+> gets the job done.
+> 
+> On ARM the maximum DMA segment size is used when creating IOMMU mappings. As
+> a large number of devices require contiguous memory buffers (this is a very
+> common requirement for video-related embedded devices) the default 64kB
+> value doesn't work.
+> 
+> I haven't investigated the history behind this API in details but I have a
+> feeling something is not quite right. We force most drivers to explicitly
+> set the maximum segment size from a default that seems valid for specific
+> use cases only. Furthermore, as the DMA parameters are not stored directly
+> in struct device this require allocation of external memory for which we
+> have no proper management rule, making automatic handling of the DMA
+> parameters in frameworks or helper functions cumbersome (for a discussion
+> on this topic see http://www.spinics.net/lists/linux-media/msg92467.html
+> and http://lists.infradead.org/pipermail/linux-arm-kernel/2014-> November/305913.html).
+> 
+> Is it time to fix this mess ?
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 17430a6ed85a..ebf7dc76e94d
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2444,6 +2444,10 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		goto error;
+> 
+> +	isp->dev->dma_parms = &isp->dma_parms;
+> +	dma_set_max_seg_size(isp->dev, DMA_BIT_MASK(32));
+> +	dma_set_seg_boundary(isp->dev, 0xffffffff);
+> +
+>  	platform_set_drvdata(pdev, isp);
+> 
+>  	/* Regulators */
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index e579943175c4..4b2231cf01be
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -193,6 +193,7 @@ struct isp_device {
+>  	u32 syscon_offset;
+>  	u32 phy_type;
+> 
+> +	struct device_dma_parameters dma_parms;
+>  	struct dma_iommu_mapping *mapping;
+> 
+>  	/* ISP Obj */
 
 -- 
-Simon Farnsworth
-Software Engineer
-ONELAN Ltd
-http://www.onelan.com
+Regards,
+
+Laurent Pinchart
 
