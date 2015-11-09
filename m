@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:33166 "EHLO mail.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751558AbbK2Q3J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 11:29:09 -0500
-Received: from p57b4ee80.dip0.t-ipconnect.de ([87.180.238.128] helo=abc.local)
-	by mail.sig21.net with esmtpsa (TLS1.1:RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <js@sig21.net>)
-	id 1a34Zl-00049N-Ut
-	for linux-media@vger.kernel.org; Sun, 29 Nov 2015 17:11:50 +0100
-Received: from js by abc.local with local (Exim 4.86)
-	(envelope-from <js@sig21.net>)
-	id 1a34Zl-0006ZI-3k
-	for linux-media@vger.kernel.org; Sun, 29 Nov 2015 17:11:45 +0100
-Date: Sun, 29 Nov 2015 17:11:45 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: linuxtv.org downtime around Mon Nov 30 12:00 UTC
-Message-ID: <20151129161145.GA25209@linuxtv.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44881 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213AbbKIQPq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 11:15:46 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] [media] mt9v032: Add reset and standby gpios
+Date: Mon, 09 Nov 2015 18:15:56 +0200
+Message-ID: <3310512.E4vEfn7BXV@avalon>
+In-Reply-To: <5144598.EqybrDukyg@adelgunde>
+References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de> <1763974.WDKlRvPG0G@avalon> <5144598.EqybrDukyg@adelgunde>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Markus,
 
-the linuxtv.org server will move to a new, freshly installed
-machine tomorrow.  Expect some downtime while we do the
-final rsync and database export+import.  I'm planning
-to start disabling services on the old server about
-30min before 12:00 UTC (13:00 CET) on Mon Nov 30.
-If all goes well the new server will be available
-soon after 12:00 UTC.  The IP address will not change.
+On Monday 09 November 2015 16:33:03 Markus Pargmann wrote:
+> On Monday 09 November 2015 14:28:56 Laurent Pinchart wrote:
+> > On Friday 06 November 2015 14:13:43 Markus Pargmann wrote:
+> >> Add optional reset and standby gpios. The reset gpio is used to reset
+> >> the chip in power_on().
+> >> 
+> >> The standby gpio is not used currently. It is just unset, so the chip is
+> >> not in standby.
+> > 
+> > We could use a gpio hog for this, but given that the standby signal should
+> > eventually get used, and given that specifying it in DT is a good hardware
+> > description, that looks good to me.
+> > 
+> >> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> >> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
+> >>  drivers/media/i2c/mt9v032.c                        | 23 +++++++++++++++
+> >>  2 files changed, 25 insertions(+)
 
+[snip]
 
-Johannes
+> > If you're fine with these changes there's no need to resubmit the patch, I
+> > can fix it when applying it to my tree.
+> 
+> Thanks, I am fine with all your changes. But as there will be a v2 for the
+> other two patches I could as well send an updated version if you wish.
+
+As you wish, both options are fine with me.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
