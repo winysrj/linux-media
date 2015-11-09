@@ -1,410 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35705 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbbKYRie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 12:38:34 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH v2 1/9] [media] tvp5150: convert register access to regmap
-Date: Wed, 25 Nov 2015 18:38:28 +0100
-Message-Id: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44884 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751353AbbKIQSM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 11:18:12 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: pj.assis@gmail.com, remi@remlab.net, notasas@gmail.com,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [RFC 1/2] uvc: Add a quirk flag for cameras that do not produce correct timestamps
+Date: Mon, 09 Nov 2015 18:18:23 +0200
+Message-ID: <1597434.XN0SyepBF3@avalon>
+In-Reply-To: <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20141105161147.GW3136@valkosipuli.retiisi.org.uk> <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Sakari,
 
-Regmap provides built in debugging, caching and provides dedicated accessors
-for bit manipulations in registers, which make the following changes a lot
-simpler.
+On Wednesday 05 November 2014 18:12:33 Sakari Ailus wrote:
+> The UVC devices do produce hardware timestamps according to the spec, but
+> not all cameras implement it or implement it correctly. Add a quirk flag for
+> such devices, and use monotonic timestamp from the end of the frame
+> instead.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 194 ++++++++++++++++++++++++++++++--------------
- 1 file changed, 133 insertions(+), 61 deletions(-)
+I don't think this is the right fix, as the problem seems to come from the 
+driver, not from the camera. I've disabled hardware timestamps by default for 
+now which should work around the problem until I find time to conduct a full 
+investigation and fix it.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 3c5fb2509c47..a7495d2856c3 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -10,6 +10,7 @@
- #include <linux/videodev2.h>
- #include <linux/delay.h>
- #include <linux/module.h>
-+#include <linux/regmap.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/tvp5150.h>
-@@ -37,6 +38,7 @@ struct tvp5150 {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_rect rect;
-+	struct regmap *regmap;
- 
- 	v4l2_std_id norm;	/* Current set standard */
- 	u32 input;
-@@ -56,30 +58,14 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
- 
- static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
- {
--	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	int rc;
--
--	rc = i2c_smbus_read_byte_data(c, addr);
--	if (rc < 0) {
--		v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
--		return rc;
--	}
--
--	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, rc);
--
--	return rc;
--}
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	int ret, val;
- 
--static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
--				 unsigned char value)
--{
--	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	int rc;
-+	ret = regmap_read(decoder->regmap, addr, &val);
-+	if (ret < 0)
-+		return ret;
- 
--	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
--	rc = i2c_smbus_write_byte_data(c, addr, value);
--	if (rc < 0)
--		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
-+	return val;
- }
- 
- static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
-@@ -266,8 +252,8 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
- 			decoder->input, decoder->output,
- 			input, opmode);
- 
--	tvp5150_write(sd, TVP5150_OP_MODE_CTL, opmode);
--	tvp5150_write(sd, TVP5150_VD_IN_SRC_SEL_1, input);
-+	regmap_write(decoder->regmap, TVP5150_OP_MODE_CTL, opmode);
-+	regmap_write(decoder->regmap, TVP5150_VD_IN_SRC_SEL_1, input);
- 
- 	/* Svideo should enable YCrCb output and disable GPCL output
- 	 * For Composite and TV, it should be the reverse
-@@ -282,7 +268,7 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
- 		val = (val & ~0x40) | 0x10;
- 	else
- 		val = (val & ~0x10) | 0x40;
--	tvp5150_write(sd, TVP5150_MISC_CTL, val);
-+	regmap_write(decoder->regmap, TVP5150_MISC_CTL, val);
- };
- 
- struct i2c_reg_value {
-@@ -553,8 +539,10 @@ static struct i2c_vbi_ram_value vbi_ram_default[] =
- static int tvp5150_write_inittab(struct v4l2_subdev *sd,
- 				const struct i2c_reg_value *regs)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+
- 	while (regs->reg != 0xff) {
--		tvp5150_write(sd, regs->reg, regs->value);
-+		regmap_write(decoder->regmap, regs->reg, regs->value);
- 		regs++;
- 	}
- 	return 0;
-@@ -563,22 +551,24 @@ static int tvp5150_write_inittab(struct v4l2_subdev *sd,
- static int tvp5150_vdp_init(struct v4l2_subdev *sd,
- 				const struct i2c_vbi_ram_value *regs)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct regmap *map = decoder->regmap;
- 	unsigned int i;
- 
- 	/* Disable Full Field */
--	tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
-+	regmap_write(map, TVP5150_FULL_FIELD_ENA, 0);
- 
- 	/* Before programming, Line mode should be at 0xff */
- 	for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
--		tvp5150_write(sd, i, 0xff);
-+		regmap_write(map, i, 0xff);
- 
- 	/* Load Ram Table */
- 	while (regs->reg != (u16)-1) {
--		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
--		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
-+		regmap_write(map, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
-+		regmap_write(map, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
- 
- 		for (i = 0; i < 16; i++)
--			tvp5150_write(sd, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
-+			regmap_write(map, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
- 
- 		regs++;
- 	}
-@@ -658,11 +648,11 @@ static int tvp5150_set_vbi(struct v4l2_subdev *sd,
- 	reg=((line-6)<<1)+TVP5150_LINE_MODE_INI;
- 
- 	if (fields&1) {
--		tvp5150_write(sd, reg, type);
-+		regmap_write(decoder->regmap, reg, type);
- 	}
- 
- 	if (fields&2) {
--		tvp5150_write(sd, reg+1, type);
-+		regmap_write(decoder->regmap, reg+1, type);
- 	}
- 
- 	return type;
-@@ -731,7 +721,7 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	}
- 
- 	v4l2_dbg(1, debug, sd, "Set video std register to %d.\n", fmt);
--	tvp5150_write(sd, TVP5150_VIDEO_STD, fmt);
-+	regmap_write(decoder->regmap, TVP5150_VIDEO_STD, fmt);
- 	return 0;
- }
- 
-@@ -777,20 +767,20 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 
- static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct tvp5150 *decoder = to_tvp5150(to_sd(ctrl));
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		tvp5150_write(sd, TVP5150_BRIGHT_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_BRIGHT_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_CONTRAST:
--		tvp5150_write(sd, TVP5150_CONTRAST_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_CONTRAST_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_SATURATION:
--		tvp5150_write(sd, TVP5150_SATURATION_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_SATURATION_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_HUE:
--		tvp5150_write(sd, TVP5150_HUE_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_HUE_CTL, ctrl->val);
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -890,17 +880,17 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
- 			      hmax - rect.top);
- 
--	tvp5150_write(sd, TVP5150_VERT_BLANKING_START, rect.top);
--	tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP,
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
- 		      rect.top + rect.height - hmax);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_MSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
- 		      rect.left >> TVP5150_CROP_SHIFT);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_LSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
- 		      rect.left | (1 << TVP5150_CROP_SHIFT));
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_MSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
- 		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
- 		      TVP5150_CROP_SHIFT);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_LSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
- 		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
- 
- 	decoder->rect = rect;
-@@ -965,22 +955,25 @@ static int tvp5150_s_routing(struct v4l2_subdev *sd,
- 
- static int tvp5150_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+
- 	/* this is for capturing 36 raw vbi lines
- 	   if there's a way to cut off the beginning 2 vbi lines
- 	   with the tvp5150 then the vbi line count could be lowered
- 	   to 17 lines/field again, although I couldn't find a register
- 	   which could do that cropping */
- 	if (fmt->sample_format == V4L2_PIX_FMT_GREY)
--		tvp5150_write(sd, TVP5150_LUMA_PROC_CTL_1, 0x70);
-+		regmap_write(decoder->regmap, TVP5150_LUMA_PROC_CTL_1, 0x70);
- 	if (fmt->count[0] == 18 && fmt->count[1] == 18) {
--		tvp5150_write(sd, TVP5150_VERT_BLANKING_START, 0x00);
--		tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP, 0x01);
-+		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, 0x00);
-+		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP, 0x01);
- 	}
- 	return 0;
- }
- 
- static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *svbi)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
- 	int i;
- 
- 	if (svbi->service_set != 0) {
-@@ -991,17 +984,17 @@ static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_f
- 				       svbi->service_lines[0][i], 0xf0, i, 3);
- 		}
- 		/* Enables FIFO */
--		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 1);
-+		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 1);
- 	} else {
- 		/* Disables FIFO*/
--		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 0);
-+		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 0);
- 
- 		/* Disable Full Field */
--		tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
-+		regmap_write(decoder->regmap, TVP5150_FULL_FIELD_ENA, 0);
- 
- 		/* Disable Line modes */
- 		for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
--			tvp5150_write(sd, i, 0xff);
-+			regmap_write(decoder->regmap, i, 0xff);
- 	}
- 	return 0;
- }
-@@ -1039,7 +1032,9 @@ static int tvp5150_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
- 
- static int tvp5150_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
- {
--	tvp5150_write(sd, reg->reg & 0xff, reg->val & 0xff);
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+
-+	regmap_write(decoder->regmap, reg->reg & 0xff, reg->val & 0xff);
- 	return 0;
- }
- #endif
-@@ -1105,13 +1100,87 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 			I2C Client & Driver
-  ****************************************************************************/
- 
-+static const struct regmap_range tvp5150_readable_ranges[] = {
-+	{
-+		.range_min = TVP5150_VD_IN_SRC_SEL_1,
-+		.range_max = TVP5150_AUTOSW_MSK,
-+	}, {
-+		.range_min = TVP5150_COLOR_KIL_THSH_CTL,
-+		.range_max = TVP5150_CONF_SHARED_PIN,
-+	}, {
-+		.range_min = TVP5150_ACT_VD_CROP_ST_MSB,
-+		.range_max = TVP5150_HORIZ_SYNC_START,
-+	}, {
-+		.range_min = TVP5150_VERT_BLANKING_START,
-+		.range_max = TVP5150_INTT_CONFIG_REG_B,
-+	}, {
-+		.range_min = TVP5150_VIDEO_STD,
-+		.range_max = TVP5150_VIDEO_STD,
-+	}, {
-+		.range_min = TVP5150_CB_GAIN_FACT,
-+		.range_max = TVP5150_REV_SELECT,
-+	}, {
-+		.range_min = TVP5150_MSB_DEV_ID,
-+		.range_max = TVP5150_STATUS_REG_5,
-+	}, {
-+		.range_min = TVP5150_CC_DATA_INI,
-+		.range_max = TVP5150_TELETEXT_FIL_ENA,
-+	}, {
-+		.range_min = TVP5150_INT_STATUS_REG_A,
-+		.range_max = TVP5150_FIFO_OUT_CTRL,
-+	}, {
-+		.range_min = TVP5150_FULL_FIELD_ENA,
-+		.range_max = TVP5150_FULL_FIELD_MODE_REG,
-+	},
-+};
-+
-+bool tvp5150_volatile_reg(struct device *dev, unsigned int reg)
-+{
-+	switch (reg) {
-+	case TVP5150_VERT_LN_COUNT_MSB:
-+	case TVP5150_VERT_LN_COUNT_LSB:
-+	case TVP5150_INT_STATUS_REG_A:
-+	case TVP5150_INT_STATUS_REG_B:
-+	case TVP5150_INT_ACTIVE_REG_B:
-+	case TVP5150_STATUS_REG_1:
-+	case TVP5150_STATUS_REG_2:
-+	case TVP5150_STATUS_REG_3:
-+	case TVP5150_STATUS_REG_4:
-+	case TVP5150_STATUS_REG_5:
-+	/* CC, WSS, VPS, VITC data? */
-+	case TVP5150_VBI_FIFO_READ_DATA:
-+	case TVP5150_VDP_STATUS_REG:
-+	case TVP5150_FIFO_WORD_COUNT:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static const struct regmap_access_table tvp5150_readable_table = {
-+	.yes_ranges = tvp5150_readable_ranges,
-+	.n_yes_ranges = ARRAY_SIZE(tvp5150_readable_ranges),
-+};
-+
-+static struct regmap_config tvp5150_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = 0xff,
-+
-+	.cache_type = REGCACHE_RBTREE,
-+
-+	.rd_table = &tvp5150_readable_table,
-+	.volatile_reg = tvp5150_volatile_reg,
-+};
-+
- static int tvp5150_probe(struct i2c_client *c,
- 			 const struct i2c_device_id *id)
- {
- 	struct tvp5150 *core;
- 	struct v4l2_subdev *sd;
--	int tvp5150_id[4];
--	int i, res;
-+	struct regmap *map;
-+	u8 tvp5150_id[4];
-+	int res;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(c->adapter,
-@@ -1121,6 +1190,10 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
- 	if (!core)
- 		return -ENOMEM;
-+	map = devm_regmap_init_i2c(c, &tvp5150_config);
-+	if (IS_ERR(map))
-+		return PTR_ERR(map);
-+	core->regmap = map;
- 	sd = &core->sd;
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
- 
-@@ -1128,11 +1201,10 @@ static int tvp5150_probe(struct i2c_client *c,
- 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
- 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
- 	 */
--	for (i = 0; i < 4; i++) {
--		res = tvp5150_read(sd, TVP5150_MSB_DEV_ID + i);
--		if (res < 0)
--			return res;
--		tvp5150_id[i] = res;
-+	res = regmap_bulk_read(map, TVP5150_MSB_DEV_ID, tvp5150_id, 4);
-+	if (res < 0) {
-+		dev_err(&c->dev, "reading ID registers failed: %d\n", res);
-+		return res;
- 	}
- 
- 	v4l_info(c, "chip found @ 0x%02x (%s)\n",
-@@ -1143,7 +1215,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 			  tvp5150_id[0], tvp5150_id[1]);
- 
- 		/* ITU-T BT.656.4 timing */
--		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
-+		regmap_write(map, TVP5150_REV_SELECT, 0);
- 	} else {
- 		/* Is TVP5150A */
- 		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c |  6 ++++--
+>  drivers/media/usb/uvc/uvc_video.c | 14 +++++++++++++-
+>  drivers/media/usb/uvc/uvcvideo.h  |  4 +++-
+>  3 files changed, 20 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index 6e92d20..3f6432f 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -141,7 +141,7 @@ static struct vb2_ops uvc_queue_qops = {
+>  };
+> 
+>  int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+> -		    int drop_corrupted)
+> +		   bool drop_corrupted, bool tstamp_eof)
+>  {
+>  	int ret;
+> 
+> @@ -152,7 +152,9 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum
+> v4l2_buf_type type, queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+>  	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+> -		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
+> +		| (tstamp_eof ? V4L2_BUF_FLAG_TSTAMP_SRC_EOF
+> +		   : V4L2_BUF_FLAG_TSTAMP_SRC_SOE);
+> +
+>  	ret = vb2_queue_init(&queue->queue);
+>  	if (ret)
+>  		return ret;
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index df81b9c..f599112 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -382,6 +382,9 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
+> struct uvc_buffer *buf, u16 host_sof;
+>  	u16 dev_sof;
+> 
+> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
+> +		return;
+> +
+>  	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
+>  	case UVC_STREAM_PTS | UVC_STREAM_SCR:
+>  		header_size = 12;
+> @@ -490,6 +493,9 @@ static int uvc_video_clock_init(struct uvc_streaming
+> *stream) {
+>  	struct uvc_clock *clock = &stream->clock;
+> 
+> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
+> +		return 0;
+> +
+>  	spin_lock_init(&clock->lock);
+>  	clock->size = 32;
+> 
+> @@ -615,6 +621,11 @@ void uvc_video_clock_update(struct uvc_streaming
+> *stream, u32 rem;
+>  	u64 y;
+> 
+> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP) {
+> +		v4l2_get_timestamp(&v4l2_buf->timestamp);
+> +		return;
+> +	}
+> +
+>  	spin_lock_irqsave(&clock->lock, flags);
+> 
+>  	if (clock->count < clock->size)
+> @@ -1779,7 +1790,8 @@ int uvc_video_init(struct uvc_streaming *stream)
+>  	atomic_set(&stream->active, 0);
+> 
+>  	/* Initialize the video buffers queue. */
+> -	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
+> +	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param,
+> +			     stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP);
+>  	if (ret)
+>  		return ret;
+> 
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 864ada7..89a638c 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -148,6 +148,7 @@
+>  #define UVC_QUIRK_PROBE_DEF		0x00000100
+>  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+>  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+> +#define UVC_QUIRK_BAD_TIMESTAMP		0x00000800
+> 
+>  /* Format flags */
+>  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+> @@ -622,7 +623,8 @@ extern struct uvc_entity *uvc_entity_by_id(struct
+> uvc_device *dev, int id);
+> 
+>  /* Video buffers queue management. */
+>  extern int uvc_queue_init(struct uvc_video_queue *queue,
+> -		enum v4l2_buf_type type, int drop_corrupted);
+> +		enum v4l2_buf_type type, bool drop_corrupted,
+> +		bool tstamp_eof);
+>  extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+>  		struct v4l2_requestbuffers *rb);
+>  extern void uvc_free_buffers(struct uvc_video_queue *queue);
+
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
