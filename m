@@ -1,112 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44945 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081AbbKPKVY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:24 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 15/16] [media] dvb_frontend: get rid of set_state ops & related data
-Date: Mon, 16 Nov 2015 08:21:12 -0200
-Message-Id: <836b077320f99074f23a74eecaead8edb94015da.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mga09.intel.com ([134.134.136.24]:57856 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751809AbbKIN0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Nov 2015 08:26:45 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 3/4] libv4l2subdev: Add a function to list library supported pixel codes
+Date: Mon,  9 Nov 2015 15:25:24 +0200
+Message-Id: <1447075525-32321-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The get_state()/set_state and the corresponding data types
-(struct tuner_state and enum tuner_param) are old DVB interfaces
-that came from the DVBv3 time.
+Also mark which format definitions are compat definitions for the
+pre-existing codes. This way we don't end up listing the same formats
+twice.
 
-Nowadays, set_params() provide a better way to set the tuner
-and demod parameters. So, no need to keep those legacy stuff,
-as all drivers that were using it got converted.
-
-With this patch, all kABI elements at dvb_frontend.h are now
-documented.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-core/dvb_frontend.h | 23 -----------------------
- drivers/media/tuners/mt2063.c         |  1 -
- 2 files changed, 24 deletions(-)
+ utils/media-ctl/libv4l2subdev.c | 63 +++++++++++++++++++++++------------------
+ utils/media-ctl/v4l2subdev.h    | 11 +++++++
+ 2 files changed, 47 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 58608ae848bf..43acac72cc32 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -135,11 +135,6 @@ struct analog_parameters {
- 	u64 std;
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 607e943..7e0da46 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -718,35 +718,36 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p)
+ static struct {
+ 	const char *name;
+ 	enum v4l2_mbus_pixelcode code;
++	bool compat;
+ } mbus_formats[] = {
+ #include "media-bus-formats.h"
+-	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+-	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+-	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
+-	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
+-	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
+-	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
+-	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
+-	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
+-	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
+-	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8 },
+-	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8 },
+-	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8 },
+-	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8 },
+-	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10 },
+-	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10 },
+-	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10 },
+-	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10 },
+-	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8 },
+-	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8 },
+-	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8 },
+-	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8 },
+-	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12 },
+-	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12 },
+-	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12 },
+-	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12 },
+-	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32 },
+-	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32 },
++	{ "Y8", MEDIA_BUS_FMT_Y8_1X8, true },
++	{ "Y10", MEDIA_BUS_FMT_Y10_1X10, true },
++	{ "Y12", MEDIA_BUS_FMT_Y12_1X12, true },
++	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16, true },
++	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8, true },
++	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8, true },
++	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16, true },
++	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8, true },
++	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8, true },
++	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8, true },
++	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8, true },
++	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8, true },
++	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8, true },
++	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10, true },
++	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10, true },
++	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10, true },
++	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10, true },
++	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8, true },
++	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8, true },
++	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8, true },
++	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8, true },
++	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12, true },
++	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12, true },
++	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12, true },
++	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12, true },
++	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32, true },
++	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32, true },
  };
  
--enum tuner_param {
--	DVBFE_TUNER_FREQUENCY		= (1 <<  0),
--	DVBFE_TUNER_BANDWIDTH		= (1 <<  1),
--};
--
- /**
-  * enum dvbfe_algo - defines the algorithm used to tune into a channel
-  *
-@@ -170,11 +165,6 @@ enum dvbfe_algo {
- 	DVBFE_ALGO_RECOVERY		= (1 << 31)
- };
+ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
+@@ -820,3 +821,11 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
  
--struct tuner_state {
--	u32 frequency;
--	u32 bandwidth;
--};
--
- /**
-  * enum dvbfe_search - search callback possible return status
-  *
-@@ -245,12 +235,6 @@ enum dvbfe_search {
-  *			set_params is preferred.
-  * @set_bandwidth:	Set a new frequency. Please notice that using
-  *			set_params is preferred.
-- * @set_state:		callback function used on some legacy drivers that
-- * 			don't implement set_params in order to set properties.
-- * 			Shouldn't be used on new drivers.
-- * @get_state:		callback function used to get properties by some
-- * 			legacy drivers that don't implement set_params.
-- * 			Shouldn't be used on new drivers.
-  *
-  * NOTE: frequencies used on get_frequency and set_frequency are in Hz for
-  * terrestrial/cable or kHz for satellite.
-@@ -290,13 +274,6 @@ struct dvb_tuner_ops {
- 	 * tuners which require sophisticated tuning loops, controlling each parameter separately. */
- 	int (*set_frequency)(struct dvb_frontend *fe, u32 frequency);
- 	int (*set_bandwidth)(struct dvb_frontend *fe, u32 bandwidth);
--
--	/*
--	 * These are provided separately from set_params in order to facilitate silicon
--	 * tuners which require sophisticated tuning loops, controlling each parameter separately.
--	 */
--	int (*set_state)(struct dvb_frontend *fe, enum tuner_param param, struct tuner_state *state);
--	int (*get_state)(struct dvb_frontend *fe, enum tuner_param param, struct tuner_state *state);
- };
+ 	return fields[i].field;
+ }
++
++enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i)
++{
++	if (i >= ARRAY_SIZE(mbus_formats) || mbus_formats[i].compat)
++		return (enum v4l2_mbus_pixelcode)-1;
++
++	return mbus_formats[i].code;
++}
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 104e420..ef8ef95 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -279,4 +279,15 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
+ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+ 					    unsigned int length);
  
- /**
-diff --git a/drivers/media/tuners/mt2063.c b/drivers/media/tuners/mt2063.c
-index 9e9c5eb4cb66..6457ac91ef09 100644
---- a/drivers/media/tuners/mt2063.c
-+++ b/drivers/media/tuners/mt2063.c
-@@ -225,7 +225,6 @@ struct mt2063_state {
- 	const struct mt2063_config *config;
- 	struct dvb_tuner_ops ops;
- 	struct dvb_frontend *frontend;
--	struct tuner_state status;
- 
- 	u32 frequency;
- 	u32 srate;
++/**
++ * @brief Enumerate library supported media bus pixel codes.
++ * @param i - index starting from zero
++ *
++ * Enumerate pixel codes supported by libv4l2subdev starting from
++ * index 0.
++ *
++ * @return media bus pixelcode on success, -1 on failure.
++ */
++enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i);
++
+ #endif
 -- 
-2.5.0
+2.1.0.231.g7484e3b
 
