@@ -1,126 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:54398 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161169AbbKSUFG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 15:05:06 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 09/10] si2165: Prepare si2165_set_frontend for splitting
-Date: Thu, 19 Nov 2015 21:04:01 +0100
-Message-Id: <1447963442-9764-10-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
-References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+Received: from mout.kundenserver.de ([212.227.17.13]:64629 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbbKIUa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 15:30:58 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: y2038@lists.linaro.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [Y2038] [PATCH v2 9/9] [media] omap3isp: support 64-bit version of omap3isp_stat_data
+Date: Mon, 09 Nov 2015 21:30:41 +0100
+Message-ID: <3870339.ZAkvtJ2orM@wuerfel>
+In-Reply-To: <5733951.qvCn4pc5g5@avalon>
+References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <1442524780-781677-10-git-send-email-arnd@arndb.de> <5733951.qvCn4pc5g5@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c | 51 ++++++++++++++++++++++++++----------
- 1 file changed, 37 insertions(+), 14 deletions(-)
+On Monday 09 November 2015 22:09:26 Laurent Pinchart wrote:
+> Hi Arnd,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 17 September 2015 23:19:40 Arnd Bergmann wrote:
+> > C libraries with 64-bit time_t use an incompatible format for
+> > struct omap3isp_stat_data. This changes the kernel code to
+> > support either version, by moving over the normal handling
+> > to the 64-bit variant, and adding compatiblity code to handle
+> > the old binary format with the existing ioctl command code.
+> > 
+> > Fortunately, the command code includes the size of the structure,
+> > so the difference gets handled automatically.
+> 
+> We plan to design a new interface to handle statistics in V4L2. That API 
+> should support proper 64-bit timestamps out of the box, and will be 
+> implemented by the OMAP3 ISP driver. Userspace should then move to it. I 
+> wonder if it's worth it to fix the existing VIDIOC_OMAP3ISP_STAT_REQ ioctl 
+> given that I expect it to have a handful of users at most.
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 01c9a19..131aef1 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -760,7 +760,7 @@ static int si2165_set_oversamp(struct si2165_state *state, u32 dvb_rate)
- 	do_div(oversamp, dvb_rate);
- 	reg_value = oversamp & 0x3fffffff;
- 
--	/* oversamp, usbdump contained 0x03100000; */
-+	dprintk("%s: Write oversamp=%#x\n", __func__, reg_value);
- 	return si2165_writereg32(state, 0x00e4, reg_value);
- }
- 
-@@ -795,14 +795,6 @@ static int si2165_set_if_freq_shift(struct si2165_state *state)
- 	return si2165_writereg32(state, 0x00e8, reg_value);
- }
- 
--static const struct si2165_reg_value_pair agc_rewrite[] = {
--	{ 0x012a, 0x46 },
--	{ 0x012c, 0x00 },
--	{ 0x012e, 0x0a },
--	{ 0x012f, 0xff },
--	{ 0x0123, 0x70 }
--};
--
- static const struct si2165_reg_value_pair dvbt_regs[] = {
- 	/* standard = DVB-T */
- 	{ 0x00ec, 0x01 },
-@@ -826,12 +818,11 @@ static const struct si2165_reg_value_pair dvbt_regs[] = {
- 	{ 0x0387, 0x00 }
- };
- 
--static int si2165_set_frontend(struct dvb_frontend *fe)
-+static int si2165_set_frontend_dvbt(struct dvb_frontend *fe)
- {
- 	int ret;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct si2165_state *state = fe->demodulator_priv;
--	u8 val[3];
- 	u32 dvb_rate = 0;
- 	u16 bw10k;
- 	u32 bw_hz = p->bandwidth_hz;
-@@ -851,9 +842,6 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = si2165_set_if_freq_shift(state);
--	if (ret < 0)
--		return ret;
- 	/* bandwidth in 10KHz steps */
- 	ret = si2165_writereg16(state, 0x0308, bw10k);
- 	if (ret < 0)
-@@ -866,6 +854,40 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return ret;
- 
-+	return 0;
-+}
-+
-+static const struct si2165_reg_value_pair agc_rewrite[] = {
-+	{ 0x012a, 0x46 },
-+	{ 0x012c, 0x00 },
-+	{ 0x012e, 0x0a },
-+	{ 0x012f, 0xff },
-+	{ 0x0123, 0x70 }
-+};
-+
-+static int si2165_set_frontend(struct dvb_frontend *fe)
-+{
-+	struct si2165_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u32 delsys = p->delivery_system;
-+	int ret;
-+	u8 val[3];
-+
-+	/* initial setting of if freq shift */
-+	ret = si2165_set_if_freq_shift(state);
-+	if (ret < 0)
-+		return ret;
-+
-+	switch (delsys) {
-+	case SYS_DVBT:
-+		ret = si2165_set_frontend_dvbt(fe);
-+		if (ret < 0)
-+			return ret;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	/* dsp_addr_jump */
- 	ret = si2165_writereg32(state, 0x0348, 0xf4000000);
- 	if (ret < 0)
-@@ -886,6 +908,7 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	ret = si2165_writereg8(state, 0x0341, 0x00);
- 	if (ret < 0)
- 		return ret;
-+
- 	/* reset all */
- 	ret = si2165_writereg8(state, 0x00c0, 0x00);
- 	if (ret < 0)
--- 
-2.6.3
+We still need to do something to the driver. The alternative would
+be to make the existing ioctl command optional at kernel compile-time
+so we can still build the driver once we remove the 'struct timeval'
+definition. That patch would add slightly less complexity here
+but also lose functionality.
 
+As my patch here depends on the struct v4l2_timeval I introduced in
+an earlier patch of the series, we will have to change it anyways,
+but I'd prefer to keep the basic idea. Let's get back to this one
+after the v4l_buffer replacement work is done.
+
+	Arnd
