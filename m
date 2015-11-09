@@ -1,93 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56490 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759932AbbKTQe1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:34:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 01/15] DocBook media: update VIDIOC_CREATE_BUFS documentation
-Date: Fri, 20 Nov 2015 17:34:04 +0100
-Message-Id: <1448037258-36305-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45001 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845AbbKIRsW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 12:48:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Suman Anna <s-anna@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/2] ARM: OMAP2+: Remove legacy OMAP3 ISP instantiation
+Date: Mon, 09 Nov 2015 19:48:33 +0200
+Message-ID: <10133709.DpTcCTIhJE@avalon>
+In-Reply-To: <20151012170558.GF23801@atomide.com>
+References: <1437051319-9904-1-git-send-email-laurent.pinchart@ideasonboard.com> <20150914163353.GN4215@atomide.com> <20151012170558.GF23801@atomide.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Tony,
 
-During the Seoul media workshop we decided to relax the VIDIOC_CREATE_BUFS
-specification so it would no longer require drivers to validate the format
-field since almost no driver did that anyway.
+On Monday 12 October 2015 10:05:59 Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [150914 09:37]:
+> > * Suman Anna <s-anna@ti.com> [150914 09:33]:
+> >> On 09/03/2015 05:34 PM, Suman Anna wrote:
+> >>> On 07/16/2015 07:58 AM, Tony Lindgren wrote:
+> >>>> * Laurent Pinchart [150716 05:57]:
+> >>>> The OMAP3 ISP is now fully supported in DT, remove its instantiation
+> >>>>> from C code.
+> >>>> 
+> >>>> Please feel to queue this along with the second patch in this series,
+> >>>> this should not cause any merge conflicts:
+> >>>> 
+> >>>> Acked-by: Tony Lindgren <tony@atomide.com>
+> >>> 
+> >>> Just wondering if you have already queued this, I see the v4l changes
+> >>> in linux-next, but not this patch. Also, can you confirm if this
+> >>> series is making it into 4.3?
+> >> 
+> >> This patch is not in 4.3-rc1, can you pick this up for the next merge
+> >> window? I am gonna send out some additional cleanup patches (removing
+> >> legacy mailbox and iommu pieces) on top on this patch. The second patch
+> >> in this series did make it.
+> > 
+> > OK tagging this one for next, will apply once I'm done with fixes.
+> 
+> Applying into omap-for-v4.4/cleanup finally thanks.
 
-Instead drivers use the buffer size(s) based on the format type and the
-corresponding format fields and will ignore any other fields. If the size
-cannot be used an error is returned, otherwise the size is used as-is.
+Is see that the patch is in your master branch but not your for-next branch. 
+Will it make it to v4.4-rc1 ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-create-bufs.xml       | 30 ++++++++++------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index 8ffe74f..d81fa0d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -58,7 +58,7 @@
-     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
- mapped</link> or <link linkend="userp">user pointer</link> or <link
- linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
--addition to the <constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter
-+addition to the &VIDIOC-REQBUFS; ioctl, when a tighter
- control over buffers is required. This ioctl can be called multiple times to
- create buffers of different sizes.</para>
- 
-@@ -71,30 +71,28 @@ zeroed.</para>
- 
-     <para>The <structfield>format</structfield> field specifies the image format
- that the buffers must be able to handle. The application has to fill in this
--&v4l2-format;. Usually this will be done using the
--<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant> ioctl()
--to ensure that the requested format is supported by the driver. Unsupported
--formats will result in an error.</para>
-+&v4l2-format;. Usually this will be done using the &VIDIOC-TRY-FMT; or &VIDIOC-G-FMT; ioctls
-+to ensure that the requested format is supported by the driver.
-+Based on the format's <structfield>type</structfield> field the requested buffer
-+size (for single-planar) or plane sizes (for multi-planar formats) will be
-+used for the allocated buffers. The driver may return an error if the size(s)
-+are not supported by the hardware (usually because they are too small).</para>
- 
-     <para>The buffers created by this ioctl will have as minimum size the size
--defined by the <structfield>format.pix.sizeimage</structfield> field. If the
-+defined by the <structfield>format.pix.sizeimage</structfield> field (or the
-+corresponding fields for other format types). Usually if the
- <structfield>format.pix.sizeimage</structfield> field is less than the minimum
--required for the given format, then <structfield>sizeimage</structfield> will be
--increased by the driver to that minimum to allocate the buffers. If it is
--larger, then the value will be used as-is. The same applies to the
--<structfield>sizeimage</structfield> field of the
--<structname>v4l2_plane_pix_format</structname> structure in the case of
--multiplanar formats.</para>
-+required for the given format, then an error will be returned since drivers will
-+typically not allow this. If it is larger, then the value will be used as-is.
-+In other words, the driver may reject the requested size, but if it is accepted
-+the driver will use it unchanged.</para>
- 
-     <para>When the ioctl is called with a pointer to this structure the driver
- will attempt to allocate up to the requested number of buffers and store the
- actual number allocated and the starting index in the
- <structfield>count</structfield> and the <structfield>index</structfield> fields
- respectively. On return <structfield>count</structfield> can be smaller than
--the number requested. The driver may also increase buffer sizes if required,
--however, it will not update <structfield>sizeimage</structfield> field values.
--The user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
--information.</para>
-+the number requested.</para>
- 
-     <table pgwide="1" frame="none" id="v4l2-create-buffers">
-       <title>struct <structname>v4l2_create_buffers</structname></title>
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
