@@ -1,70 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:46165
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751166AbbKVJYs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2015 04:24:48 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] soc_camera: constify v4l2_subdev_sensor_ops structures
-Date: Sun, 22 Nov 2015 10:12:56 +0100
-Message-Id: <1448183576-10330-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mailout2.samsung.com ([203.254.224.25]:48832 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750833AbbKIHsD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 02:48:03 -0500
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NXJ01FZJF01U0B0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 09 Nov 2015 16:48:01 +0900 (KST)
+Message-id: <56404FB1.6050401@samsung.com>
+Date: Mon, 09 Nov 2015 16:48:01 +0900
+From: Junghak Sung <jh1009.sung@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, pawel@osciak.com
+Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
+	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
+	rany.kwon@samsung.com
+Subject: Re: [RFC PATCH v9 4/6] media: videobuf2: last_buffer_queued is set at
+ fill_v4l2_buffer()
+References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+ <1446545802-28496-5-git-send-email-jh1009.sung@samsung.com>
+ <563B28A0.8080202@xs4all.nl>
+In-reply-to: <563B28A0.8080202@xs4all.nl>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_subdev_sensor_ops structures are never modified, so declare them
-as const.
 
-Done with the help of Coccinelle.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+On 11/05/2015 07:00 PM, Hans Verkuil wrote:
+> On 11/03/15 11:16, Junghak Sung wrote:
+>> The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
+>> So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
+>> vb2_internal_dqbuf().
+>>
+>> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+>> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+>> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+>> Acked-by: Inki Dae <inki.dae@samsung.com>
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> One comment: I think the struct vb2_buf_ops callbacks can all return void
+> instead of int. I don't think they should ever be allowed to fail.
+>
+> If you agree, then that can be changed in a separate later.
+>
+Dear Hans,
 
----
- drivers/media/i2c/soc_camera/mt9m001.c |    2 +-
- drivers/media/i2c/soc_camera/mt9t031.c |    2 +-
- drivers/media/i2c/soc_camera/mt9v022.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+IMHO, it seems to be better that vb2_buf_ops callbacks return int
+as it is. Because fill_vb2_buffer() includes verifying the bytesused
+value for each plane and checking ALTERNATE field for output buffer.
+It can return fail if the information provided in a v4l2_buffer
+by the userspace is not proper.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/mt9m001.c
-index 2e14e52..69becc3 100644
---- a/drivers/media/i2c/soc_camera/mt9m001.c
-+++ b/drivers/media/i2c/soc_camera/mt9m001.c
-@@ -632,7 +632,7 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
- 	.s_mbus_config	= mt9m001_s_mbus_config,
- };
- 
--static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
-+static const struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
- 	.g_skip_top_lines	= mt9m001_g_skip_top_lines,
- };
- 
-diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
-index 3b6eeed..5c8e3ff 100644
---- a/drivers/media/i2c/soc_camera/mt9t031.c
-+++ b/drivers/media/i2c/soc_camera/mt9t031.c
-@@ -728,7 +728,7 @@ static struct v4l2_subdev_video_ops mt9t031_subdev_video_ops = {
- 	.s_mbus_config	= mt9t031_s_mbus_config,
- };
- 
--static struct v4l2_subdev_sensor_ops mt9t031_subdev_sensor_ops = {
-+static const struct v4l2_subdev_sensor_ops mt9t031_subdev_sensor_ops = {
- 	.g_skip_top_lines	= mt9t031_g_skip_top_lines,
- };
- 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index c2ba1fb..2721e58 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -860,7 +860,7 @@ static struct v4l2_subdev_video_ops mt9v022_subdev_video_ops = {
- 	.s_mbus_config	= mt9v022_s_mbus_config,
- };
- 
--static struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
-+static const struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
- 	.g_skip_top_lines	= mt9v022_g_skip_top_lines,
- };
- 
+Best regards,
+Junghak
 
+> Regards,
+>
+> 	Hans
+>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
+>>   1 file changed, 5 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> index 0ca9f23..b0293df 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> @@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>>   	if (vb2_buffer_in_use(q, vb))
+>>   		b->flags |= V4L2_BUF_FLAG_MAPPED;
+>>
+>> +	if (!q->is_output &&
+>> +		b->flags & V4L2_BUF_FLAG_DONE &&
+>> +		b->flags & V4L2_BUF_FLAG_LAST)
+>> +		q->last_buffer_dequeued = true;
+>> +
+>>   	return 0;
+>>   }
+>>
+>> @@ -579,10 +584,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+>>
+>>   	ret = vb2_core_dqbuf(q, b, nonblocking);
+>>
+>> -	if (!ret && !q->is_output &&
+>> -			b->flags & V4L2_BUF_FLAG_LAST)
+>> -		q->last_buffer_dequeued = true;
+>> -
+>>   	return ret;
+>>   }
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
