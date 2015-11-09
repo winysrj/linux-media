@@ -1,76 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35602 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbbKQKnc (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46658 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751705AbbKID5D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 05:43:32 -0500
-Subject: Re: [PATCH] [media] move media platform data to
- linux/platform_data/media
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-References: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
- <7319142.Cp8MurgLWk@wuerfel>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>,
-	Xiubo Li <Xiubo.Lee@gmail.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Sergey Lapin <slapin@ossfans.org>, Timur Tabi <timur@tabi.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Tomas Cech <sleep_walker@suse.com>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Harald Welte <laforge@openezx.org>,
-	openezx-devel@lists.openezx.org,
-	Russell King <linux@arm.linux.org.uk>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Daniel Ribeiro <drwyrm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Schmidt <stefan@openezx.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Nicolin Chen <nicoleotsuka@gmail.com>,
-	Mark Brown <broonie@kernel.org>, linux-fbdev@vger.kernel.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	David Gibson <david@gibson.dropbear.id.au>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-mmc@vger.kernel.org, Takashi Iwai <tiwai@suse.com>,
-	linux-spi@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>,
-	dmaengine@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Daniel Mack <daniel@zonque.org>
-From: Anton Bondarenko <anton.bondarenko.sama@gmail.com>
-Message-ID: <564B04CF.1090507@gmail.com>
-Date: Tue, 17 Nov 2015 11:43:27 +0100
-MIME-Version: 1.0
-In-Reply-To: <7319142.Cp8MurgLWk@wuerfel>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 8 Nov 2015 22:57:03 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B564EE3981
+	for <linux-media@vger.kernel.org>; Mon,  9 Nov 2015 04:56:56 +0100 (CET)
+Date: Mon, 09 Nov 2015 04:56:56 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151109035656.B564EE3981@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 17.11.2015 10:23, Arnd Bergmann wrote:
-> On Tuesday 17 November 2015 07:15:59 Mauro Carvalho Chehab wrote:
->> Now that media has its own subdirectory inside platform_data,
->> let's move the headers that are already there to such subdir.
->>
->>
->
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+Results of the daily build of media_tree:
 
-Why does dma-imx.h also moved? It's the generic file, not a media specific.
+date:		Mon Nov  9 04:00:15 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	host hardware:	x86_64
+host os:	4.2.0-164
 
-BR, Anton
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
