@@ -1,67 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:44592 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755339AbbKCU6t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 15:58:49 -0500
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Peter Seiderer <ps.report@gmx.net>
-Subject: [v4l-utils 5/5] dvb/keytable: fix missing libintl linking
-Date: Tue,  3 Nov 2015 21:58:40 +0100
-Message-Id: <1446584320-25016-6-git-send-email-thomas.petazzoni@free-electrons.com>
-In-Reply-To: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
-References: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45339 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039AbbKIWBt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 17:01:49 -0500
+Received: from avalon.bb.dnainternet.fi (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id A977421C55
+	for <linux-media@vger.kernel.org>; Mon,  9 Nov 2015 23:01:16 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] media: omap4iss: csi2: Fix IRQ handling when stopping module
+Date: Tue, 10 Nov 2015 00:01:57 +0200
+Message-Id: <1447106517-27086-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1447106517-27086-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1447106517-27086-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Seiderer <ps.report@gmx.net>
+When stopping the CSI2 receiver the s_stream handler will wait for the
+IRQ handler to notice the stop request. The receiver, automatically
+disabled by the hardware after each frame, is then not reenabled by the
+IRQ handler as it returns immediately.
 
-Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+As the IRQ handler check is performed before handling the context IRQ,
+the context IRQ source isn't cleared, and the CSI2 IRQ is then fired
+again immediately. The IRQ handler then fails to notice that the module
+is being stopped, processes the IRQ normally and reenables the CSI2
+hardware.
+
+The problem goes unnoticed at stream stop time, but depending on the IRQ
+and s_stream scheduling timings, the CSI2 receiver can end up being
+hanged and will not produce any interrupt the next time it gets enabled,
+despite being soft-reset then.
+
+Fix this by checking for module stop after clearing the context IRQ
+source.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- utils/dvb/Makefile.am      | 8 ++++----
- utils/keytable/Makefile.am | 1 +
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/staging/media/omap4iss/iss_csi2.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/utils/dvb/Makefile.am b/utils/dvb/Makefile.am
-index 6aae408..a96a1a2 100644
---- a/utils/dvb/Makefile.am
-+++ b/utils/dvb/Makefile.am
-@@ -2,19 +2,19 @@ bin_PROGRAMS = dvb-fe-tool dvbv5-zap dvbv5-scan dvb-format-convert
- man_MANS = dvb-fe-tool.1 dvbv5-zap.1 dvbv5-scan.1 dvb-format-convert.1
+diff --git a/drivers/staging/media/omap4iss/iss_csi2.c b/drivers/staging/media/omap4iss/iss_csi2.c
+index bc83f8246101..b6b5c12b9c9d 100644
+--- a/drivers/staging/media/omap4iss/iss_csi2.c
++++ b/drivers/staging/media/omap4iss/iss_csi2.c
+@@ -674,6 +674,9 @@ static void csi2_isr_ctx(struct iss_csi2_device *csi2,
+ 	status = iss_reg_read(csi2->iss, csi2->regs1, CSI2_CTX_IRQSTATUS(n));
+ 	iss_reg_write(csi2->iss, csi2->regs1, CSI2_CTX_IRQSTATUS(n), status);
  
- dvb_fe_tool_SOURCES = dvb-fe-tool.c
--dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvb_fe_tool_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvb_fe_tool_LDFLAGS = $(ARGP_LIBS) -lm
++	if (omap4iss_module_sync_is_stopping(&csi2->wait, &csi2->stopping))
++		return;
++
+ 	/* Propagate frame number */
+ 	if (status & CSI2_CTX_IRQ_FS) {
+ 		struct iss_pipeline *pipe =
+@@ -776,9 +779,6 @@ void omap4iss_csi2_isr(struct iss_csi2_device *csi2)
+ 		pipe->error = true;
+ 	}
  
- dvbv5_zap_SOURCES = dvbv5-zap.c
--dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvbv5_zap_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvbv5_zap_LDFLAGS = $(ARGP_LIBS) -lm
- 
- dvbv5_scan_SOURCES = dvbv5-scan.c
--dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvbv5_scan_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvbv5_scan_LDFLAGS = $(ARGP_LIBS) -lm
- 
- dvb_format_convert_SOURCES = dvb-format-convert.c
--dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la
-+dvb_format_convert_LDADD = ../../lib/libdvbv5/libdvbv5.la @LIBINTL@
- dvb_format_convert_LDFLAGS = $(ARGP_LIBS) -lm
- 
- EXTRA_DIST = README
-diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
-index 925c8ea..8444ac2 100644
---- a/utils/keytable/Makefile.am
-+++ b/utils/keytable/Makefile.am
-@@ -5,6 +5,7 @@ keytablesystem_DATA = $(srcdir)/rc_keymaps/*
- udevrules_DATA = 70-infrared.rules
- 
- ir_keytable_SOURCES = keytable.c parse.h
-+ir_keytable_LDADD = @LIBINTL@
- ir_keytable_LDFLAGS = $(ARGP_LIBS)
- 
- EXTRA_DIST = 70-infrared.rules rc_keymaps rc_keymaps_userspace gen_keytables.pl ir-keytable.1 rc_maps.cfg
+-	if (omap4iss_module_sync_is_stopping(&csi2->wait, &csi2->stopping))
+-		return;
+-
+ 	/* Successful cases */
+ 	if (csi2_irqstatus & CSI2_IRQ_CONTEXT0)
+ 		csi2_isr_ctx(csi2, &csi2->contexts[0]);
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
