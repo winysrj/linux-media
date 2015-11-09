@@ -1,112 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:41601 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750872AbbKMWzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 17:55:45 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 1/4] cx231xx_dvb: use demod_i2c for demod attach
-Date: Fri, 13 Nov 2015 23:54:55 +0100
-Message-Id: <1447455298-5562-1-git-send-email-zzam@gentoo.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44527 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750868AbbKIMqd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 07:46:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] [media] mt9v032: Do not unset master_mode
+Date: Mon, 09 Nov 2015 14:46:42 +0200
+Message-ID: <1542250.4NFmqc20qx@avalon>
+In-Reply-To: <1446815625-18413-2-git-send-email-mpa@pengutronix.de>
+References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de> <1446815625-18413-2-git-send-email-mpa@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested:
-* CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx
-* CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx
+Hi Markus,
 
-Not Tested:
-* CX231XX_BOARD_HAUPPAUGE_EXETER
-* CX231XX_BOARD_HAUPPAUGE_955Q
+Thank you for the patch.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 8 ++++----
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+On Friday 06 November 2015 14:13:44 Markus Pargmann wrote:
+> The power_on function of the driver resets the chip and sets the
+> CHIP_CONTROL register to 0. This switches the operating mode to slave.
+> The s_stream function sets the correct mode. But this caused problems on
+> a board where the camera chip is operated as master. The camera started
+> after a random amount of time streaming an image, I observed between 10
+> and 300 seconds.
+> 
+> The STRFM_OUT and STLN_OUT pins are not connected on this board which
+> may cause some issues in slave mode. I could not find any documentation
+> about this.
+> 
+> Keeping the chip in master mode after the reset helped to fix this
+> issue for me.
+> 
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> ---
+>  drivers/media/i2c/mt9v032.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index 4aefde9634f5..943c3f39ea73 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -344,7 +344,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	if (ret < 0)
+>  		return ret;
+> 
+> -	return regmap_write(map, MT9V032_CHIP_CONTROL, 0);
+> +	return regmap_write(map, MT9V032_CHIP_CONTROL,
+> +			    MT9V032_CHIP_CONTROL_MASTER_MODE);
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 4a117a5..5d4b285 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -352,7 +352,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_1_MUX_1,
--		.demod_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1_MUX_1,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-@@ -713,7 +713,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_1_MUX_3,
--		.demod_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -752,7 +752,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_1_MUX_3,
--		.demod_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_PAL,
-@@ -791,7 +791,7 @@ struct cx231xx_board cx231xx_boards[] = {
- 		.agc_analog_digital_select_gpio = 0x0c,
- 		.gpio_pin_status_mask = 0x4001000,
- 		.tuner_i2c_master = I2C_1_MUX_3,
--		.demod_i2c_master = I2C_2,
-+		.demod_i2c_master = I2C_1_MUX_3,
- 		.has_dvb = 1,
- 		.demod_addr = 0x0e,
- 		.norm = V4L2_STD_NTSC,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 66ee161..e3594b9 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -725,7 +725,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3305_attach,
- 						&hcw_lgdt3305_config,
--						tuner_i2c);
-+						demod_i2c);
- 
- 		if (dev->dvb->frontend == NULL) {
- 			dev_err(dev->dev,
-@@ -746,7 +746,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(si2165_attach,
- 			&hauppauge_930C_HD_1113xx_si2165_config,
--			tuner_i2c
-+			demod_i2c
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
-@@ -779,7 +779,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(si2165_attach,
- 			&pctv_quatro_stick_1114xx_si2165_config,
--			tuner_i2c
-+			demod_i2c
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
-@@ -835,7 +835,7 @@ static int dvb_init(struct cx231xx *dev)
- 
- 		dev->dvb->frontend = dvb_attach(lgdt3306a_attach,
- 			&hauppauge_955q_lgdt3306a_config,
--			tuner_i2c
-+			demod_i2c
- 			);
- 
- 		if (dev->dvb->frontend == NULL) {
+This makes sense, but shouldn't you also fix the mt9v032_s_stream() function 
+then ? It clears the MT9V032_CHIP_CONTROL_MASTER_MODE bit when turning the 
+stream off.
+
+>  }
+> 
+>  static void mt9v032_power_off(struct mt9v032 *mt9v032)
+
 -- 
-2.6.3
+Regards,
+
+Laurent Pinchart
 
