@@ -1,86 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45626 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932082AbbKSN4p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 08:56:45 -0500
-Date: Thu, 19 Nov 2015 15:56:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] DocBook: only copy stuff to media_api if media xml is
- generated
-Message-ID: <20151119135611.GC17128@valkosipuli.retiisi.org.uk>
-References: <e99ac34ef0b822ac3007b00a499a67eb1af36d9a.1447926299.git.mchehab@osg.samsung.com>
- <20151119101943.GB17128@valkosipuli.retiisi.org.uk>
- <20151119095300.7a296d83@recife.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44966 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682AbbKIRdT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 12:33:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dennis Chen <barracks510@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] USB: uvc: add support for the Microsoft Surface Pro 3 Cameras
+Date: Mon, 09 Nov 2015 19:33:29 +0200
+Message-ID: <3251528.3ev8VpgUrP@avalon>
+In-Reply-To: <1434053610.2501.5.camel@gmail.com>
+References: <1433879614.3036.3.camel@gmail.com> <6864236.zlxWyD7sh8@avalon> <1434053610.2501.5.camel@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20151119095300.7a296d83@recife.lan>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 19, 2015 at 09:53:00AM -0200, Mauro Carvalho Chehab wrote:
-> Em Thu, 19 Nov 2015 12:19:43 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On Thu, Nov 19, 2015 at 07:45:13AM -0200, Mauro Carvalho Chehab wrote:
-> > > It is possible to use:
-> > > 	make DOCBOOKS=device-drivers.xml htmldocs
-> > > 
-> > > To produce just a few docbooks. In such case, the media docs
-> > > won't be built, causing the makefile target to return an error.
-> > > 
-> > > While this is ok for human eyes, if the above is used on an script,
-> > > it would cause troubles.
-> > > 
-> > > Fix it by only creating/filling the media_api directory if the
-> > > media_api.xml is found at DOCBOOKS.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > > ---
-> > >  Documentation/DocBook/media/Makefile | 6 ++++--
-> > >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-> > > index 02848146fc3a..2840ff483d5a 100644
-> > > --- a/Documentation/DocBook/media/Makefile
-> > > +++ b/Documentation/DocBook/media/Makefile
-> > > @@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
-> > >  #
-> > >  
-> > >  install_media_images = \
-> > > -	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
-> > > -	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
-> > > +	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
-> > > +		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
-> > > +		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
-> > > +	fi
-> > >  
-> > >  $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
-> > >  	$(Q)base64 -d $< >$@
-> > 
-> > I'd still copy the files even if the directory was there. It's entirely
-> > possible that new files appeared between the make runs, or that the existing
-> > files changed. cp will just overwrite the targets in that case.
-> > 
-> > Albeit one still has to issue "make cleandocs" to get the DocBook rebuilt.
-> > Oh well... One thing at a time? :-)
-> 
-> I guess you misread the patch...
-> 
-> It unconditionally copy the files even if the media_api directory exists,
+Hi Denis,
 
-Oops. My bad. Feel free to add:
+On Thursday 11 June 2015 13:13:30 Dennis Chen wrote:
+> > Could you please send me the output of 'lsusb -v -d 045e:07be' and
+> > 'lsusb -v -
+> > d 045e:07bf' (running as root if possible) ?
+> 
+> Bus 001 Device 004: ID 045e:07bf Microsoft Corp.
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass          239 Miscellaneous Device
+>   bDeviceSubClass         2 ?
+>   bDeviceProtocol         1 Interface Association
+>   bMaxPacketSize0        64
+>   idVendor           0x045e Microsoft Corp.
+>   idProduct          0x07bf
+>   bcdDevice           21.52
+>   iManufacturer           1 QCM
+>   iProduct                2 Microsoft LifeCam Rear
+>   iSerial                 0
+>   bNumConfigurations      1
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+[snip]
+
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass        14 Video
+>       bInterfaceSubClass      1 Video Control
+>       bInterfaceProtocol      1
+>       iInterface              2 Microsoft LifeCam Rear
+
+[snip]
+
+I see where the problem comes from now. I had missed it before, but your 
+device sets the bInterfaceProtocol value to 1 as it's UVC 1.5 compliant, as 
+opposed to value 0 for UVC 1.1.
+
+The uvcvideo driver doesn't support UVC 1.5 yet. It looks like your camera 
+supports the UVC 1.1 protocol as well, but that's not true of all UVC devices 
+in general. I expect that enabling detection of UVC 1.5 support in the driver 
+will result in issues with UVC 1.5 devices, but on the other hand those 
+devices are currently not supported at all. I'll thus submit a patch to enable 
+UVC 1.5 device detection, and we'll see how that goes. I'll CC you and would 
+appreciate if you could test the patch.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
