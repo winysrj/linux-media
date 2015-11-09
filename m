@@ -1,53 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:23755 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752556AbbKLUwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 15:52:21 -0500
-From: Graham Whaley <graham.whaley@linux.intel.com>
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Cc: Graham Whaley <graham.whaley@linux.intel.com>
-Subject: [PATCH] [media] DocBook/media/Makefile: Do not fail mkdir if dir already exists
-Date: Thu, 12 Nov 2015 20:51:51 +0000
-Message-Id: <1447361511-7994-1-git-send-email-graham.whaley@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44989 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535AbbKIRnK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 12:43:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Zvi Effron <viz+kernel@flippedperspective.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] add interface protocol 1 for Surface Pro 3 cameras
+Date: Mon, 09 Nov 2015 19:43:21 +0200
+Message-ID: <1857618.KAc0uFPV7D@avalon>
+In-Reply-To: <1440457062-2633-1-git-send-email-viz+kernel@flippedperspective.com>
+References: <1440457062-2633-1-git-send-email-viz+kernel@flippedperspective.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 5240f4e68d42 ("[media] DocBook/media/Makefile: Avoid make htmldocs
-to fail") introduced a mkdir which is always called through
-install_media_images from the Documentation/DocBook/Makefile htmldocs rule.
-If you run 'make htmldocs' more than once you get:
+Hi Zvi,
 
- mkdir: cannot create directory ‘./Documentation/DocBook//media_api’:
-  File exists
+Thank you for the patch.
 
-Add -p to the mkdir to continue no matter if the dir already exists.
+On Monday 24 August 2015 15:57:42 Zvi Effron wrote:
+> The cameras on the Surface Pro 3 report interface protocol of 1.
+> The generic USB video class doesn't work for them.
+> This adds entries for the front and rear camera.
 
-Signed-off-by: Graham Whaley <graham.whaley@linux.intel.com>
----
-This error happens for me even on a 'make cleandocs; make htmldocs', so I'm
-not sure how it got through - maybe if you only rebuild a single file each
-time then it does not show up. Odd, maybe it is a specific thing on my system,
-but I can't think of anything that would cause that?
+This doesn't need to be restricted to the Surface Pro 3 cameras as 
+bInterfaceProtocol 1 is (or at least should be) used by all UVC 1.5 devices.
 
- Documentation/DocBook/media/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I've just posted "[PATCH] uvcvideo: Enable UVC 1.5 device detection" to the 
+linux-media mailing list. Could you check whether it fixes your problem ?
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 08527e7ea4d0..02848146fc3a 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -199,7 +199,7 @@ DVB_DOCUMENTED = \
- #
- 
- install_media_images = \
--	$(Q)-mkdir $(MEDIA_OBJ_DIR)/media_api; \
-+	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
- 	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
- 
- $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+> Signed-off-by: Zvi Effron <viz+kernel@flippedperspective.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 4b5b3e8..d2fdbc1 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -2142,6 +2142,22 @@ static struct usb_device_id uvc_ids[] = {
+>  	  .bInterfaceSubClass	= 1,
+>  	  .bInterfaceProtocol	= 0,
+>  	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> +	/* Microsoft Surface Pro 3 LifeCam Front */
+> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> +	  .idVendor		= 0x045e,
+> +	  .idProduct		= 0x07be,
+> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> +	  .bInterfaceSubClass	= 1,
+> +	  .bInterfaceProtocol	= 1 },
+> +	/* Microsoft Surface Pro 3 LifeCam Rear */
+> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> +				| USB_DEVICE_ID_MATCH_INT_INFO,
+> +	  .idVendor		= 0x045e,
+> +	  .idProduct		= 0x07bf,
+> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
+> +	  .bInterfaceSubClass	= 1,
+> +	  .bInterfaceProtocol	= 1 },
+>  	/* Logitech Quickcam Fusion */
+>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> 
+>  				| USB_DEVICE_ID_MATCH_INT_INFO,
+
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
