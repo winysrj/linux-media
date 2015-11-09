@@ -1,273 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39724 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752338AbbK2TWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:42 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v2 03/22] media: Add an API to manage entity enumerations
-Date: Sun, 29 Nov 2015 21:20:04 +0200
-Message-Id: <1448824823-10372-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44500 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840AbbKIM2r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 07:28:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] [media] mt9v032: Add reset and standby gpios
+Date: Mon, 09 Nov 2015 14:28:56 +0200
+Message-ID: <1763974.WDKlRvPG0G@avalon>
+In-Reply-To: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
+References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Markus,
 
-This is useful in e.g. knowing whether certain operations have already
-been performed for an entity. The users include the framework itself (for
-graph walking) and a number of drivers.
+Thank you for the patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c |  39 +++++++++++++
- include/media/media-device.h |  14 +++++
- include/media/media-entity.h | 136 ++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 181 insertions(+), 8 deletions(-)
+On Friday 06 November 2015 14:13:43 Markus Pargmann wrote:
+> Add optional reset and standby gpios. The reset gpio is used to reset
+> the chip in power_on().
+> 
+> The standby gpio is not used currently. It is just unset, so the chip is
+> not in standby.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d11f440..fceaf44 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -213,6 +213,45 @@ void media_gobj_remove(struct media_gobj *gobj)
- }
- 
- /**
-+ * __media_entity_enum_init - Initialise an entity enumeration
-+ *
-+ * @e: Entity enumeration to be initialised
-+ * @idx_max: Maximum number of entities in the enumeration
-+ *
-+ * Returns zero on success or a negative error code.
-+ */
-+int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
-+{
-+	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-+		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
-+			       sizeof(long), GFP_KERNEL);
-+		if (!e->e)
-+			return -ENOMEM;
-+	} else {
-+		e->e = e->__e;
-+	}
-+
-+	bitmap_zero(e->e, idx_max);
-+	e->idx_max = idx_max;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-+
-+/**
-+ * media_entity_enum_cleanup - Release resources of an entity enumeration
-+ *
-+ * @e: Entity enumeration to be released
-+ */
-+void media_entity_enum_cleanup(struct media_entity_enum *e)
-+{
-+	if (e->e != e->__e)
-+		kfree(e->e);
-+	e->e = NULL;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
-+
-+/**
-  * media_entity_init - Initialize a media entity
-  *
-  * @num_pads: Total number of sink and source pads.
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index c0e1764..2d46c66 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -110,6 +110,20 @@ struct media_device {
- /* media_devnode to media_device */
- #define to_media_device(node) container_of(node, struct media_device, devnode)
- 
-+/**
-+ * media_entity_enum_init - Initialise an entity enumeration
-+ *
-+ * @e: Entity enumeration to be initialised
-+ * @mdev: The related media device
-+ *
-+ * Returns zero on success or a negative error code.
-+ */
-+static inline __must_check int media_entity_enum_init(
-+	struct media_entity_enum *e, struct media_device *mdev)
-+{
-+	return __media_entity_enum_init(e, mdev->entity_internal_idx_max + 1);
-+}
-+
- void media_device_init(struct media_device *mdev);
- void media_device_cleanup(struct media_device *mdev);
- int __must_check __media_device_register(struct media_device *mdev,
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d3d3a39..5a0339a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -23,7 +23,7 @@
- #ifndef _MEDIA_ENTITY_H
- #define _MEDIA_ENTITY_H
- 
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/media.h>
-@@ -71,6 +71,30 @@ struct media_gobj {
- 	struct list_head	list;
- };
- 
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+#define MEDIA_ENTITY_ENUM_MAX_ID	64
-+
-+/*
-+ * The number of pads can't be bigger than the number of entities,
-+ * as the worse-case scenario is to have one entity linked up to
-+ * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+ */
-+#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+
-+/* struct media_entity_enum - An enumeration of media entities.
-+ *
-+ * @__e:	Pre-allocated space reserved for media entities if the total
-+ *		number of entities  does not exceed MEDIA_ENTITY_ENUM_MAX_ID.
-+ * @e:		Bit mask in which each bit represents one entity at struct
-+ *		media_entity->internal_idx.
-+ * @idx_max:	Number of bits in the enum.
-+ */
-+struct media_entity_enum {
-+	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-+	unsigned long *e;
-+	int idx_max;
-+};
-+
- struct media_pipeline {
- };
- 
-@@ -307,15 +331,111 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- 	}
- }
- 
--#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
--#define MEDIA_ENTITY_ENUM_MAX_ID	64
-+int __media_entity_enum_init(struct media_entity_enum *e, int idx_max);
-+void media_entity_enum_cleanup(struct media_entity_enum *e);
- 
--/*
-- * The number of pads can't be bigger than the number of entities,
-- * as the worse-case scenario is to have one entity linked up to
-- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+/**
-+ * media_entity_enum_zero - Clear the entire enum
-+ *
-+ * @e: Entity enumeration to be cleared
-  */
--#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+static inline void media_entity_enum_zero(struct media_entity_enum *e)
-+{
-+	bitmap_zero(e->e, e->idx_max);
-+}
-+
-+/**
-+ * media_entity_enum_set - Mark a single entity in the enum
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be marked
-+ */
-+static inline void media_entity_enum_set(struct media_entity_enum *e,
-+					 struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= e->idx_max))
-+		return;
-+
-+	__set_bit(entity->internal_idx, e->e);
-+}
-+
-+/**
-+ * media_entity_enum_clear - Unmark a single entity in the enum
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be unmarked
-+ */
-+static inline void media_entity_enum_clear(struct media_entity_enum *e,
-+					   struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= e->idx_max))
-+		return;
-+
-+	__clear_bit(entity->internal_idx, e->e);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entity is marked
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked.
-+ */
-+static inline bool media_entity_enum_test(struct media_entity_enum *e,
-+					  struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= e->idx_max))
-+		return true;
-+
-+	return test_bit(entity->internal_idx, e->e);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entity is marked, and mark it
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked, and mark it before doing so.
-+ */
-+static inline bool media_entity_enum_test_and_set(struct media_entity_enum *e,
-+						  struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= e->idx_max))
-+		return true;
-+
-+	return __test_and_set_bit(entity->internal_idx, e->e);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entire enum is empty
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked.
-+ */
-+static inline bool media_entity_enum_empty(struct media_entity_enum *e)
-+{
-+	return bitmap_empty(e->e, e->idx_max);
-+}
-+
-+/**
-+ * media_entity_enum_intersects - Test whether two enums intersect
-+ *
-+ * @e: First entity enumeration
-+ * @f: Second entity enumeration
-+ *
-+ * Returns true if entity enumerations e and f intersect, otherwise false.
-+ */
-+static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
-+						struct media_entity_enum *f)
-+{
-+	WARN_ON(e->idx_max != f->idx_max);
-+
-+	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
-+}
- 
- struct media_entity_graph {
- 	struct {
+We could use a gpio hog for this, but given that the standby signal should 
+eventually get used, and given that specifying it in DT is a good hardware 
+description, that looks good to me.
+
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
+>  drivers/media/i2c/mt9v032.c                        | 23 +++++++++++++++++++
+>  2 files changed, 25 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt index
+> 202565313e82..100f0ae43269 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> @@ -20,6 +20,8 @@ Optional Properties:
+> 
+>  - link-frequencies: List of allowed link frequencies in Hz. Each frequency
+> is expressed as a 64-bit big-endian integer.
+> +- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
+> +- standby-gpios: GPIO handle which is connected to the standby pin of the
+> chip.
+> 
+>  For further reading on port node refer to
+>  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index a68ce94ee097..4aefde9634f5 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/v4l2-mediabus.h>
+>  #include <linux/module.h>
+> +#include <linux/gpio/consumer.h>
+
+module.h escaped my vigilance, but let's try to keep headers alphabetically 
+sorted.
+> 
+>  #include <media/mt9v032.h>
+>  #include <media/v4l2-ctrls.h>
+> @@ -251,6 +252,8 @@ struct mt9v032 {
+> 
+>  	struct regmap *regmap;
+>  	struct clk *clk;
+> +	struct gpio_desc *reset_gpio;
+> +	struct gpio_desc *standby_gpio;
+> 
+>  	struct mt9v032_platform_data *pdata;
+>  	const struct mt9v032_model_info *model;
+> @@ -312,16 +315,26 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	struct regmap *map = mt9v032->regmap;
+>  	int ret;
+> 
+> +	gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
+> +
+>  	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> +	/* system clock has to be enabled before releasing the reset */
+
+Nitpicking, the driver capitalizes the first letter of comments.
+
+>  	ret = clk_prepare_enable(mt9v032->clk);
+>  	if (ret)
+>  		return ret;
+> 
+>  	udelay(1);
+> 
+> +	gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
+> +
+> +	/*
+> +	 * After releasing reset, it can take up to 1us until the chip is done
+> +	 */
+> +	udelay(1);
+> +
+
+The delay isn't necessary if there's no reset GPIO. How about
+
+	if (mt9v032->reset_gpio) {
+		gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
+
+		/* After releasing reset, it can take up to 1us until the
+		 * chip is done.
+		 */
+		udelay(1);
+	}
+
+And, according to the datasheet, the delay is 10 SYSCLK periods. 1µs should be 
+safe as the minimum SYSCLK frequency is 13 MHz. I'd still mention it in a 
+comment, maybe as
+
+		/* After releasing reset we need to wait 10 clock cycles
+		 * before accessing the sensor over I2C. As the minimum SYSCLK
+		 * frequency is 13MHz, waiting 1µs will be enough in the worst
+		 * case.
+		 */
+		udelay(1);
+
+If you're fine with these changes there's no need to resubmit the patch, I can 
+fix it when applying it to my tree.
+
+>  	/* Reset the chip and stop data read out */
+>  	ret = regmap_write(map, MT9V032_RESET, 1);
+>  	if (ret < 0)
+> @@ -954,6 +967,16 @@ static int mt9v032_probe(struct i2c_client *client,
+>  	if (IS_ERR(mt9v032->clk))
+>  		return PTR_ERR(mt9v032->clk);
+> 
+> +	mt9v032->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
+> +						      GPIOD_OUT_HIGH);
+> +	if (IS_ERR(mt9v032->reset_gpio))
+> +		return PTR_ERR(mt9v032->reset_gpio);
+> +
+> +	mt9v032->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
+> +							GPIOD_OUT_LOW);
+> +	if (IS_ERR(mt9v032->standby_gpio))
+> +		return PTR_ERR(mt9v032->standby_gpio);
+> +
+>  	mutex_init(&mt9v032->power_lock);
+>  	mt9v032->pdata = pdata;
+>  	mt9v032->model = (const void *)did->driver_data;
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
