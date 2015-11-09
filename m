@@ -1,103 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:41702 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752163AbbKJKAB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 05:00:01 -0500
-Subject: Re: [PATCH 04/19] v4l: omap3isp: fix handling platform_get_irq result
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
- <5373820.hJbPzosF9i@avalon> <56419356.5010603@samsung.com>
- <5162378.EBHhLPCzkm@avalon>
-Cc: linux-kernel@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <5641C00A.9050008@samsung.com>
-Date: Tue, 10 Nov 2015 10:59:38 +0100
-MIME-version: 1.0
-In-reply-to: <5162378.EBHhLPCzkm@avalon>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mga14.intel.com ([192.55.52.115]:32016 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751849AbbKIN0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Nov 2015 08:26:16 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 2/4] libv4l2subdev: Use generated format definitions in libv4l2subdev
+Date: Mon,  9 Nov 2015 15:25:23 +0200
+Message-Id: <1447075525-32321-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/10/2015 09:53 AM, Laurent Pinchart wrote:
-> Hi Andrzej,
->
-> On Tuesday 10 November 2015 07:48:54 Andrzej Hajda wrote:
->> On 11/09/2015 09:16 PM, Laurent Pinchart wrote:
->>> On Thursday 24 September 2015 16:00:12 Andrzej Hajda wrote:
->>>> The function can return negative value.
->>>>
->>>> The problem has been detected using proposed semantic patch
->>>> scripts/coccinelle/tests/assign_signed_to_unsigned.cocci [1].
->>>>
->>>> [1]: http://permalink.gmane.org/gmane.linux.kernel/2046107
->>>>
->>>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->>>> ---
->>>> Hi,
->>>>
->>>> To avoid problems with too many mail recipients I have sent whole
->>>> patchset only to LKML. Anyway patches have no dependencies.
->>>>
->>>>  drivers/media/platform/omap3isp/isp.c | 5 +++--
->>>>  1 file changed, 3 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/media/platform/omap3isp/isp.c
->>>> b/drivers/media/platform/omap3isp/isp.c index 56e683b..df9d2c2 100644
->>>> --- a/drivers/media/platform/omap3isp/isp.c
->>>> +++ b/drivers/media/platform/omap3isp/isp.c
->>>> @@ -2442,12 +2442,13 @@ static int isp_probe(struct platform_device
->>>> *pdev)
->>>>  	}
->>>>  	
->>>>  	/* Interrupt */
->>>> -	isp->irq_num = platform_get_irq(pdev, 0);
->>>> -	if (isp->irq_num <= 0) {
->>>> +	ret = platform_get_irq(pdev, 0);
->>>> +	if (ret <= 0) {
->>> Looking at platform_get_irq() all error values are negative. You could
->>> just test for ret < 0 here, and remove the ret = -ENODEV assignment below
->>> to keep the error code returned by platform_get_irq().
->>>
->>> If you're fine with that modification there's no need to resubmit, just
->>> let me know and I'll fix it when applying it to my tree.
->> I left it as before, as it was not related to the patch. Additionally I have
->> lurked little bit inside platform_get_irq and it looks little bit scary to
->> me: platform_get_irq returns value of of_irq_get if ret >= 0,
->> of_irq_get calls of_irq_parse_one which can return 0,
->> in such case irq_create_of_mapping value is returned which is unsigned int
->> and evaluates to 0 in case of failures.
->> I am not sure if above scenario can ever occur, but the code looks so messy
->> to me, that I gave up :)
->>
->> Anyway if you are sure about your change I am OK with it also :)
-> You're right, that's indeed an issue. It looks like a 0 irq is valid or 
-> invalid depending on who you ask. NO_IRQ is defined differently depending on 
-> the architecture :-/ I'll thus keep your version of the patch.
->
-> Nonetheless, the core issue should be fixed. Do you feel adventurous ? :-)
+Instead of manually adding each and every new media bus pixel code to
+libv4l2subdev, generate the list automatically. The pre-existing formats
+that do not match the list are not modified so that existing users are
+unaffected by this change, with the exception of converting codes to
+strings, which will use the new definitions.
 
-Currently I am busy with other tasks, so I will be happy if somebody will
-take care of it :), if not I will return to it if time permits.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/.gitignore      | 1 +
+ utils/media-ctl/Makefile.am     | 8 ++++++++
+ utils/media-ctl/libv4l2subdev.c | 1 +
+ 3 files changed, 10 insertions(+)
 
-Regards
-Andrzej
-
->
->>>>  		dev_err(isp->dev, "No IRQ resource\n");
->>>>  		ret = -ENODEV;
->>>>  		goto error_iommu;
->>>>  	
->>>>  	}
->>>>
->>>> +	isp->irq_num = ret;
->>>>
->>>>  	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
->>>>  	
->>>>  			     "OMAP3 ISP", isp)) {
+diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+index 95b6a57..8c7d576 100644
+--- a/utils/media-ctl/.gitignore
++++ b/utils/media-ctl/.gitignore
+@@ -1 +1,2 @@
+ media-ctl
++media-bus-formats.h
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index a3931fb..a1a9225 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+ libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+ libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+ 
++media-bus-formats.h: ../../include/linux/media-bus-format.h
++	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
++	< $< > $@
++
++BUILT_SOURCES = media-bus-formats.h
++CLEANFILES = media-bus-formats.h
++
++nodist_libv4l2subdev_la_SOURCES = media-bus-formats.h
+ libv4l2subdev_la_SOURCES = libv4l2subdev.c
+ libv4l2subdev_la_LIBADD = libmediactl.la
+ libv4l2subdev_la_CFLAGS = -static
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index b33d3fd..607e943 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -719,6 +719,7 @@ static struct {
+ 	const char *name;
+ 	enum v4l2_mbus_pixelcode code;
+ } mbus_formats[] = {
++#include "media-bus-formats.h"
+ 	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+ 	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+ 	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
+-- 
+2.1.0.231.g7484e3b
 
