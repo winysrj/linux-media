@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:32779 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755246AbbK0WDF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 17:03:05 -0500
-Received: by wmec201 with SMTP id c201so85285782wme.0
-        for <linux-media@vger.kernel.org>; Fri, 27 Nov 2015 14:03:03 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] media: rc: nuvoton: mark wakeup-related resources
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
-Message-ID: <5658CD64.1030604@gmail.com>
-Date: Fri, 27 Nov 2015 22:38:44 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45325 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792AbbKIVvn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 16:51:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Nate Weibley <nweibley@gmail.com>
+Subject: [PATCH] omap4iss: Fix overlapping luma/chroma planes
+Date: Mon,  9 Nov 2015 23:51:47 +0200
+Message-Id: <1447105907-16508-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When requesting resources use different names for the normal and
-the wakeup part. This makes it easier to interpret the output
-of e.g. /proc/interrupts and /proc/ioports.
+From: Nate Weibley <nweibley@gmail.com>
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+The chroma data base address for NV12 formatted data should begin offset
+rows*bytes_per_row from the base address for luminance data. We were OBO
+causing a stripe of green pixels at the bottom of the frame.
+
+Signed-off-by: Nate Weibley <nweibley@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/rc/nuvoton-cir.c | 4 ++--
+ drivers/staging/media/omap4iss/iss_resizer.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 18adf58..081435c 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1079,12 +1079,12 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 		goto exit_unregister_device;
+Nate, I've split your original patch
+(https://patchwork.linuxtv.org/patch/21816/) in two as the second part still
+needs investigation. I'll push this patch to mainline for v4.5.
+
+diff --git a/drivers/staging/media/omap4iss/iss_resizer.c b/drivers/staging/media/omap4iss/iss_resizer.c
+index 5030cf3cd34c..b7f9f622385c 100644
+--- a/drivers/staging/media/omap4iss/iss_resizer.c
++++ b/drivers/staging/media/omap4iss/iss_resizer.c
+@@ -158,8 +158,8 @@ static void resizer_set_outaddr(struct iss_resizer_device *resizer, u32 addr)
+ 	/* Program UV buffer address... Hardcoded to be contiguous! */
+ 	if ((informat->code == MEDIA_BUS_FMT_UYVY8_1X16) &&
+ 	    (outformat->code == MEDIA_BUS_FMT_YUYV8_1_5X8)) {
+-		u32 c_addr = addr + (resizer->video_out.bpl_value *
+-				     (outformat->height - 1));
++		u32 c_addr = addr + resizer->video_out.bpl_value
++			   * outformat->height;
  
- 	if (!devm_request_region(&pdev->dev, nvt->cir_wake_addr,
--			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
-+			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME "-wake"))
- 		goto exit_unregister_device;
- 
- 	if (devm_request_irq(&pdev->dev, nvt->cir_wake_irq,
- 			     nvt_cir_wake_isr, IRQF_SHARED,
--			     NVT_DRIVER_NAME, (void *)nvt))
-+			     NVT_DRIVER_NAME "-wake", (void *)nvt))
- 		goto exit_unregister_device;
- 
- 	device_init_wakeup(&pdev->dev, true);
+ 		/* Ensure Y_BAD_L[6:0] = C_BAD_L[6:0]*/
+ 		if ((c_addr ^ addr) & 0x7f) {
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
