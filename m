@@ -1,46 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54440 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754642AbbKMLhW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 06:37:22 -0500
-Date: Fri, 13 Nov 2015 09:37:16 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Patrick Boettcher <patrick.boettcher@posteo.de>
-Cc: Alec Leamas <leamas.alec@gmail.com>, linux-media@vger.kernel.org
-Subject: Re:
-Message-ID: <20151113093716.17157745@recife.lan>
-In-Reply-To: <20151113105431.71030921@dibcom294.coe.adi.dibcom.com>
-References: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
-	<5644AD42.4060904@users.sourceforge.net>
-	<20151112152022.4f212b97@recife.lan>
-	<5644CD07.6020303@gmail.com>
-	<20151112154150.33a1979a@recife.lan>
-	<20151113105431.71030921@dibcom294.coe.adi.dibcom.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45166 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750868AbbKITuD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 14:50:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: vinod.koul@intel.com, tony@atomide.com, devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dan.j.williams@intel.com,
+	dmaengine@vger.kernel.org, linux-serial@vger.kernel.org,
+	linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-crypto@vger.kernel.org, linux-spi@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH 12/13] [media] omap3isp: Support for deferred probing when requesting DMA channel
+Date: Mon, 09 Nov 2015 21:50:12 +0200
+Message-ID: <11319647.puY9n5DpsR@avalon>
+In-Reply-To: <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Nov 2015 10:54:31 +0100
-Patrick Boettcher <patrick.boettcher@posteo.de> escreveu:
+Hi Peter,
 
-> On Thu, 12 Nov 2015 15:41:50 -0200 Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > > Is putting the patch in an attachment OK?
-> > 
-> > No, because it doesn't make easy for people to reply with comments.
+Thank you for the patch.
+
+What happened to this patch series ? It looks like 
+dma_request_slave_channel_compat_reason() isn't in mainline, so I can't apply 
+this patch.
+
+I'll mark this patch as deferred in patchwork, please resubmit it if you 
+resubmit the series (and by the look of it the issue you're trying to fix 
+still exists, so it would be nice if you could get it eventually fixed).
+
+On Tuesday 26 May 2015 16:26:07 Peter Ujfalusi wrote:
+> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
+> channel. Only fall back to pio mode if the error code returned is not
+> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
 > 
-> Except if you are using claws. With which you can select text in a text
-> attachment and click the reply button and it will create a response
-> with the selected text in the message body. But only this part, not the
-> rest of the message.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/platform/omap3isp/isphist.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isphist.c
+> b/drivers/media/platform/omap3isp/isphist.c index
+> 7138b043a4aa..e690ca13af0e 100644
+> --- a/drivers/media/platform/omap3isp/isphist.c
+> +++ b/drivers/media/platform/omap3isp/isphist.c
+> @@ -499,14 +499,20 @@ int omap3isp_hist_init(struct isp_device *isp)
+>  		if (res)
+>  			sig = res->start;
+> 
+> -		hist->dma_ch = dma_request_slave_channel_compat(mask,
+> +		hist->dma_ch = dma_request_slave_channel_compat_reason(mask,
+>  				omap_dma_filter_fn, &sig, isp->dev, "hist");
+> -		if (!hist->dma_ch)
+> +		if (IS_ERR(hist->dma_ch)) {
+> +			ret = PTR_ERR(hist->dma_ch);
+> +			if (ret == -EPROBE_DEFER)
+> +				return ret;
+> +
+> +			hist->dma_ch = NULL;
+>  			dev_warn(isp->dev,
+>  				 "hist: DMA channel request failed, using PIO\n");
+> -		else
+> +		} else {
+>  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+>  				dma_chan_name(hist->dma_ch));
+> +		}
+>  	}
+> 
+>  	hist->ops = &hist_ops;
 
-Yes, I use such feature when needed, but then I need to do two "replies"
-and merge on a single reply email, with kinda sucks and spends me more time.
-So, I tend to postpone those patches, if I am in a hurry.
-
-However, lots of developers use mutt, with doesn't have such option.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
