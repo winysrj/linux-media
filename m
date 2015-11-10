@@ -1,81 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:57389 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705AbbKCSko (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 13:40:44 -0500
-Date: Tue, 3 Nov 2015 18:40:19 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Lin PoChun <pochun.lin@mediatek.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	Will Deacon <will.deacon@arm.com>, linux-media@vger.kernel.org,
-	Thierry Reding <treding@nvidia.com>,
-	"open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-	"Bobby Batacharia (via Google Docs)" <Bobby.Batacharia@arm.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:41702 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163AbbKJKAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Nov 2015 05:00:01 -0500
+Subject: Re: [PATCH 04/19] v4l: omap3isp: fix handling platform_get_irq result
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com>
+ <5373820.hJbPzosF9i@avalon> <56419356.5010603@samsung.com>
+ <5162378.EBHhLPCzkm@avalon>
+Cc: linux-kernel@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
 	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Yong Wu <yong.wu@mediatek.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Joerg Roedel <joro@8bytes.org>, thunder.leizhen@huawei.com,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v6 1/3] iommu: Implement common IOMMU ops for DMA mapping
-Message-ID: <20151103184019.GD8644@n2100.arm.linux.org.uk>
-References: <cover.1443718557.git.robin.murphy@arm.com>
- <ab8e1caa40d6da1afa4a49f30242ef4e6e1f17df.1443718557.git.robin.murphy@arm.com>
- <1445867094.30736.14.camel@mhfsdcap03>
- <562E5AE4.9070001@arm.com>
- <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
- <56337E4D.1010304@arm.com>
- <CAGS+omAmxbb4uVzaQh1xPmkFtcF6KP-HSV-40=sm1BRTdh+=OQ@mail.gmail.com>
- <CAAFQd5C_dkWBZrQXtyO59ARw7q-0fg-Wk98yApC5VHdQ8-AmNw@mail.gmail.com>
- <5638F1C4.3000900@arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5638F1C4.3000900@arm.com>
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <5641C00A.9050008@samsung.com>
+Date: Tue, 10 Nov 2015 10:59:38 +0100
+MIME-version: 1.0
+In-reply-to: <5162378.EBHhLPCzkm@avalon>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 03, 2015 at 05:41:24PM +0000, Robin Murphy wrote:
-> Hi Tomasz,
-> 
-> On 02/11/15 13:43, Tomasz Figa wrote:
-> >Agreed. The dma_map_*() API is not guaranteed to return a single
-> >contiguous part of virtual address space for any given SG list.
-> >However it was understood to be able to map buffers contiguously
-> >mappable by the CPU into a single segment and users,
-> >videobuf2-dma-contig in particular, relied on this.
-> 
-> I don't follow that - _any_ buffer made of page-sized chunks is going to be
-> mappable contiguously by the CPU; it's clearly impossible for the streaming
-> DMA API itself to offer such a guarantee, because it's entirely orthogonal
-> to the presence or otherwise of an IOMMU.
+On 11/10/2015 09:53 AM, Laurent Pinchart wrote:
+> Hi Andrzej,
+>
+> On Tuesday 10 November 2015 07:48:54 Andrzej Hajda wrote:
+>> On 11/09/2015 09:16 PM, Laurent Pinchart wrote:
+>>> On Thursday 24 September 2015 16:00:12 Andrzej Hajda wrote:
+>>>> The function can return negative value.
+>>>>
+>>>> The problem has been detected using proposed semantic patch
+>>>> scripts/coccinelle/tests/assign_signed_to_unsigned.cocci [1].
+>>>>
+>>>> [1]: http://permalink.gmane.org/gmane.linux.kernel/2046107
+>>>>
+>>>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>>>> ---
+>>>> Hi,
+>>>>
+>>>> To avoid problems with too many mail recipients I have sent whole
+>>>> patchset only to LKML. Anyway patches have no dependencies.
+>>>>
+>>>>  drivers/media/platform/omap3isp/isp.c | 5 +++--
+>>>>  1 file changed, 3 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/platform/omap3isp/isp.c
+>>>> b/drivers/media/platform/omap3isp/isp.c index 56e683b..df9d2c2 100644
+>>>> --- a/drivers/media/platform/omap3isp/isp.c
+>>>> +++ b/drivers/media/platform/omap3isp/isp.c
+>>>> @@ -2442,12 +2442,13 @@ static int isp_probe(struct platform_device
+>>>> *pdev)
+>>>>  	}
+>>>>  	
+>>>>  	/* Interrupt */
+>>>> -	isp->irq_num = platform_get_irq(pdev, 0);
+>>>> -	if (isp->irq_num <= 0) {
+>>>> +	ret = platform_get_irq(pdev, 0);
+>>>> +	if (ret <= 0) {
+>>> Looking at platform_get_irq() all error values are negative. You could
+>>> just test for ret < 0 here, and remove the ret = -ENODEV assignment below
+>>> to keep the error code returned by platform_get_irq().
+>>>
+>>> If you're fine with that modification there's no need to resubmit, just
+>>> let me know and I'll fix it when applying it to my tree.
+>> I left it as before, as it was not related to the patch. Additionally I have
+>> lurked little bit inside platform_get_irq and it looks little bit scary to
+>> me: platform_get_irq returns value of of_irq_get if ret >= 0,
+>> of_irq_get calls of_irq_parse_one which can return 0,
+>> in such case irq_create_of_mapping value is returned which is unsigned int
+>> and evaluates to 0 in case of failures.
+>> I am not sure if above scenario can ever occur, but the code looks so messy
+>> to me, that I gave up :)
+>>
+>> Anyway if you are sure about your change I am OK with it also :)
+> You're right, that's indeed an issue. It looks like a 0 irq is valid or 
+> invalid depending on who you ask. NO_IRQ is defined differently depending on 
+> the architecture :-/ I'll thus keep your version of the patch.
+>
+> Nonetheless, the core issue should be fixed. Do you feel adventurous ? :-)
 
-Tomasz's use of "virtual address space" above in combination with the
-DMA API is really confusing.
+Currently I am busy with other tasks, so I will be happy if somebody will
+take care of it :), if not I will return to it if time permits.
 
-dma_map_sg() does *not* construct a CPU view of the passed scatterlist.
-The only thing dma_map_sg() might do with virtual addresses is to use
-them as a way to achieve cache coherence for one particular view of
-that memory, that being the kernel's own lowmem mapping and any kmaps.
-It doesn't extend to vmalloc() or userspace mappings of the memory.
+Regards
+Andrzej
 
-If the scatterlist is converted to an array of struct page pointers,
-it's possible to map it with vmap(), but it's implementation defined
-whether such a mapping will receive cache maintanence as part of the
-DMA API or not.  (If you have PIPT caches, it will, if they're VIPT
-caches, maybe not.)
+>
+>>>>  		dev_err(isp->dev, "No IRQ resource\n");
+>>>>  		ret = -ENODEV;
+>>>>  		goto error_iommu;
+>>>>  	
+>>>>  	}
+>>>>
+>>>> +	isp->irq_num = ret;
+>>>>
+>>>>  	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
+>>>>  	
+>>>>  			     "OMAP3 ISP", isp)) {
 
-There is a separate set of calls to deal with the flushing issues for
-vmap()'d memory in this case - see flush_kernel_vmap_range() and
-invalidate_kernel_vmap_range().
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
