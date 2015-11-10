@@ -1,263 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate15.nvidia.com ([216.228.121.64]:10126 "EHLO
-	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752591AbbKKTuu (ORCPT
+Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:36212 "EHLO
+	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750950AbbKJUq4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 14:50:50 -0500
-From: Bryan Wu <pengw@nvidia.com>
-To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
-	<treding@nvidia.com>, <linux-tegra@vger.kernel.org>
-CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
-	<davidw@nvidia.com>, <bmurthyv@nvidia.com>
-Subject: [PATCH 3/3] Documentation: DT bindings: add VI and CSI bindings
-Date: Wed, 11 Nov 2015 11:50:48 -0800
-Message-ID: <1447271448-30056-4-git-send-email-pengw@nvidia.com>
-In-Reply-To: <1447271448-30056-1-git-send-email-pengw@nvidia.com>
-References: <1447271448-30056-1-git-send-email-pengw@nvidia.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 10 Nov 2015 15:46:56 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
+	chehabrafael@gmail.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen v3 5/6] media: Fix compile warning when CONFIG_MEDIA_CONTROLLER_DVB is disabled
+Date: Tue, 10 Nov 2015 13:40:48 -0700
+Message-Id: <534f63cf35f10ef11fa2eeb7c3d5fdb525b3d465.1447184001.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
+References: <cover.1447183999.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
+References: <cover.1447183999.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Bryan Wu <pengw@nvidia.com>
----
- .../display/tegra/nvidia,tegra20-host1x.txt        | 211 ++++++++++++++++++++-
- 1 file changed, 205 insertions(+), 6 deletions(-)
+Fix the following compile warning when CONFIG_MEDIA_CONTROLLER_DVB
+is disabled:
 
-diff --git a/Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt b/Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt
-index f3b545a..dbd3f57 100644
---- a/Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt
-+++ b/Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt
-@@ -40,10 +40,39 @@ of the following host1x client modules:
-   - interrupts: The interrupt outputs from the controller.
-   - clocks: Must contain one entry, for the module clock.
-     See ../clocks/clock-bindings.txt for details.
-+  - clock-names: Must include the following entries:
-+    - vi
-+      This MUST be the first entry.
-+    - csi
-+    - parent
-   - resets: Must contain an entry for each entry in reset-names.
-     See ../reset/reset.txt for details.
-   - reset-names: Must include the following entries:
-     - vi
-+  - power-domains: The power domains settings.
-+    See ../power/power_domain.txt
-+  - iommus: The IOMMU settings.
-+    See ../iommu/iommu.txt
-+  - ports: several VI input ports which connecting CSI ports. Ports contain
-+    several port and each port has one endpoint.
-+    See ../graph.txt and ../media/video-interfaces.txt
-+  - avdd-dsi-csi-supply: a regulator required by VI.
-+
-+- csi: camera serial interface
-+
-+  Required properties:
-+  - compatible: "nvidia,tegra<chip>-csi"
-+  - reg: Physical base address and length of the controller's registers.
-+  - interrupts: The interrupt outputs from the controller.
-+  - clocks: Must contain one entry, for the module clock.
-+    See ../clocks/clock-bindings.txt for details.
-+  - clock-names: Must include the following entries:
-+    - cil
-+      This MUST be the first entry.
-+  - ports: 2 ports presenting 2 channels of CSI. Each port has 2 endpoints:
-+    one connects to sensor device tree node as input and the other one connects
-+    to VI endpoint.
-+    See ../graph.txt and ../media/video-interfaces.txt
- 
- - epp: encoder pre-processor
- 
-@@ -280,13 +309,183 @@ Example:
- 			reset-names = "mpe";
- 		};
- 
--		vi {
--			compatible = "nvidia,tegra20-vi";
--			reg = <0x54080000 0x00040000>;
--			interrupts = <0 69 0x04>;
--			clocks = <&tegra_car TEGRA20_CLK_VI>;
--			resets = <&tegra_car 100>;
-+		vi@0,54080000 {
-+			compatible = "nvidia,tegra210-vi";
-+			reg = <0x0 0x54080000 0x0 0x800>;
-+			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
-+			status = "disabled";
-+			clocks = <&tegra_car TEGRA210_CLK_VI>,
-+				 <&tegra_car TEGRA210_CLK_CSI>,
-+				 <&tegra_car TEGRA210_CLK_PLL_C>;
-+			clock-names = "vi", "csi", "parent";
-+			resets = <&tegra_car 20>;
- 			reset-names = "vi";
-+
-+			power-domains = <&pmc TEGRA_POWERGATE_VENC>;
-+
-+			iommus = <&mc TEGRA_SWGROUP_VI>;
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+
-+					vi_in0: endpoint {
-+						remote-endpoint = <&csi_out0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+
-+					vi_in1: endpoint {
-+						remote-endpoint = <&csi_out1>;
-+					};
-+				};
-+				port@2 {
-+					reg = <2>;
-+
-+					vi_in2: endpoint {
-+						remote-endpoint = <&csi_out2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+
-+					vi_in3: endpoint {
-+						remote-endpoint = <&csi_out3>;
-+					};
-+				};
-+				port@4 {
-+					reg = <4>;
-+
-+					vi_in4: endpoint {
-+						remote-endpoint = <&csi_out4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+
-+					vi_in5: endpoint {
-+						remote-endpoint = <&csi_out5>;
-+					};
-+				};
-+
-+			};
-+		};
-+
-+		csi@0,54080838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54080838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILAB>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@0 {
-+					reg = <0>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in0: endpoint@0 {
-+						reg = <0x0>;
-+					};
-+					csi_out0: endpoint@1 {
-+						reg = <0x1>;
-+						remote-endpoint = <&vi_in0>;
-+					};
-+				};
-+				port@1 {
-+					reg = <1>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in1: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out1: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in1>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@1,54081038 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081038 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILCD>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@2 {
-+					reg = <2>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in2: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out2: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in2>;
-+					};
-+				};
-+				port@3 {
-+					reg = <3>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in3: endpoint@0 {
-+						reg = <0>;
-+					};
-+
-+					csi_out3: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in3>;
-+					};
-+				};
-+			};
-+		};
-+
-+		csi@2,54081838 {
-+			compatible = "nvidia,tegra210-csi";
-+			reg = <0x0 0x54081838 0x0 0x700>;
-+			clocks = <&tegra_car TEGRA210_CLK_CILE>;
-+			clock-names = "cil";
-+
-+			ports {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				port@4 {
-+					reg = <4>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in4: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out4: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in4>;
-+					};
-+				};
-+				port@5 {
-+					reg = <5>;
-+					#address-cells = <1>;
-+					#size-cells = <0>;
-+					csi_in5: endpoint@0 {
-+						reg = <0>;
-+					};
-+					csi_out5: endpoint@1 {
-+						reg = <1>;
-+						remote-endpoint = <&vi_in5>;
-+					};
-+				};
-+			};
- 		};
- 
- 		epp {
+drivers/media/dvb-core/dvb_frontend.c: In function 'dvb_frontend_open':
+drivers/media/dvb-core/dvb_frontend.c:2526:1: warning: label 'err2'
+defined but not used [-Wunused-label] err2:
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 6a759f5..9e7ee83 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2522,8 +2522,8 @@ err3:
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
+ 		fe->dvb->mdev->disable_source(dvbdev->entity);
+-#endif
+ err2:
++#endif
+ 	dvb_generic_release(inode, file);
+ err1:
+ 	if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl)
 -- 
-2.1.4
+2.5.0
 
