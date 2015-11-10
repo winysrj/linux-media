@@ -1,127 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35521 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752014AbbKZDwW (ORCPT
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:46201 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751112AbbKJUq7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 22:52:22 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8A88AE0BBB
-	for <linux-media@vger.kernel.org>; Thu, 26 Nov 2015 04:52:17 +0100 (CET)
-Date: Thu, 26 Nov 2015 04:52:17 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151126035217.8A88AE0BBB@tschai.lan>
+	Tue, 10 Nov 2015 15:46:59 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
+	chehabrafael@gmail.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen v3 6/6] media: au0828-core fix ignoring return value errors
+Date: Tue, 10 Nov 2015 13:40:49 -0700
+Message-Id: <296cd8810aa89866df6a8c1d97e228047b1072cf.1447184001.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
+References: <cover.1447183999.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
+References: <cover.1447183999.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Fix the ignoring return value errors found during kbuild bot
+compile test.
 
-Results of the daily build of media_tree:
+drivers/media/usb/au0828/au0828-core.c:298:5: warning: ignoring
+return value of 'media_create_pad_link', declared with attribute
+warn_unused_result [-Wunused-result]
 
-date:		Thu Nov 26 04:00:22 CET 2015
-git branch:	test
-git hash:	10897dacea26943dd80bd6629117f4620fc320ef
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+drivers/media/usb/au0828/au0828-core.c:356:2: warning: ignoring
+return value of 'media_device_register_entity_notify', declared
+with attribute warn_unused_result [-Wunused-result]
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 3ef6fee..5b595a6 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -299,15 +299,20 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
+ 				if (!tuner)
+ 					break;
+ 
+-				media_create_pad_link(ent, 0, tuner,
+-						      TUNER_PAD_RF_INPUT,
+-						      MEDIA_LNK_FL_ENABLED);
++				ret = media_create_pad_link(ent, 0, tuner,
++							TUNER_PAD_RF_INPUT,
++							MEDIA_LNK_FL_ENABLED);
++				if (ret)
++					pr_err("Create pad link err %d\n", ret);
+ 				break;
+ 			case AU0828_VMUX_COMPOSITE:
+ 			case AU0828_VMUX_SVIDEO:
+ 			default: /* AU0828_VMUX_DEBUG */
+ 				/* FIXME: fix the decoder PAD */
+-				media_create_pad_link(ent, 0, decoder, 0, 0);
++				ret = media_create_pad_link(ent, 0, decoder,
++							    0, 0);
++				if (ret)
++					pr_err("Create pad link err %d\n", ret);
+ 				break;
+ 			}
+ 		}
+@@ -504,7 +509,13 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+ 	/* register entity_notify callback */
+ 	dev->entity_notify.notify_data = (void *) dev;
+ 	dev->entity_notify.notify = au0828_create_media_graph;
+-	media_device_register_entity_notify(mdev, &dev->entity_notify);
++	ret = media_device_register_entity_notify(mdev, &dev->entity_notify);
++	if (ret) {
++		dev_err(&udev->dev,
++			"Couldn't register entity_notify handler. Error: %d\n",
++			ret);
++		return;
++	}
+ 
+ 	/* set enable_source */
+ 	mdev->source_priv = (void *) dev;
+-- 
+2.5.0
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
