@@ -1,192 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60378 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633AbbKCKQq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 05:16:46 -0500
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NX800921HVW7220@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Nov 2015 19:16:44 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v9] Refactoring Videobuf2 for common use
-Date: Tue, 03 Nov 2015 19:16:36 +0900
-Message-id: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48665 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752480AbbKKWfk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Nov 2015 17:35:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] omap3isp: preview: Mark output buffer done first
+Date: Thu, 12 Nov 2015 00:35:48 +0200
+Message-ID: <2356409.LOtBz3DpG7@avalon>
+In-Reply-To: <1447198458-12175-1-git-send-email-sakari.ailus@iki.fi>
+References: <1447198458-12175-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
-This is the 9th round for refactoring Videobuf2(a.k.a VB2).
+Hi Sakari,
 
-The purpose of this patch series is to separate existing VB2 framework
-into core part and V4L2 specific part. So that not only V4L2 but also other
-frameworks can use them to manage buffer and utilize queue.
+Thank you for the patch.
 
-Why do we try to make the VB2 framework to be common?
+On Wednesday 11 November 2015 01:34:18 Sakari Ailus wrote:
+> The sequence number counter is incremented on each output buffer, and that
+> incremented value is used as the sequence number of that buffer. The input
+> buffer sequence numbering is based just on reading the same counter. If
+> the input buffer is marked done first, its sequence number ends up being
+> that of the output buffer - 1.
+> 
+> This is how the resizer works as well.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-As you may know, current DVB framework uses ringbuffer mechanism to demux
-MPEG-2 TS data and pass it to userspace. However, this mechanism requires
-extra memory copy because DVB framework provides only read() system call for
-application - read() system call copies the kernel data to user-space buffer.
-So if we can use VB2 framework which supports streaming I/O and buffer
-sharing mechanism, then we could enhance existing DVB framework by removing
-the extra memory copy - with VB2 framework, application can access the kernel
-data directly through mmap system call.
+I'm always wary when touching interrupt handling in the omap3isp driver, but 
+this change really looks correct and harmless.
 
-We have a plan for this work as follows:
-1. Separate existing VB2 framework into three parts - VB2 core, VB2 v4l2.
-   Of course, this change will not affect other v4l2-based
-   device drivers. This patch series corresponds to this step.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-2. Add and implement new APIs for DVB streaming I/O.
-   We can remove unnecessary memory copy between kernel-space and user-space
-   by using these new APIs. However, we leaves legacy interfaces as-is
-   for backward compatibility.
+and applied to my tree.
 
-This patch series is the first step for it.
-
-Changes since v8
-1. Use u64 for timestamp instead of struct timespec
-struct timespec in vb2-core is replaced with u64 containing nanoseconds,
-because struct timespec is still not safe from the y2038 problem.
-Of course, ktime_get_ns() is also used instead of ktime_get_ts().
-
-Changes since v7
-1. Use struct timespec for timestamp
-struct timespec is used for timestamp in videobuf2 core and vb2 drivers call
-ktime_get_ns() directly instead of calling v4l2_set_timestamp() to handling
-y2038 problem, which is pointed by Hans and Sakari.
-
-Changes since v6
-1. Based on v6
-Patch series v6 was accepted (but, not merged yet). So, this series v7 is
-based on v6.
-
-2. Fix a warning on fimc-lite.c
-In patch series v6, a warning is reported by kbuild robot. So, this warning
-is fixed.
-
-3. Move things related with vb2_thread to core part
-In order to move vb2_thread to vb2-core, these changes below would precede it.
- - timestamp of vb2_v4l2_buffer is moved to vb2_buffer for common use.
- - A flag - which is for checking if vb2-core should set timestamps or not - is
-  added as a member of vb2_queue.
- - Replace v4l2-stuffs with common things in vb2_fileio_data and vb2_thread.
-
-Older versions than v6 have been merged to media_tree. So, I snip the change log
-of those versions, but you can find them at below links.
-
-[1] RFC PATCH v1 - http://www.spinics.net/lists/linux-media/msg90688.html
-[2] RFC PATCH v2 - http://www.spinics.net/lists/linux-media/msg92130.html
-[3] RFC PATCH v3 - http://www.spinics.net/lists/linux-media/msg92953.html
-[4] RFC PATCH v4 - http://www.spinics.net/lists/linux-media/msg93421.html
-[5] RFC PATCH v5 - http://www.spinics.net/lists/linux-media/msg93810.html
-[6] RFC PATCH v6 - http://www.spinics.net/lists/linux-media/msg94112.html
-[7] RFC PATCH v7 - http://www.spinics.net/lists/linux-media/msg94283.html
-
-
-This patch series is based on top version of media_tree.git [8].
-I have applied this patches to my own git [9] and tested this patch series
-with v4l2-compliance util on ubuntu PC(Intel i7-3770) for x86 system
-and odroid-xu3(exynos5422) for ARM.
-
-[8] media_tree.git - http://git.linuxtv.org/cgit.cgi/media_tree.git master
-[9] jsung/dvb-vb2.git - http://git.linuxtv.org/cgit.cgi/jsung/dvb-vb2.git vb2-refactoring
-
-Any suggestions and comments are welcome.
-
-Regards,
-Junghak
-
-Junghak Sung (6):
-  media: videobuf2: Move timestamp to vb2_buffer
-  media: videobuf2: Add set_timestamp to struct vb2_queue
-  media: videobuf2: Separate vb2_poll()
-  media: videobuf2: last_buffer_queued is set at fill_v4l2_buffer()
-  media: videobuf2: Refactor vb2_fileio_data and vb2_thread
-  media: videobuf2: Move vb2_fileio_data and vb2_thread to core part
-
- drivers/input/touchscreen/sur40.c                  |    2 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c          |    2 +-
- drivers/media/pci/cobalt/cobalt-irq.c              |    2 +-
- drivers/media/pci/cx23885/cx23885-core.c           |    2 +-
- drivers/media/pci/cx23885/cx23885-video.c          |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |    2 +-
- drivers/media/pci/cx88/cx88-core.c                 |    2 +-
- drivers/media/pci/dt3155/dt3155.c                  |    2 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |    2 +-
- drivers/media/pci/saa7134/saa7134-core.c           |    2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |    4 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         |    2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |    2 +-
- drivers/media/pci/tw68/tw68-video.c                |    2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |    2 +-
- drivers/media/platform/blackfin/bfin_capture.c     |    2 +-
- drivers/media/platform/coda/coda-bit.c             |    6 +-
- drivers/media/platform/coda/coda.h                 |    2 +-
- drivers/media/platform/davinci/vpbe_display.c      |    2 +-
- drivers/media/platform/davinci/vpif_capture.c      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |    6 +-
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |    4 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |    2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |    2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |    2 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |    2 +-
- drivers/media/platform/m2m-deinterlace.c           |    2 +-
- drivers/media/platform/marvell-ccic/mcam-core.c    |    2 +-
- drivers/media/platform/mx2_emmaprp.c               |    2 +-
- drivers/media/platform/omap3isp/ispvideo.c         |    2 +-
- drivers/media/platform/rcar_jpu.c                  |    2 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |    2 +-
- drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |    4 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |    4 +-
- drivers/media/platform/sh_veu.c                    |    2 +-
- drivers/media/platform/sh_vou.c                    |    2 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |    2 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |    2 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |    2 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |    2 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |    4 +-
- drivers/media/platform/ti-vpe/vpe.c                |    2 +-
- drivers/media/platform/vim2m.c                     |    2 +-
- drivers/media/platform/vivid/vivid-kthread-cap.c   |    7 +-
- drivers/media/platform/vivid/vivid-kthread-out.c   |   10 +-
- drivers/media/platform/vivid/vivid-sdr-cap.c       |    5 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |   10 +-
- drivers/media/platform/vsp1/vsp1_video.c           |    2 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |    2 +-
- drivers/media/usb/airspy/airspy.c                  |    2 +-
- drivers/media/usb/au0828/au0828-video.c            |    2 +-
- drivers/media/usb/em28xx/em28xx-video.c            |    2 +-
- drivers/media/usb/go7007/go7007-driver.c           |    2 +-
- drivers/media/usb/hackrf/hackrf.c                  |    4 +-
- drivers/media/usb/pwc/pwc-if.c                     |    3 +-
- drivers/media/usb/s2255/s2255drv.c                 |    2 +-
- drivers/media/usb/stk1160/stk1160-video.c          |    2 +-
- drivers/media/usb/usbtv/usbtv-video.c              |    2 +-
- drivers/media/usb/uvc/uvc_video.c                  |   15 +-
- drivers/media/v4l2-core/videobuf2-core.c           |  777 +++++++++++++++++++-
- drivers/media/v4l2-core/videobuf2-internal.h       |  161 ----
- drivers/media/v4l2-core/videobuf2-v4l2.c           |  645 +---------------
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |    2 +-
- drivers/staging/media/omap4iss/iss_video.c         |    2 +-
- drivers/usb/gadget/function/uvc_queue.c            |    2 +-
- include/media/videobuf2-core.h                     |   47 ++
- include/media/videobuf2-v4l2.h                     |   40 +-
- include/trace/events/v4l2.h                        |    4 +-
- include/trace/events/vb2.h                         |    7 +-
- 71 files changed, 942 insertions(+), 925 deletions(-)
- delete mode 100644 drivers/media/v4l2-core/videobuf2-internal.h
+> ---
+>  drivers/media/platform/omap3isp/isppreview.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isppreview.c
+> b/drivers/media/platform/omap3isp/isppreview.c index cfb2debb..1478076
+> 100644
+> --- a/drivers/media/platform/omap3isp/isppreview.c
+> +++ b/drivers/media/platform/omap3isp/isppreview.c
+> @@ -1480,13 +1480,6 @@ static void preview_isr_buffer(struct isp_prev_device
+> *prev) struct isp_buffer *buffer;
+>  	int restart = 0;
+> 
+> -	if (prev->input == PREVIEW_INPUT_MEMORY) {
+> -		buffer = omap3isp_video_buffer_next(&prev->video_in);
+> -		if (buffer != NULL)
+> -			preview_set_inaddr(prev, buffer->dma);
+> -		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
+> -	}
+> -
+>  	if (prev->output & PREVIEW_OUTPUT_MEMORY) {
+>  		buffer = omap3isp_video_buffer_next(&prev->video_out);
+>  		if (buffer != NULL) {
+> @@ -1496,6 +1489,13 @@ static void preview_isr_buffer(struct isp_prev_device
+> *prev) pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
+>  	}
+> 
+> +	if (prev->input == PREVIEW_INPUT_MEMORY) {
+> +		buffer = omap3isp_video_buffer_next(&prev->video_in);
+> +		if (buffer != NULL)
+> +			preview_set_inaddr(prev, buffer->dma);
+> +		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
+> +	}
+> +
+>  	switch (prev->state) {
+>  	case ISP_PIPELINE_STREAM_SINGLESHOT:
+>  		if (isp_pipeline_ready(pipe))
 
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
