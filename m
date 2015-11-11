@@ -1,127 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56456 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751840AbbK3Dxh (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59937 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751115AbbKKNzg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 22:53:37 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 497B4E0BBC
-	for <linux-media@vger.kernel.org>; Mon, 30 Nov 2015 04:53:31 +0100 (CET)
-Date: Mon, 30 Nov 2015 04:53:31 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151130035331.497B4E0BBC@tschai.lan>
+	Wed, 11 Nov 2015 08:55:36 -0500
+Subject: Re: [PATCH 1/1] v4l2-device: Don't unregister ACPI/Device Tree based
+ devices
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1447249846-18864-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Tommi Franttila <tommi.franttila@intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <564348C1.1050503@xs4all.nl>
+Date: Wed, 11 Nov 2015 14:55:13 +0100
+MIME-Version: 1.0
+In-Reply-To: <1447249846-18864-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 11/11/15 14:50, Sakari Ailus wrote:
+> From: Tommi Franttila <tommi.franttila@intel.com>
+> 
+> When a V4L2 sub-device backed by a DT or ACPI based device was removed,
+> the device was unregistered as well which certainly was not intentional,
+> as the client device would not be re-created by simply reinstating the
+> V4L2 sub-device (indeed the device would have to be there first!).
+> 
+> Skip unregistering the device in case it has non-NULL of_node or fwnode.
+> 
+> Signed-off-by: Tommi Franttila <tommi.franttila@intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-device.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> index 5b0a30b..3c8cc9a 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -122,7 +122,8 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+>  			   We cannot rely on i2c_del_adapter to always
+>  			   unregister clients for us, since if the i2c bus
+>  			   is a platform bus, then it is never deleted. */
 
-Results of the daily build of media_tree:
+Can this comment be extended? This is non-trivial and it is helpful to
+document this. Other than that it looks good.
 
-date:		Mon Nov 30 04:00:51 CET 2015
-git branch:	test
-git hash:	10897dacea26943dd80bd6629117f4620fc320ef
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+Thanks,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> -			if (client)
+> +			if (client &&
+> +			    !client->dev.of_node && !client->dev.fwnode)
+>  				i2c_unregister_device(client);
+>  			continue;
+>  		}
+> @@ -131,7 +132,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+>  		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
+>  			struct spi_device *spi = v4l2_get_subdevdata(sd);
+>  
+> -			if (spi)
+> +			if (spi && !spi->dev.of_node && !spi->dev.fwnode)
+>  				spi_unregister_device(spi);
+>  			continue;
+>  		}
+> 
