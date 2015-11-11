@@ -1,71 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:60729 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909AbbKQUqe (ORCPT
+Received: from hqemgate15.nvidia.com ([216.228.121.64]:10125 "EHLO
+	hqemgate15.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbbKKTut (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 15:46:34 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mark Brown <broonie@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Acked-by\: Arnd Bergmann" <arnd@arndb.de>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Russell King <linux@arm.linux.org.uk>,
-	Daniel Mack <daniel@zonque.org>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Daniel Ribeiro <drwyrm@gmail.com>,
-	Stefan Schmidt <stefan@openezx.org>,
-	Harald Welte <laforge@openezx.org>,
-	Tomas Cech <sleep_walker@suse.com>,
-	Sergey Lapin <slapin@ossfans.org>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Timur Tabi <timur@tabi.org>,
-	Nicolin Chen <nicoleotsuka@gmail.com>,
-	Xiubo Li <Xiubo.Lee@gmail.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	David Gibson <david@gibson.dropbear.id.au>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, dmaengine@vger.kernel.org,
-	linux-mmc@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-serial@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH] [media] move media platform data to linux/platform_data/media
-References: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
-	<20151117103708.GL31303@sirena.org.uk>
-Date: Tue, 17 Nov 2015 21:46:08 +0100
-In-Reply-To: <20151117103708.GL31303@sirena.org.uk> (Mark Brown's message of
-	"Tue, 17 Nov 2015 10:37:08 +0000")
-Message-ID: <87wptg8icv.fsf@belgarion.home>
+	Wed, 11 Nov 2015 14:50:49 -0500
+From: Bryan Wu <pengw@nvidia.com>
+To: <hansverk@cisco.com>, <linux-media@vger.kernel.org>,
+	<treding@nvidia.com>, <linux-tegra@vger.kernel.org>
+CC: <ebrower@nvidia.com>, <jbang@nvidia.com>, <swarren@nvidia.com>,
+	<davidw@nvidia.com>, <bmurthyv@nvidia.com>
+Subject: [PATCH 0/3 RFC v5] media: platform: add NVIDIA Tegra VI driver
+Date: Wed, 11 Nov 2015 11:50:45 -0800
+Message-ID: <1447271448-30056-1-git-send-email-pengw@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark Brown <broonie@kernel.org> writes:
+This patchset add and enable V4L2 driver for latest NVIDIA Tegra
+Video Input hardware controller.
 
-> On Tue, Nov 17, 2015 at 07:15:59AM -0200, Mauro Carvalho Chehab wrote:
->> Now that media has its own subdirectory inside platform_data,
->> let's move the headers that are already there to such subdir.
->
-> Acked-by: Mark Brown <broonie@kernel.org>
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+It's based on the staging/work branch of Thierry Reding Tegra
+upstream kernel github repo, which is based on 4.3.0-next-20151106.
+(https://github.com/thierryreding/linux/tree/staging/work)
 
-Cheers.
+v5:
+  - Introduce 2 kthreads for capture
+    Use one kthread to start capture a frame and wait for next frame
+    start. Before waiting, it will move the current buffer to another queue
+    which will be handled by the second kthread.
+    
+    The second kthread (capture_done) will wait for memory output done
+    sync point event and hand over the buffer to videobuffer2 framework as
+    capture done.
+
+  - Fix building issue after upstream V4L2 API changed
+
+  - Fix one potential race condition
+    Increase syncpoint max value before arming syncshot capture
+
+  - Remove freezer in kthread since it's problematic according latest
+    discussion in 2015 Kernel Summit
+  - Verify with a real sensor module (OV5693)
+
+v4:
+  - fix all the coding style issues
+  - solve all the minor problems pointed out by Hans Verkuil
+
+v3:
+  - rework on the locking code related to kthread
+  - remove some dead code
+  - other fixes
+
+v2:
+  - allocate kthread for each channel instead of workqueue
+  - create tegra-csi as a separated V4L2 subdevice
+  - define all the register bits needed in this driver
+  - add device tree binding document
+  - update things according to Hans and Thierry's review.
+
+Bryan Wu (3):
+  [media] v4l: tegra: Add NVIDIA Tegra VI driver
+  ARM64: add tegra-vi support in T210 device-tree
+  Documentation: DT bindings: add VI and CSI bindings
+
+ .../display/tegra/nvidia,tegra20-host1x.txt        | 211 ++++-
+ arch/arm64/boot/dts/nvidia/tegra210-p2571.dts      |   8 +
+ arch/arm64/boot/dts/nvidia/tegra210.dtsi           | 174 ++++-
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/tegra/Kconfig               |  10 +
+ drivers/media/platform/tegra/Makefile              |   3 +
+ drivers/media/platform/tegra/tegra-channel.c       | 849 +++++++++++++++++++++
+ drivers/media/platform/tegra/tegra-core.c          | 254 ++++++
+ drivers/media/platform/tegra/tegra-core.h          | 162 ++++
+ drivers/media/platform/tegra/tegra-csi.c           | 560 ++++++++++++++
+ drivers/media/platform/tegra/tegra-vi.c            | 732 ++++++++++++++++++
+ drivers/media/platform/tegra/tegra-vi.h            | 213 ++++++
+ 13 files changed, 3172 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/media/platform/tegra/Kconfig
+ create mode 100644 drivers/media/platform/tegra/Makefile
+ create mode 100644 drivers/media/platform/tegra/tegra-channel.c
+ create mode 100644 drivers/media/platform/tegra/tegra-core.c
+ create mode 100644 drivers/media/platform/tegra/tegra-core.h
+ create mode 100644 drivers/media/platform/tegra/tegra-csi.c
+ create mode 100644 drivers/media/platform/tegra/tegra-vi.c
+ create mode 100644 drivers/media/platform/tegra/tegra-vi.h
 
 -- 
-Robert
+2.1.4
+
