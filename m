@@ -1,95 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44903 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526AbbKPKVX (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49423 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752186AbbKKMLe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 05/16] [media] demux.h: Some documentation fixups for the header
-Date: Mon, 16 Nov 2015 08:21:02 -0200
-Message-Id: <78c7e8322d21e3de1d7ce675e33413e1435d75d7.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Wed, 11 Nov 2015 07:11:34 -0500
+Subject: Re: [PATCH] v4l2-core/v4l2-ctrls: Filter NOOP CH_RANGE events
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Dimitrios Katsaros <patcherwork@gmail.com>
+References: <1447243114-1011-1-git-send-email-ricardo.ribalda@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56433063.3010401@xs4all.nl>
+Date: Wed, 11 Nov 2015 13:11:15 +0100
+MIME-Version: 1.0
+In-Reply-To: <1447243114-1011-1-git-send-email-ricardo.ribalda@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DocBook description of this header has two issues:
-- It calls the Kernel ABI as API, instead of kABI;
-- It mentions that the DVB frontend kABI is not described
-  within the document. As this will actually generate a
-  single DocBook, this is actually not true, now that
-  the documentation for the frontend was added.
+On 11/11/15 12:58, Ricardo Ribalda Delgado wrote:
+> If modify_range is called but no range is changed, do not send the
+> CH_RANGE event.
 
-So, fix both issues.
+While not opposed to this patch, I do wonder what triggered this patch?
+Is it just a matter of efficiency? And since it is a driver that calls
+this, shouldn't the driver only call this function when something
+actually changes?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-core/demux.h | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+In other words, can you give some background information?
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index f716e14f995f..6d3b95b8939d 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -35,31 +35,31 @@
- /**
-  * DOC: Digital TV Demux
-  *
-- * The kernel demux API defines a driver-internal interface for registering
-- * low-level, hardware specific driver to a hardware independent demux layer.
-- * It is only of interest for Digital TV device driver writers.
-- * The header file for this API is named demux.h and located in
-+ * The Kernel Digital TV Demux kABI defines a driver-internal interface for
-+ * registering low-level, hardware specific driver to a hardware independent
-+ * demux layer. It is only of interest for Digital TV device driver writers.
-+ * The header file for this kABI is named demux.h and located in
-  * drivers/media/dvb-core.
-  *
-- * The demux API should be implemented for each demux in the system. It is
-+ * The demux kABI should be implemented for each demux in the system. It is
-  * used to select the TS source of a demux and to manage the demux resources.
-- * When the demux client allocates a resource via the demux API, it receives
-- * a pointer to the API of that	resource.
-+ * When the demux client allocates a resource via the demux kABI, it receives
-+ * a pointer to the kABI of that resource.
-  *
-  * Each demux receives its TS input from a DVB front-end or from memory, as
-- * set via this demux API. In a system with more than one front-end, the API
-+ * set via this demux kABI. In a system with more than one front-end, the kABI
-  * can be used to select one of the DVB front-ends as a TS source for a demux,
-  * unless this is fixed in the HW platform.
-  *
-- * The demux API only controls front-ends regarding to their connections with
-- * demuxes; the APIs used to set the other front-end parameters, such as
-- * tuning, are not defined in this document.
-+ * The demux kABI only controls front-ends regarding to their connections with
-+ * demuxes; the kABI used to set the other front-end parameters, such as
-+ * tuning, are devined via the Digital TV Frontend kABI.
-  *
-  * The functions that implement the abstract interface demux should be defined
-  * static or module private and registered to the Demux core for external
-  * access. It is not necessary to implement every function in the struct
-  * &dmx_demux. For example, a demux interface might support Section filtering,
-- * but not PES filtering. The API client is expected to check the value of any
-+ * but not PES filtering. The kABI client is expected to check the value of any
-  * function pointer before calling the function: the value of NULL means
-  * that the function is not available.
-  *
-@@ -71,7 +71,7 @@
-  * Even a simple memory allocation without using %GFP_ATOMIC can result in a
-  * kernel thread being put to sleep if swapping is needed. For example, the
-  * Linux Kernel calls the functions of a network device interface from a
-- * bottom half context. Thus, if a demux API function is called from network
-+ * bottom half context. Thus, if a demux kABI function is called from network
-  * device code, the function must not sleep.
-  */
- 
--- 
-2.5.0
+Regards,
 
+	Hans
+
+PS: still haven't processed your V4L2_CTRL_WHICH_DEF_VAL patch series. Hope
+to do this next week at the latest.
+
+> 
+> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 23 ++++++++++++++---------
+>  1 file changed, 14 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 4a1d9fdd14bb..f9c0e8150bd1 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -3300,7 +3300,8 @@ EXPORT_SYMBOL(v4l2_ctrl_notify);
+>  int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+>  			s64 min, s64 max, u64 step, s64 def)
+>  {
+> -	bool changed;
+> +	bool value_changed;
+> +	bool range_changed = false;
+>  	int ret;
+>  
+>  	lockdep_assert_held(ctrl->handler->lock);
+> @@ -3324,10 +3325,14 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+>  	default:
+>  		return -EINVAL;
+>  	}
+> -	ctrl->minimum = min;
+> -	ctrl->maximum = max;
+> -	ctrl->step = step;
+> -	ctrl->default_value = def;
+> +	if ((ctrl->minimum != min) || (ctrl->maximum != max) ||
+> +		(ctrl->step != step) || ctrl->default_value != def) {
+> +		range_changed = true;
+> +		ctrl->minimum = min;
+> +		ctrl->maximum = max;
+> +		ctrl->step = step;
+> +		ctrl->default_value = def;
+> +	}
+>  	cur_to_new(ctrl);
+>  	if (validate_new(ctrl, ctrl->p_new)) {
+>  		if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
+> @@ -3337,12 +3342,12 @@ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+>  	}
+>  
+>  	if (ctrl->type == V4L2_CTRL_TYPE_INTEGER64)
+> -		changed = *ctrl->p_new.p_s64 != *ctrl->p_cur.p_s64;
+> +		value_changed = *ctrl->p_new.p_s64 != *ctrl->p_cur.p_s64;
+>  	else
+> -		changed = *ctrl->p_new.p_s32 != *ctrl->p_cur.p_s32;
+> -	if (changed)
+> +		value_changed = *ctrl->p_new.p_s32 != *ctrl->p_cur.p_s32;
+> +	if (value_changed)
+>  		ret = set_ctrl(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
+> -	else
+> +	else if (range_changed)
+>  		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
+>  	return ret;
+>  }
+> 
