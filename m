@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:33721 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819AbbKQW30 (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:34665 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754426AbbKLMWD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 17:29:26 -0500
-Received: by lfaz4 with SMTP id z4so15004015lfa.0
-        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 14:29:24 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 17 Nov 2015 22:29:24 +0000
-Message-ID: <CABHjWt6-22p3369L7Zantc1vzFcghFiAtFWnavYz6LrSTxvmMw@mail.gmail.com>
-Subject: FE_READ_STATUS blocking time
-From: ozgur cagdas <ocagdas@gmail.com>
+	Thu, 12 Nov 2015 07:22:03 -0500
+From: Hans Verkuil <hansverk@cisco.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv10 05/16] HID: add HDMI CEC specific keycodes
+Date: Thu, 12 Nov 2015 13:21:34 +0100
+Message-Id: <4a531f8a1613bd54002fdcd430bdcf2250da0088.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Kamil Debski <kamil@wypas.org>
 
-I've recently started experimenting with a DVB-T usb stick and the
-intent of this post is to understand if what I am seeing is expected
-behaviour or not. Therefore, I am not providing any hw, kernel version
-etc details at this point but quite happy to do so if required.
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-Right, I use the FE_SET_PROPERTY ioctl to tune the front end and then
-after 200ms. I call the FE_READ_STATUS ioctl to check the lock status.
-My original plan was to call this ioclt periodically until lock is
-acquired however, even though the device is opened with the O_NONBLOCK
-flag, this call blocks for around 500ms and instead of seeing FEC,
-viterbi etc blocks locking in incremental steps, it returns when all
-the blocks are locked. Once locked, the subsequent FE_READ_STATUS
-calls do return within 30ms.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/input.h | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-If I unplug the feed before tune, then, each FE_READ_STATUS blocks for
-about 500ms.
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index a32bff1..5e7019a 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -752,6 +752,34 @@ struct input_keymap_entry {
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
+ 
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
++#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
++#define KEY_NUMERIC_11			0x26c
++#define KEY_NUMERIC_12			0x26d
++/*
++ * Toggle Audio Description: refers to an audio service that helps blind and
++ * visually impaired consumers understand the action in a program. Note: in
++ * some countries this is referred to as "Video Description".
++ */
++#define KEY_AUDIO_DESC			0x26e
++#define KEY_3D_MODE			0x26f
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273 /* Video on Demand */
++#define KEY_UNMUTE			0x274
++#define KEY_FASTREVERSE			0x275
++#define KEY_SLOWREVERSE			0x276
++/*
++ * Control a data application associated with the currently viewed channel,
++ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
++ */
++#define KEY_DATA			0x275
++
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
+-- 
+2.6.2
 
-I also tried using the 'poll' system call on the FE's fd with POLLIN
-but when it returns POLLIN in revents, then again FE_READ_STATUS
-blocks around 500ms on the first attempt.
-
-So, is there a way to avoid the FE_READ_STATUS block or is it down to
-the individual driver implementation?
-
-Also, is there a better way of monitoring the 'lock' status?
-
-Kind regards,
-
-Oz
