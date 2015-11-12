@@ -1,125 +1,526 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33145 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755693AbbKEDwK (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:2580 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462AbbKLMWQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2015 22:52:10 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6EEE22A0097
-	for <linux-media@vger.kernel.org>; Thu,  5 Nov 2015 04:51:59 +0100 (CET)
-Date: Thu, 05 Nov 2015 04:51:59 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 12 Nov 2015 07:22:16 -0500
+From: Hans Verkuil <hansverk@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151105035159.6EEE22A0097@tschai.lan>
+Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv10 16/16] cobalt: add cec support
+Date: Thu, 12 Nov 2015 13:21:45 +0100
+Message-Id: <cb930abcc4efd4c8be5c7f4e1a6b77eccbe3d975.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Add CEC support to the cobalt driver.
 
-date:		Thu Nov  5 04:00:26 CET 2015
-git branch:	test
-git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	0.4.1-3153-g7d56ab3
-host hardware:	x86_64
-host os:	4.0.0-3.slh.1-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cobalt/Kconfig         |   1 +
+ drivers/media/pci/cobalt/cobalt-driver.c | 108 +++++++++++++++++++++-----
+ drivers/media/pci/cobalt/cobalt-driver.h |   2 +
+ drivers/media/pci/cobalt/cobalt-irq.c    |   3 +
+ drivers/media/pci/cobalt/cobalt-v4l2.c   | 126 ++++++++++++++++++++++++++++---
+ drivers/media/pci/cobalt/cobalt-v4l2.h   |   2 +
+ 6 files changed, 216 insertions(+), 26 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: OK
-linux-2.6.33.7-i686: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-2.6.32.27-x86_64: OK
-linux-2.6.33.7-x86_64: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
+index a01f0cc..9125747 100644
+--- a/drivers/media/pci/cobalt/Kconfig
++++ b/drivers/media/pci/cobalt/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_COBALT
+ 	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
+ 	depends on GPIOLIB || COMPILE_TEST
+ 	depends on SND
++	select MEDIA_CEC
+ 	select I2C_ALGOBIT
+ 	select VIDEO_ADV7604
+ 	select VIDEO_ADV7511
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.c b/drivers/media/pci/cobalt/cobalt-driver.c
+index 8fed61e..0b9e194 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.c
++++ b/drivers/media/pci/cobalt/cobalt-driver.c
+@@ -76,6 +76,7 @@ static u8 edid[256] = {
+ 	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
++
+ 	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
+ 	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
+ 	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
+@@ -149,17 +150,44 @@ static void cobalt_notify(struct v4l2_subdev *sd,
+ 	struct cobalt *cobalt = to_cobalt(sd->v4l2_dev);
+ 	unsigned sd_nr = cobalt_get_sd_nr(sd);
+ 	struct cobalt_stream *s = &cobalt->streams[sd_nr];
+-	bool hotplug = arg ? *((int *)arg) : false;
+ 
+-	if (s->is_output)
++	switch (notification) {
++	case V4L2_SUBDEV_CEC_TX_DONE:
++		cec_transmit_done(s->cec_adap, (unsigned long)arg);
++		return;
++	case V4L2_SUBDEV_CEC_RX_MSG:
++		cec_received_msg(s->cec_adap, arg);
++		return;
++	case V4L2_SUBDEV_CEC_CONN_INPUTS:
++		cec_connected_inputs(s->cec_adap, *(u16 *)arg);
++		return;
++	default:
++		break;
++	}
++
++	if (s->is_output) {
++		switch (notification) {
++		case ADV7511_EDID_DETECT: {
++			struct adv7511_edid_detect *ed = arg;
++
++			s->cec_adap->phys_addr = ed->phys_addr;
++			break;
++		}
++		}
+ 		return;
++	}
+ 
+ 	switch (notification) {
+-	case ADV76XX_HOTPLUG:
++	case ADV76XX_HOTPLUG: {
++		bool hotplug = arg ? *((int *)arg) : false;
++
+ 		cobalt_s_bit_sysctrl(cobalt,
+ 			COBALT_SYS_CTRL_HPD_TO_CONNECTOR_BIT(sd_nr), hotplug);
++		if (s->cec_adap)
++			cec_connected_inputs(s->cec_adap, hotplug);
+ 		cobalt_dbg(1, "Set hotplug for adv %d to %d\n", sd_nr, hotplug);
+ 		break;
++	}
+ 	case V4L2_DEVICE_NOTIFY_EVENT:
+ 		cobalt_dbg(1, "Format changed for adv %d\n", sd_nr);
+ 		v4l2_event_queue(&s->vdev, arg);
+@@ -438,12 +466,15 @@ static void cobalt_stream_struct_init(struct cobalt *cobalt)
+ 
+ 	for (i = 0; i < COBALT_NUM_STREAMS; i++) {
+ 		struct cobalt_stream *s = &cobalt->streams[i];
++		struct video_device *vdev = &s->vdev;
+ 
+ 		s->cobalt = cobalt;
+ 		s->flags = 0;
+ 		s->is_audio = false;
+ 		s->is_output = false;
+ 		s->is_dummy = true;
++		snprintf(vdev->name, sizeof(vdev->name),
++			 "%s-%d", cobalt->v4l2_dev.name, i);
+ 
+ 		/* The Memory DMA channels will always get a lower channel
+ 		 * number than the FIFO DMA. Video input should map to the
+@@ -485,6 +516,23 @@ static void cobalt_stream_struct_init(struct cobalt *cobalt)
+ 	}
+ }
+ 
++static int cobalt_create_cec_adap(struct cobalt_stream *s)
++{
++	u32 caps = CEC_CAP_IO | CEC_CAP_LOG_ADDRS |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC |
++		CEC_CAP_ARC | CEC_CAP_VENDOR_ID;
++	u8 nsinks = 0;
++
++	if (s->is_output)
++		caps |= CEC_CAP_IS_SOURCE | CEC_CAP_CDC_HPD;
++	else
++		nsinks = 1;
++	s->cec_adap = cec_create_adapter(&cobalt_cec_adap_ops,
++					 s, s->vdev.name, caps, nsinks,
++					 THIS_MODULE, &s->cobalt->pci_dev->dev);
++	return PTR_ERR_OR_ZERO(s->cec_adap);
++}
++
+ static int cobalt_subdevs_init(struct cobalt *cobalt)
+ {
+ 	static struct adv76xx_platform_data adv7604_pdata = {
+@@ -508,10 +556,10 @@ static int cobalt_subdevs_init(struct cobalt *cobalt)
+ 		.platform_data = &adv7604_pdata,
+ 	};
+ 
+-	struct cobalt_stream *s = cobalt->streams;
+ 	int i;
+ 
+ 	for (i = 0; i < COBALT_NUM_INPUTS; i++) {
++		struct cobalt_stream *s = cobalt->streams + i;
+ 		struct v4l2_subdev_format sd_fmt = {
+ 			.pad = ADV7604_PAD_SOURCE,
+ 			.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+@@ -525,28 +573,37 @@ static int cobalt_subdevs_init(struct cobalt *cobalt)
+ 		};
+ 		int err;
+ 
+-		s[i].pad_source = ADV7604_PAD_SOURCE;
+-		s[i].i2c_adap = &cobalt->i2c_adap[i];
+-		if (s[i].i2c_adap->dev.parent == NULL)
++		s->pad_source = ADV7604_PAD_SOURCE;
++		s->i2c_adap = &cobalt->i2c_adap[i];
++		if (s->i2c_adap->dev.parent == NULL)
+ 			continue;
++		err = cobalt_create_cec_adap(s);
++		if (err && !cobalt_ignore_err)
++			continue;
++		if (err)
++			return err;
+ 		cobalt_s_bit_sysctrl(cobalt,
+ 				COBALT_SYS_CTRL_NRESET_TO_HDMI_BIT(i), 1);
+-		s[i].sd = v4l2_i2c_new_subdev_board(&cobalt->v4l2_dev,
+-			s[i].i2c_adap, &adv7604_info, NULL);
+-		if (!s[i].sd) {
++		s->sd = v4l2_i2c_new_subdev_board(&cobalt->v4l2_dev,
++			s->i2c_adap, &adv7604_info, NULL);
++		if (!s->sd) {
++			cec_delete_adapter(s->cec_adap);
++			s->cec_adap = NULL;
+ 			if (cobalt_ignore_err)
+ 				continue;
+ 			return -ENODEV;
+ 		}
+-		err = v4l2_subdev_call(s[i].sd, video, s_routing,
++		s->cec_adap->available_log_addrs =
++			v4l2_subdev_call(s->sd, cec, available_log_addrs);
++		err = v4l2_subdev_call(s->sd, video, s_routing,
+ 				ADV76XX_PAD_HDMI_PORT_A, 0, 0);
+ 		if (err)
+ 			return err;
+-		err = v4l2_subdev_call(s[i].sd, pad, set_edid,
++		err = v4l2_subdev_call(s->sd, pad, set_edid,
+ 				&cobalt_edid);
+ 		if (err)
+ 			return err;
+-		err = v4l2_subdev_call(s[i].sd, pad, set_fmt, NULL,
++		err = v4l2_subdev_call(s->sd, pad, set_fmt, NULL,
+ 				&sd_fmt);
+ 		if (err)
+ 			return err;
+@@ -557,7 +614,7 @@ static int cobalt_subdevs_init(struct cobalt *cobalt)
+ 		cobalt_s_bit_sysctrl(cobalt,
+ 				COBALT_SYS_CTRL_VIDEO_RX_RESETN_BIT(i), 1);
+ 		mdelay(1);
+-		s[i].is_dummy = false;
++		s->is_dummy = false;
+ 		cobalt->streams[i + COBALT_AUDIO_IN_STREAM].is_dummy = false;
+ 	}
+ 	return 0;
+@@ -618,17 +675,24 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
+ 		.edid = edid,
+ 	};
+ 	struct cobalt_stream *s = &cobalt->streams[COBALT_HSMA_IN_NODE];
++	int err;
+ 
+ 	s->i2c_adap = &cobalt->i2c_adap[COBALT_NUM_ADAPTERS - 1];
+ 	if (s->i2c_adap->dev.parent == NULL)
+ 		return 0;
++	err = cobalt_create_cec_adap(s);
++	if (err)
++		return err;
+ 	cobalt_s_bit_sysctrl(cobalt, COBALT_SYS_CTRL_NRESET_TO_HDMI_BIT(4), 1);
+ 
+ 	s->sd = v4l2_i2c_new_subdev_board(&cobalt->v4l2_dev,
+ 			s->i2c_adap, &adv7842_info, NULL);
+ 	if (s->sd) {
+-		int err = v4l2_subdev_call(s->sd, pad, set_edid, &cobalt_edid);
++		int err;
+ 
++		s->cec_adap->available_log_addrs =
++			v4l2_subdev_call(s->sd, cec, available_log_addrs);
++		err = v4l2_subdev_call(s->sd, pad, set_edid, &cobalt_edid);
+ 		if (err)
+ 			return err;
+ 		err = v4l2_subdev_call(s->sd, pad, set_fmt, NULL,
+@@ -650,8 +714,13 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
+ 	}
+ 	cobalt_s_bit_sysctrl(cobalt, COBALT_SYS_CTRL_NRESET_TO_HDMI_BIT(4), 0);
+ 	cobalt_s_bit_sysctrl(cobalt, COBALT_SYS_CTRL_PWRDN0_TO_HSMA_TX_BIT, 0);
++	cec_delete_adapter(s->cec_adap);
++	s->cec_adap = NULL;
+ 	s++;
+ 	s->i2c_adap = &cobalt->i2c_adap[COBALT_NUM_ADAPTERS - 1];
++	err = cobalt_create_cec_adap(s);
++	if (err)
++		return err;
+ 	s->sd = v4l2_i2c_new_subdev_board(&cobalt->v4l2_dev,
+ 			s->i2c_adap, &adv7511_info, NULL);
+ 	if (s->sd) {
+@@ -663,6 +732,8 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
+ 		cobalt_s_bit_sysctrl(cobalt,
+ 				COBALT_SYS_CTRL_VIDEO_TX_RESETN_BIT, 1);
+ 		cobalt->have_hsma_tx = true;
++		s->cec_adap->available_log_addrs =
++			v4l2_subdev_call(s->sd, cec, available_log_addrs);
+ 		v4l2_subdev_call(s->sd, core, s_power, 1);
+ 		v4l2_subdev_call(s->sd, video, s_stream, 1);
+ 		v4l2_subdev_call(s->sd, audio, s_stream, 1);
+@@ -672,6 +743,8 @@ static int cobalt_subdevs_hsma_init(struct cobalt *cobalt)
+ 		cobalt->streams[COBALT_AUDIO_OUT_STREAM].is_dummy = false;
+ 		return 0;
+ 	}
++	cec_delete_adapter(s->cec_adap);
++	s->cec_adap = NULL;
+ 	return -ENODEV;
+ }
+ 
+@@ -797,8 +870,9 @@ static void cobalt_remove(struct pci_dev *pci_dev)
+ 	cobalt_set_interrupt(cobalt, false);
+ 	flush_workqueue(cobalt->irq_work_queues);
+ 	cobalt_nodes_unregister(cobalt);
+-	for (i = 0; i < COBALT_NUM_ADAPTERS; i++) {
+-		struct v4l2_subdev *sd = cobalt->streams[i].sd;
++	for (i = 0; i < COBALT_NUM_STREAMS; i++) {
++		struct cobalt_stream *s = &cobalt->streams[i];
++		struct v4l2_subdev *sd = s->sd;
+ 		struct i2c_client *client;
+ 
+ 		if (sd == NULL)
+diff --git a/drivers/media/pci/cobalt/cobalt-driver.h b/drivers/media/pci/cobalt/cobalt-driver.h
+index b2f08e4..66211f8 100644
+--- a/drivers/media/pci/cobalt/cobalt-driver.h
++++ b/drivers/media/pci/cobalt/cobalt-driver.h
+@@ -31,6 +31,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
+ 
++#include <media/cec.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+@@ -223,6 +224,7 @@ struct cobalt_stream {
+ 	struct list_head bufs;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct v4l2_subdev *sd;
++	struct cec_adapter *cec_adap;
+ 	struct mutex lock;
+ 	spinlock_t irqlock;
+ 	struct v4l2_dv_timings timings;
+diff --git a/drivers/media/pci/cobalt/cobalt-irq.c b/drivers/media/pci/cobalt/cobalt-irq.c
+index 3de26d0..384a791 100644
+--- a/drivers/media/pci/cobalt/cobalt-irq.c
++++ b/drivers/media/pci/cobalt/cobalt-irq.c
+@@ -234,6 +234,9 @@ void cobalt_irq_log_status(struct cobalt *cobalt)
+ 	u32 mask;
+ 	int i;
+ 
++	cobalt_info("irq: edge=%08x mask=%08x\n",
++		    cobalt_read_bar1(cobalt, COBALT_SYS_STAT_EDGE),
++		    cobalt_read_bar1(cobalt, COBALT_SYS_STAT_MASK));
+ 	cobalt_info("irq: adv1=%u adv2=%u advout=%u none=%u full=%u\n",
+ 		    cobalt->irq_adv1, cobalt->irq_adv2, cobalt->irq_advout,
+ 		    cobalt->irq_none, cobalt->irq_full_fifo);
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index ff46e42..8cfca0e 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -604,6 +604,7 @@ static int cobalt_log_status(struct file *file, void *priv_fh)
+ 	cobalt_pcie_status_show(cobalt);
+ 	cobalt_cpld_status(cobalt);
+ 	cobalt_irq_log_status(cobalt);
++	cec_log_status(s->cec_adap);
+ 	v4l2_subdev_call(s->sd, core, log_status);
+ 	if (!s->is_output) {
+ 		cobalt_video_input_status_show(s);
+@@ -1163,6 +1164,98 @@ static const struct v4l2_file_operations cobalt_empty_fops = {
+ 	.release = v4l2_fh_release,
+ };
+ 
++static inline struct v4l2_subdev *adap_to_sd(struct cec_adapter *adap)
++{
++	struct cobalt_stream *s = adap->priv;
++
++	return s->sd;
++}
++
++static int cobalt_cec_enable(struct cec_adapter *adap, bool enable)
++{
++	return v4l2_subdev_call(adap_to_sd(adap), cec, enable, enable);
++}
++
++static int cobalt_cec_log_addr(struct cec_adapter *adap, u8 log_addr)
++{
++	return v4l2_subdev_call(adap_to_sd(adap), cec, log_addr,
++				log_addr);
++}
++
++static int cobalt_cec_transmit(struct cec_adapter *adap, u32 timeout_ms,
++			       u8 retries, struct cec_msg *msg)
++{
++	return v4l2_subdev_call(adap_to_sd(adap), cec, transmit,
++				timeout_ms, retries, msg);
++}
++
++static u8 cobalt_cec_cdc_hpd(struct cec_adapter *adap, u8 cdc_hpd_state)
++{
++	switch (cdc_hpd_state) {
++	case CEC_OP_HPD_STATE_EDID_DISABLE:
++	case CEC_OP_HPD_STATE_EDID_ENABLE:
++	case CEC_OP_HPD_STATE_EDID_DISABLE_ENABLE:
++		return CEC_OP_HPD_ERROR_NONE;
++	case CEC_OP_HPD_STATE_CP_EDID_DISABLE:
++	case CEC_OP_HPD_STATE_CP_EDID_ENABLE:
++	case CEC_OP_HPD_STATE_CP_EDID_DISABLE_ENABLE:
++	default:
++		return CEC_OP_HPD_ERROR_INITIATOR_WRONG_STATE;
++	}
++}
++
++static int cobalt_sink_initiate_arc(struct cec_adapter *adap)
++{
++	return 0;
++}
++
++static void cobalt_sink_terminate_arc(struct cec_adapter *adap)
++{
++}
++
++static void cobalt_source_arc_initiated(struct cec_adapter *adap)
++{
++}
++
++static void cobalt_source_arc_terminated(struct cec_adapter *adap)
++{
++}
++
++static int cobalt_received(struct cec_adapter *adap, struct cec_msg *msg)
++{
++	struct cec_msg reply;
++	u16 pa;
++
++	cec_msg_init(&reply, adap->log_addr[0], cec_msg_initiator(msg));
++
++	switch (msg->msg[1]) {
++	case CEC_MSG_SET_STREAM_PATH:
++		if (!adap->is_source)
++			return -ENOMSG;
++		cec_ops_set_stream_path(msg, &pa);
++		if (pa != adap->phys_addr)
++			return -ENOMSG;
++		cec_msg_active_source(&reply, adap->phys_addr);
++		cec_transmit_msg(adap, &reply, false);
++		break;
++	default:
++		return -ENOMSG;
++	}
++	return 0;
++}
++
++const struct cec_adap_ops cobalt_cec_adap_ops = {
++	.adap_enable = cobalt_cec_enable,
++	.adap_log_addr = cobalt_cec_log_addr,
++	.adap_transmit = cobalt_cec_transmit,
++	.source_cdc_hpd = cobalt_cec_cdc_hpd,
++	.sink_initiate_arc = cobalt_sink_initiate_arc,
++	.sink_terminate_arc = cobalt_sink_terminate_arc,
++	.source_arc_initiated = cobalt_source_arc_initiated,
++	.source_arc_terminated = cobalt_source_arc_terminated,
++	.received = cobalt_received,
++};
++
+ static int cobalt_node_register(struct cobalt *cobalt, int node)
+ {
+ 	static const struct v4l2_dv_timings dv1080p60 =
+@@ -1170,13 +1263,11 @@ static int cobalt_node_register(struct cobalt *cobalt, int node)
+ 	struct cobalt_stream *s = cobalt->streams + node;
+ 	struct video_device *vdev = &s->vdev;
+ 	struct vb2_queue *q = &s->q;
+-	int ret;
++	int ret = 0;
+ 
+ 	mutex_init(&s->lock);
+ 	spin_lock_init(&s->irqlock);
+ 
+-	snprintf(vdev->name, sizeof(vdev->name),
+-			"%s-%d", cobalt->v4l2_dev.name, node);
+ 	s->width = 1920;
+ 	/* Audio frames are just 4 lines of 1920 bytes */
+ 	s->height = s->is_audio ? 4 : 1080;
+@@ -1197,6 +1288,11 @@ static int cobalt_node_register(struct cobalt *cobalt, int node)
+ 	if (!s->is_audio) {
+ 		if (s->is_dummy)
+ 			cobalt_warn("Setting up dummy video node %d\n", node);
++		if (s->sd) {
++			ret = cec_register_adapter(s->cec_adap);
++			if (ret)
++				return ret;
++		}
+ 		vdev->v4l2_dev = &cobalt->v4l2_dev;
+ 		if (s->is_dummy)
+ 			vdev->fops = &cobalt_empty_fops;
+@@ -1210,8 +1306,14 @@ static int cobalt_node_register(struct cobalt *cobalt, int node)
+ 			vdev->ctrl_handler = s->sd->ctrl_handler;
+ 		s->timings = dv1080p60;
+ 		v4l2_subdev_call(s->sd, video, s_dv_timings, &s->timings);
+-		if (!s->is_output && s->sd)
++		if (!s->is_output && s->sd) {
+ 			cobalt_enable_input(s);
++			s->cec_adap->phys_addr = 0;
++			ret = cec_enable(s->cec_adap, true);
++		} else if (s->is_output && s->sd) {
++			s->cec_adap->phys_addr = CEC_PHYS_ADDR_INVALID;
++			ret = cec_enable(s->cec_adap, true);
++		}
+ 		vdev->ioctl_ops = s->is_dummy ? &cobalt_ioctl_empty_ops :
+ 				  &cobalt_ioctl_ops;
+ 	}
+@@ -1231,16 +1333,20 @@ static int cobalt_node_register(struct cobalt *cobalt, int node)
+ 	vdev->queue = q;
+ 
+ 	video_set_drvdata(vdev, s);
+-	ret = vb2_queue_init(q);
++	if (ret == 0)
++		ret = vb2_queue_init(q);
+ 	if (!s->is_audio && ret == 0)
+ 		ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+-	else if (!s->is_dummy)
++	else if (!s->is_dummy && ret == 0)
+ 		ret = cobalt_alsa_init(s);
+ 
+ 	if (ret < 0) {
+-		if (!s->is_audio)
++		if (!s->is_audio) {
++			if (s->sd)
++				cec_unregister_adapter(s->cec_adap);
+ 			cobalt_err("couldn't register v4l2 device node %d\n",
+ 					node);
++		}
+ 		return ret;
+ 	}
+ 	cobalt_info("registered node %d\n", node);
+@@ -1271,9 +1377,11 @@ void cobalt_nodes_unregister(struct cobalt *cobalt)
+ 		struct cobalt_stream *s = cobalt->streams + node;
+ 		struct video_device *vdev = &s->vdev;
+ 
+-		if (!s->is_audio)
++		if (!s->is_audio) {
+ 			video_unregister_device(vdev);
+-		else if (!s->is_dummy)
++			cec_unregister_adapter(s->cec_adap);
++		} else if (!s->is_dummy) {
+ 			cobalt_alsa_exit(s);
++		}
+ 	}
+ }
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.h b/drivers/media/pci/cobalt/cobalt-v4l2.h
+index 62be553..5be36cc 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.h
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.h
+@@ -18,5 +18,7 @@
+  *  SOFTWARE.
+  */
+ 
++extern const struct cec_adap_ops cobalt_cec_adap_ops;
++
+ int cobalt_nodes_register(struct cobalt *cobalt);
+ void cobalt_nodes_unregister(struct cobalt *cobalt);
+-- 
+2.6.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
