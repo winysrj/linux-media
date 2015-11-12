@@ -1,101 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f48.google.com ([209.85.218.48]:32989 "EHLO
-	mail-oi0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561AbbKOXJf (ORCPT
+Received: from smtp-out-229.synserver.de ([212.40.185.229]:1146 "EHLO
+	smtp-out-188.synserver.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753788AbbKLKka (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 18:09:35 -0500
-Received: by oixx65 with SMTP id x65so63467288oix.0
-        for <linux-media@vger.kernel.org>; Sun, 15 Nov 2015 15:09:34 -0800 (PST)
+	Thu, 12 Nov 2015 05:40:30 -0500
+Message-ID: <5644682B.1000303@metafoo.de>
+Date: Thu, 12 Nov 2015 11:21:31 +0100
+From: Lars-Peter Clausen <lars@metafoo.de>
 MIME-Version: 1.0
-In-Reply-To: <20151115204615.0831ff21@recife.lan>
-References: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
-	<CAGoCfiz9k3V0Z4ejVL4is4+t5WFMWo6EY7jjkiSEFrYj8zDqiA@mail.gmail.com>
-	<CAK2bqVL76sbs4fXia2eU3gk+OLs_QsZMHo=HfctUtFM+4bOG8A@mail.gmail.com>
-	<CAGoCfiwg14U=mmpcQ-E9zOHyS4bguJzfvRf-QgZOEuJn1x8cwg@mail.gmail.com>
-	<CAK2bqVLk1TxiS9-3P7GoWjGtkyH3D36K4vnxv6vmDtxYyK_PiA@mail.gmail.com>
-	<20151115204615.0831ff21@recife.lan>
-Date: Sun, 15 Nov 2015 23:09:34 +0000
-Message-ID: <CAK2bqVJbhjNdYS3Ybjch5BHOc8UgUdYjXsW83b0o0tEqVOZ9Xw@mail.gmail.com>
-Subject: Re: Trying to enable RC6 IR for PCTV T2 290e
-From: Chris Rankin <rankincj@googlemail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] media: adv7180: increase delay after reset to 5ms
+References: <1447162740-28096-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1743324.8Mae4aQqGO@avalon>
+In-Reply-To: <1743324.8Mae4aQqGO@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I'm not seeing anything when I use "ir-keytable -t /dev/input/...."
-for my RC node in RC6 mode, although it does respond correctly in RC5
-mode.
-
-FWIW, I've realised that the 05a4:9881 IR dongle is actually
-responding to all of its remote's keys. The problem is that USBHID
-creates two /dev/input/eventXX nodes - one for a keyboard and the
-other for a mouse. The keys which are "missing" when listening to the
-keyboard device node are actually being reported from the mouse device
-node! Is there any way to get a single device node to report *all* of
-the keypresses, please?
-
-Thanks,
-Chris
-
-
-On Sun, Nov 15, 2015 at 10:46 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Sun, 15 Nov 2015 22:18:48 +0000
-> Chris Rankin <rankincj@googlemail.com> escreveu:
->
->> > How are you "switching back to RC5"?
+On 11/12/2015 12:10 AM, Laurent Pinchart wrote:
+> Hi Ulrich,
+> 
+> (CC'ing Lars-Peter Clausen)
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 10 November 2015 14:39:00 Ulrich Hecht wrote:
+>> Initialization of the ADV7180 chip fails on the Renesas R8A7790-based
+>> Lager board about 50% of the time.  This patch resolves the issue by
+>> increasing the minimum delay after reset from 2 ms to 5 ms, following the
+>> recommendation in the ADV7180 datasheet:
 >>
->> I use the command "ir-keytable -p rc-5" or "ir-keytable -p rc-6" to
->> switch between IR protocols, which does seem to invoke the
->> em2874_ir_change_protocol() function. I'm not sure that I have a
->> suitable RC6 keymap for this IR, and was expecting to have to create
->> it myself by logging the scancodes returned by the driver.
->
-> Did you test with ir-keytable -t? If you don't load a keytable,
-> you'll be able to only see the scancodes.
->
-> Also, AFAIKT, the hardware decoder on em2874 only supports one
-> variant of RC6 protocol.
->
+>> "Executing a software reset takes approximately 2 ms. However, it is
+>> recommended to wait 5 ms before any further I2C writes are performed."
 >>
->> Cheers,
->> Chris
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Lars, would you like to take this in your tree with other Analog Devices 
+> patches, or should I take it ?
+
+I don't have a tree, usually Hans applies the patches directly.
+
+Patch looks good, thanks.
+
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+
+> 
+>> ---
+>>  drivers/media/i2c/adv7180.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
 >>
->> On Sun, Nov 15, 2015 at 9:48 PM, Devin Heitmueller
->> <dheitmueller@kernellabs.com> wrote:
->> >> I've dug a bit deeper and discovered that the reason the
->> >> em28xx_info(...) lines that I'd added to em2874_polling_getkey()
->> >> weren't appearing is because I'd loaded the wrong version of the
->> >> em28xx-rc module! (Doh!)
->> >
->> > Ok, good.
->> >
->> >> The polling function *is* being called regularly, but
->> >> em28xx_ir_handle_key() isn't noticing any keypresses. (However, it
->> >> does notice when I switch back to RC5).
->> >
->> > How are you "switching back to RC5"?  Are you actually loading in an
->> > RC6 versus RC5 keymap?  The reason I ask is because the onboard
->> > receiver has to be explicitly configured into one of the two modes,
->> > and IIRC this happens based on code type for the loaded keymap.  Hence
->> > if you have an RC5 keymap loaded, you'll never see the IR receiver
->> > reporting RC6 codes.
->> >
->> > And of course it's always possible you've hit a bug/regression.  I
->> > haven't touched that code in years and I know it's been through a
->> > couple of rounds of refactoring.
->> >
->> > Devin
->> >
->> > --
->> > Devin J. Heitmueller - Kernel Labs
->> > http://www.kernellabs.com
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>> index f82c8aa..3c3c4bf 100644
+>> --- a/drivers/media/i2c/adv7180.c
+>> +++ b/drivers/media/i2c/adv7180.c
+>> @@ -1112,7 +1112,7 @@ static int init_device(struct adv7180_state *state)
+>>  	mutex_lock(&state->mutex);
+>>
+>>  	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
+>> -	usleep_range(2000, 10000);
+>> +	usleep_range(5000, 10000);
+>>
+>>  	ret = state->chip_info->init(state);
+>>  	if (ret)
+> 
+
