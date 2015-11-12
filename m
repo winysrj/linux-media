@@ -1,69 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:36014 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776AbbKRTjU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 14:39:20 -0500
-Received: by lbblt2 with SMTP id lt2so30929275lbb.3
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 11:39:18 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:53718 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753644AbbKLJ6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Nov 2015 04:58:53 -0500
+Date: Thu, 12 Nov 2015 07:58:47 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Walter Cheuk <wwycheuk@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] tv tuner max2165 driver: extend frequency range
+Message-ID: <20151112075847.2d268bc7@recife.lan>
+In-Reply-To: <CABUpJt-mTeKkOnhk-ADv-5TJqhx-tRwPoKOQ2a7GJTM34Jz2Eg@mail.gmail.com>
+References: <CABUpJt-mTeKkOnhk-ADv-5TJqhx-tRwPoKOQ2a7GJTM34Jz2Eg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <564CCCA1.6010808@web.de>
-References: <564C9355.1090203@web.de>
-	<564CA4EB.60400@gmail.com>
-	<564CCCA1.6010808@web.de>
-Date: Wed, 18 Nov 2015 20:39:18 +0100
-Message-ID: <CAOEt8JJxi5kzjWxzuPzfr43NR5p+Fk0+VkqeDsBB2JEq2isgMg@mail.gmail.com>
-Subject: Re: [BUG] TechniSat SkyStar S2 - problem tuning DVB-S2 channels
-From: David Jedelsky <david.jedelsky@gmail.com>
-To: Robert <wslegend@web.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Robert,
+Em Thu, 22 Oct 2015 12:18:58 +0800
+Walter Cheuk <wwycheuk@gmail.com> escreveu:
 
-I'm not sure whether it helps, but if your card is based on az6027, as
-is my USB TechniSat SkyStar 2 HD CI, then attached patch could be
-helpful. I had to create it to get DVB-S2 working on my device.
-http://djed.cz/az6027-i2c.patch
+> Extend the frequency range to cover Hong Kong's digital TV
+> broadcasting, which should be the whole UHF; RTHK TV uses 802MHz and
+> is not covered currently. Tested on my TV tuner card "MyGica X8558
+> Pro".
+> 
+> Signed-off-by: Walter Cheuk <wwycheuk@gmail.com>
+> 
+> ---
+> 
+> --- media/drivers/media/tuners/max2165.c.orig 2015-10-22
+> 12:01:24.867254181 +0800
+> +++ media/drivers/media/tuners/max2165.c 2015-10-22 12:02:05.706640982 +0800
+> @@ -385,7 +385,7 @@ static const struct dvb_tuner_ops max216
 
-Regards,
-David
+Your e-mailer corrupted the patch: it broke long lines and mangled with
+tabs and whitespaces.
 
-PS: trying to send once more with link instead of attachment (as
-linuxmedia list rejected my previous mail)
-
-On Wed, Nov 18, 2015 at 8:08 PM, Robert <wslegend@web.de> wrote:
-> Hi Jemma,
->
-> On 18.11.2015 17:18, Jemma Denson wrote:
->> What program are you using to try and tune? Is it trying to tune in
->> using DVB-S2? The "other" driver was done quite some while ago, and
->> included some clunky code to fallback to S2 if DVB-S tuning failed as it
->> was developed before the DVB API had support for supplying DVB-S2 as a
->> delivery system and this was the only way of supporting S2 back then.
->> This was removed in the in-tree driver as it isn't needed anymore, but
->> this does mean that the tuning program needs to supply the correct
->> delivery system.
->>
->> Have you tried it with dvbv5-scan & dvbv5-zap?
->
-> Normally i'm using kaffeine, but i have tried dvbv5-scan now.
-> Unfortunately it segfaults. I have attached the full output including
-> the backtrace [1]
->
->
-> Greetings,
-> Robert
->
->
-> [1]
-> https://paste.linuxlounge.net/?c3886ef444f9aa37#2ah2g19a9CfJMA/pBDikwoWj7S4AG2slhacWjXy8jEo=
->
->
->
->
+>   .info = {
+>   .name           = "Maxim MAX2165",
+>   .frequency_min  = 470000000,
+> - .frequency_max  = 780000000,
+> + .frequency_max  = 868000000,
+>   .frequency_step =     50000,
+>   },
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
