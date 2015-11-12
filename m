@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:54364 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161082AbbKSUE4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 15:04:56 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:2580 "EHLO
+	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754140AbbKLMWG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Nov 2015 07:22:06 -0500
+From: Hans Verkuil <hansverk@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 04/10] si2165: only write agc registers after reset before start_syncro
-Date: Thu, 19 Nov 2015 21:03:56 +0100
-Message-Id: <1447963442-9764-5-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
-References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv10 08/16] cec: add compat32 ioctl support
+Date: Thu, 12 Nov 2015 13:21:37 +0100
+Message-Id: <793abfb94a6335a7f771ae99c6e8fdb1619a1882.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
+In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
+References: <cover.1447329279.git.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Datasheet says they must be rewritten after reset.
-But it only makes sense to write them when trying to tune afterwards.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
+when used in a 32 bit application on a 64 bit kernel.
+
+Since all the CEC ioctls are 32-bit compatible adding support for this
+API is trivial.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/si2165.c | 32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ fs/compat_ioctl.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 222d775..07247e3 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -690,23 +690,6 @@ static int si2165_init(struct dvb_frontend *fe)
- 			goto error;
- 	}
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 48851f6..c8651aa 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -57,6 +57,7 @@
+ #include <linux/i2c-dev.h>
+ #include <linux/atalk.h>
+ #include <linux/gfp.h>
++#include <linux/cec.h>
  
--	/* write adc values after each reset*/
--	ret = si2165_writereg8(state, 0x012a, 0x46);
--	if (ret < 0)
--		goto error;
--	ret = si2165_writereg8(state, 0x012c, 0x00);
--	if (ret < 0)
--		goto error;
--	ret = si2165_writereg8(state, 0x012e, 0x0a);
--	if (ret < 0)
--		goto error;
--	ret = si2165_writereg8(state, 0x012f, 0xff);
--	if (ret < 0)
--		goto error;
--	ret = si2165_writereg8(state, 0x0123, 0x70);
--	if (ret < 0)
--		goto error;
--
- 	return 0;
- error:
- 	return ret;
-@@ -788,6 +771,14 @@ static int si2165_set_if_freq_shift(struct si2165_state *state, u32 IF)
- 	return si2165_writereg32(state, 0x00e8, reg_value);
- }
+ #include <net/bluetooth/bluetooth.h>
+ #include <net/bluetooth/hci_sock.h>
+@@ -1381,6 +1382,24 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
+ COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
+ COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
+ COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
++/* cec */
++COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_STATE)
++COMPATIBLE_IOCTL(CEC_ADAP_S_STATE)
++COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_G_VENDOR_ID)
++COMPATIBLE_IOCTL(CEC_ADAP_S_VENDOR_ID)
++COMPATIBLE_IOCTL(CEC_G_MONITOR)
++COMPATIBLE_IOCTL(CEC_S_MONITOR)
++COMPATIBLE_IOCTL(CEC_CLAIM)
++COMPATIBLE_IOCTL(CEC_RELEASE)
++COMPATIBLE_IOCTL(CEC_G_PASSTHROUGH)
++COMPATIBLE_IOCTL(CEC_TRANSMIT)
++COMPATIBLE_IOCTL(CEC_RECEIVE)
++COMPATIBLE_IOCTL(CEC_DQEVENT)
  
-+static const struct si2165_reg_value_pair agc_rewrite[] = {
-+	{ 0x012a, 0x46 },
-+	{ 0x012c, 0x00 },
-+	{ 0x012e, 0x0a },
-+	{ 0x012f, 0xff },
-+	{ 0x0123, 0x70 }
-+};
-+
- static int si2165_set_frontend(struct dvb_frontend *fe)
- {
- 	int ret;
-@@ -924,6 +915,13 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	ret = si2165_writereg32(state, 0x0384, 0x00000000);
- 	if (ret < 0)
- 		return ret;
-+
-+	/* write adc values after each reset*/
-+	ret = si2165_write_reg_list(state, agc_rewrite,
-+				    ARRAY_SIZE(agc_rewrite));
-+	if (ret < 0)
-+		return ret;
-+
- 	/* start_synchro */
- 	ret = si2165_writereg8(state, 0x02e0, 0x01);
- 	if (ret < 0)
+ /* joystick */
+ COMPATIBLE_IOCTL(JSIOCGVERSION)
 -- 
-2.6.3
+2.6.2
 
