@@ -1,86 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44946 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118AbbKPKVY (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36082 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754206AbbKLPPm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:24 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 04/16] [media] dvb_frontend.h: Add a description for the header
-Date: Mon, 16 Nov 2015 08:21:01 -0200
-Message-Id: <b0d0e6a770c92aa0f0f1bff9242413341d538e52.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Thu, 12 Nov 2015 10:15:42 -0500
+Received: by wmww144 with SMTP id w144so204780218wmw.1
+        for <linux-media@vger.kernel.org>; Thu, 12 Nov 2015 07:15:41 -0800 (PST)
+Received: from [192.168.1.56] (mobile-access-bcee49-21.dhcp.inet.fi. [188.238.73.21])
+        by smtp.gmail.com with ESMTPSA id t194sm15558687wmt.11.2015.11.12.07.15.39
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 12 Nov 2015 07:15:40 -0800 (PST)
+Subject: Re:
+To: linux-media@vger.kernel.org
+References: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
+From: Alberto Mardegan <mardy@users.sourceforge.net>
+Message-ID: <5644AD42.4060904@users.sourceforge.net>
+Date: Thu, 12 Nov 2015 18:16:18 +0300
+MIME-Version: 1.0
+In-Reply-To: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This header file provides the kABI functions used by the
-Digital TV Frontend core support. Add a description for
-this kABI, to add at the device_drivers Kernel DocBook.
+On 11/12/2015 06:25 AM, Walter Cheuk wrote:
+> I sent a patch named "[PATCH] tv tuner max2165 driver: extend
+> frequency range" two weeks ago (22/10). Is it being reviewed? Thank
+> you.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- Documentation/DocBook/device-drivers.tmpl |  1 +
- drivers/media/dvb-core/dvb_frontend.h     | 23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+Since such reminders seem to help, I also sent a patch on 27/10:
+"[PATCH] [media] em28xx: add Terratec Cinergy T XS (MT2060)"
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index fc7242dd5d65..7b3fcc5effcd 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -244,6 +244,7 @@ X!Isound/sound_firmware.c
- !Idrivers/media/dvb-core/dvbdev.h
- 	</sect1>
- 	<sect1><title>Digital TV Frontend kABI</title>
-+!Pdrivers/media/dvb-core/dvb_frontend.h Digital TV Frontend
- !Idrivers/media/dvb-core/dvb_frontend.h
- 	</sect1>
- 	<sect1><title>Digital TV Demux kABI</title>
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 5eaacaeb518f..2fa23b05749a 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -42,6 +42,29 @@
- 
- #include "dvbdev.h"
- 
-+/**
-+ * DOC: Digital TV Frontend
-+ *
-+ * The Digital TV Frontend kABI defines a driver-internal interface for
-+ * registering low-level, hardware specific driver to a hardware independent
-+ * frontend layer. It is only of interest for Digital TV device driver writers.
-+ * The header file for this API is named dvb_frontend.h and located in
-+ * drivers/media/dvb-core.
-+ *
-+ * Before using the Digital TV frontend core, the bridge driver should attach
-+ * the frontend demod, tuner and SEC devices and call dvb_register_frontend(),
-+ * in order to register the new frontend at the subsystem. At device
-+ * detach/removal, the bridge driver should call dvb_unregister_frontend() to
-+ * remove the frontend from the core and then dvb_frontend_detach() to free the
-+ * memory allocated by the frontend drivers.
-+ *
-+ * The drivers should also call dvb_frontend_suspend() as part of their
-+ * handler for the &device_driver.suspend(), and dvb_frontend_resume() as
-+ * part of their handler for &device_driver.resume().
-+ *
-+ * A few other optional functions are provided to handle some special cases.
-+ */
-+
- /*
-  * Maximum number of Delivery systems per frontend. It
-  * should be smaller or equal to 32
--- 
-2.5.0
+It's not urgent, given that people have been surviving without support 
+for this device for years, but I'd just like to make sure that it won't 
+be forgotten.
+
+Ciao,
+   Alberto
 
