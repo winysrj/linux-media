@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:35029 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbbKQNcz (ORCPT
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:34964 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644AbbKLKNb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 08:32:55 -0500
-Received: by qgec40 with SMTP id c40so5194915qge.2
-        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 05:32:55 -0800 (PST)
+	Thu, 12 Nov 2015 05:13:31 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
-References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
-	<564ADD04.90700@xs4all.nl>
-	<CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
-Date: Tue, 17 Nov 2015 08:32:54 -0500
-Message-ID: <CALzAhNUFGKoTOcQ90yRbCybapg+nA_7958OM0Mh_ksBo-_nPcg@mail.gmail.com>
-Subject: Re: cobalt & dma
-From: Steven Toth <stoth@kernellabs.com>
-To: Ran Shalit <ranshalit@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <1743324.8Mae4aQqGO@avalon>
+References: <1447162740-28096-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	<1743324.8Mae4aQqGO@avalon>
+Date: Thu, 12 Nov 2015 11:13:30 +0100
+Message-ID: <CAMuHMdUO9a7WtiJxAqbhvkY1kfMkFLUnOrogd0Jvh1GqySubWg@mail.gmail.com>
+Subject: Re: [PATCH] media: adv7180: increase delay after reset to 5ms
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Lars-Peter Clausen <lars@metafoo.de>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Is the cobalt or other pci v4l device have the chip datasheet
-> available so that we can do a reverse engineering and gain more
-> understanding about the register read/write for the dma transactions ?
-> I made a search but it seems that the PCIe chip datasheet for these
-> devices is not available anywhere.
+On Thu, Nov 12, 2015 at 12:10 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> (CC'ing Lars-Peter Clausen)
+>
+> Thank you for the patch.
+>
+> On Tuesday 10 November 2015 14:39:00 Ulrich Hecht wrote:
+>> Initialization of the ADV7180 chip fails on the Renesas R8A7790-based
+>> Lager board about 50% of the time.  This patch resolves the issue by
+>> increasing the minimum delay after reset from 2 ms to 5 ms, following the
+>> recommendation in the ADV7180 datasheet:
+>>
+>> "Executing a software reset takes approximately 2 ms. However, it is
+>> recommended to wait 5 ms before any further I2C writes are performed."
+>>
+>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> Lars, would you like to take this in your tree with other Analog Devices
+> patches, or should I take it ?
 
-Generally you wouldn't need it, and I'm not sure it would help having it.
+Which tree is this? Should I include it in renesas-drivers?
+Does it contain more fixes?
 
-Get to grips with the fundamentals and don't worry about cobalt registers.
+During the s2ram suspend phase, the lockdep_assert_held() in adv7180_write()
+is triggered on r8a7791/koelsch.
 
-DMA programming is highly chip specific, but in general terms its
-highly similar in concept on any PCIe controller. Every
-driver+controller uses virtual/physical bus addresses that need to be
-understood, scatter gather list created and programmed into the h/w,
-interrupts serviced, buffer/transfer completion identification and
-transfer sizes.
+Gr{oetje,eeting}s,
 
-Look hard enough at any of the PCI/E drivers in the media tree and
-you'll see each of them implementing their own versions of the above.
+                        Geert
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
