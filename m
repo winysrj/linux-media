@@ -1,81 +1,87 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:53435 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752330AbbKQMzR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 07:55:17 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>
-CC: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [RESEND RFC/PATCH 2/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-Date: Tue, 17 Nov 2015 20:54:39 +0800
-Message-ID: <1447764885-23100-3-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <hmehmetkurnaz@gmail.com>) id 1ZwsfL-0003tX-53
+	for linux-dvb@linuxtv.org; Thu, 12 Nov 2015 15:15:55 +0100
+Received: from mail-lf0-f46.google.com ([209.85.215.46])
+	by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
+	[UNKNOWN:AES128-GCM-SHA256:128] for <linux-dvb@linuxtv.org>
+	id 1ZwsfJ-0006KK-9S; Thu, 12 Nov 2015 15:15:55 +0100
+Received: by lfdo63 with SMTP id o63so34643515lfd.2
+	for <linux-dvb@linuxtv.org>; Thu, 12 Nov 2015 06:15:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Date: Thu, 12 Nov 2015 16:15:53 +0200
+Message-ID: <CAGYfdegQEK5aBUHOBUwpZL37sM1cTb6NVoz6oWC0=6yqsVRm4Q@mail.gmail.com>
+From: Mehmet Kurnaz <hmehmetkurnaz@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] M88RS6000 single chip DVB-S2 receiver with dw2102.c
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1197443569=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+--===============1197443569==
+Content-Type: multipart/alternative; boundary=001a11410ad2a663af0524589418
 
-add VPU drivers for MT8173
+--001a11410ad2a663af0524589418
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+Hello all,
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 4dd5f93..098c15e 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -258,6 +258,17 @@
- 			clock-names = "spi", "wrap";
- 		};
- 
-+		vpu: vpu@10020000 {
-+			compatible = "mediatek,mt8173-vpu";
-+			reg = <0 0x10020000 0 0x30000>,
-+			      <0 0x10050000 0 0x100>;
-+			reg-names = "sram", "cfg_reg";
-+			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&topckgen CLK_TOP_SCP_SEL>;
-+			clock-names = "main";
-+			iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>;
-+		};
-+
- 		sysirq: intpol-controller@10200620 {
- 			compatible = "mediatek,mt8173-sysirq",
- 				     "mediatek,mt6577-sysirq";
--- 
-1.7.9.5
+I don't know that I am in right mailing-list and i am newbie about dvb
+receiver's drivers.
 
+I have DVBWorld DVB-S2 receiver with cy7c68013 and Montage M88RS6000 single
+chip. I searched linux driver but unfortunately couldn't find any one. I
+found M88RS6000 driver from dvbsky.
+And I used dvb-usb-dw2102.fw. Is it right choice?
+
+But I have to add some functions to dw2102.c source. One of them is i2c
+transfer function. I need "request" command in dw210x_op_rw() function for
+read and write operations to write i2c transfer function for this receiver.
+I asked to dvbworld but there is no response for a week. How can i write
+i2c transfer function?
+
+So thanks
+Mehmet Kurnaz
+
+--001a11410ad2a663af0524589418
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Hello all,<div><br></div><div>I don&#39;t know that I am i=
+n right mailing-list and i am newbie about dvb receiver&#39;s drivers.</div=
+><div><br></div><div>I have DVBWorld DVB-S2 receiver with=C2=A0cy7c68013 an=
+d Montage M88RS6000 single chip. I searched linux driver but unfortunately =
+couldn&#39;t find any one. I found M88RS6000 driver from dvbsky.=C2=A0</div=
+><div>And I used dvb-usb-dw2102.fw. Is it right choice?</div><div><br></div=
+><div>But I have to add some functions to dw2102.c source. One of them is i=
+2c transfer function. I need &quot;request&quot; command in dw210x_op_rw() =
+function for read and write operations to write i2c transfer function for t=
+his receiver. I asked to dvbworld but there is no response for a week. How =
+can i write i2c transfer function?=C2=A0</div><div><br></div><div>So thanks=
+</div><div>Mehmet Kurnaz</div><div><br></div><div><br></div></div>
+
+--001a11410ad2a663af0524589418--
+
+
+--===============1197443569==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1197443569==--
