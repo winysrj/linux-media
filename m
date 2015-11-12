@@ -1,63 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55716 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751807AbbKJXgO (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:54170 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752564AbbKLMou (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 18:36:14 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 12 Nov 2015 07:44:50 -0500
+From: matrandg@cisco.com
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/1] omap3isp: preview: Mark output buffer done first
-Date: Wed, 11 Nov 2015 01:34:18 +0200
-Message-Id: <1447198458-12175-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Subject: [PATCH] v4l2-dv-timings: Compare horizontal blanking
+Date: Thu, 12 Nov 2015 13:34:55 +0100
+Message-Id: <1447331695-22322-1-git-send-email-matrandg@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sequence number counter is incremented on each output buffer, and that
-incremented value is used as the sequence number of that buffer. The input
-buffer sequence numbering is based just on reading the same counter. If
-the input buffer is marked done first, its sequence number ends up being
-that of the output buffer - 1.
+From: Mats Randgaard <matrandg@cisco.com>
 
-This is how the resizer works as well.
+hsync and hbackporch must also be compared
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
 ---
- drivers/media/platform/omap3isp/isppreview.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index cfb2debb..1478076 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -1480,13 +1480,6 @@ static void preview_isr_buffer(struct isp_prev_device *prev)
- 	struct isp_buffer *buffer;
- 	int restart = 0;
- 
--	if (prev->input == PREVIEW_INPUT_MEMORY) {
--		buffer = omap3isp_video_buffer_next(&prev->video_in);
--		if (buffer != NULL)
--			preview_set_inaddr(prev, buffer->dma);
--		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
--	}
--
- 	if (prev->output & PREVIEW_OUTPUT_MEMORY) {
- 		buffer = omap3isp_video_buffer_next(&prev->video_out);
- 		if (buffer != NULL) {
-@@ -1496,6 +1489,13 @@ static void preview_isr_buffer(struct isp_prev_device *prev)
- 		pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
- 	}
- 
-+	if (prev->input == PREVIEW_INPUT_MEMORY) {
-+		buffer = omap3isp_video_buffer_next(&prev->video_in);
-+		if (buffer != NULL)
-+			preview_set_inaddr(prev, buffer->dma);
-+		pipe->state |= ISP_PIPELINE_IDLE_INPUT;
-+	}
-+
- 	switch (prev->state) {
- 	case ISP_PIPELINE_STREAM_SINGLESHOT:
- 		if (isp_pipeline_ready(pipe))
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 6a83d61..edb4125 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -239,6 +239,8 @@ bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 	    t1->bt.pixelclock >= t2->bt.pixelclock - pclock_delta &&
+ 	    t1->bt.pixelclock <= t2->bt.pixelclock + pclock_delta &&
+ 	    t1->bt.hfrontporch == t2->bt.hfrontporch &&
++	    t1->bt.hsync == t2->bt.hsync &&
++	    t1->bt.hbackporch == t2->bt.hbackporch &&
+ 	    t1->bt.vfrontporch == t2->bt.vfrontporch &&
+ 	    t1->bt.vsync == t2->bt.vsync &&
+ 	    t1->bt.vbackporch == t2->bt.vbackporch &&
 -- 
-2.1.4
+2.5.0
 
