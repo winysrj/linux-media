@@ -1,96 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44899 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628AbbKPKVX (ORCPT
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:33968 "EHLO
+	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754464AbbKMKsU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 13/16] tda6655: get rid of get_state()/set_state()
-Date: Mon, 16 Nov 2015 08:21:10 -0200
-Message-Id: <afda57f7a21175b247531ecc5ced01b003173b42.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Fri, 13 Nov 2015 05:48:20 -0500
+Received: by lffu14 with SMTP id u14so50229616lff.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Nov 2015 02:48:18 -0800 (PST)
+Received: from [192.168.100.28] (a88-115-254-86.elisa-laajakaista.fi. [88.115.254.86])
+        by smtp.gmail.com with ESMTPSA id o199sm3023948lfa.12.2015.11.13.02.48.17
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 13 Nov 2015 02:48:17 -0800 (PST)
+Subject: Re:
+References: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
+ <5644AD42.4060904@users.sourceforge.net> <20151112152022.4f212b97@recife.lan>
+From: Alberto Mardegan <mardy@users.sourceforge.net>
+To: linux-media@vger.kernel.org
+Message-ID: <5645BFF0.6000605@users.sourceforge.net>
+Date: Fri, 13 Nov 2015 12:48:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <20151112152022.4f212b97@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those ops aren't used by any driver, with is weird. I suspect
-that mantis_vb3030 driver were not working properly...
+On 11/12/2015 07:20 PM, Mauro Carvalho Chehab wrote:
+> Complaining doesn't help at all. We don't read the mailing list to
 
-Anyway, now that the driver uses the set_parms, the DVB
-frontend core should do the right thing.
+I wasn't complaining, just asking :-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-frontends/tda665x.c | 36 -----------------------------------
- 1 file changed, 36 deletions(-)
+[...]
+> All patches that goes to the ML are automatically stored there, and will be
+> handled by one of the (sub-)maintainers.
+[...]
 
-diff --git a/drivers/media/dvb-frontends/tda665x.c b/drivers/media/dvb-frontends/tda665x.c
-index 6ced688c3264..82f8cc534f33 100644
---- a/drivers/media/dvb-frontends/tda665x.c
-+++ b/drivers/media/dvb-frontends/tda665x.c
-@@ -66,28 +66,6 @@ exit:
- 	return err;
- }
- 
--static int tda665x_get_state(struct dvb_frontend *fe,
--			     enum tuner_param param,
--			     struct tuner_state *tstate)
--{
--	struct tda665x_state *state = fe->tuner_priv;
--	int err = 0;
--
--	switch (param) {
--	case DVBFE_TUNER_FREQUENCY:
--		tstate->frequency = state->frequency;
--		break;
--	case DVBFE_TUNER_BANDWIDTH:
--		break;
--	default:
--		printk(KERN_ERR "%s: Unknown parameter (param=%d)\n", __func__, param);
--		err = -EINVAL;
--		break;
--	}
--
--	return err;
--}
--
- static int tda665x_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	struct tda665x_state *state = fe->tuner_priv;
-@@ -219,17 +197,6 @@ static int tda665x_set_params(struct dvb_frontend *fe)
- 	return 0;
- }
- 
--static int tda665x_set_state(struct dvb_frontend *fe,
--			     enum tuner_param param,
--			     struct tuner_state *tstate)
--{
--	if (param & DVBFE_TUNER_FREQUENCY)
--		return  tda665x_set_frequency(fe, tstate->frequency);
--
--	printk(KERN_ERR "%s: Unknown parameter (param=%d)\n", __func__, param);
--	return -EINVAL;
--}
--
- static int tda665x_release(struct dvb_frontend *fe)
- {
- 	struct tda665x_state *state = fe->tuner_priv;
-@@ -240,9 +207,6 @@ static int tda665x_release(struct dvb_frontend *fe)
- }
- 
- static struct dvb_tuner_ops tda665x_ops = {
--
--	.set_state	= tda665x_set_state,
--	.get_state	= tda665x_get_state,
- 	.get_status	= tda665x_get_status,
- 	.set_params	= tda665x_set_params,
- 	.get_frequency	= tda665x_get_frequency,
+That was the information I missed. Then all is fine, thanks. :-)
+
+Ciao,
+  Alberto
+
 -- 
-2.5.0
-
+http://blog.mardy.it <- geek in un lingua international!
