@@ -1,73 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57255 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535AbbKPJBz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 04:01:55 -0500
-Received: from [192.168.1.134] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 83371E3982
-	for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 10:01:49 +0100 (CET)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.5] Fixes and new ti-vpe/cal driver
-Message-ID: <56499B7C.5090603@xs4all.nl>
-Date: Mon, 16 Nov 2015 10:01:48 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:54440 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754642AbbKMLhW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2015 06:37:22 -0500
+Date: Fri, 13 Nov 2015 09:37:16 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Patrick Boettcher <patrick.boettcher@posteo.de>
+Cc: Alec Leamas <leamas.alec@gmail.com>, linux-media@vger.kernel.org
+Subject: Re:
+Message-ID: <20151113093716.17157745@recife.lan>
+In-Reply-To: <20151113105431.71030921@dibcom294.coe.adi.dibcom.com>
+References: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
+	<5644AD42.4060904@users.sourceforge.net>
+	<20151112152022.4f212b97@recife.lan>
+	<5644CD07.6020303@gmail.com>
+	<20151112154150.33a1979a@recife.lan>
+	<20151113105431.71030921@dibcom294.coe.adi.dibcom.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please note that this patch series assumes that my previous pull request was
-merged first:
+Em Fri, 13 Nov 2015 10:54:31 +0100
+Patrick Boettcher <patrick.boettcher@posteo.de> escreveu:
 
-https://patchwork.linuxtv.org/patch/31872/
+> On Thu, 12 Nov 2015 15:41:50 -0200 Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > > Is putting the patch in an attachment OK?
+> > 
+> > No, because it doesn't make easy for people to reply with comments.
+> 
+> Except if you are using claws. With which you can select text in a text
+> attachment and click the reply button and it will create a response
+> with the selected text in the message body. But only this part, not the
+> rest of the message.
 
-This is for the v4l2-pci-skeleton patch. The other three are independent of
-the previous pull request.
+Yes, I use such feature when needed, but then I need to do two "replies"
+and merge on a single reply email, with kinda sucks and spends me more time.
+So, I tend to postpone those patches, if I am in a hurry.
+
+However, lots of developers use mutt, with doesn't have such option.
 
 Regards,
-
-	Hans
-
-
-The following changes since commit 54adb10d0947478b3364640a131fff1f1ab190fa:
-
-  v4l2-dv-timings: add new arg to v4l2_match_dv_timings (2015-11-13 14:15:55 +0100)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.5b
-
-for you to fetch changes up to 2cb88733214e31c04d1a87a1ef51cc6f26a44e09:
-
-  media: v4l: ti-vpe: Document CAL driver (2015-11-16 09:50:13 +0100)
-
-----------------------------------------------------------------
-Benoit Parrot (2):
-      media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
-      media: v4l: ti-vpe: Document CAL driver
-
-Hans Verkuil (1):
-      v4l2-pci-skeleton.c: forgot to update v4l2_match_dv_timings call
-
-Julia Lawall (1):
-      i2c: constify v4l2_ctrl_ops structures
-
- Documentation/devicetree/bindings/media/ti-cal.txt |   70 +++
- Documentation/video4linux/v4l2-pci-skeleton.c      |    2 +-
- drivers/media/i2c/mt9m032.c                        |    2 +-
- drivers/media/i2c/mt9p031.c                        |    2 +-
- drivers/media/i2c/mt9t001.c                        |    2 +-
- drivers/media/i2c/mt9v011.c                        |    2 +-
- drivers/media/i2c/mt9v032.c                        |    2 +-
- drivers/media/i2c/ov2659.c                         |    2 +-
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/ti-vpe/Makefile             |    4 +
- drivers/media/platform/ti-vpe/cal.c                | 2164 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/cal_regs.h           |  779 +++++++++++++++++++++++++++++++++
- 13 files changed, 3038 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
- create mode 100644 drivers/media/platform/ti-vpe/cal.c
- create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
+Mauro
