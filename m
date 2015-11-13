@@ -1,242 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39272 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1162616AbbKTQkJ (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36299 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932553AbbKMLqe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:40:09 -0500
+	Fri, 13 Nov 2015 06:46:34 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: "Prashant Laddha (prladdha)" <prladdha@cisco.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 14/15] videobuf2-core: fix plane_sizes handling in VIDIOC_CREATE_BUFS
-Date: Fri, 20 Nov 2015 17:34:17 +0100
-Message-Id: <1448037258-36305-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-dv-timings: add new arg to v4l2_match_dv_timings
+Message-ID: <5645CD92.5080508@xs4all.nl>
+Date: Fri, 13 Nov 2015 12:46:26 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-The handling of q->plane_sizes was wrong in vb2_core_create_bufs().
-The q->plane_sizes array was global and it was overwritten by create_bufs.
-So if reqbufs was called with e.g. size 100000 then q->plane_sizes[0] would
-be set to 100000. If create_bufs was called afterwards with size 200000,
-then q->plane_sizes[0] would be overwritten with the new value. Calling
-create_bufs again for size 100000 would cause an error since 100000 is now
-less than q->plane_sizes[0].
-
-This patch fixes this problem by 1) removing q->plane_sizes and using the
-vb->planes[].length field instead, and 2) by introducing a min_length field
-in struct vb2_plane. This field is set to the plane size as returned by
-the queue_setup op and is the minimum required plane size. So user pointers
-or dmabufs should all be at least this size.
+Add the new match_reduced_fps argument to v4l2_match_dv_timings().
+Depending on the situation you may or may not desire to match the
+reduced_fps flag. Typically only HDMI transmitters will need to
+check for this flag.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 39 +++++++++++++++++---------------
- include/media/videobuf2-core.h           |  4 +++-
- 2 files changed, 24 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 26ba9e4..e6890d4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -203,7 +203,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 	 * NOTE: mmapped areas should be page aligned
- 	 */
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
--		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
-+		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+Needed to make Prashant's "[RFC v2 0/4] vivid: reduced fps support"
+patch series work for HDMI output.
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg92552.html
+
+ drivers/media/i2c/adv7604.c                  | 6 +++---
+ drivers/media/i2c/adv7842.c                  | 6 +++---
+ drivers/media/i2c/tc358743.c                 | 4 ++--
+ drivers/media/pci/cobalt/cobalt-v4l2.c       | 2 +-
+ drivers/media/platform/s5p-tv/hdmi_drv.c     | 2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c | 2 +-
+ drivers/media/platform/vivid/vivid-vid-out.c | 2 +-
+ drivers/media/usb/hdpvr/hdpvr-video.c        | 2 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c    | 9 +++++++--
+ include/media/v4l2-dv-timings.h              | 4 +++-
+ 10 files changed, 23 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 5631ec0..d642303 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -905,7 +905,7 @@ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
  
- 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
- 				      size, dma_dir, q->gfp_flags);
-@@ -212,7 +212,6 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	for (i = 0; predef_vid_timings[i].timings.bt.width; i++) {
+ 		if (!v4l2_match_dv_timings(timings, &predef_vid_timings[i].timings,
+-					is_digital_input(sd) ? 250000 : 1000000))
++				is_digital_input(sd) ? 250000 : 1000000, false))
+ 			continue;
+ 		io_write(sd, 0x00, predef_vid_timings[i].vid_std); /* video std */
+ 		io_write(sd, 0x01, (predef_vid_timings[i].v_freq << 4) +
+@@ -1479,7 +1479,7 @@ static void adv76xx_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
  
- 		/* Associate allocator private data with this plane */
- 		vb->planes[plane].mem_priv = mem_priv;
--		vb->planes[plane].length = q->plane_sizes[plane];
- 	}
- 
- 	return 0;
-@@ -322,7 +321,8 @@ static void __setup_offsets(struct vb2_buffer *vb)
-  * Returns the number of buffers successfully allocated.
-  */
- static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
--			     unsigned int num_buffers, unsigned int num_planes)
-+			     unsigned int num_buffers, unsigned int num_planes,
-+			     const unsigned plane_sizes[VB2_MAX_PLANES])
- {
- 	unsigned int buffer, plane;
- 	struct vb2_buffer *vb;
-@@ -342,8 +342,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 		vb->index = q->num_buffers + buffer;
- 		vb->type = q->type;
- 		vb->memory = memory;
--		for (plane = 0; plane < num_planes; ++plane)
--			vb->planes[plane].length = q->plane_sizes[plane];
-+		for (plane = 0; plane < num_planes; ++plane) {
-+			vb->planes[plane].length = plane_sizes[plane];
-+			vb->planes[plane].min_length = plane_sizes[plane];
-+		}
- 		q->bufs[vb->index] = vb;
- 
- 		/* Allocate video buffer memory for the MMAP type */
-@@ -352,8 +354,8 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 			if (ret) {
- 				dprintk(1, "failed allocating memory for "
- 						"buffer %d\n", buffer);
--				kfree(vb);
- 				q->bufs[vb->index] = NULL;
-+				kfree(vb);
- 				break;
- 			}
- 			__setup_offsets(vb);
-@@ -690,6 +692,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		unsigned int *count)
- {
- 	unsigned int num_buffers, allocated_buffers, num_planes = 0;
-+	unsigned plane_sizes[VB2_MAX_PLANES] = { };
- 	int ret;
- 
- 	if (q->streaming) {
-@@ -733,7 +736,6 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 */
- 	num_buffers = min_t(unsigned int, *count, VB2_MAX_FRAME);
- 	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
--	memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 	q->memory = memory;
- 
-@@ -742,13 +744,13 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 * Driver also sets the size and allocator context for each plane.
- 	 */
- 	ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
--		       q->plane_sizes, q->alloc_ctx);
-+		       plane_sizes, q->alloc_ctx);
- 	if (ret)
- 		return ret;
- 
- 	/* Finally, allocate buffers and video memory */
- 	allocated_buffers =
--		__vb2_queue_alloc(q, memory, num_buffers, num_planes);
-+		__vb2_queue_alloc(q, memory, num_buffers, num_planes, plane_sizes);
- 	if (allocated_buffers == 0) {
- 		dprintk(1, "memory allocation failed\n");
- 		return -ENOMEM;
-@@ -775,7 +777,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		num_planes = 0;
- 
- 		ret = call_qop(q, queue_setup, q, &num_buffers,
--			       &num_planes, q->plane_sizes, q->alloc_ctx);
-+			       &num_planes, plane_sizes, q->alloc_ctx);
- 
- 		if (!ret && allocated_buffers < num_buffers)
- 			ret = -ENOMEM;
-@@ -832,6 +834,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 		const unsigned requested_sizes[])
- {
- 	unsigned int num_planes = 0, num_buffers, allocated_buffers;
-+	unsigned plane_sizes[VB2_MAX_PLANES] = { };
- 	int ret;
- 
- 	if (q->num_buffers == VB2_MAX_FRAME) {
-@@ -840,7 +843,6 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 	}
- 
- 	if (!q->num_buffers) {
--		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
- 		q->memory = memory;
- 		q->waiting_for_buffers = !q->is_output;
-@@ -850,7 +852,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 
- 	if (requested_planes && requested_sizes) {
- 		num_planes = requested_planes;
--		memcpy(q->plane_sizes, requested_sizes, sizeof(q->plane_sizes));
-+		memcpy(plane_sizes, requested_sizes, sizeof(plane_sizes));
- 	}
- 
- 	/*
-@@ -858,13 +860,13 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 * buffer and their sizes are acceptable
- 	 */
- 	ret = call_qop(q, queue_setup, q, &num_buffers,
--		       &num_planes, q->plane_sizes, q->alloc_ctx);
-+		       &num_planes, plane_sizes, q->alloc_ctx);
- 	if (ret)
- 		return ret;
- 
- 	/* Finally, allocate buffers and video memory */
- 	allocated_buffers = __vb2_queue_alloc(q, memory, num_buffers,
--				num_planes);
-+				num_planes, plane_sizes);
- 	if (allocated_buffers == 0) {
- 		dprintk(1, "memory allocation failed\n");
- 		return -ENOMEM;
-@@ -881,7 +883,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 		 * queue driver has set up
- 		 */
- 		ret = call_qop(q, queue_setup, q, &num_buffers,
--			       &num_planes, q->plane_sizes, q->alloc_ctx);
-+			       &num_planes, plane_sizes, q->alloc_ctx);
- 
- 		if (!ret && allocated_buffers < num_buffers)
- 			ret = -ENOMEM;
-@@ -1097,11 +1099,12 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 				"reacquiring memory\n", plane);
- 
- 		/* Check if the provided plane buffer is large enough */
--		if (planes[plane].length < q->plane_sizes[plane]) {
-+		if (planes[plane].length < vb->planes[plane].min_length) {
- 			dprintk(1, "provided buffer size %u is less than "
- 						"setup size %u for plane %d\n",
- 						planes[plane].length,
--						q->plane_sizes[plane], plane);
-+						vb->planes[plane].min_length,
-+						plane);
- 			ret = -EINVAL;
- 			goto err;
+ 	for (i = 0; adv76xx_timings[i].bt.width; i++) {
+ 		if (v4l2_match_dv_timings(timings, &adv76xx_timings[i],
+-					is_digital_input(sd) ? 250000 : 1000000)) {
++				is_digital_input(sd) ? 250000 : 1000000, false)) {
+ 			*timings = adv76xx_timings[i];
+ 			break;
  		}
-@@ -1214,7 +1217,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 		if (planes[plane].length == 0)
- 			planes[plane].length = dbuf->size;
+@@ -1644,7 +1644,7 @@ static int adv76xx_s_dv_timings(struct v4l2_subdev *sd,
+ 	if (!timings)
+ 		return -EINVAL;
  
--		if (planes[plane].length < q->plane_sizes[plane]) {
-+		if (planes[plane].length < vb->planes[plane].min_length) {
- 			dprintk(1, "invalid dmabuf length for plane %d\n",
- 				plane);
- 			ret = -EINVAL;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index b88dbba..ef03ae5 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -129,6 +129,8 @@ struct vb2_mem_ops {
-  * @dbuf_mapped:	flag to show whether dbuf is mapped or not
-  * @bytesused:	number of bytes occupied by data in the plane (payload)
-  * @length:	size of this plane (NOT the payload) in bytes
-+ * @min_length:	minimum required size of this plane (NOT the payload) in bytes.
-+ *		@length is always greater or equal to @min_length.
-  * @offset:	when memory in the associated struct vb2_buffer is
-  *		VB2_MEMORY_MMAP, equals the offset from the start of
-  *		the device memory for this plane (or is a "cookie" that
-@@ -150,6 +152,7 @@ struct vb2_plane {
- 	unsigned int		dbuf_mapped;
- 	unsigned int		bytesused;
- 	unsigned int		length;
-+	unsigned int		min_length;
- 	union {
- 		unsigned int	offset;
- 		unsigned long	userptr;
-@@ -489,7 +492,6 @@ struct vb2_queue {
- 	wait_queue_head_t		done_wq;
+-	if (v4l2_match_dv_timings(&state->timings, timings, 0)) {
++	if (v4l2_match_dv_timings(&state->timings, timings, 0, false)) {
+ 		v4l2_dbg(1, debug, sd, "%s: no change\n", __func__);
+ 		return 0;
+ 	}
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index b7269b8..56726dc 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -155,7 +155,7 @@ static bool adv7842_check_dv_timings(const struct v4l2_dv_timings *t, void *hdl)
+ 	int i;
  
- 	void				*alloc_ctx[VB2_MAX_PLANES];
--	unsigned int			plane_sizes[VB2_MAX_PLANES];
+ 	for (i = 0; adv7842_timings_exceptions[i].bt.width; i++)
+-		if (v4l2_match_dv_timings(t, adv7842_timings_exceptions + i, 0))
++		if (v4l2_match_dv_timings(t, adv7842_timings_exceptions + i, 0, false))
+ 			return false;
+ 	return true;
+ }
+@@ -1008,7 +1008,7 @@ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
  
- 	unsigned int			streaming:1;
- 	unsigned int			start_streaming_called:1;
+ 	for (i = 0; predef_vid_timings[i].timings.bt.width; i++) {
+ 		if (!v4l2_match_dv_timings(timings, &predef_vid_timings[i].timings,
+-					  is_digital_input(sd) ? 250000 : 1000000))
++				  is_digital_input(sd) ? 250000 : 1000000, false))
+ 			continue;
+ 		/* video std */
+ 		io_write(sd, 0x00, predef_vid_timings[i].vid_std);
+@@ -1659,7 +1659,7 @@ static int adv7842_s_dv_timings(struct v4l2_subdev *sd,
+ 	if (state->mode == ADV7842_MODE_SDP)
+ 		return -ENODATA;
+ 
+-	if (v4l2_match_dv_timings(&state->timings, timings, 0)) {
++	if (v4l2_match_dv_timings(&state->timings, timings, 0, false)) {
+ 		v4l2_dbg(1, debug, sd, "%s: no change\n", __func__);
+ 		return 0;
+ 	}
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 9ef5baa..fdf1333 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -862,7 +862,7 @@ static void tc358743_format_change(struct v4l2_subdev *sd)
+ 		v4l2_dbg(1, debug, sd, "%s: Format changed. No signal\n",
+ 				__func__);
+ 	} else {
+-		if (!v4l2_match_dv_timings(&state->timings, &timings, 0))
++		if (!v4l2_match_dv_timings(&state->timings, &timings, 0, false))
+ 			enable_stream(sd, false);
+ 
+ 		v4l2_print_dv_timings(sd->name,
+@@ -1366,7 +1366,7 @@ static int tc358743_s_dv_timings(struct v4l2_subdev *sd,
+ 		v4l2_print_dv_timings(sd->name, "tc358743_s_dv_timings: ",
+ 				timings, false);
+ 
+-	if (v4l2_match_dv_timings(&state->timings, timings, 0)) {
++	if (v4l2_match_dv_timings(&state->timings, timings, 0, false)) {
+ 		v4l2_dbg(1, debug, sd, "%s: no change\n", __func__);
+ 		return 0;
+ 	}
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index ff46e42..6018a0b 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -649,7 +649,7 @@ static int cobalt_s_dv_timings(struct file *file, void *priv_fh,
+ 		return 0;
+ 	}
+ 
+-	if (v4l2_match_dv_timings(timings, &s->timings, 0))
++	if (v4l2_match_dv_timings(timings, &s->timings, 0, false))
+ 		return 0;
+ 
+ 	if (vb2_is_busy(&s->q))
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 7994075..3547d33 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -627,7 +627,7 @@ static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(hdmi_timings); i++)
+ 		if (v4l2_match_dv_timings(&hdmi_timings[i].dv_timings,
+-					timings, 0))
++					timings, 0, false))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdmi_timings)) {
+ 		dev_err(dev, "timings not supported\n");
+diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
+index 45a2ed8..9cc07c6 100644
+--- a/drivers/media/platform/vivid/vivid-vid-cap.c
++++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+@@ -1670,7 +1670,7 @@ int vivid_vid_cap_s_dv_timings(struct file *file, void *_fh,
+ 	    !valid_cvt_gtf_timings(timings))
+ 		return -EINVAL;
+ 
+-	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0))
++	if (v4l2_match_dv_timings(timings, &dev->dv_timings_cap, 0, false))
+ 		return 0;
+ 	if (vb2_is_busy(&dev->vb_vid_cap_q))
+ 		return -EBUSY;
+diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
+index db645ab..1f3b081 100644
+--- a/drivers/media/platform/vivid/vivid-vid-out.c
++++ b/drivers/media/platform/vivid/vivid-vid-out.c
+@@ -1156,7 +1156,7 @@ int vivid_vid_out_s_dv_timings(struct file *file, void *_fh,
+ 				0, NULL, NULL) &&
+ 	    !valid_cvt_gtf_timings(timings))
+ 		return -EINVAL;
+-	if (v4l2_match_dv_timings(timings, &dev->dv_timings_out, 0))
++	if (v4l2_match_dv_timings(timings, &dev->dv_timings_out, 0, true))
+ 		return 0;
+ 	if (vb2_is_busy(&dev->vb_vid_out_q))
+ 		return -EBUSY;
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index d8d8c0f..7dee22d 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -642,7 +642,7 @@ static int vidioc_s_dv_timings(struct file *file, void *_fh,
+ 	if (dev->status != STATUS_IDLE)
+ 		return -EBUSY;
+ 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++)
+-		if (v4l2_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
++		if (v4l2_match_dv_timings(timings, hdpvr_dv_timings + i, 0, false))
+ 			break;
+ 	if (i == ARRAY_SIZE(hdpvr_dv_timings))
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index d8e62f6..c157f99 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -209,7 +209,7 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 		if (v4l2_valid_dv_timings(v4l2_dv_timings_presets + i, cap,
+ 					  fnc, fnc_handle) &&
+ 		    v4l2_match_dv_timings(t, v4l2_dv_timings_presets + i,
+-					  pclock_delta)) {
++					  pclock_delta, false)) {
+ 			u32 flags = t->bt.flags & V4L2_DV_FL_REDUCED_FPS;
+ 
+ 			*t = v4l2_dv_timings_presets[i];
+@@ -228,12 +228,14 @@ EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cap);
+  * @t1 - compare this v4l2_dv_timings struct...
+  * @t2 - with this struct.
+  * @pclock_delta - the allowed pixelclock deviation.
++ * @match_reduced_fps - if true, then fail if V4L2_DV_FL_REDUCED_FPS does not
++ * match.
+  *
+  * Compare t1 with t2 with a given margin of error for the pixelclock.
+  */
+ bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 			   const struct v4l2_dv_timings *t2,
+-			   unsigned pclock_delta)
++			   unsigned pclock_delta, bool match_reduced_fps)
+ {
+ 	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
+ 		return false;
+@@ -247,6 +249,9 @@ bool v4l2_match_dv_timings(const struct v4l2_dv_timings *t1,
+ 	    t1->bt.vfrontporch == t2->bt.vfrontporch &&
+ 	    t1->bt.vsync == t2->bt.vsync &&
+ 	    t1->bt.vbackporch == t2->bt.vbackporch &&
++	    (!match_reduced_fps ||
++	     (t1->bt.flags & V4L2_DV_FL_REDUCED_FPS) ==
++		(t2->bt.flags & V4L2_DV_FL_REDUCED_FPS)) &&
+ 	    (!t1->bt.interlaced ||
+ 		(t1->bt.il_vfrontporch == t2->bt.il_vfrontporch &&
+ 		 t1->bt.il_vsync == t2->bt.il_vsync &&
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 69829a5..4392040 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -107,12 +107,14 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+  * @standard:	  the timings according to the standard.
+  * @pclock_delta: maximum delta in Hz between standard->pixelclock and
+  * 		the measured timings.
++ * @match_reduced_fps - if true, then fail if V4L2_DV_FL_REDUCED_FPS does not
++ * match.
+  *
+  * Returns true if the two timings match, returns false otherwise.
+  */
+ bool v4l2_match_dv_timings(const struct v4l2_dv_timings *measured,
+ 			   const struct v4l2_dv_timings *standard,
+-			   unsigned pclock_delta);
++			   unsigned pclock_delta, bool match_reduced_fps);
+ 
+ /**
+  * v4l2_print_dv_timings() - log the contents of a dv_timings struct
 -- 
 2.6.2
 
