@@ -1,65 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56490 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760712AbbKTQee (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:34:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.gentoo.org ([140.211.166.183]:41615 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752089AbbKMWzt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2015 17:55:49 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Geunyoung Kim <nenggun.kim@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCHv10 06/15] media: videobuf2: last_buffer_queued is set at fill_v4l2_buffer()
-Date: Fri, 20 Nov 2015 17:34:09 +0100
-Message-Id: <1448037258-36305-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 4/4] si2165: Add DVB-C support for HVR-4400/HVR-5500
+Date: Fri, 13 Nov 2015 23:54:58 +0100
+Message-Id: <1447455298-5562-4-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1447455298-5562-1-git-send-email-zzam@gentoo.org>
+References: <1447455298-5562-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Junghak Sung <jh1009.sung@samsung.com>
+It works only for HVR-4400/HVR-5500.
+For WinTV-HVR-930C-HD it fails with bad/no reception
+for unknown reasons.
 
-The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
-So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
-vb2_internal_dqbuf().
-
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- drivers/media/v4l2-core/videobuf2-v4l2.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/si2165.c | 132 +++++++++++++++++++++++++++++++----
+ 1 file changed, 120 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index a6945ee..91728c1 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	if (vb2_buffer_in_use(q, vb))
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index c87d927..97a6eac 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -760,7 +760,7 @@ static int si2165_set_oversamp(struct si2165_state *state, u32 dvb_rate)
+ 	do_div(oversamp, dvb_rate);
+ 	reg_value = oversamp & 0x3fffffff;
  
-+	if (!q->is_output &&
-+		b->flags & V4L2_BUF_FLAG_DONE &&
-+		b->flags & V4L2_BUF_FLAG_LAST)
-+		q->last_buffer_dequeued = true;
+-	/* oversamp, usbdump contained 0x03100000; */
++	dprintk("%s: Write oversamp=%#x\n", __func__, reg_value);
+ 	return si2165_writereg32(state, 0x00e4, reg_value);
+ }
+ 
+@@ -823,7 +823,7 @@ static const struct si2165_reg_value_pair dvbt_regs[] = {
+ 	{ 0x0387, 0x00 }
+ };
+ 
+-static int si2165_set_parameters(struct dvb_frontend *fe)
++static int si2165_set_frontend_dvbt(struct dvb_frontend *fe)
+ {
+ 	int ret;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+@@ -851,9 +851,6 @@ static int si2165_set_parameters(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = si2165_set_if_freq_shift(state);
+-	if (ret < 0)
+-		return ret;
+ 	ret = si2165_writereg8(state, 0x08f8, 0x00);
+ 	if (ret < 0)
+ 		return ret;
+@@ -874,6 +871,110 @@ static int si2165_set_parameters(struct dvb_frontend *fe)
+ 	if (ret < 0)
+ 		return ret;
+ 
++	return 0;
++}
 +
- 	return 0;
- }
++static const struct si2165_reg_value_pair dvbc_regs[] = {
++	/* agc2 */
++	{ 0x016e, 0x50 },
++	{ 0x016c, 0x0e },
++	{ 0x016d, 0x10 },
++	/* agc */
++	{ 0x015b, 0x03 },
++	{ 0x0150, 0x68 },
++	/* agc */
++	{ 0x01a0, 0x68 },
++	{ 0x01c8, 0x50 },
++
++	{ 0x0278, 0x0d },
++
++	{ 0x023a, 0x05 },
++	{ 0x0261, 0x09 },
++	REG16(0x0350, 0x3e80),
++	{ 0x02f4, 0x00 }
++};
++
++static int si2165_set_frontend_dvbc(struct dvb_frontend *fe)
++{
++	struct si2165_state *state = fe->demodulator_priv;
++	int ret;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	const u32 dvb_rate = p->symbol_rate;
++	const u32 bw_hz = p->bandwidth_hz;
++
++	if (!state->has_dvbc)
++		return -EINVAL;
++
++	if (dvb_rate == 0)
++		return -EINVAL;
++
++	/* standard = DVB-C */
++	ret = si2165_writereg8(state, 0x00ec, 0x05);
++	if (ret < 0)
++		return ret;
++	ret = si2165_adjust_pll_divl(state, 14);
++	if (ret < 0)
++		return ret;
++
++	ret = si2165_writereg8(state, 0x08f8, 0x00);
++	if (ret < 0)
++		return ret;
++
++	/* Oversampling */
++	ret = si2165_set_oversamp(state, dvb_rate);
++	if (ret < 0)
++		return ret;
++
++	ret = si2165_write_reg_list(state, dvbc_regs, ARRAY_SIZE(dvbc_regs));
++	if (ret < 0)
++		return ret;
++
++	/* dsp_addr_jump */
++	ret = si2165_writereg32(state, 0x0348, 0xf4000000);
++	if (ret < 0)
++		return ret;
++
++	si2165_writereg32(state, 0x00c4, bw_hz);
++	si2165_writereg8(state, 0x00cb, 0x01);
++	si2165_writereg8(state, 0x00c0, 0x00);
++	si2165_writereg16(state, 0x024c, 0x0000);
++	si2165_writereg16(state, 0x027c, 0x0000);
++	si2165_writereg8(state, 0x0232, 0x03);
++	si2165_writereg8(state, 0x02f4, 0x0b);
++	si2165_writereg8(state, 0x00c0, 0x00);
++	si2165_writereg8(state, 0x018b, 0x00);
++
++	return 0;
++}
++
++static int si2165_set_frontend(struct dvb_frontend *fe)
++{
++	struct si2165_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	u32 delsys = p->delivery_system;
++	int ret;
++	u8 val[3];
++
++	/* initial setting of if freq shift */
++	ret = si2165_set_if_freq_shift(state);
++	if (ret < 0)
++		return ret;
++
++	switch (delsys) {
++	case SYS_DVBT:
++		ret = si2165_set_frontend_dvbt(fe);
++		if (ret < 0)
++			return ret;
++		break;
++	case SYS_DVBC_ANNEX_A:
++		ret = si2165_set_frontend_dvbc(fe);
++		if (ret < 0)
++			return ret;
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	if (fe->ops.tuner_ops.set_params)
+ 		fe->ops.tuner_ops.set_params(fe);
  
-@@ -617,10 +622,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+@@ -889,6 +990,7 @@ static int si2165_set_parameters(struct dvb_frontend *fe)
+ 	ret = si2165_writereg8(state, 0x0341, 0x00);
+ 	if (ret < 0)
+ 		return ret;
++
+ 	/* reset all */
+ 	ret = si2165_writereg8(state, 0x00c0, 0x00);
+ 	if (ret < 0)
+@@ -902,7 +1004,7 @@ static int si2165_set_parameters(struct dvb_frontend *fe)
+ 	ret = si2165_write_reg_list(state, agc_rewrite,
+ 				    ARRAY_SIZE(agc_rewrite));
+ 	if (ret < 0)
+-		goto error;
++		return ret;
  
- 	ret = vb2_core_dqbuf(q, b, nonblocking);
+ 	/* start_synchro */
+ 	ret = si2165_writereg8(state, 0x02e0, 0x01);
+@@ -927,7 +1029,12 @@ static void si2165_release(struct dvb_frontend *fe)
+ static struct dvb_frontend_ops si2165_ops = {
+ 	.info = {
+ 		.name = "Silicon Labs ",
+-		.caps =	FE_CAN_FEC_1_2 |
++		 /* For DVB-C */
++		.symbol_rate_min = 1000000,
++		.symbol_rate_max = 7200000,
++		/* For DVB-T */
++		.frequency_stepsize = 166667,
++		.caps = FE_CAN_FEC_1_2 |
+ 			FE_CAN_FEC_2_3 |
+ 			FE_CAN_FEC_3_4 |
+ 			FE_CAN_FEC_5_6 |
+@@ -940,7 +1047,6 @@ static struct dvb_frontend_ops si2165_ops = {
+ 			FE_CAN_QAM_128 |
+ 			FE_CAN_QAM_256 |
+ 			FE_CAN_QAM_AUTO |
+-			FE_CAN_TRANSMISSION_MODE_AUTO |
+ 			FE_CAN_GUARD_INTERVAL_AUTO |
+ 			FE_CAN_HIERARCHY_AUTO |
+ 			FE_CAN_MUTE_TS |
+@@ -953,7 +1059,7 @@ static struct dvb_frontend_ops si2165_ops = {
+ 	.init = si2165_init,
+ 	.sleep = si2165_sleep,
  
--	if (!ret && !q->is_output &&
--			b->flags & V4L2_BUF_FLAG_LAST)
--		q->last_buffer_dequeued = true;
--
- 	return ret;
- }
+-	.set_frontend      = si2165_set_parameters,
++	.set_frontend      = si2165_set_frontend,
+ 	.read_status       = si2165_read_status,
+ 
+ 	.release = si2165_release,
+@@ -1052,9 +1158,11 @@ struct dvb_frontend *si2165_attach(const struct si2165_config *config,
+ 		strlcat(state->frontend.ops.info.name, " DVB-T",
+ 			sizeof(state->frontend.ops.info.name));
+ 	}
+-	if (state->has_dvbc)
+-		dev_warn(&state->i2c->dev, "%s: DVB-C is not yet supported.\n",
+-		       KBUILD_MODNAME);
++	if (state->has_dvbc) {
++		state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
++		strlcat(state->frontend.ops.info.name, " DVB-C",
++			sizeof(state->frontend.ops.info.name));
++	}
+ 
+ 	return &state->frontend;
  
 -- 
-2.6.2
+2.6.3
 
