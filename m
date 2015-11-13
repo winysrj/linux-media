@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45994 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752738AbbKWOHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 09:07:18 -0500
-Subject: Re: DVBSky T330 DVB-C regression Linux 4.1.12 to 4.3
-To: Stephan Eisvogel <eisvogel@seitics.de>,
-	Olli Salonen <olli.salonen@iki.fi>
-References: <CAAZRmGwzsqFYtSNDCCCwFR4vCRgtz9CrixsZyc0xJzb=S6OEsw@mail.gmail.com>
- <564D0B81.5040604@seitics.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <56531D93.3070007@iki.fi>
-Date: Mon, 23 Nov 2015 16:07:15 +0200
+Received: from mail-yk0-f180.google.com ([209.85.160.180]:35745 "EHLO
+	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754295AbbKMPsW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2015 10:48:22 -0500
 MIME-Version: 1.0
-In-Reply-To: <564D0B81.5040604@seitics.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1447417479-18095-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1447417479-18095-1-git-send-email-Julia.Lawall@lip6.fr>
+Date: Fri, 13 Nov 2015 10:48:21 -0500
+Message-ID: <CAOcJUbzGUP47PeLe2ng-BEh031T3ngMStYo9chas4uYqKA8gMQ@mail.gmail.com>
+Subject: Re: [PATCH] drivers/media/usb/dvb-usb-v2: constify
+ mxl111sf_demod_config structure
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
+Thanks for this!
 
-On 11/19/2015 01:36 AM, Stephan Eisvogel wrote:
-> Hey Olli, Antti,
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
 
-> culprit is:
+On Fri, Nov 13, 2015 at 7:24 AM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
+> The mxl111sf_demod_config structure is never modified, so declare it
+> as const.
 >
-> http://git.linuxtv.org/cgit.cgi/linux.git/commit/drivers/media/dvb-frontends/si2168.c?id=7adf99d20ce0e96a70755f452e3a63824b14060f
+> Done with the help of Coccinelle.
 >
-> I removed it like this:
->          /* error bit set? */
-> /*
->          if ((cmd->args[0] >> 6) & 0x01) {
->              ret = -EREMOTEIO;
->              goto err;
->          }
-> */
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 >
-> With this change backed out I zapped through about a 100 channels, and
-> my DVB stick works
-> again. Of course demodulator error handling would be nice anyhow. Beyond
-> my time budget
-> for now.
-
-Surprising finding. Init succeeded already as firmware was downloaded so 
-that error likely happens during si2168_set_frontend(). As set frontend 
-is called once for each tuning request one failure should not cause more 
-harm than one tuning failure. It could be nice to see which function is 
-failing and if it fails repeatedly.
-
-To see that, debug messages should be enabled:
-modprobe si2168 dyndbg==pmftl
-or
-modprobe si2168; echo -n 'module si2168 =pft' > 
-/sys/kernel/debug/dynamic_debug/control
-
-You could also replace all dev_dbg with dev_info if you don't care 
-compile kernel with dynamic debugs enabled needed for normal debug logging.
-
-Also, you used 4.0.19 firmware. Could you test that old one:
-http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-
-Unfortunately I don't have that device at all, so I cannot do much 
-myself. It is more up to Olli :]
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+> ---
+>  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c |    4 ++--
+>  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h |    4 ++--
+>  drivers/media/usb/dvb-usb-v2/mxl111sf.c       |    2 +-
+>  3 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
+> index ea37536..84f6de6 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
+> @@ -35,7 +35,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
+>  struct mxl111sf_demod_state {
+>         struct mxl111sf_state *mxl_state;
+>
+> -       struct mxl111sf_demod_config *cfg;
+> +       const struct mxl111sf_demod_config *cfg;
+>
+>         struct dvb_frontend fe;
+>  };
+> @@ -579,7 +579,7 @@ static struct dvb_frontend_ops mxl111sf_demod_ops = {
+>  };
+>
+>  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
+> -                                          struct mxl111sf_demod_config *cfg)
+> +                                  const struct mxl111sf_demod_config *cfg)
+>  {
+>         struct mxl111sf_demod_state *state = NULL;
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> index 0bd83e5..7065aca 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> @@ -35,11 +35,11 @@ struct mxl111sf_demod_config {
+>  #if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
+>  extern
+>  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
+> -                                          struct mxl111sf_demod_config *cfg);
+> +                                  const struct mxl111sf_demod_config *cfg);
+>  #else
+>  static inline
+>  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
+> -                                          struct mxl111sf_demod_config *cfg)
+> +                                  const struct mxl111sf_demod_config *cfg)
+>  {
+>         printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>         return NULL;
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> index bec12b0..c4a4a99 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> @@ -731,7 +731,7 @@ fail:
+>         return ret;
+>  }
+>
+> -static struct mxl111sf_demod_config mxl_demod_config = {
+> +static const struct mxl111sf_demod_config mxl_demod_config = {
+>         .read_reg        = mxl111sf_read_reg,
+>         .write_reg       = mxl111sf_write_reg,
+>         .program_regs    = mxl111sf_ctrl_program_regs,
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
