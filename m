@@ -1,69 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53311 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782AbbKCKQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 05:16:48 -0500
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NX802I24HVW5M60@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Nov 2015 19:16:44 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v9 4/6] media: videobuf2: last_buffer_queued is set at
- fill_v4l2_buffer()
-Date: Tue, 03 Nov 2015 19:16:40 +0900
-Message-id: <1446545802-28496-5-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
-References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48711 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751085AbbKND4w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Nov 2015 22:56:52 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id AB900E378F
+	for <linux-media@vger.kernel.org>; Sat, 14 Nov 2015 04:56:47 +0100 (CET)
+Date: Sat, 14 Nov 2015 04:56:47 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151114035647.AB900E378F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
-So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
-vb2_internal_dqbuf().
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0ca9f23..b0293df 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	if (vb2_buffer_in_use(q, vb))
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
- 
-+	if (!q->is_output &&
-+		b->flags & V4L2_BUF_FLAG_DONE &&
-+		b->flags & V4L2_BUF_FLAG_LAST)
-+		q->last_buffer_dequeued = true;
-+
- 	return 0;
- }
- 
-@@ -579,10 +584,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 
- 	ret = vb2_core_dqbuf(q, b, nonblocking);
- 
--	if (!ret && !q->is_output &&
--			b->flags & V4L2_BUF_FLAG_LAST)
--		q->last_buffer_dequeued = true;
--
- 	return ret;
- }
- 
--- 
-1.7.9.5
+date:		Sat Nov 14 04:00:17 CET 2015
+git branch:	test
+git hash:	79f5b6ae960d380c829fb67d5dadcd1d025d2775
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	host hardware:	x86_64
+host os:	4.2.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: OK
+linux-2.6.33.7-i686: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-2.6.32.27-x86_64: OK
+linux-2.6.33.7-x86_64: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
