@@ -1,411 +1,776 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43658 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196AbbKRQza (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52552 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbbKNN0b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 11:55:30 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH 1/9] [media] tvp5150: convert register access to regmap
-Date: Wed, 18 Nov 2015 17:55:20 +0100
-Message-Id: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+	Sat, 14 Nov 2015 08:26:31 -0500
+Received: from avalon.bb.dnainternet.fi (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id B1855203A8
+	for <linux-media@vger.kernel.org>; Sat, 14 Nov 2015 14:25:49 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] v4l: Add YUV 4:2:2 and YUV 4:4:4 tri-planar non-contiguous formats
+Date: Sat, 14 Nov 2015 15:26:33 +0200
+Message-Id: <1447507593-15016-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Regmap provides built in debugging, caching and provides dedicated accessors
-for bit manipulations in registers, which make the following changes a lot
-simpler.
+The formats use three planes through the multiplanar API, allowing for
+non-contiguous planes in memory.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/i2c/tvp5150.c | 194 ++++++++++++++++++++++++++++++--------------
- 1 file changed, 133 insertions(+), 61 deletions(-)
+ Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml | 159 +++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml | 171 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml | 159 +++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml | 171 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   4 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   4 +
+ include/uapi/linux/videodev2.h                     |   4 +
+ 7 files changed, 672 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 3c5fb2509c47..a7495d2856c3 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -10,6 +10,7 @@
- #include <linux/videodev2.h>
- #include <linux/delay.h>
- #include <linux/module.h>
-+#include <linux/regmap.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/tvp5150.h>
-@@ -37,6 +38,7 @@ struct tvp5150 {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_rect rect;
-+	struct regmap *regmap;
- 
- 	v4l2_std_id norm;	/* Current set standard */
- 	u32 input;
-@@ -56,30 +58,14 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
- 
- static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
- {
--	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	int rc;
--
--	rc = i2c_smbus_read_byte_data(c, addr);
--	if (rc < 0) {
--		v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
--		return rc;
--	}
--
--	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, rc);
--
--	return rc;
--}
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	int ret, val;
- 
--static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
--				 unsigned char value)
--{
--	struct i2c_client *c = v4l2_get_subdevdata(sd);
--	int rc;
-+	ret = regmap_read(decoder->regmap, addr, &val);
-+	if (ret < 0)
-+		return ret;
- 
--	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
--	rc = i2c_smbus_write_byte_data(c, addr, value);
--	if (rc < 0)
--		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
-+	return val;
- }
- 
- static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
-@@ -266,8 +252,8 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
- 			decoder->input, decoder->output,
- 			input, opmode);
- 
--	tvp5150_write(sd, TVP5150_OP_MODE_CTL, opmode);
--	tvp5150_write(sd, TVP5150_VD_IN_SRC_SEL_1, input);
-+	regmap_write(decoder->regmap, TVP5150_OP_MODE_CTL, opmode);
-+	regmap_write(decoder->regmap, TVP5150_VD_IN_SRC_SEL_1, input);
- 
- 	/* Svideo should enable YCrCb output and disable GPCL output
- 	 * For Composite and TV, it should be the reverse
-@@ -282,7 +268,7 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
- 		val = (val & ~0x40) | 0x10;
- 	else
- 		val = (val & ~0x10) | 0x40;
--	tvp5150_write(sd, TVP5150_MISC_CTL, val);
-+	regmap_write(decoder->regmap, TVP5150_MISC_CTL, val);
- };
- 
- struct i2c_reg_value {
-@@ -553,8 +539,10 @@ static struct i2c_vbi_ram_value vbi_ram_default[] =
- static int tvp5150_write_inittab(struct v4l2_subdev *sd,
- 				const struct i2c_reg_value *regs)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
+Hello,
+
+The driver using those formats should follow in the not too distant future,
+but I'd appreciate getting feedback on the definitions already.
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+new file mode 100644
+index 000000000000..f4d8d74e7f74
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+@@ -0,0 +1,159 @@
++    <refentry id="V4L2-PIX-FMT-YUV422M">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YUV422M ('YM16')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname> <constant>V4L2_PIX_FMT_YUV422M</constant></refname>
++	<refpurpose>Planar formats with &frac12; horizontal resolution, also
++	known as YUV 4:2:2</refpurpose>
++      </refnamediv>
 +
- 	while (regs->reg != 0xff) {
--		tvp5150_write(sd, regs->reg, regs->value);
-+		regmap_write(decoder->regmap, regs->reg, regs->value);
- 		regs++;
- 	}
- 	return 0;
-@@ -563,22 +551,24 @@ static int tvp5150_write_inittab(struct v4l2_subdev *sd,
- static int tvp5150_vdp_init(struct v4l2_subdev *sd,
- 				const struct i2c_vbi_ram_value *regs)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct regmap *map = decoder->regmap;
- 	unsigned int i;
- 
- 	/* Disable Full Field */
--	tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
-+	regmap_write(map, TVP5150_FULL_FIELD_ENA, 0);
- 
- 	/* Before programming, Line mode should be at 0xff */
- 	for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
--		tvp5150_write(sd, i, 0xff);
-+		regmap_write(map, i, 0xff);
- 
- 	/* Load Ram Table */
- 	while (regs->reg != (u16)-1) {
--		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
--		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
-+		regmap_write(map, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
-+		regmap_write(map, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
- 
- 		for (i = 0; i < 16; i++)
--			tvp5150_write(sd, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
-+			regmap_write(map, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
- 
- 		regs++;
- 	}
-@@ -658,11 +648,11 @@ static int tvp5150_set_vbi(struct v4l2_subdev *sd,
- 	reg=((line-6)<<1)+TVP5150_LINE_MODE_INI;
- 
- 	if (fields&1) {
--		tvp5150_write(sd, reg, type);
-+		regmap_write(decoder->regmap, reg, type);
- 	}
- 
- 	if (fields&2) {
--		tvp5150_write(sd, reg+1, type);
-+		regmap_write(decoder->regmap, reg+1, type);
- 	}
- 
- 	return type;
-@@ -731,7 +721,7 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	}
- 
- 	v4l2_dbg(1, debug, sd, "Set video std register to %d.\n", fmt);
--	tvp5150_write(sd, TVP5150_VIDEO_STD, fmt);
-+	regmap_write(decoder->regmap, TVP5150_VIDEO_STD, fmt);
- 	return 0;
- }
- 
-@@ -777,20 +767,20 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 
- static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct tvp5150 *decoder = to_tvp5150(to_sd(ctrl));
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		tvp5150_write(sd, TVP5150_BRIGHT_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_BRIGHT_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_CONTRAST:
--		tvp5150_write(sd, TVP5150_CONTRAST_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_CONTRAST_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_SATURATION:
--		tvp5150_write(sd, TVP5150_SATURATION_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_SATURATION_CTL, ctrl->val);
- 		return 0;
- 	case V4L2_CID_HUE:
--		tvp5150_write(sd, TVP5150_HUE_CTL, ctrl->val);
-+		regmap_write(decoder->regmap, TVP5150_HUE_CTL, ctrl->val);
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -890,17 +880,17 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
- 			      hmax - rect.top);
- 
--	tvp5150_write(sd, TVP5150_VERT_BLANKING_START, rect.top);
--	tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP,
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
-+	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
- 		      rect.top + rect.height - hmax);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_MSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
- 		      rect.left >> TVP5150_CROP_SHIFT);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_LSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
- 		      rect.left | (1 << TVP5150_CROP_SHIFT));
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_MSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
- 		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
- 		      TVP5150_CROP_SHIFT);
--	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_LSB,
-+	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
- 		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
- 
- 	decoder->rect = rect;
-@@ -965,22 +955,25 @@ static int tvp5150_s_routing(struct v4l2_subdev *sd,
- 
- static int tvp5150_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
++      <refsect1>
++	<title>Description</title>
 +
- 	/* this is for capturing 36 raw vbi lines
- 	   if there's a way to cut off the beginning 2 vbi lines
- 	   with the tvp5150 then the vbi line count could be lowered
- 	   to 17 lines/field again, although I couldn't find a register
- 	   which could do that cropping */
- 	if (fmt->sample_format == V4L2_PIX_FMT_GREY)
--		tvp5150_write(sd, TVP5150_LUMA_PROC_CTL_1, 0x70);
-+		regmap_write(decoder->regmap, TVP5150_LUMA_PROC_CTL_1, 0x70);
- 	if (fmt->count[0] == 18 && fmt->count[1] == 18) {
--		tvp5150_write(sd, TVP5150_VERT_BLANKING_START, 0x00);
--		tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP, 0x01);
-+		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, 0x00);
-+		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP, 0x01);
- 	}
- 	return 0;
- }
- 
- static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *svbi)
- {
-+	struct tvp5150 *decoder = to_tvp5150(sd);
- 	int i;
- 
- 	if (svbi->service_set != 0) {
-@@ -991,17 +984,17 @@ static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_f
- 				       svbi->service_lines[0][i], 0xf0, i, 3);
- 		}
- 		/* Enables FIFO */
--		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 1);
-+		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 1);
- 	} else {
- 		/* Disables FIFO*/
--		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 0);
-+		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 0);
- 
- 		/* Disable Full Field */
--		tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
-+		regmap_write(decoder->regmap, TVP5150_FULL_FIELD_ENA, 0);
- 
- 		/* Disable Line modes */
- 		for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
--			tvp5150_write(sd, i, 0xff);
-+			regmap_write(decoder->regmap, i, 0xff);
- 	}
- 	return 0;
- }
-@@ -1039,7 +1032,9 @@ static int tvp5150_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
- 
- static int tvp5150_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
- {
--	tvp5150_write(sd, reg->reg & 0xff, reg->val & 0xff);
-+	struct tvp5150 *decoder = to_tvp5150(sd);
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub- images or planes.
 +
-+	regmap_write(decoder->regmap, reg->reg & 0xff, reg->val & 0xff);
- 	return 0;
- }
- #endif
-@@ -1105,13 +1100,87 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 			I2C Client & Driver
-  ****************************************************************************/
++The Y plane is first. The Y plane has one byte per pixel. The Cb data
++constitutes the second plane which is half the width of the Y plane (and of the
++image). Each Cb belongs to two pixels. For example,
++Cb<subscript>0</subscript> belongs to Y'<subscript>00</subscript>,
++Y'<subscript>01</subscript>. The Cr data, just like the Cb plane, is
++in the third plane. </para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cb
++and Cr planes have half as many pad bytes after their rows. In other
++words, two Cx rows (including padding) is exactly as long as one Y row
++(including padding).</para>
++
++	<para><constant>V4L2_PIX_FMT_YUV422M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YUV422M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;2:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;6:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;2:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;6:</entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml b/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+new file mode 100644
+index 000000000000..346739e48c79
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+@@ -0,0 +1,171 @@
++    <refentry id="V4L2-PIX-FMT-YUV444M">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YUV444M ('YM24')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname> <constant>V4L2_PIX_FMT_YUV444M</constant></refname>
++	<refpurpose>Planar formats with full horizontal resolution, also
++	known as YUV 4:4:4</refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub- images or planes.
++
++The Y plane is first. The Y plane has one byte per pixel. The Cb data
++constitutes the second plane which is the same width and height as the Y plane
++(and as the image). The Cr data, just like the Cb plane, is in the third plane.
++</para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cb
++and Cr planes have the same number of pad bytes after their rows.</para>
++
++	<para><constant>V4L2_PIX_FMT_YUV444M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YUV444M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cb<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cb<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cb<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cb<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;8:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;12:</entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml b/Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml
+new file mode 100644
+index 000000000000..3c8ea6cbedf8
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml
+@@ -0,0 +1,159 @@
++    <refentry id="V4L2-PIX-FMT-YVU422M">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YVU422M ('YM61')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname> <constant>V4L2_PIX_FMT_YVU422M</constant></refname>
++	<refpurpose>Planar formats with &frac12; horizontal resolution, also
++	known as YVU 4:2:2</refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub- images or planes.
++
++The Y plane is first. The Y plane has one byte per pixel. The Cr data
++constitutes the second plane which is half the width of the Y plane (and of the
++image). Each Cr belongs to two pixels. For example,
++Cb<subscript>0</subscript> belongs to Y'<subscript>00</subscript>,
++Y'<subscript>01</subscript>. The Cb data, just like the Cr plane, is
++in the third plane. </para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cr
++and Cb planes have half as many pad bytes after their rows. In other
++words, two Cx rows (including padding) is exactly as long as one Y row
++(including padding).</para>
++
++	<para><constant>V4L2_PIX_FMT_YVU422M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YVU422M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;2:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;6:</entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;2:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;6:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml b/Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml
+new file mode 100644
+index 000000000000..25147ac63334
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml
+@@ -0,0 +1,171 @@
++    <refentry id="V4L2-PIX-FMT-YVU444M">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YVU444M ('YM42')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname> <constant>V4L2_PIX_FMT_YVU444M</constant></refname>
++	<refpurpose>Planar formats with full horizontal resolution, also
++	known as YVU 4:4:4</refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub- images or planes.
++
++The Y plane is first. The Y plane has one byte per pixel. The Cr data
++constitutes the second plane which is the same width and height as the Y plane
++(and as the image). The Cb data, just like the Cr plane, is in the third plane.
++</para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cr
++and Cb planes have the same number of pad bytes after their rows.</para>
++
++	<para><constant>V4L2_PIX_FMT_YVU444M</constant> is intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YVU444M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;12:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cb<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cb<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cb<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cb<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index d871245d2973..fa26cb37a331 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1629,6 +1629,10 @@ information.</para>
+     &sub-yuv420;
+     &sub-yuv420m;
+     &sub-yvu420m;
++    &sub-yuv422m;
++    &sub-yvu422m;
++    &sub-yuv444m;
++    &sub-yvu444m;
+     &sub-yuv410;
+     &sub-yuv422p;
+     &sub-yuv411p;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7486af2c8ae4..571b6ed43e07 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1191,6 +1191,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_NV12MT_16X16:	descr = "Y/CbCr 4:2:0 (16x16 MB, N-C)"; break;
+ 	case V4L2_PIX_FMT_YUV420M:	descr = "Planar YUV 4:2:0 (N-C)"; break;
+ 	case V4L2_PIX_FMT_YVU420M:	descr = "Planar YVU 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_YUV422M:	descr = "Planar YUV 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_YVU422M:	descr = "Planar YVU 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_YUV444M:	descr = "Planar YUV 4:4:4 (N-C)"; break;
++	case V4L2_PIX_FMT_YVU444M:	descr = "Planar YVU 4:4:4 (N-C)"; break;
+ 	case V4L2_PIX_FMT_SBGGR8:	descr = "8-bit Bayer BGBG/GRGR"; break;
+ 	case V4L2_PIX_FMT_SGBRG8:	descr = "8-bit Bayer GBGB/RGRG"; break;
+ 	case V4L2_PIX_FMT_SGRBG8:	descr = "8-bit Bayer GRGR/BGBG"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 05830dc9260c..b37f75c75976 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -546,6 +546,10 @@ struct v4l2_pix_format {
+ /* three non contiguous planes - Y, Cb, Cr */
+ #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+ #define V4L2_PIX_FMT_YVU420M v4l2_fourcc('Y', 'M', '2', '1') /* 12  YVU420 planar */
++#define V4L2_PIX_FMT_YUV422M v4l2_fourcc('Y', 'M', '1', '6') /* 16  YUV422 planar */
++#define V4L2_PIX_FMT_YVU422M v4l2_fourcc('Y', 'M', '6', '1') /* 16  YVU422 planar */
++#define V4L2_PIX_FMT_YUV444M v4l2_fourcc('Y', 'M', '2', '4') /* 24  YUV444 planar */
++#define V4L2_PIX_FMT_YVU444M v4l2_fourcc('Y', 'M', '4', '2') /* 24  YVU444 planar */
  
-+static const struct regmap_range tvp5150_readable_ranges[] = {
-+	{
-+		.range_min = TVP5150_VD_IN_SRC_SEL_1,
-+		.range_max = TVP5150_AUTOSW_MSK,
-+	}, {
-+		.range_min = TVP5150_COLOR_KIL_THSH_CTL,
-+		.range_max = TVP5150_CONF_SHARED_PIN,
-+	}, {
-+		.range_min = TVP5150_ACT_VD_CROP_ST_MSB,
-+		.range_max = TVP5150_HORIZ_SYNC_START,
-+	}, {
-+		.range_min = TVP5150_VERT_BLANKING_START,
-+		.range_max = TVP5150_INTT_CONFIG_REG_B,
-+	}, {
-+		.range_min = TVP5150_VIDEO_STD,
-+		.range_max = TVP5150_VIDEO_STD,
-+	}, {
-+		.range_min = TVP5150_CB_GAIN_FACT,
-+		.range_max = TVP5150_REV_SELECT,
-+	}, {
-+		.range_min = TVP5150_MSB_DEV_ID,
-+		.range_max = TVP5150_STATUS_REG_5,
-+	}, {
-+		.range_min = TVP5150_CC_DATA_INI,
-+		.range_max = TVP5150_TELETEXT_FIL_ENA,
-+	}, {
-+		.range_min = TVP5150_INT_STATUS_REG_A,
-+		.range_max = TVP5150_FIFO_OUT_CTRL,
-+	}, {
-+		.range_min = TVP5150_FULL_FIELD_ENA,
-+		.range_max = TVP5150_FULL_FIELD_MODE_REG,
-+	},
-+};
-+
-+bool tvp5150_volatile_reg(struct device *dev, unsigned int reg)
-+{
-+	switch (reg) {
-+	case TVP5150_VERT_LN_COUNT_MSB:
-+	case TVP5150_VERT_LN_COUNT_LSB:
-+	case TVP5150_INT_STATUS_REG_A:
-+	case TVP5150_INT_STATUS_REG_B:
-+	case TVP5150_INT_ACTIVE_REG_B:
-+	case TVP5150_STATUS_REG_1:
-+	case TVP5150_STATUS_REG_2:
-+	case TVP5150_STATUS_REG_3:
-+	case TVP5150_STATUS_REG_4:
-+	case TVP5150_STATUS_REG_5:
-+	/* CC, WSS, VPS, VITC data? */
-+	case TVP5150_VBI_FIFO_READ_DATA:
-+	case TVP5150_VDP_STATUS_REG:
-+	case TVP5150_FIFO_WORD_COUNT:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static const struct regmap_access_table tvp5150_readable_table = {
-+	.yes_ranges = tvp5150_readable_ranges,
-+	.n_yes_ranges = ARRAY_SIZE(tvp5150_readable_ranges),
-+};
-+
-+static struct regmap_config tvp5150_config = {
-+	.reg_bits = 8,
-+	.val_bits = 8,
-+	.max_register = 0xff,
-+
-+	.cache_type = REGCACHE_RBTREE,
-+
-+	.rd_table = &tvp5150_readable_table,
-+	.volatile_reg = tvp5150_volatile_reg,
-+};
-+
- static int tvp5150_probe(struct i2c_client *c,
- 			 const struct i2c_device_id *id)
- {
- 	struct tvp5150 *core;
- 	struct v4l2_subdev *sd;
--	int tvp5150_id[4];
--	int i, res;
-+	struct regmap *map;
-+	u8 tvp5150_id[4];
-+	int res;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(c->adapter,
-@@ -1121,6 +1190,10 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
- 	if (!core)
- 		return -ENOMEM;
-+	map = devm_regmap_init_i2c(c, &tvp5150_config);
-+	if (IS_ERR(map))
-+		return PTR_ERR(map);
-+	core->regmap = map;
- 	sd = &core->sd;
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
- 
-@@ -1128,11 +1201,10 @@ static int tvp5150_probe(struct i2c_client *c,
- 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
- 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
- 	 */
--	for (i = 0; i < 4; i++) {
--		res = tvp5150_read(sd, TVP5150_MSB_DEV_ID + i);
--		if (res < 0)
--			return res;
--		tvp5150_id[i] = res;
-+	res = regmap_bulk_read(map, TVP5150_MSB_DEV_ID, tvp5150_id, 4);
-+	if (res < 0) {
-+		dev_err(&c->dev, "reading ID registers failed: %d\n", res);
-+		return res;
- 	}
- 
- 	v4l_info(c, "chip found @ 0x%02x (%s)\n",
-@@ -1143,7 +1215,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 			  tvp5150_id[0], tvp5150_id[1]);
- 
- 		/* ITU-T BT.656.4 timing */
--		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
-+		regmap_write(map, TVP5150_REV_SELECT, 0);
- 	} else {
- 		/* Is TVP5150A */
- 		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
