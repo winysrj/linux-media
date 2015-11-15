@@ -1,106 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34090 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757804AbbKSLxG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 06:53:06 -0500
-Date: Thu, 19 Nov 2015 09:53:00 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] DocBook: only copy stuff to media_api if media xml is
- generated
-Message-ID: <20151119095300.7a296d83@recife.lan>
-In-Reply-To: <20151119101943.GB17128@valkosipuli.retiisi.org.uk>
-References: <e99ac34ef0b822ac3007b00a499a67eb1af36d9a.1447926299.git.mchehab@osg.samsung.com>
-	<20151119101943.GB17128@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:6885 "EHLO
+	mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752513AbbKOUUF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2015 15:20:05 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media/platform/s5p-tv: constify mxr_layer_ops structures
+Date: Sun, 15 Nov 2015 21:08:23 +0100
+Message-Id: <1447618103-20329-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 19 Nov 2015 12:19:43 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+The mxr_layer_ops structures are never modified, so declare them as const.
 
-> Hi Mauro,
-> 
-> On Thu, Nov 19, 2015 at 07:45:13AM -0200, Mauro Carvalho Chehab wrote:
-> > It is possible to use:
-> > 	make DOCBOOKS=device-drivers.xml htmldocs
-> > 
-> > To produce just a few docbooks. In such case, the media docs
-> > won't be built, causing the makefile target to return an error.
-> > 
-> > While this is ok for human eyes, if the above is used on an script,
-> > it would cause troubles.
-> > 
-> > Fix it by only creating/filling the media_api directory if the
-> > media_api.xml is found at DOCBOOKS.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> >  Documentation/DocBook/media/Makefile | 6 ++++--
-> >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-> > index 02848146fc3a..2840ff483d5a 100644
-> > --- a/Documentation/DocBook/media/Makefile
-> > +++ b/Documentation/DocBook/media/Makefile
-> > @@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
-> >  #
-> >  
-> >  install_media_images = \
-> > -	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
-> > -	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
-> > +	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
-> > +		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
-> > +		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
-> > +	fi
-> >  
-> >  $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
-> >  	$(Q)base64 -d $< >$@
-> 
-> I'd still copy the files even if the directory was there. It's entirely
-> possible that new files appeared between the make runs, or that the existing
-> files changed. cp will just overwrite the targets in that case.
-> 
-> Albeit one still has to issue "make cleandocs" to get the DocBook rebuilt.
-> Oh well... One thing at a time? :-)
+Done with the help of Coccinelle.
 
-I guess you misread the patch...
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-It unconditionally copy the files even if the media_api directory exists,
-if make is called with:
-	make htmldocs
+---
+ drivers/media/platform/s5p-tv/mixer.h           |    2 +-
+ drivers/media/platform/s5p-tv/mixer_grp_layer.c |    2 +-
+ drivers/media/platform/s5p-tv/mixer_video.c     |    2 +-
+ drivers/media/platform/s5p-tv/mixer_vp_layer.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-or with:
-	make DOCBOOKS=media_api.xml htmldocs
+diff --git a/drivers/media/platform/s5p-tv/mixer.h b/drivers/media/platform/s5p-tv/mixer.h
+index 42cd270..4dd62a9 100644
+--- a/drivers/media/platform/s5p-tv/mixer.h
++++ b/drivers/media/platform/s5p-tv/mixer.h
+@@ -300,7 +300,7 @@ void mxr_release_video(struct mxr_device *mdev);
+ struct mxr_layer *mxr_graph_layer_create(struct mxr_device *mdev, int idx);
+ struct mxr_layer *mxr_vp_layer_create(struct mxr_device *mdev, int idx);
+ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+-	int idx, char *name, struct mxr_layer_ops *ops);
++	int idx, char *name, const struct mxr_layer_ops *ops);
+ 
+ void mxr_base_layer_release(struct mxr_layer *layer);
+ void mxr_layer_release(struct mxr_layer *layer);
+diff --git a/drivers/media/platform/s5p-tv/mixer_grp_layer.c b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
+index db3163b..d4d2564 100644
+--- a/drivers/media/platform/s5p-tv/mixer_grp_layer.c
++++ b/drivers/media/platform/s5p-tv/mixer_grp_layer.c
+@@ -235,7 +235,7 @@ struct mxr_layer *mxr_graph_layer_create(struct mxr_device *mdev, int idx)
+ {
+ 	struct mxr_layer *layer;
+ 	int ret;
+-	struct mxr_layer_ops ops = {
++	const struct mxr_layer_ops ops = {
+ 		.release = mxr_graph_layer_release,
+ 		.buffer_set = mxr_graph_buffer_set,
+ 		.stream_set = mxr_graph_stream_set,
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index dc1c679..abcc36a 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -1070,7 +1070,7 @@ static void mxr_vfd_release(struct video_device *vdev)
+ }
+ 
+ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+-	int idx, char *name, struct mxr_layer_ops *ops)
++	int idx, char *name, const struct mxr_layer_ops *ops)
+ {
+ 	struct mxr_layer *layer;
+ 
+diff --git a/drivers/media/platform/s5p-tv/mixer_vp_layer.c b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
+index dd002a4..6fa6f67 100644
+--- a/drivers/media/platform/s5p-tv/mixer_vp_layer.c
++++ b/drivers/media/platform/s5p-tv/mixer_vp_layer.c
+@@ -207,7 +207,7 @@ struct mxr_layer *mxr_vp_layer_create(struct mxr_device *mdev, int idx)
+ {
+ 	struct mxr_layer *layer;
+ 	int ret;
+-	struct mxr_layer_ops ops = {
++	const struct mxr_layer_ops ops = {
+ 		.release = mxr_vp_layer_release,
+ 		.buffer_set = mxr_vp_buffer_set,
+ 		.stream_set = mxr_vp_stream_set,
 
-It will only suppress the copy and dir make if someone wants to build
-some other html file, with something like:
-
-	make DOCBOOKS=device-drivers.xml htmldocs
-
-Please notice that I use internally a script that detects when a patch
-is merged on my tree. In such case, it builds the Kernel and the
-documentation, if it is affected, with this logic:
-
-                        cat Documentation/DocBook/device-drivers.tmpl |perl -ne 'print "$1\n" if (m/^\!I(.*media.*)/)' >$TMPFILE
-                        if [ "`git show $TAG|diffstat -p1 -l|grep -f $TMPFILE`" ]; then
-                                rm $TMPFILE
-				make DOCBOOKS=device-drivers.xml htmldocs 2>&1|grep /media/
-                                if [ "$?" != "0" ]; then
-                                        play ~/sounds/pipe.wav 2>/dev/null >/dev/null
-                                fi
-                        else
-                            	rm $TMPFILE
-                        fi
-
-Without this patch, it beeps all the times it runs, because 
-	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; 
-
-will fail, as no OBJIMGFILES would be produced.
-
-Regards,
-Mauro
