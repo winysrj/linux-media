@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:34964 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753644AbbKLKNb (ORCPT
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:34521 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414AbbKOULY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 05:13:31 -0500
+	Sun, 15 Nov 2015 15:11:24 -0500
+Received: by ykfs79 with SMTP id s79so210029269ykf.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Nov 2015 12:11:24 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1743324.8Mae4aQqGO@avalon>
-References: <1447162740-28096-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-	<1743324.8Mae4aQqGO@avalon>
-Date: Thu, 12 Nov 2015 11:13:30 +0100
-Message-ID: <CAMuHMdUO9a7WtiJxAqbhvkY1kfMkFLUnOrogd0Jvh1GqySubWg@mail.gmail.com>
-Subject: Re: [PATCH] media: adv7180: increase delay after reset to 5ms
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Lars-Peter Clausen <lars@metafoo.de>
+In-Reply-To: <CAJ2oMhJqAUsFKYvHQ=fgLyOVS657HQrOXa8U5XW4gbfKZpw5_g@mail.gmail.com>
+References: <CAJ2oMh+vDtNv=hmtZ9Be=9FcUEezB=70vdrq=GpDiJt7aQ2cAA@mail.gmail.com>
+	<CAJ2oMhJqAUsFKYvHQ=fgLyOVS657HQrOXa8U5XW4gbfKZpw5_g@mail.gmail.com>
+Date: Sun, 15 Nov 2015 15:11:23 -0500
+Message-ID: <CAGoCfiz7rJcn=vDTrFmQNF2ERjzxPqRanRbZtPM2GCBpqBSWgw@mail.gmail.com>
+Subject: Re: ivtv: PVR family datasheet ?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 12, 2015 at 12:10 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> (CC'ing Lars-Peter Clausen)
->
-> Thank you for the patch.
->
-> On Tuesday 10 November 2015 14:39:00 Ulrich Hecht wrote:
->> Initialization of the ADV7180 chip fails on the Renesas R8A7790-based
->> Lager board about 50% of the time.  This patch resolves the issue by
->> increasing the minimum delay after reset from 2 ms to 5 ms, following the
->> recommendation in the ADV7180 datasheet:
->>
->> "Executing a software reset takes approximately 2 ms. However, it is
->> recommended to wait 5 ms before any further I2C writes are performed."
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> Lars, would you like to take this in your tree with other Analog Devices
-> patches, or should I take it ?
+> I actually refer to CX23418 chip, which I don't find its datasheet (I
+> saw in code that cx18 can work in YUV raw capture, so I wanted to
+> verify that CX23418 can capture YUV raw format).
 
-Which tree is this? Should I include it in renesas-drivers?
-Does it contain more fixes?
+The cx23418 datasheets are not publicly available, although I have
+them under NDA and can likely answer specific questions if you have
+any.
 
-During the s2ram suspend phase, the lockdep_assert_held() in adv7180_write()
-is triggered on r8a7791/koelsch.
+Yes, the 418 can capture both raw YUV format and compressed MPEG2, and
+it's supported under Linux assuming you're using a card such as the
+HVR-1600.
 
-Gr{oetje,eeting}s,
+Devin
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
