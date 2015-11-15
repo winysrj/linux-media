@@ -1,138 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44952 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbbKPKVY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:24 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH 08/16] [media] dvb_frontend.h: get rid of unused tuner params/states
-Date: Mon, 16 Nov 2015 08:21:05 -0200
-Message-Id: <061c5bf9a6c2bbbe6fff1b62495d2d6801dda8e9.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from bear.ext.ti.com ([192.94.94.41]:52966 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752597AbbKOXIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2015 18:08:37 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v3 2/2] media: v4l: ti-vpe: Document CAL driver
+Date: Sun, 15 Nov 2015 17:08:23 -0600
+Message-ID: <1447628903-9276-3-git-send-email-bparrot@ti.com>
+In-Reply-To: <1447628903-9276-1-git-send-email-bparrot@ti.com>
+References: <1447628903-9276-1-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several tuner_param values that aren't by any driver or core:
-	DVBFE_TUNER_TUNERSTEP
-	DVBFE_TUNER_IFFREQ
-	DVBFE_TUNER_REFCLOCK
-	DVBFE_TUNER_IQSENSE
-	DVBFE_TUNER_DUMMY
+Device Tree bindings for the Camera Adaptation Layer (CAL) driver
 
-Several of those correspond to the values at the tuner_state
-struct with is also only initialized by not used anyware:
-	u32 tunerstep;
-	u32 ifreq;
-	u32 refclock;
-
-It doesn't make sense to keep anything at the kABI that it is
-not used. So, get rid of them.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- drivers/media/dvb-core/dvb_frontend.h | 11 +----------
- drivers/media/dvb-frontends/stb6100.c | 23 ++++++-----------------
- 2 files changed, 7 insertions(+), 27 deletions(-)
+ Documentation/devicetree/bindings/media/ti-cal.txt | 70 ++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 7c99a9190574..58608ae848bf 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -137,12 +137,7 @@ struct analog_parameters {
- 
- enum tuner_param {
- 	DVBFE_TUNER_FREQUENCY		= (1 <<  0),
--	DVBFE_TUNER_TUNERSTEP		= (1 <<  1),
--	DVBFE_TUNER_IFFREQ		= (1 <<  2),
--	DVBFE_TUNER_BANDWIDTH		= (1 <<  3),
--	DVBFE_TUNER_REFCLOCK		= (1 <<  4),
--	DVBFE_TUNER_IQSENSE		= (1 <<  5),
--	DVBFE_TUNER_DUMMY		= (1 << 31)
-+	DVBFE_TUNER_BANDWIDTH		= (1 <<  1),
- };
- 
- /**
-@@ -177,11 +172,7 @@ enum dvbfe_algo {
- 
- struct tuner_state {
- 	u32 frequency;
--	u32 tunerstep;
--	u32 ifreq;
- 	u32 bandwidth;
--	u32 iqsense;
--	u32 refclock;
- };
- 
- /**
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index 4ef8a5c7003e..e7f8d2c55565 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -496,14 +496,15 @@ static int stb6100_init(struct dvb_frontend *fe)
- {
- 	struct stb6100_state *state = fe->tuner_priv;
- 	struct tuner_state *status = &state->status;
-+	int refclk = 27000000; /* Hz */
- 
--	status->tunerstep	= 125000;
--	status->ifreq		= 0;
--	status->refclock	= 27000000;	/* Hz	*/
--	status->iqsense		= 1;
-+	/*
-+	 * iqsense = 1
-+	 * tunerstep = 125000
-+	 */
- 	status->bandwidth	= 36000;	/* kHz	*/
- 	state->bandwidth	= status->bandwidth * 1000;	/* Hz	*/
--	state->reference	= status->refclock / 1000;	/* kHz	*/
-+	state->reference	= refclk / 1000;	/* kHz	*/
- 
- 	/* Set default bandwidth. Modified, PN 13-May-10	*/
- 	return 0;
-@@ -517,15 +518,9 @@ static int stb6100_get_state(struct dvb_frontend *fe,
- 	case DVBFE_TUNER_FREQUENCY:
- 		stb6100_get_frequency(fe, &state->frequency);
- 		break;
--	case DVBFE_TUNER_TUNERSTEP:
--		break;
--	case DVBFE_TUNER_IFFREQ:
--		break;
- 	case DVBFE_TUNER_BANDWIDTH:
- 		stb6100_get_bandwidth(fe, &state->bandwidth);
- 		break;
--	case DVBFE_TUNER_REFCLOCK:
--		break;
- 	default:
- 		break;
- 	}
-@@ -544,16 +539,10 @@ static int stb6100_set_state(struct dvb_frontend *fe,
- 		stb6100_set_frequency(fe, state->frequency);
- 		tstate->frequency = state->frequency;
- 		break;
--	case DVBFE_TUNER_TUNERSTEP:
--		break;
--	case DVBFE_TUNER_IFFREQ:
--		break;
- 	case DVBFE_TUNER_BANDWIDTH:
- 		stb6100_set_bandwidth(fe, state->bandwidth);
- 		tstate->bandwidth = state->bandwidth;
- 		break;
--	case DVBFE_TUNER_REFCLOCK:
--		break;
- 	default:
- 		break;
- 	}
+diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
+new file mode 100644
+index 000000000000..680efadb6208
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti-cal.txt
+@@ -0,0 +1,70 @@
++Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
++------------------------------------------------------
++
++The Camera Adaptation Layer (CAL) is a key component for image capture
++applications. The capture module provides the system interface and the
++processing capability to connect CSI2 image-sensor modules to the
++DRA72x device.
++
++Required properties:
++- compatible: must be "ti,cal"
++- reg:	physical base address and length of the registers set for the 4
++	memory regions required;
++- reg-names: name associated with the memory regions described is <reg>;
++- interrupts: should contain IRQ line for the CAL;
++
++CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
++should contain a 'port' child node with child 'endpoint' node. Please
++refer to the bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	cal: cal@4845b000 {
++		compatible = "ti,cal";
++		ti,hwmods = "cal";
++		reg = <0x4845B000 0x400>,
++		      <0x4845B800 0x40>,
++		      <0x4845B900 0x40>,
++		      <0x4A002e94 0x4>;
++		reg-names = "cal_top",
++			    "cal_rx_core0",
++			    "cal_rx_core1",
++			    "camerrx_control";
++		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		csi2_0: port@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <0>;
++			endpoint {
++				slave-mode;
++				remote-endpoint = <&ar0330_1>;
++			};
++		};
++		csi2_1: port@1 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <1>;
++		};
++	};
++
++	i2c5: i2c@4807c000 {
++		ar0330@10 {
++			compatible = "ti,ar0330";
++			reg = <0x10>;
++
++			port {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				ar0330_1: endpoint {
++					reg = <0>;
++					clock-lanes = <1>;
++					data-lanes = <0 2 3 4>;
++					remote-endpoint = <&csi2_0>;
++				};
++			};
++		};
++	};
 -- 
-2.5.0
+1.8.5.1
 
