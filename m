@@ -1,18 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:35050 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392AbbKOVs6 (ORCPT
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:33885 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992AbbKOU7V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 16:48:58 -0500
-Received: by ykba77 with SMTP id a77so210755677ykb.2
-        for <linux-media@vger.kernel.org>; Sun, 15 Nov 2015 13:48:57 -0800 (PST)
+	Sun, 15 Nov 2015 15:59:21 -0500
+Received: by ykfs79 with SMTP id s79so210956078ykf.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Nov 2015 12:59:21 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAK2bqVL76sbs4fXia2eU3gk+OLs_QsZMHo=HfctUtFM+4bOG8A@mail.gmail.com>
+In-Reply-To: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
 References: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
-	<CAGoCfiz9k3V0Z4ejVL4is4+t5WFMWo6EY7jjkiSEFrYj8zDqiA@mail.gmail.com>
-	<CAK2bqVL76sbs4fXia2eU3gk+OLs_QsZMHo=HfctUtFM+4bOG8A@mail.gmail.com>
-Date: Sun, 15 Nov 2015 16:48:57 -0500
-Message-ID: <CAGoCfiwg14U=mmpcQ-E9zOHyS4bguJzfvRf-QgZOEuJn1x8cwg@mail.gmail.com>
+Date: Sun, 15 Nov 2015 15:59:20 -0500
+Message-ID: <CAGoCfiz9k3V0Z4ejVL4is4+t5WFMWo6EY7jjkiSEFrYj8zDqiA@mail.gmail.com>
 Subject: Re: Trying to enable RC6 IR for PCTV T2 290e
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: Chris Rankin <rankincj@googlemail.com>
@@ -21,27 +19,31 @@ Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I've dug a bit deeper and discovered that the reason the
-> em28xx_info(...) lines that I'd added to em2874_polling_getkey()
-> weren't appearing is because I'd loaded the wrong version of the
-> em28xx-rc module! (Doh!)
+On Sun, Nov 15, 2015 at 3:49 PM, Chris Rankin <rankincj@googlemail.com> wrote:
+> Hi,
+>
+> My Hauppauge RC5 remote control finally broke, and the PCTV T2 290e's
+> native RC5 remote control isn't suitable for VDR, and so I bought a
+> cheap RC6 remote as a replacement. The unit I chose was the Ortek
+> VRC-1100 Vista MCE Remote Control, USB ID 05a4:9881. I've been able to
+> switch the PCTV device into RC6 mode using "ir-keytable -p rc-6",
+> which does seem to execute the correct case of
+> em2874_ir_change_protocol(). However, when I press any buttons on my
+> new remote, I still don't see em2874_polling_getkey() being called,
+> which makes me wonder if the RC6 support is truly enabled.
 
-Ok, good.
+It's been a few years since I looked at that code, and when I
+orginally wrote it I don't think I bothered with the RC6 support.
+That said, it's not interrupt driven and the em2874_polling_getkey()
+should fire every 100ms regardless of whether the hardware receives an
+IR event (the polling code queries a status register and if it sees a
+new event it reads the RC code received and announces it to the input
+subsystem).
 
-> The polling function *is* being called regularly, but
-> em28xx_ir_handle_key() isn't noticing any keypresses. (However, it
-> does notice when I switch back to RC5).
-
-How are you "switching back to RC5"?  Are you actually loading in an
-RC6 versus RC5 keymap?  The reason I ask is because the onboard
-receiver has to be explicitly configured into one of the two modes,
-and IIRC this happens based on code type for the loaded keymap.  Hence
-if you have an RC5 keymap loaded, you'll never see the IR receiver
-reporting RC6 codes.
-
-And of course it's always possible you've hit a bug/regression.  I
-haven't touched that code in years and I know it's been through a
-couple of rounds of refactoring.
+I would probably look through the code and see why the polling routine
+isn't setup to run.  There is probably logic in there that causes the
+polling to never get enabled if a keymap isn't associated with the
+board profile in em28xx-cards.c
 
 Devin
 
