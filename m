@@ -1,92 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45301 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753901AbbKLJD1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 04:03:27 -0500
-Subject: Re: [PATCH v2 1/1] v4l2-device: Don't unregister ACPI/Device Tree
- based devices
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <564348C1.1050503@xs4all.nl>
- <1447318867-20537-1-git-send-email-sakari.ailus@linux.intel.com>
-Cc: Tommi Franttila <tommi.franttila@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <564455C9.9060909@xs4all.nl>
-Date: Thu, 12 Nov 2015 10:03:05 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:55988 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751171AbbKPShB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 13:37:01 -0500
+Date: Mon, 16 Nov 2015 16:36:52 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: fix kernel hang in media_device_unregister()
+ during device removal
+Message-ID: <20151116163652.591e992d@recife.lan>
+In-Reply-To: <20151115230255.GZ17128@valkosipuli.retiisi.org.uk>
+References: <1447339307-2838-1-git-send-email-shuahkh@osg.samsung.com>
+	<20151115230255.GZ17128@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1447318867-20537-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/15 10:01, Sakari Ailus wrote:
-> From: Tommi Franttila <tommi.franttila@intel.com>
-> 
-> When a V4L2 sub-device backed by a DT or ACPI based device was removed,
-> the device was unregistered as well which certainly was not intentional,
-> as the client device would not be re-created by simply reinstating the
-> V4L2 sub-device (indeed the device would have to be there first!).
-> 
-> Skip unregistering the device in case it has non-NULL of_node or fwnode.
-> 
-> Signed-off-by: Tommi Franttila <tommi.franttila@intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> 
-> Hi Hans,
-> 
-> Thanks for the comment! How about this one?
+Em Mon, 16 Nov 2015 01:02:56 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Lovely, thanks!
+> Hi Shuah,
+> 
+> On Thu, Nov 12, 2015 at 07:41:47AM -0700, Shuah Khan wrote:
+> > Media core drivers (dvb, v4l2, bridge driver) unregister
+> > their entities calling media_device_unregister_entity()
+> > during device removal from their unregister paths. In
+> > addition media_device_unregister() tries to unregister
+> > entity calling media_device_unregister_entity() for each
+> > one of them. This adds lot of contention on mdev->lock in
+> > device removal sequence. Fix to not unregister entities
+> > from media_device_unregister(), and let drivers take care
+> > of it. Drivers need to unregister to cover the case of
+> > module removal. This patch fixes the problem by deleting
+> > the entity list walk to call media_device_unregister_entity()
+> > for each entity. With this fix there is no kernel hang after
+> > a sequence of device insertions followed by removal.
+> > 
+> > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > ---
+> >  drivers/media/media-device.c | 5 -----
+> >  1 file changed, 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 1312e93..c7ab7c9 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -577,8 +577,6 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+> >   */
+> >  void media_device_unregister(struct media_device *mdev)
+> >  {
+> > -	struct media_entity *entity;
+> > -	struct media_entity *next;
+> >  	struct media_link *link, *tmp_link;
+> >  	struct media_interface *intf, *tmp_intf;
+> >  
+> > @@ -596,9 +594,6 @@ void media_device_unregister(struct media_device *mdev)
+> >  		kfree(intf);
+> >  	}
+> >  
+> > -	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+> > -		media_device_unregister_entity(entity);
+> > -
+> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	media_devnode_unregister(&mdev->devnode);
+> >  
+> 
+> media_device_unregister() is expected to clean up all the entities still
+> registered with it (as it does to links and interfaces). Could you share
+> details of the problems you saw in case you haven't found the actual
+> underlying issue causing them?
+> 
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I was not able to reproduce here with au0828. Tried to register/unregister 20
+times with:
+	$ i=1; while :; do echo $i; sudo modprobe au0828 && sleep 2 && sudo rmmod au0828; i=$((i+1)); done
 
-> 
-> Regards,
-> Sakari
-> 
->  drivers/media/v4l2-core/v4l2-device.c | 21 +++++++++++++++------
->  1 file changed, 15 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-> index 5b0a30b..7129e43 100644
-> --- a/drivers/media/v4l2-core/v4l2-device.c
-> +++ b/drivers/media/v4l2-core/v4l2-device.c
-> @@ -118,11 +118,20 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
->  		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
->  			struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -			/* We need to unregister the i2c client explicitly.
-> -			   We cannot rely on i2c_del_adapter to always
-> -			   unregister clients for us, since if the i2c bus
-> -			   is a platform bus, then it is never deleted. */
-> -			if (client)
-> +			/*
-> +			 * We need to unregister the i2c client
-> +			 * explicitly. We cannot rely on
-> +			 * i2c_del_adapter to always unregister
-> +			 * clients for us, since if the i2c bus is a
-> +			 * platform bus, then it is never deleted.
-> +			 *
-> +			 * Device tree or ACPI based devices must not
-> +			 * be unregistered as they have not been
-> +			 * registered by us, and would not be
-> +			 * re-created by just probing the V4L2 driver.
-> +			 */
-> +			if (client &&
-> +			    !client->dev.of_node && !client->dev.fwnode)
->  				i2c_unregister_device(client);
->  			continue;
->  		}
-> @@ -131,7 +140,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
->  		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
->  			struct spi_device *spi = v4l2_get_subdevdata(sd);
->  
-> -			if (spi)
-> +			if (spi && !spi->dev.of_node && !spi->dev.fwnode)
->  				spi_unregister_device(spi);
->  			continue;
->  		}
-> 
+The results are at:
+	http://pastebin.com/1B9c9nYm
+
+
+PS.: I had to add the 2 seconds sleep there, as otherwise unregister may
+fail, because udev is started every time the devnodes are created. Without
+that, sometimes it returns -EBUSY, because udev didn't close the devnode
+yet. Still no problem, as a later rmmod works:
+
+	$ sudo modprobe au0828 && sudo rmmod au0828
+	$ sudo modprobe au0828 && sudo rmmod au0828
+	rmmod: ERROR: Module au0828 is in use
+	$  sudo rmmod au0828
+	$ 
+
+So, I don't think that the issues you're experiencing are related to the
+MC next generation. 
+
+As a reference, those are the modules I'm using on my test machine
+(after removing the remaining media modules):
+
+$ lsmod
+Module                  Size  Used by
+cpufreq_powersave      16384  0
+cpufreq_conservative    16384  0
+cpufreq_userspace      16384  0
+cpufreq_stats          16384  0
+parport_pc             28672  0
+ppdev                  20480  0
+lp                     20480  0
+parport                40960  3 lp,ppdev,parport_pc
+snd_usb_audio         151552  0
+snd_hda_codec_hdmi     53248  1
+snd_usbmidi_lib        28672  1 snd_usb_audio
+snd_rawmidi            24576  1 snd_usbmidi_lib
+snd_seq_device         16384  1 snd_rawmidi
+btusb                  40960  0
+btrtl                  16384  1 btusb
+btbcm                  16384  1 btusb
+btintel                16384  1 btusb
+bluetooth             434176  5 btbcm,btrtl,btusb,btintel
+rfkill                 20480  1 bluetooth
+i915                 1110016  4
+intel_rapl             20480  0
+iosf_mbi               16384  1 intel_rapl
+x86_pkg_temp_thermal    16384  0
+intel_powerclamp       16384  0
+coretemp               16384  0
+kvm_intel             163840  0
+kvm                   446464  1 kvm_intel
+irqbypass              16384  1 kvm
+crct10dif_pclmul       16384  0
+snd_hda_codec_realtek    65536  1
+crc32_pclmul           16384  0
+crc32c_intel           24576  0
+i2c_algo_bit           16384  1 i915
+snd_hda_codec_generic    65536  1 snd_hda_codec_realtek
+drm_kms_helper        102400  1 i915
+snd_hda_intel          32768  0
+snd_hda_codec         102400  4 snd_hda_codec_realtek,snd_hda_codec_hdmi,snd_hda_codec_generic,snd_hda_intel
+jitterentropy_rng      16384  0
+drm                   278528  5 i915,drm_kms_helper
+sha256_ssse3           32768  1
+sha256_generic         24576  1 sha256_ssse3
+snd_hwdep              16384  2 snd_usb_audio,snd_hda_codec
+hmac                   16384  1
+snd_hda_core           49152  5 snd_hda_codec_realtek,snd_hda_codec_hdmi,snd_hda_codec_generic,snd_hda_codec,snd_hda_intel
+drbg                   24576  1
+iTCO_wdt               16384  0
+snd_pcm                86016  5 snd_usb_audio,snd_hda_codec_hdmi,snd_hda_codec,snd_hda_intel,snd_hda_core
+iTCO_vendor_support    16384  1 iTCO_wdt
+evdev                  24576  8
+aesni_intel           167936  0
+snd_timer              28672  1 snd_pcm
+aes_x86_64             20480  1 aesni_intel
+psmouse               110592  0
+mei_me                 28672  0
+lrw                    16384  1 aesni_intel
+snd                    57344  12 snd_hda_codec_realtek,snd_usb_audio,snd_hwdep,snd_timer,snd_hda_codec_hdmi,snd_pcm,snd_rawmidi,snd_hda_codec_generic,snd_usbmidi_lib,snd_hda_codec,snd_hda_intel,snd_seq_device
+gf128mul               16384  1 lrw
+glue_helper            16384  1 aesni_intel
+mei                    81920  1 mei_me
+ablk_helper            16384  1 aesni_intel
+cryptd                 20480  2 aesni_intel,ablk_helper
+soundcore              16384  1 snd
+serio_raw              16384  0
+shpchp                 32768  0
+pcspkr                 16384  0
+sg                     32768  0
+i2c_i801               20480  0
+lpc_ich                24576  0
+mfd_core               16384  1 lpc_ich
+battery                16384  0
+i2c_designware_platform    16384  0
+i2c_designware_core    20480  1 i2c_designware_platform
+dw_dmac                16384  0
+tpm_tis                20480  0
+video                  32768  1 i915
+tpm                    36864  1 tpm_tis
+dw_dmac_core           24576  1 dw_dmac
+button                 16384  1 i915
+acpi_pad               24576  0
+ext4                  495616  6
+crc16                  16384  2 ext4,bluetooth
+mbcache                20480  1 ext4
+jbd2                   90112  1 ext4
+dm_mod                 98304  18
+sd_mod                 40960  3
+ahci                   36864  2
+libahci                28672  1 ahci
+libata                192512  2 ahci,libahci
+ehci_pci               16384  0
+scsi_mod              192512  3 sg,libata,sd_mod
+ehci_hcd               73728  1 ehci_pci
+e1000e                208896  0
+xhci_pci               16384  0
+ptp                    20480  1 e1000e
+xhci_hcd              155648  1 xhci_pci
+pps_core               16384  1 ptp
+fan                    16384  0
+thermal                20480  0
+sdhci_acpi             16384  0
+sdhci                  36864  1 sdhci_acpi
+mmc_core              106496  2 sdhci,sdhci_acpi
+i2c_hid                20480  0
+hid                   110592  1 i2c_hid
+
+A clear difference is that this machine uses the i915 graph driver,
+instead of the Radeon driver that you're using on your machine.
+
+So, I still think that the problem you've noticed is related to the
+radeon driver. Please test without it, booting the machine on
+console mode, in order to isolate eventual issues with the graphics
+stack.
+
+Regards,
+Mauro
