@@ -1,128 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-a.eqx.gridhost.co.uk ([95.142.156.16]:57637 "EHLO
-	mail1-a.eqx.gridhost.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757235AbbKFGfO (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44908 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829AbbKPKVX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Nov 2015 01:35:14 -0500
-Received: from [209.85.220.171] (helo=mail-qk0-f171.google.com)
-	by mail1.eqx.gridhost.co.uk with esmtpsa (UNKNOWN:AES128-GCM-SHA256:128)
-	(Exim 4.72)
-	(envelope-from <olli.salonen@iki.fi>)
-	id 1Zuabt-0005WM-1j
-	for linux-media@vger.kernel.org; Fri, 06 Nov 2015 06:34:53 +0000
-Received: by qkas77 with SMTP id s77so38386005qka.0
-        for <linux-media@vger.kernel.org>; Thu, 05 Nov 2015 22:34:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAMAAsr_Wf79Rcp7jt8crqGU+XTspQ=qURj2x8SOPvvJmxnyFjQ@mail.gmail.com>
-References: <CAMAAsr_Wf79Rcp7jt8crqGU+XTspQ=qURj2x8SOPvvJmxnyFjQ@mail.gmail.com>
-Date: Fri, 6 Nov 2015 08:34:52 +0200
-Message-ID: <CAAZRmGydKfEk92ckCMxdF7HSXx0nV9EzwDNOmG5MWQH-CeLAXA@mail.gmail.com>
-Subject: Re: Geniatech / Mygica T230
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Mike Parkins <mike.bbcnews@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 16 Nov 2015 05:21:23 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 09/16] stb6100: get rid of tuner_state at struct stb6100_state
+Date: Mon, 16 Nov 2015 08:21:06 -0200
+Message-Id: <811ff75eeffa249b374643ae24c4dc907d127be5.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+The stb6100 driver has a struct tuner_state on its state
+struct, that it is used only to store the bandwidth. Even so,
+this struct is not really used, as every time the bandwidth
+is get or set, it goes through the hardware.
 
-Can you also paste the dmesg output here, so we can see if the driver
-is starting up correctly?
+So, get rid of that.
 
-Cheers,
--olli
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/stb6100.c | 9 ++++-----
+ drivers/media/dvb-frontends/stb6100.h | 1 -
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-On 3 November 2015 at 23:35, Mike Parkins <mike.bbcnews@gmail.com> wrote:
-> Hi,
-> I can't get this dvb-t2 USB device to work despite the linuxtv site
-> claiming it is working since 3.19 kernel. I tried talking to the driver
-> team on IRC a few months ago and they said they would look at it but I have
-> recently pulled the linuxtv git tree and compiled it on my Linux Mint 4.09
-> kernel system and it has not changed. Below is the output of a typical
-> tuning attempt:
->
-> mp@Aurorabox ~ $ dvbv5-scan uk-CrystalPalace -I CHANNEL
-> Scanning frequency #1 490000000
-> Lock   (0x1f) C/N= 28.25dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x11c0
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1200
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1240
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1280
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1600
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1640
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1680
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x16c0
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1700
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1740
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1780
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1804
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1a40
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1a80
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1ac0
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1b00
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the PMT table for service 0x1c00
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the NIT table
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while reading the SDT table
-> WARNING: no SDT table - storing channel(s) without their names
-> Storing Service ID 4164: '490.00MHz#4164'
-> Storing Service ID 4287: '490.00MHz#4287'
-> Storing Service ID 4288: '490.00MHz#4288'
-> Storing Service ID 4352: '490.00MHz#4352'
-> Storing Service ID 4416: '490.00MHz#4416'
-> Scanning frequency #2 514000000
-> Lock   (0x1f) Signal= -29.00dBm C/N= 21.50dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #3 545833000
-> Lock   (0x1f) Signal= -30.00dBm C/N= 31.00dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #4 506000000
-> Lock   (0x1f) Signal= -30.00dBm C/N= 28.50dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #5 482000000
-> Lock   (0x1f) Signal= -30.00dBm C/N= 21.75dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #6 529833000
-> Lock   (0x1f) Signal= -29.00dBm C/N= 21.75dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #7 538000000
-> Lock   (0x1f) Signal= -29.00dBm C/N= 16.50dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #8 570000000
-> Lock   (0x1f) Signal= -46.00dBm C/N= 26.50dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> Scanning frequency #9 586000000
-> Lock   (0x1f) Signal= -39.00dBm C/N= 26.25dB
-> ERROR    dvb_read_sections: no data read on section filter
-> ERROR    error while waiting for PAT table
-> mp@Aurorabox ~ $
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+index e7f8d2c55565..5d8dbde03249 100644
+--- a/drivers/media/dvb-frontends/stb6100.c
++++ b/drivers/media/dvb-frontends/stb6100.c
+@@ -252,6 +252,7 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ {
+ 	int rc;
+ 	u8 f;
++	u32 bw;
+ 	struct stb6100_state *state = fe->tuner_priv;
+ 
+ 	rc = stb6100_read_reg(state, STB6100_F);
+@@ -259,9 +260,9 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 		return rc;
+ 	f = rc & STB6100_F_F;
+ 
+-	state->status.bandwidth = (f + 5) * 2000;	/* x2 for ZIF	*/
++	bw = (f + 5) * 2000;	/* x2 for ZIF	*/
+ 
+-	*bandwidth = state->bandwidth = state->status.bandwidth * 1000;
++	*bandwidth = state->bandwidth = bw * 1000;
+ 	dprintk(verbose, FE_DEBUG, 1, "bandwidth = %u Hz", state->bandwidth);
+ 	return 0;
+ }
+@@ -495,15 +496,13 @@ static int stb6100_sleep(struct dvb_frontend *fe)
+ static int stb6100_init(struct dvb_frontend *fe)
+ {
+ 	struct stb6100_state *state = fe->tuner_priv;
+-	struct tuner_state *status = &state->status;
+ 	int refclk = 27000000; /* Hz */
+ 
+ 	/*
+ 	 * iqsense = 1
+ 	 * tunerstep = 125000
+ 	 */
+-	status->bandwidth	= 36000;	/* kHz	*/
+-	state->bandwidth	= status->bandwidth * 1000;	/* Hz	*/
++	state->bandwidth	= 36000000;	/* Hz	*/
+ 	state->reference	= refclk / 1000;	/* kHz	*/
+ 
+ 	/* Set default bandwidth. Modified, PN 13-May-10	*/
+diff --git a/drivers/media/dvb-frontends/stb6100.h b/drivers/media/dvb-frontends/stb6100.h
+index 218c8188865d..f7b468b6dc26 100644
+--- a/drivers/media/dvb-frontends/stb6100.h
++++ b/drivers/media/dvb-frontends/stb6100.h
+@@ -86,7 +86,6 @@ struct stb6100_state {
+ 	const struct stb6100_config	*config;
+ 	struct dvb_tuner_ops		ops;
+ 	struct dvb_frontend		*frontend;
+-	struct tuner_state		status;
+ 
+ 	u32 frequency;
+ 	u32 srate;
+-- 
+2.5.0
+
