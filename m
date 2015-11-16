@@ -1,32 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-am1hn0254.outbound.protection.outlook.com ([157.56.112.254]:26688
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753663AbbKSVub convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 16:50:31 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from mga14.intel.com ([192.55.52.115]:10012 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751870AbbKPJsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 04:48:03 -0500
+Subject: Re: [PATCH v3 10/10] media: flash: use led_set_brightness_sync for
+ torch brightness
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pavel@ucw.cz, andrew@lunn.ch, linux-media@vger.kernel.org
+References: <1444209048-29415-1-git-send-email-j.anaszewski@samsung.com>
+ <1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
+ <5649A37A.2050902@samsung.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <5649A64E.8050907@linux.intel.com>
+Date: Mon, 16 Nov 2015 11:47:58 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Loan
-To: Recipients@vger.kernel.org
-From: SHELL@vger.kernel.org, FEDERAL@vger.kernel.org,
-	CREDIT@vger.kernel.org, UNION@vger.kernel.org
-Date: Fri, 20 Nov 2015 00:49:58 +0300
-Reply-To: <shell.loan@qq.com>
-Message-ID: <HE1PR09MB001221C1AB9830C235207EADB81B0@HE1PR09MB0012.eurprd09.prod.outlook.com>
+In-Reply-To: <5649A37A.2050902@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Are You In Need Of A Private Or Business Loans from $10,000.00 to $10.000.000.00 At 1% Rate For Various Purposes? If Yes;
-Contact us Via Email: shell.loan@qq.com
+Jacek Anaszewski wrote:
+> This patch depends on the preceding LED core improvements patches
+> from this patch set, and it would be best if it was merged through
+> the LED tree. Can I get your ack for this? I've already obtained acks
+> for the whole set from Sakari.
 
-Full Name:
-Amount Needed:
-Duration:
-Country:
-Cell No:
-Sex:
+I agree with this going through the LED tree.
 
-Best Regards
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
