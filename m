@@ -1,97 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:40492 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788AbbK2CKS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44958 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752151AbbKPKVY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2015 21:10:18 -0500
-Received: from benjamin-desktop.lan (c-ce09e555.03-170-73746f36.cust.bredbandsbolaget.se [85.229.9.206])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id 7D19D727C2
-	for <linux-media@vger.kernel.org>; Sun, 29 Nov 2015 03:10:16 +0100 (CET)
-From: Benjamin Larsson <benjamin@southpole.se>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] rtl2832: add support for slave ts pid filter
-Date: Sun, 29 Nov 2015 03:10:14 +0100
-Message-Id: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
+	Mon, 16 Nov 2015 05:21:24 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Antti Palosaari <crope@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 01/16] [media] dvb: document dvb_frontend_sleep_until()
+Date: Mon, 16 Nov 2015 08:20:58 -0200
+Message-Id: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/dvb-frontends/rtl2832.c      | 21 ++++++++++++++++++---
- drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
- 2 files changed, 19 insertions(+), 3 deletions(-)
+This function is used mainly at the DVB core, in order to provide
+emulation for a legacy ioctl. The only current exception is
+the stv0299 driver, with takes more than 8ms to switch voltage,
+breaking the emulation for FE_DISHNETWORK_SEND_LEGACY_CMD.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 78b87b2..e054079 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -407,6 +407,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 	/* start statistics polling */
- 	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
- 	dev->sleeping = false;
-+	dev->slave_ts = false;
+Document that.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c |  9 +++++----
+ drivers/media/dvb-core/dvb_frontend.h | 30 +++++++++++++++++++++++++++++-
+ 2 files changed, 34 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index c38ef1a72b4a..d764cffb2102 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -891,10 +891,11 @@ static void dvb_frontend_stop(struct dvb_frontend *fe)
+ }
  
- 	return 0;
- err:
-@@ -1122,6 +1123,8 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
- 	if (ret)
- 		goto err;
+ /*
+- * Sleep until gettimeofday() > waketime + add_usec
+- * This needs to be as precise as possible, but as the delay is
+- * usually between 2ms and 32ms, it is done using a scheduled msleep
+- * followed by usleep (normally a busy-wait loop) for the remainder
++ * Sleep for the amount of time given by add_usec parameter
++ *
++ * This needs to be as precise as possible, as it affects the detection of
++ * the dish tone command at the satellite subsystem. The precision is improved
++ * by using a scheduled msleep followed by udelay for the remainder.
+  */
+ void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec)
+ {
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 97661b2f247a..9f724f4571f3 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -404,6 +404,11 @@ struct dtv_frontend_properties;
+  *			FE_ENABLE_HIGH_LNB_VOLTAGE ioctl (only Satellite).
+  * @dishnetwork_send_legacy_command: callback function to implement the
+  *			FE_DISHNETWORK_SEND_LEGACY_CMD ioctl (only Satellite).
++ *			Drivers should not use this, except when the DVB
++ * 			core emulation fails to provide proper support (e.g.
++ * 			if set_voltage() takes more than 8ms to work), and
++ * 			when backward compatibility with this legacy API is
++ * 			required.
+  * @i2c_gate_ctrl:	controls the I2C gate. Newer drivers should use I2C
+  *			mux support instead.
+  * @ts_bus_ctrl:	callback function used to take control of the TS bus.
+@@ -693,6 +698,29 @@ extern void dvb_frontend_reinitialise(struct dvb_frontend *fe);
+ extern int dvb_frontend_suspend(struct dvb_frontend *fe);
+ extern int dvb_frontend_resume(struct dvb_frontend *fe);
  
-+	dev->slave_ts = true;
-+
- 	return 0;
- err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
-@@ -1143,7 +1146,11 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
- 	else
- 		u8tmp = 0x00;
+-extern void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec);
++/**
++ * dvb_frontend_sleep_until() - Sleep for the amount of time given by
++ *                      add_usec parameter
++ *
++ * @waketime: pointer to a struct ktime_t
++ * @add_usec: time to sleep, in microseconds
++ *
++ * This function is used to measure the time required for the
++ * %FE_DISHNETWORK_SEND_LEGACY_CMD ioctl to work. It needs to be as precise
++ * as possible, as it affects the detection of the dish tone command at the
++ * satellite subsystem.
++ *
++ * Its used internally by the DVB frontend core, in order to emulate
++ * %FE_DISHNETWORK_SEND_LEGACY_CMD using the &dvb_frontend_ops.set_voltage()
++ * callback.
++ *
++ * NOTE: it should not be used at the drivers, as the emulation for the
++ * legacy callback is provided by the Kernel. The only situation where this
++ * should be at the drivers is when there are some bugs at the hardware that
++ * would prevent the core emulation to work. On such cases, the driver would
++ * be writing a &dvb_frontend_ops.dishnetwork_send_legacy_command() and
++ * calling this function directly.
++ */
++void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec);
  
--	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-+	if (dev->slave_ts)
-+		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
-+	else
-+		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
- 	if (ret)
- 		goto err;
- 
-@@ -1178,14 +1185,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
- 	buf[1] = (dev->filters >>  8) & 0xff;
- 	buf[2] = (dev->filters >> 16) & 0xff;
- 	buf[3] = (dev->filters >> 24) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
-+
-+	if (dev->slave_ts)
-+		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
- 	if (ret)
- 		goto err;
- 
- 	/* add PID */
- 	buf[0] = (pid >> 8) & 0xff;
- 	buf[1] = (pid >> 0) & 0xff;
--	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
-+
-+	if (dev->slave_ts)
-+		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
-+	else
-+		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
- 	if (ret)
- 		goto err;
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 5dcd3a4..efc230f 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -46,6 +46,7 @@ struct rtl2832_dev {
- 	bool sleeping;
- 	struct delayed_work i2c_gate_work;
- 	unsigned long filters; /* PID filter */
-+	bool slave_ts;
- };
- 
- struct rtl2832_reg_entry {
+ #endif
 -- 
-2.1.4
+2.5.0
 
