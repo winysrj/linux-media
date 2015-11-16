@@ -1,238 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:38705 "EHLO
-	resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbbKJUq5 (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36057 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126AbbKPTyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 15:46:57 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen v3 2/6] sound/usb: Create media mixer function and control interface entities
-Date: Tue, 10 Nov 2015 13:40:45 -0700
-Message-Id: <da93b08ebd61473ffac34fdf6d9f0a6bfa7639a7.1447184000.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
+	Mon, 16 Nov 2015 14:54:12 -0500
+Received: by wmww144 with SMTP id w144so125652892wmw.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 11:54:11 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 7/8] media: rc: improve RC_BIT_ constant definition
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
+Message-ID: <564A3440.7020400@gmail.com>
+Date: Mon, 16 Nov 2015 20:53:36 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
-each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
-entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
-entity corresponds to the control device for the card.
+The RC_BIT_ constants are used in 64-bit bitmaps.
+In case of > 32 RC_BIT_ constants the current code will fail
+on 32-bit systems.
+Therefore define the RC_BIT_ constants as unsigned long long.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- sound/usb/card.c     |  5 +++
- sound/usb/media.c    | 92 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- sound/usb/media.h    | 20 ++++++++++++
- sound/usb/mixer.h    |  1 +
- sound/usb/usbaudio.h |  1 +
- 5 files changed, 119 insertions(+)
+ include/media/rc-map.h | 40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 469d2bf..d004cb4 100644
---- a/sound/usb/card.c
-+++ b/sound/usb/card.c
-@@ -560,6 +560,9 @@ static int usb_audio_probe(struct usb_interface *intf,
- 	if (err < 0)
- 		goto __error;
- 
-+	/* Create media entities for mixer and control dev */
-+	media_mixer_init(chip);
-+
- 	usb_chip[chip->index] = chip;
- 	chip->num_interfaces++;
- 	chip->probing = 0;
-@@ -616,6 +619,8 @@ static void usb_audio_disconnect(struct usb_interface *intf)
- 		list_for_each(p, &chip->midi_list) {
- 			snd_usbmidi_disconnect(p);
- 		}
-+		/* delete mixer media resources */
-+		media_mixer_delete(chip);
- 		/* release mixer resources */
- 		list_for_each_entry(mixer, &chip->mixer_list, list) {
- 			snd_usb_mixer_disconnect(mixer);
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index 0cbfee6..6df346a 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -199,4 +199,96 @@ void media_stop_pipeline(struct snd_usb_substream *subs)
- 	if (mctl)
- 		media_disable_source(mctl);
- }
-+
-+int media_mixer_init(struct snd_usb_audio *chip)
-+{
-+	struct device *ctl_dev = &chip->card->ctl_dev;
-+	struct media_intf_devnode *ctl_intf;
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev;
-+	struct media_mixer_ctl *mctl;
-+	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
-+	int ret;
-+
-+	mdev = media_device_find_devres(&chip->dev->dev);
-+	if (!mdev)
-+		return -ENODEV;
-+
-+	ctl_intf = chip->ctl_intf_media_devnode;
-+	if (!ctl_intf) {
-+		ctl_intf = (void *) media_devnode_create(mdev,
-+							 intf_type, 0,
-+							 MAJOR(ctl_dev->devt),
-+							 MINOR(ctl_dev->devt));
-+		if (!ctl_intf)
-+			return -ENOMEM;
-+		chip->ctl_intf_media_devnode = ctl_intf;
-+	}
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+
-+		if (mixer->media_mixer_ctl)
-+			continue;
-+
-+		/* allocate media_ctl */
-+		mctl = kzalloc(sizeof(struct media_ctl), GFP_KERNEL);
-+		if (!mctl)
-+			return -ENOMEM;
-+
-+		mctl->media_dev = mdev;
-+		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
-+		mctl->media_entity.name = chip->card->mixername;
-+		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
-+		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
-+		media_entity_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
-+				  mctl->media_pad);
-+		ret =  media_device_register_entity(mctl->media_dev,
-+						    &mctl->media_entity);
-+		if (ret) {
-+			kfree(mctl);
-+			return ret;
-+		}
-+
-+		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-+							 &ctl_intf->intf,
-+							 MEDIA_LNK_FL_ENABLED);
-+		if (!mctl->intf_link) {
-+			media_entity_remove_links(&mctl->media_entity);
-+			media_device_unregister_entity(&mctl->media_entity);
-+			media_entity_cleanup(&mctl->media_entity);
-+			kfree(mctl);
-+			return -ENOMEM;
-+		}
-+		mctl->intf_devnode = ctl_intf;
-+		mixer->media_mixer_ctl = (void *) mctl;
-+	}
-+	return 0;
-+}
-+
-+void media_mixer_delete(struct snd_usb_audio *chip)
-+{
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev;
-+
-+	mdev = media_device_find_devres(&chip->dev->dev);
-+	if (!mdev)
-+		return;
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+		struct media_mixer_ctl *mctl;
-+
-+		mctl = (struct media_mixer_ctl *) mixer->media_mixer_ctl;
-+		if (!mixer->media_mixer_ctl)
-+			continue;
-+
-+		media_entity_remove_links(&mctl->media_entity);
-+		media_device_unregister_entity(&mctl->media_entity);
-+		media_entity_cleanup(&mctl->media_entity);
-+		kfree(mctl);
-+		mixer->media_mixer_ctl = NULL;
-+	}
-+	media_devnode_remove(chip->ctl_intf_media_devnode);
-+}
-+
- #endif
-diff --git a/sound/usb/media.h b/sound/usb/media.h
-index cdcfb80..8268e52 100644
---- a/sound/usb/media.h
-+++ b/sound/usb/media.h
-@@ -20,6 +20,7 @@
- #ifdef USE_MEDIA_CONTROLLER
- #include <media/media-device.h>
- #include <media/media-entity.h>
-+#include <sound/asound.h>
- 
- struct media_ctl {
- 	struct media_device *media_dev;
-@@ -30,6 +31,21 @@ struct media_ctl {
- 	struct media_pipeline media_pipe;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7c4bbc4..7844e98 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -33,26 +33,26 @@ enum rc_type {
+ 	RC_TYPE_XMP		= 18,	/* XMP protocol */
  };
  
-+/* One source pad each for SNDRV_PCM_STREAM_CAPTURE and
-+ * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
-+ * to AUDIO Source
-+*/
-+#define MEDIA_MIXER_PAD_MAX	(SNDRV_PCM_STREAM_LAST + 2)
-+
-+struct media_mixer_ctl {
-+	struct media_device *media_dev;
-+	struct media_entity media_entity;
-+	struct media_intf_devnode *intf_devnode;
-+	struct media_link *intf_link;
-+	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
-+	struct media_pipeline media_pipe;
-+};
-+
- int media_device_init(struct snd_usb_audio *chip, struct usb_interface *iface);
- void media_device_delete(struct usb_interface *iface);
- int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
-@@ -37,6 +53,8 @@ int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
- void media_stream_delete(struct snd_usb_substream *subs);
- int media_start_pipeline(struct snd_usb_substream *subs);
- void media_stop_pipeline(struct snd_usb_substream *subs);
-+int media_mixer_init(struct snd_usb_audio *chip);
-+void media_mixer_delete(struct snd_usb_audio *chip);
- #else
- static inline int media_device_init(struct snd_usb_audio *chip,
- 					struct usb_interface *iface)
-@@ -49,5 +67,7 @@ static inline void media_stream_delete(struct snd_usb_substream *subs) { }
- static inline int media_start_pipeline(struct snd_usb_substream *subs)
- 					{ return 0; }
- static inline void media_stop_pipeline(struct snd_usb_substream *subs) { }
-+static int media_mixer_init(struct snd_usb_audio *chip) { return 0; }
-+static void media_mixer_delete(struct snd_usb_audio *chip) { }
- #endif
- #endif /* __MEDIA_H */
-diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
-index d3268f0..9d62a9e 100644
---- a/sound/usb/mixer.h
-+++ b/sound/usb/mixer.h
-@@ -22,6 +22,7 @@ struct usb_mixer_interface {
- 	struct urb *rc_urb;
- 	struct usb_ctrlrequest *rc_setup_packet;
- 	u8 rc_buffer[6];
-+	void *media_mixer_ctl;
- };
+-#define RC_BIT_NONE		0
+-#define RC_BIT_UNKNOWN		(1 << RC_TYPE_UNKNOWN)
+-#define RC_BIT_OTHER		(1 << RC_TYPE_OTHER)
+-#define RC_BIT_RC5		(1 << RC_TYPE_RC5)
+-#define RC_BIT_RC5X		(1 << RC_TYPE_RC5X)
+-#define RC_BIT_RC5_SZ		(1 << RC_TYPE_RC5_SZ)
+-#define RC_BIT_JVC		(1 << RC_TYPE_JVC)
+-#define RC_BIT_SONY12		(1 << RC_TYPE_SONY12)
+-#define RC_BIT_SONY15		(1 << RC_TYPE_SONY15)
+-#define RC_BIT_SONY20		(1 << RC_TYPE_SONY20)
+-#define RC_BIT_NEC		(1 << RC_TYPE_NEC)
+-#define RC_BIT_SANYO		(1 << RC_TYPE_SANYO)
+-#define RC_BIT_MCE_KBD		(1 << RC_TYPE_MCE_KBD)
+-#define RC_BIT_RC6_0		(1 << RC_TYPE_RC6_0)
+-#define RC_BIT_RC6_6A_20	(1 << RC_TYPE_RC6_6A_20)
+-#define RC_BIT_RC6_6A_24	(1 << RC_TYPE_RC6_6A_24)
+-#define RC_BIT_RC6_6A_32	(1 << RC_TYPE_RC6_6A_32)
+-#define RC_BIT_RC6_MCE		(1 << RC_TYPE_RC6_MCE)
+-#define RC_BIT_SHARP		(1 << RC_TYPE_SHARP)
+-#define RC_BIT_XMP		(1 << RC_TYPE_XMP)
++#define RC_BIT_NONE		0ULL
++#define RC_BIT_UNKNOWN		(1ULL << RC_TYPE_UNKNOWN)
++#define RC_BIT_OTHER		(1ULL << RC_TYPE_OTHER)
++#define RC_BIT_RC5		(1ULL << RC_TYPE_RC5)
++#define RC_BIT_RC5X		(1ULL << RC_TYPE_RC5X)
++#define RC_BIT_RC5_SZ		(1ULL << RC_TYPE_RC5_SZ)
++#define RC_BIT_JVC		(1ULL << RC_TYPE_JVC)
++#define RC_BIT_SONY12		(1ULL << RC_TYPE_SONY12)
++#define RC_BIT_SONY15		(1ULL << RC_TYPE_SONY15)
++#define RC_BIT_SONY20		(1ULL << RC_TYPE_SONY20)
++#define RC_BIT_NEC		(1ULL << RC_TYPE_NEC)
++#define RC_BIT_SANYO		(1ULL << RC_TYPE_SANYO)
++#define RC_BIT_MCE_KBD		(1ULL << RC_TYPE_MCE_KBD)
++#define RC_BIT_RC6_0		(1ULL << RC_TYPE_RC6_0)
++#define RC_BIT_RC6_6A_20	(1ULL << RC_TYPE_RC6_6A_20)
++#define RC_BIT_RC6_6A_24	(1ULL << RC_TYPE_RC6_6A_24)
++#define RC_BIT_RC6_6A_32	(1ULL << RC_TYPE_RC6_6A_32)
++#define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
++#define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
++#define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
  
- #define MAX_CHANNELS	16	/* max logical channels */
-diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-index c2dbf1d..b2be7c3 100644
---- a/sound/usb/usbaudio.h
-+++ b/sound/usb/usbaudio.h
-@@ -59,6 +59,7 @@ struct snd_usb_audio {
- 	bool autoclock;			/* from the 'autoclock' module param */
- 
- 	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
-+	void *ctl_intf_media_devnode;
- };
- 
- #define usb_audio_err(chip, fmt, args...) \
+ #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
 -- 
-2.5.0
+2.6.2
 
