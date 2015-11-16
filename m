@@ -1,60 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44709 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbbKIOeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 09:34:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org,
+Received: from userp1040.oracle.com ([156.151.31.81]:51569 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164AbbKPPFL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 10:05:11 -0500
+Date: Mon, 16 Nov 2015 18:04:35 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] mt9t001: constify v4l2_subdev_internal_ops structure
-Date: Mon, 09 Nov 2015 16:34:19 +0200
-Message-ID: <1969703.gAPgeEIYEi@avalon>
-In-Reply-To: <1444564633-19861-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1444564633-19861-1-git-send-email-Julia.Lawall@lip6.fr>
+	devel@driverdev.osuosl.org, ldv-project@linuxtesting.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] lirc_imon: do not leave imon_probe() with mutex
+ held
+Message-ID: <20151116150434.GJ18797@mwanda>
+References: <1447525076-12068-1-git-send-email-khoroshilov@ispras.ru>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1447525076-12068-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
-
-Thank you for the patch.
-
-On Sunday 11 October 2015 13:57:13 Julia Lawall wrote:
-> This v4l2_subdev_internal_ops structure is never modified.  All other
-> v4l2_subdev_internal_ops structures are declared as const.
+On Sat, Nov 14, 2015 at 09:17:56PM +0300, Alexey Khoroshilov wrote:
+> Commit af8a819a2513 ("[media] lirc_imon: simplify error handling code")
+> lost mutex_unlock(&context->ctx_lock), so imon_probe() exits with
+> the context->ctx_lock mutex acquired.
 > 
-> Done with the help of Coccinelle.
+> The patch adds mutex_unlock(&context->ctx_lock) back.
 > 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> Found by Linux Driver Verification project (linuxtesting.org).
+> 
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> Fixes: af8a819a2513 ("[media] lirc_imon: simplify error handling code")
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
+Hm...  This patch is from June and it totally breaks the driver.  It's
+dissapointing that no one reported this bug.
 
 > ---
->  drivers/media/i2c/mt9t001.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/staging/media/lirc/lirc_imon.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
-> index 8ae99f7..4383a5d 100644
-> --- a/drivers/media/i2c/mt9t001.c
-> +++ b/drivers/media/i2c/mt9t001.c
-> @@ -834,7 +834,7 @@ static struct v4l2_subdev_ops mt9t001_subdev_ops = {
->  	.pad = &mt9t001_subdev_pad_ops,
->  };
-> 
-> -static struct v4l2_subdev_internal_ops mt9t001_subdev_internal_ops = {
-> +static const struct v4l2_subdev_internal_ops mt9t001_subdev_internal_ops =
-> { .registered = mt9t001_registered,
->  	.open = mt9t001_open,
->  	.close = mt9t001_close,
+> diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+> index 534b8103ae80..ff1926ca1f96 100644
+> --- a/drivers/staging/media/lirc/lirc_imon.c
+> +++ b/drivers/staging/media/lirc/lirc_imon.c
+> @@ -885,12 +885,14 @@ static int imon_probe(struct usb_interface *interface,
+>  		vendor, product, ifnum, usbdev->bus->busnum, usbdev->devnum);
+>  
+>  	/* Everything went fine. Just unlock and return retval (with is 0) */
+> +	mutex_unlock(&context->ctx_lock);
+>  	goto driver_unlock;
+>  
+>  unregister_lirc:
+>  	lirc_unregister_driver(driver->minor);
+>  
+>  free_tx_urb:
+> +	mutex_unlock(&context->ctx_lock);
+>  	usb_free_urb(tx_urb);
 
--- 
-Regards,
+Now the label name doesn't make sense.  Also this unlock isn't needed
+because we are just going to free context anyway.
 
-Laurent Pinchart
+regards,
+dan carpenter
 
