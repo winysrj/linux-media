@@ -1,84 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01-fr.bfs.de ([193.174.231.67]:28793 "EHLO mx01-fr.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032904AbbKFKTP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Nov 2015 05:19:15 -0500
-Message-ID: <563C7C59.8020907@bfs.de>
-Date: Fri, 06 Nov 2015 11:09:29 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
-MIME-Version: 1.0
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	kernel@stlinux.com, LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 2/2] [media] c8sectpfe: Combine three checks into a single
- if block
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <563BA3CC.4040709@users.sourceforge.net> <563BA50C.4060303@users.sourceforge.net>
-In-Reply-To: <563BA50C.4060303@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54908 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597AbbKPEql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2015 23:46:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 0/4] VSP1: Add support for lookup tables
+Date: Mon, 16 Nov 2015 06:46:41 +0200
+Message-Id: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
+The VSP1 includes two lookup table modules, a 1D LUT and a 3D cubic lookup
+table (CLU). This patch series fixes the LUT implementation and adds support
+for the CLU.
 
-Am 05.11.2015 19:50, schrieb SF Markus Elfring:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 5 Nov 2015 19:23:50 +0100
-> 
-> The variable "tsin" was checked three times in a loop iteration of the
-> c8sectpfe_tuner_unregister_frontend() function.
-> This implementation detail could be improved by the combination of the
-> involved statements into a single if block so that this variable will be
-> checked only once there.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c | 17 +++++++++--------
->  1 file changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-> index 07fd6d9..2dfbe8a 100644
-> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-> @@ -209,17 +209,18 @@ void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
->  
->  		tsin = fei->channel_data[n];
+The patches are based on top of
 
+	git://linuxtv.org/media_tree.git master
 
-if you do "if (!tsin) continue ;"
-you can save one indent level
+and have been tested on a Koelsch board.
 
-re,
- wh
+Laurent Pinchart (4):
+  v4l: vsp1: Fix LUT format setting
+  v4l: vsp1: Add Cubic Look Up Table (CLU) support
+  ARM: Renesas: r8a7790: Enable CLU support in VSPS
+  ARM: Renesas: r8a7791: Enable CLU support in VSPS
 
->  
-> -		if (tsin && tsin->frontend) {
-> -			dvb_unregister_frontend(tsin->frontend);
-> -			dvb_frontend_detach(tsin->frontend);
-> -		}
-> +		if (tsin) {
-> +			if (tsin->frontend) {
-> +				dvb_unregister_frontend(tsin->frontend);
-> +				dvb_frontend_detach(tsin->frontend);
-> +			}
->  
-> -		if (tsin)
->  			i2c_put_adapter(tsin->i2c_adapter);
->  
-> -		if (tsin && tsin->i2c_client) {
-> -			module_put(tsin->i2c_client->dev.driver->owner);
-> -			i2c_unregister_device(tsin->i2c_client);
-> +			if (tsin->i2c_client) {
-> +				module_put(tsin->i2c_client->dev.driver->owner);
-> +				i2c_unregister_device(tsin->i2c_client);
-> +			}
->  		}
->  	}
->  
+ .../devicetree/bindings/media/renesas,vsp1.txt     |   3 +
+ arch/arm/boot/dts/r8a7790.dtsi                     |   1 +
+ arch/arm/boot/dts/r8a7791.dtsi                     |   1 +
+ drivers/media/platform/vsp1/Makefile               |   3 +-
+ drivers/media/platform/vsp1/vsp1.h                 |   3 +
+ drivers/media/platform/vsp1/vsp1_clu.c             | 288 +++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_clu.h             |  38 +++
+ drivers/media/platform/vsp1/vsp1_drv.c             |  13 +
+ drivers/media/platform/vsp1/vsp1_entity.c          |   1 +
+ drivers/media/platform/vsp1/vsp1_entity.h          |   1 +
+ drivers/media/platform/vsp1/vsp1_lut.c             |   1 +
+ drivers/media/platform/vsp1/vsp1_regs.h            |   9 +
+ include/uapi/linux/vsp1.h                          |  25 ++
+ 13 files changed, 386 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/vsp1/vsp1_clu.c
+ create mode 100644 drivers/media/platform/vsp1/vsp1_clu.h
+
+-- 
+Regards,
+
+Laurent Pinchart
+
