@@ -1,43 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:36657 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784AbbK2Bxh (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54909 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521AbbKPEql (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Nov 2015 20:53:37 -0500
-Received: from benjamin-desktop.lan (c-ce09e555.03-170-73746f36.cust.bredbandsbolaget.se [85.229.9.206])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPA id 6A0CC727C4
-	for <linux-media@vger.kernel.org>; Sun, 29 Nov 2015 02:53:32 +0100 (CET)
-From: Benjamin Larsson <benjamin@southpole.se>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] Add support for Terratec Cinergy S2 Rev.4
-Date: Sun, 29 Nov 2015 02:53:32 +0100
-Message-Id: <1448762012-9661-2-git-send-email-benjamin@southpole.se>
-In-Reply-To: <1448762012-9661-1-git-send-email-benjamin@southpole.se>
-References: <1448762012-9661-1-git-send-email-benjamin@southpole.se>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sun, 15 Nov 2015 23:46:41 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 1/4] v4l: vsp1: Fix LUT format setting
+Date: Mon, 16 Nov 2015 06:46:42 +0200
+Message-Id: <1447649205-1560-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 3 +++
- 1 file changed, 3 insertions(+)
+The LUT set format handler overrides the requested format by mistake.
+Fix it.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 1dd9625..2d922b9 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -851,6 +851,9 @@ static const struct usb_device_id dvbsky_id_table[] = {
- 		USB_PID_TERRATEC_H7_3,
- 		&dvbsky_t680c_props, "Terratec H7 Rev.4",
- 		RC_MAP_TT_1500) },
-+	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R4,
-+		&dvbsky_s960_props, "Terratec Cinergy S2 Rev.4",
-+		RC_MAP_DVBSKY) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, dvbsky_id_table);
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_lut.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 656ec272a414..e2c352a7dfd5 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -176,6 +176,7 @@ static int lut_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 		return 0;
+ 	}
+ 
++	format->code = fmt->format.code;
+ 	format->width = clamp_t(unsigned int, fmt->format.width,
+ 				LUT_MIN_SIZE, LUT_MAX_SIZE);
+ 	format->height = clamp_t(unsigned int, fmt->format.height,
 -- 
-2.1.4
+2.4.10
 
