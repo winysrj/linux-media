@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55872 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751560AbbKOWqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 17:46:21 -0500
-Date: Sun, 15 Nov 2015 20:46:15 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:44896 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600AbbKPKVX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 05:21:23 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Chris Rankin <rankincj@googlemail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Trying to enable RC6 IR for PCTV T2 290e
-Message-ID: <20151115204615.0831ff21@recife.lan>
-In-Reply-To: <CAK2bqVLk1TxiS9-3P7GoWjGtkyH3D36K4vnxv6vmDtxYyK_PiA@mail.gmail.com>
-References: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
-	<CAGoCfiz9k3V0Z4ejVL4is4+t5WFMWo6EY7jjkiSEFrYj8zDqiA@mail.gmail.com>
-	<CAK2bqVL76sbs4fXia2eU3gk+OLs_QsZMHo=HfctUtFM+4bOG8A@mail.gmail.com>
-	<CAGoCfiwg14U=mmpcQ-E9zOHyS4bguJzfvRf-QgZOEuJn1x8cwg@mail.gmail.com>
-	<CAK2bqVLk1TxiS9-3P7GoWjGtkyH3D36K4vnxv6vmDtxYyK_PiA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 11/16] [media] tda666x: add support for set_parms() and get_frequency()
+Date: Mon, 16 Nov 2015 08:21:08 -0200
+Message-Id: <4b5cfb2f91ad08bd6eead44aaa072472b3ac61c4.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 15 Nov 2015 22:18:48 +0000
-Chris Rankin <rankincj@googlemail.com> escreveu:
+Those two callbacks are the ones that should be used by normal
+DVB frontend drivers.
 
-> > How are you "switching back to RC5"?
-> 
-> I use the command "ir-keytable -p rc-5" or "ir-keytable -p rc-6" to
-> switch between IR protocols, which does seem to invoke the
-> em2874_ir_change_protocol() function. I'm not sure that I have a
-> suitable RC6 keymap for this IR, and was expecting to have to create
-> it myself by logging the scancodes returned by the driver.
+Add support for them.
 
-Did you test with ir-keytable -t? If you don't load a keytable,
-you'll be able to only see the scancodes.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/tda665x.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-Also, AFAIKT, the hardware decoder on em2874 only supports one
-variant of RC6 protocol.
+diff --git a/drivers/media/dvb-frontends/tda665x.c b/drivers/media/dvb-frontends/tda665x.c
+index 9c892533e6a7..6ced688c3264 100644
+--- a/drivers/media/dvb-frontends/tda665x.c
++++ b/drivers/media/dvb-frontends/tda665x.c
+@@ -88,6 +88,15 @@ static int tda665x_get_state(struct dvb_frontend *fe,
+ 	return err;
+ }
+ 
++static int tda665x_get_frequency(struct dvb_frontend *fe, u32 *frequency)
++{
++	struct tda665x_state *state = fe->tuner_priv;
++
++	*frequency = state->frequency;
++
++	return 0;
++}
++
+ static int tda665x_get_status(struct dvb_frontend *fe, u32 *status)
+ {
+ 	struct tda665x_state *state = fe->tuner_priv;
+@@ -201,6 +210,15 @@ exit:
+ 	return err;
+ }
+ 
++static int tda665x_set_params(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	tda665x_set_frequency(fe, c->frequency);
++
++	return 0;
++}
++
+ static int tda665x_set_state(struct dvb_frontend *fe,
+ 			     enum tuner_param param,
+ 			     struct tuner_state *tstate)
+@@ -226,6 +244,8 @@ static struct dvb_tuner_ops tda665x_ops = {
+ 	.set_state	= tda665x_set_state,
+ 	.get_state	= tda665x_get_state,
+ 	.get_status	= tda665x_get_status,
++	.set_params	= tda665x_set_params,
++	.get_frequency	= tda665x_get_frequency,
+ 	.release	= tda665x_release
+ };
+ 
+-- 
+2.5.0
 
-> 
-> Cheers,
-> Chris
-> 
-> On Sun, Nov 15, 2015 at 9:48 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
-> >> I've dug a bit deeper and discovered that the reason the
-> >> em28xx_info(...) lines that I'd added to em2874_polling_getkey()
-> >> weren't appearing is because I'd loaded the wrong version of the
-> >> em28xx-rc module! (Doh!)
-> >
-> > Ok, good.
-> >
-> >> The polling function *is* being called regularly, but
-> >> em28xx_ir_handle_key() isn't noticing any keypresses. (However, it
-> >> does notice when I switch back to RC5).
-> >
-> > How are you "switching back to RC5"?  Are you actually loading in an
-> > RC6 versus RC5 keymap?  The reason I ask is because the onboard
-> > receiver has to be explicitly configured into one of the two modes,
-> > and IIRC this happens based on code type for the loaded keymap.  Hence
-> > if you have an RC5 keymap loaded, you'll never see the IR receiver
-> > reporting RC6 codes.
-> >
-> > And of course it's always possible you've hit a bug/regression.  I
-> > haven't touched that code in years and I know it's been through a
-> > couple of rounds of refactoring.
-> >
-> > Devin
-> >
-> > --
-> > Devin J. Heitmueller - Kernel Labs
-> > http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
