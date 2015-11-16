@@ -1,26 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:34793 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbbKYWxi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 17:53:38 -0500
-Received: by obbbj7 with SMTP id bj7so50148896obb.1
-        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2015 14:53:37 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 25 Nov 2015 22:53:37 +0000
-Message-ID: <CAL9Js5Kn1d9-1_LOQ09J_cp743S1dyksRDpWB2RMtbpWABTGFg@mail.gmail.com>
-Subject: [DVBT USB dongle] problem with Zolid Mini DVB-T Stick on linux mint 17.2
-From: Mark Croft <mark.croft.lug@gmail.com>
-To: linux-media@vger.kernel.org, Robert Treen <robert@radioshare.co.uk>
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:59989 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752190AbbKPRzs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 12:55:48 -0500
+From: Vladis Dronov <vdronov@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Vladis Dronov <vdronov@redhat.com>
+Subject: [PATCH 1/1] [media] usbvision: fix crash on detecting device with invalid configuration
+Date: Mon, 16 Nov 2015 18:55:11 +0100
+Message-Id: <1447696511-17704-2-git-send-email-vdronov@redhat.com>
+In-Reply-To: <1447696511-17704-1-git-send-email-vdronov@redhat.com>
+References: <1447696511-17704-1-git-send-email-vdronov@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi
+The usbvision driver crashes when a specially crafted usb device with invalid
+number of interfaces or endpoints is detected. This fix adds checks that the
+device has proper configuration expected by the driver.
 
-hope this is the correct list about trying to get linux to talk to
-dvb-t usb stick?
+Reported-by: Ralf Spenneberg <ralf@spenneberg.net>
+Signed-off-by: Vladis Dronov <vdronov@redhat.com>
+---
+ drivers/media/usb/usbvision/usbvision-video.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-check out all the logs etc here http://pastebin.com/V3RQ17hz
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index b693206..d1dc1a1 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1463,9 +1463,23 @@ static int usbvision_probe(struct usb_interface *intf,
+ 
+ 	if (usbvision_device_data[model].interface >= 0)
+ 		interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
+-	else
++	else if (ifnum < dev->actconfig->desc.bNumInterfaces)
+ 		interface = &dev->actconfig->interface[ifnum]->altsetting[0];
++	else {
++		dev_err(&intf->dev, "interface %d is invalid, max is %d\n",
++		    ifnum, dev->actconfig->desc.bNumInterfaces - 1);
++		ret = -ENODEV;
++		goto err_usb;
++	}
++
++	if (interface->desc.bNumEndpoints < 2) {
++		dev_err(&intf->dev, "interface %d has %d endpoints, but must"
++		    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
++		ret = -ENODEV;
++		goto err_usb;
++	}
+ 	endpoint = &interface->endpoint[1].desc;
++
+ 	if (!usb_endpoint_xfer_isoc(endpoint)) {
+ 		dev_err(&intf->dev, "%s: interface %d. has non-ISO endpoint!\n",
+ 		    __func__, ifnum);
+-- 
+2.6.2
 
-thx
