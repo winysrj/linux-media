@@ -1,96 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39322 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753704AbbKWV1b (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:12985 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099AbbKPNev (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 16:27:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 50/55] [media] media-entity: unregister entity links
-Date: Mon, 23 Nov 2015 23:27:40 +0200
-Message-ID: <2087950.8UOe3P6UsK@avalon>
-In-Reply-To: <43cafe9354b359f2827ff37d574681b94fe1e2cb.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <43cafe9354b359f2827ff37d574681b94fe1e2cb.1441540862.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 16 Nov 2015 08:34:51 -0500
+Message-id: <5649DB76.5020500@samsung.com>
+Date: Mon, 16 Nov 2015 14:34:46 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pavel@ucw.cz, andrew@lunn.ch, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 10/10] media: flash: use led_set_brightness_sync for
+ torch brightness
+References: <1444209048-29415-1-git-send-email-j.anaszewski@samsung.com>
+ <1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
+ <5649A37A.2050902@samsung.com> <5649A64E.8050907@linux.intel.com>
+In-reply-to: <5649A64E.8050907@linux.intel.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 11/16/2015 10:47 AM, Sakari Ailus wrote:
+> Jacek Anaszewski wrote:
+>> This patch depends on the preceding LED core improvements patches
+>> from this patch set, and it would be best if it was merged through
+>> the LED tree. Can I get your ack for this? I've already obtained acks
+>> for the whole set from Sakari.
+>
+> I agree with this going through the LED tree.
+>
 
-Thank you for the patch.
+Applied this patch set, with fixed version of the patch 4/10 [1],
+thanks.
 
-On Sunday 06 September 2015 09:03:10 Mauro Carvalho Chehab wrote:
-> Add functions to explicitly unregister all entity links.
-> This function is called automatically when an entity
-> link is destroyed.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 064515f2ba9b..a37ccd2edfd5 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -903,6 +903,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
-> 
->  void media_devnode_remove(struct media_intf_devnode *devnode)
->  {
-> +	media_remove_intf_links(&devnode->intf);
->  	media_gobj_remove(&devnode->intf.graph_obj);
->  	kfree(devnode);
->  }
-> @@ -944,3 +945,25 @@ void media_remove_intf_link(struct media_link *link)
->  	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
->  }
->  EXPORT_SYMBOL_GPL(media_remove_intf_link);
-> +
-> +void __media_remove_intf_links(struct media_interface *intf)
-> +{
-> +	struct media_link *link, *tmp;
-> +
-> +	list_for_each_entry_safe(link, tmp, &intf->links, list)
-> +		__media_remove_intf_link(link);
-> +
-> +}
-> +EXPORT_SYMBOL_GPL(__media_remove_intf_links);
-
-The only place where this function is used is in media_remove_intf_links() 
-below. How about inlining it for now ?
-
-> +void media_remove_intf_links(struct media_interface *intf)
-> +{
-> +	/* Do nothing if the intf is not registered. */
-> +	if (intf->graph_obj.mdev == NULL)
-> +		return;
-> +
-> +	mutex_lock(&intf->graph_obj.mdev->graph_mutex);
-> +	__media_remove_intf_links(intf);
-> +	mutex_unlock(&intf->graph_obj.mdev->graph_mutex);
-> +}
-> +EXPORT_SYMBOL_GPL(media_remove_intf_links);
-
-As this function is exported it should be documented with kerneldoc.
-
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index bc7eb6240795..ca4a4f23362f 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -318,6 +318,9 @@ struct media_link *media_create_intf_link(struct
-> media_entity *entity, struct media_interface *intf,
->  					    u32 flags);
->  void media_remove_intf_link(struct media_link *link);
-> +void __media_remove_intf_links(struct media_interface *intf);
-> +void media_remove_intf_links(struct media_interface *intf);
-> +
-> 
->  #define media_entity_call(entity, operation, args...)			\
->  	(((entity)->ops && (entity)->ops->operation) ?			\
-
+[1] http://www.spinics.net/lists/linux-leds/msg05045.html
 -- 
-Regards,
-
-Laurent Pinchart
-
+Best Regards,
+Jacek Anaszewski
