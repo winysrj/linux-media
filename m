@@ -1,141 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39866 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965273AbbKDMlp (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44946 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbbKPKVY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2015 07:41:45 -0500
-Subject: Re: [RFC PATCH v9 2/6] media: videobuf2: Add set_timestamp to struct
- vb2_queue
-To: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	pawel@osciak.com
-References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
- <1446545802-28496-3-git-send-email-jh1009.sung@samsung.com>
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5639FD00.1040001@xs4all.nl>
-Date: Wed, 4 Nov 2015 13:41:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <1446545802-28496-3-git-send-email-jh1009.sung@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 16 Nov 2015 05:21:24 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 04/16] [media] dvb_frontend.h: Add a description for the header
+Date: Mon, 16 Nov 2015 08:21:01 -0200
+Message-Id: <b0d0e6a770c92aa0f0f1bff9242413341d538e52.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/03/15 11:16, Junghak Sung wrote:
-> Add set_timestamp to struct vb2_queue as a flag set if vb2-core should
-> set timestamps.
-> 
-> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Acked-by: Inki Dae <inki.dae@samsung.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-v4l2.c |   20 +++++++-------------
->  include/media/videobuf2-core.h           |    2 ++
->  2 files changed, 9 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 93e16375..d254452 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -118,10 +118,8 @@ static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
->  		 * For output buffers copy the timestamp if needed,
->  		 * and the timecode field and flag if needed.
->  		 */
-> -		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-> -				V4L2_BUF_FLAG_TIMESTAMP_COPY) {
-> +		if (q->set_timestamp)
->  			vb->timestamp = timeval_to_ns(&b->timestamp);
-> -		}
->  		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
->  		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
->  			vbuf->timecode = b->timecode;
-> @@ -239,8 +237,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	 */
->  	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
->  	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
-> -	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-> -	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
-> +	if (!q->set_timestamp) {
->  		/*
->  		 * For non-COPY timestamps, drop timestamp source bits
->  		 * and obtain the timestamp source from the queue.
-> @@ -404,8 +401,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  
->  	/* Zero flags that the vb2 core handles */
->  	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
-> -	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
-> -	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +	if (!vb->vb2_queue->set_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
->  		/*
->  		 * Non-COPY timestamps and non-OUTPUT queues will get
->  		 * their timestamp and timestamp source flags from the
-> @@ -723,6 +719,8 @@ int vb2_queue_init(struct vb2_queue *q)
->  	q->buf_ops = &v4l2_buf_ops;
->  	q->is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
->  	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
-> +	q->set_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
-> +			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  
->  	return vb2_core_queue_init(q);
->  }
-> @@ -1080,9 +1078,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  	 * should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
->  	 * else is able to provide this information with the write() operation.
->  	 */
-> -	bool set_timestamp = !read &&
-> -		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-> -		V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	bool set_timestamp = !read && q->set_timestamp;
->  	int ret, index;
->  
->  	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
-> @@ -1271,9 +1267,7 @@ static int vb2_thread(void *data)
->  
->  	if (q->is_output) {
->  		prequeue = q->num_buffers;
-> -		set_timestamp =
-> -			(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-> -			V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +		set_timestamp = q->set_timestamp;
->  	}
->  
->  	set_freezable();
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 6404f81..b73a28a 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -431,6 +431,7 @@ struct vb2_buf_ops {
->   *		called since poll() needs to return POLLERR in that situation.
->   * @is_multiplanar: set if buffer type is multiplanar
->   * @is_output:	set if buffer type is output
-> + * @copy_timestamp: set if vb2-core should set timestamps
+This header file provides the kABI functions used by the
+Digital TV Frontend core support. Add a description for
+this kABI, to add at the device_drivers Kernel DocBook.
 
-This says copy_timestamp,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/device-drivers.tmpl |  1 +
+ drivers/media/dvb-core/dvb_frontend.h     | 23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
->   * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
->   *		last decoded buffer was already dequeued. Set for capture queues
->   *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-> @@ -480,6 +481,7 @@ struct vb2_queue {
->  	unsigned int			waiting_for_buffers:1;
->  	unsigned int			is_multiplanar:1;
->  	unsigned int			is_output:1;
-> +	unsigned int			set_timestamp:1;
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index fc7242dd5d65..7b3fcc5effcd 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -244,6 +244,7 @@ X!Isound/sound_firmware.c
+ !Idrivers/media/dvb-core/dvbdev.h
+ 	</sect1>
+ 	<sect1><title>Digital TV Frontend kABI</title>
++!Pdrivers/media/dvb-core/dvb_frontend.h Digital TV Frontend
+ !Idrivers/media/dvb-core/dvb_frontend.h
+ 	</sect1>
+ 	<sect1><title>Digital TV Demux kABI</title>
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 5eaacaeb518f..2fa23b05749a 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -42,6 +42,29 @@
+ 
+ #include "dvbdev.h"
+ 
++/**
++ * DOC: Digital TV Frontend
++ *
++ * The Digital TV Frontend kABI defines a driver-internal interface for
++ * registering low-level, hardware specific driver to a hardware independent
++ * frontend layer. It is only of interest for Digital TV device driver writers.
++ * The header file for this API is named dvb_frontend.h and located in
++ * drivers/media/dvb-core.
++ *
++ * Before using the Digital TV frontend core, the bridge driver should attach
++ * the frontend demod, tuner and SEC devices and call dvb_register_frontend(),
++ * in order to register the new frontend at the subsystem. At device
++ * detach/removal, the bridge driver should call dvb_unregister_frontend() to
++ * remove the frontend from the core and then dvb_frontend_detach() to free the
++ * memory allocated by the frontend drivers.
++ *
++ * The drivers should also call dvb_frontend_suspend() as part of their
++ * handler for the &device_driver.suspend(), and dvb_frontend_resume() as
++ * part of their handler for &device_driver.resume().
++ *
++ * A few other optional functions are provided to handle some special cases.
++ */
++
+ /*
+  * Maximum number of Delivery systems per frontend. It
+  * should be smaller or equal to 32
+-- 
+2.5.0
 
-while this is set_timestamp.
-
-I actually think the comment is right and this field should be called
-copy_timestamp. The timestamp is never actually set, it is just copied.
-
->  	unsigned int			last_buffer_dequeued:1;
->  
->  	struct vb2_fileio_data		*fileio;
-> 
-
-Regards,
-
-	Hams
