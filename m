@@ -1,75 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:33267 "EHLO
-	mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933232AbbKRQei (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37112 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751934AbbKPTyN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 11:34:38 -0500
-Received: by qkas77 with SMTP id s77so15900145qka.0
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 08:34:37 -0800 (PST)
+	Mon, 16 Nov 2015 14:54:13 -0500
+Received: by wmww144 with SMTP id w144so135112132wmw.0
+        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 11:54:12 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 8/8] media: rc: define RC_BIT_ALL as ~0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
+Message-ID: <564A3450.4040800@gmail.com>
+Date: Mon, 16 Nov 2015 20:53:52 +0100
 MIME-Version: 1.0
-Date: Wed, 18 Nov 2015 18:34:37 +0200
-Message-ID: <CAFrxexgmzJZHMJ15cK8Vrp_WkfKq7aNG79RWzeTGx=7LfKk__g@mail.gmail.com>
-Subject: [help request] saa7134 card drivers
-From: Alec Rusanda <alecg.rusanda@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, i have trouble installing a saa7134 card who is a pain in the
-grrrrrr......
-My board is a AOP-9104A with chipset PI7C8140A MA 0514BT with 4 channels.
+RC_BIT_ALL explicitely lists each single currently defined protocol bit.
+To simplify the code and make adding a protocol easier set each bit
+no matter whether the respective protocol is defined yet.
 
-I`m running a FedoraCore 23 64bit (4.2.3-300.fc23.x86_64) at the
-moment (i can change it on whatever is need less windows) and have
-tried to set in /etc/modprobe.d/saa7134.conf
+RC_BIT_ALL is only used in checks whether a particular protocol is allowed
+therefore it has no impact if bits for not (yet) defined protocols
+are set.
 
-" options saa7134 card=21,21,21,21   || also 33,42,61,81,109  "
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/rc-main.c |  1 -
+ include/media/rc-map.h     | 10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-but on each one i get " saa7134: saa7134[1]: Huh, no eeprom present (err=-5)? "
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index d1611f1..d7055e1 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1447,7 +1447,6 @@ int rc_register_device(struct rc_dev *dev)
+ 	kfree(path);
+ 
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+-		dev->allowed_protocols |= RC_BIT_LIRC;
+ 		/* calls ir_register_device so unlock mutex here*/
+ 		mutex_unlock(&dev->lock);
+ 		rc = ir_raw_event_register(dev);
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7844e98..27aaf6b 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -54,15 +54,7 @@ enum rc_type {
+ #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
+ 
+-#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
+-			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+-			 RC_BIT_JVC | \
+-			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
+-			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+-			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+-			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+-			 RC_BIT_XMP)
+-
++#define RC_BIT_ALL		~RC_BIT_NONE
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+ #define RC_SCANCODE_OTHER(x)			(x)
+-- 
+2.6.2
 
-I have also found on internet a script for probing each card model:
-
-#!/bin/bash
-card=1
-while [ $card -lt 175 ] ; do
-    /etc/init.d/motion stop
-    lsmod | cut -d ' ' -f 1 | grep saa713 | xargs rmmod
-    modprobe saa7134 card=$card,$card,$card,$card
-    /etc/init.d/motion restart
-    echo "Give it a shot for card $card"
-    read junk
-    /etc/init.d/motion stop
-    card=$(($card+1))
-done
-
-Unfortunately, on this one i got also errors :
-rmmod: ERROR: Module saa7134_alsa is in use
-rmmod: ERROR: Module saa7134 is in use by: saa7134_alsa
-
-Also on rmmod --force i get :
-
-rmmod: ERROR: could not remove 'saa7134_alsa': Device or resource busy
-rmmod: ERROR: could not remove module saa7134_alsa: Device or resource busy
-rmmod: ERROR: could not remove 'saa7134': Resource temporarily unavailable
-rmmod: ERROR: could not remove module saa7134: Resource temporarily unavailable
-
-# lsmod | grep saa713
-saa7134_alsa           20480   -1
-saa7134                   188416   1  saa7134_alsa
-videobuf2_core         49152    1  saa7134
-videobuf2_dma_sg   20480    1  saa7134
-tveeprom                   24576   1  saa7134
-rc_core                      28672   1  saa7134
-v4l2_common           16384    2  saa7134,videobuf2_core
-videodev                   163840  3  saa7134,v4l2_common,videobuf2_core
-snd_pcm                   114688  5
-snd_hda_codec_hdmi,snd_hda_codec,snd_hda_intel,saa7134_alsa,snd_hda_core
-snd                            77824  11 snd_hda_codec_realtek ,
-snd_hwdep,snd_timer, snd_hda_codec_hdmi,
-                                   snd_pcm,snd_seq,
-snd_hda_codec_generic,  snd_hda_codec,  snd_hda_intel,
-snd_seq_device, saa7134_alsa
-
-
-Thank you in advanced, and wish a great day all.
