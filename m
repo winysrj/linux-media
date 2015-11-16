@@ -1,265 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42660 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020AbbKBEn5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 23:43:57 -0500
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NX602IEY7T0PFE0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Nov 2015 13:43:48 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v8 5/6] media: videobuf2: Refactor vb2_fileio_data and
- vb2_thread
-Date: Mon, 02 Nov 2015 13:43:44 +0900
-Message-id: <1446439425-13242-6-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
-References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54910 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752687AbbKPEqo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Nov 2015 23:46:44 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 4/4] ARM: Renesas: r8a7791: Enable CLU support in VSPS
+Date: Mon, 16 Nov 2015 06:46:45 +0200
+Message-Id: <1447649205-1560-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace v4l2-stuffs with common things in struct vb2_fileio_data and
-vb2_thread().
+The VSPS includes a CLU module, describe it in DT.
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/videobuf2-v4l2.c |  104 ++++++++++++++----------------
- 1 file changed, 49 insertions(+), 55 deletions(-)
+ arch/arm/boot/dts/r8a7791.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 1468b30..db85124 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -925,9 +925,10 @@ struct vb2_fileio_buf {
-  * or write function.
-  */
- struct vb2_fileio_data {
--	struct v4l2_requestbuffers req;
--	struct v4l2_plane p;
--	struct v4l2_buffer b;
-+	unsigned int count;
-+	unsigned int type;
-+	unsigned int memory;
-+	struct vb2_buffer *b;
- 	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
- 	unsigned int cur_index;
- 	unsigned int initial_index;
-@@ -980,6 +981,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	if (fileio == NULL)
- 		return -ENOMEM;
+diff --git a/arch/arm/boot/dts/r8a7791.dtsi b/arch/arm/boot/dts/r8a7791.dtsi
+index 831525dd39a6..fc2a1b10c1af 100644
+--- a/arch/arm/boot/dts/r8a7791.dtsi
++++ b/arch/arm/boot/dts/r8a7791.dtsi
+@@ -873,6 +873,7 @@
+ 		clocks = <&mstp1_clks R8A7791_CLK_VSP1_S>;
+ 		power-domains = <&cpg_clocks>;
  
-+	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
-+	if (fileio->b == NULL)
-+		return -ENOMEM;
-+
- 	fileio->read_once = q->fileio_read_once;
- 	fileio->write_immediately = q->fileio_write_immediately;
- 
-@@ -987,11 +992,11 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	 * Request buffers and use MMAP type to force driver
- 	 * to allocate buffers by itself.
- 	 */
--	fileio->req.count = count;
--	fileio->req.memory = VB2_MEMORY_MMAP;
--	fileio->req.type = q->type;
-+	fileio->count = count;
-+	fileio->memory = VB2_MEMORY_MMAP;
-+	fileio->type = q->type;
- 	q->fileio = fileio;
--	ret = vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
-+	ret = vb2_core_reqbufs(q, fileio->memory, &fileio->count);
- 	if (ret)
- 		goto err_kfree;
- 
-@@ -1020,24 +1025,17 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	 * Read mode requires pre queuing of all buffers.
- 	 */
- 	if (read) {
--		bool is_multiplanar = q->is_multiplanar;
--
- 		/*
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			struct v4l2_buffer *b = &fileio->b;
-+			struct vb2_buffer *b = fileio->b;
- 
--			memset(b, 0, sizeof(*b));
-+			memset(b, 0, q->buf_struct_size);
- 			b->type = q->type;
--			if (is_multiplanar) {
--				memset(&fileio->p, 0, sizeof(fileio->p));
--				b->m.planes = &fileio->p;
--				b->length = 1;
--			}
- 			b->memory = q->memory;
- 			b->index = i;
--			ret = vb2_internal_qbuf(q, b);
-+			ret = vb2_core_qbuf(q, i, b);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -1060,8 +1058,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	return ret;
- 
- err_reqbufs:
--	fileio->req.count = 0;
--	vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
-+	fileio->count = 0;
-+	vb2_core_reqbufs(q, fileio->memory, &fileio->count);
- 
- err_kfree:
- 	q->fileio = NULL;
-@@ -1080,8 +1078,9 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q)
- 	if (fileio) {
- 		vb2_core_streamoff(q, q->type);
- 		q->fileio = NULL;
--		fileio->req.count = 0;
--		vb2_reqbufs(q, &fileio->req);
-+		fileio->count = 0;
-+		vb2_core_reqbufs(q, fileio->memory, &fileio->count);
-+		kfree(fileio->b);
- 		kfree(fileio);
- 		dprintk(3, "file io emulator closed\n");
- 	}
-@@ -1134,24 +1133,21 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 */
- 	index = fileio->cur_index;
- 	if (index >= q->num_buffers) {
-+		struct vb2_buffer *b = fileio->b;
-+
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		memset(&fileio->b, 0, sizeof(fileio->b));
--		fileio->b.type = q->type;
--		fileio->b.memory = q->memory;
--		if (is_multiplanar) {
--			memset(&fileio->p, 0, sizeof(fileio->p));
--			fileio->b.m.planes = &fileio->p;
--			fileio->b.length = 1;
--		}
--		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
-+		memset(b, 0, q->buf_struct_size);
-+		b->type = q->type;
-+		b->memory = q->memory;
-+		ret = vb2_core_dqbuf(q, b, nonblock);
- 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
- 		fileio->dq_count += 1;
- 
--		fileio->cur_index = index = fileio->b.index;
-+		fileio->cur_index = index = b->index;
- 		buf = &fileio->bufs[index];
- 
- 		/*
-@@ -1163,8 +1159,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 				 : vb2_plane_size(q->bufs[index], 0);
- 		/* Compensate for data_offset on read in the multiplanar case. */
- 		if (is_multiplanar && read &&
--		    fileio->b.m.planes[0].data_offset < buf->size) {
--			buf->pos = fileio->b.m.planes[0].data_offset;
-+				b->planes[0].data_offset < buf->size) {
-+			buf->pos = b->planes[0].data_offset;
- 			buf->size -= buf->pos;
- 		}
- 	} else {
-@@ -1203,6 +1199,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 * Queue next buffer if required.
- 	 */
- 	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
-+		struct vb2_buffer *b = fileio->b;
-+
- 		/*
- 		 * Check if this is the last buffer to read.
- 		 */
-@@ -1214,20 +1212,15 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		/*
- 		 * Call vb2_qbuf and give buffer to the driver.
- 		 */
--		memset(&fileio->b, 0, sizeof(fileio->b));
--		fileio->b.type = q->type;
--		fileio->b.memory = q->memory;
--		fileio->b.index = index;
--		fileio->b.bytesused = buf->pos;
--		if (is_multiplanar) {
--			memset(&fileio->p, 0, sizeof(fileio->p));
--			fileio->p.bytesused = buf->pos;
--			fileio->b.m.planes = &fileio->p;
--			fileio->b.length = 1;
--		}
-+		memset(b, 0, q->buf_struct_size);
-+		b->type = q->type;
-+		b->memory = q->memory;
-+		b->index = index;
-+		b->planes[0].bytesused = buf->pos;
-+
- 		if (set_timestamp)
--			v4l2_get_timestamp(&fileio->b.timestamp);
--		ret = vb2_internal_qbuf(q, &fileio->b);
-+			ktime_get_ts(&b->timestamp);
-+		ret = vb2_core_qbuf(q, index, b);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -1304,20 +1297,21 @@ static int vb2_thread(void *data)
- 
- 	for (;;) {
- 		struct vb2_buffer *vb;
-+		struct vb2_buffer *b = fileio->b;
- 
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		memset(&fileio->b, 0, sizeof(fileio->b));
--		fileio->b.type = q->type;
--		fileio->b.memory = q->memory;
-+		memset(b, 0, q->buf_struct_size);
-+		b->type = q->type;
-+		b->memory = q->memory;
- 		if (prequeue) {
--			fileio->b.index = index++;
-+			b->index = index++;
- 			prequeue--;
- 		} else {
- 			call_void_qop(q, wait_finish, q);
- 			if (!threadio->stop)
--				ret = vb2_internal_dqbuf(q, &fileio->b, 0);
-+				ret = vb2_core_dqbuf(q, b, 0);
- 			call_void_qop(q, wait_prepare, q);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
- 		}
-@@ -1325,15 +1319,15 @@ static int vb2_thread(void *data)
- 			break;
- 		try_to_freeze();
- 
--		vb = q->bufs[fileio->b.index];
--		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
-+		vb = q->bufs[b->index];
-+		if (b->state == VB2_BUF_STATE_DONE)
- 			if (threadio->fnc(vb, threadio->priv))
- 				break;
- 		call_void_qop(q, wait_finish, q);
- 		if (set_timestamp)
--			v4l2_get_timestamp(&fileio->b.timestamp);
-+			ktime_get_ts(&b->timestamp);
- 		if (!threadio->stop)
--			ret = vb2_internal_qbuf(q, &fileio->b);
-+			ret = vb2_core_qbuf(q, b->index, b);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
++		renesas,has-clu;
+ 		renesas,has-lut;
+ 		renesas,has-sru;
+ 		renesas,#rpf = <5>;
 -- 
-1.7.9.5
+2.4.10
 
