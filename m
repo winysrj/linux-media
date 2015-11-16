@@ -1,77 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39408 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbbKWWfz (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:44949 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161AbbKPKVY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Nov 2015 17:35:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v8 45/55] [media] media: Use a macro to interate between all interfaces
-Date: Tue, 24 Nov 2015 00:36:04 +0200
-Message-ID: <5987917.OMoM1bBMFU@avalon>
-In-Reply-To: <3d9230b2ced520c413291a5f69ed7ef672920194.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <3d9230b2ced520c413291a5f69ed7ef672920194.1441540862.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 16 Nov 2015 05:21:24 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 16/16] [media] dvb_frontend.h: improve documentation for struct dvb_tuner_ops
+Date: Mon, 16 Nov 2015 08:21:13 -0200
+Message-Id: <d30845e77ac47621592d29ad8eb36ea9a6e7718f.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Improve the comments at the header, removing kernel-doc
+tag from where it doesn't belong, grouping the legacy tuner
+functions, and improving the text.
 
-Thank you for the patch.
+No functional changes.
 
-In the subject line, s/interate between all/iterate over all/
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.h | 40 ++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
-On Sunday 06 September 2015 09:03:05 Mauro Carvalho Chehab wrote:
-> Just like we do with entities, use a similar macro for the
-> interfaces loop.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/dvb-core/dvbdev.c
-> b/drivers/media/dvb-core/dvbdev.c index 6babc688801b..f00f1a5f279c 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -578,9 +578,10 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
->  	}
-> 
->  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca 
-*/
-> -	list_for_each_entry(intf, &mdev->interfaces, list) {
-> +	media_device_for_each_intf(intf, mdev) {
->  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
->  			media_create_intf_link(ca, intf, 0);
-> +
->  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
->  			media_create_intf_link(tuner, intf, 0);
-> 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 51807efa505b..f23d686aaac6 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -113,6 +113,11 @@ struct media_device *media_device_find_devres(struct
-> device *dev); #define media_device_for_each_entity(entity, mdev)			\
->  	list_for_each_entry(entity, &(mdev)->entities, list)
-> 
-> +/* Iterate over all interfaces. */
-> +#define media_device_for_each_intf(intf, mdev)			\
-> +	list_for_each_entry(intf, &(mdev)->interfaces, list)
-> +
-> +
-
-One blank line should be enough.
-
->  #else
->  static inline int media_device_register(struct media_device *mdev)
->  {
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 43acac72cc32..e42af158bf71 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -213,12 +213,12 @@ enum dvbfe_search {
+  *			are stored at @dvb_frontend.dtv_property_cache;. The
+  *			tuner demod can change the parameters to reflect the
+  *			changes needed for the channel to be tuned, and
+- *			update statistics.
++ *			update statistics. This is the recommended way to set
++ *			the tuner parameters and should be used on newer
++ *			drivers.
+  * @set_analog_params:	callback function used to tune into an analog TV
+  *			channel on hybrid tuners. It passes @analog_parameters;
+  *			to the driver.
+- * @calc_regs:		callback function used to pass register data settings
+- *			for simple tuners.
+  * @set_config:		callback function used to send some tuner-specific
+  *			parameters.
+  * @get_frequency:	get the actual tuned frequency
+@@ -231,10 +231,10 @@ enum dvbfe_search {
+  *			via DVBv5 API (@dvb_frontend.dtv_property_cache;).
+  * @get_afc:		Used only by analog TV core. Reports the frequency
+  *			drift due to AFC.
+- * @set_frequency:	Set a new frequency. Please notice that using
+- *			set_params is preferred.
+- * @set_bandwidth:	Set a new frequency. Please notice that using
+- *			set_params is preferred.
++ * @calc_regs:		callback function used to pass register data settings
++ *			for simple tuners.  Shouldn't be used on newer drivers.
++ * @set_frequency:	Set a new frequency. Shouldn't be used on newer drivers.
++ * @set_bandwidth:	Set a new frequency. Shouldn't be used on newer drivers.
+  *
+  * NOTE: frequencies used on get_frequency and set_frequency are in Hz for
+  * terrestrial/cable or kHz for satellite.
+@@ -250,14 +250,10 @@ struct dvb_tuner_ops {
+ 	int (*suspend)(struct dvb_frontend *fe);
+ 	int (*resume)(struct dvb_frontend *fe);
+ 
+-	/** This is for simple PLLs - set all parameters in one go. */
++	/* This is the recomended way to set the tuner */
+ 	int (*set_params)(struct dvb_frontend *fe);
+ 	int (*set_analog_params)(struct dvb_frontend *fe, struct analog_parameters *p);
+ 
+-	/** This is support for demods like the mt352 - fills out the supplied buffer with what to write. */
+-	int (*calc_regs)(struct dvb_frontend *fe, u8 *buf, int buf_len);
+-
+-	/** This is to allow setting tuner-specific configs */
+ 	int (*set_config)(struct dvb_frontend *fe, void *priv_cfg);
+ 
+ 	int (*get_frequency)(struct dvb_frontend *fe, u32 *frequency);
+@@ -270,8 +266,21 @@ struct dvb_tuner_ops {
+ 	int (*get_rf_strength)(struct dvb_frontend *fe, u16 *strength);
+ 	int (*get_afc)(struct dvb_frontend *fe, s32 *afc);
+ 
+-	/** These are provided separately from set_params in order to facilitate silicon
+-	 * tuners which require sophisticated tuning loops, controlling each parameter separately. */
++	/*
++	 * This is support for demods like the mt352 - fills out the supplied
++	 * buffer with what to write.
++	 *
++	 * Don't use on newer drivers.
++	 */
++	int (*calc_regs)(struct dvb_frontend *fe, u8 *buf, int buf_len);
++
++	/*
++	 * These are provided separately from set_params in order to
++	 * facilitate silicon tuners which require sophisticated tuning loops,
++	 * controlling each parameter separately.
++	 *
++	 * Don't use on newer drivers.
++	 */
+ 	int (*set_frequency)(struct dvb_frontend *fe, u32 frequency);
+ 	int (*set_bandwidth)(struct dvb_frontend *fe, u32 bandwidth);
+ };
+@@ -462,7 +471,8 @@ struct dvb_frontend_ops {
+ 	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
+ 	int (*set_lna)(struct dvb_frontend *);
+ 
+-	/* These callbacks are for devices that implement their own
++	/*
++	 * These callbacks are for devices that implement their own
+ 	 * tuning algorithms, rather than a simple swzigzag
+ 	 */
+ 	enum dvbfe_search (*search)(struct dvb_frontend *fe);
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
