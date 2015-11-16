@@ -1,60 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45258 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750805AbbKIVEY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 16:04:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: y2038@lists.linaro.org, linux-samsung-soc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [Y2038] [PATCH v2 9/9] [media] omap3isp: support 64-bit version of omap3isp_stat_data
-Date: Mon, 09 Nov 2015 23:04:36 +0200
-Message-ID: <5182415.f83yL8ScIF@avalon>
-In-Reply-To: <3870339.ZAkvtJ2orM@wuerfel>
-References: <1442524780-781677-1-git-send-email-arnd@arndb.de> <5733951.qvCn4pc5g5@avalon> <3870339.ZAkvtJ2orM@wuerfel>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:37022 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751934AbbKPTyH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Nov 2015 14:54:07 -0500
+Received: by wmww144 with SMTP id w144so135108721wmw.0
+        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 11:54:06 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 4/8] media: rc: load decoder modules on-demand
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
+Message-ID: <564A33FA.5050407@gmail.com>
+Date: Mon, 16 Nov 2015 20:52:26 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Remove code for unconditional decoder module loading (except lirc).
 
-On Monday 09 November 2015 21:30:41 Arnd Bergmann wrote:
-> On Monday 09 November 2015 22:09:26 Laurent Pinchart wrote:
-> > On Thursday 17 September 2015 23:19:40 Arnd Bergmann wrote:
-> > > C libraries with 64-bit time_t use an incompatible format for
-> > > struct omap3isp_stat_data. This changes the kernel code to
-> > > support either version, by moving over the normal handling
-> > > to the 64-bit variant, and adding compatiblity code to handle
-> > > the old binary format with the existing ioctl command code.
-> > > 
-> > > Fortunately, the command code includes the size of the structure,
-> > > so the difference gets handled automatically.
-> > 
-> > We plan to design a new interface to handle statistics in V4L2. That API
-> > should support proper 64-bit timestamps out of the box, and will be
-> > implemented by the OMAP3 ISP driver. Userspace should then move to it. I
-> > wonder if it's worth it to fix the existing VIDIOC_OMAP3ISP_STAT_REQ ioctl
-> > given that I expect it to have a handful of users at most.
-> 
-> We still need to do something to the driver. The alternative would
-> be to make the existing ioctl command optional at kernel compile-time
-> so we can still build the driver once we remove the 'struct timeval'
-> definition. That patch would add slightly less complexity here
-> but also lose functionality.
-> 
-> As my patch here depends on the struct v4l2_timeval I introduced in
-> an earlier patch of the series, we will have to change it anyways,
-> but I'd prefer to keep the basic idea. Let's get back to this one
-> after the v4l_buffer replacement work is done.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/rc-core-priv.h | 64 -----------------------------------------
+ drivers/media/rc/rc-ir-raw.c    | 10 -------
+ 2 files changed, 74 deletions(-)
 
-Fine with me. I'll mark the patch as "Obsoleted" in patchwork in the meantime.
-
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index b68d4f7..071651a 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -167,62 +167,6 @@ void ir_raw_init(void);
+  * loads the compiled decoders for their usage with IR raw events
+  */
+ 
+-/* from ir-nec-decoder.c */
+-#ifdef CONFIG_IR_NEC_DECODER_MODULE
+-#define load_nec_decode()	request_module_nowait("ir-nec-decoder")
+-#else
+-static inline void load_nec_decode(void) { }
+-#endif
+-
+-/* from ir-rc5-decoder.c */
+-#ifdef CONFIG_IR_RC5_DECODER_MODULE
+-#define load_rc5_decode()	request_module_nowait("ir-rc5-decoder")
+-#else
+-static inline void load_rc5_decode(void) { }
+-#endif
+-
+-/* from ir-rc6-decoder.c */
+-#ifdef CONFIG_IR_RC6_DECODER_MODULE
+-#define load_rc6_decode()	request_module_nowait("ir-rc6-decoder")
+-#else
+-static inline void load_rc6_decode(void) { }
+-#endif
+-
+-/* from ir-jvc-decoder.c */
+-#ifdef CONFIG_IR_JVC_DECODER_MODULE
+-#define load_jvc_decode()	request_module_nowait("ir-jvc-decoder")
+-#else
+-static inline void load_jvc_decode(void) { }
+-#endif
+-
+-/* from ir-sony-decoder.c */
+-#ifdef CONFIG_IR_SONY_DECODER_MODULE
+-#define load_sony_decode()	request_module_nowait("ir-sony-decoder")
+-#else
+-static inline void load_sony_decode(void) { }
+-#endif
+-
+-/* from ir-sanyo-decoder.c */
+-#ifdef CONFIG_IR_SANYO_DECODER_MODULE
+-#define load_sanyo_decode()	request_module_nowait("ir-sanyo-decoder")
+-#else
+-static inline void load_sanyo_decode(void) { }
+-#endif
+-
+-/* from ir-sharp-decoder.c */
+-#ifdef CONFIG_IR_SHARP_DECODER_MODULE
+-#define load_sharp_decode()	request_module_nowait("ir-sharp-decoder")
+-#else
+-static inline void load_sharp_decode(void) { }
+-#endif
+-
+-/* from ir-mce_kbd-decoder.c */
+-#ifdef CONFIG_IR_MCE_KBD_DECODER_MODULE
+-#define load_mce_kbd_decode()	request_module_nowait("ir-mce_kbd-decoder")
+-#else
+-static inline void load_mce_kbd_decode(void) { }
+-#endif
+-
+ /* from ir-lirc-codec.c */
+ #ifdef CONFIG_IR_LIRC_CODEC_MODULE
+ #define load_lirc_codec()	request_module_nowait("ir-lirc-codec")
+@@ -230,12 +174,4 @@ static inline void load_mce_kbd_decode(void) { }
+ static inline void load_lirc_codec(void) { }
+ #endif
+ 
+-/* from ir-xmp-decoder.c */
+-#ifdef CONFIG_IR_XMP_DECODER_MODULE
+-#define load_xmp_decode()      request_module_nowait("ir-xmp-decoder")
+-#else
+-static inline void load_xmp_decode(void) { }
+-#endif
+-
+-
+ #endif /* _RC_CORE_PRIV */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 5cfb61f..763f8a8 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -362,17 +362,7 @@ EXPORT_SYMBOL(ir_raw_handler_unregister);
+ void ir_raw_init(void)
+ {
+ 	/* Load the decoder modules */
+-
+-	load_nec_decode();
+-	load_rc5_decode();
+-	load_rc6_decode();
+-	load_jvc_decode();
+-	load_sony_decode();
+-	load_sanyo_decode();
+-	load_sharp_decode();
+-	load_mce_kbd_decode();
+ 	load_lirc_codec();
+-	load_xmp_decode();
+ 
+ 	/* If needed, we may later add some init code. In this case,
+ 	   it is needed to change the CONFIG_MODULE test at rc-core.h
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.2
 
