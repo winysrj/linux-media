@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50984 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867AbbKQP51 (ORCPT
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:36748 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbbKQVnP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 10:57:27 -0500
-Subject: Re: [PATCH v2 2/4] scripts/kernel-doc: Replacing highlights hash by
- an array
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1438112718-12168-1-git-send-email-danilo.cesar@collabora.co.uk>
- <1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
- <20151117084046.5c911c6a@recife.lan> <20151117074431.01338392@lwn.net>
- <20151117132949.2c70d92f@recife.lan>
-Cc: LMML <linux-media@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Stephan Mueller <smueller@chronox.de>,
-	Michal Marek <mmarek@suse.cz>, linux-kernel@vger.kernel.org,
-	intel-gfx <intel-gfx@lists.freedesktop.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>
-From: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
-Message-ID: <564B4C36.2000004@collabora.co.uk>
-Date: Tue, 17 Nov 2015 13:48:06 -0200
+	Tue, 17 Nov 2015 16:43:15 -0500
+Received: by igcph11 with SMTP id ph11so88679267igc.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 13:43:15 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20151117132949.2c70d92f@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <564B319D.7030706@xs4all.nl>
+References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+	<564ADD04.90700@xs4all.nl>
+	<CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
+	<564B319D.7030706@xs4all.nl>
+Date: Tue, 17 Nov 2015 23:43:14 +0200
+Message-ID: <CAJ2oMh+2Y69m2t_BmrUWu=uKk2Ohxx9ODMD+ZeJzo3E3-N6fFg@mail.gmail.com>
+Subject: Re: cobalt & dma
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-On 17-11-2015 13:29, Mauro Carvalho Chehab wrote:
-> Em Tue, 17 Nov 2015 07:44:31 -0700
-> Jonathan Corbet <corbet@lwn.net> escreveu:
-> 
->> On Tue, 17 Nov 2015 08:40:46 -0200
->> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
->>
->>> The above causes some versions of perl to fail, as keys expect a
->>> hash argument:
+On Tue, Nov 17, 2015 at 3:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 11/17/15 14:15, Ran Shalit wrote:
+>> On Tue, Nov 17, 2015 at 9:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 11/17/2015 08:39 AM, Ran Shalit wrote:
+>>>> Hello,
+>>>>
+>>>> I intend to use cobalt driver as a refence for new pci v4l2 driver,
+>>>> which is required to use several input simultaneously. for this cobalt
+>>>> seems like a best starting point.
+>>>> read/write streaming will probably be suffecient (at least for the
+>>>> dirst debugging).
+>>>> The configuration in my cast is i7 core <-- pci ---> fpga.
+>>>> I see that the dma implementation is quite complex, and would like to
+>>>> ask for some tips regarding the following points related to dma issue:
+>>>>
+>>>> 1. Is it possible to do the read/write without dma (for debug as start) ?
 >>>
->>> Execution of .//scripts/kernel-doc aborted due to compilation errors.
->>> Type of arg 1 to keys must be hash (not private array) at .//scripts/kernel-doc line 2714, near "@highlights) "
+>>> No. All video capture/output devices all use DMA since it would be prohibitively
+>>> expensive for the CPU to do otherwise. So just dig in and implement it.
 >>>
->>> This is happening at linuxtv.org server, with runs perl version 5.10.1.
 >>
->> OK, that's not good.  But I'm not quite sure what to do about it.
+>> Hi,
 >>
->> Perl 5.10.1 is a little over six years old.  Nobody else has complained
->> (yet) about this problem.  So it might be best to "fix" this with a
->> minimum version added to the Changes file.
->>
->> Or maybe we need to revert the patch.
->>
->> So I'm far from a Perl expert, so I have no clue what the minimum version
->> would be if we were to say "5.10.1 is too old."  I don't suppose anybody
->> out there knows?
-> 
-> I'm also not a Perl expert, and never saw before the usage of "keys" on
-> an array. Yet, according with:
-> 	http://perldoc.perl.org/functions/keys.html
-> 
-> "in Perl 5.12 or later only, the indices of an array"
-> 
-> If so, then maybe we could replace:
-> 	foreach my $k (keys @highlights)
-> 
-> by a more C style variant, with all versions of perl 5:
-> 	for (my $k = 0; $k < @highlights; $k++) {
-> 
-> The enclosed patch should do the trick. I tested it with perl 5.10 and 
-> perl 5.22 it worked fine with both versions.
+>> Is the cobalt or other pci v4l device have the chip datasheet
+>> available so that we can do a reverse engineering and gain more
+>> understanding about the register read/write for the dma transactions ?
+>> I made a search but it seems that the PCIe chip datasheet for these
+>> devices is not available anywhere.
+>
+> Sorry, no, it's not publicly available.
+>
+> But they all work along the same lines: each DMA descriptor has a
+> PCI DMA address (where the data should be written to in memory), the length
+> (bytes) of the DMA transfer and the pointer to the next DMA descriptor (chaining
+> descriptors together). Finally there is some bit to trigger and interrupt when
+> the full frame has been transferred.
+>
 
-I'm Not a perl guru myself either =/.
 
-But thanks for fixing it Mauro!
+Thank you all very much for all these valuable information !
+I must admit that when I observe the source examples,
+it seems quite complex, (at least much more complex than the driver I
+am familiar with, which most of them time is taking a functional
+example and understanding what to change and how, or writing simple
+drivers.... )
 
-Danilo
+If there are any other tips and ideas about debug/testing/development
+steps when doing pci v4l device driver please tell me.
+
+Thank you all very much,
+Ran
