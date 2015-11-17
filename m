@@ -1,213 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16498 "EHLO mga11.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:58548 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557AbbKGVXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Nov 2015 16:23:44 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 2/2] media-ctl: Add field support for the media bus format
-Date: Sat,  7 Nov 2015 23:22:21 +0200
-Message-Id: <1446931341-29254-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1446931341-29254-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1446931341-29254-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1754803AbbKQVWQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 16:22:16 -0500
+Date: Tue, 17 Nov 2015 15:22:12 -0600
+From: Rob Herring <robh@kernel.org>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [Patch v4 2/2] media: v4l: ti-vpe: Document CAL driver
+Message-ID: <20151117212212.GA20622@rob-hp-laptop>
+References: <1447631628-9459-1-git-send-email-bparrot@ti.com>
+ <1447631628-9459-3-git-send-email-bparrot@ti.com>
+ <20151116152615.GA9256@rob-hp-laptop>
+ <20151116225249.GQ3999@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151116225249.GQ3999@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Mon, Nov 16, 2015 at 04:52:49PM -0600, Benoit Parrot wrote:
+> Rob Herring <robh@kernel.org> wrote on Mon [2015-Nov-16 09:26:16 -0600]:
+> > On Sun, Nov 15, 2015 at 05:53:48PM -0600, Benoit Parrot wrote:
+> > > Device Tree bindings for the Camera Adaptation Layer (CAL) driver
+> > 
+> > Bindings are for h/w blocks, not drivers...
+> 
+> OK I'll fix that.
+> 
+> > 
+> > > 
+> > > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/ti-cal.txt | 70 ++++++++++++++++++++++
+> > >  1 file changed, 70 insertions(+)
+> > >  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
+> > > new file mode 100644
+> > > index 000000000000..680efadb6208
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/ti-cal.txt
+> > > @@ -0,0 +1,70 @@
+> > > +Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
+> > > +------------------------------------------------------
+> > > +
+> > > +The Camera Adaptation Layer (CAL) is a key component for image capture
+> > > +applications. The capture module provides the system interface and the
+> > > +processing capability to connect CSI2 image-sensor modules to the
+> > > +DRA72x device.
+> > > +
+> > > +Required properties:
+> > > +- compatible: must be "ti,cal"
+> > 
+> > Needs to be more specific.
+> 
+> See potential patch below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Looks fine.
 
-Use strncasecmp() instead of strncmp() when comparing field names and add
-documentation on setting the field value. Wrap a few lines as well.
+> > > +
+> > > +		csi2_0: port@0 {
+> > 
+> > Multiple ports should be under a ports node.
+> 
+> The video-interfaces.txt bindings doc state:
+> "All 'port' nodes can be grouped under optional 'ports' node"
+> Doesn't that mean that 'ports' is then optional has show in the csi2
+> example provide in the same documents?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/libv4l2subdev.c | 64 +++++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/media-ctl.c     |  3 ++
- utils/media-ctl/options.c       | 12 +++++++-
- utils/media-ctl/v4l2subdev.h    | 25 +++++++++++++++-
- 4 files changed, 102 insertions(+), 2 deletions(-)
+Yes, but we may want to change that or at least what is recommended. 
+Often when we don't group things, and we latter decide we want to. It 
+makes things easier if you have other child nodes that are not port 
+nodes.
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 8015330..949eeff 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -473,6 +473,26 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 			continue;
- 		}
- 
-+		if (strhazit("field:", &p)) {
-+			enum v4l2_field field;
-+
-+			for (end = (char *)p; isalpha(*end) || *end == '-';
-+			     ++end);
-+
-+			field = v4l2_subdev_string_to_field(p, end - p);
-+			if (field == (enum v4l2_field)-1) {
-+				media_dbg(media, "Invalid field value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->field = field;
-+
-+			p = end;
-+			continue;
-+		}
-+
- 		/*
- 		 * Backward compatibility: crop rectangles can be specified
- 		 * implicitly without the 'crop:' property name.
-@@ -755,3 +775,47 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 
- 	return mbus_formats[i].code;
- }
-+
-+static struct {
-+	const char *name;
-+	enum v4l2_field field;
-+} fields[] = {
-+	{ "any", V4L2_FIELD_ANY },
-+	{ "none", V4L2_FIELD_NONE },
-+	{ "top", V4L2_FIELD_TOP },
-+	{ "bottom", V4L2_FIELD_BOTTOM },
-+	{ "interlaced", V4L2_FIELD_INTERLACED },
-+	{ "seq-tb", V4L2_FIELD_SEQ_TB },
-+	{ "seq-bt", V4L2_FIELD_SEQ_BT },
-+	{ "alternate", V4L2_FIELD_ALTERNATE },
-+	{ "interlaced-tb", V4L2_FIELD_INTERLACED_TB },
-+	{ "interlaced-bt", V4L2_FIELD_INTERLACED_BT },
-+};
-+
-+const char *v4l2_subdev_field_to_string(enum v4l2_field field)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-+		if (fields[i].field == field)
-+			return fields[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-+					    unsigned int length)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-+		if (strncasecmp(fields[i].name, string, length) == 0)
-+			break;
-+	}
-+
-+	if (i == ARRAY_SIZE(fields))
-+		return (enum v4l2_field)-1;
-+
-+	return fields[i].field;
-+}
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index d3f6e04..3002fb7 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -90,6 +90,9 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	       v4l2_subdev_pixelcode_to_string(format.code),
- 	       format.width, format.height);
- 
-+	if (format.field)
-+		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
-+
- 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
- 					V4L2_SEL_TGT_CROP_BOUNDS,
- 					which);
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index ffaffcd..75d7ad7 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -24,7 +24,10 @@
- #include <stdlib.h>
- #include <unistd.h>
- 
-+#include <linux/videodev2.h>
-+
- #include "options.h"
-+#include "v4l2subdev.h"
- 
- #define MEDIA_DEVNAME_DEFAULT		"/dev/media0"
- 
-@@ -34,6 +37,8 @@ struct media_options media_opts = {
- 
- static void usage(const char *argv0)
- {
-+	unsigned int i;
-+
- 	printf("%s [options]\n", argv0);
- 	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
- 	printf("-e, --entity name	Print the device name associated with the given entity\n");
-@@ -58,7 +63,7 @@ static void usage(const char *argv0)
- 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
- 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
- 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
--	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ;\n");
-+	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; }\n");
- 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
- 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
- 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
-@@ -76,6 +81,11 @@ static void usage(const char *argv0)
- 	printf("\theight          Image height in pixels\n");
- 	printf("\tnumerator       Frame interval numerator\n");
- 	printf("\tdenominator     Frame interval denominator\n");
-+	printf("\tv4l2-field      One of the following:\n");
-+
-+	for (i = V4L2_FIELD_ANY; i <= V4L2_FIELD_INTERLACED_BT; i++)
-+		printf("\t                %s\n",
-+		       v4l2_subdev_field_to_string(i));
- }
- 
- #define OPT_PRINT_DOT		256
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 4961308..104e420 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -248,7 +248,7 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
- /**
-  * @brief Parse string to media bus pixel code.
-  * @param string - input string
-- * @param lenght - length of the string
-+ * @param length - length of the string
-  *
-  * Parse human readable string @a string to an media bus pixel code.
-  *
-@@ -256,4 +256,27 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
-  */
- enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 							 unsigned int length);
-+
-+/**
-+ * @brief Convert a field order to string.
-+ * @param field - field order
-+ *
-+ * Convert field order @a field to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_field_to_string(enum v4l2_field field);
-+
-+/**
-+ * @brief Parse string to field order.
-+ * @param string - input string
-+ * @param length - length of the string
-+ *
-+ * Parse human readable string @a string to field order.
-+ *
-+ * @return field order on success, -1 on failure.
-+ */
-+enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-+					    unsigned int length);
-+
- #endif
--- 
-2.1.0.231.g7484e3b
-
+Rob
