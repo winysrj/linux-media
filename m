@@ -1,163 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49183 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574AbbKXKWa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:22:30 -0500
-Date: Tue, 24 Nov 2015 08:22:24 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [media-workshop] [PATCH v8.4 81/83] [media] media-entity: init
- pads on entity init if was registered before
-Message-ID: <20151124082224.6edac981@recife.lan>
-In-Reply-To: <56537542.6060204@osg.samsung.com>
-References: <1444668252-2303-1-git-send-email-mchehab@osg.samsung.com>
-	<1444668252-2303-82-git-send-email-mchehab@osg.samsung.com>
-	<2341331.P6c9pT8HFp@avalon>
-	<56537542.6060204@osg.samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:53395 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751734AbbKQMzQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 07:55:16 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>
+CC: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [RESEND RFC/PATCH 0/8] Add MT8173 Video Encoder Driver and VPU Driver
+Date: Tue, 17 Nov 2015 20:54:37 +0800
+Message-ID: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 17:21:22 -0300
-Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+==============
+ Introduction
+==============
 
-> Hello Laurent,
-> 
-> On 11/23/2015 01:20 PM, Laurent Pinchart wrote:
-> > Hi Javier,
-> > 
-> > (Replying to linux-media instead of media-workshop, I can't find this patch in 
-> > my linux-media folder)
-> >
-> > Thank you for the patch.
-> >
-> 
-> Thanks for your feedback.
->  
-> > On Monday 12 October 2015 13:44:10 Mauro Carvalho Chehab wrote:
-> >> From: Javier Martinez Canillas <javier@osg.samsung.com>
-> >>
-> >> If an entity is registered with a media device before is initialized
-> >> with media_device_register_entity(), the number of pads won't be set
-> >> so media_device_register_entity() won't create pad objects and add
-> >> it to the media device pads list.
-> >>
-> >> Do this at entity initialization time if the entity was registered
-> >> before so the graph is complete and correct regardless of the order
-> >> in which the entities are initialized and registered.
-> > 
-> > We now have two places where the pads graph objects are initialized and that 
-> > looks like a bug to me as media_gobj_init() allocates IDs and, even worse, 
-> > adds the entity to the media device entities list.
-> >
+The purpose of this RFC is to discuss the driver for a hw video codec
+embedded in the Mediatek's MT8173 SoCs. Mediatek Video Codec is able to
+handle video encoding of in a range of formats.
 
-As Sakari commented on one of his reviews, media_gobj_init() should
-actually be renamed to media_gobj_create(), as it is the function that
-creates and registers a graph object on a given media device.
+This RFC also include VPU driver. Mediatek Video Codec driver rely on
+VPU driver to load, communicate with VPU.
 
-The hole idea is that any kind of graph object should be created at one
-single point: media_gobj_init - to be renamed to media_gobj_create(), as
-proposed by Sakari.
+Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI.
+MTK IOMMU and MTK SMI have not yet been merged, but we wanted to start
+discussion about the driver earlier so it could be merged sooner. The
+driver posted here is the initial version, so I suppose it will require
+more work.
 
-There's indeed bug on the existing subdev drivers: they want to create
-pads and links without even knowing to what media_device those will be
-associated! Every driver should be doing, instead:
+[1]http://lists.infradead.org/pipermail/linux-mediatek/2015-October/002525.html
 
-1) create the media_device (or get a reference to an already created one);
-2) create the entities associated with the mdev;
-3) create the pads associated with the already created entity(ies);
-4) register the entity;
-5) create the links associated with two already created pads.
+==================
+ Device interface
+==================
 
-The above workflow is the correct one, as all graph objects should
-be added to the mdev graph object lists that will be used by the
-ioctl handler.
+In principle the driver bases on memory-to-memory framework:
+it provides a single video node and each opened file handle gets its own
+private context with separate buffer queues. Each context consist of 2
+buffer queues: OUTPUT (for source buffers, i.e. raw video frames)
+and CAPTURE (for destination buffers, i.e. encoded video frames).
 
-Also, please notice that, if all drivers follow the above procedure,
-we could also merge entity create and register functions into one,
-with is, IMHO, a good thing, as entity creation/registration will
-be atomic.
+The process of encoding video data from stream is a bit more complicated
+than typical memory-to-memory processing. We base on memory-to-memory
+framework and add the complicated part in our vb2 and v4l2 callback 
+functionss. So we can base on well done m2m memory-to-memory framework, 
+reduce duplicate code and make our driver code simple.
 
-However, several subdevs do, instead:
+==============================
+ VPU (Video Processor Unit)
+==============================
+The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
+It is able to handle video decoding/encoding of in a range of formats.
+The driver provides with VPU firmware download, memory management and
+the communication interface between CPU and VPU.
+For VPU initialization, it will create virtual memory for CPU access and
+IOMMU address for vcodec hw device access. When a decode/encode instance
+opens a device node, vpu driver will download vpu firmware to the device.
+A decode/encode instant will decode/encode a frame using VPU 
+interface to interrupt vpu to handle decoding/encoding jobs.
 
-1) create entity(ies);
-2) create pads;
-3) get a reference for the media device;
-4) register the entity;
-5) create the links associated with two already created pads.
+Please have a look at the code and comments will be very much appreciated.
 
-Changing such logic is not trivial, and require tests with devices
-that we don't have.
+Andrew-CT Chen (3):
+  dt-bindings: Add a binding for Mediatek Video Processor Unit
+  arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
+  media: platform: mtk-vpu: Support Mediatek VPU
 
-So, the approach we took is to allow the above workflow to keep
-working. That's what this patch does.
+Daniel Hsiao (1):
+  media: platform: mtk-vcodec: Add Mediatek VP8 Video Encoder Driver
 
-If you think it is worth to push for a change on those drivers, we
-could eventually add a printk_once() to warn that the driver is
-doing the wrong thing, and give some time for the drivers maintainers
-to fix their drivers, and remove the backward compat code after done.
+Tiffany Lin (4):
+  dt-bindings: Add a binding for Mediatek Video Encoder
+  arm64: dts: mediatek: Add Video Encoder for MT8173
+  media: platform: mtk-vcodec: Add Mediatek V4L2 Video Encoder Driver
+  media: platform: mtk-vcodec: Add Mediatek H264 Video Encoder Driver
 
-> Yes but the idea of this patch was in fact to make it less error prone and
-> more robust since entities could either be initialized and later registered
-> or first be registered and then later initialized.
->  
-> > We need to standardize on where graph objects are initialized across the 
-> > different kind of objects and document this clearly otherwise drivers will get 
-> > it wrong.
-> >
-> 
-> I'm OK with having more strict rules of the order in which objects should
-> be initialized and registered and force all drivers to follow these docs.
-> 
-> >> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> This patch was suggested by Mauro so I'll also let him to comment what he
-> prefers or if he has another opinion on this.
-> 
-> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> >> ---
-> >>  drivers/media/media-entity.c | 10 ++++++++++
-> >>  1 file changed, 10 insertions(+)
-> >>
-> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> >> index f28265864b76..2c984fb7d497 100644
-> >> --- a/drivers/media/media-entity.c
-> >> +++ b/drivers/media/media-entity.c
-> >> @@ -238,6 +238,7 @@ int
-> >>  media_entity_init(struct media_entity *entity, u16 num_pads,
-> >>  		  struct media_pad *pads)
-> >>  {
-> >> +	struct media_device *mdev = entity->graph_obj.mdev;
-> >>  	unsigned int i;
-> >>
-> >>  	entity->group_id = 0;
-> >> @@ -246,11 +247,20 @@ media_entity_init(struct media_entity *entity, u16
-> >> num_pads, entity->num_pads = num_pads;
-> >>  	entity->pads = pads;
-> >>
-> >> +	if (mdev)
-> >> +		spin_lock(&mdev->lock);
-> >> +
-> >>  	for (i = 0; i < num_pads; i++) {
-> >>  		pads[i].entity = entity;
-> >>  		pads[i].index = i;
-> >> +		if (mdev)
-> >> +			media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> >> +					&entity->pads[i].graph_obj);
-> >>  	}
-> >>
-> >> +	if (mdev)
-> >> +		spin_unlock(&mdev->lock);
-> >> +
-> >>  	return 0;
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(media_entity_init);
-> > 
-> 
-> Best regards,
+ .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 +
+ .../devicetree/bindings/media/mediatek-vpu.txt     |   27 +
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   58 +
+ drivers/media/platform/Kconfig                     |   19 +
+ drivers/media/platform/Makefile                    |    5 +
+ drivers/media/platform/mtk-vcodec/Kconfig          |    5 +
+ drivers/media/platform/mtk-vcodec/Makefile         |   12 +
+ drivers/media/platform/mtk-vcodec/common/Makefile  |   12 +
+ .../media/platform/mtk-vcodec/common/venc_drv_if.c |  159 ++
+ .../media/platform/mtk-vcodec/h264_enc/Makefile    |    9 +
+ .../platform/mtk-vcodec/h264_enc/venc_h264_if.c    |  529 ++++++
+ .../platform/mtk-vcodec/h264_enc/venc_h264_if.h    |   53 +
+ .../platform/mtk-vcodec/h264_enc/venc_h264_vpu.c   |  341 ++++
+ .../platform/mtk-vcodec/include/venc_drv_base.h    |   68 +
+ .../platform/mtk-vcodec/include/venc_drv_if.h      |  187 +++
+ .../platform/mtk-vcodec/include/venc_ipi_msg.h     |  212 +++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |  441 +++++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1773 ++++++++++++++++++++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h |   28 +
+ .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  535 ++++++
+ .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  |  122 ++
+ .../media/platform/mtk-vcodec/mtk_vcodec_intr.c    |  110 ++
+ .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |   30 +
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h  |   26 +
+ .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |  106 ++
+ .../media/platform/mtk-vcodec/mtk_vcodec_util.h    |   66 +
+ drivers/media/platform/mtk-vcodec/vp8_enc/Makefile |    9 +
+ .../platform/mtk-vcodec/vp8_enc/venc_vp8_if.c      |  371 ++++
+ .../platform/mtk-vcodec/vp8_enc/venc_vp8_if.h      |   48 +
+ .../platform/mtk-vcodec/vp8_enc/venc_vp8_vpu.c     |  245 +++
+ drivers/media/platform/mtk-vpu/Makefile            |    1 +
+ .../platform/mtk-vpu/h264_enc/venc_h264_vpu.h      |  127 ++
+ .../media/platform/mtk-vpu/include/venc_ipi_msg.h  |  212 +++
+ drivers/media/platform/mtk-vpu/mtk_vpu_core.c      |  823 +++++++++
+ drivers/media/platform/mtk-vpu/mtk_vpu_core.h      |  161 ++
+ .../media/platform/mtk-vpu/vp8_enc/venc_vp8_vpu.h  |  119 ++
+ 36 files changed, 7107 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+ create mode 100644 drivers/media/platform/mtk-vcodec/Kconfig
+ create mode 100644 drivers/media/platform/mtk-vcodec/Makefile
+ create mode 100644 drivers/media/platform/mtk-vcodec/common/Makefile
+ create mode 100644 drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/Makefile
+ create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_if.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_vpu.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_base.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_if.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/Makefile
+ create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_if.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_vpu.c
+ create mode 100644 drivers/media/platform/mtk-vpu/Makefile
+ create mode 100644 drivers/media/platform/mtk-vpu/h264_enc/venc_h264_vpu.h
+ create mode 100644 drivers/media/platform/mtk-vpu/include/venc_ipi_msg.h
+ create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu_core.c
+ create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu_core.h
+ create mode 100644 drivers/media/platform/mtk-vpu/vp8_enc/venc_vp8_vpu.h
+
+-- 
+1.7.9.5
+
