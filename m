@@ -1,90 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:57576 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbbKSNAP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 08:00:15 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] davinci: add i2c Kconfig dependencies
-Date: Thu, 19 Nov 2015 13:59:34 +0100
-Message-ID: <4284996.N31E5Y01de@wuerfel>
+Received: from lists.s-osg.org ([54.187.51.154]:58157 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932146AbbKQRma (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 12:42:30 -0500
+Date: Tue, 17 Nov 2015 15:42:25 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.5] Fixes and new ti-vpe/cal driver
+Message-ID: <20151117154225.36ab4aea@recife.lan>
+In-Reply-To: <56499B7C.5090603@xs4all.nl>
+References: <56499B7C.5090603@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All the davinci media drivers are using the i2c framework, and
-fail to build if that is ever disabled, e.g.:
+Em Mon, 16 Nov 2015 10:01:48 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-media/platform/davinci/vpif_display.c: In function 'vpif_probe':
-media/platform/davinci/vpif_display.c:1298:14: error: implicit declaration of function 'i2c_get_adapter' [-Werror=implicit-function-declaration]
+> Please note that this patch series assumes that my previous pull request was
+> merged first:
+> 
+> https://patchwork.linuxtv.org/patch/31872/
+> 
+> This is for the v4l2-pci-skeleton patch. The other three are independent of
+> the previous pull request.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
+> The following changes since commit 54adb10d0947478b3364640a131fff1f1ab190fa:
+> 
+>   v4l2-dv-timings: add new arg to v4l2_match_dv_timings (2015-11-13 14:15:55 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git for-v4.5b
+> 
+> for you to fetch changes up to 2cb88733214e31c04d1a87a1ef51cc6f26a44e09:
+> 
+>   media: v4l: ti-vpe: Document CAL driver (2015-11-16 09:50:13 +0100)
+> 
+> ----------------------------------------------------------------
+> Benoit Parrot (2):
+>       media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
+>       media: v4l: ti-vpe: Document CAL driver
 
-This adds explicit Kconfig dependencies so we don't see the
-driver options if I2C is turned off.
+I prefer if you could put new drivers on separate pull requests.
+Reviewing new drivers take more time ;)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-This is a very rare randconfig error, normally I2C is enabled for some reason
-already.
+By putting them on a separate series, I can fast track the patch
+series with more trivial patches. Otherwise, I may need to delay
+the entire patch series review, specially when I'm more focused on
+applying misc patches and trivial bug fixes or don't have enough
+time to do a driver's review.
 
-diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
-index 469e9d28cec0..554e710de487 100644
---- a/drivers/media/platform/davinci/Kconfig
-+++ b/drivers/media/platform/davinci/Kconfig
-@@ -3,6 +3,7 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
- 	depends on VIDEO_V4L2
- 	depends on ARCH_DAVINCI || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
-@@ -19,6 +20,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
- 	depends on VIDEO_V4L2
- 	depends on ARCH_DAVINCI || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	help
- 	  Enables Davinci VPIF module used for capture devices.
-@@ -33,6 +35,7 @@ config VIDEO_DM6446_CCDC
- 	depends on VIDEO_V4L2
- 	depends on ARCH_DAVINCI || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF_DMA_CONTIG
- 	help
- 	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
-@@ -49,6 +52,7 @@ config VIDEO_DM355_CCDC
- 	depends on VIDEO_V4L2
- 	depends on ARCH_DAVINCI || COMPILE_TEST
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF_DMA_CONTIG
- 	help
- 	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
-@@ -64,6 +68,7 @@ config VIDEO_DM365_ISIF
- 	tristate "TI DM365 ISIF video capture driver"
- 	depends on VIDEO_V4L2 && ARCH_DAVINCI
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF_DMA_CONTIG
- 	help
- 	   Enables ISIF hw module. This is the hardware module for
-@@ -77,6 +82,7 @@ config VIDEO_DAVINCI_VPBE_DISPLAY
- 	tristate "TI DaVinci VPBE V4L2-Display driver"
- 	depends on VIDEO_V4L2 && ARCH_DAVINCI
- 	depends on HAS_DMA
-+	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	help
- 	    Enables Davinci VPBE module used for display devices.
+> 
+> Hans Verkuil (1):
+>       v4l2-pci-skeleton.c: forgot to update v4l2_match_dv_timings call
 
+This patch depends on the patch that needs to be fixed from your
+previous pull request series.
+
+> 
+> Julia Lawall (1):
+>       i2c: constify v4l2_ctrl_ops structures
+
+This one is trivial. Applied.
+
+Thanks,
+Mauro
+
+> 
+>  Documentation/devicetree/bindings/media/ti-cal.txt |   70 +++
+>  Documentation/video4linux/v4l2-pci-skeleton.c      |    2 +-
+>  drivers/media/i2c/mt9m032.c                        |    2 +-
+>  drivers/media/i2c/mt9p031.c                        |    2 +-
+>  drivers/media/i2c/mt9t001.c                        |    2 +-
+>  drivers/media/i2c/mt9v011.c                        |    2 +-
+>  drivers/media/i2c/mt9v032.c                        |    2 +-
+>  drivers/media/i2c/ov2659.c                         |    2 +-
+>  drivers/media/platform/Kconfig                     |   12 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/ti-vpe/Makefile             |    4 +
+>  drivers/media/platform/ti-vpe/cal.c                | 2164 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/media/platform/ti-vpe/cal_regs.h           |  779 +++++++++++++++++++++++++++++++++
+>  13 files changed, 3038 insertions(+), 7 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
+>  create mode 100644 drivers/media/platform/ti-vpe/cal.c
+>  create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
