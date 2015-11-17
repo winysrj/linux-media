@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57596 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbbKQKk4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 05:40:56 -0500
-Date: Tue, 17 Nov 2015 08:40:46 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
-	LMML <linux-media@vger.kernel.org>
-Cc: linux-doc@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Stephan Mueller <smueller@chronox.de>,
-	Michal Marek <mmarek@suse.cz>, linux-kernel@vger.kernel.org,
-	intel-gfx <intel-gfx@lists.freedesktop.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>
-Subject: Re: [PATCH v2 2/4] scripts/kernel-doc: Replacing highlights hash by
- an array
-Message-ID: <20151117084046.5c911c6a@recife.lan>
-In-Reply-To: <1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
-References: <1438112718-12168-1-git-send-email-danilo.cesar@collabora.co.uk>
-	<1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:35602 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750913AbbKQKnc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 05:43:32 -0500
+Subject: Re: [PATCH] [media] move media platform data to
+ linux/platform_data/media
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+References: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
+ <7319142.Cp8MurgLWk@wuerfel>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>,
+	Xiubo Li <Xiubo.Lee@gmail.com>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Sergey Lapin <slapin@ossfans.org>, Timur Tabi <timur@tabi.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Tomas Cech <sleep_walker@suse.com>,
+	Shawn Guo <shawnguo@kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Harald Welte <laforge@openezx.org>,
+	openezx-devel@lists.openezx.org,
+	Russell King <linux@arm.linux.org.uk>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Daniel Ribeiro <drwyrm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Schmidt <stefan@openezx.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	alsa-devel@alsa-project.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Nicolin Chen <nicoleotsuka@gmail.com>,
+	Mark Brown <broonie@kernel.org>, linux-fbdev@vger.kernel.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	David Gibson <david@gibson.dropbear.id.au>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-mmc@vger.kernel.org, Takashi Iwai <tiwai@suse.com>,
+	linux-spi@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>,
+	dmaengine@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Daniel Mack <daniel@zonque.org>
+From: Anton Bondarenko <anton.bondarenko.sama@gmail.com>
+Message-ID: <564B04CF.1090507@gmail.com>
+Date: Tue, 17 Nov 2015 11:43:27 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <7319142.Cp8MurgLWk@wuerfel>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Danilo,
 
-Em Tue, 28 Jul 2015 16:45:16 -0300
-Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk> escreveu:
+On 17.11.2015 10:23, Arnd Bergmann wrote:
+> On Tuesday 17 November 2015 07:15:59 Mauro Carvalho Chehab wrote:
+>> Now that media has its own subdirectory inside platform_data,
+>> let's move the headers that are already there to such subdir.
+>>
+>>
+>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
 
-> The "highlight" code is very sensible to the order of the hash keys,
-> but the order of the keys cannot be predicted on Perl. It generates
-> faulty DocBook entries like:
-> 	- @<function>device_for_each_child</function>
-> 
-> We should use an array for that job, so we can guarantee that the order
-> of the regex execution on dohighlight won't change.
+Why does dma-imx.h also moved? It's the generic file, not a media specific.
 
-...
-
-> @@ -2587,9 +2601,11 @@ $kernelversion = get_kernel_version();
->  
->  # generate a sequence of code that will splice in highlighting information
->  # using the s// operator.
-> -foreach my $pattern (keys %highlights) {
-> -#   print STDERR "scanning pattern:$pattern, highlight:($highlights{$pattern})\n";
-> -    $dohighlight .=  "\$contents =~ s:$pattern:$highlights{$pattern}:gs;\n";
-> +foreach my $k (keys @highlights) {
-
-The above causes some versions of perl to fail, as keys expect a
-hash argument:
-
-Execution of .//scripts/kernel-doc aborted due to compilation errors.
-Type of arg 1 to keys must be hash (not private array) at .//scripts/kernel-doc line 2714, near "@highlights) "
-
-This is happening at linuxtv.org server, with runs perl version 5.10.1.
-
-I had to revert this patch in order to be able to keep building the
-documentation of the media kABI on our server.
-
-Regards,
-Mauro
+BR, Anton
