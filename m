@@ -1,195 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:41811 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740AbbKBEn6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 23:43:58 -0500
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NX602EI87T0YQE0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Nov 2015 13:43:48 +0900 (KST)
-From: Junghak Sung <jh1009.sung@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, pawel@osciak.com
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com, Junghak Sung <jh1009.sung@samsung.com>
-Subject: [RFC PATCH v8 3/6] media: videobuf2: Separate vb2_poll()
-Date: Mon, 02 Nov 2015 13:43:42 +0900
-Message-id: <1446439425-13242-4-git-send-email-jh1009.sung@samsung.com>
-In-reply-to: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
-References: <1446439425-13242-1-git-send-email-jh1009.sung@samsung.com>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:33721 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbbKQW30 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 17:29:26 -0500
+Received: by lfaz4 with SMTP id z4so15004015lfa.0
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 14:29:24 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 17 Nov 2015 22:29:24 +0000
+Message-ID: <CABHjWt6-22p3369L7Zantc1vzFcghFiAtFWnavYz6LrSTxvmMw@mail.gmail.com>
+Subject: FE_READ_STATUS blocking time
+From: ozgur cagdas <ocagdas@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Separate vb2_poll() into core and v4l2 part.
+Hi,
 
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c |   80 +++++++++++++++++++-----------
- 1 file changed, 52 insertions(+), 28 deletions(-)
+I've recently started experimenting with a DVB-T usb stick and the
+intent of this post is to understand if what I am seeing is expected
+behaviour or not. Therefore, I am not providing any hw, kernel version
+etc details at this point but quite happy to do so if required.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 21857d6..5be9ed8e 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -750,7 +750,7 @@ void vb2_queue_release(struct vb2_queue *q)
- EXPORT_SYMBOL_GPL(vb2_queue_release);
- 
- /**
-- * vb2_poll() - implements poll userspace operation
-+ * vb2_core_poll() - implements poll userspace operation
-  * @q:		videobuf2 queue
-  * @file:	file argument passed to the poll file operation handler
-  * @wait:	wait argument passed to the poll file operation handler
-@@ -762,33 +762,20 @@ EXPORT_SYMBOL_GPL(vb2_queue_release);
-  * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
-  * will be reported as available for writing.
-  *
-- * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
-- * pending events.
-- *
-  * The return values from this function are intended to be directly returned
-  * from poll handler in driver.
-  */
--unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
-+unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
-+		poll_table *wait)
- {
--	struct video_device *vfd = video_devdata(file);
- 	unsigned long req_events = poll_requested_events(wait);
- 	struct vb2_buffer *vb = NULL;
--	unsigned int res = 0;
- 	unsigned long flags;
- 
--	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
--		struct v4l2_fh *fh = file->private_data;
--
--		if (v4l2_event_pending(fh))
--			res = POLLPRI;
--		else if (req_events & POLLPRI)
--			poll_wait(file, &fh->wait, wait);
--	}
--
- 	if (!q->is_output && !(req_events & (POLLIN | POLLRDNORM)))
--		return res;
-+		return 0;
- 	if (q->is_output && !(req_events & (POLLOUT | POLLWRNORM)))
--		return res;
-+		return 0;
- 
- 	/*
- 	 * Start file I/O emulator only if streaming API has not been used yet.
-@@ -797,16 +784,16 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 		if (!q->is_output && (q->io_modes & VB2_READ) &&
- 				(req_events & (POLLIN | POLLRDNORM))) {
- 			if (__vb2_init_fileio(q, 1))
--				return res | POLLERR;
-+				return POLLERR;
- 		}
- 		if (q->is_output && (q->io_modes & VB2_WRITE) &&
- 				(req_events & (POLLOUT | POLLWRNORM))) {
- 			if (__vb2_init_fileio(q, 0))
--				return res | POLLERR;
-+				return POLLERR;
- 			/*
- 			 * Write to OUTPUT queue can be done immediately.
- 			 */
--			return res | POLLOUT | POLLWRNORM;
-+			return POLLOUT | POLLWRNORM;
- 		}
- 	}
- 
-@@ -815,21 +802,21 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	 * error flag is set.
- 	 */
- 	if (!vb2_is_streaming(q) || q->error)
--		return res | POLLERR;
-+		return POLLERR;
- 	/*
- 	 * For compatibility with vb1: if QBUF hasn't been called yet, then
- 	 * return POLLERR as well. This only affects capture queues, output
- 	 * queues will always initialize waiting_for_buffers to false.
- 	 */
- 	if (q->waiting_for_buffers)
--		return res | POLLERR;
-+		return POLLERR;
- 
- 	/*
- 	 * For output streams you can write as long as there are fewer buffers
- 	 * queued than there are buffers available.
- 	 */
- 	if (q->is_output && q->queued_count < q->num_buffers)
--		return res | POLLOUT | POLLWRNORM;
-+		return POLLOUT | POLLWRNORM;
- 
- 	if (list_empty(&q->done_list)) {
- 		/*
-@@ -837,7 +824,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 		 * return immediately. DQBUF will return -EPIPE.
- 		 */
- 		if (q->last_buffer_dequeued)
--			return res | POLLIN | POLLRDNORM;
-+			return POLLIN | POLLRDNORM;
- 
- 		poll_wait(file, &q->done_wq, wait);
- 	}
-@@ -854,10 +841,47 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	if (vb && (vb->state == VB2_BUF_STATE_DONE
- 			|| vb->state == VB2_BUF_STATE_ERROR)) {
- 		return (q->is_output) ?
--				res | POLLOUT | POLLWRNORM :
--				res | POLLIN | POLLRDNORM;
-+				POLLOUT | POLLWRNORM :
-+				POLLIN | POLLRDNORM;
- 	}
--	return res;
-+	return 0;
-+}
-+
-+/**
-+ * vb2_poll() - implements poll userspace operation
-+ * @q:		videobuf2 queue
-+ * @file:	file argument passed to the poll file operation handler
-+ * @wait:	wait argument passed to the poll file operation handler
-+ *
-+ * This function implements poll file operation handler for a driver.
-+ * For CAPTURE queues, if a buffer is ready to be dequeued, the userspace will
-+ * be informed that the file descriptor of a video device is available for
-+ * reading.
-+ * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
-+ * will be reported as available for writing.
-+ *
-+ * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
-+ * pending events.
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from poll handler in driver.
-+ */
-+unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	unsigned long req_events = poll_requested_events(wait);
-+	unsigned int res = 0;
-+
-+	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
-+		struct v4l2_fh *fh = file->private_data;
-+
-+		if (v4l2_event_pending(fh))
-+			res = POLLPRI;
-+		else if (req_events & POLLPRI)
-+			poll_wait(file, &fh->wait, wait);
-+	}
-+
-+	return res | vb2_core_poll(q, file, wait);
- }
- EXPORT_SYMBOL_GPL(vb2_poll);
- 
--- 
-1.7.9.5
+Right, I use the FE_SET_PROPERTY ioctl to tune the front end and then
+after 200ms. I call the FE_READ_STATUS ioctl to check the lock status.
+My original plan was to call this ioclt periodically until lock is
+acquired however, even though the device is opened with the O_NONBLOCK
+flag, this call blocks for around 500ms and instead of seeing FEC,
+viterbi etc blocks locking in incremental steps, it returns when all
+the blocks are locked. Once locked, the subsequent FE_READ_STATUS
+calls do return within 30ms.
 
+If I unplug the feed before tune, then, each FE_READ_STATUS blocks for
+about 500ms.
+
+I also tried using the 'poll' system call on the FE's fd with POLLIN
+but when it returns POLLIN in revents, then again FE_READ_STATUS
+blocks around 500ms on the first attempt.
+
+So, is there a way to avoid the FE_READ_STATUS block or is it down to
+the individual driver implementation?
+
+Also, is there a better way of monitoring the 'lock' status?
+
+Kind regards,
+
+Oz
