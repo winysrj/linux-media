@@ -1,84 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:64294 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760AbbKMMgT (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56167 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753198AbbKQDkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 07:36:19 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media/usb/dvb-usb-v2: constify mxl111sf_demod_config structure
-Date: Fri, 13 Nov 2015 13:24:39 +0100
-Message-Id: <1447417479-18095-1-git-send-email-Julia.Lawall@lip6.fr>
+	Mon, 16 Nov 2015 22:40:39 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B4AF2E3982
+	for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 04:40:34 +0100 (CET)
+Date: Tue, 17 Nov 2015 04:40:34 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151117034034.B4AF2E3982@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mxl111sf_demod_config structure is never modified, so declare it
-as const.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Done with the help of Coccinelle.
+Results of the daily build of media_tree:
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+date:		Tue Nov 17 04:00:22 CET 2015
+git branch:	test
+git hash:	6747b39441925f247f15d04b89be3588f465ad57
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	host hardware:	x86_64
+host os:	4.2.0-164
 
----
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c |    4 ++--
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h |    4 ++--
- drivers/media/usb/dvb-usb-v2/mxl111sf.c       |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+smatch: OK
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-index ea37536..84f6de6 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-@@ -35,7 +35,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
- struct mxl111sf_demod_state {
- 	struct mxl111sf_state *mxl_state;
- 
--	struct mxl111sf_demod_config *cfg;
-+	const struct mxl111sf_demod_config *cfg;
- 
- 	struct dvb_frontend fe;
- };
-@@ -579,7 +579,7 @@ static struct dvb_frontend_ops mxl111sf_demod_ops = {
- };
- 
- struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
--					   struct mxl111sf_demod_config *cfg)
-+				   const struct mxl111sf_demod_config *cfg)
- {
- 	struct mxl111sf_demod_state *state = NULL;
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-index 0bd83e5..7065aca 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-@@ -35,11 +35,11 @@ struct mxl111sf_demod_config {
- #if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
- extern
- struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
--					   struct mxl111sf_demod_config *cfg);
-+				   const struct mxl111sf_demod_config *cfg);
- #else
- static inline
- struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
--					   struct mxl111sf_demod_config *cfg)
-+				   const struct mxl111sf_demod_config *cfg)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index bec12b0..c4a4a99 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -731,7 +731,7 @@ fail:
- 	return ret;
- }
- 
--static struct mxl111sf_demod_config mxl_demod_config = {
-+static const struct mxl111sf_demod_config mxl_demod_config = {
- 	.read_reg        = mxl111sf_read_reg,
- 	.write_reg       = mxl111sf_write_reg,
- 	.program_regs    = mxl111sf_ctrl_program_regs,
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
