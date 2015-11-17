@@ -1,89 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49194 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753749AbbKXK1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:27:19 -0500
-Date: Tue, 24 Nov 2015 08:27:14 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH 14/18] [media] media-device: export the entity function
- via new ioctl
-Message-ID: <20151124082714.63d2530b@recife.lan>
-In-Reply-To: <2850958.hkaPDHPL2k@avalon>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-	<13a08789f63775c6f014c08969bc8ed3f0550c82.1441559233.git.mchehab@osg.samsung.com>
-	<2850958.hkaPDHPL2k@avalon>
+Received: from mail-qg0-f52.google.com ([209.85.192.52]:35029 "EHLO
+	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553AbbKQNcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 08:32:55 -0500
+Received: by qgec40 with SMTP id c40so5194915qge.2
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 05:32:55 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
+References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+	<564ADD04.90700@xs4all.nl>
+	<CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
+Date: Tue, 17 Nov 2015 08:32:54 -0500
+Message-ID: <CALzAhNUFGKoTOcQ90yRbCybapg+nA_7958OM0Mh_ksBo-_nPcg@mail.gmail.com>
+Subject: Re: cobalt & dma
+From: Steven Toth <stoth@kernellabs.com>
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 19:46:22 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> Is the cobalt or other pci v4l device have the chip datasheet
+> available so that we can do a reverse engineering and gain more
+> understanding about the register read/write for the dma transactions ?
+> I made a search but it seems that the PCIe chip datasheet for these
+> devices is not available anywhere.
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 06 September 2015 14:30:57 Mauro Carvalho Chehab wrote:
-> > Now that entities have a main function, expose it via
-> > MEDIA_IOC_G_TOPOLOGY ioctl.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index ccef9621d147..32090030c342 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -263,6 +263,7 @@ static long __media_device_get_topology(struct
-> > media_device *mdev, /* Copy fields to userspace struct if not error */
-> >  		memset(&uentity, 0, sizeof(uentity));
-> >  		uentity.id = entity->graph_obj.id;
-> > +		uentity.function = entity->function;
-> >  		strncpy(uentity.name, entity->name,
-> >  			sizeof(uentity.name));
-> > 
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index 69433405aec2..d232cc680c67 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -284,7 +284,8 @@ struct media_links_enum {
-> >  struct media_v2_entity {
-> >  	__u32 id;
-> >  	char name[64];		/* FIXME: move to a property? (RFC says so) */
-> > -	__u16 reserved[14];
-> > +	__u32 function;		/* Main function of the entity */
-> 
-> Shouldn't we use kerneldoc instead of inline comments ?
+Generally you wouldn't need it, and I'm not sure it would help having it.
 
-We don't use kernel-doc for uAPI. Instead, we document those via the
-media infrastructure DocBook.
+Get to grips with the fundamentals and don't worry about cobalt registers.
 
-I don't object to use the same format here, but adding the uAPI stuff
-to both device-drivers.xml and media_api.xml doesn't seem right.
+DMA programming is highly chip specific, but in general terms its
+highly similar in concept on any PCIe controller. Every
+driver+controller uses virtual/physical bus addresses that need to be
+understood, scatter gather list created and programmed into the h/w,
+interrupts serviced, buffer/transfer completion identification and
+transfer sizes.
 
-That's said, we may eventually change the media infrastructure DocBook
-to also run the kernel-doc script and benefit of kernel-doc markups
-also for the uAPI, but this is out of the scope of this work, and would
-take some time to do it.
+Look hard enough at any of the PCI/E drivers in the media tree and
+you'll see each of them implementing their own versions of the above.
 
-So, at least for now, I would keep the comments like the above.
-
-> 
-> Also, as this is the main function only, I'd mention that in the subject line. 
-
-OK.
-
-> The implementation itself looks fine to me, I'll discuss the API over the 
-> documentation patch.
-
-Ok.
-> 
-> > +	__u16 reserved[12];
-> >  };
-> > 
-> >  /* Should match the specific fields at media_intf_devnode */
-> 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
