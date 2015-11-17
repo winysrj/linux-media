@@ -1,76 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39773 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752483AbbK2TWr (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:53435 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752330AbbKQMzR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:47 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v2 21/22] media: Rename MEDIA_ENTITY_ENUM_MAX_ID as MEDIA_ENTITY_ENUM_STACK_ALLOC
-Date: Sun, 29 Nov 2015 21:20:22 +0200
-Message-Id: <1448824823-10372-22-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 17 Nov 2015 07:55:17 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>
+CC: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [RESEND RFC/PATCH 2/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
+Date: Tue, 17 Nov 2015 20:54:39 +0800
+Message-ID: <1447764885-23100-3-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The purpose of the macro has changed, rename it accordingly. It is not and
-should no longer be used in drivers directly, but only for the purpose for
-defining how many bits can be allocated from the stack for entity
-enumerations.
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+add VPU drivers for MT8173
+
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 ---
- drivers/media/media-entity.c | 2 +-
- include/media/media-entity.h | 8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 137aa09d..feca976 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -222,7 +222,7 @@ void media_gobj_remove(struct media_gobj *gobj)
-  */
- int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
- {
--	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-+	if (idx_max > MEDIA_ENTITY_ENUM_STACK_ALLOC) {
- 		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
- 			       sizeof(long), GFP_KERNEL);
- 		if (!e->e)
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 85c2656..145d339 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -72,14 +72,14 @@ struct media_gobj {
- };
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 4dd5f93..098c15e 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -258,6 +258,17 @@
+ 			clock-names = "spi", "wrap";
+ 		};
  
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
--#define MEDIA_ENTITY_ENUM_MAX_ID	64
-+#define MEDIA_ENTITY_ENUM_STACK_ALLOC	64
- 
- /*
-  * The number of pads can't be bigger than the number of entities,
-  * as the worse-case scenario is to have one entity linked up to
-- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+ * MEDIA_ENTITY_ENUM_STACK_ALLOC - 1 entities.
-  */
--#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_STACK_ALLOC - 1)
- 
- /* struct media_entity_enum - An enumeration of media entities.
-  *
-@@ -90,7 +90,7 @@ struct media_gobj {
-  * @idx_max:	Number of bits in the enum.
-  */
- struct media_entity_enum {
--	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-+	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_STACK_ALLOC);
- 	unsigned long *e;
- 	int idx_max;
- };
++		vpu: vpu@10020000 {
++			compatible = "mediatek,mt8173-vpu";
++			reg = <0 0x10020000 0 0x30000>,
++			      <0 0x10050000 0 0x100>;
++			reg-names = "sram", "cfg_reg";
++			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&topckgen CLK_TOP_SCP_SEL>;
++			clock-names = "main";
++			iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>;
++		};
++
+ 		sysirq: intpol-controller@10200620 {
+ 			compatible = "mediatek,mt8173-sysirq",
+ 				     "mediatek,mt6577-sysirq";
 -- 
-2.1.4
+1.7.9.5
 
