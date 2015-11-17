@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:52006 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760608AbbKTPfV (ORCPT
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:38152 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683AbbKQNP3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 10:35:21 -0500
-Subject: Re: PID filter testing
-To: Antti Palosaari <crope@iki.fi>,
-	=?UTF-8?Q?Honza_Petrou=c5=a1?= <jpetrous@gmail.com>
-References: <564EFD40.8050504@southpole.se>
- <CAJbz7-2=-ufqdE0YyPUAhV+UybMsmEv7=FuFhrn6o9G7yvXZOg@mail.gmail.com>
- <564F2D77.9080301@southpole.se> <564F3123.8040109@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <564F3DB6.2000804@southpole.se>
-Date: Fri, 20 Nov 2015 16:35:18 +0100
+	Tue, 17 Nov 2015 08:15:29 -0500
+Received: by igbxm8 with SMTP id xm8so12884950igb.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Nov 2015 05:15:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <564F3123.8040109@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <564ADD04.90700@xs4all.nl>
+References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+	<564ADD04.90700@xs4all.nl>
+Date: Tue, 17 Nov 2015 15:15:29 +0200
+Message-ID: <CAJ2oMh++Rhcvqs+nmCPRrTUmKkze69t1tJmK3KBRvhoBC6qYjg@mail.gmail.com>
+Subject: Re: cobalt & dma
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> hmm, that is null pid for padding ts to correct size IIRC. Take into
-> account that some pid filters / bridges automatically filter it out.
-> Usually it is there though.
+On Tue, Nov 17, 2015 at 9:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 11/17/2015 08:39 AM, Ran Shalit wrote:
+>> Hello,
+>>
+>> I intend to use cobalt driver as a refence for new pci v4l2 driver,
+>> which is required to use several input simultaneously. for this cobalt
+>> seems like a best starting point.
+>> read/write streaming will probably be suffecient (at least for the
+>> dirst debugging).
+>> The configuration in my cast is i7 core <-- pci ---> fpga.
+>> I see that the dma implementation is quite complex, and would like to
+>> ask for some tips regarding the following points related to dma issue:
+>>
+>> 1. Is it possible to do the read/write without dma (for debug as start) ?
 >
-> So it is not very good pid to test. If you want test some pid which is
-> always there look those mandatory pids which are pids numbered near 0.
->
-> regards
-> Antti
+> No. All video capture/output devices all use DMA since it would be prohibitively
+> expensive for the CPU to do otherwise. So just dig in and implement it.
 >
 
-When I hard code the rtl2833 external pid filter I am able to get only 
-that pid. The inverse case also works as that is the default. Anyway I 
-just want some tool that I can use from command line that can toggle 
-pids somewhat dynamically. To bad there seems to be no ready available 
-tool for that.
+Hi,
 
-Adding pid selection to dvbv5-zap in monitor mode looks to be the best 
-way forward.
+Is the cobalt or other pci v4l device have the chip datasheet
+available so that we can do a reverse engineering and gain more
+understanding about the register read/write for the dma transactions ?
+I made a search but it seems that the PCIe chip datasheet for these
+devices is not available anywhere.
 
-MvH
-Benjamin Larsson
+Best Regards,
+Ran
