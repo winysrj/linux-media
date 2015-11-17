@@ -1,91 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:53885 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751538AbbKESv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Nov 2015 13:51:29 -0500
-Subject: [PATCH 2/2] [media] c8sectpfe: Combine three checks into a single if
- block
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	kernel@stlinux.com
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net> <563BA3CC.4040709@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <563BA50C.4060303@users.sourceforge.net>
-Date: Thu, 5 Nov 2015 19:50:52 +0100
+Received: from mout.kundenserver.de ([212.227.126.130]:54197 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbbKQJ23 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 04:28:29 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Xiubo Li <Xiubo.Lee@gmail.com>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Sergey Lapin <slapin@ossfans.org>, Timur Tabi <timur@tabi.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Tomas Cech <sleep_walker@suse.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Harald Welte <laforge@openezx.org>,
+	openezx-devel@lists.openezx.org,
+	Russell King <linux@arm.linux.org.uk>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Takashi Iwai <tiwai@suse.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Daniel Ribeiro <drwyrm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	linuxppc-dev@lists.ozlabs.org,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Nicolin Chen <nicoleotsuka@gmail.com>,
+	Mark Brown <broonie@kernel.org>, linux-fbdev@vger.kernel.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	David Gibson <david@gibson.dropbear.id.au>,
+	Stefan Schmidt <stefan@openezx.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-mmc@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>,
+	linux-spi@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	dmaengine@vger.kernel.org, alsa-devel@alsa-project.org,
+	Shawn Guo <shawnguo@kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Daniel Mack <daniel@zonque.org>
+Subject: Re: [PATCH] [media] move media platform data to linux/platform_data/media
+Date: Tue, 17 Nov 2015 10:23:37 +0100
+Message-ID: <7319142.Cp8MurgLWk@wuerfel>
+In-Reply-To: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
+References: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <563BA3CC.4040709@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 5 Nov 2015 19:23:50 +0100
+On Tuesday 17 November 2015 07:15:59 Mauro Carvalho Chehab wrote:
+> Now that media has its own subdirectory inside platform_data,
+> let's move the headers that are already there to such subdir.
+> 
+> 
 
-The variable "tsin" was checked three times in a loop iteration of the
-c8sectpfe_tuner_unregister_frontend() function.
-This implementation detail could be improved by the combination of the
-involved statements into a single if block so that this variable will be
-checked only once there.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-index 07fd6d9..2dfbe8a 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-common.c
-@@ -209,17 +209,18 @@ void c8sectpfe_tuner_unregister_frontend(struct c8sectpfe *c8sectpfe,
- 
- 		tsin = fei->channel_data[n];
- 
--		if (tsin && tsin->frontend) {
--			dvb_unregister_frontend(tsin->frontend);
--			dvb_frontend_detach(tsin->frontend);
--		}
-+		if (tsin) {
-+			if (tsin->frontend) {
-+				dvb_unregister_frontend(tsin->frontend);
-+				dvb_frontend_detach(tsin->frontend);
-+			}
- 
--		if (tsin)
- 			i2c_put_adapter(tsin->i2c_adapter);
- 
--		if (tsin && tsin->i2c_client) {
--			module_put(tsin->i2c_client->dev.driver->owner);
--			i2c_unregister_device(tsin->i2c_client);
-+			if (tsin->i2c_client) {
-+				module_put(tsin->i2c_client->dev.driver->owner);
-+				i2c_unregister_device(tsin->i2c_client);
-+			}
- 		}
- 	}
- 
--- 
-2.6.2
-
+Acked-by: Arnd Bergmann <arnd@arndb.de>
