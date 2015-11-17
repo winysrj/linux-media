@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54908 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbbKPEql (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:36554 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797AbbKQHjl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 23:46:41 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 17 Nov 2015 02:39:41 -0500
+Received: by igcph11 with SMTP id ph11so73784947igc.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 23:39:40 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 17 Nov 2015 09:39:40 +0200
+Message-ID: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+Subject: cobalt & dma
+From: Ran Shalit <ranshalit@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 0/4] VSP1: Add support for lookup tables
-Date: Mon, 16 Nov 2015 06:46:41 +0200
-Message-Id: <1447649205-1560-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-The VSP1 includes two lookup table modules, a 1D LUT and a 3D cubic lookup
-table (CLU). This patch series fixes the LUT implementation and adds support
-for the CLU.
+I intend to use cobalt driver as a refence for new pci v4l2 driver,
+which is required to use several input simultaneously. for this cobalt
+seems like a best starting point.
+read/write streaming will probably be suffecient (at least for the
+dirst debugging).
+The configuration in my cast is i7 core <-- pci ---> fpga.
+I see that the dma implementation is quite complex, and would like to
+ask for some tips regarding the following points related to dma issue:
 
-The patches are based on top of
+1. Is it possible to do the read/write without dma (for debug as start) ?
+What changes are required for read without dma (I assume dma is used
+by default in read/write) ?
+Is it done by using  #include <media/videobuf2-vmalloc.h> instead of
+#include <media/videobuf2-dma*> ?
 
-	git://linuxtv.org/media_tree.git master
+2. I find it difficult to unerstand  cobalt_dma_start_streaming()
+implementation, which has many specific cobalt memory writing
+iowrite32().
+How can I understand how/what to implement dma in my specific platform/device ?
 
-and have been tested on a Koelsch board.
 
-Laurent Pinchart (4):
-  v4l: vsp1: Fix LUT format setting
-  v4l: vsp1: Add Cubic Look Up Table (CLU) support
-  ARM: Renesas: r8a7790: Enable CLU support in VSPS
-  ARM: Renesas: r8a7791: Enable CLU support in VSPS
-
- .../devicetree/bindings/media/renesas,vsp1.txt     |   3 +
- arch/arm/boot/dts/r8a7790.dtsi                     |   1 +
- arch/arm/boot/dts/r8a7791.dtsi                     |   1 +
- drivers/media/platform/vsp1/Makefile               |   3 +-
- drivers/media/platform/vsp1/vsp1.h                 |   3 +
- drivers/media/platform/vsp1/vsp1_clu.c             | 288 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_clu.h             |  38 +++
- drivers/media/platform/vsp1/vsp1_drv.c             |  13 +
- drivers/media/platform/vsp1/vsp1_entity.c          |   1 +
- drivers/media/platform/vsp1/vsp1_entity.h          |   1 +
- drivers/media/platform/vsp1/vsp1_lut.c             |   1 +
- drivers/media/platform/vsp1/vsp1_regs.h            |   9 +
- include/uapi/linux/vsp1.h                          |  25 ++
- 13 files changed, 386 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_clu.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_clu.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Best Regards,
+Ran
