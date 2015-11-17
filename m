@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:53395 "EHLO
+Received: from mailgw02.mediatek.com ([210.61.82.184]:53435 "EHLO
 	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751734AbbKQMzQ (ORCPT
+	with ESMTP id S1752895AbbKQMzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 07:55:16 -0500
+	Tue, 17 Nov 2015 07:55:18 -0500
 From: Tiffany Lin <tiffany.lin@mediatek.com>
 To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
 	Mark Rutland <mark.rutland@arm.com>,
@@ -35,149 +35,81 @@ CC: Tiffany Lin <tiffany.lin@mediatek.com>,
 	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linux-arm-kernel@lists.infradead.org>,
 	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [RESEND RFC/PATCH 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-Date: Tue, 17 Nov 2015 20:54:37 +0800
-Message-ID: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+Subject: [RESEND RFC/PATCH 5/8] arm64: dts: mediatek: Add Video Encoder for MT8173
+Date: Tue, 17 Nov 2015 20:54:42 +0800
+Message-ID: <1447764885-23100-6-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-==============
- Introduction
-==============
+add video encoder driver for MT8173
 
-The purpose of this RFC is to discuss the driver for a hw video codec
-embedded in the Mediatek's MT8173 SoCs. Mediatek Video Codec is able to
-handle video encoding of in a range of formats.
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   47 ++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-This RFC also include VPU driver. Mediatek Video Codec driver rely on
-VPU driver to load, communicate with VPU.
-
-Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI.
-MTK IOMMU and MTK SMI have not yet been merged, but we wanted to start
-discussion about the driver earlier so it could be merged sooner. The
-driver posted here is the initial version, so I suppose it will require
-more work.
-
-[1]http://lists.infradead.org/pipermail/linux-mediatek/2015-October/002525.html
-
-==================
- Device interface
-==================
-
-In principle the driver bases on memory-to-memory framework:
-it provides a single video node and each opened file handle gets its own
-private context with separate buffer queues. Each context consist of 2
-buffer queues: OUTPUT (for source buffers, i.e. raw video frames)
-and CAPTURE (for destination buffers, i.e. encoded video frames).
-
-The process of encoding video data from stream is a bit more complicated
-than typical memory-to-memory processing. We base on memory-to-memory
-framework and add the complicated part in our vb2 and v4l2 callback 
-functionss. So we can base on well done m2m memory-to-memory framework, 
-reduce duplicate code and make our driver code simple.
-
-==============================
- VPU (Video Processor Unit)
-==============================
-The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
-It is able to handle video decoding/encoding of in a range of formats.
-The driver provides with VPU firmware download, memory management and
-the communication interface between CPU and VPU.
-For VPU initialization, it will create virtual memory for CPU access and
-IOMMU address for vcodec hw device access. When a decode/encode instance
-opens a device node, vpu driver will download vpu firmware to the device.
-A decode/encode instant will decode/encode a frame using VPU 
-interface to interrupt vpu to handle decoding/encoding jobs.
-
-Please have a look at the code and comments will be very much appreciated.
-
-Andrew-CT Chen (3):
-  dt-bindings: Add a binding for Mediatek Video Processor Unit
-  arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-  media: platform: mtk-vpu: Support Mediatek VPU
-
-Daniel Hsiao (1):
-  media: platform: mtk-vcodec: Add Mediatek VP8 Video Encoder Driver
-
-Tiffany Lin (4):
-  dt-bindings: Add a binding for Mediatek Video Encoder
-  arm64: dts: mediatek: Add Video Encoder for MT8173
-  media: platform: mtk-vcodec: Add Mediatek V4L2 Video Encoder Driver
-  media: platform: mtk-vcodec: Add Mediatek H264 Video Encoder Driver
-
- .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 +
- .../devicetree/bindings/media/mediatek-vpu.txt     |   27 +
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   58 +
- drivers/media/platform/Kconfig                     |   19 +
- drivers/media/platform/Makefile                    |    5 +
- drivers/media/platform/mtk-vcodec/Kconfig          |    5 +
- drivers/media/platform/mtk-vcodec/Makefile         |   12 +
- drivers/media/platform/mtk-vcodec/common/Makefile  |   12 +
- .../media/platform/mtk-vcodec/common/venc_drv_if.c |  159 ++
- .../media/platform/mtk-vcodec/h264_enc/Makefile    |    9 +
- .../platform/mtk-vcodec/h264_enc/venc_h264_if.c    |  529 ++++++
- .../platform/mtk-vcodec/h264_enc/venc_h264_if.h    |   53 +
- .../platform/mtk-vcodec/h264_enc/venc_h264_vpu.c   |  341 ++++
- .../platform/mtk-vcodec/include/venc_drv_base.h    |   68 +
- .../platform/mtk-vcodec/include/venc_drv_if.h      |  187 +++
- .../platform/mtk-vcodec/include/venc_ipi_msg.h     |  212 +++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |  441 +++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1773 ++++++++++++++++++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h |   28 +
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  535 ++++++
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  |  122 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.c    |  110 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |   30 +
- drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h  |   26 +
- .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |  106 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_util.h    |   66 +
- drivers/media/platform/mtk-vcodec/vp8_enc/Makefile |    9 +
- .../platform/mtk-vcodec/vp8_enc/venc_vp8_if.c      |  371 ++++
- .../platform/mtk-vcodec/vp8_enc/venc_vp8_if.h      |   48 +
- .../platform/mtk-vcodec/vp8_enc/venc_vp8_vpu.c     |  245 +++
- drivers/media/platform/mtk-vpu/Makefile            |    1 +
- .../platform/mtk-vpu/h264_enc/venc_h264_vpu.h      |  127 ++
- .../media/platform/mtk-vpu/include/venc_ipi_msg.h  |  212 +++
- drivers/media/platform/mtk-vpu/mtk_vpu_core.c      |  823 +++++++++
- drivers/media/platform/mtk-vpu/mtk_vpu_core.h      |  161 ++
- .../media/platform/mtk-vpu/vp8_enc/venc_vp8_vpu.h  |  119 ++
- 36 files changed, 7107 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
- create mode 100644 drivers/media/platform/mtk-vcodec/Kconfig
- create mode 100644 drivers/media/platform/mtk-vcodec/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/common/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_if.h
- create mode 100644 drivers/media/platform/mtk-vcodec/h264_enc/venc_h264_vpu.c
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_base.h
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_if.h
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
- create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_if.h
- create mode 100644 drivers/media/platform/mtk-vcodec/vp8_enc/venc_vp8_vpu.c
- create mode 100644 drivers/media/platform/mtk-vpu/Makefile
- create mode 100644 drivers/media/platform/mtk-vpu/h264_enc/venc_h264_vpu.h
- create mode 100644 drivers/media/platform/mtk-vpu/include/venc_ipi_msg.h
- create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu_core.c
- create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu_core.h
- create mode 100644 drivers/media/platform/mtk-vpu/vp8_enc/venc_vp8_vpu.h
-
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 098c15e..85ba167 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -545,6 +545,53 @@
+ 			#clock-cells = <1>;
+ 		};
+ 
++		larb3: larb@18001000 {
++			compatible = "mediatek,mt8173-smi-larb";
++			reg = <0 0x18001000 0 0x1000>;
++			mediatek,smi = <&smi_common>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_VENC>;
++			clocks = <&vencsys CLK_VENC_CKE1>,
++				 <&vencsys CLK_VENC_CKE0>;
++			clock-names = "apb", "smi";
++		};
++
++		vcodec_enc: vcodec@18002000 {
++			compatible = "mediatek,mt8173-vcodec-enc";
++			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
++			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
++			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
++				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
++			larb = <&larb3>,
++			       <&larb5>;
++			iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
++			vpu = <&vpu>;
++			clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
++				 <&topckgen CLK_TOP_VENC_LT_SEL>,
++				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
++			clock-names = "vencpll",
++				      "venc_lt_sel",
++				      "vcodecpll_370p5_ck";
++		};
++
+ 		vencltsys: clock-controller@19000000 {
+ 			compatible = "mediatek,mt8173-vencltsys", "syscon";
+ 			reg = <0 0x19000000 0 0x1000>;
 -- 
 1.7.9.5
 
