@@ -1,218 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55988 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:57952 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751171AbbKPShB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 13:37:01 -0500
-Date: Mon, 16 Nov 2015 16:36:52 -0200
+	id S1750835AbbKQP35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 10:29:57 -0500
+Date: Tue, 17 Nov 2015 13:29:49 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: fix kernel hang in media_device_unregister()
- during device removal
-Message-ID: <20151116163652.591e992d@recife.lan>
-In-Reply-To: <20151115230255.GZ17128@valkosipuli.retiisi.org.uk>
-References: <1447339307-2838-1-git-send-email-shuahkh@osg.samsung.com>
-	<20151115230255.GZ17128@valkosipuli.retiisi.org.uk>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	LMML <linux-media@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Stephan Mueller <smueller@chronox.de>,
+	Michal Marek <mmarek@suse.cz>, linux-kernel@vger.kernel.org,
+	intel-gfx <intel-gfx@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: [PATCH v2 2/4] scripts/kernel-doc: Replacing highlights hash by
+ an array
+Message-ID: <20151117132949.2c70d92f@recife.lan>
+In-Reply-To: <20151117074431.01338392@lwn.net>
+References: <1438112718-12168-1-git-send-email-danilo.cesar@collabora.co.uk>
+	<1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
+	<20151117084046.5c911c6a@recife.lan>
+	<20151117074431.01338392@lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Nov 2015 01:02:56 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Em Tue, 17 Nov 2015 07:44:31 -0700
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-> Hi Shuah,
+> On Tue, 17 Nov 2015 08:40:46 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 > 
-> On Thu, Nov 12, 2015 at 07:41:47AM -0700, Shuah Khan wrote:
-> > Media core drivers (dvb, v4l2, bridge driver) unregister
-> > their entities calling media_device_unregister_entity()
-> > during device removal from their unregister paths. In
-> > addition media_device_unregister() tries to unregister
-> > entity calling media_device_unregister_entity() for each
-> > one of them. This adds lot of contention on mdev->lock in
-> > device removal sequence. Fix to not unregister entities
-> > from media_device_unregister(), and let drivers take care
-> > of it. Drivers need to unregister to cover the case of
-> > module removal. This patch fixes the problem by deleting
-> > the entity list walk to call media_device_unregister_entity()
-> > for each entity. With this fix there is no kernel hang after
-> > a sequence of device insertions followed by removal.
+> > The above causes some versions of perl to fail, as keys expect a
+> > hash argument:
 > > 
-> > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> > ---
-> >  drivers/media/media-device.c | 5 -----
-> >  1 file changed, 5 deletions(-)
+> > Execution of .//scripts/kernel-doc aborted due to compilation errors.
+> > Type of arg 1 to keys must be hash (not private array) at .//scripts/kernel-doc line 2714, near "@highlights) "
 > > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 1312e93..c7ab7c9 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -577,8 +577,6 @@ EXPORT_SYMBOL_GPL(__media_device_register);
-> >   */
-> >  void media_device_unregister(struct media_device *mdev)
-> >  {
-> > -	struct media_entity *entity;
-> > -	struct media_entity *next;
-> >  	struct media_link *link, *tmp_link;
-> >  	struct media_interface *intf, *tmp_intf;
-> >  
-> > @@ -596,9 +594,6 @@ void media_device_unregister(struct media_device *mdev)
-> >  		kfree(intf);
-> >  	}
-> >  
-> > -	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-> > -		media_device_unregister_entity(entity);
-> > -
-> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-> >  	media_devnode_unregister(&mdev->devnode);
-> >  
+> > This is happening at linuxtv.org server, with runs perl version 5.10.1.
 > 
-> media_device_unregister() is expected to clean up all the entities still
-> registered with it (as it does to links and interfaces). Could you share
-> details of the problems you saw in case you haven't found the actual
-> underlying issue causing them?
+> OK, that's not good.  But I'm not quite sure what to do about it.
 > 
+> Perl 5.10.1 is a little over six years old.  Nobody else has complained
+> (yet) about this problem.  So it might be best to "fix" this with a
+> minimum version added to the Changes file.
+> 
+> Or maybe we need to revert the patch.
+> 
+> So I'm far from a Perl expert, so I have no clue what the minimum version
+> would be if we were to say "5.10.1 is too old."  I don't suppose anybody
+> out there knows?
 
-I was not able to reproduce here with au0828. Tried to register/unregister 20
-times with:
-	$ i=1; while :; do echo $i; sudo modprobe au0828 && sleep 2 && sudo rmmod au0828; i=$((i+1)); done
+I'm also not a Perl expert, and never saw before the usage of "keys" on
+an array. Yet, according with:
+	http://perldoc.perl.org/functions/keys.html
 
-The results are at:
-	http://pastebin.com/1B9c9nYm
+"in Perl 5.12 or later only, the indices of an array"
 
+If so, then maybe we could replace:
+	foreach my $k (keys @highlights)
 
-PS.: I had to add the 2 seconds sleep there, as otherwise unregister may
-fail, because udev is started every time the devnodes are created. Without
-that, sometimes it returns -EBUSY, because udev didn't close the devnode
-yet. Still no problem, as a later rmmod works:
+by a more C style variant, with all versions of perl 5:
+	for (my $k = 0; $k < @highlights; $k++) {
 
-	$ sudo modprobe au0828 && sudo rmmod au0828
-	$ sudo modprobe au0828 && sudo rmmod au0828
-	rmmod: ERROR: Module au0828 is in use
-	$  sudo rmmod au0828
-	$ 
-
-So, I don't think that the issues you're experiencing are related to the
-MC next generation. 
-
-As a reference, those are the modules I'm using on my test machine
-(after removing the remaining media modules):
-
-$ lsmod
-Module                  Size  Used by
-cpufreq_powersave      16384  0
-cpufreq_conservative    16384  0
-cpufreq_userspace      16384  0
-cpufreq_stats          16384  0
-parport_pc             28672  0
-ppdev                  20480  0
-lp                     20480  0
-parport                40960  3 lp,ppdev,parport_pc
-snd_usb_audio         151552  0
-snd_hda_codec_hdmi     53248  1
-snd_usbmidi_lib        28672  1 snd_usb_audio
-snd_rawmidi            24576  1 snd_usbmidi_lib
-snd_seq_device         16384  1 snd_rawmidi
-btusb                  40960  0
-btrtl                  16384  1 btusb
-btbcm                  16384  1 btusb
-btintel                16384  1 btusb
-bluetooth             434176  5 btbcm,btrtl,btusb,btintel
-rfkill                 20480  1 bluetooth
-i915                 1110016  4
-intel_rapl             20480  0
-iosf_mbi               16384  1 intel_rapl
-x86_pkg_temp_thermal    16384  0
-intel_powerclamp       16384  0
-coretemp               16384  0
-kvm_intel             163840  0
-kvm                   446464  1 kvm_intel
-irqbypass              16384  1 kvm
-crct10dif_pclmul       16384  0
-snd_hda_codec_realtek    65536  1
-crc32_pclmul           16384  0
-crc32c_intel           24576  0
-i2c_algo_bit           16384  1 i915
-snd_hda_codec_generic    65536  1 snd_hda_codec_realtek
-drm_kms_helper        102400  1 i915
-snd_hda_intel          32768  0
-snd_hda_codec         102400  4 snd_hda_codec_realtek,snd_hda_codec_hdmi,snd_hda_codec_generic,snd_hda_intel
-jitterentropy_rng      16384  0
-drm                   278528  5 i915,drm_kms_helper
-sha256_ssse3           32768  1
-sha256_generic         24576  1 sha256_ssse3
-snd_hwdep              16384  2 snd_usb_audio,snd_hda_codec
-hmac                   16384  1
-snd_hda_core           49152  5 snd_hda_codec_realtek,snd_hda_codec_hdmi,snd_hda_codec_generic,snd_hda_codec,snd_hda_intel
-drbg                   24576  1
-iTCO_wdt               16384  0
-snd_pcm                86016  5 snd_usb_audio,snd_hda_codec_hdmi,snd_hda_codec,snd_hda_intel,snd_hda_core
-iTCO_vendor_support    16384  1 iTCO_wdt
-evdev                  24576  8
-aesni_intel           167936  0
-snd_timer              28672  1 snd_pcm
-aes_x86_64             20480  1 aesni_intel
-psmouse               110592  0
-mei_me                 28672  0
-lrw                    16384  1 aesni_intel
-snd                    57344  12 snd_hda_codec_realtek,snd_usb_audio,snd_hwdep,snd_timer,snd_hda_codec_hdmi,snd_pcm,snd_rawmidi,snd_hda_codec_generic,snd_usbmidi_lib,snd_hda_codec,snd_hda_intel,snd_seq_device
-gf128mul               16384  1 lrw
-glue_helper            16384  1 aesni_intel
-mei                    81920  1 mei_me
-ablk_helper            16384  1 aesni_intel
-cryptd                 20480  2 aesni_intel,ablk_helper
-soundcore              16384  1 snd
-serio_raw              16384  0
-shpchp                 32768  0
-pcspkr                 16384  0
-sg                     32768  0
-i2c_i801               20480  0
-lpc_ich                24576  0
-mfd_core               16384  1 lpc_ich
-battery                16384  0
-i2c_designware_platform    16384  0
-i2c_designware_core    20480  1 i2c_designware_platform
-dw_dmac                16384  0
-tpm_tis                20480  0
-video                  32768  1 i915
-tpm                    36864  1 tpm_tis
-dw_dmac_core           24576  1 dw_dmac
-button                 16384  1 i915
-acpi_pad               24576  0
-ext4                  495616  6
-crc16                  16384  2 ext4,bluetooth
-mbcache                20480  1 ext4
-jbd2                   90112  1 ext4
-dm_mod                 98304  18
-sd_mod                 40960  3
-ahci                   36864  2
-libahci                28672  1 ahci
-libata                192512  2 ahci,libahci
-ehci_pci               16384  0
-scsi_mod              192512  3 sg,libata,sd_mod
-ehci_hcd               73728  1 ehci_pci
-e1000e                208896  0
-xhci_pci               16384  0
-ptp                    20480  1 e1000e
-xhci_hcd              155648  1 xhci_pci
-pps_core               16384  1 ptp
-fan                    16384  0
-thermal                20480  0
-sdhci_acpi             16384  0
-sdhci                  36864  1 sdhci_acpi
-mmc_core              106496  2 sdhci,sdhci_acpi
-i2c_hid                20480  0
-hid                   110592  1 i2c_hid
-
-A clear difference is that this machine uses the i915 graph driver,
-instead of the Radeon driver that you're using on your machine.
-
-So, I still think that the problem you've noticed is related to the
-radeon driver. Please test without it, booting the machine on
-console mode, in order to isolate eventual issues with the graphics
-stack.
+The enclosed patch should do the trick. I tested it with perl 5.10 and 
+perl 5.22 it worked fine with both versions.
 
 Regards,
 Mauro
+
+-
+
+kernel-doc: Make it compatible with Perl versions below 5.12 again
+
+Changeset 4d73270192ec('scripts/kernel-doc: Replacing highlights
+hash by an array') broke compatibility of the kernel-doc script with
+older versions of perl by using "keys ARRAY" syntax with is available
+only on Perl 5.12 or newer, according with:
+	http://perldoc.perl.org/functions/keys.html
+
+Restore backward compatibility by replacing "foreach my $k (keys ARRAY)"
+by a C-like variant: "for (my $k = 0; $k < !ARRAY; $k++)"
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 125b906..1f61def 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -2711,7 +2711,7 @@ $kernelversion = get_kernel_version();
+ 
+ # generate a sequence of code that will splice in highlighting information
+ # using the s// operator.
+-foreach my $k (keys @highlights) {
++for (my $k = 0; $k < @highlights; $k++) {
+     my $pattern = $highlights[$k][0];
+     my $result = $highlights[$k][1];
+ #   print STDERR "scanning pattern:$pattern, highlight:($result)\n";
