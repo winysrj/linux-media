@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:54546 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587AbbKQQS0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 11:18:26 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] [MEDIA] dvb: usb: fix dib3000mc dependencies
-Date: Tue, 17 Nov 2015 17:17:39 +0100
-Message-ID: <3984729.n55BH9Zr8c@wuerfel>
+Received: from tex.lwn.net ([70.33.254.29]:34157 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750913AbbKQOod (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 09:44:33 -0500
+Date: Tue, 17 Nov 2015 07:44:31 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	LMML <linux-media@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Stephan Mueller <smueller@chronox.de>,
+	Michal Marek <mmarek@suse.cz>, linux-kernel@vger.kernel.org,
+	intel-gfx <intel-gfx@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: [PATCH v2 2/4] scripts/kernel-doc: Replacing highlights hash by
+ an array
+Message-ID: <20151117074431.01338392@lwn.net>
+In-Reply-To: <20151117084046.5c911c6a@recife.lan>
+References: <1438112718-12168-1-git-send-email-danilo.cesar@collabora.co.uk>
+	<1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
+	<20151117084046.5c911c6a@recife.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dibusb_read_eeprom_byte function is defined in dibusb-common.c,
-but that file is not compiled for CONFIG_DVB_USB_DIBUSB_MB as it
-is for the other driver using the common functions, so we can
-get a link error:
+On Tue, 17 Nov 2015 08:40:46 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-drivers/built-in.o: In function `dibusb_dib3000mc_tuner_attach':
-(.text+0x2c5124): undefined reference to `dibusb_read_eeprom_byte'
-(.text+0x2c5134): undefined reference to `dibusb_read_eeprom_byte'
+> The above causes some versions of perl to fail, as keys expect a
+> hash argument:
+> 
+> Execution of .//scripts/kernel-doc aborted due to compilation errors.
+> Type of arg 1 to keys must be hash (not private array) at .//scripts/kernel-doc line 2714, near "@highlights) "
+> 
+> This is happening at linuxtv.org server, with runs perl version 5.10.1.
 
-This changes the Makefile to treat the file like all the others
-in this directory, and enforce building dvb-usb-dibusb-common.o
-as a dependency.
+OK, that's not good.  But I'm not quite sure what to do about it.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Perl 5.10.1 is a little over six years old.  Nobody else has complained
+(yet) about this problem.  So it might be best to "fix" this with a
+minimum version added to the Changes file.
 
-diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
-index 8da26352f73b..048ab0b6c36d 100644
---- a/drivers/media/usb/dvb-usb/Makefile
-+++ b/drivers/media/usb/dvb-usb/Makefile
-@@ -17,7 +17,7 @@ obj-$(CONFIG_DVB_USB_DTT200U) += dvb-usb-dtt200u.o
- dvb-usb-dibusb-common-objs := dibusb-common.o
- 
- dvb-usb-dibusb-mc-common-objs := dibusb-mc-common.o
--obj-$(CONFIG_DVB_USB_DIB3000MC)	+= dvb-usb-dibusb-mc-common.o
-+obj-$(CONFIG_DVB_USB_DIB3000MC)	+= dvb-usb-dibusb-common.o dvb-usb-dibusb-mc-common.o
- 
- dvb-usb-a800-objs := a800.o
- obj-$(CONFIG_DVB_USB_A800) += dvb-usb-dibusb-common.o dvb-usb-a800.o
+Or maybe we need to revert the patch.
 
+So I'm far from a Perl expert, so I have no clue what the minimum version
+would be if we were to say "5.10.1 is too old."  I don't suppose anybody
+out there knows?
+
+Thanks,
+
+jon
