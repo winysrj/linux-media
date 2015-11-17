@@ -1,69 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51103 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933086AbbKROlx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 09:41:53 -0500
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-To: Arnd Bergmann <arnd@arndb.de>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <20150624162401.GP19530@localhost> <564C8966.9080406@ti.com>
- <6347063.Gd6coh6hX8@wuerfel>
-CC: Vinod Koul <vinod.koul@intel.com>,
+Received: from foss.arm.com ([217.140.101.70]:57171 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752832AbbKQONc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 09:13:32 -0500
+Date: Tue, 17 Nov 2015 14:13:20 +0000
+From: Mark Rutland <mark.rutland@arm.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <564C8E1F.8010501@ti.com>
-Date: Wed, 18 Nov 2015 16:41:35 +0200
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org
+Subject: Re: [RESEND RFC/PATCH 1/8] dt-bindings: Add a binding for Mediatek
+ Video Processor Unit
+Message-ID: <20151117141320.GJ12586@leverpostej>
+References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+ <1447764885-23100-2-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <6347063.Gd6coh6hX8@wuerfel>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1447764885-23100-2-git-send-email-tiffany.lin@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/18/2015 04:29 PM, Arnd Bergmann wrote:
-> On Wednesday 18 November 2015 16:21:26 Peter Ujfalusi wrote:
->> 2. non slave channel requests, where only the functionality matters, like
->> memcpy, interleaved, memset, etc.
->> We could have a simple:
->> dma_request_channel(mask);
->>
->> But looking at the drivers using dmaengine legacy dma_request_channel() API:
->> Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAVE:
->> drivers/misc/carma/carma-fpga.c                 DMA_INTERRUPT|DMA_SLAVE|DMA_SG
->> drivers/misc/carma/carma-fpga-program.c         DMA_MEMCPY|DMA_SLAVE|DMA_SG
->> drivers/media/platform/soc_camera/mx3_camera.c  DMA_SLAVE|DMA_PRIVATE
->> sound/soc/intel/common/sst-firmware.c           DMA_SLAVE|DMA_MEMCPY
->>
->> as examples.
->> Not sure how valid are these...
+On Tue, Nov 17, 2015 at 08:54:38PM +0800, Tiffany Lin wrote:
+> From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 > 
-> It's usually not much harder to separate out the legacy case from
-> the normal dma_request_slave_channel_reason(), so those drivers don't
-> really need to use the unified compat API.
+> Add a DT binding documentation of Video Processor Unit for the
+> MT8173 SoC from Mediatek.
+> 
+> Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> ---
+>  .../devicetree/bindings/media/mediatek-vpu.txt     |   27 ++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+> new file mode 100644
+> index 0000000..99a4e5e
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+> @@ -0,0 +1,27 @@
+> +* Mediatek Video Processor Unit
+> +
+> +Video Processor Unit is a HW video controller. It controls HW Codec including
+> +H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
+> +
+> +Required properties:
+> +  - compatible: "mediatek,mt8173-vpu"
+> +  - reg: Must contain an entry for each entry in reg-names.
+> +  - reg-names: Must include the following entries:
+> +    "sram": SRAM base
+> +    "cfg_reg": Main configuration registers base
+> +  - interrupts: interrupt number to the cpu.
+> +  - clocks : clock name from clock manager
+> +  - clock-names: the clocks of the VPU H/W
 
-The current dma_request_slave_channel()/_reason() is not the 'legacy' API.
-Currently there is no way to get the reason why the dma channel request fails
-when using the _compat() version of the API, which is used by drivers which
-can be used in DT or in legacy mode as well. Sure, they all could have local
-if(){}else{} for handling this, but it is not a nice thing.
+You need to explicitly define the set of clock-names you expect here.
 
-As it was discussed instead of adding the _reason() version for the _compat
-call, we should simplify the dmaengine API for getting the channel and at the
-same time we will have ERR_PTR returned instead of NULL.
+Mark.
 
--- 
-Péter
+> +  - iommus : phandle and IOMMU spcifier for the IOMMU that serves the VPU.
+> +
+> +Example:
+> +	vpu: vpu@10020000 {
+> +		compatible = "mediatek,mt8173-vpu";
+> +		reg = <0 0x10020000 0 0x30000>,
+> +		      <0 0x10050000 0 0x100>;
+> +		reg-names = "sram", "cfg_reg";
+> +		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&topckgen TOP_SCP_SEL>;
+> +		clock-names = "main";
+> +		iommus = <&iommu M4U_PORT_VENC_RCPU>;
+> +	};
+> -- 
+> 1.7.9.5
+> 
