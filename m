@@ -1,47 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:33052 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750964AbbKVRrY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Nov 2015 12:47:24 -0500
-Subject: Re: [PATCH 4/4] si2165: Add DVB-C support for HVR-4400/HVR-5500
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35746 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456AbbKQKlQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 05:41:16 -0500
+Date: Tue, 17 Nov 2015 10:37:08 +0000
+From: Mark Brown <broonie@kernel.org>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1447455298-5562-1-git-send-email-zzam@gentoo.org>
- <1447455298-5562-4-git-send-email-zzam@gentoo.org>
- <20151119112826.7ad9b688@recife.lan>
-Cc: linux-media@vger.kernel.org, crope@iki.fi, xpert-reactos@gmx.de
-From: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <5651FF8F.8040003@gentoo.org>
-Date: Sun, 22 Nov 2015 18:46:55 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Acked-by: Arnd Bergmann" <arnd@arndb.de>,
+	Shawn Guo <shawnguo@kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Russell King <linux@arm.linux.org.uk>,
+	Daniel Mack <daniel@zonque.org>,
+	Haojian Zhuang <haojian.zhuang@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Daniel Ribeiro <drwyrm@gmail.com>,
+	Stefan Schmidt <stefan@openezx.org>,
+	Harald Welte <laforge@openezx.org>,
+	Tomas Cech <sleep_walker@suse.com>,
+	Sergey Lapin <slapin@ossfans.org>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Timur Tabi <timur@tabi.org>,
+	Nicolin Chen <nicoleotsuka@gmail.com>,
+	Xiubo Li <Xiubo.Lee@gmail.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	David Gibson <david@gibson.dropbear.id.au>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	linux-arm-kernel@lists.infradead.org,
+	openezx-devel@lists.openezx.org, dmaengine@vger.kernel.org,
+	linux-mmc@vger.kernel.org, linux-spi@vger.kernel.org,
+	linux-serial@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	alsa-devel@alsa-project.org, linuxppc-dev@lists.ozlabs.org
+Message-ID: <20151117103708.GL31303@sirena.org.uk>
+References: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20151119112826.7ad9b688@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="AQNmCumFClRcGgHG"
+Content-Disposition: inline
+In-Reply-To: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
+Subject: Re: [PATCH] [media] move media platform data to
+ linux/platform_data/media
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.11.2015 um 14:28 schrieb Mauro Carvalho Chehab:
-> Em Fri, 13 Nov 2015 23:54:58 +0100
-> Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> 
->> It works only for HVR-4400/HVR-5500.
->> For WinTV-HVR-930C-HD it fails with bad/no reception
->> for unknown reasons.
-> 
-> Patch 3/4 of this series is broken. As this one depends on it, please
-> resend both patches 3 and 4 on your next patch series.
-> 
-> Regards,
-> Mauro
-> 
-> PS.: patches 1 and 2 are ok and got applied upstream already.
-> 
-> 
-Hi Mauro,
 
-if you did not notice, I split the patches down into more parts,
-improved them a bit and sent them with subject "si2165: Add simple DVB-C
-support".
+--AQNmCumFClRcGgHG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Regards
-Matthias
+On Tue, Nov 17, 2015 at 07:15:59AM -0200, Mauro Carvalho Chehab wrote:
+> Now that media has its own subdirectory inside platform_data,
+> let's move the headers that are already there to such subdir.
 
+Acked-by: Mark Brown <broonie@kernel.org>
+
+--AQNmCumFClRcGgHG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWSwNTAAoJECTWi3JdVIfQ4KQH/jRi+u9vkGEn+1iMaGVdyCee
+J9U0tvtwOAlMOWV4MZJ6mINHE6nw6FQwEly8DLanBOkj9MtPKoiHejzPT9KPG5zl
+8895O9NAhgLh4DFi8rsoMsBx1lwK3YM0mXgdmRQxlkOkMcJd/7AsApobMen5IbwN
+q/7pMetyDSg9nRAcUQgRu2uJJLJpWmkDP/LgRCfYQDJtqQPDE/x9mEf1fAZ1QJ44
+gFxTJqlb6VUKa0K7puMfcNLmSaedJYx7DanpbiRGobzT+Zdi6dv+99nOcJsPqp3b
+kRRC2FU6gIrzJIO7kyUssJSxzPehZGP/LP8SSU0lHL3BZ5+VIsNemzMAJv+hsiA=
+=fW+n
+-----END PGP SIGNATURE-----
+
+--AQNmCumFClRcGgHG--
