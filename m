@@ -1,196 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60281 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1163044AbbKTQuP (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46240 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751689AbbKQHxp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:50:15 -0500
+	Tue, 17 Nov 2015 02:53:45 -0500
+Subject: Re: cobalt & dma
+To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
+References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 11/15] videobuf2-core: fill_user_buffer and copy_timestamp should return void
-Date: Fri, 20 Nov 2015 17:45:44 +0100
-Message-Id: <1448037948-36820-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <564ADD04.90700@xs4all.nl>
+Date: Tue, 17 Nov 2015 08:53:40 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/17/2015 08:39 AM, Ran Shalit wrote:
+> Hello,
+> 
+> I intend to use cobalt driver as a refence for new pci v4l2 driver,
+> which is required to use several input simultaneously. for this cobalt
+> seems like a best starting point.
+> read/write streaming will probably be suffecient (at least for the
+> dirst debugging).
+> The configuration in my cast is i7 core <-- pci ---> fpga.
+> I see that the dma implementation is quite complex, and would like to
+> ask for some tips regarding the following points related to dma issue:
+> 
+> 1. Is it possible to do the read/write without dma (for debug as start) ?
 
-This ops can never fail, so make these void functions.
+No. All video capture/output devices all use DMA since it would be prohibitively
+expensive for the CPU to do otherwise. So just dig in and implement it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 27 ++++++++++++---------------
- drivers/media/v4l2-core/videobuf2-v4l2.c | 12 +++++-------
- include/media/videobuf2-core.h           | 17 ++++++++++++++---
- 3 files changed, 31 insertions(+), 25 deletions(-)
+> What changes are required for read without dma (I assume dma is used
+> by default in read/write) ?
+> Is it done by using  #include <media/videobuf2-vmalloc.h> instead of
+> #include <media/videobuf2-dma*> ?
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 4faa066..5cd418e 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -178,6 +178,12 @@ module_param(debug, int, 0644);
- 	ret;								\
- })
- 
-+#define call_void_bufop(q, op, args...)					\
-+({									\
-+	if (q && q->buf_ops && q->buf_ops->op)				\
-+		q->buf_ops->op(args);					\
-+})
-+
- static void __vb2_queue_cancel(struct vb2_queue *q);
- static void __enqueue_in_driver(struct vb2_buffer *vb);
- 
-@@ -586,13 +592,10 @@ static bool __buffers_in_use(struct vb2_queue *q)
-  * Should be called from vidioc_querybuf ioctl handler in driver.
-  * The passed buffer should have been verified.
-  * This function fills the relevant information for the userspace.
-- *
-- * The return values from this function are intended to be directly returned
-- * from vidioc_querybuf handler in driver.
-  */
--int vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
-+void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb)
- {
--	return call_bufop(q, fill_user_buffer, q->bufs[index], pb);
-+	call_void_bufop(q, fill_user_buffer, q->bufs[index], pb);
- }
- EXPORT_SYMBOL_GPL(vb2_core_querybuf);
- 
-@@ -1420,9 +1423,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- 		return ret;
- 
- 	/* Fill buffer information for the userspace */
--	ret = call_bufop(q, fill_user_buffer, vb, pb);
--	if (ret)
--		return ret;
-+	call_void_bufop(q, fill_user_buffer, vb, pb);
- 
- 	dprintk(1, "prepare of buffer %d succeeded\n", vb->index);
- 
-@@ -1543,7 +1544,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
- 
--	call_bufop(q, copy_timestamp, vb, pb);
-+	call_void_bufop(q, copy_timestamp, vb, pb);
- 
- 	trace_vb2_qbuf(q, vb);
- 
-@@ -1555,9 +1556,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 		__enqueue_in_driver(vb);
- 
- 	/* Fill buffer information for the userspace */
--	ret = call_bufop(q, fill_user_buffer, vb, pb);
--	if (ret)
--		return ret;
-+	call_void_bufop(q, fill_user_buffer, vb, pb);
- 
- 	/*
- 	 * If streamon has been called, and we haven't yet called
-@@ -1780,9 +1779,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, void *pb, bool nonblocking)
- 	call_void_vb_qop(vb, buf_finish, vb);
- 
- 	/* Fill buffer information for the userspace */
--	ret = call_bufop(q, fill_user_buffer, vb, pb);
--	if (ret)
--		return ret;
-+	call_void_bufop(q, fill_user_buffer, vb, pb);
- 
- 	/* Remove from videobuf queue */
- 	list_del(&vb->queued_entry);
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index f17b9cf..c9a2860 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -114,7 +114,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	return 0;
- }
- 
--static int __copy_timestamp(struct vb2_buffer *vb, const void *pb)
-+static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
- {
- 	const struct v4l2_buffer *b = pb;
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-@@ -131,7 +131,6 @@ static int __copy_timestamp(struct vb2_buffer *vb, const void *pb)
- 		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
- 			vbuf->timecode = b->timecode;
- 	}
--	return 0;
- };
- 
- static void vb2_warn_zero_bytesused(struct vb2_buffer *vb)
-@@ -182,7 +181,7 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
-  * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
-  * returned to userspace
-  */
--static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-+static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- {
- 	struct v4l2_buffer *b = pb;
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-@@ -281,8 +280,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 		b->flags & V4L2_BUF_FLAG_DONE &&
- 		b->flags & V4L2_BUF_FLAG_LAST)
- 		q->last_buffer_dequeued = true;
--
--	return 0;
- }
- 
- /**
-@@ -474,8 +471,9 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 	}
- 	vb = q->bufs[b->index];
- 	ret = __verify_planes_array(vb, b);
--
--	return ret ? ret : vb2_core_querybuf(q, b->index, b);
-+	if (!ret)
-+		vb2_core_querybuf(q, b->index, b);
-+	return ret;
- }
- EXPORT_SYMBOL(vb2_querybuf);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index cc94c9d..b88dbba 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -369,11 +369,22 @@ struct vb2_ops {
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
- 
-+/**
-+ * struct vb2_ops - driver-specific callbacks
-+ *
-+ * @fill_user_buffer:	given a vb2_buffer fill in the userspace structure.
-+ *			For V4L2 this is a struct v4l2_buffer.
-+ * @fill_vb2_buffer:	given a userspace structure, fill in the vb2_buffer.
-+ *			If the userspace structure is invalid, then this op
-+ *			will return an error.
-+ * @copy_timestamp:	copy the timestamp from a userspace structure to
-+ *			the vb2_buffer struct.
-+ */
- struct vb2_buf_ops {
--	int (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
-+	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
- 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
- 				struct vb2_plane *planes);
--	int (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
-+	void (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
- };
- 
- /**
-@@ -512,7 +523,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state);
- void vb2_discard_done(struct vb2_queue *q);
- int vb2_wait_for_all_buffers(struct vb2_queue *q);
- 
--int vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb);
-+void vb2_core_querybuf(struct vb2_queue *q, unsigned int index, void *pb);
- int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		unsigned int *count);
- int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
--- 
-2.6.2
+No. The vmalloc variant is typically used for USB devices. For PCI(e) you'll
+use videobuf2-dma-contig if the DMA engine requires physically contiguous DMA,
+or videobuf2-dma-sg if the DMA engine supports scatter-gather DMA. You can
+start with dma-contig since the DMA code tends to be simpler, but it is
+harder to get the required physically contiguous memory if memory fragmentation
+takes place. So you may not be able to allocate the buffers. dma-sg works much
+better with virtual memory.
+
+> 
+> 2. I find it difficult to unerstand  cobalt_dma_start_streaming()
+> implementation, which has many specific cobalt memory writing
+> iowrite32().
+> How can I understand how/what to implement dma in my specific platform/device ?
+
+Read include/media/videobuf2-core.h.
+
+There is also an LWN article somewhere (albeit somewhat outdated by now).
+
+Don't expect to write three lines of code and everything works. You *do*
+have to write the code for your DMA hardware, there is no way around that.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> Best Regards,
+> Ran
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
