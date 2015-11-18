@@ -1,70 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59937 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751115AbbKKNzg (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.73]:54117 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755977AbbKRPH4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 08:55:36 -0500
-Subject: Re: [PATCH 1/1] v4l2-device: Don't unregister ACPI/Device Tree based
- devices
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1447249846-18864-1-git-send-email-sakari.ailus@linux.intel.com>
-Cc: Tommi Franttila <tommi.franttila@intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <564348C1.1050503@xs4all.nl>
-Date: Wed, 11 Nov 2015 14:55:13 +0100
+	Wed, 18 Nov 2015 10:07:56 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+Date: Wed, 18 Nov 2015 16:07:42 +0100
+Message-ID: <6358656.jIv3GGCCXu@wuerfel>
+In-Reply-To: <564C8E1F.8010501@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <6347063.Gd6coh6hX8@wuerfel> <564C8E1F.8010501@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1447249846-18864-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/15 14:50, Sakari Ailus wrote:
-> From: Tommi Franttila <tommi.franttila@intel.com>
-> 
-> When a V4L2 sub-device backed by a DT or ACPI based device was removed,
-> the device was unregistered as well which certainly was not intentional,
-> as the client device would not be re-created by simply reinstating the
-> V4L2 sub-device (indeed the device would have to be there first!).
-> 
-> Skip unregistering the device in case it has non-NULL of_node or fwnode.
-> 
-> Signed-off-by: Tommi Franttila <tommi.franttila@intel.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-device.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-> index 5b0a30b..3c8cc9a 100644
-> --- a/drivers/media/v4l2-core/v4l2-device.c
-> +++ b/drivers/media/v4l2-core/v4l2-device.c
-> @@ -122,7 +122,8 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
->  			   We cannot rely on i2c_del_adapter to always
->  			   unregister clients for us, since if the i2c bus
->  			   is a platform bus, then it is never deleted. */
+On Wednesday 18 November 2015 16:41:35 Peter Ujfalusi wrote:
+> On 11/18/2015 04:29 PM, Arnd Bergmann wrote:
+> > On Wednesday 18 November 2015 16:21:26 Peter Ujfalusi wrote:
+> >> 2. non slave channel requests, where only the functionality matters, like
+> >> memcpy, interleaved, memset, etc.
+> >> We could have a simple:
+> >> dma_request_channel(mask);
+> >>
+> >> But looking at the drivers using dmaengine legacy dma_request_channel() API:
+> >> Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAVE:
+> >> drivers/misc/carma/carma-fpga.c                 DMA_INTERRUPT|DMA_SLAVE|DMA_SG
+> >> drivers/misc/carma/carma-fpga-program.c         DMA_MEMCPY|DMA_SLAVE|DMA_SG
+> >> drivers/media/platform/soc_camera/mx3_camera.c  DMA_SLAVE|DMA_PRIVATE
+> >> sound/soc/intel/common/sst-firmware.c           DMA_SLAVE|DMA_MEMCPY
+> >>
+> >> as examples.
+> >> Not sure how valid are these...
 
-Can this comment be extended? This is non-trivial and it is helpful to
-document this. Other than that it looks good.
+I just had a look myself. carma has been removed fortunately in linux-next,
+so we don't have to worry about that any more.
 
-Thanks,
+I assume that the sst-firmware.c case is a mistake, it should just use a
+plain DMA_SLAVE and not DMA_MEMCPY.
 
-	Hans
+Aside from these, everyone else uses either DMA_CYCLIC in addition to
+DMA_SLAVE, which seems valid, or they use DMA_PRIVATE, which I think is
+redundant in slave drivers and can be removed.
 
-> -			if (client)
-> +			if (client &&
-> +			    !client->dev.of_node && !client->dev.fwnode)
->  				i2c_unregister_device(client);
->  			continue;
->  		}
-> @@ -131,7 +132,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
->  		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
->  			struct spi_device *spi = v4l2_get_subdevdata(sd);
->  
-> -			if (spi)
-> +			if (spi && !spi->dev.of_node && !spi->dev.fwnode)
->  				spi_unregister_device(spi);
->  			continue;
->  		}
+> > It's usually not much harder to separate out the legacy case from
+> > the normal dma_request_slave_channel_reason(), so those drivers don't
+> > really need to use the unified compat API.
 > 
+> The current dma_request_slave_channel()/_reason() is not the 'legacy' API.
+> Currently there is no way to get the reason why the dma channel request fails
+> when using the _compat() version of the API, which is used by drivers which
+> can be used in DT or in legacy mode as well. Sure, they all could have local
+> if(){}else{} for handling this, but it is not a nice thing.
+> 
+> As it was discussed instead of adding the _reason() version for the _compat
+> call, we should simplify the dmaengine API for getting the channel and at the
+> same time we will have ERR_PTR returned instead of NULL.
+
+What I meant was that we don't need to handle them with the unified
+simple interface. The users of DMA_CYCLIC can just keep using
+an internal helper that only deals with the legacy case, or use
+dma_request_slave() or whatever is the new API for the DT case.
+
+	Arnd
