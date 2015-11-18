@@ -1,97 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34332 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754193AbbKMJNt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 04:13:49 -0500
-Subject: Re: [Patch v2 1/2] media: v4l: ti-vpe: Add CAL v4l2 camera capture
- driver
-To: Benoit Parrot <bparrot@ti.com>
-References: <1442865848-19280-1-git-send-email-bparrot@ti.com>
- <1442865848-19280-2-git-send-email-bparrot@ti.com>
- <562112B7.7090103@xs4all.nl> <56269C34.3000306@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5645A9C8.5000008@xs4all.nl>
-Date: Fri, 13 Nov 2015 10:13:44 +0100
+Received: from tex.lwn.net ([70.33.254.29]:36103 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752013AbbKRAVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Nov 2015 19:21:34 -0500
+Date: Tue, 17 Nov 2015 17:21:32 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	LMML <linux-media@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Stephan Mueller <smueller@chronox.de>,
+	Michal Marek <mmarek@suse.cz>, linux-kernel@vger.kernel.org,
+	intel-gfx <intel-gfx@lists.freedesktop.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>
+Subject: Re: [PATCH v2 2/4] scripts/kernel-doc: Replacing highlights hash by
+ an array
+Message-ID: <20151117172132.3e647979@lwn.net>
+In-Reply-To: <20151117132949.2c70d92f@recife.lan>
+References: <1438112718-12168-1-git-send-email-danilo.cesar@collabora.co.uk>
+	<1438112718-12168-3-git-send-email-danilo.cesar@collabora.co.uk>
+	<20151117084046.5c911c6a@recife.lan>
+	<20151117074431.01338392@lwn.net>
+	<20151117132949.2c70d92f@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <56269C34.3000306@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/2015 09:55 PM, Hans Verkuil wrote:
-> On 10/16/2015 05:07 PM, Hans Verkuil wrote:
->> On 09/21/2015 10:04 PM, Benoit Parrot wrote:
->>> The Camera Adaptation Layer (CAL) is a block which consists of a dual
->>> port CSI2/MIPI camera capture engine.
->>> Port #0 can handle CSI2 camera connected to up to 4 data lanes.
->>> Port #1 can handle CSI2 camera connected to up to 2 data lanes.
->>> The driver implements the required API/ioctls to be V4L2 compliant.
->>> Driver supports the following:
->>>     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
->>>     - Asynchronous sensor sub device registration
->>>     - DT support
->>>
->>> Signed-off-by: Benoit Parrot <bparrot@ti.com>
->>> ---
->>>  drivers/media/platform/Kconfig           |   12 +
->>>  drivers/media/platform/Makefile          |    2 +
->>>  drivers/media/platform/ti-vpe/Makefile   |    4 +
->>>  drivers/media/platform/ti-vpe/cal.c      | 2161 ++++++++++++++++++++++++++++++
->>>  drivers/media/platform/ti-vpe/cal_regs.h |  779 +++++++++++
->>>  5 files changed, 2958 insertions(+)
->>>  create mode 100644 drivers/media/platform/ti-vpe/cal.c
->>>  create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
->>>
->>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->>> index dc75694ac12d..c7f5704c56a2 100644
->>> --- a/drivers/media/platform/Kconfig
->>> +++ b/drivers/media/platform/Kconfig
->>> @@ -120,6 +120,18 @@ source "drivers/media/platform/s5p-tv/Kconfig"
->>>  source "drivers/media/platform/am437x/Kconfig"
->>>  source "drivers/media/platform/xilinx/Kconfig"
->>>  
->>> +config VIDEO_TI_CAL
->>> +	tristate "TI CAL (Camera Adaptation Layer) driver"
->>> +	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_DRA7XX
->>> +	depends on VIDEO_V4L2_SUBDEV_API
->>> +	depends on VIDEOBUF2_DMA_CONTIG
->>
->> This should be:
->>
->>        depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->>        depends on SOC_DRA7XX || COMPILE_TEST
->>        select VIDEOBUF2_DMA_CONTIG
->>
->>> +	default n
->>> +	---help---
->>> +	  Support for the TI CAL (Camera Adaptation Layer) block
->>> +	  found on DRA72X SoC.
->>> +	  In TI Technical Reference Manual this module is referred as
->>> +	  Camera Interface Subsystem (CAMSS).
->>> +
->>>  endif # V4L_PLATFORM_DRIVERS
->>>  
->>>  menuconfig V4L_MEM2MEM_DRIVERS
->>
->> By compiling with COMPILE_TEST I found a number of compile warnings and it also no
->> longer compiled due to vb2 changes. Both are fixed in the patch below.
->>
->> SoB for the patch: Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> That said, I'll postpone merging this until the remainder of the vb2 split patches
->> have been merged. When that's done this driver will have to be changed some more.
-> 
-> OK, the vb2 split patches were just merged. Can you rebase and repost?
+On Tue, 17 Nov 2015 13:29:49 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
 
-Ping!
+> The enclosed patch should do the trick. I tested it with perl 5.10 and 
+> perl 5.22 it worked fine with both versions.
 
-I'd like to merge this driver, so if you can rebase and take care of the trivial comments
-I made in my review?
+Indeed it seems to work - thanks!  Applied to the docs tree, I'll get it
+upstream before too long.
 
-Thanks,
-
-	Hans
-
+jon
