@@ -1,120 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45373 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933197AbbKRQza (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 11:55:30 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH 3/9] [media] tvp5150: determine BT.656 or YUV 4:2:2 mode from device tree
-Date: Wed, 18 Nov 2015 17:55:22 +0100
-Message-Id: <1447865728-5726-3-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
-References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:32994 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932992AbbKRPBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2015 10:01:51 -0500
+Date: Wed, 18 Nov 2015 13:01:46 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/6] mt2060: add i2c bindings
+Message-ID: <20151118130146.1ab0490d@recife.lan>
+In-Reply-To: <1437996130-23735-2-git-send-email-crope@iki.fi>
+References: <1437996130-23735-1-git-send-email-crope@iki.fi>
+	<1437996130-23735-2-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Em Mon, 27 Jul 2015 14:22:05 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-By looking at the endpoint flags, it can be determined whether the link
-should be of V4L2_MBUS_PARALLEL or V4L2_MBUS_BT656 type. Disable the
-dedicated HSYNC/VSYNC outputs in BT.656 mode.
+> Add proper i2c driver model bindings.
 
-For devices that are not instantiated through DT the current behavior
-is preserved.
+Hi Antti,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+What's the status of this patch series? You submitted them on July, but
+never sent me a pull request...
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 8670b478dcd6..21cde350e385 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -11,10 +11,12 @@
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/regmap.h>
-+#include <linux/of_graph.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/tvp5150.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- 
- #include "tvp5150_reg.h"
- 
-@@ -38,6 +40,7 @@ struct tvp5150 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-+	enum v4l2_mbus_type bus_type;
- 	struct v4l2_mbus_framefmt format;
- 	struct v4l2_rect rect;
- 	struct regmap *regmap;
-@@ -424,8 +427,6 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
- 		TVP5150_MISC_CTL, 0x6f
- 	},{	/* Activates video std autodetection for all standards */
- 		TVP5150_AUTOSW_MSK, 0x0
--	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
--		TVP5150_DATA_RATE_SEL, 0x47
- 	},{
- 		TVP5150_CHROMA_PROC_CTL_1, 0x0c
- 	},{
-@@ -760,6 +761,25 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 	/* Initializes TVP5150 to stream enabled values */
- 	tvp5150_write_inittab(sd, tvp5150_init_enable);
- 
-+	switch (decoder->bus_type) {
-+	case V4L2_MBUS_BT656:
-+		/* 8-bit ITU BT.656 */
-+		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
-+				   0x7, 0x7);
-+		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
-+		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
-+		break;
-+	case V4L2_MBUS_PARALLEL:
-+		/* 8-bit YUV 4:2:2 */
-+		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
-+				   0x7, 0x0);
-+		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
-+		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	/* Initialize image preferences */
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
-@@ -1315,6 +1335,8 @@ static struct regmap_config tvp5150_config = {
- static int tvp5150_probe(struct i2c_client *c,
- 			 const struct i2c_device_id *id)
- {
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *endpoint;
- 	struct tvp5150 *core;
- 	struct v4l2_subdev *sd;
- 	struct regmap *map;
-@@ -1375,6 +1397,14 @@ static int tvp5150_probe(struct i2c_client *c,
- 		}
- 	}
- 
-+	endpoint = of_graph_get_next_endpoint(c->dev.of_node, NULL);
-+	if (endpoint) {
-+		v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		core->bus_type = bus_cfg.bus_type;
-+	} else {
-+		core->bus_type = V4L2_MBUS_BT656;
-+	}
-+
- 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
- 	core->input = TVP5150_COMPOSITE1;
- 	core->enable = 1;
--- 
-2.6.2
+Regards,
+Mauro
 
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/tuners/mt2060.h      | 20 +++++++++
+>  drivers/media/tuners/mt2060_priv.h |  2 +
+>  3 files changed, 105 insertions(+)
+> 
+> diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+> index b87b254..aa8280a 100644
+> --- a/drivers/media/tuners/mt2060.c
+> +++ b/drivers/media/tuners/mt2060.c
+> @@ -397,6 +397,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
+>  }
+>  EXPORT_SYMBOL(mt2060_attach);
+>  
+> +static int mt2060_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	struct mt2060_platform_data *pdata = client->dev.platform_data;
+> +	struct dvb_frontend *fe;
+> +	struct mt2060_priv *dev;
+> +	int ret;
+> +	u8 chip_id;
+> +
+> +	dev_dbg(&client->dev, "\n");
+> +
+> +	if (!pdata) {
+> +		dev_err(&client->dev, "Cannot proceed without platform data\n");
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
+> +	if (!dev) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	fe = pdata->dvb_frontend;
+> +	dev->config.i2c_address = client->addr;
+> +	dev->config.clock_out = pdata->clock_out;
+> +	dev->cfg = &dev->config;
+> +	dev->i2c = client->adapter;
+> +	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
+> +	dev->client = client;
+> +
+> +	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
+> +	if (ret) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
+> +
+> +	if (chip_id != PART_REV) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
+> +	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
+> +	fe->ops.tuner_ops.release = NULL;
+> +	fe->tuner_priv = dev;
+> +	i2c_set_clientdata(client, dev);
+> +
+> +	mt2060_calibrate(dev);
+> +
+> +	return 0;
+> +err:
+> +	dev_dbg(&client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int mt2060_remove(struct i2c_client *client)
+> +{
+> +	dev_dbg(&client->dev, "\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id mt2060_id_table[] = {
+> +	{"mt2060", 0},
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
+> +
+> +static struct i2c_driver mt2060_driver = {
+> +	.driver = {
+> +		.name = "mt2060",
+> +		.suppress_bind_attrs = true,
+> +	},
+> +	.probe		= mt2060_probe,
+> +	.remove		= mt2060_remove,
+> +	.id_table	= mt2060_id_table,
+> +};
+> +
+> +module_i2c_driver(mt2060_driver);
+> +
+>  MODULE_AUTHOR("Olivier DANET");
+>  MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
+> index 6efed35..05c0d55 100644
+> --- a/drivers/media/tuners/mt2060.h
+> +++ b/drivers/media/tuners/mt2060.h
+> @@ -25,6 +25,26 @@
+>  struct dvb_frontend;
+>  struct i2c_adapter;
+>  
+> +/*
+> + * I2C address
+> + * 0x60, ...
+> + */
+> +
+> +/**
+> + * struct mt2060_platform_data - Platform data for the mt2060 driver
+> + * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
+> + * @if1: First IF used [MHz]. 0 defaults to 1220.
+> + * @dvb_frontend: DVB frontend.
+> + */
+> +
+> +struct mt2060_platform_data {
+> +	u8 clock_out;
+> +	u16 if1;
+> +	struct dvb_frontend *dvb_frontend;
+> +};
+> +
+> +
+> +/* configuration struct for mt2060_attach() */
+>  struct mt2060_config {
+>  	u8 i2c_address;
+>  	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+> diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
+> index 2b60de6..dfc4a06 100644
+> --- a/drivers/media/tuners/mt2060_priv.h
+> +++ b/drivers/media/tuners/mt2060_priv.h
+> @@ -95,6 +95,8 @@
+>  struct mt2060_priv {
+>  	struct mt2060_config *cfg;
+>  	struct i2c_adapter   *i2c;
+> +	struct i2c_client *client;
+> +	struct mt2060_config config;
+>  
+>  	u32 frequency;
+>  	u16 if1_freq;
