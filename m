@@ -1,127 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49321 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933204AbbKRQza (ORCPT
+Received: from mx6-phx2.redhat.com ([209.132.183.39]:56262 "EHLO
+	mx6-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754031AbbKRIPo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 11:55:30 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH 4/9] [media] tvp5150: fix standard autodetection
-Date: Wed, 18 Nov 2015 17:55:23 +0100
-Message-Id: <1447865728-5726-4-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
-References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+	Wed, 18 Nov 2015 03:15:44 -0500
+Received: from zmail13.collab.prod.int.phx2.redhat.com (zmail13.collab.prod.int.phx2.redhat.com [10.5.83.15])
+	by mx6-phx2.redhat.com (8.14.4/8.14.4) with ESMTP id tAI8Fi9L001616
+	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 03:15:44 -0500
+Date: Wed, 18 Nov 2015 03:15:43 -0500 (EST)
+From: Vladis Dronov <vdronov@redhat.com>
+To: linux-media@vger.kernel.org
+Message-ID: <950640373.15606385.1447834543953.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1447697814-18543-1-git-send-email-vdronov@redhat.com>
+References: <1445946694-2931-1-git-send-email-oneukum@suse.com> <1447697814-18543-1-git-send-email-vdronov@redhat.com>
+Subject: Re: [PATCH] usbvision fix overflow of interfaces array
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+An HTTP URL for the alternate patch mentioned:
 
-Make sure to not overwrite decoder->norm when setting the standard
-in hardware, but only when instructed by V4L2 API calls.
+http://www.spinics.net/lists/linux-media/msg94831.html
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 56 +++++++++++++++++++++++++--------------------
- 1 file changed, 31 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 21cde350e385..b943b9cc24c8 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -703,8 +703,6 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	struct tvp5150 *decoder = to_tvp5150(sd);
- 	int fmt = 0;
- 
--	decoder->norm = std;
--
- 	/* First tests should be against specific std */
- 
- 	if (std == V4L2_STD_NTSC_443) {
-@@ -741,13 +739,37 @@ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	else
- 		decoder->rect.height = TVP5150_V_MAX_OTHERS;
- 
-+	decoder->norm = std;
- 
- 	return tvp5150_set_std(sd, std);
- }
- 
-+static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
-+{
-+	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
-+
-+	switch (val & 0x0F) {
-+	case 0x01:
-+		return V4L2_STD_NTSC;
-+	case 0x03:
-+		return V4L2_STD_PAL;
-+	case 0x05:
-+		return V4L2_STD_PAL_M;
-+	case 0x07:
-+		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
-+	case 0x09:
-+		return V4L2_STD_NTSC_443;
-+	case 0xb:
-+		return V4L2_STD_SECAM;
-+	default:
-+		return V4L2_STD_UNKNOWN;
-+	}
-+}
-+
- static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- {
- 	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
- 
- 	/* Initializes TVP5150 to its default values */
- 	tvp5150_write_inittab(sd, tvp5150_init_default);
-@@ -783,7 +805,13 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 	/* Initialize image preferences */
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
--	tvp5150_set_std(sd, decoder->norm);
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	/* Disable autoswitch mode */
-+	tvp5150_set_std(sd, std);
- 	return 0;
- };
- 
-@@ -808,28 +836,6 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
--{
--	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
--
--	switch (val & 0x0F) {
--	case 0x01:
--		return V4L2_STD_NTSC;
--	case 0x03:
--		return V4L2_STD_PAL;
--	case 0x05:
--		return V4L2_STD_PAL_M;
--	case 0x07:
--		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
--	case 0x09:
--		return V4L2_STD_NTSC_443;
--	case 0xb:
--		return V4L2_STD_SECAM;
--	default:
--		return V4L2_STD_UNKNOWN;
--	}
--}
--
- static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_mbus_code_enum *code)
--- 
-2.6.2
-
+Best regards,
+Vladis Dronov | Red Hat, Inc. | Product Security Engineer
