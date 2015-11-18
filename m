@@ -1,73 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39772 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752488AbbK2TWr (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40831 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933230AbbKRQza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:47 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v2 22/22] media: Update media graph walk documentation for the changed API
-Date: Sun, 29 Nov 2015 21:20:23 +0200
-Message-Id: <1448824823-10372-23-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 18 Nov 2015 11:55:30 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH 8/9] [media] tvp5150: Add sync lock interrupt handling
+Date: Wed, 18 Nov 2015 17:55:27 +0100
+Message-Id: <1447865728-5726-8-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_entity_graph_walk_init() and media_entity_graph_walk_cleanup() are
-now mandatory.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This patch adds an optional interrupt handler to handle the sync
+lock interrupt and sync lock status.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- Documentation/media-framework.txt | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ drivers/media/i2c/tvp5150.c     | 103 ++++++++++++++++++++++++++++++++++++++--
+ drivers/media/i2c/tvp5150_reg.h |   2 +
+ 2 files changed, 100 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index b424de6..738a526 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -241,13 +241,22 @@ supported by the graph traversal API. To prevent infinite loops, the graph
- traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
- currently defined as 16.
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index abea26eb6fe0..9e006bf36e67 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -9,6 +9,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/delay.h>
++#include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
+ #include <linux/of_graph.h>
+@@ -44,12 +45,14 @@ struct tvp5150 {
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
++	int irq;
  
--Drivers initiate a graph traversal by calling
-+The graph traversal must be initialised calling
+ 	v4l2_std_id norm;	/* Current set standard */
+ 	v4l2_std_id detected_norm;
+ 	u32 input;
+ 	u32 output;
+ 	int enable;
++	bool lock;
+ };
+ 
+ static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
+@@ -716,6 +719,15 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	return 0;
+ }
+ 
++static int tvp5150_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
 +
-+	media_entity_graph_walk_init(struct media_entity_graph *graph);
++	*std = decoder->norm;
 +
-+The return value of the function must be checked. Should the number of
-+graph entities exceed the pre-allocated memory, it will also allocate
-+memory for the enumeration.
++	return 0;
++}
 +
-+Once initialised, the graph walk may be started by calling
+ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -758,14 +770,25 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
  
- 	media_entity_graph_walk_start(struct media_entity_graph *graph,
- 				      struct media_entity *entity);
- 
--The graph structure, provided by the caller, is initialized to start graph
--traversal at the given entity.
-+The graph structure, provided by the caller, is initialized to start
-+graph traversal at the given entity. It is possible to start the graph
-+walk multiple times using the same graph struct.
- 
- Drivers can then retrieve the next entity by calling
- 
-@@ -255,8 +264,11 @@ Drivers can then retrieve the next entity by calling
- 
- When the graph traversal is complete the function will return NULL.
- 
--Graph traversal can be interrupted at any moment. No cleanup function call is
--required and the graph structure can be freed normally.
-+Graph traversal can be interrupted at any moment. Once the graph
-+structure is no longer needed, the resources that have been allocated
-+by media_entity_graph_walk_init() are released using
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct regmap *map = decoder->regmap;
 +
-+	media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
  
- Helper functions can be used to find a link between two given pads, or a pad
- connected to another pad through an enabled link
+-	/* Configure pins: FID, VSYNC, GPCL/VBLK, SCLK */
+-	regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x2);
+-	/* Keep interrupt polarity active low */
+-	regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE);
+-	regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x0);
++	if (decoder->irq) {
++		/* Configure pins: FID, VSYNC, INTREQ, SCLK */
++		regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x0);
++		/* Set interrupt polarity to active high */
++		regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE | 0x1);
++		regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x1);
++	} else {
++		/* Configure pins: FID, VSYNC, GPCL/VBLK, SCLK */
++		regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x2);
++		/* Keep interrupt polarity active low */
++		regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE);
++		regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x0);
++	}
+ 
+ 	/* Initializes VDP registers */
+ 	tvp5150_vdp_init(sd, vbi_ram_default);
+@@ -776,6 +799,33 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	return 0;
+ }
+ 
++static irqreturn_t tvp5150_isr(int irq, void *dev_id)
++{
++	struct tvp5150 *decoder = dev_id;
++	struct regmap *map = decoder->regmap;
++	unsigned int active = 0, status = 0;
++
++	regmap_read(map, TVP5150_INT_STATUS_REG_A, &status);
++	if (status) {
++		regmap_write(map, TVP5150_INT_STATUS_REG_A, status);
++
++		if (status & TVP5150_INT_A_LOCK)
++			decoder->lock = !!(status & TVP5150_INT_A_LOCK_STATUS);
++
++		return IRQ_HANDLED;
++	}
++
++	regmap_read(map, TVP5150_INT_ACTIVE_REG_B, &active);
++	if (active) {
++		status = 0;
++		regmap_read(map, TVP5150_INT_STATUS_REG_B, &status);
++		if (status)
++			regmap_write(map, TVP5150_INT_RESET_REG_B, status);
++	}
++
++	return IRQ_HANDLED;
++}
++
+ static int tvp5150_enable(struct v4l2_subdev *sd)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -939,6 +989,35 @@ static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	return 0;
+ }
+ 
++static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
++
++	if (enable) {
++		/* Enable YUV(OUT7:0), clock */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd,
++			(decoder->bus_type == V4L2_MBUS_BT656) ? 0x9 : 0xd);
++		if (decoder->irq) {
++			/* Enable lock interrupt */
++			regmap_update_bits(decoder->regmap,
++					   TVP5150_INT_ENABLE_REG_A,
++					   TVP5150_INT_A_LOCK,
++					   TVP5150_INT_A_LOCK);
++		}
++	} else {
++		/* Disable YUV(OUT7:0), SYNC, clock */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd, 0x0);
++		if (decoder->irq) {
++			/* Disable lock interrupt */
++			regmap_update_bits(decoder->regmap,
++					   TVP5150_INT_ENABLE_REG_A,
++					   TVP5150_INT_A_LOCK, 0);
++		}
++	}
++
++	return 0;
++}
++
+ static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -1239,9 +1318,11 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
+ 
+ static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+ 	.s_std = tvp5150_s_std,
++	.g_std = tvp5150_g_std,
+ 	.s_routing = tvp5150_s_routing,
+ 	.s_crop = tvp5150_s_crop,
+ 	.g_crop = tvp5150_g_crop,
++	.s_stream = tvp5150_s_stream,
+ 	.cropcap = tvp5150_cropcap,
+ };
+ 
+@@ -1442,7 +1523,19 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	}
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
++	core->irq = c->irq;
+ 	tvp5150_reset(sd, 0);
++
++	if (c->irq) {
++		res = devm_request_threaded_irq(&c->dev, c->irq, NULL,
++				tvp5150_isr, IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
++				"tvp5150", core);
++		if (res)
++			return res;
++	} else {
++		core->lock = true;
++	}
++
+ 	/* Default is no cropping */
+ 	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
+diff --git a/drivers/media/i2c/tvp5150_reg.h b/drivers/media/i2c/tvp5150_reg.h
+index fc3bcb26413a..282a8a852e45 100644
+--- a/drivers/media/i2c/tvp5150_reg.h
++++ b/drivers/media/i2c/tvp5150_reg.h
+@@ -115,6 +115,8 @@
+ #define TVP5150_TELETEXT_FIL_ENA    0xbb /* Teletext filter enable */
+ /* Reserved	BCh-BFh */
+ #define TVP5150_INT_STATUS_REG_A    0xc0 /* Interrupt status register A */
++#define   TVP5150_INT_A_LOCK_STATUS BIT(7)
++#define   TVP5150_INT_A_LOCK        BIT(6)
+ #define TVP5150_INT_ENABLE_REG_A    0xc1 /* Interrupt enable register A */
+ #define TVP5150_INT_CONF            0xc2 /* Interrupt configuration */
+ #define   TVP5150_VDPOE             BIT(2)
 -- 
-2.1.4
+2.6.2
 
