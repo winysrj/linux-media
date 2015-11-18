@@ -1,118 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:34560 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbbKPVS3 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34687 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933205AbbKRQza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 16:18:29 -0500
-Received: by wmvv187 with SMTP id v187so197787601wmv.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 13:18:28 -0800 (PST)
-Subject: Re: [PATCH 8/8] media: rc: define RC_BIT_ALL as ~0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <201511170448.dNasi5Xw%fengguang.wu@intel.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <564A47DE.4020204@gmail.com>
-Date: Mon, 16 Nov 2015 22:17:18 +0100
-MIME-Version: 1.0
-In-Reply-To: <201511170448.dNasi5Xw%fengguang.wu@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Nov 2015 11:55:30 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH 5/9] [media] tvp5150: split reset/enable routine
+Date: Wed, 18 Nov 2015 17:55:24 +0100
+Message-Id: <1447865728-5726-5-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 16.11.2015 um 21:47 schrieb kbuild test robot:
-> Hi Heiner,
-> 
-> [auto build test WARNING on linuxtv-media/master]
-> [also build test WARNING on v4.4-rc1 next-20151116]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Heiner-Kallweit/media-rc-fix-decoder-module-unloading/20151117-035809
-> base:   git://linuxtv.org/media_tree.git master
-> config: parisc-allmodconfig (attached as .config)
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=parisc 
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    In file included from include/media/rc-core.h:23:0,
->                     from drivers/media/pci/cx23885/cx23885-input.c:34:
->    drivers/media/pci/cx23885/cx23885-input.c: In function 'cx23885_input_init':
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->>> drivers/media/pci/cx23885/cx23885-input.c:289:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->    drivers/media/pci/cx23885/cx23885-input.c:303:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->    drivers/media/pci/cx23885/cx23885-input.c:310:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->    drivers/media/pci/cx23885/cx23885-input.c:318:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->    drivers/media/pci/cx23885/cx23885-input.c:330:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
->>> include/media/rc-map.h:57:21: warning: large integer implicitly truncated to unsigned type [-Woverflow]
->     #define RC_BIT_ALL  ~RC_BIT_NONE
->                         ^
->    drivers/media/pci/cx23885/cx23885-input.c:336:20: note: in expansion of macro 'RC_BIT_ALL'
->       allowed_protos = RC_BIT_ALL;
->                        ^
-> 
-> vim +57 include/media/rc-map.h
-> 
->     41	#define RC_BIT_RC5_SZ		(1ULL << RC_TYPE_RC5_SZ)
->     42	#define RC_BIT_JVC		(1ULL << RC_TYPE_JVC)
->     43	#define RC_BIT_SONY12		(1ULL << RC_TYPE_SONY12)
->     44	#define RC_BIT_SONY15		(1ULL << RC_TYPE_SONY15)
->     45	#define RC_BIT_SONY20		(1ULL << RC_TYPE_SONY20)
->     46	#define RC_BIT_NEC		(1ULL << RC_TYPE_NEC)
->     47	#define RC_BIT_SANYO		(1ULL << RC_TYPE_SANYO)
->     48	#define RC_BIT_MCE_KBD		(1ULL << RC_TYPE_MCE_KBD)
->     49	#define RC_BIT_RC6_0		(1ULL << RC_TYPE_RC6_0)
->     50	#define RC_BIT_RC6_6A_20	(1ULL << RC_TYPE_RC6_6A_20)
->     51	#define RC_BIT_RC6_6A_24	(1ULL << RC_TYPE_RC6_6A_24)
->     52	#define RC_BIT_RC6_6A_32	(1ULL << RC_TYPE_RC6_6A_32)
->     53	#define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
->     54	#define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
->     55	#define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
->     56	
->   > 57	#define RC_BIT_ALL		~RC_BIT_NONE
->     58	
->     59	#define RC_SCANCODE_UNKNOWN(x)			(x)
->     60	#define RC_SCANCODE_OTHER(x)			(x)
->     61	#define RC_SCANCODE_NEC(addr, cmd)		(((addr) << 8) | (cmd))
->     62	#define RC_SCANCODE_NECX(addr, cmd)		(((addr) << 8) | (cmd))
->     63	#define RC_SCANCODE_NEC32(data)			((data) & 0xffffffff)
->     64	#define RC_SCANCODE_RC5(sys, cmd)		(((sys) << 8) | (cmd))
->     65	#define RC_SCANCODE_RC5_SZ(sys, cmd)		(((sys) << 8) | (cmd))
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> 
-To me this seems to be a bug in cx23885.
-Variable allowed_protos should be of type u64 instead of unsigned long
-because its value later is assigned to rc->allowed_protocols which is
-of type u64.
-If you agree I'd send a patch.
+From: Philipp Zabel <p.zabel@pengutronix.de>
+
+To trigger standard autodetection only the reset part of the routine
+is necessary. Split this out to make it callable on its own.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index b943b9cc24c8..b6328353404f 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -768,9 +768,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+ 
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
+-	struct tvp5150 *decoder = to_tvp5150(sd);
+-	v4l2_std_id std;
+-
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
+ 
+@@ -780,6 +777,14 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Selects decoder input */
+ 	tvp5150_selmux(sd);
+ 
++	return 0;
++}
++
++static int tvp5150_enable(struct v4l2_subdev *sd)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
+ 	/* Initializes TVP5150 to stream enabled values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_enable);
+ 
+@@ -844,6 +849,7 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++
+ 	return 0;
+ }
+ 
+@@ -1166,8 +1172,10 @@ static int tvp5150_set_format(struct v4l2_subdev *sd,
+ 
+ 	format->format = *mbus_format;
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+ 		tvp5150_reset(sd, 0);
++		tvp5150_enable(sd);
++	}
+ 
+ 	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
+ 			mbus_format->height);
+@@ -1431,6 +1439,7 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	}
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
++	tvp5150_reset(sd, 0);
+ 	/* Default is no cropping */
+ 	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
+-- 
+2.6.2
 
