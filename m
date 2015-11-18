@@ -1,113 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:33032 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303AbbKDJtM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Nov 2015 04:49:12 -0500
-Received: by obbww6 with SMTP id ww6so8929128obb.0
-        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2015 01:49:12 -0800 (PST)
-Received: from mail-oi0-f54.google.com (mail-oi0-f54.google.com. [209.85.218.54])
-        by smtp.gmail.com with ESMTPSA id e3sm153699obv.12.2015.11.04.01.49.10
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 04 Nov 2015 01:49:10 -0800 (PST)
-Received: by oifu63 with SMTP id u63so25246425oif.2
-        for <linux-media@vger.kernel.org>; Wed, 04 Nov 2015 01:49:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20151104092748.GI8644@n2100.arm.linux.org.uk>
-References: <cover.1443718557.git.robin.murphy@arm.com> <ab8e1caa40d6da1afa4a49f30242ef4e6e1f17df.1443718557.git.robin.murphy@arm.com>
- <1445867094.30736.14.camel@mhfsdcap03> <562E5AE4.9070001@arm.com>
- <CAGS+omAWCQsqk56iv0PW2ZhTJ1342GufUsJCP=VYSgCxZNLJpA@mail.gmail.com>
- <56337E4D.1010304@arm.com> <CAGS+omAmxbb4uVzaQh1xPmkFtcF6KP-HSV-40=sm1BRTdh+=OQ@mail.gmail.com>
- <CAAFQd5C_dkWBZrQXtyO59ARw7q-0fg-Wk98yApC5VHdQ8-AmNw@mail.gmail.com>
- <5638F1C4.3000900@arm.com> <CAAFQd5A4TcvkDMFezqEpkfWL+7yO2v=Hm=twk=p-NpADPpvqEQ@mail.gmail.com>
- <20151104092748.GI8644@n2100.arm.linux.org.uk>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Wed, 4 Nov 2015 18:48:50 +0900
-Message-ID: <CAAFQd5ApSFC6Pm4tDhZbJOVZ7szCx=diKUtGXq=M9a5Y_4qzOQ@mail.gmail.com>
-Subject: Re: [PATCH v6 1/3] iommu: Implement common IOMMU ops for DMA mapping
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Robin Murphy <robin.murphy@arm.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Joerg Roedel <joro@8bytes.org>,
-	Will Deacon <will.deacon@arm.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Yong Wu <yong.wu@mediatek.com>,
-	"open list:IOMMU DRIVERS" <iommu@lists.linux-foundation.org>,
-	"Bobby Batacharia (via Google Docs)" <Bobby.Batacharia@arm.com>,
-	linux-mediatek@lists.infradead.org,
-	Lin PoChun <pochun.lin@mediatek.com>,
-	thunder.leizhen@huawei.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	Thierry Reding <treding@nvidia.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45373 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933197AbbKRQza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2015 11:55:30 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH 3/9] [media] tvp5150: determine BT.656 or YUV 4:2:2 mode from device tree
+Date: Wed, 18 Nov 2015 17:55:22 +0100
+Message-Id: <1447865728-5726-3-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 4, 2015 at 6:27 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Wed, Nov 04, 2015 at 02:12:03PM +0900, Tomasz Figa wrote:
->> My understanding of a scatterlist was that it represents a buffer as a
->> whole, by joining together its physically discontinuous segments.
->
-> Correct, and it may also be scattered in CPU virtual space as well.
->
->> I don't see how single segments (layout of which is completely up to
->> the allocator; often just single pages) would be usable for hardware
->> that needs to do some work more serious than just writing a byte
->> stream continuously to subsequent buffers. In case of such simple
->> devices you don't even need an IOMMU (for means other than protection
->> and/or getting over address space limitations).
->
-> All that's required is that the addresses described in the scatterlist
-> are accessed as an apparently contiguous series of bytes.  They don't
-> have to be contiguous in any address view, provided the device access
-> appears to be contiguous.  How that is done is really neither here nor
-> there.
->
-> IOMMUs are normally there as an address translator - for example, the
-> underlying device may not have the capability to address a scatterlist
-> (eg, because it makes effectively random access) and in order to be
-> accessible to the device, it needs to be made contiguous in device
-> address space.
->
-> Another scenario is that you have more bits of physical address than
-> a device can generate itself for DMA purposes, and you need an IOMMU
-> to create a (possibly scattered) mapping in device address space
-> within the ability of the device to address.
->
-> The requirements here depend on the device behind the IOMMU.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-I fully agree with you.
+By looking at the endpoint flags, it can be determined whether the link
+should be of V4L2_MBUS_PARALLEL or V4L2_MBUS_BT656 type. Disable the
+dedicated HSYNC/VSYNC outputs in BT.656 mode.
 
-The problem is that the code being discussed here breaks the case of
-devices that don't have the capability of addressing a scatterlist,
-supposedly for the sake of devices that have such capability (but as I
-suggested, they both could be happily supported, by distinguishing
-special values of DMA max segment size and boundary mask).
+For devices that are not instantiated through DT the current behavior
+is preserved.
 
->> However, IMHO the most important use case of an IOMMU is to make
->> buffers, which are contiguous in CPU virtual address space (VA),
->> contiguous in device's address space (IOVA).
->
-> No - there is no requirement for CPU virtual contiguous buffers to also
-> be contiguous in the device address space.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 34 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
-There is no requirement, but shouldn't it be desired for the mapping
-code to map them as such? Otherwise, how could the IOMMU use case you
-described above (address translator for devices which don't have the
-capability to address a scatterlist) be handled properly?
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 8670b478dcd6..21cde350e385 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -11,10 +11,12 @@
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
++#include <linux/of_graph.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/tvp5150.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
+ 
+ #include "tvp5150_reg.h"
+ 
+@@ -38,6 +40,7 @@ struct tvp5150 {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
++	enum v4l2_mbus_type bus_type;
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
+@@ -424,8 +427,6 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
+ 		TVP5150_MISC_CTL, 0x6f
+ 	},{	/* Activates video std autodetection for all standards */
+ 		TVP5150_AUTOSW_MSK, 0x0
+-	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
+-		TVP5150_DATA_RATE_SEL, 0x47
+ 	},{
+ 		TVP5150_CHROMA_PROC_CTL_1, 0x0c
+ 	},{
+@@ -760,6 +761,25 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Initializes TVP5150 to stream enabled values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_enable);
+ 
++	switch (decoder->bus_type) {
++	case V4L2_MBUS_BT656:
++		/* 8-bit ITU BT.656 */
++		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
++				   0x7, 0x7);
++		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
++		break;
++	case V4L2_MBUS_PARALLEL:
++		/* 8-bit YUV 4:2:2 */
++		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
++				   0x7, 0x0);
++		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	/* Initialize image preferences */
+ 	v4l2_ctrl_handler_setup(&decoder->hdl);
+ 
+@@ -1315,6 +1335,8 @@ static struct regmap_config tvp5150_config = {
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
++	struct v4l2_of_endpoint bus_cfg;
++	struct device_node *endpoint;
+ 	struct tvp5150 *core;
+ 	struct v4l2_subdev *sd;
+ 	struct regmap *map;
+@@ -1375,6 +1397,14 @@ static int tvp5150_probe(struct i2c_client *c,
+ 		}
+ 	}
+ 
++	endpoint = of_graph_get_next_endpoint(c->dev.of_node, NULL);
++	if (endpoint) {
++		v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++		core->bus_type = bus_cfg.bus_type;
++	} else {
++		core->bus_type = V4L2_MBUS_BT656;
++	}
++
+ 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+ 	core->input = TVP5150_COMPOSITE1;
+ 	core->enable = 1;
+-- 
+2.6.2
 
-Is the general conclusion now that dma_map_sg() should not be used to
-create IOMMU mappings and we should make a step backwards making all
-drivers (or frameworks, such as videobuf2) do that manually? That
-would be really backwards, because code not aware of IOMMU existence
-at all would have to become aware of it.
-
-Best regards,
-Tomasz
