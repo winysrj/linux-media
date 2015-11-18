@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f179.google.com ([209.85.213.179]:32984 "EHLO
-	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbbKTQOy (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:34771 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933311AbbKRQSy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:14:54 -0500
-Received: by igvi2 with SMTP id i2so35937893igv.0
-        for <linux-media@vger.kernel.org>; Fri, 20 Nov 2015 08:14:53 -0800 (PST)
+	Wed, 18 Nov 2015 11:18:54 -0500
+Received: by wmvv187 with SMTP id v187so286473594wmv.1
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 08:18:53 -0800 (PST)
+Subject: Re: [BUG] TechniSat SkyStar S2 - problem tuning DVB-S2 channels
+To: Robert <wslegend@web.de>, linux-media@vger.kernel.org
+References: <564C9355.1090203@web.de>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <564CA4EB.60400@gmail.com>
+Date: Wed, 18 Nov 2015 16:18:51 +0000
 MIME-Version: 1.0
-In-Reply-To: <564F346B.3090504@xs4all.nl>
-References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
-	<564ADD04.90700@xs4all.nl>
-	<CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
-	<564F346B.3090504@xs4all.nl>
-Date: Fri, 20 Nov 2015 18:14:53 +0200
-Message-ID: <CAJ2oMhLWHCNxDmwOnwBxPdjjqbcO6Q2khBrzohMET=LsQ_AQjg@mail.gmail.com>
-Subject: Re: cobalt & dma
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <564C9355.1090203@web.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>
->> 1. I tried to understand the code implementation of videobuf2 with
->> regards to read():
->> read() ->
->>     vb2_read() ->
->>           __vb2_perform_fileio()->
->>              vb2_internal_dqbuf() &  copy_to_user()
->>
->> Where is the actual allocation of dma contiguous memory ? Is done with
->> the userspace calloc() call in userspace (as shown in the v4l2 API
->> example) ? As I understand the calloc/malloc are not guaranteed to be
->> contiguous.
->>      How do I know if the try to allocate contigious memory has failed or not ?
+Hi Robert,
+
+On 18/11/15 15:03, Robert wrote:
+> Hello,
 >
-> The actual allocation happens in videobuf2-vmalloc/dma-contig/dma-sg depending
-> on the flavor of buffers you want (virtual memory, DMA into physically contiguous
-> memory or DMA into scatter-gather memory). The alloc operation is the one that
-> allocates the memory.
+> I am using a "TechniSat SkyStar S2" DVB-S2 card. Drivers for this card
+> are included in the kernel tree since 4.2. Unfortunately, i can't tune
+> to ANY DVB-S2 channels with this new in-tree driver. DVB-S channels are
+> working fine. Id[1] of the commit which introduced support for this card.
+>
+> Before 4.2 arrived i have used this[2] patch with which DVB-S2 channels
+> where tuneable without any problems. This patch works even with 4.3
+> after i have converted the fe_ structs to enums.
+>
+> If you need anything to debug this behaviour, i will be at your disposal.
+>
+>
 
+What program are you using to try and tune? Is it trying to tune in 
+using DVB-S2? The "other" driver was done quite some while ago, and 
+included some clunky code to fallback to S2 if DVB-S tuning failed as it 
+was developed before the DVB API had support for supplying DVB-S2 as a 
+delivery system and this was the only way of supporting S2 back then.
+This was removed in the in-tree driver as it isn't needed anymore, but 
+this does mean that the tuning program needs to supply the correct 
+delivery system.
 
-Thank you very much for the time.
+Have you tried it with dvbv5-scan & dvbv5-zap?
 
-Just to be sure I understand the general mechanism of DMA with regards
-to the read() operation and in the case of using contiguous memory,
-I try to draw the general sequence as I understand it from the code
-and reading on this issue:
+Regards,
 
-read() into user memory buffer ->
-          vb2_read() ->
-                __vb2_perform_fileio() ->
-                        deaque buffer with:  vb2_internal_dqbuf() into
-contiguous DMA memory (kernel)  ->
-                               copy_to_user() will actually copy from
-the contigious dma memory(kernel)  into user buffer (userspace)
-
-1. Is the above sequence  correct ?
-2. When talking about contiguous dma memory (or scatter-gatther) we
-actually always refer to memory allocated in kernel, right ?
-
-Best Regards,
-
-Ran
+Jemma
