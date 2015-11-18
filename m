@@ -1,141 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:33020 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870AbbKFRgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Nov 2015 12:36:11 -0500
-Received: by pabfh17 with SMTP id fh17so128852645pab.0
-        for <linux-media@vger.kernel.org>; Fri, 06 Nov 2015 09:36:10 -0800 (PST)
-Message-ID: <1446831368.20743.7.camel@gmail.com>
-Subject: Re: PVR-250 Composite 3 unavailable [Re: ivtv driver]
-From: Warren Sturm <warren.sturm@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	andy <andy@silverblocksystems.net>
-Date: Fri, 06 Nov 2015 10:36:08 -0700
-In-Reply-To: <77A58399-549F-4A8A-8F87-8F40B7756D3A@md.metrocast.net>
-References: <1445901232.9389.2.camel@gmail.com>
-	 <77A58399-549F-4A8A-8F87-8F40B7756D3A@md.metrocast.net>
-Content-Type: multipart/mixed; boundary="=-ILKHnyw5Qz79jZapJqQq"
-Mime-Version: 1.0
+Received: from mail-lb0-f181.google.com ([209.85.217.181]:36014 "EHLO
+	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755776AbbKRTjU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2015 14:39:20 -0500
+Received: by lbblt2 with SMTP id lt2so30929275lbb.3
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 11:39:18 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <564CCCA1.6010808@web.de>
+References: <564C9355.1090203@web.de>
+	<564CA4EB.60400@gmail.com>
+	<564CCCA1.6010808@web.de>
+Date: Wed, 18 Nov 2015 20:39:18 +0100
+Message-ID: <CAOEt8JJxi5kzjWxzuPzfr43NR5p+Fk0+VkqeDsBB2JEq2isgMg@mail.gmail.com>
+Subject: Re: [BUG] TechniSat SkyStar S2 - problem tuning DVB-S2 channels
+From: David Jedelsky <david.jedelsky@gmail.com>
+To: Robert <wslegend@web.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Robert,
 
---=-ILKHnyw5Qz79jZapJqQq
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I'm not sure whether it helps, but if your card is based on az6027, as
+is my USB TechniSat SkyStar 2 HD CI, then attached patch could be
+helpful. I had to create it to get DVB-S2 working on my device.
+http://djed.cz/az6027-i2c.patch
 
-On Mon, 2015-10-26 at 19:49 -0400, Andy Walls wrote:
-> On October 26, 2015 7:13:52 PM EDT, Warren Sturm <
-> warren.sturm@gmail.com> wrote:
-> > Hi Andy.
-> > 
-> > I don't know whether this was intended but the pvr250 lost the
-> > composite 3 input when going from kernel version 4.1.10 to 4.2.3.
-> > 
-> > This is on a Fedora 22 x86_64 system.
-> > 
-> > 
-> > Thanks for any insight.
-> 
-> Unintentional.
-> 
-> I'm guessing this commit was the problem:
-> 
-> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/drivers/media/p
-> ci/ivtv/ivtv-driver.c?id=09290cc885937cab3b2d60a6d48fe3d2d3e04061
-> 
-> Could you confirm?
-> 
-> R,
-> Andy
+Regards,
+David
 
-Ok.  I rebuilt the SRPM for kernel-4.2.5-201 with the patch reverted
-and installed it.
+PS: trying to send once more with link instead of attachment (as
+linuxmedia list rejected my previous mail)
 
-uname -a
-Linux wrs 4.2.5-201.fc22.x86_64 #1 SMP Fri Nov 6 00:13:17 MST 2015 x86_64 x86_64 x86_64 GNU/Linux
-
-Attached are the v4l2-ctl --list-inputs for the respective kernels.
-
-Hope this is sufficient confirmation.
-
-
-
-
---=-ILKHnyw5Qz79jZapJqQq
-Content-Disposition: attachment; filename="pvr250-inputs-kern-4.2.5-post-patch-reversal"
-Content-Type: text/plain; name="pvr250-inputs-kern-4.2.5-post-patch-reversal";
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
-VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgw
-MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
-IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
-MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
-IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
-dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
-ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
-MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
-IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
-MHgwMDAwMDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
-RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
-ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
-MDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
-KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA1CglOYW1lICAgIDog
-Q29tcG9zaXRlIDMKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAwMDAwNwoJ
-VHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYgKCBQQUwg
-TlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
-
-
---=-ILKHnyw5Qz79jZapJqQq
-Content-Disposition: attachment; filename="pvr250-inputs-kern-4.2.5"
-Content-Type: text/plain; name="pvr250-inputs-kern-4.2.5"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
-VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgw
-MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
-IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
-MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
-IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
-dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
-ZGlvc2V0OiAweDAwMDAwMDAzCglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
-MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
-IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
-MHgwMDAwMDAwMwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
-RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
-ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
-MDAwMwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
-KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
-
-
---=-ILKHnyw5Qz79jZapJqQq
-Content-Disposition: attachment; filename="pvr250-inputs-kern-4.1.10"
-Content-Type: text/plain; name="pvr250-inputs-kern-4.1.10"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-aW9jdGw6IFZJRElPQ19FTlVNSU5QVVQKCUlucHV0ICAgOiAwCglOYW1lICAgIDogVHVuZXIgMQoJ
-VHlwZSAgICA6IDB4MDAwMDAwMDEKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgw
-MDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAwMDAwMDAwMDAwMTAwMCAoIE5UU0MgKQoJU3RhdHVzICA6
-IDAKCglJbnB1dCAgIDogMQoJTmFtZSAgICA6IFMtVmlkZW8gMQoJVHlwZSAgICA6IDB4MDAwMDAw
-MDIKCUF1ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6
-IDB4MDAwMDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5w
-dXQgICA6IDIKCU5hbWUgICAgOiBDb21wb3NpdGUgMQoJVHlwZSAgICA6IDB4MDAwMDAwMDIKCUF1
-ZGlvc2V0OiAweDAwMDAwMDA3CglUdW5lciAgIDogMHgwMDAwMDAwMAoJU3RhbmRhcmQ6IDB4MDAw
-MDAwMDAwMEZGRkZGRiAoIFBBTCBOVFNDIFNFQ0FNICkKCVN0YXR1cyAgOiAwCgoJSW5wdXQgICA6
-IDMKCU5hbWUgICAgOiBTLVZpZGVvIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDog
-MHgwMDAwMDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBG
-RkZGRkYgKCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA0CglOYW1l
-ICAgIDogQ29tcG9zaXRlIDIKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAw
-MDAwNwoJVHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYg
-KCBQQUwgTlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAoKCUlucHV0ICAgOiA1CglOYW1lICAgIDog
-Q29tcG9zaXRlIDMKCVR5cGUgICAgOiAweDAwMDAwMDAyCglBdWRpb3NldDogMHgwMDAwMDAwNwoJ
-VHVuZXIgICA6IDB4MDAwMDAwMDAKCVN0YW5kYXJkOiAweDAwMDAwMDAwMDBGRkZGRkYgKCBQQUwg
-TlRTQyBTRUNBTSApCglTdGF0dXMgIDogMAo=
-
-
---=-ILKHnyw5Qz79jZapJqQq--
-
+On Wed, Nov 18, 2015 at 8:08 PM, Robert <wslegend@web.de> wrote:
+> Hi Jemma,
+>
+> On 18.11.2015 17:18, Jemma Denson wrote:
+>> What program are you using to try and tune? Is it trying to tune in
+>> using DVB-S2? The "other" driver was done quite some while ago, and
+>> included some clunky code to fallback to S2 if DVB-S tuning failed as it
+>> was developed before the DVB API had support for supplying DVB-S2 as a
+>> delivery system and this was the only way of supporting S2 back then.
+>> This was removed in the in-tree driver as it isn't needed anymore, but
+>> this does mean that the tuning program needs to supply the correct
+>> delivery system.
+>>
+>> Have you tried it with dvbv5-scan & dvbv5-zap?
+>
+> Normally i'm using kaffeine, but i have tried dvbv5-scan now.
+> Unfortunately it segfaults. I have attached the full output including
+> the backtrace [1]
+>
+>
+> Greetings,
+> Robert
+>
+>
+> [1]
+> https://paste.linuxlounge.net/?c3886ef444f9aa37#2ah2g19a9CfJMA/pBDikwoWj7S4AG2slhacWjXy8jEo=
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
