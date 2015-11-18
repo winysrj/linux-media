@@ -1,125 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40548 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758267AbbKSKek (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37819 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719AbbKRS2d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 05:34:40 -0500
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-To: Arnd Bergmann <arnd@arndb.de>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <6347063.Gd6coh6hX8@wuerfel> <564C8E1F.8010501@ti.com>
- <6358656.jIv3GGCCXu@wuerfel>
-CC: Vinod Koul <vinod.koul@intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	<dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <564DA5AE.3060608@ti.com>
-Date: Thu, 19 Nov 2015 12:34:22 +0200
+	Wed, 18 Nov 2015 13:28:33 -0500
+Received: by wmww144 with SMTP id w144so84552541wmw.0
+        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 10:28:31 -0800 (PST)
+Message-ID: <564CC34C.3060903@gmail.com>
+Date: Wed, 18 Nov 2015 19:28:28 +0100
+From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <6358656.jIv3GGCCXu@wuerfel>
-Content-Type: text/plain; charset="windows-1252"
+To: Christoph Hellwig <hch@lst.de>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: cx23885: use pci_set_dma_mask insted of pci_dma_supported
+References: <20151112175329.6ccc66f3@recife.lan> <20151118092156.762dc600@recife.lan> <564C841E.1050601@gmail.com> <20151118150802.GA20457@lst.de> <564CA89F.4030306@gmail.com>
+In-Reply-To: <564CA89F.4030306@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/18/2015 05:07 PM, Arnd Bergmann wrote:
-> On Wednesday 18 November 2015 16:41:35 Peter Ujfalusi wrote:
->> On 11/18/2015 04:29 PM, Arnd Bergmann wrote:
->>> On Wednesday 18 November 2015 16:21:26 Peter Ujfalusi wrote:
->>>> 2. non slave channel requests, where only the functionality matters, like
->>>> memcpy, interleaved, memset, etc.
->>>> We could have a simple:
->>>> dma_request_channel(mask);
->>>>
->>>> But looking at the drivers using dmaengine legacy dma_request_channel() API:
->>>> Some sets DMA_INTERRUPT or DMA_PRIVATE or DMA_SG along with DMA_SLAVE:
->>>> drivers/misc/carma/carma-fpga.c                 DMA_INTERRUPT|DMA_SLAVE|DMA_SG
->>>> drivers/misc/carma/carma-fpga-program.c         DMA_MEMCPY|DMA_SLAVE|DMA_SG
->>>> drivers/media/platform/soc_camera/mx3_camera.c  DMA_SLAVE|DMA_PRIVATE
->>>> sound/soc/intel/common/sst-firmware.c           DMA_SLAVE|DMA_MEMCPY
->>>>
->>>> as examples.
->>>> Not sure how valid are these...
-> 
-> I just had a look myself. carma has been removed fortunately in linux-next,
-> so we don't have to worry about that any more.
-> 
-> I assume that the sst-firmware.c case is a mistake, it should just use a
-> plain DMA_SLAVE and not DMA_MEMCPY.
-> 
-> Aside from these, everyone else uses either DMA_CYCLIC in addition to
-> DMA_SLAVE, which seems valid, or they use DMA_PRIVATE, which I think is
-> redundant in slave drivers and can be removed.
+Hi Christoph,
+that additional patch fixed the problem indeed.
+Thanks again.
 
-Yep, CYCLIC. How could I forgot that ;)
+Regards, Tycho
 
->>> It's usually not much harder to separate out the legacy case from
->>> the normal dma_request_slave_channel_reason(), so those drivers don't
->>> really need to use the unified compat API.
+Op 18-11-15 om 17:34 schreef Tycho Lürsen:
+> Hi Christoph,
+> thanks, will do and report back shortly.
+>
+> Op 18-11-15 om 16:08 schreef Christoph Hellwig:
+>> Hi Tycho,
 >>
->> The current dma_request_slave_channel()/_reason() is not the 'legacy' API.
->> Currently there is no way to get the reason why the dma channel request fails
->> when using the _compat() version of the API, which is used by drivers which
->> can be used in DT or in legacy mode as well. Sure, they all could have local
->> if(){}else{} for handling this, but it is not a nice thing.
+>> please try the patch below - Andrew should be sending it on to Linux 
+>> soon.
 >>
->> As it was discussed instead of adding the _reason() version for the _compat
->> call, we should simplify the dmaengine API for getting the channel and at the
->> same time we will have ERR_PTR returned instead of NULL.
-> 
-> What I meant was that we don't need to handle them with the unified
-> simple interface. The users of DMA_CYCLIC can just keep using
-> an internal helper that only deals with the legacy case, or use
-> dma_request_slave() or whatever is the new API for the DT case.
+>> ---
+>>  From 4c03a9f77104b04af45833e0424954191ca94a12 Mon Sep 17 00:00:00 2001
+>> From: Christoph Hellwig <hch@lst.de>
+>> Date: Wed, 11 Nov 2015 18:13:09 +0100
+>> Subject: various: fix pci_set_dma_mask return value checking
+>>
+>> pci_set_dma_mask returns a negative errno value, not a bool
+>> like pci_dma_supported.  This of course was just a giant test
+>> for attention :)
+>>
+>> Reported-by: Jongman Heo <jongman.heo@samsung.com>
+>> Tested-by: Jongman Heo <jongman.heo@samsung.com> [pcnet32]
+>> Signed-off-by: Christoph Hellwig <hch@lst.de>
+>> ---
+>>   drivers/media/pci/cx23885/cx23885-core.c           | 4 ++--
+>>   drivers/media/pci/cx25821/cx25821-core.c           | 3 ++-
+>>   drivers/media/pci/cx88/cx88-alsa.c                 | 4 ++--
+>>   drivers/media/pci/cx88/cx88-mpeg.c                 | 3 ++-
+>>   drivers/media/pci/cx88/cx88-video.c                | 4 ++--
+>>   drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
+>>   drivers/media/pci/saa7134/saa7134-core.c           | 4 ++--
+>>   drivers/media/pci/saa7164/saa7164-core.c           | 4 ++--
+>>   drivers/media/pci/tw68/tw68-core.c                 | 4 ++--
+>>   drivers/net/ethernet/amd/pcnet32.c                 | 5 +++--
+>>   10 files changed, 20 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/media/pci/cx23885/cx23885-core.c 
+>> b/drivers/media/pci/cx23885/cx23885-core.c
+>> index 35759a9..e8f8472 100644
+>> --- a/drivers/media/pci/cx23885/cx23885-core.c
+>> +++ b/drivers/media/pci/cx23885/cx23885-core.c
+>> @@ -1992,9 +1992,9 @@ static int cx23885_initdev(struct pci_dev 
+>> *pci_dev,
+>>           (unsigned long long)pci_resource_start(pci_dev, 0));
+>>         pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+>> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
+>> +    if (err) {
+>>           printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+>> -        err = -EIO;
+>>           goto fail_context;
+>>       }
+>>   diff --git a/drivers/media/pci/cx25821/cx25821-core.c 
+>> b/drivers/media/pci/cx25821/cx25821-core.c
+>> index dbc695f..0042803 100644
+>> --- a/drivers/media/pci/cx25821/cx25821-core.c
+>> +++ b/drivers/media/pci/cx25821/cx25821-core.c
+>> @@ -1319,7 +1319,8 @@ static int cx25821_initdev(struct pci_dev 
+>> *pci_dev,
+>>           dev->pci_lat, (unsigned long long)dev->base_io_addr);
+>>         pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+>> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
+>> +    if (err) {
+>>           pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+>>           err = -EIO;
+>>           goto fail_irq;
+>> diff --git a/drivers/media/pci/cx88/cx88-alsa.c 
+>> b/drivers/media/pci/cx88/cx88-alsa.c
+>> index 0ed1b65..1b5268f 100644
+>> --- a/drivers/media/pci/cx88/cx88-alsa.c
+>> +++ b/drivers/media/pci/cx88/cx88-alsa.c
+>> @@ -890,9 +890,9 @@ static int snd_cx88_create(struct snd_card *card, 
+>> struct pci_dev *pci,
+>>           return err;
+>>       }
+>>   -    if (!pci_set_dma_mask(pci,DMA_BIT_MASK(32))) {
+>> +    err = pci_set_dma_mask(pci,DMA_BIT_MASK(32));
+>> +    if (err) {
+>>           dprintk(0, "%s/1: Oops: no 32bit PCI DMA ???\n",core->name);
+>> -        err = -EIO;
+>>           cx88_core_put(core, pci);
+>>           return err;
+>>       }
+>> diff --git a/drivers/media/pci/cx88/cx88-mpeg.c 
+>> b/drivers/media/pci/cx88/cx88-mpeg.c
+>> index 9db7767..f34c229 100644
+>> --- a/drivers/media/pci/cx88/cx88-mpeg.c
+>> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
+>> @@ -393,7 +393,8 @@ static int cx8802_init_common(struct cx8802_dev 
+>> *dev)
+>>       if (pci_enable_device(dev->pci))
+>>           return -EIO;
+>>       pci_set_master(dev->pci);
+>> -    if (!pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32))) {
+>> +    err = pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32));
+>> +    if (err) {
+>>           printk("%s/2: Oops: no 32bit PCI DMA ???\n",dev->core->name);
+>>           return -EIO;
+>>       }
+>> diff --git a/drivers/media/pci/cx88/cx88-video.c 
+>> b/drivers/media/pci/cx88/cx88-video.c
+>> index 0de1ad5..aef9acf 100644
+>> --- a/drivers/media/pci/cx88/cx88-video.c
+>> +++ b/drivers/media/pci/cx88/cx88-video.c
+>> @@ -1314,9 +1314,9 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+>>              dev->pci_lat,(unsigned long 
+>> long)pci_resource_start(pci_dev,0));
+>>         pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32))) {
+>> +    err = pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32));
+>> +    if (err) {
+>>           printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
+>> -        err = -EIO;
+>>           goto fail_core;
+>>       }
+>>       dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+>> diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c 
+>> b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+>> index 60b2d46..3fdbd81 100644
+>> --- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+>> +++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+>> @@ -810,7 +810,7 @@ static int netup_unidvb_initdev(struct pci_dev 
+>> *pci_dev,
+>>           "%s(): board vendor 0x%x, revision 0x%x\n",
+>>           __func__, board_vendor, board_revision);
+>>       pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+>> +    if (pci_set_dma_mask(pci_dev, 0xffffffff) < 0) {
+>>           dev_err(&pci_dev->dev,
+>>               "%s(): 32bit PCI DMA is not supported\n", __func__);
+>>           goto pci_detect_err;
+>> diff --git a/drivers/media/pci/saa7134/saa7134-core.c 
+>> b/drivers/media/pci/saa7134/saa7134-core.c
+>> index e79d63e..f720cea 100644
+>> --- a/drivers/media/pci/saa7134/saa7134-core.c
+>> +++ b/drivers/media/pci/saa7134/saa7134-core.c
+>> @@ -951,9 +951,9 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
+>>              pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+>>              dev->pci_lat,(unsigned long 
+>> long)pci_resource_start(pci_dev,0));
+>>       pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
+>> +    err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
+>> +    if (err) {
+>>           pr_warn("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
+>> -        err = -EIO;
+>>           goto fail1;
+>>       }
+>>   diff --git a/drivers/media/pci/saa7164/saa7164-core.c 
+>> b/drivers/media/pci/saa7164/saa7164-core.c
+>> index 8f36b48..8bbd092 100644
+>> --- a/drivers/media/pci/saa7164/saa7164-core.c
+>> +++ b/drivers/media/pci/saa7164/saa7164-core.c
+>> @@ -1264,9 +1264,9 @@ static int saa7164_initdev(struct pci_dev 
+>> *pci_dev,
+>>         pci_set_master(pci_dev);
+>>       /* TODO */
+>> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+>> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
+>> +    if (err) {
+>>           printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+>> -        err = -EIO;
+>>           goto fail_irq;
+>>       }
+>>   diff --git a/drivers/media/pci/tw68/tw68-core.c 
+>> b/drivers/media/pci/tw68/tw68-core.c
+>> index 8c5655d..4e77618 100644
+>> --- a/drivers/media/pci/tw68/tw68-core.c
+>> +++ b/drivers/media/pci/tw68/tw68-core.c
+>> @@ -257,9 +257,9 @@ static int tw68_initdev(struct pci_dev *pci_dev,
+>>           dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+>>           dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
+>>       pci_set_master(pci_dev);
+>> -    if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
+>> +    err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
+>> +    if (err) {
+>>           pr_info("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
+>> -        err = -EIO;
+>>           goto fail1;
+>>       }
+>>   diff --git a/drivers/net/ethernet/amd/pcnet32.c 
+>> b/drivers/net/ethernet/amd/pcnet32.c
+>> index e2afabf..7ccebae 100644
+>> --- a/drivers/net/ethernet/amd/pcnet32.c
+>> +++ b/drivers/net/ethernet/amd/pcnet32.c
+>> @@ -1500,10 +1500,11 @@ pcnet32_probe_pci(struct pci_dev *pdev, const 
+>> struct pci_device_id *ent)
+>>           return -ENODEV;
+>>       }
+>>   -    if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
+>> +    err = pci_set_dma_mask(pdev, PCNET32_DMA_MASK);
+>> +    if (err) {
+>>           if (pcnet32_debug & NETIF_MSG_PROBE)
+>>               pr_err("architecture does not support 32bit PCI 
+>> busmaster DMA\n");
+>> -        return -ENODEV;
+>> +        return err;
+>>       }
+>>       if (!request_region(ioaddr, PCNET32_TOTAL_SIZE, 
+>> "pcnet32_probe_pci")) {
+>>           if (pcnet32_debug & NETIF_MSG_PROBE)
+>
 
-I think we can go with a single API, but I don't really like that:
-dma_request_channel(dev, name, *mask, fn, fn_param);
-
-This would cover all current uses being legacy, DT/ACPI, compat, etc:
-dma_request_channel(NULL, NULL, &mask, fn, fn_param); /* Legacy slave */
-dma_request_channel(NULL, NULL, &mask, NULL, NULL); /* memcpy. etc */
-dma_request_channel(dev, name, NULL, NULL, NULL); /* DT/ACPI, current slave */
-dma_request_channel(dev, name, &mask, fn, fn_param); /* current compat */
-
-Note, that we need "const dma_cap_mask_t *mask" to be able to make the mask
-optional.
-
-If we have two main APIs, one to request slave channels and one to get any
-channel with given capability
-dma_request_slave_channel(NULL, NULL, &mask, fn, fn_param); /* Legacy slave */
-dma_request_slave_channel(dev, name, NULL, NULL, NULL); /* DT/ACPI, current
-							   slave */
-dma_request_slave_channel(dev, name, &mask, fn, fn_param); /* current compat*/
-
-This way we can omit the mask also in cases when the client only want to get
-DMA_SLAVE, we can just build up the mask within the function. If the mask is
-provided we would copy the bits from the provided mask, so for example if you
-want to have DMA_SLAVE+DMA_CYCLIC, the driver only needs to pass DMA_CYCLIC,
-the DMA_SLAVE is going to be set anyways.
-
-dma_request_channel(mask); /* memcpy. etc, non slave mostly */
-
-Not sure how to name this as reusing existing (good, descriptive) function
-names would mean changes all over the kernel to start off this.
-
-Not used and
-request_dma_channel(); /* as _irq/_mem_region/_resource, etc */
-request_dma();
-dma_channel_request();
-
-All in all, not sure which way would be better...
-
--- 
-Péter
