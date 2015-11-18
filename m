@@ -1,126 +1,411 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:37253 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760043AbbKUDcj (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43658 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933196AbbKRQza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 22:32:39 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3A00CE38A8
-	for <linux-media@vger.kernel.org>; Sat, 21 Nov 2015 04:32:34 +0100 (CET)
-Date: Sat, 21 Nov 2015 04:32:34 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151121033234.3A00CE38A8@tschai.lan>
+	Wed, 18 Nov 2015 11:55:30 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH 1/9] [media] tvp5150: convert register access to regmap
+Date: Wed, 18 Nov 2015 17:55:20 +0100
+Message-Id: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Results of the daily build of media_tree:
+Regmap provides built in debugging, caching and provides dedicated accessors
+for bit manipulations in registers, which make the following changes a lot
+simpler.
 
-date:		Sat Nov 21 04:00:22 CET 2015
-git branch:	test
-git hash:	ca78946853eb23a37260cefc074a5bf86e8b866c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	host hardware:	x86_64
-host os:	4.2.0-164
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 194 ++++++++++++++++++++++++++++++--------------
+ 1 file changed, 133 insertions(+), 61 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: OK
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 3c5fb2509c47..a7495d2856c3 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -10,6 +10,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/delay.h>
+ #include <linux/module.h>
++#include <linux/regmap.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/tvp5150.h>
+@@ -37,6 +38,7 @@ struct tvp5150 {
+ 	struct v4l2_subdev sd;
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct v4l2_rect rect;
++	struct regmap *regmap;
+ 
+ 	v4l2_std_id norm;	/* Current set standard */
+ 	u32 input;
+@@ -56,30 +58,14 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+ 
+ static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+ {
+-	struct i2c_client *c = v4l2_get_subdevdata(sd);
+-	int rc;
+-
+-	rc = i2c_smbus_read_byte_data(c, addr);
+-	if (rc < 0) {
+-		v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
+-		return rc;
+-	}
+-
+-	v4l2_dbg(2, debug, sd, "tvp5150: read 0x%02x = 0x%02x\n", addr, rc);
+-
+-	return rc;
+-}
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	int ret, val;
+ 
+-static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
+-				 unsigned char value)
+-{
+-	struct i2c_client *c = v4l2_get_subdevdata(sd);
+-	int rc;
++	ret = regmap_read(decoder->regmap, addr, &val);
++	if (ret < 0)
++		return ret;
+ 
+-	v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
+-	rc = i2c_smbus_write_byte_data(c, addr, value);
+-	if (rc < 0)
+-		v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
++	return val;
+ }
+ 
+ static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
+@@ -266,8 +252,8 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
+ 			decoder->input, decoder->output,
+ 			input, opmode);
+ 
+-	tvp5150_write(sd, TVP5150_OP_MODE_CTL, opmode);
+-	tvp5150_write(sd, TVP5150_VD_IN_SRC_SEL_1, input);
++	regmap_write(decoder->regmap, TVP5150_OP_MODE_CTL, opmode);
++	regmap_write(decoder->regmap, TVP5150_VD_IN_SRC_SEL_1, input);
+ 
+ 	/* Svideo should enable YCrCb output and disable GPCL output
+ 	 * For Composite and TV, it should be the reverse
+@@ -282,7 +268,7 @@ static inline void tvp5150_selmux(struct v4l2_subdev *sd)
+ 		val = (val & ~0x40) | 0x10;
+ 	else
+ 		val = (val & ~0x10) | 0x40;
+-	tvp5150_write(sd, TVP5150_MISC_CTL, val);
++	regmap_write(decoder->regmap, TVP5150_MISC_CTL, val);
+ };
+ 
+ struct i2c_reg_value {
+@@ -553,8 +539,10 @@ static struct i2c_vbi_ram_value vbi_ram_default[] =
+ static int tvp5150_write_inittab(struct v4l2_subdev *sd,
+ 				const struct i2c_reg_value *regs)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
++
+ 	while (regs->reg != 0xff) {
+-		tvp5150_write(sd, regs->reg, regs->value);
++		regmap_write(decoder->regmap, regs->reg, regs->value);
+ 		regs++;
+ 	}
+ 	return 0;
+@@ -563,22 +551,24 @@ static int tvp5150_write_inittab(struct v4l2_subdev *sd,
+ static int tvp5150_vdp_init(struct v4l2_subdev *sd,
+ 				const struct i2c_vbi_ram_value *regs)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct regmap *map = decoder->regmap;
+ 	unsigned int i;
+ 
+ 	/* Disable Full Field */
+-	tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
++	regmap_write(map, TVP5150_FULL_FIELD_ENA, 0);
+ 
+ 	/* Before programming, Line mode should be at 0xff */
+ 	for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
+-		tvp5150_write(sd, i, 0xff);
++		regmap_write(map, i, 0xff);
+ 
+ 	/* Load Ram Table */
+ 	while (regs->reg != (u16)-1) {
+-		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
+-		tvp5150_write(sd, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
++		regmap_write(map, TVP5150_CONF_RAM_ADDR_HIGH, regs->reg >> 8);
++		regmap_write(map, TVP5150_CONF_RAM_ADDR_LOW, regs->reg);
+ 
+ 		for (i = 0; i < 16; i++)
+-			tvp5150_write(sd, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
++			regmap_write(map, TVP5150_VDP_CONF_RAM_DATA, regs->values[i]);
+ 
+ 		regs++;
+ 	}
+@@ -658,11 +648,11 @@ static int tvp5150_set_vbi(struct v4l2_subdev *sd,
+ 	reg=((line-6)<<1)+TVP5150_LINE_MODE_INI;
+ 
+ 	if (fields&1) {
+-		tvp5150_write(sd, reg, type);
++		regmap_write(decoder->regmap, reg, type);
+ 	}
+ 
+ 	if (fields&2) {
+-		tvp5150_write(sd, reg+1, type);
++		regmap_write(decoder->regmap, reg+1, type);
+ 	}
+ 
+ 	return type;
+@@ -731,7 +721,7 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	}
+ 
+ 	v4l2_dbg(1, debug, sd, "Set video std register to %d.\n", fmt);
+-	tvp5150_write(sd, TVP5150_VIDEO_STD, fmt);
++	regmap_write(decoder->regmap, TVP5150_VIDEO_STD, fmt);
+ 	return 0;
+ }
+ 
+@@ -777,20 +767,20 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 
+ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct tvp5150 *decoder = to_tvp5150(to_sd(ctrl));
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		tvp5150_write(sd, TVP5150_BRIGHT_CTL, ctrl->val);
++		regmap_write(decoder->regmap, TVP5150_BRIGHT_CTL, ctrl->val);
+ 		return 0;
+ 	case V4L2_CID_CONTRAST:
+-		tvp5150_write(sd, TVP5150_CONTRAST_CTL, ctrl->val);
++		regmap_write(decoder->regmap, TVP5150_CONTRAST_CTL, ctrl->val);
+ 		return 0;
+ 	case V4L2_CID_SATURATION:
+-		tvp5150_write(sd, TVP5150_SATURATION_CTL, ctrl->val);
++		regmap_write(decoder->regmap, TVP5150_SATURATION_CTL, ctrl->val);
+ 		return 0;
+ 	case V4L2_CID_HUE:
+-		tvp5150_write(sd, TVP5150_HUE_CTL, ctrl->val);
++		regmap_write(decoder->regmap, TVP5150_HUE_CTL, ctrl->val);
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -890,17 +880,17 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ 			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
+ 			      hmax - rect.top);
+ 
+-	tvp5150_write(sd, TVP5150_VERT_BLANKING_START, rect.top);
+-	tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP,
++	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
++	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
+ 		      rect.top + rect.height - hmax);
+-	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_MSB,
++	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
+ 		      rect.left >> TVP5150_CROP_SHIFT);
+-	tvp5150_write(sd, TVP5150_ACT_VD_CROP_ST_LSB,
++	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
+ 		      rect.left | (1 << TVP5150_CROP_SHIFT));
+-	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_MSB,
++	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
+ 		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
+ 		      TVP5150_CROP_SHIFT);
+-	tvp5150_write(sd, TVP5150_ACT_VD_CROP_STP_LSB,
++	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
+ 		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
+ 
+ 	decoder->rect = rect;
+@@ -965,22 +955,25 @@ static int tvp5150_s_routing(struct v4l2_subdev *sd,
+ 
+ static int tvp5150_s_raw_fmt(struct v4l2_subdev *sd, struct v4l2_vbi_format *fmt)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
++
+ 	/* this is for capturing 36 raw vbi lines
+ 	   if there's a way to cut off the beginning 2 vbi lines
+ 	   with the tvp5150 then the vbi line count could be lowered
+ 	   to 17 lines/field again, although I couldn't find a register
+ 	   which could do that cropping */
+ 	if (fmt->sample_format == V4L2_PIX_FMT_GREY)
+-		tvp5150_write(sd, TVP5150_LUMA_PROC_CTL_1, 0x70);
++		regmap_write(decoder->regmap, TVP5150_LUMA_PROC_CTL_1, 0x70);
+ 	if (fmt->count[0] == 18 && fmt->count[1] == 18) {
+-		tvp5150_write(sd, TVP5150_VERT_BLANKING_START, 0x00);
+-		tvp5150_write(sd, TVP5150_VERT_BLANKING_STOP, 0x01);
++		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, 0x00);
++		regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP, 0x01);
+ 	}
+ 	return 0;
+ }
+ 
+ static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *svbi)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	int i;
+ 
+ 	if (svbi->service_set != 0) {
+@@ -991,17 +984,17 @@ static int tvp5150_s_sliced_fmt(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_f
+ 				       svbi->service_lines[0][i], 0xf0, i, 3);
+ 		}
+ 		/* Enables FIFO */
+-		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 1);
++		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 1);
+ 	} else {
+ 		/* Disables FIFO*/
+-		tvp5150_write(sd, TVP5150_FIFO_OUT_CTRL, 0);
++		regmap_write(decoder->regmap, TVP5150_FIFO_OUT_CTRL, 0);
+ 
+ 		/* Disable Full Field */
+-		tvp5150_write(sd, TVP5150_FULL_FIELD_ENA, 0);
++		regmap_write(decoder->regmap, TVP5150_FULL_FIELD_ENA, 0);
+ 
+ 		/* Disable Line modes */
+ 		for (i = TVP5150_LINE_MODE_INI; i <= TVP5150_LINE_MODE_END; i++)
+-			tvp5150_write(sd, i, 0xff);
++			regmap_write(decoder->regmap, i, 0xff);
+ 	}
+ 	return 0;
+ }
+@@ -1039,7 +1032,9 @@ static int tvp5150_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
+ 
+ static int tvp5150_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
+ {
+-	tvp5150_write(sd, reg->reg & 0xff, reg->val & 0xff);
++	struct tvp5150 *decoder = to_tvp5150(sd);
++
++	regmap_write(decoder->regmap, reg->reg & 0xff, reg->val & 0xff);
+ 	return 0;
+ }
+ #endif
+@@ -1105,13 +1100,87 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+ 			I2C Client & Driver
+  ****************************************************************************/
+ 
++static const struct regmap_range tvp5150_readable_ranges[] = {
++	{
++		.range_min = TVP5150_VD_IN_SRC_SEL_1,
++		.range_max = TVP5150_AUTOSW_MSK,
++	}, {
++		.range_min = TVP5150_COLOR_KIL_THSH_CTL,
++		.range_max = TVP5150_CONF_SHARED_PIN,
++	}, {
++		.range_min = TVP5150_ACT_VD_CROP_ST_MSB,
++		.range_max = TVP5150_HORIZ_SYNC_START,
++	}, {
++		.range_min = TVP5150_VERT_BLANKING_START,
++		.range_max = TVP5150_INTT_CONFIG_REG_B,
++	}, {
++		.range_min = TVP5150_VIDEO_STD,
++		.range_max = TVP5150_VIDEO_STD,
++	}, {
++		.range_min = TVP5150_CB_GAIN_FACT,
++		.range_max = TVP5150_REV_SELECT,
++	}, {
++		.range_min = TVP5150_MSB_DEV_ID,
++		.range_max = TVP5150_STATUS_REG_5,
++	}, {
++		.range_min = TVP5150_CC_DATA_INI,
++		.range_max = TVP5150_TELETEXT_FIL_ENA,
++	}, {
++		.range_min = TVP5150_INT_STATUS_REG_A,
++		.range_max = TVP5150_FIFO_OUT_CTRL,
++	}, {
++		.range_min = TVP5150_FULL_FIELD_ENA,
++		.range_max = TVP5150_FULL_FIELD_MODE_REG,
++	},
++};
++
++bool tvp5150_volatile_reg(struct device *dev, unsigned int reg)
++{
++	switch (reg) {
++	case TVP5150_VERT_LN_COUNT_MSB:
++	case TVP5150_VERT_LN_COUNT_LSB:
++	case TVP5150_INT_STATUS_REG_A:
++	case TVP5150_INT_STATUS_REG_B:
++	case TVP5150_INT_ACTIVE_REG_B:
++	case TVP5150_STATUS_REG_1:
++	case TVP5150_STATUS_REG_2:
++	case TVP5150_STATUS_REG_3:
++	case TVP5150_STATUS_REG_4:
++	case TVP5150_STATUS_REG_5:
++	/* CC, WSS, VPS, VITC data? */
++	case TVP5150_VBI_FIFO_READ_DATA:
++	case TVP5150_VDP_STATUS_REG:
++	case TVP5150_FIFO_WORD_COUNT:
++		return true;
++	default:
++		return false;
++	}
++}
++
++static const struct regmap_access_table tvp5150_readable_table = {
++	.yes_ranges = tvp5150_readable_ranges,
++	.n_yes_ranges = ARRAY_SIZE(tvp5150_readable_ranges),
++};
++
++static struct regmap_config tvp5150_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = 0xff,
++
++	.cache_type = REGCACHE_RBTREE,
++
++	.rd_table = &tvp5150_readable_table,
++	.volatile_reg = tvp5150_volatile_reg,
++};
++
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct tvp5150 *core;
+ 	struct v4l2_subdev *sd;
+-	int tvp5150_id[4];
+-	int i, res;
++	struct regmap *map;
++	u8 tvp5150_id[4];
++	int res;
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(c->adapter,
+@@ -1121,6 +1190,10 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
+ 	if (!core)
+ 		return -ENOMEM;
++	map = devm_regmap_init_i2c(c, &tvp5150_config);
++	if (IS_ERR(map))
++		return PTR_ERR(map);
++	core->regmap = map;
+ 	sd = &core->sd;
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+ 
+@@ -1128,11 +1201,10 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
+ 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
+ 	 */
+-	for (i = 0; i < 4; i++) {
+-		res = tvp5150_read(sd, TVP5150_MSB_DEV_ID + i);
+-		if (res < 0)
+-			return res;
+-		tvp5150_id[i] = res;
++	res = regmap_bulk_read(map, TVP5150_MSB_DEV_ID, tvp5150_id, 4);
++	if (res < 0) {
++		dev_err(&c->dev, "reading ID registers failed: %d\n", res);
++		return res;
+ 	}
+ 
+ 	v4l_info(c, "chip found @ 0x%02x (%s)\n",
+@@ -1143,7 +1215,7 @@ static int tvp5150_probe(struct i2c_client *c,
+ 			  tvp5150_id[0], tvp5150_id[1]);
+ 
+ 		/* ITU-T BT.656.4 timing */
+-		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
++		regmap_write(map, TVP5150_REV_SELECT, 0);
+ 	} else {
+ 		/* Is TVP5150A */
+ 		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
+-- 
+2.6.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
