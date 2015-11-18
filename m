@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:33800 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbbKYWir (ORCPT
+Received: from mail-yk0-f193.google.com ([209.85.160.193]:33965 "EHLO
+	mail-yk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755207AbbKRPqs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 17:38:47 -0500
-Received: by ykfs79 with SMTP id s79so72690213ykf.1
-        for <linux-media@vger.kernel.org>; Wed, 25 Nov 2015 14:38:46 -0800 (PST)
-Date: Wed, 25 Nov 2015 22:38:43 +0000
-From: Joseph Marrero <jmarrero@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] This patch fixes the following WARNING: Block comments use *
- on the subsequent lines This WARNING was found using the checkpatch tool.
-Message-ID: <20151125223843.GA2356@localhost.localdomain>
+	Wed, 18 Nov 2015 10:46:48 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <564C8966.9080406@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+	<1432646768-12532-3-git-send-email-peter.ujfalusi@ti.com>
+	<20150529093317.GF3140@localhost>
+	<CAMuHMdVJ0h9qXxBWH9L2y4O2KLkEq12KW_6k8rTgi+Lux=C0gw@mail.gmail.com>
+	<20150529101846.GG3140@localhost>
+	<55687892.7050606@ti.com>
+	<20150602125535.GS3140@localhost>
+	<5570758E.6030302@ti.com>
+	<20150612125837.GJ28601@localhost>
+	<5587F1F4.1060905@ti.com>
+	<20150624162401.GP19530@localhost>
+	<564C8966.9080406@ti.com>
+Date: Wed, 18 Nov 2015 17:46:47 +0200
+Message-ID: <CAHp75VdhKmTVjRQp9q_4CXBuqjKvkBjDvgXYRDGmhdHzCW9ADA@mail.gmail.com>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine <dmaengine@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto <linux-crypto@vger.kernel.org>,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[PATCH] This patch fixes the following WARNING: 
-Block comments use * on the subsequent lines This WARNING was found using the checkpatch tool.
+On Wed, Nov 18, 2015 at 4:21 PM, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> Hi Vinod,
+>
+> bringing this old thread back to life as I just started to work on this.
 
-This is my third patch submition, I am following the kernel newbies website. 
-While these patches are very basic any feedback is highly apreciated as I would like to continue
-to contribute cleanups like this until I learn the process well and feel confortable to move 
-into code changes beyond the warnings. 
+What I remember we need to convert drivers to use new API meanwhile it
+is good to keep old one to avoid patch storm which does nothing useful
+(IIRC Russel's opinion).
 
-Thank you in advance.
+On the other hand there are a lot of drivers that are used on the set
+of platforms starting from legacy and abandoned ones (like AVR32) to
+relatively new and newest.
 
-Signed-off-by: Joseph Marrero <jmarrero@gmail.com>
----
- drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+And I'm not a fan of those thousands of API calls either.
 
-diff --git a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-index 7b7e7b2..3cc9be7 100644
---- a/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-+++ b/drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
-@@ -538,7 +538,7 @@ struct vpfe_isif_raw_config {
- };
- 
- /**********************************************************************
--      IPIPE API Structures
-+*      IPIPE API Structures
- **********************************************************************/
- 
- /* IPIPE module configurations */
 -- 
-2.5.0
-
+With Best Regards,
+Andy Shevchenko
