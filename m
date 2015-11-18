@@ -1,99 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:35745 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754295AbbKMPsW (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:59615 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933229AbbKRQza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Nov 2015 10:48:22 -0500
-MIME-Version: 1.0
-In-Reply-To: <1447417479-18095-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1447417479-18095-1-git-send-email-Julia.Lawall@lip6.fr>
-Date: Fri, 13 Nov 2015 10:48:21 -0500
-Message-ID: <CAOcJUbzGUP47PeLe2ng-BEh031T3ngMStYo9chas4uYqKA8gMQ@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media/usb/dvb-usb-v2: constify
- mxl111sf_demod_config structure
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 18 Nov 2015 11:55:30 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH 9/9] [media] tvp5150: disable output while signal not locked
+Date: Wed, 18 Nov 2015 17:55:28 +0100
+Message-Id: <1447865728-5726-9-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for this!
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+To avoid short frames on stream start, keep output pins at high impedance
+while we are not properly locked onto the input signal.
 
-On Fri, Nov 13, 2015 at 7:24 AM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> The mxl111sf_demod_config structure is never modified, so declare it
-> as const.
->
-> Done with the help of Coccinelle.
->
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c |    4 ++--
->  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h |    4 ++--
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c       |    2 +-
->  3 files changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-> index ea37536..84f6de6 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c
-> @@ -35,7 +35,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
->  struct mxl111sf_demod_state {
->         struct mxl111sf_state *mxl_state;
->
-> -       struct mxl111sf_demod_config *cfg;
-> +       const struct mxl111sf_demod_config *cfg;
->
->         struct dvb_frontend fe;
->  };
-> @@ -579,7 +579,7 @@ static struct dvb_frontend_ops mxl111sf_demod_ops = {
->  };
->
->  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_demod_config *cfg)
-> +                                  const struct mxl111sf_demod_config *cfg)
->  {
->         struct mxl111sf_demod_state *state = NULL;
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> index 0bd83e5..7065aca 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> @@ -35,11 +35,11 @@ struct mxl111sf_demod_config {
->  #if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
->  extern
->  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_demod_config *cfg);
-> +                                  const struct mxl111sf_demod_config *cfg);
->  #else
->  static inline
->  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_demod_config *cfg)
-> +                                  const struct mxl111sf_demod_config *cfg)
->  {
->         printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->         return NULL;
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> index bec12b0..c4a4a99 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> @@ -731,7 +731,7 @@ fail:
->         return ret;
->  }
->
-> -static struct mxl111sf_demod_config mxl_demod_config = {
-> +static const struct mxl111sf_demod_config mxl_demod_config = {
->         .read_reg        = mxl111sf_read_reg,
->         .write_reg       = mxl111sf_write_reg,
->         .program_regs    = mxl111sf_ctrl_program_regs,
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 9e006bf36e67..9d03496d0af4 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -51,6 +51,7 @@ struct tvp5150 {
+ 	v4l2_std_id detected_norm;
+ 	u32 input;
+ 	u32 output;
++	u32 oe;
+ 	int enable;
+ 	bool lock;
+ };
+@@ -809,8 +810,11 @@ static irqreturn_t tvp5150_isr(int irq, void *dev_id)
+ 	if (status) {
+ 		regmap_write(map, TVP5150_INT_STATUS_REG_A, status);
+ 
+-		if (status & TVP5150_INT_A_LOCK)
++		if (status & TVP5150_INT_A_LOCK) {
+ 			decoder->lock = !!(status & TVP5150_INT_A_LOCK_STATUS);
++			regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL,
++					   0xd, decoder->lock ? decoder->oe : 0);
++		}
+ 
+ 		return IRQ_HANDLED;
+ 	}
+@@ -841,6 +845,7 @@ static int tvp5150_enable(struct v4l2_subdev *sd)
+ 				   0x7, 0x7);
+ 		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
++		decoder->oe = 0x9;
+ 		break;
+ 	case V4L2_MBUS_PARALLEL:
+ 		/* 8-bit YUV 4:2:2 */
+@@ -848,6 +853,7 @@ static int tvp5150_enable(struct v4l2_subdev *sd)
+ 				   0x7, 0x0);
+ 		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
++		decoder->oe = 0xd;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -994,9 +1000,9 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
+ 
+ 	if (enable) {
+-		/* Enable YUV(OUT7:0), clock */
++		/* Enable YUV(OUT7:0), (SYNC), clock signal, if locked */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd,
+-			(decoder->bus_type == V4L2_MBUS_BT656) ? 0x9 : 0xd);
++				   decoder->lock ? decoder->oe : 0);
+ 		if (decoder->irq) {
+ 			/* Enable lock interrupt */
+ 			regmap_update_bits(decoder->regmap,
+-- 
+2.6.2
+
