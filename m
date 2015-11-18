@@ -1,4110 +1,585 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:53410 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753490AbbKQMzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 07:55:22 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>
-CC: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
-Subject: [RESEND RFC/PATCH 6/8] media: platform: mtk-vcodec: Add Mediatek V4L2 Video Encoder Driver
-Date: Tue, 17 Nov 2015 20:54:43 +0800
-Message-ID: <1447764885-23100-7-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from mga14.intel.com ([192.55.52.115]:35076 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756383AbbKRRJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2015 12:09:41 -0500
+Date: Thu, 19 Nov 2015 01:08:31 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Lucas Stach <l.stach@pengutronix.de>
+Cc: kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	patchwork-lst@pengutronix.de
+Subject: Re: [PATCH 2/9] [media] tvp5150: add userspace subdev API
+Message-ID: <201511190112.eCKa4fuw%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed; boundary="pf9I7BMVVzbSWLtt"
+Content-Disposition: inline
+In-Reply-To: <1447865728-5726-2-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Philipp,
+
+[auto build test ERROR on: v4.4-rc1]
+[also build test ERROR on: next-20151118]
+[cannot apply to: linuxtv-media/master]
+
+url:    https://github.com/0day-ci/linux/commits/Lucas-Stach/tvp5150-convert-register-access-to-regmap/20151119-005732
+config: x86_64-randconfig-x017-11181928 (attached as .config)
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+Note: the linux-review/Lucas-Stach/tvp5150-convert-register-access-to-regmap/20151119-005732 HEAD bda9ffd30fce12dfa1b1964094311ae5dd780461 builds fine.
+      It only hurts bisectibility.
+
+All error/warnings (new ones prefixed by >>):
+
+   drivers/media/i2c/tvp5150.c: In function 'tvp5150_open':
+>> drivers/media/i2c/tvp5150.c:1180:52: warning: passing argument 1 of 'v4l2_subdev_get_try_crop' from incompatible pointer type [-Wincompatible-pointer-types]
+     tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
+                                                       ^
+   In file included from include/media/v4l2-device.h:25:0,
+                    from drivers/media/i2c/tvp5150.c:15:
+   include/media/v4l2-subdev.h:769:37: note: expected 'struct v4l2_subdev *' but argument is of type 'struct v4l2_subdev_fh *'
+    __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
+                                        ^
+   include/media/v4l2-subdev.h:760:2: note: in definition of macro '__V4L2_SUBDEV_MK_GET_TRY'
+     fun_name(struct v4l2_subdev *sd,    \
+     ^
+>> drivers/media/i2c/tvp5150.c:1180:27: error: too few arguments to function 'v4l2_subdev_get_try_crop'
+     tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
+                              ^
+   In file included from include/media/v4l2-device.h:25:0,
+                    from drivers/media/i2c/tvp5150.c:15:
+   include/media/v4l2-subdev.h:769:37: note: declared here
+    __V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
+                                        ^
+   include/media/v4l2-subdev.h:760:2: note: in definition of macro '__V4L2_SUBDEV_MK_GET_TRY'
+     fun_name(struct v4l2_subdev *sd,    \
+     ^
+>> drivers/media/i2c/tvp5150.c:1181:33: warning: passing argument 1 of 'v4l2_subdev_get_try_format' from incompatible pointer type [-Wincompatible-pointer-types]
+         v4l2_subdev_get_try_format(fh, 0));
+                                    ^
+   In file included from include/media/v4l2-device.h:25:0,
+                    from drivers/media/i2c/tvp5150.c:15:
+   include/media/v4l2-subdev.h:768:46: note: expected 'struct v4l2_subdev *' but argument is of type 'struct v4l2_subdev_fh *'
+    __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
+                                                 ^
+   include/media/v4l2-subdev.h:760:2: note: in definition of macro '__V4L2_SUBDEV_MK_GET_TRY'
+     fun_name(struct v4l2_subdev *sd,    \
+     ^
+>> drivers/media/i2c/tvp5150.c:1181:6: error: too few arguments to function 'v4l2_subdev_get_try_format'
+         v4l2_subdev_get_try_format(fh, 0));
+         ^
+   In file included from include/media/v4l2-device.h:25:0,
+                    from drivers/media/i2c/tvp5150.c:15:
+   include/media/v4l2-subdev.h:768:46: note: declared here
+    __V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
+                                                 ^
+   include/media/v4l2-subdev.h:760:2: note: in definition of macro '__V4L2_SUBDEV_MK_GET_TRY'
+     fun_name(struct v4l2_subdev *sd,    \
+     ^
+
+vim +/v4l2_subdev_get_try_crop +1180 drivers/media/i2c/tvp5150.c
+
+  1174	
+  1175		if (decoder->norm == V4L2_STD_ALL)
+  1176			std = tvp5150_read_std(sd);
+  1177		else
+  1178			std = decoder->norm;
+  1179	
+> 1180		tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
+> 1181					 v4l2_subdev_get_try_format(fh, 0));
+  1182		return 0;
+  1183	}
+  1184	
+
 ---
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    3 +
- drivers/media/platform/mtk-vcodec/Kconfig          |    5 +
- drivers/media/platform/mtk-vcodec/Makefile         |   12 +
- drivers/media/platform/mtk-vcodec/common/Makefile  |    8 +
- .../media/platform/mtk-vcodec/common/venc_drv_if.c |  152 ++
- .../platform/mtk-vcodec/include/venc_drv_base.h    |   68 +
- .../platform/mtk-vcodec/include/venc_drv_if.h      |  187 +++
- .../platform/mtk-vcodec/include/venc_ipi_msg.h     |  212 +++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |  441 +++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1773 ++++++++++++++++++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h |   28 +
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  535 ++++++
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  |  122 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.c    |  110 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |   30 +
- drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h  |   26 +
- .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |  106 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_util.h    |   66 +
- 19 files changed, 3897 insertions(+)
- create mode 100644 drivers/media/platform/mtk-vcodec/Kconfig
- create mode 100644 drivers/media/platform/mtk-vcodec/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/common/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_base.h
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_drv_if.h
- create mode 100644 drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index f98eb47..b66cf1f 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -154,6 +154,19 @@ config MEDIATEK_VPU
- 	    This driver provides downloading firmware vpu and
- 	    communicating with vpu.
- 
-+config VIDEO_MEDIATEK_VCODEC
-+        tristate "Mediatek Video Codec driver"
-+        depends on VIDEO_DEV && VIDEO_V4L2
-+        depends on ARCH_MEDIATEK || COMPILE_TEST
-+        select VIDEOBUF2_DMA_CONTIG
-+        select V4L2_MEM2MEM_DEV
-+        select MEDIATEK_VPU
-+        default n
-+        ---help---
-+            Mediatek video codec driver for V4L2
-+
-+source "drivers/media/platform/mtk-vcodec/Kconfig"
-+
- config VIDEO_MEM2MEM_DEINTERLACE
- 	tristate "Deinterlace support"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && DMA_ENGINE
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 1b4c539..423b9f6 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -57,3 +57,6 @@ obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
- ccflags-y += -I$(srctree)/drivers/media/i2c
- 
- obj-$(CONFIG_MEDIATEK_VPU)		+= mtk-vpu/
-+
-+obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)		+= mtk-vcodec/
-+
-diff --git a/drivers/media/platform/mtk-vcodec/Kconfig b/drivers/media/platform/mtk-vcodec/Kconfig
-new file mode 100644
-index 0000000..1c0b935
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/Kconfig
-@@ -0,0 +1,5 @@
-+config MEDIATEK_VPU
-+	bool
-+	---help---
-+	  This driver provides downloading firmware vpu (video processor unit)
-+	  and communicating with vpu.
-diff --git a/drivers/media/platform/mtk-vcodec/Makefile b/drivers/media/platform/mtk-vcodec/Makefile
-new file mode 100644
-index 0000000..c7f7174
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/Makefile
-@@ -0,0 +1,12 @@
-+obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += mtk_vcodec_intr.o \
-+				       mtk_vcodec_util.o \
-+				       mtk_vcodec_enc_drv.o \
-+				       mtk_vcodec_enc.o \
-+				       mtk_vcodec_enc_pm.o
-+
-+obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += common/
-+
-+ccflags-y += -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
-+	     -I$(srctree)/drivers/media/platform/mtk-vcodec \
-+	     -I$(srctree)/drivers/media/platform/mtk-vpu
-+
-diff --git a/drivers/media/platform/mtk-vcodec/common/Makefile b/drivers/media/platform/mtk-vcodec/common/Makefile
-new file mode 100644
-index 0000000..477ab80
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/common/Makefile
-@@ -0,0 +1,8 @@
-+obj-y += \
-+    venc_drv_if.o
-+
-+ccflags-y += \
-+    -I$(srctree)/include/ \
-+    -I$(srctree)/drivers/media/platform/mtk-vcodec \
-+    -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
-+    -I$(srctree)/drivers/media/platform/mtk-vpu
-\ No newline at end of file
-diff --git a/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
-new file mode 100644
-index 0000000..9b3f025
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
-@@ -0,0 +1,152 @@
-+/*
-+ * Copyright (c) 2015 MediaTek Inc.
-+ * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *         Jungchang Tsao <jungchang.tsao@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include "mtk_vcodec_drv.h"
-+#include "mtk_vcodec_enc.h"
-+#include "mtk_vcodec_pm.h"
-+#include "mtk_vcodec_util.h"
-+#include "mtk_vpu_core.h"
-+
-+#include "venc_drv_if.h"
-+#include "venc_drv_base.h"
-+
-+
-+int venc_if_create(void *ctx, unsigned int fourcc, unsigned long *handle)
-+{
-+	struct venc_handle *h;
-+	char str[10];
-+
-+	mtk_vcodec_fmt2str(fourcc, str);
-+
-+	h = kzalloc(sizeof(*h), GFP_KERNEL);
-+	if (!h)
-+		return -ENOMEM;
-+
-+	h->fourcc = fourcc;
-+	h->ctx = ctx;
-+	mtk_vcodec_debug(h, "fmt = %s handle = %p", str, h);
-+
-+	switch (fourcc) {
-+	default:
-+		mtk_vcodec_err(h, "invalid format %s", str);
-+		goto err_out;
-+	}
-+
-+	*handle = (unsigned long)h;
-+	return 0;
-+
-+err_out:
-+	kfree(h);
-+	return -EINVAL;
-+}
-+
-+int venc_if_init(unsigned long handle)
-+{
-+	int ret = 0;
-+	struct venc_handle *h = (struct venc_handle *)handle;
-+
-+	mtk_vcodec_debug_enter(h);
-+
-+	mtk_venc_lock(h->ctx);
-+	mtk_vcodec_enc_clock_on();
-+	vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	ret = h->enc_if->init(h->ctx, (unsigned long *)&h->drv_handle);
-+	vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	mtk_vcodec_enc_clock_off();
-+	mtk_venc_unlock(h->ctx);
-+
-+	return ret;
-+}
-+
-+int venc_if_set_param(unsigned long handle,
-+		      enum venc_set_param_type type, void *in)
-+{
-+	int ret = 0;
-+	struct venc_handle *h = (struct venc_handle *)handle;
-+
-+	mtk_vcodec_debug(h, "type=%d", type);
-+
-+	mtk_venc_lock(h->ctx);
-+	mtk_vcodec_enc_clock_on();
-+	vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	ret = h->enc_if->set_param(h->drv_handle, type, in);
-+	vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	mtk_vcodec_enc_clock_off();
-+	mtk_venc_unlock(h->ctx);
-+
-+	return ret;
-+}
-+
-+int venc_if_encode(unsigned long handle,
-+		   enum venc_start_opt opt, struct venc_frm_buf *frm_buf,
-+		   struct mtk_vcodec_mem *bs_buf,
-+		   struct venc_done_result *result)
-+{
-+	int ret = 0;
-+	struct venc_handle *h = (struct venc_handle *)handle;
-+	char str[10];
-+
-+	mtk_vcodec_fmt2str(h->fourcc, str);
-+	mtk_vcodec_debug(h, "fmt=%s", str);
-+
-+	mtk_venc_lock(h->ctx);
-+	mtk_vcodec_enc_clock_on();
-+	vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	enable_irq((h->fourcc == V4L2_PIX_FMT_H264) ?
-+		h->ctx->dev->enc_irq : h->ctx->dev->enc_lt_irq);
-+	ret = h->enc_if->encode(h->drv_handle, opt, frm_buf, bs_buf, result);
-+	disable_irq((h->fourcc == V4L2_PIX_FMT_H264) ?
-+		h->ctx->dev->enc_irq : h->ctx->dev->enc_lt_irq);
-+	vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	mtk_vcodec_enc_clock_off();
-+	mtk_venc_unlock(h->ctx);
-+
-+	mtk_vcodec_debug(h, "ret=%d", ret);
-+
-+	return ret;
-+}
-+
-+int venc_if_deinit(unsigned long handle)
-+{
-+	int ret = 0;
-+	struct venc_handle *h = (struct venc_handle *)handle;
-+
-+	mtk_vcodec_debug_enter(h);
-+
-+	mtk_venc_lock(h->ctx);
-+	mtk_vcodec_enc_clock_on();
-+	vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	ret = h->enc_if->deinit(h->drv_handle);
-+	vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
-+	mtk_vcodec_enc_clock_off();
-+	mtk_venc_unlock(h->ctx);
-+
-+	return ret;
-+}
-+
-+int venc_if_release(unsigned long handle)
-+{
-+	struct venc_handle *h = (struct venc_handle *)handle;
-+
-+	mtk_vcodec_debug_enter(h);
-+	kfree(h);
-+
-+	return 0;
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/include/venc_drv_base.h b/drivers/media/platform/mtk-vcodec/include/venc_drv_base.h
-new file mode 100644
-index 0000000..8828294
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/include/venc_drv_base.h
-@@ -0,0 +1,68 @@
-+/*
-+ * Copyright (c) 2015 MediaTek Inc.
-+ * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *         Jungchang Tsao <jungchang.tsao@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _VENC_DRV_BASE_
-+#define _VENC_DRV_BASE_
-+
-+#include "mtk_vcodec_drv.h"
-+
-+#include "venc_drv_if.h"
-+
-+struct venc_common_if {
-+	/**
-+	 * (*init)() - initialize driver
-+	 * @ctx:	[in] mtk v4l2 context
-+	 * @handle: [out] driver handle
-+	 */
-+	int (*init)(struct mtk_vcodec_ctx *ctx, unsigned long *handle);
-+
-+	/**
-+	 * (*encode)() - trigger encode
-+	 * @handle: [in] driver handle
-+	 * @opt: [in] encode option
-+	 * @frm_buf: [in] frame buffer to store input frame
-+	 * @bs_buf: [in] bitstream buffer to store output bitstream
-+	 * @result: [out] encode result
-+	 */
-+	int (*encode)(unsigned long handle, enum venc_start_opt opt,
-+		      struct venc_frm_buf *frm_buf,
-+		      struct mtk_vcodec_mem *bs_buf,
-+		      struct venc_done_result *result);
-+
-+	/**
-+	 * (*set_param)() - set driver's parameter
-+	 * @handle: [in] driver handle
-+	 * @type: [in] parameter type
-+	 * @in: [in] buffer to store the parameter
-+	 */
-+	int (*set_param)(unsigned long handle, enum venc_set_param_type type,
-+			 void *in);
-+
-+	/**
-+	 * (*deinit)() - deinitialize driver.
-+	 * @handle: [in] driver handle
-+	 */
-+	int (*deinit)(unsigned long handle);
-+};
-+
-+struct venc_handle {
-+	unsigned int fourcc;
-+	struct venc_common_if *enc_if;
-+	unsigned long drv_handle;
-+	struct mtk_vcodec_ctx *ctx;
-+};
-+
-+#endif
-diff --git a/drivers/media/platform/mtk-vcodec/include/venc_drv_if.h b/drivers/media/platform/mtk-vcodec/include/venc_drv_if.h
-new file mode 100644
-index 0000000..ef0b0b9
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/include/venc_drv_if.h
-@@ -0,0 +1,187 @@
-+/*
-+ * Copyright (c) 2015 MediaTek Inc.
-+ * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *         Jungchang Tsao <jungchang.tsao@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _VENC_DRV_IF_H_
-+#define _VENC_DRV_IF_H_
-+
-+#include "mtk_vcodec_util.h"
-+
-+/*
-+ * enum venc_yuv_fmt - The type of input yuv format
-+ * (VPU related: If you change the order, you must also update the VPU codes.)
-+ * @VENC_YUV_FORMAT_420: 420 YUV format
-+ * @VENC_YUV_FORMAT_YV12: YV12 YUV format
-+ * @VENC_YUV_FORMAT_NV12: NV12 YUV format
-+ * @VENC_YUV_FORMAT_NV21: NV21 YUV format
-+ */
-+enum venc_yuv_fmt {
-+	VENC_YUV_FORMAT_420 = 3,
-+	VENC_YUV_FORMAT_YV12 = 5,
-+	VENC_YUV_FORMAT_NV12 = 6,
-+	VENC_YUV_FORMAT_NV21 = 7,
-+};
-+
-+/*
-+ * enum venc_start_opt - encode frame option used in venc_if_encode()
-+ * @VENC_START_OPT_ENCODE_SEQUENCE_HEADER: encode SPS/PPS for H264
-+ * @VENC_START_OPT_ENCODE_FRAME: encode normal frame
-+ */
-+enum venc_start_opt {
-+	VENC_START_OPT_ENCODE_SEQUENCE_HEADER,
-+	VENC_START_OPT_ENCODE_FRAME,
-+};
-+
-+/*
-+ * enum venc_drv_msg - The type of encode frame status used in venc_if_encode()
-+ * @VENC_MESSAGE_OK: encode ok
-+ * @VENC_MESSAGE_ERR: encode error
-+ */
-+enum venc_drv_msg {
-+	VENC_MESSAGE_OK,
-+	VENC_MESSAGE_ERR,
-+};
-+
-+/*
-+ * enum venc_set_param_type - The type of set parameter used in venc_if_set_param()
-+ * (VPU related: If you change the order, you must also update the VPU codes.)
-+ * @VENC_SET_PARAM_ENC: set encoder parameters
-+ * @VENC_SET_PARAM_FORCE_INTRA: set force intra frame
-+ * @VENC_SET_PARAM_ADJUST_BITRATE: set to adjust bitrate (in bps)
-+ * @VENC_SET_PARAM_ADJUST_FRAMERATE: set frame rate
-+ * @VENC_SET_PARAM_I_FRAME_INTERVAL: set I frame interval
-+ * @VENC_SET_PARAM_SKIP_FRAME: set H264 skip one frame
-+ * @VENC_SET_PARAM_PREPEND_HEADER: set H264 prepend SPS/PPS before IDR
-+ * @VENC_SET_PARAM_TS_MODE: set VP8 temporal scalability mode
-+ */
-+enum venc_set_param_type {
-+	VENC_SET_PARAM_ENC,
-+	VENC_SET_PARAM_FORCE_INTRA,
-+	VENC_SET_PARAM_ADJUST_BITRATE,
-+	VENC_SET_PARAM_ADJUST_FRAMERATE,
-+	VENC_SET_PARAM_I_FRAME_INTERVAL,
-+	VENC_SET_PARAM_SKIP_FRAME,
-+	VENC_SET_PARAM_PREPEND_HEADER,
-+	VENC_SET_PARAM_TS_MODE,
-+};
-+
-+/*
-+ * struct venc_enc_prm - encoder settings for VENC_SET_PARAM_ENC used in venc_if_set_param()
-+ * @input_fourcc: input fourcc
-+ * @h264_profile: V4L2 defined H.264 profile
-+ * @h264_level: V4L2 defined H.264 level
-+ * @width: image width
-+ * @height: image height
-+ * @buf_width: buffer width
-+ * @buf_height: buffer height
-+ * @frm_rate: frame rate
-+ * @intra_period: intra frame period
-+ * @bitrate: target bitrate in kbps
-+ */
-+struct venc_enc_prm {
-+	enum venc_yuv_fmt input_fourcc;
-+	unsigned int h264_profile;
-+	unsigned int h264_level;
-+	unsigned int width;
-+	unsigned int height;
-+	unsigned int buf_width;
-+	unsigned int buf_height;
-+	unsigned int frm_rate;
-+	unsigned int intra_period;
-+	unsigned int bitrate;
-+};
-+
-+/*
-+ * struct venc_frm_buf - frame buffer information used in venc_if_encode()
-+ * @fb_addr: plane 0 frame buffer address
-+ * @fb_addr1: plane 1 frame buffer address
-+ * @fb_addr2: plane 2 frame buffer address
-+ */
-+struct venc_frm_buf {
-+	struct mtk_vcodec_mem fb_addr;
-+	struct mtk_vcodec_mem fb_addr1;
-+	struct mtk_vcodec_mem fb_addr2;
-+};
-+
-+/*
-+ * struct venc_done_result - This is return information used in venc_if_encode()
-+ * @msg: message, such as success or error code
-+ * @bs_size: output bitstream size
-+ * @is_key_frm: output is key frame or not
-+ */
-+struct venc_done_result {
-+	enum venc_drv_msg msg;
-+	unsigned int bs_size;
-+	bool is_key_frm;
-+};
-+
-+/*
-+ * venc_if_create - Create the driver handle
-+ * @ctx: device context
-+ * @fourcc: encoder output format
-+ * @handle: driver handle
-+ * Return: 0 if creating handle successfully, otherwise it is failed.
-+ */
-+int venc_if_create(void *ctx, unsigned int fourcc, unsigned long *handle);
-+
-+/*
-+ * venc_if_release - Release the driver handle
-+ * @handle: driver handle
-+ * Return: 0 if releasing handle successfully, otherwise it is failed.
-+ */
-+int venc_if_release(unsigned long handle);
-+
-+/*
-+ * venc_if_init - Init the driver setting, alloc working memory ... etc.
-+ * @handle: driver handle
-+ * Return: 0 if init handle successfully, otherwise it is failed.
-+ */
-+int venc_if_init(unsigned long handle);
-+
-+/*
-+ * venc_if_deinit - DeInit the driver setting, free working memory ... etc.
-+ * @handle: driver handle
-+ * Return: 0 if deinit handle successfully, otherwise it is failed.
-+ */
-+int venc_if_deinit(unsigned long handle);
-+
-+/*
-+ * venc_if_set_param - Set parameter to driver
-+ * @handle: driver handle
-+ * @type: set type
-+ * @in: input parameter
-+ * @out: output parameter
-+ * Return: 0 if setting param successfully, otherwise it is failed.
-+ */
-+int venc_if_set_param(unsigned long handle,
-+		      enum venc_set_param_type type,
-+		      void *in);
-+
-+/*
-+ * venc_if_encode - Encode frame
-+ * @handle: driver handle
-+ * @opt: encode frame option
-+ * @frm_buf: input frame buffer information
-+ * @bs_buf: output bitstream buffer infomraiton
-+ * @result: encode result
-+ * Return: 0 if encoding frame successfully, otherwise it is failed.
-+ */
-+int venc_if_encode(unsigned long handle,
-+		   enum venc_start_opt opt,
-+		   struct venc_frm_buf *frm_buf,
-+		   struct mtk_vcodec_mem *bs_buf,
-+		   struct venc_done_result *result);
-+
-+#endif /* _VENC_DRV_IF_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h b/drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h
-new file mode 100644
-index 0000000..a345b98
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/include/venc_ipi_msg.h
-@@ -0,0 +1,212 @@
-+/*
-+ * Copyright (c) 2015 MediaTek Inc.
-+ * Author: Jungchang Tsao <jungchang.tsao@mediatek.com>
-+ *         Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _VENC_IPI_MSG_H_
-+#define _VENC_IPI_MSG_H_
-+
-+#define IPIMSG_H264_ENC_ID 0x100
-+#define IPIMSG_VP8_ENC_ID 0x200
-+
-+#define AP_IPIMSG_VENC_BASE 0x20000
-+#define VPU_IPIMSG_VENC_BASE 0x30000
-+
-+/**
-+ * enum venc_ipi_msg_id - message id between AP and VPU
-+ * (ipi stands for inter-processor interrupt)
-+ * @AP_IPIMSG_XXX:		AP to VPU cmd message id
-+ * @VPU_IPIMSG_XXX_DONE:	VPU ack AP cmd message id
-+ */
-+enum venc_ipi_msg_id {
-+	AP_IPIMSG_H264_ENC_INIT = AP_IPIMSG_VENC_BASE +
-+				  IPIMSG_H264_ENC_ID,
-+	AP_IPIMSG_H264_ENC_SET_PARAM,
-+	AP_IPIMSG_H264_ENC_ENCODE,
-+	AP_IPIMSG_H264_ENC_DEINIT,
-+
-+	AP_IPIMSG_VP8_ENC_INIT = AP_IPIMSG_VENC_BASE +
-+				 IPIMSG_VP8_ENC_ID,
-+	AP_IPIMSG_VP8_ENC_SET_PARAM,
-+	AP_IPIMSG_VP8_ENC_ENCODE,
-+	AP_IPIMSG_VP8_ENC_DEINIT,
-+
-+	VPU_IPIMSG_H264_ENC_INIT_DONE = VPU_IPIMSG_VENC_BASE +
-+					IPIMSG_H264_ENC_ID,
-+	VPU_IPIMSG_H264_ENC_SET_PARAM_DONE,
-+	VPU_IPIMSG_H264_ENC_ENCODE_DONE,
-+	VPU_IPIMSG_H264_ENC_DEINIT_DONE,
-+
-+	VPU_IPIMSG_VP8_ENC_INIT_DONE = VPU_IPIMSG_VENC_BASE +
-+				       IPIMSG_VP8_ENC_ID,
-+	VPU_IPIMSG_VP8_ENC_SET_PARAM_DONE,
-+	VPU_IPIMSG_VP8_ENC_ENCODE_DONE,
-+	VPU_IPIMSG_VP8_ENC_DEINIT_DONE,
-+};
-+
-+/**
-+ * struct venc_ap_ipi_msg_init - AP to VPU init cmd structure
-+ * @msg_id:	message id (AP_IPIMSG_XXX_ENC_INIT)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ */
-+struct venc_ap_ipi_msg_init {
-+	uint32_t msg_id;
-+	uint32_t reserved;
-+	uint64_t venc_inst;
-+};
-+
-+/**
-+ * struct venc_ap_ipi_msg_set_param - AP to VPU set_param cmd structure
-+ * @msg_id:	message id (AP_IPIMSG_XXX_ENC_SET_PARAM)
-+ * @inst_id:	VPU encoder instance id (struct venc_vp8_vpu_drv/venc_h264_vpu_drv *)
-+ * @param_id:	parameter id (venc_set_param_type)
-+ * @data_item:	number of items in the data array
-+ * @data[8]:	data array to store the set parameters
-+ */
-+struct venc_ap_ipi_msg_set_param {
-+	uint32_t msg_id;
-+	uint32_t inst_id;
-+	uint32_t param_id;
-+	uint32_t data_item;
-+	uint32_t data[8];
-+};
-+
-+/**
-+ * struct venc_ap_ipi_msg_enc - AP to VPU enc cmd structure
-+ * @msg_id:	message id (AP_IPIMSG_XXX_ENC_ENCODE)
-+ * @inst_id:	VPU encoder instance id (struct venc_vp8_vpu_drv/venc_h264_vpu_drv *)
-+ * @bs_mode:	bitstream mode for h264
-+ *		(H264_BS_MODE_SPS/H264_BS_MODE_PPS/H264_BS_MODE_FRAME)
-+ * @input_addr:	pointer to input image buffer plane
-+ * @bs_addr:	pointer to output bit stream buffer
-+ * @bs_size:	bit stream buffer size
-+ */
-+struct venc_ap_ipi_msg_enc {
-+	uint32_t msg_id;
-+	uint32_t inst_id;
-+	uint32_t bs_mode;
-+	uint32_t input_addr[3];
-+	uint32_t bs_addr;
-+	uint32_t bs_size;
-+};
-+
-+/**
-+ * struct venc_ap_ipi_msg_deinit - AP to VPU deinit cmd structure
-+ * @msg_id:	message id (AP_IPIMSG_XXX_ENC_DEINIT)
-+ * @inst_id:	VPU encoder instance id (struct venc_vp8_vpu_drv/venc_h264_vpu_drv *)
-+ */
-+struct venc_ap_ipi_msg_deinit {
-+	uint32_t msg_id;
-+	uint32_t inst_id;
-+};
-+
-+/**
-+ * enum venc_ipi_msg_status - VPU ack AP cmd status
-+ */
-+enum venc_ipi_msg_status {
-+	VENC_IPI_MSG_STATUS_OK,
-+	VENC_IPI_MSG_STATUS_FAIL,
-+};
-+
-+/**
-+ * struct venc_vpu_ipi_msg_common - VPU ack AP cmd common structure
-+ * @msg_id:	message id (VPU_IPIMSG_XXX_DONE)
-+ * @status:	cmd status (venc_ipi_msg_status)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ */
-+struct venc_vpu_ipi_msg_common {
-+	uint32_t msg_id;
-+	uint32_t status;
-+	uint64_t venc_inst;
-+};
-+
-+/**
-+ * struct venc_vpu_ipi_msg_init - VPU ack AP init cmd structure
-+ * @msg_id:	message id (VPU_IPIMSG_XXX_ENC_SET_PARAM_DONE)
-+ * @status:	cmd status (venc_ipi_msg_status)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ * @inst_id:	VPU encoder instance id (struct venc_vp8_vpu_drv/venc_h264_vpu_drv *)
-+ */
-+struct venc_vpu_ipi_msg_init {
-+	uint32_t msg_id;
-+	uint32_t status;
-+	uint64_t venc_inst;
-+	uint32_t inst_id;
-+	uint32_t reserved;
-+};
-+
-+/**
-+ * struct venc_vpu_ipi_msg_set_param - VPU ack AP set_param cmd structure
-+ * @msg_id:	message id (VPU_IPIMSG_XXX_ENC_SET_PARAM_DONE)
-+ * @status:	cmd status (venc_ipi_msg_status)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ * @param_id:	parameter id (venc_set_param_type)
-+ * @data_item:	number of items in the data array
-+ * @data[6]:	data array to store the return result
-+ */
-+struct venc_vpu_ipi_msg_set_param {
-+	uint32_t msg_id;
-+	uint32_t status;
-+	uint64_t venc_inst;
-+	uint32_t param_id;
-+	uint32_t data_item;
-+	uint32_t data[6];
-+};
-+
-+/**
-+ * enum venc_ipi_msg_enc_state - Type of encode state
-+ * VEN_IPI_MSG_ENC_STATE_FRAME:	one frame being encoded
-+ * VEN_IPI_MSG_ENC_STATE_PART:	bit stream buffer full
-+ * VEN_IPI_MSG_ENC_STATE_SKIP:	encoded skip frame
-+ * VEN_IPI_MSG_ENC_STATE_ERROR:	encounter error
-+ */
-+enum venc_ipi_msg_enc_state {
-+	VEN_IPI_MSG_ENC_STATE_FRAME,
-+	VEN_IPI_MSG_ENC_STATE_PART,
-+	VEN_IPI_MSG_ENC_STATE_SKIP,
-+	VEN_IPI_MSG_ENC_STATE_ERROR,
-+};
-+
-+/**
-+ * struct venc_vpu_ipi_msg_enc - VPU ack AP enc cmd structure
-+ * @msg_id:	message id (VPU_IPIMSG_XXX_ENC_ENCODE_DONE)
-+ * @status:	cmd status (venc_ipi_msg_status)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ * @state:	encode state (venc_ipi_msg_enc_state)
-+ * @key_frame:	whether the encoded frame is key frame
-+ * @bs_size:	encoded bitstream size
-+ */
-+struct venc_vpu_ipi_msg_enc {
-+	uint32_t msg_id;
-+	uint32_t status;
-+	uint64_t venc_inst;
-+	uint32_t state;
-+	uint32_t key_frame;
-+	uint32_t bs_size;
-+	uint32_t reserved;
-+};
-+
-+/**
-+ * struct venc_vpu_ipi_msg_deinit - VPU ack AP deinit cmd structure
-+ * @msg_id:   message id (VPU_IPIMSG_XXX_ENC_DEINIT_DONE)
-+ * @status:   cmd status (venc_ipi_msg_status)
-+ * @venc_inst:	AP encoder instance (struct venc_vp8_handle/venc_h264_handle *)
-+ */
-+struct venc_vpu_ipi_msg_deinit {
-+	uint32_t msg_id;
-+	uint32_t status;
-+	uint64_t venc_inst;
-+};
-+
-+#endif /* _VENC_IPI_MSG_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
-new file mode 100644
-index 0000000..22239f8
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
-@@ -0,0 +1,441 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#ifndef _MTK_VCODEC_DRV_H_
-+#define _MTK_VCODEC_DRV_H_
-+
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-v4l2.h>
-+
-+#include "venc_drv_if.h"
-+
-+#define MTK_VCODEC_MAX_INSTANCES	32
-+#define MTK_VCODEC_MAX_FRAME_SIZE	0x800000
-+#define MTK_VIDEO_MAX_FRAME		32
-+#define MTK_MAX_CTRLS			10
-+
-+#define MTK_VCODEC_DRV_NAME		"mtk_vcodec_drv"
-+#define MTK_VCODEC_ENC_NAME		"mtk-vcodec-enc"
-+
-+#define MTK_VENC_IRQ_STATUS_SPS          0x1
-+#define MTK_VENC_IRQ_STATUS_PPS          0x2
-+#define MTK_VENC_IRQ_STATUS_FRM          0x4
-+#define MTK_VENC_IRQ_STATUS_DRAM         0x8
-+#define MTK_VENC_IRQ_STATUS_PAUSE        0x10
-+#define MTK_VENC_IRQ_STATUS_SWITCH       0x20
-+
-+#define MTK_VENC_IRQ_STATUS_OFFSET       0x05C
-+#define MTK_VENC_IRQ_ACK_OFFSET          0x060
-+
-+#define MTK_VCODEC_MAX_PLANES		3
-+
-+#define VDEC_HW_ACTIVE	0x10
-+#define VDEC_IRQ_CFG    0x11
-+#define VDEC_IRQ_CLR    0x10
-+
-+#define VDEC_IRQ_CFG_REG	0xa4
-+#define NUM_MAX_ALLOC_CTX  4
-+#define MTK_V4L2_BENCHMARK 0
-+#define USE_ENCODE_THREAD  1
-+
-+/**
-+ * enum mtk_hw_reg_idx - MTK hw register base index
-+ */
-+enum mtk_hw_reg_idx {
-+	VDEC_SYS,
-+	VDEC_MISC,
-+	VDEC_LD,
-+	VDEC_TOP,
-+	VDEC_CM,
-+	VDEC_AD,
-+	VDEC_AV,
-+	VDEC_PP,
-+	VDEC_HWD,
-+	VDEC_HWQ,
-+	VDEC_HWB,
-+	VDEC_HWG,
-+	NUM_MAX_VDEC_REG_BASE,
-+	VENC_SYS = NUM_MAX_VDEC_REG_BASE,
-+	VENC_LT_SYS,
-+	NUM_MAX_VCODEC_REG_BASE
-+};
-+
-+/**
-+ * enum mtk_instance_type - The type of an MTK Vcodec instance.
-+ */
-+enum mtk_instance_type {
-+	MTK_INST_DECODER		= 0,
-+	MTK_INST_ENCODER		= 1,
-+};
-+
-+/**
-+ * enum mtk_instance_state - The state of an MTK Vcodec instance.
-+ * @MTK_STATE_FREE - default state when instance create
-+ * @MTK_STATE_CREATE - vdec instance is create
-+ * @MTK_STATE_INIT - vdec instance is init
-+ * @MTK_STATE_CONFIG - reserved for encoder
-+ * @MTK_STATE_HEADER - vdec had sps/pps header parsed
-+ * @MTK_STATE_RUNNING - vdec is decoding
-+ * @MTK_STATE_FLUSH - vdec is flushing
-+ * @MTK_STATE_RES_CHANGE - vdec detect resolution change
-+ * @MTK_STATE_FINISH - ctx instance is stopped streaming
-+ * @MTK_STATE_DEINIT - before release ctx instance
-+ * @MTK_STATE_ERROR - vdec has something wrong
-+ * @MTK_STATE_ABORT - abort work in working thread
-+ */
-+enum mtk_instance_state {
-+	MTK_STATE_FREE		= 0,
-+	MTK_STATE_CREATE	= (1 << 0),
-+	MTK_STATE_INIT		= (1 << 1),
-+	MTK_STATE_CONFIG	= (1 << 2),
-+	MTK_STATE_HEADER	= (1 << 3),
-+	MTK_STATE_RUNNING	= (1 << 4),
-+	MTK_STATE_FLUSH		= (1 << 5),
-+	MTK_STATE_RES_CHANGE	= (1 << 6),
-+	MTK_STATE_FINISH	= (1 << 7),
-+	MTK_STATE_DEINIT	= (1 << 8),
-+	MTK_STATE_ERROR		= (1 << 9),
-+	MTK_STATE_ABORT		= (1 << 10),
-+};
-+
-+/**
-+ * struct mtk_param_change - General encoding parameters type
-+ */
-+enum mtk_encode_param {
-+	MTK_ENCODE_PARAM_NONE = 0,
-+	MTK_ENCODE_PARAM_BITRATE = (1 << 0),
-+	MTK_ENCODE_PARAM_FRAMERATE = (1 << 1),
-+	MTK_ENCODE_PARAM_INTRA_PERIOD = (1 << 2),
-+	MTK_ENCODE_PARAM_FRAME_TYPE = (1 << 3),
-+	MTK_ENCODE_PARAM_SKIP_FRAME = (1 << 4),
-+};
-+
-+/**
-+ * enum mtk_fmt_type - Type of the pixelformat
-+ * @MTK_FMT_FRAME - mtk vcodec raw frame
-+ */
-+enum mtk_fmt_type {
-+	MTK_FMT_DEC		= 0,
-+	MTK_FMT_ENC		= 1,
-+	MTK_FMT_FRAME		= 2,
-+};
-+
-+/**
-+ * struct mtk_video_fmt - Structure used to store information about pixelformats
-+ */
-+struct mtk_video_fmt {
-+	char *name;
-+	u32 fourcc;
-+	enum mtk_fmt_type type;
-+	u32 num_planes;
-+};
-+
-+/**
-+ * struct mtk_codec_framesizes - Structure used to store information about framesizes
-+ */
-+struct mtk_codec_framesizes {
-+	u32 fourcc;
-+	struct	v4l2_frmsize_stepwise	stepwise;
-+};
-+
-+/**
-+ * struct mtk_q_type - Type of queue
-+ */
-+enum mtk_q_type {
-+	MTK_Q_DATA_SRC		= 0,
-+	MTK_Q_DATA_DST		= 1,
-+};
-+
-+/**
-+ * struct mtk_q_data - Structure used to store information about queue
-+ * @colorspace	reserved for encoder
-+ * @field		reserved for encoder
-+ */
-+struct mtk_q_data {
-+	unsigned int		width;
-+	unsigned int		height;
-+	enum v4l2_field		field;
-+	enum v4l2_colorspace	colorspace;
-+	unsigned int		bytesperline[MTK_VCODEC_MAX_PLANES];
-+	unsigned int		sizeimage[MTK_VCODEC_MAX_PLANES];
-+	struct mtk_video_fmt	*fmt;
-+};
-+
-+/**
-+ * struct mtk_enc_params - General encoding parameters
-+ * @bitrate - target bitrate
-+ * @num_b_frame - number of b frames between p-frame
-+ * @rc_frame - frame based rate control
-+ * @rc_mb - macroblock based rate control
-+ * @seq_hdr_mode - H.264 sequence header is encoded separately or joined with the first frame
-+ * @gop_size - group of picture size, it's used as the intra frame period
-+ * @framerate_num - frame rate numerator
-+ * @framerate_denom - frame rate denominator
-+ * @h264_max_qp - Max value for H.264 quantization parameter
-+ * @h264_profile - V4L2 defined H.264 profile
-+ * @h264_level - V4L2 defined H.264 level
-+ * @force_intra - force/insert intra frame
-+ * @skip_frame - encode in skip frame mode that use minimum number of bits
-+ */
-+struct mtk_enc_params {
-+	unsigned int	bitrate;
-+	unsigned int	num_b_frame;
-+	unsigned int	rc_frame;
-+	unsigned int	rc_mb;
-+	unsigned int	seq_hdr_mode;
-+	unsigned int	gop_size;
-+	unsigned int	framerate_num;
-+	unsigned int	framerate_denom;
-+	unsigned int	h264_max_qp;
-+	unsigned int	h264_profile;
-+	unsigned int	h264_level;
-+	unsigned int	force_intra;
-+	unsigned int	skip_frame;
-+};
-+
-+/**
-+ * struct mtk_vcodec_pm - Power management data structure
-+ */
-+struct mtk_vcodec_pm {
-+	struct clk	*mmpll;
-+	struct clk	*vcodecpll;
-+	struct clk	*univpll_d2;
-+	struct clk	*clk_cci400_sel;
-+	struct clk	*vdecpll;
-+	struct clk	*vdec_sel;
-+	struct clk	*vencpll;
-+	struct clk	*venc_lt_sel;
-+	struct clk	*vcodecpll_370p5_ck;
-+	struct device	*larbvdec;
-+	struct device	*larbvenc;
-+	struct device	*larbvenclt;
-+	struct device	*dev;
-+	struct mtk_vcodec_dev *mtkdev;
-+};
-+
-+/**
-+ * struct mtk_video_enc_buf - Private data related to each VB2 buffer.
-+ * @b:			Pointer to related VB2 buffer.
-+ * @param_change:	Types of encode parameter change before encode this
-+ *			buffer
-+ * @enc_params		Encode parameters changed before encode this buffer
-+ */
-+struct mtk_video_enc_buf {
-+	struct vb2_v4l2_buffer b;
-+	struct list_head list;
-+
-+	enum mtk_encode_param param_change;
-+	struct mtk_enc_params enc_params;
-+};
-+
-+/**
-+ * struct mtk_vcodec_ctx - Context (instance) private data.
-+ *
-+ * @type:		type of the instance - decoder or encoder
-+ * @dev:		pointer to the mtk_vcodec_dev of the device
-+ * @fh:			struct v4l2_fh
-+ * @m2m_ctx:		pointer to the v4l2_m2m_ctx of the context
-+ * @q_data:		store information of input and output queue
-+ *			of the context
-+ * @idx:			index of the context that this structure describes
-+ * @state:		state of the context
-+ * @aborting:
-+ * @param_change:
-+ * @param_change_mutex:
-+ * @enc_params:		encoding parameters
-+ * @colorspace:
-+ *
-+ * @h_enc:		encoder handler
-+ * @picinfo:		store width/height of image and buffer and planes' size for decoder
-+ *			and encoder
-+ * @pb_count:		count of the DPB buffers required by MTK Vcodec hw
-+ * @hdr:
-+ *
-+ * @int_cond:		variable used by the waitqueue
-+ * @int_type:		type of the last interrupt
-+ * @queue:		waitqueue that can be used to wait for this context to
-+ *			finish
-+ * @irq_status:
-+ *
-+ * @display_time_info:	display time for destination buffers
-+ * @in_time_idx:	latest insert display time index
-+ * @out_time_idx:	first remove display time index
-+ *
-+ * @ctrl_hdl:		handler for v4l2 framework
-+ * @ctrls:		array of controls, used when adding controls to the
-+ *			v4l2 control framework
-+ *
-+ * @encode_work:	worker for the encoding
-+ */
-+struct mtk_vcodec_ctx {
-+	enum mtk_instance_type type;
-+	struct mtk_vcodec_dev *dev;
-+	struct v4l2_fh fh;
-+	struct v4l2_m2m_ctx *m2m_ctx;
-+	struct mtk_q_data q_data[2];
-+	int idx;
-+	enum mtk_instance_state state;
-+	int aborting;
-+	enum mtk_encode_param param_change;
-+	struct mutex encode_param_mutex;
-+	struct mutex vb2_mutex;
-+	struct mtk_enc_params enc_params;
-+
-+	unsigned long h_enc;
-+	int hdr;
-+
-+	int int_cond;
-+	int int_type;
-+	wait_queue_head_t queue;
-+	unsigned int irq_status;
-+
-+	struct v4l2_ctrl_handler ctrl_hdl;
-+	struct v4l2_ctrl *ctrls[MTK_MAX_CTRLS];
-+
-+	struct work_struct encode_work;
-+
-+#if MTK_V4L2_BENCHMARK
-+	unsigned int total_enc_dec_cnt;
-+	unsigned int total_enc_dec_time;
-+	unsigned int total_enc_hdr_time;
-+	unsigned int total_enc_dec_init_time;
-+
-+	unsigned int total_qbuf_out_time;
-+	unsigned int total_qbuf_cap_time;
-+	unsigned int total_qbuf_out_cnt;
-+	unsigned int total_qbuf_cap_cnt;
-+	unsigned int total_dqbuf_out_time;
-+	unsigned int total_dqbuf_cap_time;
-+	unsigned int total_dqbuf_out_cnt;
-+	unsigned int total_dqbuf_cap_cnt;
-+	unsigned int total_dqbuf_cnt;
-+	unsigned int total_expbuf_time;
-+#endif
-+
-+};
-+
-+/**
-+ * struct mtk_vcodec_dev - driver data
-+ * @v4l2_dev:		V4L2 device to register video devices for.
-+ * @vfd_enc:		Video device for encoder.
-+ *
-+ * @m2m_dev_enc:	m2m device for encoder.
-+ * @plat_dev:		platform device
-+ * @alloc_ctx:		VB2 allocator context
-+ *			(for allocations without kernel mapping).
-+ * @ctx:			array of driver contexts
-+ *
-+ * @curr_ctx:		The context that is waiting for codec hardware
-+ *
-+ * @reg_base:		Mapped address of MTK Vcodec registers.
-+ *
-+ * @instance_mask:	used to mark which contexts are opened
-+ * @num_instances:	counter of active MTK Vcodec instances
-+ *
-+ * @encode_workqueue:	encode work queue
-+ *
-+ * @int_cond:		used to identify interrupt condition happen
-+ * @int_type:		used to identify what kind of interrupt condition happen
-+ * @dev_mutex:		video_device lock
-+ * @queue:		waitqueue for waiting for completion of device commands
-+ *
-+ * @enc_irq:		encoder irq resource.
-+ * @enc_lt_irq:		encoder lt irq resource.
-+ *
-+ * @enc_mutex:		encoder hardware lock.
-+ *
-+ * @pm:			power management control
-+ * @dec_capability:	used to identify decode capability, ex: 4k
-+ * @enc_capability:     used to identify encode capability
-+ */
-+struct mtk_vcodec_dev {
-+	struct v4l2_device	v4l2_dev;
-+	struct video_device	*vfd_enc;
-+
-+	struct v4l2_m2m_dev	*m2m_dev_enc;
-+	struct platform_device	*plat_dev;
-+	struct vb2_alloc_ctx	*alloc_ctx;
-+	struct mtk_vcodec_ctx	*ctx[MTK_VCODEC_MAX_INSTANCES];
-+	int curr_ctx;
-+	void __iomem		*reg_base[NUM_MAX_VCODEC_REG_BASE];
-+
-+	unsigned long	instance_mask[BITS_TO_LONGS(MTK_VCODEC_MAX_INSTANCES)];
-+	int			num_instances;
-+
-+	struct workqueue_struct *encode_workqueue;
-+
-+	int			int_cond;
-+	int			int_type;
-+	struct mutex		dev_mutex;
-+	wait_queue_head_t	queue;
-+
-+	int			enc_irq;
-+	int			enc_lt_irq;
-+
-+	struct mutex		enc_mutex;
-+	unsigned long		enter_suspend;
-+
-+	struct mtk_vcodec_pm	pm;
-+	unsigned int		dec_capability;
-+	unsigned int		enc_capability;
-+};
-+
-+/**
-+ * struct mtk_vcodec_ctrl - information about controls to be registered.
-+ * @id:			Control ID.
-+ * @type:			Type of the control.
-+ * @name:		Human readable name of the control.
-+ * @minimum:		Minimum value of the control.
-+ * @maximum:		Maximum value of the control.
-+ * @step:			Control value increase step.
-+ * @menu_skip_mask:	Mask of invalid menu positions.
-+ * @default_value:		Initial value of the control.
-+ * @is_volatile:		Control is volatile.
-+ *
-+ * See also struct v4l2_ctrl_config.
-+ */
-+struct mtk_vcodec_ctrl {
-+	u32			id;
-+	enum v4l2_ctrl_type	type;
-+	u8			name[32];
-+	s32			minimum;
-+	s32			maximum;
-+	s32			step;
-+	u32			menu_skip_mask;
-+	s32			default_value;
-+	u8			is_volatile;
-+};
-+
-+static inline struct mtk_vcodec_ctx *fh_to_ctx(struct v4l2_fh *fh)
-+{
-+	return container_of(fh, struct mtk_vcodec_ctx, fh);
-+}
-+
-+static inline struct mtk_vcodec_ctx *ctrl_to_ctx(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct mtk_vcodec_ctx, ctrl_hdl);
-+}
-+
-+extern const struct v4l2_ioctl_ops mtk_vdec_ioctl_ops;
-+extern const struct v4l2_m2m_ops mtk_vdec_m2m_ops;
-+extern const struct v4l2_ioctl_ops mtk_venc_ioctl_ops;
-+extern const struct v4l2_m2m_ops mtk_venc_m2m_ops;
-+
-+#endif /* _MTK_VCODEC_DRV_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-new file mode 100644
-index 0000000..8e1b6f0
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -0,0 +1,1773 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/videobuf2-core.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-mem2mem.h>
-+
-+#include "mtk_vcodec_drv.h"
-+#include "mtk_vcodec_enc.h"
-+#include "mtk_vcodec_intr.h"
-+#include "mtk_vcodec_util.h"
-+#include "venc_drv_if.h"
-+
-+static void mtk_venc_worker(struct work_struct *work);
-+
-+static struct mtk_video_fmt mtk_video_formats[] = {
-+	{
-+		.name		= "4:2:0 3 Planes Y/Cb/Cr",
-+		.fourcc		= V4L2_PIX_FMT_YUV420,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 3,
-+	},
-+	{
-+		.name		= "4:2:0 3 Planes Y/Cr/Cb",
-+		.fourcc		= V4L2_PIX_FMT_YVU420,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 3,
-+	},
-+	{
-+		.name		= "4:2:0 2 Planes Y/CbCr",
-+		.fourcc		= V4L2_PIX_FMT_NV12,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 2,
-+	},
-+	{
-+		.name		= "4:2:0 2 Planes Y/CrCb",
-+		.fourcc		= V4L2_PIX_FMT_NV21,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 2,
-+	},
-+	{
-+		.name		= "4:2:0 3 none contiguous Planes Y/Cb/Cr",
-+		.fourcc		= V4L2_PIX_FMT_YUV420M,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 3,
-+	},
-+	{
-+		.name		= "4:2:0 3 none contiguous Planes Y/Cr/Cb",
-+		.fourcc		= V4L2_PIX_FMT_YVU420M,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 3,
-+	},
-+	{
-+		.name		= "4:2:0 2 none contiguous Planes Y/CbCr",
-+		.fourcc 	= V4L2_PIX_FMT_NV12M,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 2,
-+	},
-+	{
-+		.name		= "4:2:0 2 none contiguous Planes Y/CrCb",
-+		.fourcc		= V4L2_PIX_FMT_NV21M,
-+		.type		= MTK_FMT_FRAME,
-+		.num_planes	= 2,
-+	},
-+	{
-+		.name		= "H264 Encoded Stream",
-+		.fourcc		= V4L2_PIX_FMT_H264,
-+		.type		= MTK_FMT_ENC,
-+		.num_planes	= 1,
-+	},
-+	{
-+		.name		= "VP8 Encoded Stream",
-+		.fourcc		= V4L2_PIX_FMT_VP8,
-+		.type		= MTK_FMT_ENC,
-+		.num_planes	= 1,
-+	},
-+};
-+
-+#define NUM_FORMATS ARRAY_SIZE(mtk_video_formats)
-+
-+static struct mtk_vcodec_ctrl controls[] = {
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_BITRATE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 1,
-+		.maximum = (1 << 30) - 1,
-+		.step = 1,
-+		.default_value = 4000000,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_B_FRAMES,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 2,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 1,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_H264_MAX_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 51,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEADER_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
-+		.maximum = V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
-+		.default_value = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
-+		.menu_skip_mask = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_H264_PROFILE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
-+		.maximum = V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
-+		.default_value = V4L2_MPEG_VIDEO_H264_PROFILE_MAIN,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_H264_LEVEL,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-+		.maximum = V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
-+		.default_value = V4L2_MPEG_VIDEO_H264_LEVEL_4_0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = (1 << 16) - 1,
-+		.step = 1,
-+		.default_value = 30,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_GOP_SIZE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = (1 << 16) - 1,
-+		.step = 1,
-+		.default_value = 30,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED,
-+		.maximum = V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED,
-+		.default_value =
-+			V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED,
-+		.menu_skip_mask = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED,
-+		.maximum = V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT,
-+		.default_value = V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED,
-+		.menu_skip_mask = 0,
-+	},
-+};
-+
-+#define NUM_CTRLS ARRAY_SIZE(controls)
-+
-+static const struct mtk_codec_framesizes mtk_venc_framesizes[] = {
-+	{
-+		.fourcc	= V4L2_PIX_FMT_H264,
-+		.stepwise = {  160, 1920, 16, 128, 1088, 16 },
-+	},
-+	{
-+		.fourcc = V4L2_PIX_FMT_VP8,
-+		.stepwise = {  160, 1920, 16, 128, 1088, 16 },
-+	},
-+};
-+
-+#define NUM_SUPPORTED_FRAMESIZE ARRAY_SIZE(mtk_venc_framesizes)
-+
-+static int vidioc_venc_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct mtk_vcodec_ctx *ctx = ctrl_to_ctx(ctrl);
-+	struct mtk_vcodec_dev *dev = ctx->dev;
-+	struct mtk_enc_params *p = &ctx->enc_params;
-+	int ret = 0;
-+
-+	mtk_v4l2_debug(1, "[%d] id = %d/%d, val = %d", ctrl->id,
-+			ctx->idx, ctrl->id - V4L2_CID_MPEG_BASE, ctrl->val);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_MPEG_VIDEO_BITRATE:
-+
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_BITRATE val = %d",
-+			ctrl->val);
-+
-+		mutex_lock(&ctx->encode_param_mutex);
-+		p->bitrate = ctrl->val;
-+		ctx->param_change |= MTK_ENCODE_PARAM_BITRATE;
-+		mutex_unlock(&ctx->encode_param_mutex);
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_B_FRAMES:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_B_FRAMES val = %d",
-+			ctrl->val);
-+		p->num_b_frame = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE val = %d",
-+			ctrl->val);
-+		p->rc_frame = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_H264_MAX_QP val = %d",
-+			ctrl->val);
-+		p->h264_max_qp = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_HEADER_MODE val = %d",
-+			ctrl->val);
-+		p->seq_hdr_mode = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE val = %d",
-+			ctrl->val);
-+		p->rc_mb = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_H264_PROFILE val = %d",
-+			ctrl->val);
-+		p->h264_profile = ctrl->val;
-+		break;
-+
-+	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_H264_LEVEL val = %d",
-+			ctrl->val);
-+		p->h264_level = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_H264_I_PERIOD val = %d",
-+			ctrl->val);
-+	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_VIDEO_GOP_SIZE val = %d",
-+			ctrl->val);
-+
-+		mutex_lock(&ctx->encode_param_mutex);
-+		p->gop_size = ctrl->val;
-+		ctx->param_change |= MTK_ENCODE_PARAM_INTRA_PERIOD;
-+		mutex_unlock(&ctx->encode_param_mutex);
-+		break;
-+	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE val = %d",
-+			ctrl->val);
-+		if (ctrl->val ==
-+			V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_NOT_CODED) {
-+			v4l2_err(&dev->v4l2_dev, "unsupported frame type %x\n",
-+				 ctrl->val);
-+			ret = -EINVAL;
-+			break;
-+		}
-+		mutex_lock(&ctx->encode_param_mutex);
-+		if (ctrl->val == V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME)
-+			p->force_intra = 1;
-+		else if (ctrl->val ==
-+			V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED)
-+			p->force_intra = 0;
-+		/* always allow user to insert I frame */
-+		ctrl->val = V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_DISABLED;
-+		ctx->param_change |= MTK_ENCODE_PARAM_FRAME_TYPE;
-+		mutex_unlock(&ctx->encode_param_mutex);
-+		break;
-+
-+	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE:
-+		mtk_v4l2_debug(1, "V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE val = %d",
-+			ctrl->val);
-+
-+		mutex_lock(&ctx->encode_param_mutex);
-+		if (ctrl->val == V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED)
-+			p->skip_frame = 0;
-+		else
-+			p->skip_frame = 1;
-+		/* always allow user to skip frame */
-+		ctrl->val = V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_DISABLED;
-+		ctx->param_change |= MTK_ENCODE_PARAM_SKIP_FRAME;
-+		mutex_unlock(&ctx->encode_param_mutex);
-+		break;
-+
-+	default:
-+		mtk_v4l2_err("Invalid control, id=%d, val=%d\n",
-+				ctrl->id, ctrl->val);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ctrl_ops mtk_vcodec_enc_ctrl_ops = {
-+	.s_ctrl = vidioc_venc_s_ctrl,
-+};
-+
-+static int vidioc_enum_fmt(struct file *file, struct v4l2_fmtdesc *f,
-+			   bool out)
-+{
-+	struct mtk_video_fmt *fmt;
-+	int i, j = 0;
-+
-+	for (i = 0; i < NUM_FORMATS; ++i) {
-+		if (out && mtk_video_formats[i].type != MTK_FMT_FRAME)
-+			continue;
-+		else if (!out && mtk_video_formats[i].type != MTK_FMT_ENC)
-+			continue;
-+
-+		if (j == f->index) {
-+			fmt = &mtk_video_formats[i];
-+			strlcpy(f->description, fmt->name,
-+				sizeof(f->description));
-+			f->pixelformat = fmt->fourcc;
-+			mtk_v4l2_debug(1, "f->index=%d i=%d fmt->name=%s",
-+					 f->index, i, fmt->name);
-+			return 0;
-+		}
-+		++j;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int vidioc_enum_framesizes(struct file *file, void *fh,
-+				  struct v4l2_frmsizeenum *fsize)
-+{
-+	int i = 0;
-+
-+	for (i = 0; i < NUM_SUPPORTED_FRAMESIZE; ++i) {
-+		if (fsize->pixel_format != mtk_venc_framesizes[i].fourcc)
-+			continue;
-+
-+		if (!fsize->index) {
-+			fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-+			fsize->stepwise = mtk_venc_framesizes[i].stepwise;
-+			mtk_v4l2_debug(1, "%d %d %d %d %d %d",
-+					 fsize->stepwise.min_width,
-+					 fsize->stepwise.max_width,
-+					 fsize->stepwise.step_width,
-+					 fsize->stepwise.min_height,
-+					 fsize->stepwise.max_height,
-+					 fsize->stepwise.step_height);
-+			return 0;
-+		}
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static int vidioc_enum_fmt_vid_cap_mplane(struct file *file, void *pirv,
-+					  struct v4l2_fmtdesc *f)
-+{
-+	return vidioc_enum_fmt(file, f, false);
-+}
-+
-+static int vidioc_enum_fmt_vid_out_mplane(struct file *file, void *prov,
-+					  struct v4l2_fmtdesc *f)
-+{
-+	return vidioc_enum_fmt(file, f, true);
-+}
-+
-+static int vidioc_venc_streamon(struct file *file, void *priv,
-+				enum v4l2_buf_type type)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+
-+	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
-+}
-+
-+static int vidioc_venc_streamoff(struct file *file, void *priv,
-+				 enum v4l2_buf_type type)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+
-+	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
-+}
-+
-+static int vidioc_venc_reqbufs(struct file *file, void *priv,
-+			       struct v4l2_requestbuffers *reqbufs)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+
-+	mtk_v4l2_debug(1, "[%d]-> type=%d count=%d",
-+			 ctx->idx, reqbufs->type, reqbufs->count);
-+
-+	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
-+}
-+
-+static int vidioc_venc_querybuf(struct file *file, void *priv,
-+				struct v4l2_buffer *buf)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+
-+	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
-+}
-+
-+static int vidioc_venc_qbuf(struct file *file, void *priv,
-+			    struct v4l2_buffer *buf)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+	int ret;
-+#if MTK_V4L2_BENCHMARK
-+	struct timeval begin, end;
-+
-+	do_gettimeofday(&begin);
-+#endif
-+
-+	ret = v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
-+
-+#if MTK_V4L2_BENCHMARK
-+	do_gettimeofday(&end);
-+
-+	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ctx->total_qbuf_cap_cnt++;
-+		ctx->total_qbuf_cap_time +=
-+			((end.tv_sec - begin.tv_sec) * 1000000 +
-+				end.tv_usec - begin.tv_usec);
-+	}
-+
-+	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ctx->total_qbuf_out_cnt++;
-+		ctx->total_qbuf_out_time +=
-+			((end.tv_sec - begin.tv_sec) * 1000000 +
-+				end.tv_usec - begin.tv_usec);
-+	}
-+
-+#endif
-+
-+	return ret;
-+}
-+
-+static int vidioc_venc_dqbuf(struct file *file, void *priv,
-+			     struct v4l2_buffer *buf)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+	int ret;
-+#if MTK_V4L2_BENCHMARK
-+	struct timeval begin, end;
-+
-+	do_gettimeofday(&begin);
-+#endif
-+
-+	ret = v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
-+#if MTK_V4L2_BENCHMARK
-+
-+	do_gettimeofday(&end);
-+	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ctx->total_dqbuf_cap_cnt++;
-+		ctx->total_dqbuf_cap_time +=
-+			((end.tv_sec - begin.tv_sec) * 1000000 +
-+				end.tv_usec - begin.tv_usec);
-+	}
-+
-+	if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ctx->total_dqbuf_out_cnt++;
-+		ctx->total_dqbuf_out_time +=
-+			((end.tv_sec - begin.tv_sec) * 1000000 +
-+				end.tv_usec - begin.tv_usec);
-+	}
-+
-+#endif
-+	return ret;
-+}
-+static int vidioc_venc_expbuf(struct file *file, void *priv,
-+			      struct v4l2_exportbuffer *eb)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+	int ret;
-+#if MTK_V4L2_BENCHMARK
-+	struct timeval begin, end;
-+
-+	do_gettimeofday(&begin);
-+#endif
-+
-+	ret = v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
-+
-+#if MTK_V4L2_BENCHMARK
-+	do_gettimeofday(&end);
-+	ctx->total_expbuf_time +=
-+		((end.tv_sec - begin.tv_sec) * 1000000 +
-+			end.tv_usec - begin.tv_usec);
-+#endif
-+	return ret;
-+}
-+
-+static int vidioc_venc_querycap(struct file *file, void *priv,
-+				struct v4l2_capability *cap)
-+{
-+	strncpy(cap->driver, MTK_VCODEC_ENC_NAME, sizeof(cap->driver) - 1);
-+	cap->bus_info[0] = 0;
-+	cap->version = KERNEL_VERSION(1, 0, 0);
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-+			    V4L2_CAP_VIDEO_OUTPUT_MPLANE;
-+
-+	return 0;
-+}
-+
-+static int vidioc_venc_subscribe_event(struct v4l2_fh *fh,
-+		       const struct v4l2_event_subscription *sub)
-+{
-+	return v4l2_event_subscribe(fh, sub, 0, NULL);
-+}
-+
-+static int vidioc_venc_s_parm(struct file *file, void *priv,
-+			      struct v4l2_streamparm *a)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+
-+	if (a->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		mutex_lock(&ctx->encode_param_mutex);
-+		ctx->enc_params.framerate_num =
-+			a->parm.output.timeperframe.denominator;
-+		ctx->enc_params.framerate_denom =
-+			a->parm.output.timeperframe.numerator;
-+		ctx->param_change |= MTK_ENCODE_PARAM_FRAMERATE;
-+		mutex_unlock(&ctx->encode_param_mutex);
-+		mtk_v4l2_debug(1, "framerate = %d/%d",
-+				 ctx->enc_params.framerate_num,
-+				 ctx->enc_params.framerate_denom);
-+	} else {
-+		mtk_v4l2_err("Non support param type %d",
-+			 a->type);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static struct mtk_q_data *mtk_venc_get_q_data(struct mtk_vcodec_ctx *ctx,
-+					      enum v4l2_buf_type type)
-+{
-+	switch (type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		return &ctx->q_data[MTK_Q_DATA_SRC];
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+		return &ctx->q_data[MTK_Q_DATA_DST];
-+	default:
-+		BUG();
-+	}
-+	return NULL;
-+}
-+
-+static struct mtk_video_fmt *mtk_venc_find_format(struct v4l2_format *f)
-+{
-+	struct mtk_video_fmt *fmt;
-+	unsigned int k;
-+
-+	for (k = 0; k < NUM_FORMATS; k++) {
-+		fmt = &mtk_video_formats[k];
-+		if (fmt->fourcc == f->fmt.pix.pixelformat)
-+			return fmt;
-+	}
-+
-+	return NULL;
-+}
-+
-+static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
-+{
-+	struct mtk_video_fmt *fmt;
-+	char str[10];
-+	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
-+
-+	mtk_vcodec_fmt2str(f->fmt.pix_mp.pixelformat, str);
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		fmt = mtk_venc_find_format(f);
-+		if (!fmt) {
-+			mtk_v4l2_err("failed to try output format %s\n", str);
-+			return -EINVAL;
-+		}
-+		if (pix_fmt_mp->plane_fmt[0].sizeimage == 0) {
-+			mtk_v4l2_err("must be set encoding output size %s\n",
-+				       str);
-+			return -EINVAL;
-+		}
-+
-+		pix_fmt_mp->plane_fmt[0].bytesperline =
-+			pix_fmt_mp->plane_fmt[0].sizeimage;
-+	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		fmt = mtk_venc_find_format(f);
-+		if (!fmt) {
-+			mtk_v4l2_err("failed to try output format %s\n", str);
-+			return -EINVAL;
-+		}
-+
-+		if (fmt->num_planes != pix_fmt_mp->num_planes) {
-+			mtk_v4l2_err("failed to try output format %d %d %s\n",
-+				       fmt->num_planes, pix_fmt_mp->num_planes,
-+				       str);
-+			return -EINVAL;
-+		}
-+
-+		v4l_bound_align_image(&pix_fmt_mp->width, 8, 1920, 1,
-+				      &pix_fmt_mp->height, 4, 1080, 1, 0);
-+	} else {
-+		pr_err("invalid buf type %d\n", f->type);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static void mtk_vcodec_enc_calc_src_size(struct mtk_vcodec_ctx *ctx)
-+{
-+	struct mtk_video_fmt *fmt = ctx->q_data[MTK_Q_DATA_SRC].fmt;
-+	struct mtk_q_data *q_data = &ctx->q_data[MTK_Q_DATA_SRC];
-+
-+	ctx->q_data[MTK_Q_DATA_SRC].sizeimage[0] =
-+		((q_data->width + 15) / 16) *
-+		((q_data->height + 15) / 16) * 256;
-+	ctx->q_data[MTK_Q_DATA_SRC].bytesperline[0] = ALIGN(q_data->width, 16);
-+
-+	if (fmt->num_planes == 2) {
-+		ctx->q_data[MTK_Q_DATA_SRC].sizeimage[1] =
-+			((q_data->width + 15) / 16) *
-+			((q_data->height + 15) / 16) * 128;
-+		ctx->q_data[MTK_Q_DATA_SRC].sizeimage[2] = 0;
-+		ctx->q_data[MTK_Q_DATA_SRC].bytesperline[1] =
-+			ALIGN(q_data->width, 16);
-+		ctx->q_data[MTK_Q_DATA_SRC].bytesperline[2] = 0;
-+	} else {
-+		ctx->q_data[MTK_Q_DATA_SRC].sizeimage[1] =
-+			((q_data->width + 15) / 16) *
-+			((q_data->height + 15) / 16) * 64;
-+		ctx->q_data[MTK_Q_DATA_SRC].sizeimage[2] =
-+			((q_data->width + 15) / 16) *
-+			((q_data->height + 15) / 16) * 64;
-+		ctx->q_data[MTK_Q_DATA_SRC].bytesperline[1] =
-+			ALIGN(q_data->width, 16) / 2;
-+		ctx->q_data[MTK_Q_DATA_SRC].bytesperline[2] =
-+			ALIGN(q_data->width, 16) / 2;
-+	}
-+}
-+
-+static int vidioc_venc_s_fmt(struct file *file, void *priv,
-+			     struct v4l2_format *f)
-+{
-+	struct mtk_vcodec_dev *dev = video_drvdata(file);
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+	struct v4l2_pix_format_mplane *pix_fmt_mp = &f->fmt.pix_mp;
-+	struct vb2_queue *vq;
-+	struct mtk_q_data *q_data;
-+	int i, ret;
-+
-+	ret = vidioc_try_fmt(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	if (!vq) {
-+		v4l2_err(&dev->v4l2_dev, "fail to get vq\n");
-+		return -EINVAL;
-+	}
-+
-+	if (vb2_is_busy(vq)) {
-+		v4l2_err(&dev->v4l2_dev, "queue busy\n");
-+		return -EBUSY;
-+	}
-+
-+	q_data = mtk_venc_get_q_data(ctx, f->type);
-+	if (!q_data) {
-+		v4l2_err(&dev->v4l2_dev, "fail to get q data\n");
-+		return -EINVAL;
-+	}
-+
-+	q_data->fmt		= mtk_venc_find_format(f);
-+	if (!q_data->fmt) {
-+		v4l2_err(&dev->v4l2_dev, "q data null format\n");
-+		return -EINVAL;
-+	}
-+
-+	q_data->width		= f->fmt.pix_mp.width;
-+	q_data->height		= f->fmt.pix_mp.height;
-+	q_data->colorspace	= f->fmt.pix_mp.colorspace;
-+	q_data->field		= f->fmt.pix_mp.field;
-+
-+	for (i = 0; i < f->fmt.pix_mp.num_planes; i++) {
-+		struct v4l2_plane_pix_format	*plane_fmt;
-+
-+		plane_fmt = &f->fmt.pix_mp.plane_fmt[i];
-+		q_data->bytesperline[i]	= plane_fmt->bytesperline;
-+		q_data->sizeimage[i]	= plane_fmt->sizeimage;
-+	}
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		q_data->width		= f->fmt.pix_mp.width;
-+		q_data->height		= f->fmt.pix_mp.height;
-+
-+		mtk_vcodec_enc_calc_src_size(ctx);
-+		pix_fmt_mp->plane_fmt[0].sizeimage = q_data->sizeimage[0];
-+		pix_fmt_mp->plane_fmt[0].bytesperline =
-+			ctx->q_data[MTK_Q_DATA_SRC].bytesperline[0];
-+		pix_fmt_mp->plane_fmt[1].sizeimage = q_data->sizeimage[1];
-+		pix_fmt_mp->plane_fmt[1].bytesperline =
-+			ctx->q_data[MTK_Q_DATA_SRC].bytesperline[1];
-+		pix_fmt_mp->plane_fmt[2].sizeimage = q_data->sizeimage[2];
-+		pix_fmt_mp->plane_fmt[2].bytesperline =
-+			ctx->q_data[MTK_Q_DATA_SRC].bytesperline[2];
-+	}
-+
-+	mtk_v4l2_debug(1,
-+			 "[%d]: t=%d wxh=%dx%d fmt=%c%c%c%c sz=0x%x-%x-%x",
-+			 ctx->idx,
-+			 f->type,
-+			 q_data->width, q_data->height,
-+			 (f->fmt.pix_mp.pixelformat & 0xff),
-+			 (f->fmt.pix_mp.pixelformat >>  8) & 0xff,
-+			 (f->fmt.pix_mp.pixelformat >> 16) & 0xff,
-+			 (f->fmt.pix_mp.pixelformat >> 24) & 0xff,
-+			 q_data->sizeimage[0],
-+			 q_data->sizeimage[1],
-+			 q_data->sizeimage[2]);
-+
-+	return 0;
-+}
-+
-+static int vidioc_venc_g_fmt(struct file *file, void *priv,
-+			     struct v4l2_format *f)
-+{
-+	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-+	struct vb2_queue *vq;
-+	struct mtk_q_data *q_data;
-+	int i;
-+
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	if (!vq)
-+		return -EINVAL;
-+
-+	q_data = mtk_venc_get_q_data(ctx, f->type);
-+
-+	pix->width = q_data->width;
-+	pix->height = q_data->height;
-+	pix->pixelformat = q_data->fmt->fourcc;
-+	pix->field = q_data->field;
-+	pix->colorspace = q_data->colorspace;
-+	pix->num_planes = q_data->fmt->num_planes;
-+
-+	for (i = 0; i < pix->num_planes; i++) {
-+		pix->plane_fmt[i].bytesperline = q_data->bytesperline[i];
-+		pix->plane_fmt[i].sizeimage = q_data->sizeimage[i];
-+	}
-+
-+	mtk_v4l2_debug(1,
-+			 "[%d]<- type=%d wxh=%dx%d fmt=%c%c%c%c sz[0]=0x%x sz[1]=0x%x",
-+			 ctx->idx, f->type,
-+			 pix->width, pix->height,
-+			 (pix->pixelformat & 0xff),
-+			 (pix->pixelformat >>  8) & 0xff,
-+			 (pix->pixelformat >> 16) & 0xff,
-+			 (pix->pixelformat >> 24) & 0xff,
-+			 pix->plane_fmt[0].sizeimage,
-+			 pix->plane_fmt[1].sizeimage);
-+
-+	return 0;
-+}
-+
-+static int vidioc_venc_g_ctrl(struct file *file, void *fh,
-+			      struct v4l2_control *ctrl)
-+{
-+	int ret = 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
-+	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
-+		ctrl->value = 1;
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+static int vidioc_venc_s_crop(struct file *file, void *fh,
-+			      const struct v4l2_crop *a)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(fh);
-+	struct mtk_q_data *q_data;
-+
-+	if (a->c.left || a->c.top)
-+		return -EINVAL;
-+
-+	q_data = mtk_venc_get_q_data(ctx, a->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	if (a->c.width != q_data->width ||
-+	    a->c.height != q_data->height) {
-+		mtk_v4l2_err("crop right %d bottom %d w %d h %d\n",
-+			 a->c.width, a->c.height, q_data->width,
-+			 q_data->height);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vidioc_venc_g_crop(struct file *file, void *fh,
-+					struct v4l2_crop *a)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(fh);
-+	struct mtk_q_data *q_data;
-+
-+	if (a->c.left || a->c.top)
-+		return -EINVAL;
-+
-+	q_data = mtk_venc_get_q_data(ctx, a->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	a->c.width = q_data->width;
-+	a->c.height = q_data->height;
-+
-+	return 0;
-+}
-+
-+
-+const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
-+	.vidioc_streamon		= vidioc_venc_streamon,
-+	.vidioc_streamoff		= vidioc_venc_streamoff,
-+
-+	.vidioc_reqbufs			= vidioc_venc_reqbufs,
-+	.vidioc_querybuf		= vidioc_venc_querybuf,
-+	.vidioc_qbuf			= vidioc_venc_qbuf,
-+	.vidioc_expbuf			= vidioc_venc_expbuf,
-+	.vidioc_dqbuf			= vidioc_venc_dqbuf,
-+
-+	.vidioc_querycap		= vidioc_venc_querycap,
-+	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
-+	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
-+	.vidioc_enum_framesizes = vidioc_enum_framesizes,
-+
-+	.vidioc_subscribe_event		= vidioc_venc_subscribe_event,
-+
-+	.vidioc_s_parm			= vidioc_venc_s_parm,
-+
-+	.vidioc_s_fmt_vid_cap_mplane	= vidioc_venc_s_fmt,
-+	.vidioc_s_fmt_vid_out_mplane	= vidioc_venc_s_fmt,
-+
-+	.vidioc_g_fmt_vid_cap_mplane	= vidioc_venc_g_fmt,
-+	.vidioc_g_fmt_vid_out_mplane	= vidioc_venc_g_fmt,
-+
-+	.vidioc_g_ctrl			= vidioc_venc_g_ctrl,
-+
-+	.vidioc_s_crop			= vidioc_venc_s_crop,
-+	.vidioc_g_crop			= vidioc_venc_g_crop,
-+
-+};
-+
-+static int vb2ops_venc_queue_setup(struct vb2_queue *vq,
-+				   const void *parg,
-+				   unsigned int *nbuffers,
-+				   unsigned int *nplanes,
-+				   unsigned int sizes[], void *alloc_ctxs[])
-+{
-+	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vq);
-+	struct mtk_q_data *q_data;
-+
-+	q_data = mtk_venc_get_q_data(ctx, vq->type);
-+
-+	if (*nbuffers < 1)
-+		*nbuffers = 1;
-+	if (*nbuffers > MTK_VIDEO_MAX_FRAME)
-+		*nbuffers = MTK_VIDEO_MAX_FRAME;
-+
-+	*nplanes = q_data->fmt->num_planes;
-+
-+	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		unsigned int i;
-+
-+		for (i = 0; i < *nplanes; i++) {
-+			sizes[i] = q_data->sizeimage[i];
-+			alloc_ctxs[i] = ctx->dev->alloc_ctx;
-+		}
-+	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		sizes[0] = q_data->sizeimage[0];
-+		alloc_ctxs[0] = ctx->dev->alloc_ctx;
-+	} else {
-+		BUG();
-+	}
-+
-+	mtk_v4l2_debug(2,
-+			"[%d]get %d buffer(s) of size 0x%x each",
-+			ctx->idx, *nbuffers, sizes[0]);
-+
-+	return 0;
-+}
-+
-+static int vb2ops_venc_buf_prepare(struct vb2_buffer *vb)
-+{
-+	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct mtk_q_data *q_data;
-+	int i;
-+
-+	q_data = mtk_venc_get_q_data(ctx, vb->vb2_queue->type);
-+
-+	for (i = 0; i < q_data->fmt->num_planes; i++) {
-+		if (vb2_plane_size(vb, i) < q_data->sizeimage[i]) {
-+			mtk_v4l2_debug(2,
-+					"data will not fit into plane %d (%lu < %d)",
-+					i, vb2_plane_size(vb, i),
-+					q_data->sizeimage[i]);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void vb2ops_venc_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vb2_v4l2_buffer *v4l2_vb = to_vb2_v4l2_buffer(vb);
-+	struct mtk_video_enc_buf *buf =
-+			container_of(v4l2_vb, struct mtk_video_enc_buf, b);
-+
-+	mutex_lock(&ctx->encode_param_mutex);
-+	if ((vb->vb2_queue->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) &&
-+		(ctx->param_change != MTK_ENCODE_PARAM_NONE)) {
-+		mtk_v4l2_debug(1,
-+				"[%d] Before id=%d encode parameter change %x",
-+				ctx->idx, vb->index,
-+				ctx->param_change);
-+		buf->param_change = ctx->param_change;
-+		if (buf->param_change & MTK_ENCODE_PARAM_BITRATE) {
-+			buf->enc_params.bitrate = ctx->enc_params.bitrate;
-+			mtk_v4l2_debug(1, "change param br=%d",
-+				 buf->enc_params.bitrate);
-+		}
-+		if (ctx->param_change & MTK_ENCODE_PARAM_FRAMERATE) {
-+			buf->enc_params.framerate_num =
-+				ctx->enc_params.framerate_num;
-+			buf->enc_params.framerate_denom =
-+				ctx->enc_params.framerate_denom;
-+			mtk_v4l2_debug(1, "change param fr=%d",
-+					buf->enc_params.framerate_num /
-+					buf->enc_params.framerate_denom);
-+		}
-+		if (ctx->param_change & MTK_ENCODE_PARAM_INTRA_PERIOD) {
-+			buf->enc_params.gop_size = ctx->enc_params.gop_size;
-+			mtk_v4l2_debug(1, "change param intra period=%d",
-+					 buf->enc_params.gop_size);
-+		}
-+		if (ctx->param_change & MTK_ENCODE_PARAM_FRAME_TYPE) {
-+			buf->enc_params.force_intra =
-+				ctx->enc_params.force_intra;
-+			mtk_v4l2_debug(1, "change param force I=%d",
-+					 buf->enc_params.force_intra);
-+		}
-+		if (ctx->param_change & MTK_ENCODE_PARAM_SKIP_FRAME) {
-+			buf->enc_params.skip_frame =
-+				ctx->enc_params.skip_frame;
-+			mtk_v4l2_debug(1, "change param skip frame=%d",
-+					 buf->enc_params.skip_frame);
-+		}
-+		ctx->param_change = MTK_ENCODE_PARAM_NONE;
-+	}
-+	mutex_unlock(&ctx->encode_param_mutex);
-+	v4l2_m2m_buf_queue(ctx->m2m_ctx, to_vb2_v4l2_buffer(vb));
-+}
-+
-+static void mtk_venc_set_param(struct mtk_vcodec_ctx *ctx, void *param)
-+{
-+	struct venc_enc_prm *p = (struct venc_enc_prm *)param;
-+	struct mtk_q_data *q_data_src = &ctx->q_data[MTK_Q_DATA_SRC];
-+	struct mtk_enc_params *enc_params = &ctx->enc_params;
-+	unsigned int frame_rate;
-+
-+	mutex_lock(&ctx->encode_param_mutex);
-+
-+	frame_rate = enc_params->framerate_num / enc_params->framerate_denom;
-+
-+	switch (q_data_src->fmt->fourcc) {
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YUV420M:
-+		p->input_fourcc = VENC_YUV_FORMAT_420;
-+		break;
-+	case V4L2_PIX_FMT_YVU420:
-+	case V4L2_PIX_FMT_YVU420M:
-+		p->input_fourcc = VENC_YUV_FORMAT_YV12;
-+		break;
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV12M:
-+		p->input_fourcc = VENC_YUV_FORMAT_NV12;
-+		break;
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV21M:
-+		p->input_fourcc = VENC_YUV_FORMAT_NV21;
-+		break;
-+	}
-+	p->h264_profile = enc_params->h264_profile;
-+	p->h264_level = enc_params->h264_level;
-+	p->width = q_data_src->width;
-+	p->height = q_data_src->height;
-+	p->buf_width = q_data_src->bytesperline[0];
-+	p->buf_height = ((q_data_src->height + 0xf) & (~0xf));
-+	p->frm_rate = frame_rate;
-+	p->intra_period = enc_params->gop_size;
-+	p->bitrate = enc_params->bitrate;
-+
-+	ctx->param_change = MTK_ENCODE_PARAM_NONE;
-+	mutex_unlock(&ctx->encode_param_mutex);
-+
-+	mtk_v4l2_debug(1,
-+			"fmt 0x%x P/L %d/%d w/h %d/%d buf %d/%d fps/bps %d/%d gop %d",
-+			p->input_fourcc, p->h264_profile, p->h264_level, p->width,
-+			p->height, p->buf_width, p->buf_height, p->frm_rate,
-+			p->bitrate, p->intra_period);
-+}
-+
-+static int vb2ops_venc_start_streaming(struct vb2_queue *q, unsigned int count)
-+{
-+	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(q);
-+	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
-+	int ret;
-+#if MTK_V4L2_BENCHMARK
-+	struct timeval begin, end;
-+
-+	do_gettimeofday(&begin);
-+#endif
-+
-+	if (!(vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q) &
-+	      vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q))) {
-+		mtk_v4l2_debug(1, "[%d]-> out=%d cap=%d",
-+		 ctx->idx,
-+		 vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q),
-+		 vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q));
-+		return 0;
-+	}
-+
-+	if ((ctx->state & (MTK_STATE_ERROR | MTK_STATE_ABORT)))
-+		return -EINVAL;
-+
-+	if (ctx->state == MTK_STATE_FREE) {
-+		ret = venc_if_create(ctx,
-+				     ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc,
-+				     &ctx->h_enc);
-+
-+		if (ret != 0) {
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "invalid codec type=%x\n",
-+				 ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc);
-+			v4l2_err(v4l2_dev, "venc_if_create failed=%d\n", ret);
-+			return -EINVAL;
-+		}
-+
-+		if (ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc ==
-+			V4L2_PIX_FMT_H264)
-+			ctx->hdr = 1;
-+
-+		ctx->state |= MTK_STATE_CREATE;
-+	}
-+
-+	if ((ctx->state & MTK_STATE_CREATE) && !(ctx->state & MTK_STATE_INIT)) {
-+		ret = venc_if_init(ctx->h_enc);
-+		if (ret != 0) {
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "venc_if_init failed=%d\n", ret);
-+			return -EINVAL;
-+		}
-+		INIT_WORK(&ctx->encode_work, mtk_venc_worker);
-+		ctx->state |= MTK_STATE_INIT;
-+	}
-+
-+	if ((ctx->state & MTK_STATE_INIT) && !(ctx->state & MTK_STATE_CONFIG)) {
-+		struct venc_enc_prm param;
-+
-+		mtk_venc_set_param(ctx, &param);
-+		ret = venc_if_set_param(ctx->h_enc,
-+					VENC_SET_PARAM_ENC, &param);
-+		if (ret != 0) {
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "venc_if_set_param failed=%d\n",
-+				 ret);
-+			return -EINVAL;
-+		}
-+		if (ctx->hdr) {
-+			if (ctx->enc_params.seq_hdr_mode ==
-+				V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE) {
-+				ctx->state |= MTK_STATE_CONFIG;
-+			} else {
-+				ret = venc_if_set_param(ctx->h_enc,
-+						VENC_SET_PARAM_PREPEND_HEADER,
-+						0);
-+				if (ret != 0) {
-+					ctx->state |= MTK_STATE_ERROR;
-+					v4l2_err(v4l2_dev,
-+						 "venc_if_set_param failed=%d\n",
-+						 ret);
-+					return -EINVAL;
-+				}
-+				ctx->state |= (MTK_STATE_CONFIG |
-+					MTK_STATE_HEADER);
-+			}
-+		} else {
-+			ctx->state |= (MTK_STATE_CONFIG | MTK_STATE_HEADER);
-+		}
-+	}
-+
-+#if MTK_V4L2_BENCHMARK
-+	do_gettimeofday(&end);
-+	ctx->total_enc_dec_init_time =
-+		((end.tv_sec - begin.tv_sec) * 1000000 +
-+			end.tv_usec - begin.tv_usec);
-+
-+#endif
-+	if ((ctx->state & MTK_STATE_HEADER))
-+		return 0;
-+
-+	if (!(ctx->state & MTK_STATE_CONFIG)) {
-+		ctx->state |= MTK_STATE_ERROR;
-+		mtk_v4l2_err("not configured, state=0x%x\n", ctx->state);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static void vb2ops_venc_stop_streaming(struct vb2_queue *q)
-+{
-+	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(q);
-+	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
-+	struct vb2_buffer *src_buf, *dst_buf;
-+	int retry;
-+	int ret;
-+
-+	mtk_v4l2_debug(2, "[%d]-> type=%d", ctx->idx, q->type);
-+
-+	retry = 0;
-+	while ((ctx->state & MTK_STATE_RUNNING) && (retry < 10)) {
-+		mtk_vcodec_clean_ctx_int_flags(ctx);
-+		ctx->state |= MTK_STATE_ABORT;
-+		ret = mtk_vcodec_wait_for_done_ctx(ctx,
-+					   MTK_INST_WORK_THREAD_ABORT_DONE,
-+					   200, true);
-+		mtk_v4l2_debug(1, "[%d] (%d) state=%d, retry=%d",
-+				 ctx->idx, q->type, ctx->state, retry);
-+		retry++;
-+	}
-+
-+	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		while ((dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx))) {
-+			dst_buf->planes[0].bytesused = 0;
-+			v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_DONE);
-+		}
-+	} else {
-+		while ((src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx)))
-+			v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), VB2_BUF_STATE_DONE);
-+	}
-+
-+	/* todo : stop HW encoder and flush all buffers*/
-+	if ((q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
-+	     vb2_is_streaming(&ctx->m2m_ctx->out_q_ctx.q)) ||
-+	     (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
-+	     vb2_is_streaming(&ctx->m2m_ctx->cap_q_ctx.q))) {
-+		mtk_v4l2_debug(1, "[%d]-> q type %d out=%d cap=%d",
-+				 ctx->idx, q->type,
-+				 vb2_is_streaming(&ctx->m2m_ctx->out_q_ctx.q),
-+				 vb2_is_streaming(&ctx->m2m_ctx->cap_q_ctx.q));
-+		return;
-+	}
-+
-+	ctx->state |= MTK_STATE_FINISH;
-+
-+	if ((ctx->state & MTK_STATE_INIT) && !(ctx->state & MTK_STATE_DEINIT)) {
-+		ret = venc_if_deinit(ctx->h_enc);
-+		if (ret != 0) {
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "venc_if_deinit failed=%d\n", ret);
-+			return;
-+		}
-+		ctx->state |= MTK_STATE_DEINIT;
-+	}
-+
-+	if ((ctx->state & MTK_STATE_CREATE)) {
-+		ret = 0;
-+		switch (ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc) {
-+		case V4L2_PIX_FMT_H264:
-+		case V4L2_PIX_FMT_VP8:
-+			ret = venc_if_release(ctx->h_enc);
-+			ctx->h_enc = 0;
-+			break;
-+		default:
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "invalid codec type=%x\n",
-+				 ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc);
-+			break;
-+		}
-+		if (ret != 0) {
-+			ctx->state |= MTK_STATE_ERROR;
-+			v4l2_err(v4l2_dev, "venc_if_release failed=%d\n", ret);
-+			return;
-+		}
-+	}
-+
-+	mtk_v4l2_debug(2, "[%d]-> state=0x%x", ctx->idx, ctx->state);
-+
-+	ctx->state = MTK_STATE_FREE;
-+}
-+
-+static struct vb2_ops mtk_venc_vb2_ops = {
-+	.queue_setup			= vb2ops_venc_queue_setup,
-+	.buf_prepare			= vb2ops_venc_buf_prepare,
-+	.buf_queue			= vb2ops_venc_buf_queue,
-+	.wait_prepare			= vb2_ops_wait_prepare,
-+	.wait_finish			= vb2_ops_wait_finish,
-+	.start_streaming		= vb2ops_venc_start_streaming,
-+	.stop_streaming			= vb2ops_venc_stop_streaming,
-+};
-+
-+static int mtk_venc_encode_header(void *priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = priv;
-+	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
-+	int ret;
-+	struct vb2_buffer *dst_buf;
-+	struct mtk_vcodec_mem bs_buf;
-+	struct venc_done_result enc_result;
-+	int i;
-+
-+	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-+	if (!dst_buf) {
-+		ctx->state |= MTK_STATE_ERROR;
-+		mtk_v4l2_debug(1, "No dst buffer");
-+		return -EINVAL;
-+	}
-+
-+	bs_buf.va = vb2_plane_vaddr(dst_buf, 0);
-+	bs_buf.dma_addr = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-+	bs_buf.size = (unsigned int)dst_buf->planes[0].length;
-+
-+	mtk_v4l2_debug(1,
-+			"buf idx=%d va=0x%p dma_addr=0x%llx size=0x%lx",
-+			dst_buf->index, bs_buf.va,
-+			(u64)bs_buf.dma_addr, bs_buf.size);
-+
-+	ret = venc_if_encode(ctx->h_enc,
-+			VENC_START_OPT_ENCODE_SEQUENCE_HEADER,
-+			0, &bs_buf, &enc_result);
-+
-+	if (ret != 0) {
-+		dst_buf->planes[0].bytesused = 0;
-+		ctx->state |= MTK_STATE_ERROR;
-+		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_ERROR);
-+		v4l2_err(v4l2_dev, "venc_if_encode failed=%d", ret);
-+		return -EINVAL;
-+	}
-+
-+	ctx->state |= MTK_STATE_HEADER;
-+	dst_buf->planes[0].bytesused = enc_result.bs_size;
-+
-+	mtk_v4l2_debug(1, "venc_if_encode header len=%d",
-+			enc_result.bs_size);
-+	for (i = 0; i < enc_result.bs_size; i++) {
-+		unsigned char *p = (unsigned char *)bs_buf.va;
-+
-+		mtk_v4l2_debug(1, "buf[%d]=0x%2x", i, p[i]);
-+	}
-+
-+	v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_DONE);
-+
-+	return 0;
-+}
-+
-+static int mtk_venc_param_change(struct mtk_vcodec_ctx *ctx, void *priv)
-+{
-+	struct vb2_buffer *vb = priv;
-+	struct vb2_v4l2_buffer *v4l2_vb = to_vb2_v4l2_buffer(vb);
-+	struct mtk_video_enc_buf *buf =
-+			container_of(v4l2_vb, struct mtk_video_enc_buf, b);
-+	int ret = 0;
-+
-+	if (buf->param_change == MTK_ENCODE_PARAM_NONE)
-+		return 0;
-+
-+	mtk_v4l2_debug(1, "encode parameters change id=%d", vb->index);
-+	if (buf->param_change & MTK_ENCODE_PARAM_BITRATE) {
-+		struct venc_enc_prm enc_prm;
-+
-+		enc_prm.bitrate = buf->enc_params.bitrate;
-+		mtk_v4l2_debug(1, "change param br=%d",
-+				 enc_prm.bitrate);
-+		ret |= venc_if_set_param(ctx->h_enc,
-+					 VENC_SET_PARAM_ADJUST_BITRATE,
-+					 &enc_prm);
-+	}
-+	if (buf->param_change & MTK_ENCODE_PARAM_FRAMERATE) {
-+		struct venc_enc_prm enc_prm;
-+
-+		enc_prm.frm_rate = buf->enc_params.framerate_num /
-+				   buf->enc_params.framerate_denom;
-+		mtk_v4l2_debug(1, "change param fr=%d",
-+				 enc_prm.frm_rate);
-+		ret |= venc_if_set_param(ctx->h_enc,
-+					 VENC_SET_PARAM_ADJUST_FRAMERATE,
-+					 &enc_prm);
-+	}
-+	if (buf->param_change & MTK_ENCODE_PARAM_INTRA_PERIOD) {
-+		mtk_v4l2_debug(1, "change param intra period=%d",
-+				 buf->enc_params.gop_size);
-+		ret |= venc_if_set_param(ctx->h_enc,
-+					 VENC_SET_PARAM_I_FRAME_INTERVAL,
-+					 &buf->enc_params.gop_size);
-+	}
-+	if (buf->param_change & MTK_ENCODE_PARAM_FRAME_TYPE) {
-+		mtk_v4l2_debug(1, "change param force I=%d",
-+				 buf->enc_params.force_intra);
-+		if (buf->enc_params.force_intra)
-+			ret |= venc_if_set_param(ctx->h_enc,
-+						 VENC_SET_PARAM_FORCE_INTRA,
-+						 0);
-+	}
-+	if (buf->param_change & MTK_ENCODE_PARAM_SKIP_FRAME) {
-+		mtk_v4l2_debug(1, "change param skip frame=%d",
-+				 buf->enc_params.skip_frame);
-+		if (buf->enc_params.skip_frame)
-+			ret |= venc_if_set_param(ctx->h_enc,
-+						 VENC_SET_PARAM_SKIP_FRAME,
-+						 0);
-+	}
-+	buf->param_change = MTK_ENCODE_PARAM_NONE;
-+
-+	if (ret != 0) {
-+		ctx->state |= MTK_STATE_ERROR;
-+		mtk_v4l2_err("venc_if_set_param failed=%d\n", ret);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void mtk_venc_worker(struct work_struct *work)
-+{
-+	struct mtk_vcodec_ctx *ctx = container_of(work, struct mtk_vcodec_ctx,
-+				    encode_work);
-+	struct vb2_buffer *src_buf, *dst_buf;
-+	struct vb2_v4l2_buffer *v4l2_vb;
-+	struct venc_frm_buf frm_buf;
-+	struct mtk_vcodec_mem bs_buf;
-+	struct venc_done_result enc_result;
-+	int ret;
-+
-+#if MTK_V4L2_BENCHMARK
-+	struct timeval begin, end;
-+	struct timeval begin1, end1;
-+
-+	do_gettimeofday(&begin);
-+#endif
-+
-+	ctx->state |= MTK_STATE_RUNNING;
-+
-+	if (!(ctx->state & MTK_STATE_HEADER)) {
-+#if MTK_V4L2_BENCHMARK
-+		do_gettimeofday(&begin1);
-+#endif
-+		mtk_venc_encode_header(ctx);
-+#if MTK_V4L2_BENCHMARK
-+		do_gettimeofday(&end1);
-+		ctx->total_enc_hdr_time +=
-+			((end1.tv_sec - begin1.tv_sec) * 1000000 +
-+				end1.tv_usec - begin1.tv_usec);
-+#endif
-+
-+		ctx->state &= ~MTK_STATE_RUNNING;
-+		v4l2_m2m_job_finish(ctx->dev->m2m_dev_enc, ctx->m2m_ctx);
-+		return;
-+	}
-+
-+	if (ctx->state & MTK_STATE_ABORT) {
-+		ctx->state &= ~MTK_STATE_RUNNING;
-+		v4l2_m2m_job_finish(ctx->dev->m2m_dev_enc, ctx->m2m_ctx);
-+		mtk_v4l2_debug(1, "[%d] [MTK_INST_ABORT]", ctx->idx);
-+		ctx->int_cond = 1;
-+		ctx->int_type = MTK_INST_WORK_THREAD_ABORT_DONE;
-+		wake_up_interruptible(&ctx->queue);
-+		return;
-+	}
-+
-+	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	if (!src_buf)
-+		return;
-+
-+	mtk_venc_param_change(ctx, src_buf);
-+
-+	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-+	if (!dst_buf)
-+		return;
-+
-+	frm_buf.fb_addr.va = vb2_plane_vaddr(src_buf, 0);
-+	frm_buf.fb_addr.dma_addr = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-+	frm_buf.fb_addr.size = (unsigned int)src_buf->planes[0].length;
-+	frm_buf.fb_addr1.va = vb2_plane_vaddr(src_buf, 1);
-+	frm_buf.fb_addr1.dma_addr = vb2_dma_contig_plane_dma_addr(src_buf, 1);
-+	frm_buf.fb_addr1.size = (unsigned int)src_buf->planes[1].length;
-+	if (src_buf->num_planes == 3) {
-+		frm_buf.fb_addr2.va = vb2_plane_vaddr(src_buf, 2);
-+		frm_buf.fb_addr2.dma_addr =
-+			vb2_dma_contig_plane_dma_addr(src_buf, 2);
-+		frm_buf.fb_addr2.size =
-+			(unsigned int)src_buf->planes[2].length;
-+	}
-+	bs_buf.va = vb2_plane_vaddr(dst_buf, 0);
-+	bs_buf.dma_addr = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-+	bs_buf.size = (unsigned int)dst_buf->planes[0].length;
-+
-+	mtk_v4l2_debug(1,
-+			"Framebuf VA=%p PA=%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx;VA=%p PA=0x%llx Size=0x%lx",
-+			frm_buf.fb_addr.va,
-+			(u64)frm_buf.fb_addr.dma_addr,
-+			frm_buf.fb_addr.size,
-+			frm_buf.fb_addr1.va,
-+			(u64)frm_buf.fb_addr1.dma_addr,
-+			frm_buf.fb_addr1.size,
-+			frm_buf.fb_addr2.va,
-+			(u64)frm_buf.fb_addr2.dma_addr,
-+			frm_buf.fb_addr2.size);
-+
-+	ret = venc_if_encode(ctx->h_enc, VENC_START_OPT_ENCODE_FRAME,
-+			     &frm_buf, &bs_buf, &enc_result);
-+
-+	switch (enc_result.msg) {
-+	case VENC_MESSAGE_OK:
-+		src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-+		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), VB2_BUF_STATE_DONE);
-+		dst_buf->planes[0].bytesused = enc_result.bs_size;
-+		break;
-+	default:
-+		src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
-+		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), VB2_BUF_STATE_ERROR);
-+		dst_buf->planes[0].bytesused = 0;
-+		break;
-+	}
-+	if (enc_result.is_key_frm) {
-+	        v4l2_vb = to_vb2_v4l2_buffer(dst_buf);
-+		v4l2_vb->flags |= V4L2_BUF_FLAG_KEYFRAME;
-+	}
-+
-+	if (ret != 0) {
-+		ctx->state |= MTK_STATE_ERROR;
-+		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_ERROR);
-+		mtk_v4l2_err("venc_if_encode failed=%d", ret);
-+	} else {
-+		v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), VB2_BUF_STATE_DONE);
-+		mtk_v4l2_debug(1, "venc_if_encode bs size=%d",
-+				 enc_result.bs_size);
-+	}
-+
-+#if MTK_V4L2_BENCHMARK
-+	do_gettimeofday(&end);
-+	ctx->total_enc_dec_cnt++;
-+	ctx->total_enc_dec_time +=
-+		((end.tv_sec - begin.tv_sec) * 1000000 +
-+			end.tv_usec - begin.tv_usec);
-+#endif
-+
-+	ctx->state &= ~MTK_STATE_RUNNING;
-+	v4l2_m2m_job_finish(ctx->dev->m2m_dev_enc, ctx->m2m_ctx);
-+
-+	mtk_v4l2_debug(1, "<=== src_buf[%d] dst_buf[%d] venc_if_encode ret=%d Size=%u===>",
-+			src_buf->index, dst_buf->index, ret,
-+			enc_result.bs_size);
-+
-+}
-+
-+static void m2mops_venc_device_run(void *priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = priv;
-+#ifdef USE_ENCODE_THREAD
-+	queue_work(ctx->dev->encode_workqueue, &ctx->encode_work);
-+#else
-+	mtk_venc_worker(&ctx->encode_work);
-+#endif
-+}
-+
-+static int m2mops_venc_job_ready(void *m2m_priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = m2m_priv;
-+
-+	if (!v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx)) {
-+		mtk_v4l2_debug(3,
-+				"[%d]Not ready: not enough video dst buffers.",
-+				ctx->idx);
-+		return 0;
-+	}
-+
-+	if (!v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx)) {
-+		if ((ctx->state & MTK_STATE_HEADER)) {
-+			mtk_v4l2_debug(3,
-+					"[%d]Not ready: not enough video src buffers.",
-+					ctx->idx);
-+			return 0;
-+		}
-+	}
-+
-+	if ((ctx->state & (MTK_STATE_ERROR | MTK_STATE_ABORT))) {
-+		mtk_v4l2_debug(3,
-+				"[%d]Not ready: state=0x%x.",
-+				ctx->idx, ctx->state);
-+		return 0;
-+	}
-+
-+	if (!(ctx->state & MTK_STATE_CONFIG)) {
-+		mtk_v4l2_debug(3,
-+				"[%d]Not ready: state=0x%x.",
-+				ctx->idx, ctx->state);
-+		return 0;
-+	}
-+
-+	mtk_v4l2_debug(3, "[%d]ready!", ctx->idx);
-+
-+	return 1;
-+}
-+
-+static void m2mops_venc_job_abort(void *priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = priv;
-+
-+	mtk_v4l2_debug(3, "[%d]type=%d", ctx->idx, ctx->type);
-+
-+	ctx->aborting = 1;
-+	ctx->state |= MTK_STATE_ABORT;
-+
-+	v4l2_m2m_job_finish(ctx->dev->m2m_dev_enc, ctx->m2m_ctx);
-+}
-+
-+static void m2mops_venc_lock(void *m2m_priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = m2m_priv;
-+
-+	mutex_lock(&ctx->dev->dev_mutex);
-+}
-+
-+static void m2mops_venc_unlock(void *m2m_priv)
-+{
-+	struct mtk_vcodec_ctx *ctx = m2m_priv;
-+
-+	mutex_unlock(&ctx->dev->dev_mutex);
-+}
-+
-+const struct v4l2_m2m_ops mtk_venc_m2m_ops = {
-+	.device_run			= m2mops_venc_device_run,
-+	.job_ready			= m2mops_venc_job_ready,
-+	.job_abort			= m2mops_venc_job_abort,
-+	.lock				= m2mops_venc_lock,
-+	.unlock				= m2mops_venc_unlock,
-+};
-+
-+#define IS_MTK_VENC_PRIV(x) ((V4L2_CTRL_ID2CLASS(x) == V4L2_CTRL_CLASS_MPEG) &&\
-+			     V4L2_CTRL_DRIVER_PRIV(x))
-+
-+static const char *const *mtk_vcodec_enc_get_menu(u32 id)
-+{
-+	static const char *const mtk_vcodec_enc_video_frame_skip[] = {
-+		"Disabled",
-+		"Level Limit",
-+		"VBV/CPB Limit",
-+		NULL,
-+	};
-+	static const char *const mtk_vcodec_enc_video_force_frame[] = {
-+		"Disabled",
-+		"I Frame",
-+		"Not Coded",
-+		NULL,
-+	};
-+	switch (id) {
-+	case V4L2_CID_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE:
-+		return mtk_vcodec_enc_video_frame_skip;
-+	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
-+		return mtk_vcodec_enc_video_force_frame;
-+	}
-+	return NULL;
-+}
-+
-+int mtk_venc_ctrls_setup(struct mtk_vcodec_ctx *ctx)
-+{
-+	struct v4l2_ctrl_config cfg;
-+	int i;
-+
-+	v4l2_ctrl_handler_init(&ctx->ctrl_hdl, NUM_CTRLS);
-+	if (ctx->ctrl_hdl.error) {
-+		v4l2_err(&ctx->dev->v4l2_dev, "Init control handler fail %d\n",
-+			 ctx->ctrl_hdl.error);
-+		return ctx->ctrl_hdl.error;
-+	}
-+	for (i = 0; i < NUM_CTRLS; i++) {
-+		if (IS_MTK_VENC_PRIV(controls[i].id)) {
-+			memset(&cfg, 0, sizeof(struct v4l2_ctrl_config));
-+			cfg.ops = &mtk_vcodec_enc_ctrl_ops;
-+			cfg.id = controls[i].id;
-+			cfg.min = controls[i].minimum;
-+			cfg.max = controls[i].maximum;
-+			cfg.def = controls[i].default_value;
-+			cfg.name = controls[i].name;
-+			cfg.type = controls[i].type;
-+			cfg.flags = 0;
-+			if (cfg.type == V4L2_CTRL_TYPE_MENU) {
-+				cfg.step = 0;
-+				cfg.menu_skip_mask = cfg.menu_skip_mask;
-+				cfg.qmenu = mtk_vcodec_enc_get_menu(cfg.id);
-+			} else {
-+				cfg.step = controls[i].step;
-+				cfg.menu_skip_mask = 0;
-+			}
-+			v4l2_ctrl_new_custom(&ctx->ctrl_hdl, &cfg, NULL);
-+		} else {
-+			if ((controls[i].type == V4L2_CTRL_TYPE_MENU) ||
-+			    (controls[i].type == V4L2_CTRL_TYPE_INTEGER_MENU)) {
-+				v4l2_ctrl_new_std_menu(
-+					&ctx->ctrl_hdl,
-+					&mtk_vcodec_enc_ctrl_ops,
-+					controls[i].id,
-+					controls[i].maximum, 0,
-+					controls[i].default_value);
-+			} else {
-+				v4l2_ctrl_new_std(
-+					&ctx->ctrl_hdl,
-+					&mtk_vcodec_enc_ctrl_ops,
-+					controls[i].id,
-+					controls[i].minimum,
-+					controls[i].maximum,
-+					controls[i].step,
-+					controls[i].default_value);
-+			}
-+		}
-+
-+		if (ctx->ctrl_hdl.error) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				"Adding control (%d) failed %d\n",
-+				i, ctx->ctrl_hdl.error);
-+			return ctx->ctrl_hdl.error;
-+		}
-+	}
-+
-+	v4l2_ctrl_handler_setup(&ctx->ctrl_hdl);
-+	return 0;
-+}
-+
-+void mtk_venc_ctrls_free(struct mtk_vcodec_ctx *ctx)
-+{
-+	v4l2_ctrl_handler_free(&ctx->ctrl_hdl);
-+}
-+
-+int m2mctx_venc_queue_init(void *priv, struct vb2_queue *src_vq,
-+			   struct vb2_queue *dst_vq)
-+{
-+	struct mtk_vcodec_ctx *ctx = priv;
-+	int ret;
-+
-+	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-+	src_vq->drv_priv	= ctx;
-+	src_vq->buf_struct_size = sizeof(struct mtk_video_enc_buf);
-+	src_vq->ops		= &mtk_venc_vb2_ops;
-+	src_vq->mem_ops		= &vb2_dma_contig_memops;
-+	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->lock = &ctx->vb2_mutex;
-+
-+	ret = vb2_queue_init(src_vq);
-+	if (ret)
-+		return ret;
-+
-+	dst_vq->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	dst_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-+	dst_vq->drv_priv	= ctx;
-+	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-+	dst_vq->ops		= &mtk_venc_vb2_ops;
-+	dst_vq->mem_ops		= &vb2_dma_contig_memops;
-+	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->lock = &ctx->vb2_mutex;
-+
-+	return vb2_queue_init(dst_vq);
-+}
-+
-+int mtk_venc_unlock(struct mtk_vcodec_ctx *ctx)
-+{
-+	struct mtk_vcodec_dev *dev = ctx->dev;
-+
-+	mutex_unlock(&dev->enc_mutex);
-+	return 0;
-+}
-+
-+int mtk_venc_lock(struct mtk_vcodec_ctx *ctx)
-+{
-+	struct mtk_vcodec_dev *dev = ctx->dev;
-+
-+	mutex_lock(&dev->enc_mutex);
-+	dev->curr_ctx = ctx->idx;
-+	return 0;
-+}
-+
-+void mtk_vcodec_venc_release(struct mtk_vcodec_ctx *ctx)
-+{
-+	if (ctx->h_enc) {
-+		venc_if_deinit(ctx->h_enc);
-+		venc_if_release(ctx->h_enc);
-+	}
-+
-+#if MTK_V4L2_BENCHMARK
-+	mtk_v4l2_debug(0, "\n\nMTK_V4L2_BENCHMARK");
-+
-+	mtk_v4l2_debug(0, "  total_enc_dec_cnt: %d ", ctx->total_enc_dec_cnt);
-+	mtk_v4l2_debug(0, "  total_enc_dec_time: %d us",
-+				ctx->total_enc_dec_time);
-+	mtk_v4l2_debug(0, "  total_enc_dec_init_time: %d us",
-+				ctx->total_enc_dec_init_time);
-+	mtk_v4l2_debug(0, "  total_enc_hdr_time: %d us",
-+				ctx->total_enc_hdr_time);
-+	mtk_v4l2_debug(0, "  total_qbuf_out_time: %d us",
-+				ctx->total_qbuf_out_time);
-+	mtk_v4l2_debug(0, "  total_qbuf_out_cnt: %d ",
-+				ctx->total_qbuf_out_cnt);
-+	mtk_v4l2_debug(0, "  total_qbuf_cap_time: %d us",
-+				ctx->total_qbuf_cap_time);
-+	mtk_v4l2_debug(0, "  total_qbuf_cap_cnt: %d ",
-+				ctx->total_qbuf_cap_cnt);
-+
-+	mtk_v4l2_debug(0, "  total_dqbuf_out_time: %d us",
-+				ctx->total_dqbuf_out_time);
-+	mtk_v4l2_debug(0, "  total_dqbuf_out_cnt: %d ",
-+				ctx->total_dqbuf_out_cnt);
-+	mtk_v4l2_debug(0, "  total_dqbuf_cap_time: %d us",
-+				ctx->total_dqbuf_cap_time);
-+	mtk_v4l2_debug(0, "  total_dqbuf_cap_cnt: %d ",
-+				ctx->total_dqbuf_cap_cnt);
-+
-+	mtk_v4l2_debug(0, "  total_expbuf_time: %d us",
-+				ctx->total_expbuf_time);
-+
-+#endif
-+
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
-new file mode 100644
-index 0000000..6802c93
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
-@@ -0,0 +1,28 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+
-+#ifndef _MTK_VCODEC_ENC_H_
-+#define _MTK_VCODEC_ENC_H_
-+
-+int mtk_venc_unlock(struct mtk_vcodec_ctx *ctx);
-+int mtk_venc_lock(struct mtk_vcodec_ctx *ctx);
-+int m2mctx_venc_queue_init(void *priv, struct vb2_queue *src_vq,
-+	struct vb2_queue *dst_vq);
-+void mtk_vcodec_venc_release(struct mtk_vcodec_ctx *ctx);
-+int mtk_venc_ctrls_setup(struct mtk_vcodec_ctx *ctx);
-+void mtk_venc_ctrls_free(struct mtk_vcodec_ctx *ctx);
-+
-+#endif /* _MTK_VCODEC_ENC_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-new file mode 100644
-index 0000000..0f89880
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
-@@ -0,0 +1,535 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/of.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/videobuf2-dma-contig.h>
-+#include <linux/pm_runtime.h>
-+
-+#include "mtk_vcodec_drv.h"
-+#include "mtk_vcodec_enc.h"
-+#include "mtk_vcodec_pm.h"
-+#include "mtk_vcodec_intr.h"
-+#include "mtk_vcodec_util.h"
-+#include "mtk_vpu_core.h"
-+
-+static irqreturn_t mtk_vcodec_enc_irq_handler(int irq, void *priv);
-+
-+static void vpu_enc_capability_ipi_handler(void *data, unsigned int len, void *priv)
-+{
-+	struct mtk_vcodec_dev *dev  = (struct mtk_vcodec_dev *)priv;
-+
-+	dev->enc_capability = *((u32 *)data);
-+	mtk_v4l2_debug(0, "IPI=%d encoder capability %x",
-+			IPI_VENC_CAPABILITY, dev->enc_capability);
-+}
-+
-+
-+/* Wake up context wait_queue */
-+static void wake_up_ctx(struct mtk_vcodec_ctx *ctx, unsigned int reason)
-+{
-+	ctx->int_cond = 1;
-+	ctx->int_type = reason;
-+	wake_up_interruptible(&ctx->queue);
-+}
-+
-+static irqreturn_t mtk_vcodec_enc_irq_handler(int irq, void *priv)
-+{
-+	struct mtk_vcodec_dev *dev = priv;
-+	struct mtk_vcodec_ctx *ctx;
-+	unsigned int irq_status;
-+
-+	ctx = dev->ctx[dev->curr_ctx];
-+	if (ctx == NULL) {
-+		mtk_v4l2_err("ctx==NULL");
-+		return IRQ_HANDLED;
-+	}
-+	mtk_v4l2_debug(1, "idx=%d", ctx->idx);
-+	irq_status = readl(dev->reg_base[VENC_SYS] +
-+				(MTK_VENC_IRQ_STATUS_OFFSET));
-+	if (irq_status & MTK_VENC_IRQ_STATUS_PAUSE)
-+		writel((MTK_VENC_IRQ_STATUS_PAUSE),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_SWITCH)
-+		writel((MTK_VENC_IRQ_STATUS_SWITCH),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_DRAM)
-+		writel((MTK_VENC_IRQ_STATUS_DRAM),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_SPS)
-+		writel((MTK_VENC_IRQ_STATUS_SPS),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_PPS)
-+		writel((MTK_VENC_IRQ_STATUS_PPS),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_FRM)
-+		writel((MTK_VENC_IRQ_STATUS_FRM),
-+		       dev->reg_base[VENC_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	ctx->irq_status = irq_status;
-+	wake_up_ctx(ctx, MTK_INST_IRQ_RECEIVED);
-+	return IRQ_HANDLED;
-+}
-+
-+#if 1 /* VENC_LT */
-+static irqreturn_t mtk_vcodec_enc_irq_handler2(int irq, void *priv)
-+{
-+	struct mtk_vcodec_dev *dev = priv;
-+	struct mtk_vcodec_ctx *ctx;
-+	unsigned int irq_status;
-+
-+	ctx = dev->ctx[dev->curr_ctx];
-+	if (ctx == NULL) {
-+		mtk_v4l2_err("ctx==NULL");
-+		return IRQ_HANDLED;
-+	}
-+	mtk_v4l2_debug(1, "idx=%d", ctx->idx);
-+	irq_status = readl(dev->reg_base[VENC_LT_SYS] +
-+				(MTK_VENC_IRQ_STATUS_OFFSET));
-+	if (irq_status & MTK_VENC_IRQ_STATUS_PAUSE)
-+		writel((MTK_VENC_IRQ_STATUS_PAUSE),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_SWITCH)
-+		writel((MTK_VENC_IRQ_STATUS_SWITCH),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_DRAM)
-+		writel((MTK_VENC_IRQ_STATUS_DRAM),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_SPS)
-+		writel((MTK_VENC_IRQ_STATUS_SPS),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_PPS)
-+		writel((MTK_VENC_IRQ_STATUS_PPS),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	if (irq_status & MTK_VENC_IRQ_STATUS_FRM)
-+		writel((MTK_VENC_IRQ_STATUS_FRM),
-+		       dev->reg_base[VENC_LT_SYS] + (MTK_VENC_IRQ_ACK_OFFSET));
-+
-+	ctx->irq_status = irq_status;
-+	wake_up_ctx(ctx, MTK_INST_IRQ_RECEIVED);
-+	return IRQ_HANDLED;
-+}
-+#endif
-+
-+static int fops_vcodec_open(struct file *file)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct mtk_vcodec_dev *dev = video_drvdata(file);
-+	struct mtk_vcodec_ctx *ctx = NULL;
-+	int ret = 0;
-+
-+	mtk_v4l2_debug(0, "%s encoder", dev_name(&dev->plat_dev->dev));
-+	mutex_lock(&dev->dev_mutex);
-+
-+	ctx = devm_kzalloc(&dev->plat_dev->dev, sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx) {
-+		ret = -ENOMEM;
-+		goto err_alloc;
-+	}
-+
-+	if (dev->num_instances >= MTK_VCODEC_MAX_INSTANCES) {
-+		mtk_v4l2_err("Too many open contexts\n");
-+		ret = -EBUSY;
-+		goto err_no_ctx;
-+	}
-+
-+	ctx->idx = ffz(dev->instance_mask[0]);
-+	v4l2_fh_init(&ctx->fh, video_devdata(file));
-+	file->private_data = &ctx->fh;
-+	v4l2_fh_add(&ctx->fh);
-+	ctx->dev = dev;
-+	mutex_init(&ctx->encode_param_mutex);
-+	mutex_init(&ctx->vb2_mutex);
-+	if (vfd == dev->vfd_enc) {
-+		ctx->type = MTK_INST_ENCODER;
-+		ret = mtk_venc_ctrls_setup(ctx);
-+		if (ret) {
-+			mtk_v4l2_err("Failed to setup controls() (%d)\n",
-+				       ret);
-+			goto err_ctrls_setup;
-+		}
-+		ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev_enc, ctx,
-+						 &m2mctx_venc_queue_init);
-+		if (IS_ERR(ctx->m2m_ctx)) {
-+			ret = PTR_ERR(ctx->m2m_ctx);
-+			mtk_v4l2_err("Failed to v4l2_m2m_ctx_init() (%d)\n",
-+				       ret);
-+			goto err_ctx_init;
-+		}
-+		ctx->fh.ctrl_handler = &ctx->ctrl_hdl;
-+	} else {
-+		mtk_v4l2_err("Invalid vfd !\n");
-+		ret = -ENOENT;
-+		goto err_ctx_init;
-+	}
-+
-+	init_waitqueue_head(&ctx->queue);
-+	dev->num_instances++;
-+
-+	if (dev->num_instances == 1) {
-+		ret = vpu_load_firmware(vpu_get_plat_device(dev->plat_dev));
-+		if (ret < 0) {
-+				mtk_v4l2_err("vpu_load_firmware failed!\n");
-+			goto err_load_fw;
-+		}
-+		mtk_v4l2_debug(0, "encoder capability %x", dev->enc_capability);
-+	}
-+
-+	mtk_v4l2_debug(2, "Create instance [%d]@%p m2m_ctx=%p type=%d\n",
-+			 ctx->idx, ctx, ctx->m2m_ctx, ctx->type);
-+	ctx->state = MTK_STATE_FREE;
-+	mtk_vcodec_clean_ctx_int_flags(ctx);
-+	set_bit(ctx->idx, &dev->instance_mask[0]);
-+	dev->ctx[ctx->idx] = ctx;
-+	vpu_enable_clock(vpu_get_plat_device(dev->plat_dev));
-+
-+	mutex_unlock(&dev->dev_mutex);
-+	return ret;
-+
-+	/* Deinit when failure occurred */
-+err_load_fw:
-+	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
-+	dev->num_instances--;
-+err_ctx_init:
-+err_ctrls_setup:
-+	mtk_venc_ctrls_free(ctx);
-+err_no_ctx:
-+	devm_kfree(&dev->plat_dev->dev, ctx);
-+err_alloc:
-+	mutex_unlock(&dev->dev_mutex);
-+	return ret;
-+}
-+
-+static int fops_vcodec_release(struct file *file)
-+{
-+	struct mtk_vcodec_dev *dev = video_drvdata(file);
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
-+
-+	mtk_v4l2_debug(2, "[%d]\n", ctx->idx);
-+	mutex_lock(&dev->dev_mutex);
-+	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	mtk_vcodec_venc_release(ctx);
-+	ctx->state = MTK_STATE_DEINIT;
-+	mtk_venc_ctrls_free(ctx);
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
-+	dev->ctx[ctx->idx] = NULL;
-+	dev->num_instances--;
-+	if (dev->num_instances == 0) {
-+		vpu_disable_clock(vpu_get_plat_device(dev->plat_dev));
-+	}
-+	clear_bit(ctx->idx, &dev->instance_mask[0]);
-+	devm_kfree(&dev->plat_dev->dev, ctx);
-+	mutex_unlock(&dev->dev_mutex);
-+	return 0;
-+}
-+
-+static unsigned int fops_vcodec_poll(struct file *file,
-+				     struct poll_table_struct *wait)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct mtk_vcodec_dev *dev = ctx->dev;
-+	int ret;
-+
-+	mutex_lock(&dev->dev_mutex);
-+	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_unlock(&dev->dev_mutex);
-+
-+	return ret;
-+}
-+
-+static int fops_vcodec_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
-+
-+	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+}
-+
-+static const struct v4l2_file_operations mtk_vcodec_fops = {
-+	.owner				= THIS_MODULE,
-+	.open				= fops_vcodec_open,
-+	.release			= fops_vcodec_release,
-+	.poll				= fops_vcodec_poll,
-+	.unlocked_ioctl			= video_ioctl2,
-+	.mmap				= fops_vcodec_mmap,
-+};
-+
-+static int mtk_vcodec_probe(struct platform_device *pdev)
-+{
-+	struct mtk_vcodec_dev *dev;
-+	struct video_device *vfd_enc;
-+	struct resource *res;
-+	int i, j, ret;
-+	struct platform_device *vpu_pdev;
-+
-+	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	dev->plat_dev = pdev;
-+
-+	vpu_pdev = vpu_get_plat_device(dev->plat_dev);
-+	if (vpu_pdev == NULL) {
-+		mtk_v4l2_err("[VPU] vpu device in not ready\n");
-+		return -EPROBE_DEFER;
-+	}
-+
-+	ret = vpu_ipi_register(vpu_pdev, IPI_VENC_CAPABILITY,
-+			       vpu_enc_capability_ipi_handler,
-+			       "vpu_init", dev);
-+	if (ret != 0) {
-+		mtk_v4l2_err("[VPU] failed to register IPI_VENC_CAPBILITY\n");
-+		return ret;
-+	}
-+
-+	ret = mtk_vcodec_init_enc_pm(dev);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to get mt vcodec clock source!\n");
-+		return ret;
-+	}
-+
-+	for (i = VENC_SYS, j = 0; i < NUM_MAX_VCODEC_REG_BASE; i++, j++) {
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, j);
-+		if (res == NULL) {
-+			dev_err(&pdev->dev, "get memory resource failed.\n");
-+			ret = -ENXIO;
-+			goto err_res;
-+		}
-+		dev->reg_base[i] = devm_ioremap_resource(&pdev->dev, res);
-+		if (IS_ERR(dev->reg_base[i])) {
-+			dev_err(&pdev->dev,
-+				"devm_ioremap_resource %d failed.\n", i);
-+			ret = PTR_ERR(dev->reg_base);
-+			goto err_res;
-+		}
-+		mtk_v4l2_debug(2, "reg[%d] base=0x%p\n", i, dev->reg_base[i]);
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (res == NULL) {
-+		dev_err(&pdev->dev, "failed to get irq resource\n");
-+		ret = -ENOENT;
-+		goto err_res;
-+	}
-+
-+	dev->enc_irq = platform_get_irq(pdev, 0);
-+	ret = devm_request_irq(&pdev->dev, dev->enc_irq,
-+			       mtk_vcodec_enc_irq_handler,
-+			       0, pdev->name, dev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to install dev->enc_irq %d (%d)\n",
-+			dev->enc_irq,
-+			ret);
-+		ret = -EINVAL;
-+		goto err_res;
-+	}
-+
-+	dev->enc_lt_irq = platform_get_irq(pdev, 1);
-+	ret = devm_request_irq(&pdev->dev,
-+			       dev->enc_lt_irq, mtk_vcodec_enc_irq_handler2,
-+			       0, pdev->name, dev);
-+	if (ret) {
-+		dev_err(&pdev->dev,
-+			"Failed to install dev->enc_lt_irq %d (%d)\n",
-+			dev->enc_lt_irq, ret);
-+		ret = -EINVAL;
-+		goto err_res;
-+	}
-+
-+	disable_irq(dev->enc_irq);
-+	disable_irq(dev->enc_lt_irq); /* VENC_LT */
-+	mutex_init(&dev->enc_mutex);
-+	mutex_init(&dev->dev_mutex);
-+
-+	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name), "%s",
-+		 "[MTK_V4L2_VENC]");
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret) {
-+		mtk_v4l2_err("v4l2_device_register err=%d\n", ret);
-+		return ret;
-+	}
-+
-+	init_waitqueue_head(&dev->queue);
-+
-+	/* allocate video device for encoder and register it */
-+	vfd_enc = video_device_alloc();
-+	if (!vfd_enc) {
-+		mtk_v4l2_err("Failed to allocate video device\n");
-+		ret = -ENOMEM;
-+		goto err_enc_alloc;
-+	}
-+	vfd_enc->fops           = &mtk_vcodec_fops;
-+	vfd_enc->ioctl_ops      = &mtk_venc_ioctl_ops;
-+	vfd_enc->release        = video_device_release;
-+	vfd_enc->lock           = &dev->dev_mutex;
-+	vfd_enc->v4l2_dev       = &dev->v4l2_dev;
-+	vfd_enc->vfl_dir        = VFL_DIR_M2M;
-+	snprintf(vfd_enc->name, sizeof(vfd_enc->name), "%s",
-+		 MTK_VCODEC_ENC_NAME);
-+	video_set_drvdata(vfd_enc, dev);
-+	dev->vfd_enc = vfd_enc;
-+	platform_set_drvdata(pdev, dev);
-+	ret = video_register_device(vfd_enc, VFL_TYPE_GRABBER, 1);
-+	if (ret) {
-+		mtk_v4l2_err("Failed to register video device\n");
-+		goto err_enc_reg;
-+	}
-+	mtk_v4l2_debug(0, "encoder registered as /dev/video%d\n",
-+			 vfd_enc->num);
-+
-+	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		mtk_v4l2_err("Failed to alloc vb2 dma context 0\n");
-+		ret = PTR_ERR(dev->alloc_ctx);
-+		goto err_vb2_ctx_init;
-+	}
-+
-+	dev->m2m_dev_enc = v4l2_m2m_init(&mtk_venc_m2m_ops);
-+	if (IS_ERR(dev->m2m_dev_enc)) {
-+		mtk_v4l2_err("Failed to init mem2mem enc device\n");
-+		ret = PTR_ERR(dev->m2m_dev_enc);
-+		goto err_enc_mem_init;
-+	}
-+
-+	dev->encode_workqueue =
-+			create_singlethread_workqueue(MTK_VCODEC_ENC_NAME);
-+	if (!dev->encode_workqueue) {
-+		mtk_v4l2_err("Failed to create encode workqueue\n");
-+		ret = -EINVAL;
-+		goto err_event_workq;
-+	}
-+
-+	return 0;
-+
-+err_event_workq:
-+	v4l2_m2m_release(dev->m2m_dev_enc);
-+err_enc_mem_init:
-+	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-+err_vb2_ctx_init:
-+	video_unregister_device(vfd_enc);
-+err_enc_reg:
-+	video_device_release(vfd_enc);
-+err_enc_alloc:
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+err_res:
-+	mtk_vcodec_release_enc_pm(dev);
-+	return ret;
-+}
-+
-+static const struct of_device_id mtk_vcodec_match[] = {
-+	{.compatible = "mediatek,mt8173-vcodec-enc",},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, mtk_vcodec_match);
-+
-+static int mtk_vcodec_remove(struct platform_device *pdev)
-+{
-+	struct mtk_vcodec_dev *dev = platform_get_drvdata(pdev);
-+
-+	mtk_v4l2_debug_enter();
-+	flush_workqueue(dev->encode_workqueue);
-+	destroy_workqueue(dev->encode_workqueue);
-+	if (dev->m2m_dev_enc)
-+		v4l2_m2m_release(dev->m2m_dev_enc);
-+	if (dev->alloc_ctx)
-+		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-+
-+	if (dev->vfd_enc) {
-+		video_unregister_device(dev->vfd_enc);
-+		video_device_release(dev->vfd_enc);
-+	}
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	mtk_vcodec_release_enc_pm(dev);
-+	return 0;
-+}
-+
-+static int mtk_vcodec_venc_suspend(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct mtk_vcodec_dev *m_dev = platform_get_drvdata(pdev);
-+
-+	mtk_v4l2_debug(0, "m_dev->num_instances=%d", m_dev->num_instances);
-+	if (m_dev->num_instances == 0)
-+		return 0;
-+	mtk_vcodec_clean_dev_int_flags(m_dev);
-+	if (test_and_set_bit(0, &m_dev->enter_suspend) != 0) {
-+		mtk_v4l2_err("Error: going to suspend for a second time\n");
-+		return -EIO;
-+	}
-+	mtk_vcodec_wait_for_done_dev(m_dev,
-+				     MTK_INST_WORK_THREAD_SUSPEND_DONE,
-+				     3000, true);
-+
-+	mutex_lock(&m_dev->enc_mutex);
-+	mtk_vcodec_enc_clock_off();
-+	mtk_v4l2_debug(0, "m_dev->num_instances=%d", m_dev->num_instances);
-+	return 0;
-+}
-+
-+static int mtk_vcodec_venc_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct mtk_vcodec_dev *m_dev = platform_get_drvdata(pdev);
-+
-+	mtk_v4l2_debug(0, "m_dev->num_instances=%d", m_dev->num_instances);
-+	if (m_dev->num_instances == 0)
-+		return 0;
-+
-+	test_and_clear_bit(0, &m_dev->enter_suspend);
-+	mtk_vcodec_enc_clock_on();
-+	mutex_unlock(&m_dev->enc_mutex);
-+	return 0;
-+}
-+
-+
-+static const struct dev_pm_ops mtk_vcodec_venc_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(mtk_vcodec_venc_suspend,
-+				mtk_vcodec_venc_resume)
-+};
-+
-+static struct platform_driver mtk_vcodec_driver = {
-+	.probe	= mtk_vcodec_probe,
-+	.remove	= mtk_vcodec_remove,
-+	.driver	= {
-+		.name	= MTK_VCODEC_ENC_NAME,
-+		.owner	= THIS_MODULE,
-+		.of_match_table = mtk_vcodec_match,
-+		.pm = &mtk_vcodec_venc_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(mtk_vcodec_driver);
-+
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Mediatek video codec V4L2 driver");
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-new file mode 100644
-index 0000000..ba97344
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
-@@ -0,0 +1,122 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#include <linux/clk.h>
-+#include <linux/of_address.h>
-+#include <linux/of_platform.h>
-+#include <linux/pm_runtime.h>
-+#include <soc/mediatek/smi.h>
-+
-+#include "mtk_vcodec_pm.h"
-+#include "mtk_vcodec_util.h"
-+#include "mtk_vpu_core.h"
-+
-+static struct mtk_vcodec_pm *pm;
-+
-+int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *mtkdev)
-+{
-+	struct device_node *node;
-+	struct platform_device *pdev;
-+	struct device *dev;
-+	int ret = 0;
-+
-+	pdev = mtkdev->plat_dev;
-+	pm = &mtkdev->pm;
-+	memset(pm, 0, sizeof(struct mtk_vcodec_pm));
-+	pm->mtkdev = mtkdev;
-+	dev = &pdev->dev;
-+
-+	node = of_parse_phandle(dev->of_node, "larb", 0);
-+	if (!node)
-+		return -1;
-+	pdev = of_find_device_by_node(node);
-+	if (WARN_ON(!pdev)) {
-+		of_node_put(node);
-+		return -1;
-+	}
-+	pm->larbvenc = &pdev->dev;
-+
-+	node = of_parse_phandle(dev->of_node, "larb", 1);
-+	if (!node)
-+		return -1;
-+
-+	pdev = of_find_device_by_node(node);
-+	if (WARN_ON(!pdev)) {
-+		of_node_put(node);
-+		return -EINVAL;
-+	}
-+	pm->larbvenclt = &pdev->dev;
-+
-+	pdev = mtkdev->plat_dev;
-+	pm->dev = &pdev->dev;
-+
-+	pm->vencpll = devm_clk_get(&pdev->dev, "vencpll");
-+	if (pm->vencpll == NULL) {
-+		mtk_v4l2_err("devm_clk_get vencpll fail");
-+		ret = -1;
-+	}
-+
-+	pm->venc_lt_sel = devm_clk_get(&pdev->dev, "venc_lt_sel");
-+	if (pm->venc_lt_sel == NULL) {
-+		mtk_v4l2_err("devm_clk_get venc_lt_sel fail");
-+		ret = -1;
-+	}
-+
-+	pm->vcodecpll_370p5_ck = devm_clk_get(&pdev->dev, "vcodecpll_370p5_ck");
-+	if (pm->vcodecpll_370p5_ck == NULL) {
-+		mtk_v4l2_err("devm_clk_get vcodecpll_370p5_ck fail");
-+		ret = -1;
-+	}
-+
-+	return ret;
-+}
-+
-+void mtk_vcodec_release_enc_pm(struct mtk_vcodec_dev *dev)
-+{
-+}
-+
-+
-+void mtk_vcodec_enc_clock_on(void)
-+{
-+	int ret;
-+
-+	clk_set_rate(pm->vencpll, 800 * 1000000);
-+
-+	ret = clk_prepare_enable(pm->vcodecpll_370p5_ck);
-+	if (ret)
-+		mtk_v4l2_err("vcodecpll_370p5_ck fail %d", ret);
-+
-+	ret = clk_prepare_enable(pm->venc_lt_sel);
-+	if (ret)
-+		mtk_v4l2_err("venc_lt_sel fail %d", ret);
-+
-+	ret = clk_set_parent(pm->venc_lt_sel, pm->vcodecpll_370p5_ck);
-+	if (ret)
-+		mtk_v4l2_err("clk_set_parent fail %d", ret);
-+
-+	ret = mtk_smi_larb_get(pm->larbvenc);
-+	if (ret)
-+		mtk_v4l2_err("mtk_smi_larb_get larb3 fail %d\n", ret);
-+
-+	ret = mtk_smi_larb_get(pm->larbvenclt);
-+	if (ret)
-+		mtk_v4l2_err("mtk_smi_larb_get larb4 fail %d\n", ret);
-+
-+}
-+
-+void mtk_vcodec_enc_clock_off(void)
-+{
-+	mtk_smi_larb_put(pm->larbvenc);
-+	mtk_smi_larb_put(pm->larbvenclt);
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
-new file mode 100644
-index 0000000..7a2cacf
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
-@@ -0,0 +1,110 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#include <linux/errno.h>
-+#include <linux/wait.h>
-+
-+#include "mtk_vcodec_intr.h"
-+#include "mtk_vcodec_drv.h"
-+#include "mtk_vcodec_util.h"
-+
-+void mtk_vcodec_clean_ctx_int_flags(void *data)
-+{
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+
-+	ctx->int_cond = 0;
-+	ctx->int_type = 0;
-+}
-+
-+void mtk_vcodec_clean_dev_int_flags(void *data)
-+{
-+	struct mtk_vcodec_dev *dev = (struct mtk_vcodec_dev *)data;
-+
-+	dev->int_cond = 0;
-+	dev->int_type = 0;
-+}
-+
-+int mtk_vcodec_wait_for_done_ctx(void *data, int command,
-+				 unsigned int timeout, int interrupt)
-+{
-+	wait_queue_head_t *waitqueue;
-+	long timeout_jiff, ret;
-+	int status = 0;
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+
-+	waitqueue = (wait_queue_head_t *)&ctx->queue;
-+	timeout_jiff = msecs_to_jiffies(timeout);
-+	if (interrupt) {
-+		ret = wait_event_interruptible_timeout(*waitqueue,
-+				(ctx->int_cond &&
-+				(ctx->int_type == command)),
-+				timeout_jiff);
-+	} else {
-+		ret = wait_event_timeout(*waitqueue,
-+				(ctx->int_cond &&
-+				(ctx->int_type == command)),
-+				 timeout_jiff);
-+	}
-+	if (0 == ret) {
-+		status = -1;	/* timeout */
-+		mtk_v4l2_err("[%d] cmd=%d, wait_event_interruptible_timeout time=%lu out %d %d!",
-+				ctx->idx, command, timeout_jiff, ctx->int_cond,
-+				ctx->int_type);
-+	} else if (-ERESTARTSYS == ret) {
-+		mtk_v4l2_err("[%d] cmd=%d, wait_event_interruptible_timeout interrupted by a signal %d %d",
-+				ctx->idx, command, ctx->int_cond,
-+				ctx->int_type);
-+		status = -1;
-+	}
-+
-+	ctx->int_cond = 0;
-+	ctx->int_type = 0;
-+
-+	return status;
-+}
-+
-+int mtk_vcodec_wait_for_done_dev(void *data, int command,
-+				 unsigned int timeout, int interrupt)
-+{
-+	wait_queue_head_t *waitqueue;
-+	long timeout_jiff, ret;
-+	int status = 0;
-+	struct mtk_vcodec_dev *dev = (struct mtk_vcodec_dev *)data;
-+
-+	waitqueue = (wait_queue_head_t *)&dev->queue;
-+	timeout_jiff = msecs_to_jiffies(timeout);
-+	if (interrupt) {
-+		ret = wait_event_interruptible_timeout(*waitqueue,
-+				(dev->int_cond &&
-+				(dev->int_type == command)),
-+				timeout_jiff);
-+	} else {
-+		ret = wait_event_timeout(*waitqueue,
-+				(dev->int_cond &&
-+				(dev->int_type == command)),
-+				timeout_jiff);
-+	}
-+	if (0 == ret) {
-+		status = -1;	/* timeout */
-+		mtk_v4l2_err("wait_event_interruptible_timeout time=%lu out %d %d!",
-+				timeout_jiff, dev->int_cond, dev->int_type);
-+	} else if (-ERESTARTSYS == ret) {
-+		mtk_v4l2_err("wait_event_interruptible_timeout interrupted by a signal %d %d",
-+				dev->int_cond, dev->int_type);
-+		status = -1;
-+	}
-+	dev->int_cond = 0;
-+	dev->int_type = 0;
-+	return status;
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
-new file mode 100644
-index 0000000..e2d2eaa
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
-@@ -0,0 +1,30 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#ifndef _MTK_VCODEC_INTR_H_
-+#define _MTK_VCODEC_INTR_H_
-+
-+#define MTK_INST_IRQ_RECEIVED		0x1
-+#define MTK_INST_WORK_THREAD_ABORT_DONE	0x2
-+#define MTK_INST_WORK_THREAD_SUSPEND_DONE	0x3
-+
-+/* timeout is ms */
-+int mtk_vcodec_wait_for_done_ctx(void *data, int command, unsigned int timeout,
-+				 int interrupt);
-+int mtk_vcodec_wait_for_done_dev(void *data, int command, unsigned int timeout,
-+				 int interrupt);
-+void mtk_vcodec_clean_ctx_int_flags(void *data);
-+void mtk_vcodec_clean_dev_int_flags(void *data);
-+
-+#endif /* _MTK_VCODEC_INTR_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h
-new file mode 100644
-index 0000000..a28bb7c
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_pm.h
-@@ -0,0 +1,26 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#ifndef _MTK_VCODEC_PM_H_
-+#define _MTK_VCODEC_PM_H_
-+
-+#include "mtk_vcodec_drv.h"
-+
-+int mtk_vcodec_init_enc_pm(struct mtk_vcodec_dev *dev);
-+void mtk_vcodec_release_enc_pm(struct mtk_vcodec_dev *dev);
-+
-+void mtk_vcodec_enc_clock_on(void);
-+void mtk_vcodec_enc_clock_off(void);
-+
-+#endif /* _MTK_VCODEC_PM_H_ */
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
-new file mode 100644
-index 0000000..5b6943c
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
-@@ -0,0 +1,106 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#include <linux/module.h>
-+
-+#include "mtk_vcodec_drv.h"
-+#include "mtk_vcodec_util.h"
-+#include "mtk_vpu_core.h"
-+
-+bool mtk_vcodec_dbg = false;
-+int mtk_v4l2_dbg_level = 0;
-+
-+module_param(mtk_v4l2_dbg_level, int, S_IRUGO | S_IWUSR);
-+module_param(mtk_vcodec_dbg, bool, S_IRUGO | S_IWUSR);
-+
-+void __iomem *mtk_vcodec_get_reg_addr(void *data, unsigned int reg_idx)
-+{
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+
-+	if (!data || reg_idx >= NUM_MAX_VCODEC_REG_BASE) {
-+		mtk_v4l2_err("Invalid arguments");
-+		return NULL;
-+	}
-+	return ctx->dev->reg_base[reg_idx];
-+}
-+
-+int mtk_vcodec_mem_alloc(void *data, struct mtk_vcodec_mem *mem)
-+{
-+	unsigned long size = mem->size;
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+	struct device *dev = &ctx->dev->plat_dev->dev;
-+
-+	mem->va = dma_alloc_coherent(dev, size, &mem->dma_addr, GFP_KERNEL);
-+
-+	if (!mem->va) {
-+		mtk_v4l2_err("%s dma_alloc size=%ld failed!", dev_name(dev),
-+			       size);
-+		return -ENOMEM;
-+	}
-+
-+	memset(mem->va, 0, size);
-+
-+	mtk_v4l2_debug(4, "[%d]  - va      = %p", ctx->idx, mem->va);
-+	mtk_v4l2_debug(4, "[%d]  - dma     = 0x%lx", ctx->idx,
-+			 (unsigned long)mem->dma_addr);
-+	mtk_v4l2_debug(4, "[%d]    size = 0x%lx", ctx->idx, size);
-+
-+	return 0;
-+}
-+
-+void mtk_vcodec_mem_free(void *data, struct mtk_vcodec_mem *mem)
-+{
-+	unsigned long size = mem->size;
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+	struct device *dev = &ctx->dev->plat_dev->dev;
-+
-+	dma_free_coherent(dev, size, mem->va, mem->dma_addr);
-+	mem->va = NULL;
-+
-+	mtk_v4l2_debug(4, "[%d]  - va      = %p", ctx->idx, mem->va);
-+	mtk_v4l2_debug(4, "[%d]  - dma     = 0x%lx", ctx->idx,
-+			 (unsigned long)mem->dma_addr);
-+	mtk_v4l2_debug(4, "[%d]    size = 0x%lx", ctx->idx, size);
-+}
-+
-+int mtk_vcodec_get_ctx_id(void *data)
-+{
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+
-+	if (!ctx)
-+		return -1;
-+
-+	return ctx->idx;
-+}
-+
-+struct platform_device *mtk_vcodec_get_plat_dev(void *data)
-+{
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)data;
-+
-+	if (!ctx)
-+		return NULL;
-+
-+	return vpu_get_plat_device(ctx->dev->plat_dev);
-+}
-+
-+void mtk_vcodec_fmt2str(u32 fmt, char *str)
-+{
-+	char a = fmt & 0xFF;
-+	char b = (fmt >> 8) & 0xFF;
-+	char c = (fmt >> 16) & 0xFF;
-+	char d = (fmt >> 24) & 0xFF;
-+
-+	sprintf(str, "%c%c%c%c", a, b, c, d);
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-new file mode 100644
-index 0000000..a8e683a
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
-@@ -0,0 +1,66 @@
-+/*
-+* Copyright (c) 2015 MediaTek Inc.
-+* Author: PC Chen <pc.chen@mediatek.com>
-+*         Tiffany Lin <tiffany.lin@mediatek.com>
-+*
-+* This program is free software; you can redistribute it and/or modify
-+* it under the terms of the GNU General Public License version 2 as
-+* published by the Free Software Foundation.
-+*
-+* This program is distributed in the hope that it will be useful,
-+* but WITHOUT ANY WARRANTY; without even the implied warranty of
-+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+* GNU General Public License for more details.
-+*/
-+
-+#ifndef _MTK_VCODEC_UTIL_H_
-+#define _MTK_VCODEC_UTIL_H_
-+
-+#include <linux/types.h>
-+#include <linux/dma-direction.h>
-+
-+struct mtk_vcodec_mem {
-+	size_t size;
-+	void *va;
-+	dma_addr_t dma_addr;
-+};
-+
-+extern int mtk_v4l2_dbg_level;
-+extern bool mtk_vcodec_dbg;
-+
-+#define mtk_v4l2_debug(level, fmt, args...)				 \
-+	do {								 \
-+		if (mtk_v4l2_dbg_level >= level)			 \
-+			pr_info("[MTK_V4L2] level=%d %s(),%d: " fmt "\n",\
-+				level, __func__, __LINE__, ##args);	 \
-+	} while (0)
-+
-+#define mtk_v4l2_err(fmt, args...)                \
-+	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
-+	       ##args)
-+
-+#define mtk_v4l2_debug_enter()  mtk_v4l2_debug(5, "+\n")
-+#define mtk_v4l2_debug_leave()  mtk_v4l2_debug(5, "-\n")
-+
-+#define mtk_vcodec_debug(h, fmt, args...)				\
-+	do {								\
-+		if (mtk_vcodec_dbg)					\
-+			pr_info("[MTK_VCODEC][%d]: %s() " fmt "\n",	\
-+				((struct mtk_vcodec_ctx *)h->ctx)->idx, \
-+				__func__, ##args);			\
-+	} while (0)
-+
-+#define mtk_vcodec_err(h, fmt, args...)					\
-+	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
-+	       ((struct mtk_vcodec_ctx *)h->ctx)->idx, __func__, ##args)
-+
-+#define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+\n")
-+#define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-\n")
-+
-+void __iomem *mtk_vcodec_get_reg_addr(void *data, unsigned int reg_idx);
-+int mtk_vcodec_mem_alloc(void *data, struct mtk_vcodec_mem *mem);
-+void mtk_vcodec_mem_free(void *data, struct mtk_vcodec_mem *mem);
-+int mtk_vcodec_get_ctx_id(void *data);
-+struct platform_device *mtk_vcodec_get_plat_dev(void *data);
-+void mtk_vcodec_fmt2str(u32 fmt, char *str);
-+#endif /* _MTK_VCODEC_UTIL_H_ */
--- 
-1.7.9.5
+--pf9I7BMVVzbSWLtt
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
+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
+A3yLAQA=
+
+--pf9I7BMVVzbSWLtt--
