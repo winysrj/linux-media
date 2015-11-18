@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45609 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbbKKLwJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 06:52:09 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from mga14.intel.com ([192.55.52.115]:23384 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755463AbbKRQDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Nov 2015 11:03:15 -0500
+Date: Wed, 18 Nov 2015 21:36:18 +0530
+From: Vinod Koul <vinod.koul@intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Peter Ujfalusi <peter.ujfalusi@ti.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine <dmaengine@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto <linux-crypto@vger.kernel.org>,
+	linux-spi <linux-spi@vger.kernel.org>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andrew Meredith <andrew@anvil.org>,
-	Warren Sturm <warren.sturm@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 2/2 v2] [media] ivtv: avoid going past input/audio array
-Date: Wed, 11 Nov 2015 09:51:19 -0200
-Message-Id: <2a0c0908ea977f172eade77dfcd9e78d260ac80c.1447242633.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+Message-ID: <20151118160618.GV25173@localhost>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
+ <6358656.jIv3GGCCXu@wuerfel>
+ <CAHp75VeZFXp9i_zz7CBkVQVPGQxuzYk9AbWbbbn33r8YX3LCdw@mail.gmail.com>
+ <8215351.e99Q2vhQ5T@wuerfel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8215351.e99Q2vhQ5T@wuerfel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/pci/ivtv/ivtv-driver.c:832 ivtv_init_struct2() error: buffer overflow 'itv->card->video_inputs' 6 <= 6
+On Wed, Nov 18, 2015 at 04:51:54PM +0100, Arnd Bergmann wrote:
+> On Wednesday 18 November 2015 17:43:04 Andy Shevchenko wrote:
+> > >
+> > > I assume that the sst-firmware.c case is a mistake, it should just use a
+> > > plain DMA_SLAVE and not DMA_MEMCPY.
+> > 
+> > Other way around.
+> > 
+> 
+> Ok, I see. In that case I guess it also shouldn't call
+> dmaengine_slave_config(), right? I don't think that's valid
+> on a MEMCPY channel.
 
-drivers/media/pci/ivtv/ivtv-driver.c:832 ivtv_init_struct2() error: buffer overflow 'itv->card->video_inputs' 6 <= 6
+Yes it is not valid. In this case the dma driver should invoke a generic memcpy
+and not need slave parameters, knowing the hw and reason for this (firmware
+download to DSP memory), this doesn't qualify for slave case.
+In fact filter function doesn't need a channel, any channel in this
+controller will be good
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
----
-
-v2: Added a missing new line after the patch subject.
-
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
-index 21501c560610..374033a5bdaf 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.c
-+++ b/drivers/media/pci/ivtv/ivtv-driver.c
-@@ -826,7 +826,7 @@ static void ivtv_init_struct2(struct ivtv *itv)
- 				IVTV_CARD_INPUT_VID_TUNER)
- 			break;
- 	}
--	if (i == itv->nof_inputs)
-+	if (i >= itv->nof_inputs)
- 		i = 0;
- 	itv->active_input = i;
- 	itv->audio_input = itv->card->video_inputs[i].audio_index;
 -- 
-2.4.3
-
-
+~Vinod
