@@ -1,79 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36307 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932882AbbKSNvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 08:51:50 -0500
-Date: Thu, 19 Nov 2015 11:51:46 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
-Subject: Re: [PATCH 8/8] media: rc: define RC_BIT_ALL as ~0
-Message-ID: <20151119115146.6c91679b@recife.lan>
-In-Reply-To: <564A3450.4040800@gmail.com>
-References: <564A3450.4040800@gmail.com>
+Received: from mout.kundenserver.de ([212.227.126.134]:57576 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972AbbKSNAP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 08:00:15 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	linux-kernel@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] davinci: add i2c Kconfig dependencies
+Date: Thu, 19 Nov 2015 13:59:34 +0100
+Message-ID: <4284996.N31E5Y01de@wuerfel>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Nov 2015 20:53:52 +0100
-Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+All the davinci media drivers are using the i2c framework, and
+fail to build if that is ever disabled, e.g.:
 
-> RC_BIT_ALL explicitely lists each single currently defined protocol bit.
-> To simplify the code and make adding a protocol easier set each bit
-> no matter whether the respective protocol is defined yet.
-> 
-> RC_BIT_ALL is only used in checks whether a particular protocol is allowed
-> therefore it has no impact if bits for not (yet) defined protocols
-> are set.
+media/platform/davinci/vpif_display.c: In function 'vpif_probe':
+media/platform/davinci/vpif_display.c:1298:14: error: implicit declaration of function 'i2c_get_adapter' [-Werror=implicit-function-declaration]
 
-I guess we used to do that, but we decided to explicitly define all
-protocols there. Can't remember why.
+This adds explicit Kconfig dependencies so we don't see the
+driver options if I2C is turned off.
 
-So, for now, I'm not applying this one. Also, it depends on patch 6/8,
-due to RC_BIT_LIRC.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+This is a very rare randconfig error, normally I2C is enabled for some reason
+already.
 
-So, I'm not applying this one.
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index 469e9d28cec0..554e710de487 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -3,6 +3,7 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
+ 	depends on VIDEO_V4L2
+ 	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+@@ -19,6 +20,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
+ 	depends on VIDEO_V4L2
+ 	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	  Enables Davinci VPIF module used for capture devices.
+@@ -33,6 +35,7 @@ config VIDEO_DM6446_CCDC
+ 	depends on VIDEO_V4L2
+ 	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
+@@ -49,6 +52,7 @@ config VIDEO_DM355_CCDC
+ 	depends on VIDEO_V4L2
+ 	depends on ARCH_DAVINCI || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+@@ -64,6 +68,7 @@ config VIDEO_DM365_ISIF
+ 	tristate "TI DM365 ISIF video capture driver"
+ 	depends on VIDEO_V4L2 && ARCH_DAVINCI
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF_DMA_CONTIG
+ 	help
+ 	   Enables ISIF hw module. This is the hardware module for
+@@ -77,6 +82,7 @@ config VIDEO_DAVINCI_VPBE_DISPLAY
+ 	tristate "TI DaVinci VPBE V4L2-Display driver"
+ 	depends on VIDEO_V4L2 && ARCH_DAVINCI
+ 	depends on HAS_DMA
++	depends on I2C
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	    Enables Davinci VPBE module used for display devices.
 
-> 
-> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-> ---
->  drivers/media/rc/rc-main.c |  1 -
->  include/media/rc-map.h     | 10 +---------
->  2 files changed, 1 insertion(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index d1611f1..d7055e1 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1447,7 +1447,6 @@ int rc_register_device(struct rc_dev *dev)
->  	kfree(path);
->  
->  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-> -		dev->allowed_protocols |= RC_BIT_LIRC;
->  		/* calls ir_register_device so unlock mutex here*/
->  		mutex_unlock(&dev->lock);
->  		rc = ir_raw_event_register(dev);
-> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-> index 7844e98..27aaf6b 100644
-> --- a/include/media/rc-map.h
-> +++ b/include/media/rc-map.h
-> @@ -54,15 +54,7 @@ enum rc_type {
->  #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
->  #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
->  
-> -#define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
-> -			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-> -			 RC_BIT_JVC | \
-> -			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
-> -			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
-> -			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
-> -			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
-> -			 RC_BIT_XMP)
-> -
-> +#define RC_BIT_ALL		~RC_BIT_NONE
->  
->  #define RC_SCANCODE_UNKNOWN(x)			(x)
->  #define RC_SCANCODE_OTHER(x)			(x)
