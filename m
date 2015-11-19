@@ -1,52 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:33885 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750992AbbKOU7V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 15:59:21 -0500
-Received: by ykfs79 with SMTP id s79so210956078ykf.1
-        for <linux-media@vger.kernel.org>; Sun, 15 Nov 2015 12:59:21 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
-References: <CAK2bqVL1kyz=gjqKjs_W6oge-_h8qjE=7OwPhaX=OH47U2+z+g@mail.gmail.com>
-Date: Sun, 15 Nov 2015 15:59:20 -0500
-Message-ID: <CAGoCfiz9k3V0Z4ejVL4is4+t5WFMWo6EY7jjkiSEFrYj8zDqiA@mail.gmail.com>
-Subject: Re: Trying to enable RC6 IR for PCTV T2 290e
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Chris Rankin <rankincj@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp.gentoo.org ([140.211.166.183]:54347 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934033AbbKSUEw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 15:04:52 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 02/10] si2165: rename si2165_set_parameters to si2165_set_frontend
+Date: Thu, 19 Nov 2015 21:03:54 +0100
+Message-Id: <1447963442-9764-3-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 15, 2015 at 3:49 PM, Chris Rankin <rankincj@googlemail.com> wrote:
-> Hi,
->
-> My Hauppauge RC5 remote control finally broke, and the PCTV T2 290e's
-> native RC5 remote control isn't suitable for VDR, and so I bought a
-> cheap RC6 remote as a replacement. The unit I chose was the Ortek
-> VRC-1100 Vista MCE Remote Control, USB ID 05a4:9881. I've been able to
-> switch the PCTV device into RC6 mode using "ir-keytable -p rc-6",
-> which does seem to execute the correct case of
-> em2874_ir_change_protocol(). However, when I press any buttons on my
-> new remote, I still don't see em2874_polling_getkey() being called,
-> which makes me wonder if the RC6 support is truly enabled.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+---
+ drivers/media/dvb-frontends/si2165.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-It's been a few years since I looked at that code, and when I
-orginally wrote it I don't think I bothered with the RC6 support.
-That said, it's not interrupt driven and the em2874_polling_getkey()
-should fire every 100ms regardless of whether the hardware receives an
-IR event (the polling code queries a status register and if it sees a
-new event it reads the RC code received and announces it to the input
-subsystem).
-
-I would probably look through the code and see why the polling routine
-isn't setup to run.  There is probably logic in there that causes the
-polling to never get enabled if a keymap isn't associated with the
-board profile in em28xx-cards.c
-
-Devin
-
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index d36b36c..a0e4600 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -767,7 +767,7 @@ static int si2165_set_if_freq_shift(struct si2165_state *state, u32 IF)
+ 	return si2165_writereg32(state, 0x00e8, reg_value);
+ }
+ 
+-static int si2165_set_parameters(struct dvb_frontend *fe)
++static int si2165_set_frontend(struct dvb_frontend *fe)
+ {
+ 	int ret;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+@@ -952,7 +952,7 @@ static struct dvb_frontend_ops si2165_ops = {
+ 	.init = si2165_init,
+ 	.sleep = si2165_sleep,
+ 
+-	.set_frontend      = si2165_set_parameters,
++	.set_frontend      = si2165_set_frontend,
+ 	.read_status       = si2165_read_status,
+ 
+ 	.release = si2165_release,
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.6.3
+
