@@ -1,69 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:35207 "EHLO mga03.intel.com"
+Received: from smtp.gentoo.org ([140.211.166.183]:54364 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754107AbbK3OqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2015 09:46:20 -0500
-From: Tuukka Toivonen <tuukka.toivonen@intel.com>
+	id S1161082AbbKSUE4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 15:04:56 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [yavta PATCH] Return proper error code if STREAMON fails
-Date: Mon, 30 Nov 2015 16:46:17 +0200
-Message-ID: <207011196.fyjkdD1C8L@ttoivone-desk1>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH 04/10] si2165: only write agc registers after reset before start_syncro
+Date: Thu, 19 Nov 2015 21:03:56 +0100
+Message-Id: <1447963442-9764-5-git-send-email-zzam@gentoo.org>
+In-Reply-To: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the bug causing success to be returned even if VIDIOC_STREAMON
-failed. Also check returned error from VIDIOC_STREAMOFF.
+Datasheet says they must be rewritten after reset.
+But it only makes sense to write them when trying to tune afterwards.
 
-Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 ---
- yavta.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/si2165.c | 32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff --git a/yavta.c b/yavta.c
-index b627725..3ad1c97 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -1623,7 +1623,7 @@ static int video_do_capture(struct device *dev, 
-unsigned int nframes,
- 	unsigned int i;
- 	double bps;
- 	double fps;
--	int ret;
-+	int ret, ret2;
- 
- 	/* Start streaming. */
- 	ret = video_enable(dev, 1);
-@@ -1708,7 +1708,9 @@ static int video_do_capture(struct device *dev, 
-unsigned int nframes,
+diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+index 222d775..07247e3 100644
+--- a/drivers/media/dvb-frontends/si2165.c
++++ b/drivers/media/dvb-frontends/si2165.c
+@@ -690,23 +690,6 @@ static int si2165_init(struct dvb_frontend *fe)
+ 			goto error;
  	}
  
- 	/* Stop streaming. */
--	video_enable(dev, 0);
-+	ret = video_enable(dev, 0);
-+	if (ret < 0)
-+		goto done;
- 
- 	if (nframes == 0) {
- 		printf("No frames captured.\n");
-@@ -1732,7 +1734,11 @@ static int video_do_capture(struct device *dev, 
-unsigned int nframes,
- 		i, ts.tv_sec, ts.tv_nsec/1000, fps, bps);
- 
- done:
--	return video_free_buffers(dev);
-+	ret2 = video_free_buffers(dev);
-+	if (ret >= 0)
-+		ret = ret2;
-+
-+	return ret;
+-	/* write adc values after each reset*/
+-	ret = si2165_writereg8(state, 0x012a, 0x46);
+-	if (ret < 0)
+-		goto error;
+-	ret = si2165_writereg8(state, 0x012c, 0x00);
+-	if (ret < 0)
+-		goto error;
+-	ret = si2165_writereg8(state, 0x012e, 0x0a);
+-	if (ret < 0)
+-		goto error;
+-	ret = si2165_writereg8(state, 0x012f, 0xff);
+-	if (ret < 0)
+-		goto error;
+-	ret = si2165_writereg8(state, 0x0123, 0x70);
+-	if (ret < 0)
+-		goto error;
+-
+ 	return 0;
+ error:
+ 	return ret;
+@@ -788,6 +771,14 @@ static int si2165_set_if_freq_shift(struct si2165_state *state, u32 IF)
+ 	return si2165_writereg32(state, 0x00e8, reg_value);
  }
  
- #define V4L_BUFFERS_DEFAULT	8
++static const struct si2165_reg_value_pair agc_rewrite[] = {
++	{ 0x012a, 0x46 },
++	{ 0x012c, 0x00 },
++	{ 0x012e, 0x0a },
++	{ 0x012f, 0xff },
++	{ 0x0123, 0x70 }
++};
++
+ static int si2165_set_frontend(struct dvb_frontend *fe)
+ {
+ 	int ret;
+@@ -924,6 +915,13 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
+ 	ret = si2165_writereg32(state, 0x0384, 0x00000000);
+ 	if (ret < 0)
+ 		return ret;
++
++	/* write adc values after each reset*/
++	ret = si2165_write_reg_list(state, agc_rewrite,
++				    ARRAY_SIZE(agc_rewrite));
++	if (ret < 0)
++		return ret;
++
+ 	/* start_synchro */
+ 	ret = si2165_writereg8(state, 0x02e0, 0x01);
+ 	if (ret < 0)
 -- 
-1.9.1
-
+2.6.3
 
