@@ -1,125 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-a.eqx.gridhost.co.uk ([95.142.156.16]:56620 "EHLO
-	mail1-a.eqx.gridhost.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295AbbKIIJG (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:38886 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161200AbbKSUjV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2015 03:09:06 -0500
-Received: from [209.85.220.173] (helo=mail-qk0-f173.google.com)
-	by mail1.eqx.gridhost.co.uk with esmtpsa (UNKNOWN:AES128-GCM-SHA256:128)
-	(Exim 4.72)
-	(envelope-from <olli.salonen@iki.fi>)
-	id 1ZvhV4-0007zh-1F
-	for linux-media@vger.kernel.org; Mon, 09 Nov 2015 08:08:26 +0000
-Received: by qkcl124 with SMTP id l124so67863074qkc.3
-        for <linux-media@vger.kernel.org>; Mon, 09 Nov 2015 00:08:25 -0800 (PST)
+	Thu, 19 Nov 2015 15:39:21 -0500
+Received: by wmec201 with SMTP id c201so134470176wme.1
+        for <linux-media@vger.kernel.org>; Thu, 19 Nov 2015 12:39:19 -0800 (PST)
+Subject: Re: [PATCH 6/8] media: rc: treat lirc like any other protocol
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <564A3430.5020103@gmail.com> <20151119114950.06a0eb90@recife.lan>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <564E3363.3030304@gmail.com>
+Date: Thu, 19 Nov 2015 21:38:59 +0100
 MIME-Version: 1.0
-Date: Mon, 9 Nov 2015 10:08:25 +0200
-Message-ID: <CAAZRmGwzsqFYtSNDCCCwFR4vCRgtz9CrixsZyc0xJzb=S6OEsw@mail.gmail.com>
-Subject: Re: DVBSky T330 DVB-C regression Linux 4.1.12 to 4.3
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Stephan Eisvogel <eisvogel@seitics.de>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20151119114950.06a0eb90@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stephan,
+Am 19.11.2015 um 14:49 schrieb Mauro Carvalho Chehab:
+> Hi Heiner,
+> 
+> Em Mon, 16 Nov 2015 20:53:20 +0100
+> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+> 
+>> Introduce a protocol bit for lirc and treat it like any other protocol.
+>> This allows to get rid of all the lirc-specific code.
+> 
+> LIRC were originally handled like a protocol, but, after some discussions,
+> we decided to handle it in separate, as it is actually an API.
+> 
+> So, I'm not applying this patch.
 
-I had a look at recent changes to si2168 and dvb-usb-dvbsky drivers
-that are the ones most relevant here. si2157 is probably not the issue
-here as your demod does lock.
+I missed this discussion, sorry. Found it in the archive.
+Exposing lirc as a protocol to the outside world (incl. the kernel outside rc core)
+I also consider a bad idea, however I hoped that not listing it in the header file
+would be sufficient to keep it internal. But it's totally fine with me as it is.
 
-si2168:
+Thanks for the quick review of the patches.
 
-2015-08-11    [media] dvb-frontends: Drop owner assignment from i2c_driver
-2015-06-09    [media] dvb: Get rid of typedev usage for enums
-2015-06-05    [media] si2168: Implement own I2C adapter locking
+Heiner
 
-dvb-usb-dvbsky:
+> Patches 1-5 and patch 7 looks OK, so I'm applying them.
+> 
+> Regards,
+> Mauro
+> 
+>>
+>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+>> ---
+>>  drivers/media/rc/ir-lirc-codec.c |  2 +-
+>>  drivers/media/rc/rc-core-priv.h  | 16 ++--------------
+>>  drivers/media/rc/rc-ir-raw.c     | 13 +------------
+>>  drivers/media/rc/rc-main.c       | 37 ++++---------------------------------
+>>  4 files changed, 8 insertions(+), 60 deletions(-)
+>>
+>> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+>> index a32659f..40c66c8 100644
+>> --- a/drivers/media/rc/ir-lirc-codec.c
+>> +++ b/drivers/media/rc/ir-lirc-codec.c
+>> @@ -421,7 +421,7 @@ static int ir_lirc_unregister(struct rc_dev *dev)
+>>  }
+>>  
+>>  static struct ir_raw_handler lirc_handler = {
+>> -	.protocols	= 0,
+>> +	.protocols	= RC_BIT_LIRC,
+>>  	.decode		= ir_lirc_decode,
+>>  	.raw_register	= ir_lirc_register,
+>>  	.raw_unregister	= ir_lirc_unregister,
+>> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+>> index 071651a..74f2f15 100644
+>> --- a/drivers/media/rc/rc-core-priv.h
+>> +++ b/drivers/media/rc/rc-core-priv.h
+>> @@ -20,6 +20,8 @@
+>>  #include <linux/spinlock.h>
+>>  #include <media/rc-core.h>
+>>  
+>> +#define RC_BIT_LIRC	(1ULL << 63)
+>> +
+>>  struct ir_raw_handler {
+>>  	struct list_head list;
+>>  
+>> @@ -160,18 +162,4 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+>>  void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+>>  void ir_raw_init(void);
+>>  
+>> -/*
+>> - * Decoder initialization code
+>> - *
+>> - * Those load logic are called during ir-core init, and automatically
+>> - * loads the compiled decoders for their usage with IR raw events
+>> - */
+>> -
+>> -/* from ir-lirc-codec.c */
+>> -#ifdef CONFIG_IR_LIRC_CODEC_MODULE
+>> -#define load_lirc_codec()	request_module_nowait("ir-lirc-codec")
+>> -#else
+>> -static inline void load_lirc_codec(void) { }
+>> -#endif
+>> -
+>>  #endif /* _RC_CORE_PRIV */
+>> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+>> index c6433e8..dbd8db5 100644
+>> --- a/drivers/media/rc/rc-ir-raw.c
+>> +++ b/drivers/media/rc/rc-ir-raw.c
+>> @@ -59,8 +59,7 @@ static int ir_raw_event_thread(void *data)
+>>  
+>>  		mutex_lock(&ir_raw_handler_lock);
+>>  		list_for_each_entry(handler, &ir_raw_handler_list, list)
+>> -			if (raw->dev->enabled_protocols & handler->protocols ||
+>> -			    !handler->protocols)
+>> +			if (raw->dev->enabled_protocols & handler->protocols)
+>>  				handler->decode(raw->dev, ev);
+>>  		raw->prev_ev = ev;
+>>  		mutex_unlock(&ir_raw_handler_lock);
+>> @@ -360,13 +359,3 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+>>  	mutex_unlock(&ir_raw_handler_lock);
+>>  }
+>>  EXPORT_SYMBOL(ir_raw_handler_unregister);
+>> -
+>> -void ir_raw_init(void)
+>> -{
+>> -	/* Load the decoder modules */
+>> -	load_lirc_codec();
+>> -
+>> -	/* If needed, we may later add some init code. In this case,
+>> -	   it is needed to change the CONFIG_MODULE test at rc-core.h
+>> -	 */
+>> -}
+>> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+>> index f2d5c50..d1611f1 100644
+>> --- a/drivers/media/rc/rc-main.c
+>> +++ b/drivers/media/rc/rc-main.c
+>> @@ -802,6 +802,7 @@ static const struct {
+>>  	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
+>>  	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
+>>  	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
+>> +	{ RC_BIT_LIRC,		"lirc",		"ir-lirc-codec"		},
+>>  };
+>>  
+>>  /**
+>> @@ -829,23 +830,6 @@ struct rc_filter_attribute {
+>>  		.mask = (_mask),					\
+>>  	}
+>>  
+>> -static bool lirc_is_present(void)
+>> -{
+>> -#if defined(CONFIG_LIRC_MODULE)
+>> -	struct module *lirc;
+>> -
+>> -	mutex_lock(&module_mutex);
+>> -	lirc = find_module("lirc_dev");
+>> -	mutex_unlock(&module_mutex);
+>> -
+>> -	return lirc ? true : false;
+>> -#elif defined(CONFIG_LIRC)
+>> -	return true;
+>> -#else
+>> -	return false;
+>> -#endif
+>> -}
+>> -
+>>  /**
+>>   * show_protocols() - shows the current/wakeup IR protocol(s)
+>>   * @device:	the device descriptor
+>> @@ -900,9 +884,6 @@ static ssize_t show_protocols(struct device *device,
+>>  			allowed &= ~proto_names[i].type;
+>>  	}
+>>  
+>> -	if (dev->driver_type == RC_DRIVER_IR_RAW && lirc_is_present())
+>> -		tmp += sprintf(tmp, "[lirc] ");
+>> -
+>>  	if (tmp != buf)
+>>  		tmp--;
+>>  	*tmp = '\n';
+>> @@ -954,12 +935,8 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+>>  		}
+>>  
+>>  		if (i == ARRAY_SIZE(proto_names)) {
+>> -			if (!strcasecmp(tmp, "lirc"))
+>> -				mask = 0;
+>> -			else {
+>> -				IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
+>> -				return -EINVAL;
+>> -			}
+>> +			IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
+>> +			return -EINVAL;
+>>  		}
+>>  
+>>  		count++;
+>> @@ -1376,7 +1353,6 @@ EXPORT_SYMBOL_GPL(rc_free_device);
+>>  
+>>  int rc_register_device(struct rc_dev *dev)
+>>  {
+>> -	static bool raw_init = false; /* raw decoders loaded? */
+>>  	struct rc_map *rc_map;
+>>  	const char *path;
+>>  	int attr = 0;
+>> @@ -1471,12 +1447,7 @@ int rc_register_device(struct rc_dev *dev)
+>>  	kfree(path);
+>>  
+>>  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+>> -		/* Load raw decoders, if they aren't already */
+>> -		if (!raw_init) {
+>> -			IR_dprintk(1, "Loading raw decoders\n");
+>> -			ir_raw_init();
+>> -			raw_init = true;
+>> -		}
+>> +		dev->allowed_protocols |= RC_BIT_LIRC;
+>>  		/* calls ir_register_device so unlock mutex here*/
+>>  		mutex_unlock(&dev->lock);
+>>  		rc = ir_raw_event_register(dev);
+> 
 
-2015-10-03    [media] Add Terratec H7 Revision 4 to DVBSky driver
-2015-06-10    [media] TS2020: Calculate tuner gain correctly
-2015-06-09    [media] dvb: Get rid of typedev usage for enums
-
-All these changes seem rather innocent. I've got the same tuner (sold
-as a TechnoTrend device) and I could try the 4.3 kernel to confirm
-it's still ok for DVB-T/T2 broadcasts that I've got available here,
-but it'll be a while as I'm travelling at the moment. Hopefully
-someone else can confirm before that.
-
-Cheers,
--olli
-
-
-On 8 November 2015 at 02:37, Stephan Eisvogel <eisvogel@seitics.de> wrote:
-> Hi Antti, hi Olli,
->
-> I'm a Raspberry Pi 2 + TVHeadend + DVBSky T330 clone owner/user and am
-> observing
-> a regression from Linux 4.1.12 to 4.3. TVheadend is delivering this error:
->
-> Nov 04 19:32:17 RPI2 tvheadend[714]: mpegts: 450MHz in Kabel Deutschland -
-> scan no data, failed
->
-> Basically EPG and TV is full dead. I saw the
->
->   "9cd700e m88ds3103: use own update_bits() implementation"
->   "a8e2219 m88ds3103: use regmap for I2C register access"
->
-> bits that went into 4.3 recently. Anything like that applicable to the
-> Si2168/Si2157 USB varieties?
->
-> Device:
->
-> Bus 001 Device 005: ID 0572:0320 Conexant Systems (Rockwell), Inc. DVBSky
-> T330 DVB-T2/C tuner
->
-> Relevant dmesg:
->
-> [    2.063240] usb 1-1.2: new high-speed USB device number 5 using dwc_otg
-> [    2.157399] usb 1-1.2: New USB device found, idVendor=0572,
-> idProduct=0320
-> [    2.157422] usb 1-1.2: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=3
-> [    2.157433] usb 1-1.2: Product: DVB-T2/C USB-Stick
-> [    2.157443] usb 1-1.2: Manufacturer: Bestunar Inc
-> [    2.157453] usb 1-1.2: SerialNumber: 20140126
-> [    6.273255] usb 1-1.2: dvb_usb_v2: found a 'DVBSky T330' in warm state
-> [    6.273832] usb 1-1.2: dvb_usb_v2: will pass the complete MPEG2 transport
-> stream to the software demuxer
-> [    6.273921] DVB: registering new adapter (DVBSky T330)
-> [    6.275286] usb 1-1.2: dvb_usb_v2: MAC address: 00:cc:10:a5:33:0c
-> [    6.474110] i2c i2c-3: Added multiplexed i2c bus 4
-> [    6.474138] si2168 3-0064: Silicon Labs Si2168 successfully attached
-> [    6.680772] si2157 4-0060: Silicon Labs Si2147/2148/2157/2158
-> successfully attached
-> [    6.680835] usb 1-1.2: DVB: registering adapter 0 frontend 0 (Silicon
-> Labs Si2168)...
-> [    6.933236] Registered IR keymap rc-dvbsky
-> [    6.933705] input: DVBSky T330 as
-> /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/rc/rc0/input4
-> [    6.933972] rc0: DVBSky T330 as
-> /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.2/rc/rc0
-> [    6.933998] usb 1-1.2: dvb_usb_v2: schedule remote query interval to 300
-> msecs
-> [    6.934013] usb 1-1.2: dvb_usb_v2: 'DVBSky T330' successfully initialized
-> and connected
-> [    6.934146] usbcore: registered new interface driver dvb_usb_dvbsky
-> [   15.066829] si2168 3-0064: found a 'Silicon Labs Si2168-B40'
-> [   15.086772] si2168 3-0064: downloading firmware from file
-> 'dvb-demod-si2168-b40-01.fw'
-> [   16.568679] si2168 3-0064: firmware version: 4.0.19
-> [   16.579069] si2157 4-0060: found a 'Silicon Labs Si2158-A20'
-> [   16.599232] si2157 4-0060: downloading firmware from file
-> 'dvb-tuner-si2158-a20-01.fw'
-> [   17.581060] si2157 4-0060: firmware version: 2.1.6
-> [   17.581145] usb 1-1.2: DVB: adapter 0 frontend 0 frequency 0 out of range
-> (55000000..862000000)
->
->
-> Thanks for any insight!
->
-> Best regards from Nuremberg/Germany,
-> Stephan
->
