@@ -1,99 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58157 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:34090 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932146AbbKQRma (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 12:42:30 -0500
-Date: Tue, 17 Nov 2015 15:42:25 -0200
+	id S1757804AbbKSLxG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 06:53:06 -0500
+Date: Thu, 19 Nov 2015 09:53:00 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.5] Fixes and new ti-vpe/cal driver
-Message-ID: <20151117154225.36ab4aea@recife.lan>
-In-Reply-To: <56499B7C.5090603@xs4all.nl>
-References: <56499B7C.5090603@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] DocBook: only copy stuff to media_api if media xml is
+ generated
+Message-ID: <20151119095300.7a296d83@recife.lan>
+In-Reply-To: <20151119101943.GB17128@valkosipuli.retiisi.org.uk>
+References: <e99ac34ef0b822ac3007b00a499a67eb1af36d9a.1447926299.git.mchehab@osg.samsung.com>
+	<20151119101943.GB17128@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 16 Nov 2015 10:01:48 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Thu, 19 Nov 2015 12:19:43 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-> Please note that this patch series assumes that my previous pull request was
-> merged first:
+> Hi Mauro,
 > 
-> https://patchwork.linuxtv.org/patch/31872/
+> On Thu, Nov 19, 2015 at 07:45:13AM -0200, Mauro Carvalho Chehab wrote:
+> > It is possible to use:
+> > 	make DOCBOOKS=device-drivers.xml htmldocs
+> > 
+> > To produce just a few docbooks. In such case, the media docs
+> > won't be built, causing the makefile target to return an error.
+> > 
+> > While this is ok for human eyes, if the above is used on an script,
+> > it would cause troubles.
+> > 
+> > Fix it by only creating/filling the media_api directory if the
+> > media_api.xml is found at DOCBOOKS.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  Documentation/DocBook/media/Makefile | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+> > index 02848146fc3a..2840ff483d5a 100644
+> > --- a/Documentation/DocBook/media/Makefile
+> > +++ b/Documentation/DocBook/media/Makefile
+> > @@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
+> >  #
+> >  
+> >  install_media_images = \
+> > -	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
+> > -	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
+> > +	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
+> > +		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
+> > +		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
+> > +	fi
+> >  
+> >  $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+> >  	$(Q)base64 -d $< >$@
 > 
-> This is for the v4l2-pci-skeleton patch. The other three are independent of
-> the previous pull request.
+> I'd still copy the files even if the directory was there. It's entirely
+> possible that new files appeared between the make runs, or that the existing
+> files changed. cp will just overwrite the targets in that case.
 > 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> The following changes since commit 54adb10d0947478b3364640a131fff1f1ab190fa:
-> 
->   v4l2-dv-timings: add new arg to v4l2_match_dv_timings (2015-11-13 14:15:55 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.5b
-> 
-> for you to fetch changes up to 2cb88733214e31c04d1a87a1ef51cc6f26a44e09:
-> 
->   media: v4l: ti-vpe: Document CAL driver (2015-11-16 09:50:13 +0100)
-> 
-> ----------------------------------------------------------------
-> Benoit Parrot (2):
->       media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
->       media: v4l: ti-vpe: Document CAL driver
+> Albeit one still has to issue "make cleandocs" to get the DocBook rebuilt.
+> Oh well... One thing at a time? :-)
 
-I prefer if you could put new drivers on separate pull requests.
-Reviewing new drivers take more time ;)
+I guess you misread the patch...
 
-By putting them on a separate series, I can fast track the patch
-series with more trivial patches. Otherwise, I may need to delay
-the entire patch series review, specially when I'm more focused on
-applying misc patches and trivial bug fixes or don't have enough
-time to do a driver's review.
+It unconditionally copy the files even if the media_api directory exists,
+if make is called with:
+	make htmldocs
 
-> 
-> Hans Verkuil (1):
->       v4l2-pci-skeleton.c: forgot to update v4l2_match_dv_timings call
+or with:
+	make DOCBOOKS=media_api.xml htmldocs
 
-This patch depends on the patch that needs to be fixed from your
-previous pull request series.
+It will only suppress the copy and dir make if someone wants to build
+some other html file, with something like:
 
-> 
-> Julia Lawall (1):
->       i2c: constify v4l2_ctrl_ops structures
+	make DOCBOOKS=device-drivers.xml htmldocs
 
-This one is trivial. Applied.
+Please notice that I use internally a script that detects when a patch
+is merged on my tree. In such case, it builds the Kernel and the
+documentation, if it is affected, with this logic:
 
-Thanks,
+                        cat Documentation/DocBook/device-drivers.tmpl |perl -ne 'print "$1\n" if (m/^\!I(.*media.*)/)' >$TMPFILE
+                        if [ "`git show $TAG|diffstat -p1 -l|grep -f $TMPFILE`" ]; then
+                                rm $TMPFILE
+				make DOCBOOKS=device-drivers.xml htmldocs 2>&1|grep /media/
+                                if [ "$?" != "0" ]; then
+                                        play ~/sounds/pipe.wav 2>/dev/null >/dev/null
+                                fi
+                        else
+                            	rm $TMPFILE
+                        fi
+
+Without this patch, it beeps all the times it runs, because 
+	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; 
+
+will fail, as no OBJIMGFILES would be produced.
+
+Regards,
 Mauro
-
-> 
->  Documentation/devicetree/bindings/media/ti-cal.txt |   70 +++
->  Documentation/video4linux/v4l2-pci-skeleton.c      |    2 +-
->  drivers/media/i2c/mt9m032.c                        |    2 +-
->  drivers/media/i2c/mt9p031.c                        |    2 +-
->  drivers/media/i2c/mt9t001.c                        |    2 +-
->  drivers/media/i2c/mt9v011.c                        |    2 +-
->  drivers/media/i2c/mt9v032.c                        |    2 +-
->  drivers/media/i2c/ov2659.c                         |    2 +-
->  drivers/media/platform/Kconfig                     |   12 +
->  drivers/media/platform/Makefile                    |    2 +
->  drivers/media/platform/ti-vpe/Makefile             |    4 +
->  drivers/media/platform/ti-vpe/cal.c                | 2164 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/platform/ti-vpe/cal_regs.h           |  779 +++++++++++++++++++++++++++++++++
->  13 files changed, 3038 insertions(+), 7 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
->  create mode 100644 drivers/media/platform/ti-vpe/cal.c
->  create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
