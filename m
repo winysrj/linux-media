@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45344 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751743AbbKTMa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 07:30:29 -0500
-Subject: Re: [PATCH 02/13] dmaengine: Introduce
- dma_request_slave_channel_compat_reason()
-To: Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <4533695.7ZVFN1S94o@wuerfel> <564EF502.6040708@ti.com>
- <6118451.vaLZWOZEF5@wuerfel>
- <CAHp75VdoHqPMNGFfz4mPhX+Lw+vxgiyqFS8j5+kQ9Z9CHt=OTA@mail.gmail.com>
-CC: Vinod Koul <vinod.koul@intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine <dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	linux-crypto <linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:45783 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756210AbbKSJpU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 04:45:20 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <564F1253.4000800@ti.com>
-Date: Fri, 20 Nov 2015 14:30:11 +0200
-MIME-Version: 1.0
-In-Reply-To: <CAHp75VdoHqPMNGFfz4mPhX+Lw+vxgiyqFS8j5+kQ9Z9CHt=OTA@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] DocBook: only copy stuff to media_api if media xml is generated
+Date: Thu, 19 Nov 2015 07:45:13 -0200
+Message-Id: <e99ac34ef0b822ac3007b00a499a67eb1af36d9a.1447926299.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/20/2015 02:24 PM, Andy Shevchenko wrote:
-> On Fri, Nov 20, 2015 at 12:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Friday 20 November 2015 12:25:06 Peter Ujfalusi wrote:
->>> On 11/19/2015 01:25 PM, Arnd Bergmann wrote:
-> 
->> Another idea would be to remove the filter function from struct dma_chan_map
->> and pass the map through platform data
-> 
-> Why not unified device properties?
+It is possible to use:
+	make DOCBOOKS=device-drivers.xml htmldocs
 
-Is this some Windows/ACPI feature? Quick search gives mostly MSDN and
-Windows10 related links.
+To produce just a few docbooks. In such case, the media docs
+won't be built, causing the makefile target to return an error.
 
-We only need dma_chan_map for platforms which has not been converted to DT and
-still using legacy boot. Or platforms which can still boot in legacy mode. In
-DT/ACPI mode we do not need this map at all.
+While this is ok for human eyes, if the above is used on an script,
+it would cause troubles.
 
+Fix it by only creating/filling the media_api directory if the
+media_api.xml is found at DOCBOOKS.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/media/Makefile | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 02848146fc3a..2840ff483d5a 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
+ #
+ 
+ install_media_images = \
+-	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
+-	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
++	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
++		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
++		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
++	fi
+ 
+ $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+ 	$(Q)base64 -d $< >$@
 -- 
-Péter
+2.5.0
+
+
