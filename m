@@ -1,318 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52964 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751731AbbKOXI3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Nov 2015 18:08:29 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v3 0/2] media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
-Date: Sun, 15 Nov 2015 17:08:21 -0600
-Message-ID: <1447628903-9276-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:42054 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933432AbbKSOjC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 09:39:02 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Lukas Wunner <lukas@wunner.de>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 3/3] DocBook: make index.html generation less verbose by default
+Date: Thu, 19 Nov 2015 12:38:46 -0200
+Message-Id: <4178c97531d615b88b2208ad6fd1284b4fc50519.1447943571.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1447943571.git.mchehab@osg.samsung.com>
+References: <cover.1447943571.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1447943571.git.mchehab@osg.samsung.com>
+References: <cover.1447943571.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Camera Adaptation Layer (CAL) is a block which consists of a dual
-port CSI2/MIPI camera capture engine.
-This camera engine is currently found on DRA72xx family of devices.
+When make htmldocs is called on non-verbose mode, it will still be
+verbose with index.html generation for no good reason, printing:
 
-Port #0 can handle CSI2 camera connected to up to 4 data lanes.
-Port #1 can handle CSI2 camera connected to up to 2 data lanes.
+	rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/iio.html >> Documentation/DocBook/index.html
 
-The driver implements the required API/ioctls to be V4L2 compliant.
-Driver supports the following:
-    - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
-    - Asynchronous sensor sub device registration
-    - DT support
+Instead, use the standard non-verbose mode, using:
 
-Currently each port is designed to connect to a single sub-device.
-In other words port aggregation is not currently supported.
+	  HTML    Documentation/DocBook/index.html
 
-Changes since v2:
-- Rework Kconfig options and added COMPILE_TEST
-- Merged in provided vb2 buffer rework
-- Rebase on tip of lmm master and fixe vb2 split related changes
+if not called with V=1.
 
-Changes since v1:
-- Remove unnecessary format description
-- Reworked how transient frame format is maintained
-  in order to make it easier to use the fill helper functions
-- Added a per port list of active frame format
-- Reworked an added missing vb2 cleanup code
-- Fix a module load/unload kernel oops
-- Switch to use proper int64 get function for pixel rate control
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/Makefile | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-=====
-
-Here is a sample output of the v4l2-compliance tool:
-
-# ./v4l2-compliance -f -s -v -d /dev/video0 
-Driver Info:
-	Driver name   : cal
-	Card type     : cal
-	Bus info : platform:cal-000
-
-	Capabilities  : 0x85200001
-		Video Capture
-		Read/Write
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x05200001
-		Video Capture
-		Read/Write
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
-		info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
-		info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
-		info: checking v4l2_queryctrl of control 'Image Processing Controls' (0x009f0001)
-		info: checking v4l2_queryctrl of control 'Pixel Rate' (0x009f0902)
-		info: checking v4l2_queryctrl of control 'Horizontal Flip' (0x00980914)
-		info: checking v4l2_queryctrl of control 'Vertical Flip' (0x00980915)
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		info: checking control 'User Controls' (0x00980001)
-		info: checking control 'Horizontal Flip' (0x00980914)
-		info: checking control 'Vertical Flip' (0x00980915)
-		info: checking control 'Image Processing Controls' (0x009f0001)
-		info: checking control 'Pixel Rate' (0x009f0902)
-		test VIDIOC_G/S_CTRL: OK
-		info: checking extended control 'User Controls' (0x00980001)
-		info: checking extended control 'Horizontal Flip' (0x00980914)
-		info: checking extended control 'Vertical Flip' (0x00980915)
-		info: checking extended control 'Image Processing Controls' (0x009f0001)
-		info: checking extended control 'Pixel Rate' (0x009f0902)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		info: checking control event 'User Controls' (0x00980001)
-		info: checking control event 'Horizontal Flip' (0x00980914)
-		info: checking control event 'Vertical Flip' (0x00980915)
-		info: checking control event 'Image Processing Controls' (0x009f0001)
-		info: checking control event 'Pixel Rate' (0x009f0902)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 5 Private Controls: 0
-
-	Format ioctls:
-		info: found 1 frameintervals for pixel format 47425247 and size 1920x1080
-		info: found 1 framesizes for pixel format 47425247
-		info: found 1 formats for buftype 1
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		test VIDIOC_TRY_FMT: OK
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		info: test buftype Video Capture
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK (Not Supported)
-
-Test input 0:
-
-Streaming ioctls:
-	test read/write: OK
-	    Video Capture:
-		Buffer: 0 Sequence: 0 Field: None Timestamp: 353.276293s
-		Buffer: 1 Sequence: 1 Field: None Timestamp: 353.298270s
-		Buffer: 2 Sequence: 2 Field: None Timestamp: 353.320238s
-		Buffer: 0 Sequence: 3 Field: None Timestamp: 353.342223s
-		Buffer: 1 Sequence: 4 Field: None Timestamp: 353.364199s
-		Buffer: 2 Sequence: 5 Field: None Timestamp: 353.386175s
-		Buffer: 0 Sequence: 6 Field: None Timestamp: 353.408152s
-		Buffer: 1 Sequence: 7 Field: None Timestamp: 353.430128s
-		Buffer: 2 Sequence: 8 Field: None Timestamp: 353.452105s
-		Buffer: 0 Sequence: 9 Field: None Timestamp: 353.474074s
-		Buffer: 1 Sequence: 10 Field: None Timestamp: 353.496058s
-		Buffer: 2 Sequence: 11 Field: None Timestamp: 353.518034s
-		Buffer: 0 Sequence: 12 Field: None Timestamp: 353.540010s
-		Buffer: 1 Sequence: 13 Field: None Timestamp: 353.561978s
-		Buffer: 2 Sequence: 14 Field: None Timestamp: 353.583963s
-		Buffer: 0 Sequence: 15 Field: None Timestamp: 353.605940s
-		Buffer: 1 Sequence: 16 Field: None Timestamp: 353.627916s
-		Buffer: 2 Sequence: 17 Field: None Timestamp: 353.649893s
-		Buffer: 0 Sequence: 18 Field: None Timestamp: 353.671869s
-		Buffer: 1 Sequence: 19 Field: None Timestamp: 353.693846s
-		Buffer: 2 Sequence: 20 Field: None Timestamp: 353.715815s
-		Buffer: 0 Sequence: 21 Field: None Timestamp: 353.737799s
-		Buffer: 1 Sequence: 22 Field: None Timestamp: 353.759775s
-		Buffer: 2 Sequence: 23 Field: None Timestamp: 353.781751s
-		Buffer: 0 Sequence: 24 Field: None Timestamp: 353.803728s
-		Buffer: 1 Sequence: 25 Field: None Timestamp: 353.825698s
-		Buffer: 2 Sequence: 26 Field: None Timestamp: 353.847681s
-		Buffer: 0 Sequence: 27 Field: None Timestamp: 353.869658s
-		Buffer: 1 Sequence: 28 Field: None Timestamp: 353.891634s
-		Buffer: 2 Sequence: 29 Field: None Timestamp: 353.913610s
-		Buffer: 0 Sequence: 30 Field: None Timestamp: 353.935587s
-		Buffer: 1 Sequence: 31 Field: None Timestamp: 353.957564s
-		Buffer: 2 Sequence: 32 Field: None Timestamp: 353.979533s
-		Buffer: 0 Sequence: 33 Field: None Timestamp: 354.001510s
-		Buffer: 1 Sequence: 34 Field: None Timestamp: 354.023493s
-		Buffer: 2 Sequence: 35 Field: None Timestamp: 354.045469s
-		Buffer: 0 Sequence: 36 Field: None Timestamp: 354.067446s
-		Buffer: 1 Sequence: 37 Field: None Timestamp: 354.089422s
-		Buffer: 2 Sequence: 38 Field: None Timestamp: 354.111399s
-		Buffer: 0 Sequence: 39 Field: None Timestamp: 354.133375s
-		Buffer: 1 Sequence: 40 Field: None Timestamp: 354.155351s
-		Buffer: 2 Sequence: 41 Field: None Timestamp: 354.177328s
-		Buffer: 0 Sequence: 42 Field: None Timestamp: 354.199304s
-		Buffer: 1 Sequence: 43 Field: None Timestamp: 354.221274s
-		Buffer: 2 Sequence: 44 Field: None Timestamp: 354.243257s
-		Buffer: 0 Sequence: 45 Field: None Timestamp: 354.265234s
-		Buffer: 1 Sequence: 46 Field: None Timestamp: 354.287210s
-		Buffer: 2 Sequence: 47 Field: None Timestamp: 354.309187s
-		Buffer: 0 Sequence: 48 Field: None Timestamp: 354.331163s
-		Buffer: 1 Sequence: 49 Field: None Timestamp: 354.353140s
-		Buffer: 2 Sequence: 50 Field: None Timestamp: 354.375116s
-		Buffer: 0 Sequence: 51 Field: None Timestamp: 354.397093s
-		Buffer: 1 Sequence: 52 Field: None Timestamp: 354.419069s
-		Buffer: 2 Sequence: 53 Field: None Timestamp: 354.441038s
-		Buffer: 0 Sequence: 54 Field: None Timestamp: 354.463022s
-		Buffer: 1 Sequence: 55 Field: None Timestamp: 354.484998s
-		Buffer: 2 Sequence: 56 Field: None Timestamp: 354.506975s
-		Buffer: 0 Sequence: 57 Field: None Timestamp: 354.528952s
-		Buffer: 1 Sequence: 58 Field: None Timestamp: 354.550928s
-		Buffer: 2 Sequence: 59 Field: None Timestamp: 354.572904s
-	    Video Capture (polling):
-		Buffer: 0 Sequence: 60 Field: None Timestamp: 354.594881s
-		Buffer: 1 Sequence: 61 Field: None Timestamp: 354.616857s
-		Buffer: 2 Sequence: 62 Field: None Timestamp: 354.638834s
-		Buffer: 0 Sequence: 63 Field: None Timestamp: 354.660810s
-		Buffer: 1 Sequence: 64 Field: None Timestamp: 354.682787s
-		Buffer: 2 Sequence: 65 Field: None Timestamp: 354.704764s
-		Buffer: 0 Sequence: 66 Field: None Timestamp: 354.726733s
-		Buffer: 1 Sequence: 67 Field: None Timestamp: 354.748716s
-		Buffer: 2 Sequence: 68 Field: None Timestamp: 354.770693s
-		Buffer: 0 Sequence: 69 Field: None Timestamp: 354.792669s
-		Buffer: 1 Sequence: 70 Field: None Timestamp: 354.814645s
-		Buffer: 2 Sequence: 71 Field: None Timestamp: 354.836615s
-		Buffer: 0 Sequence: 72 Field: None Timestamp: 354.858591s
-		Buffer: 1 Sequence: 73 Field: None Timestamp: 354.880575s
-		Buffer: 2 Sequence: 74 Field: None Timestamp: 354.902552s
-		Buffer: 0 Sequence: 75 Field: None Timestamp: 354.924528s
-		Buffer: 1 Sequence: 76 Field: None Timestamp: 354.946505s
-		Buffer: 2 Sequence: 77 Field: None Timestamp: 354.968481s
-		Buffer: 0 Sequence: 78 Field: None Timestamp: 354.990457s
-		Buffer: 1 Sequence: 79 Field: None Timestamp: 355.012434s
-		Buffer: 2 Sequence: 80 Field: None Timestamp: 355.034411s
-		Buffer: 0 Sequence: 81 Field: None Timestamp: 355.056387s
-		Buffer: 1 Sequence: 82 Field: None Timestamp: 355.078364s
-		Buffer: 2 Sequence: 83 Field: None Timestamp: 355.100340s
-		Buffer: 0 Sequence: 84 Field: None Timestamp: 355.122316s
-		Buffer: 1 Sequence: 85 Field: None Timestamp: 355.144293s
-		Buffer: 2 Sequence: 86 Field: None Timestamp: 355.166269s
-		Buffer: 0 Sequence: 87 Field: None Timestamp: 355.188246s
-		Buffer: 1 Sequence: 88 Field: None Timestamp: 355.210223s
-		Buffer: 2 Sequence: 89 Field: None Timestamp: 355.232199s
-		Buffer: 0 Sequence: 90 Field: None Timestamp: 355.254176s
-		Buffer: 1 Sequence: 91 Field: None Timestamp: 355.276152s
-		Buffer: 2 Sequence: 92 Field: None Timestamp: 355.298128s
-		Buffer: 0 Sequence: 93 Field: None Timestamp: 355.320096s
-		Buffer: 1 Sequence: 94 Field: None Timestamp: 355.342081s
-		Buffer: 2 Sequence: 95 Field: None Timestamp: 355.364058s
-		Buffer: 0 Sequence: 96 Field: None Timestamp: 355.386035s
-		Buffer: 1 Sequence: 97 Field: None Timestamp: 355.408011s
-		Buffer: 2 Sequence: 98 Field: None Timestamp: 355.429987s
-		Buffer: 0 Sequence: 99 Field: None Timestamp: 355.451964s
-		Buffer: 1 Sequence: 100 Field: None Timestamp: 355.473933s
-		Buffer: 2 Sequence: 101 Field: None Timestamp: 355.495917s
-		Buffer: 0 Sequence: 102 Field: None Timestamp: 355.517893s
-		Buffer: 1 Sequence: 103 Field: None Timestamp: 355.539870s
-		Buffer: 2 Sequence: 104 Field: None Timestamp: 355.561837s
-		Buffer: 0 Sequence: 105 Field: None Timestamp: 355.583823s
-		Buffer: 1 Sequence: 106 Field: None Timestamp: 355.605799s
-		Buffer: 2 Sequence: 107 Field: None Timestamp: 355.627775s
-		Buffer: 0 Sequence: 108 Field: None Timestamp: 355.649752s
-		Buffer: 1 Sequence: 109 Field: None Timestamp: 355.671729s
-		Buffer: 2 Sequence: 110 Field: None Timestamp: 355.693705s
-		Buffer: 0 Sequence: 111 Field: None Timestamp: 355.715681s
-		Buffer: 1 Sequence: 112 Field: None Timestamp: 355.737657s
-		Buffer: 2 Sequence: 113 Field: None Timestamp: 355.759634s
-		Buffer: 0 Sequence: 114 Field: None Timestamp: 355.781610s
-		Buffer: 1 Sequence: 115 Field: None Timestamp: 355.803580s
-		Buffer: 2 Sequence: 116 Field: None Timestamp: 355.825556s
-		Buffer: 0 Sequence: 117 Field: None Timestamp: 355.847541s
-		Buffer: 1 Sequence: 118 Field: None Timestamp: 355.869517s
-		Buffer: 2 Sequence: 119 Field: None Timestamp: 355.891493s
-	test MMAP: OK
-	test USERPTR: OK (Not Supported)
-	test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-	test MMAP for Format GRBG, Frame Size 1920x1080@30.00 Hz:
-		Stride 1920, Field None: OK                                 
-
-Total: 46, Succeeded: 46, Failed: 0, Warnings: 0
-
-Benoit Parrot (2):
-  media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
-  media: v4l: ti-vpe: Document CAL driver
-
- Documentation/devicetree/bindings/media/ti-cal.txt |   70 +
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/ti-vpe/Makefile             |    4 +
- drivers/media/platform/ti-vpe/cal.c                | 2161 ++++++++++++++++++++
- drivers/media/platform/ti-vpe/cal_regs.h           |  779 +++++++
- 6 files changed, 3028 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
- create mode 100644 drivers/media/platform/ti-vpe/cal.c
- create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
-
+diff --git a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
+index 5b4176673ada..d70f9b68174e 100644
+--- a/Documentation/DocBook/Makefile
++++ b/Documentation/DocBook/Makefile
+@@ -50,7 +50,7 @@ pdfdocs: $(PDF)
+ 
+ HTML := $(sort $(patsubst %.xml, %.html, $(BOOKS)))
+ htmldocs: $(HTML)
+-	$(call build_main_index)
++	$(call cmd,build_main_index)
+ 	$(call install_media_images)
+ 
+ MAN := $(patsubst %.xml, %.9, $(BOOKS))
+@@ -138,7 +138,8 @@ quiet_cmd_db2pdf = PDF     $@
+ 
+ index = index.html
+ main_idx = $(obj)/$(index)
+-build_main_index = rm -rf $(main_idx); \
++quiet_cmd_build_main_index = HTML    $(main_idx)
++      cmd_build_main_index = rm -rf $(main_idx); \
+ 		   echo '<h1>Linux Kernel HTML Documentation</h1>' >> $(main_idx) && \
+ 		   echo '<h2>Kernel Version: $(KERNELVERSION)</h2>' >> $(main_idx) && \
+ 		   cat $(HTML) >> $(main_idx)
 -- 
-1.8.5.1
+2.5.0
+
 
