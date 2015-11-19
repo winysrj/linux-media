@@ -1,140 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44884 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751353AbbKIQSM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 11:18:12 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: pj.assis@gmail.com, remi@remlab.net, notasas@gmail.com,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC 1/2] uvc: Add a quirk flag for cameras that do not produce correct timestamps
-Date: Mon, 09 Nov 2015 18:18:23 +0200
-Message-ID: <1597434.XN0SyepBF3@avalon>
-In-Reply-To: <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20141105161147.GW3136@valkosipuli.retiisi.org.uk> <1415203954-16718-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:56683 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750857AbbKSOvs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Nov 2015 09:51:48 -0500
+Date: Thu, 19 Nov 2015 08:51:43 -0600
+From: Rob Herring <robh@kernel.org>
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [Patch v5 2/2] media: v4l: ti-vpe: Document DRA72 CAL h/w module
+Message-ID: <20151119145143.GA21319@rob-hp-laptop>
+References: <1447879632-22635-1-git-send-email-bparrot@ti.com>
+ <1447879632-22635-3-git-send-email-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1447879632-22635-3-git-send-email-bparrot@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Wednesday 05 November 2014 18:12:33 Sakari Ailus wrote:
-> The UVC devices do produce hardware timestamps according to the spec, but
-> not all cameras implement it or implement it correctly. Add a quirk flag for
-> such devices, and use monotonic timestamp from the end of the frame
-> instead.
+On Wed, Nov 18, 2015 at 02:47:12PM -0600, Benoit Parrot wrote:
+> Device Tree bindings for the DRA72 Camera Adaptation Layer (CAL)
+> H/W module.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
 
-I don't think this is the right fix, as the problem seems to come from the 
-driver, not from the camera. I've disabled hardware timestamps by default for 
-now which should work around the problem until I find time to conduct a full 
-investigation and fix it.
+Acked-by: Rob Herring <robh@kernel.org>
 
 > ---
->  drivers/media/usb/uvc/uvc_queue.c |  6 ++++--
->  drivers/media/usb/uvc/uvc_video.c | 14 +++++++++++++-
->  drivers/media/usb/uvc/uvcvideo.h  |  4 +++-
->  3 files changed, 20 insertions(+), 4 deletions(-)
+>  Documentation/devicetree/bindings/media/ti-cal.txt | 72 ++++++++++++++++++++++
+>  1 file changed, 72 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c
-> b/drivers/media/usb/uvc/uvc_queue.c index 6e92d20..3f6432f 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -141,7 +141,7 @@ static struct vb2_ops uvc_queue_qops = {
->  };
-> 
->  int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
-> -		    int drop_corrupted)
-> +		   bool drop_corrupted, bool tstamp_eof)
->  {
->  	int ret;
-> 
-> @@ -152,7 +152,9 @@ int uvc_queue_init(struct uvc_video_queue *queue, enum
-> v4l2_buf_type type, queue->queue.ops = &uvc_queue_qops;
->  	queue->queue.mem_ops = &vb2_vmalloc_memops;
->  	queue->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> -		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
-> +		| (tstamp_eof ? V4L2_BUF_FLAG_TSTAMP_SRC_EOF
-> +		   : V4L2_BUF_FLAG_TSTAMP_SRC_SOE);
+> diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
+> new file mode 100644
+> index 000000000000..ae9b52f37576
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/ti-cal.txt
+> @@ -0,0 +1,72 @@
+> +Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
+> +------------------------------------------------------
 > +
->  	ret = vb2_queue_init(&queue->queue);
->  	if (ret)
->  		return ret;
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index df81b9c..f599112 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -382,6 +382,9 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
-> struct uvc_buffer *buf, u16 host_sof;
->  	u16 dev_sof;
-> 
-> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
-> +		return;
+> +The Camera Adaptation Layer (CAL) is a key component for image capture
+> +applications. The capture module provides the system interface and the
+> +processing capability to connect CSI2 image-sensor modules to the
+> +DRA72x device.
 > +
->  	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
->  	case UVC_STREAM_PTS | UVC_STREAM_SCR:
->  		header_size = 12;
-> @@ -490,6 +493,9 @@ static int uvc_video_clock_init(struct uvc_streaming
-> *stream) {
->  	struct uvc_clock *clock = &stream->clock;
-> 
-> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP)
-> +		return 0;
+> +Required properties:
+> +- compatible: must be "ti,dra72-cal"
+> +- reg:	CAL Top level, Receiver Core #0, Receiver Core #1 and Camera RX
+> +	control address space
+> +- reg-names: cal_top, cal_rx_core0, cal_rx_core1, and camerrx_control
+> +	     registers
+> +- interrupts: should contain IRQ line for the CAL;
 > +
->  	spin_lock_init(&clock->lock);
->  	clock->size = 32;
-> 
-> @@ -615,6 +621,11 @@ void uvc_video_clock_update(struct uvc_streaming
-> *stream, u32 rem;
->  	u64 y;
-> 
-> +	if (stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP) {
-> +		v4l2_get_timestamp(&v4l2_buf->timestamp);
-> +		return;
-> +	}
+> +CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
+> +should contain a 'port' child node with child 'endpoint' node. Please
+> +refer to the bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
 > +
->  	spin_lock_irqsave(&clock->lock, flags);
+> +Example:
+> +	cal: cal@4845b000 {
+> +		compatible = "ti,dra72-cal";
+> +		ti,hwmods = "cal";
+> +		reg = <0x4845B000 0x400>,
+> +		      <0x4845B800 0x40>,
+> +		      <0x4845B900 0x40>,
+> +		      <0x4A002e94 0x4>;
+> +		reg-names = "cal_top",
+> +			    "cal_rx_core0",
+> +			    "cal_rx_core1",
+> +			    "camerrx_control";
+> +		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			csi2_0: port@0 {
+> +				reg = <0>;
+> +				endpoint {
+> +					slave-mode;
+> +					remote-endpoint = <&ar0330_1>;
+> +				};
+> +			};
+> +			csi2_1: port@1 {
+> +				reg = <1>;
+> +			};
+> +		};
+> +	};
+> +
+> +	i2c5: i2c@4807c000 {
+> +		ar0330@10 {
+> +			compatible = "ti,ar0330";
+> +			reg = <0x10>;
+> +
+> +			port {
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
+> +
+> +				ar0330_1: endpoint {
+> +					reg = <0>;
+> +					clock-lanes = <1>;
+> +					data-lanes = <0 2 3 4>;
+> +					remote-endpoint = <&csi2_0>;
+> +				};
+> +			};
+> +		};
+> +	};
+> -- 
+> 1.8.5.1
 > 
->  	if (clock->count < clock->size)
-> @@ -1779,7 +1790,8 @@ int uvc_video_init(struct uvc_streaming *stream)
->  	atomic_set(&stream->active, 0);
-> 
->  	/* Initialize the video buffers queue. */
-> -	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
-> +	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param,
-> +			     stream->dev->quirks & UVC_QUIRK_BAD_TIMESTAMP);
->  	if (ret)
->  		return ret;
-> 
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 864ada7..89a638c 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -148,6 +148,7 @@
->  #define UVC_QUIRK_PROBE_DEF		0x00000100
->  #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
->  #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
-> +#define UVC_QUIRK_BAD_TIMESTAMP		0x00000800
-> 
->  /* Format flags */
->  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
-> @@ -622,7 +623,8 @@ extern struct uvc_entity *uvc_entity_by_id(struct
-> uvc_device *dev, int id);
-> 
->  /* Video buffers queue management. */
->  extern int uvc_queue_init(struct uvc_video_queue *queue,
-> -		enum v4l2_buf_type type, int drop_corrupted);
-> +		enum v4l2_buf_type type, bool drop_corrupted,
-> +		bool tstamp_eof);
->  extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
->  		struct v4l2_requestbuffers *rb);
->  extern void uvc_free_buffers(struct uvc_video_queue *queue);
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
