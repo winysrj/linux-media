@@ -1,102 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49426 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45344 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893AbbKJH4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 02:56:33 -0500
-Subject: Re: [PATCH 12/13] [media] omap3isp: Support for deferred probing when
- requesting DMA channel
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	id S1751743AbbKTMa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2015 07:30:29 -0500
+Subject: Re: [PATCH 02/13] dmaengine: Introduce
+ dma_request_slave_channel_compat_reason()
+To: Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>
 References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com>
- <1432646768-12532-13-git-send-email-peter.ujfalusi@ti.com>
- <11319647.puY9n5DpsR@avalon>
-CC: <vinod.koul@intel.com>, <tony@atomide.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<dan.j.williams@intel.com>, <dmaengine@vger.kernel.org>,
-	<linux-serial@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-mmc@vger.kernel.org>, <linux-crypto@vger.kernel.org>,
-	<linux-spi@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ <4533695.7ZVFN1S94o@wuerfel> <564EF502.6040708@ti.com>
+ <6118451.vaLZWOZEF5@wuerfel>
+ <CAHp75VdoHqPMNGFfz4mPhX+Lw+vxgiyqFS8j5+kQ9Z9CHt=OTA@mail.gmail.com>
+CC: Vinod Koul <vinod.koul@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine <dmaengine@vger.kernel.org>,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto <linux-crypto@vger.kernel.org>,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <5641A321.2070209@ti.com>
-Date: Tue, 10 Nov 2015 09:56:17 +0200
+Message-ID: <564F1253.4000800@ti.com>
+Date: Fri, 20 Nov 2015 14:30:11 +0200
 MIME-Version: 1.0
-In-Reply-To: <11319647.puY9n5DpsR@avalon>
-Content-Type: text/plain; charset="windows-1252"
+In-Reply-To: <CAHp75VdoHqPMNGFfz4mPhX+Lw+vxgiyqFS8j5+kQ9Z9CHt=OTA@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 11/09/2015 09:50 PM, Laurent Pinchart wrote:
-> Hi Peter,
+On 11/20/2015 02:24 PM, Andy Shevchenko wrote:
+> On Fri, Nov 20, 2015 at 12:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Friday 20 November 2015 12:25:06 Peter Ujfalusi wrote:
+>>> On 11/19/2015 01:25 PM, Arnd Bergmann wrote:
 > 
-> Thank you for the patch.
+>> Another idea would be to remove the filter function from struct dma_chan_map
+>> and pass the map through platform data
 > 
-> What happened to this patch series ? It looks like 
-> dma_request_slave_channel_compat_reason() isn't in mainline, so I can't apply 
-> this patch.
-> 
-> I'll mark this patch as deferred in patchwork, please resubmit it if you 
-> resubmit the series
+> Why not unified device properties?
 
-The original series - containing this patch - generated a bit of discussion
-and it seams that I will need to do bigger change in the dmaengine API
-compared to this.
-I think this patch can be dropped as the dmaengine changes will not go in as
-they were.
+Is this some Windows/ACPI feature? Quick search gives mostly MSDN and
+Windows10 related links.
 
-(and by the look of it the issue you're trying to fix
-> still exists, so it would be nice if you could get it eventually fixed).
+We only need dma_chan_map for platforms which has not been converted to DT and
+still using legacy boot. Or platforms which can still boot in legacy mode. In
+DT/ACPI mode we do not need this map at all.
 
-Yes, the issue still valid for the OMAP/DaVinci driver the series was touching.
-
-I will try to send a new series in the coming weeks.
-
-Thanks,
-Péter
-> 
-> On Tuesday 26 May 2015 16:26:07 Peter Ujfalusi wrote:
->> Switch to use ma_request_slave_channel_compat_reason() to request the DMA
->> channel. Only fall back to pio mode if the error code returned is not
->> -EPROBE_DEFER, otherwise return from the probe with the -EPROBE_DEFER.
->>
->> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
->> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->> ---
->>  drivers/media/platform/omap3isp/isphist.c | 12 +++++++++---
->>  1 file changed, 9 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/isphist.c
->> b/drivers/media/platform/omap3isp/isphist.c index
->> 7138b043a4aa..e690ca13af0e 100644
->> --- a/drivers/media/platform/omap3isp/isphist.c
->> +++ b/drivers/media/platform/omap3isp/isphist.c
->> @@ -499,14 +499,20 @@ int omap3isp_hist_init(struct isp_device *isp)
->>  		if (res)
->>  			sig = res->start;
->>
->> -		hist->dma_ch = dma_request_slave_channel_compat(mask,
->> +		hist->dma_ch = dma_request_slave_channel_compat_reason(mask,
->>  				omap_dma_filter_fn, &sig, isp->dev, "hist");
->> -		if (!hist->dma_ch)
->> +		if (IS_ERR(hist->dma_ch)) {
->> +			ret = PTR_ERR(hist->dma_ch);
->> +			if (ret == -EPROBE_DEFER)
->> +				return ret;
->> +
->> +			hist->dma_ch = NULL;
->>  			dev_warn(isp->dev,
->>  				 "hist: DMA channel request failed, using PIO\n");
->> -		else
->> +		} else {
->>  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
->>  				dma_chan_name(hist->dma_ch));
->> +		}
->>  	}
->>
->>  	hist->ops = &hist_ops;
-> 
-
+-- 
+PÃ©ter
