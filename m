@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53820 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076AbbKLRlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 12:41:55 -0500
-Date: Thu, 12 Nov 2015 15:41:50 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Alec Leamas <leamas.alec@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re:
-Message-ID: <20151112154150.33a1979a@recife.lan>
-In-Reply-To: <5644CD07.6020303@gmail.com>
-References: <CABUpJt8ofQphD47-sVYmVjSbqJ91vEDyZk_hdnhc_RL+f95iog@mail.gmail.com>
-	<5644AD42.4060904@users.sourceforge.net>
-	<20151112152022.4f212b97@recife.lan>
-	<5644CD07.6020303@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58518 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760750AbbKTQkP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2015 11:40:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv10 15/15] test
+Date: Fri, 20 Nov 2015 17:34:18 +0100
+Message-Id: <1448037258-36305-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 12 Nov 2015 18:31:51 +0100
-Alec Leamas <leamas.alec@gmail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 12/11/15 18:20, Mauro Carvalho Chehab wrote:
-> > Em Thu, 12 Nov 2015 18:16:18 +0300
-> > Alberto Mardegan <mardy@users.sourceforge.net> escreveu:
-> 
-> > Complaining doesn't help at all. We don't read the mailing list to
-> > check for new patches. Instead, we look for them at:
-> > 	https://patchwork.linuxtv.org/project/linux-media/list/
-> > 
-> > All patches that goes to the ML are automatically stored there, and will be
-> > handled by one of the (sub-)maintainers. 
-> 
-> > However, if the emailer breaks the patch (with was the case of the
-> > "tv tuner max2165..." patch), patchwork won't recognize it as a
-> > patch, and we'll only see the e-mail by accident.
-> 
-> Ah... that explains why nobody cares about my patch[1]... Is there any
-> way around picky emailers? 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/videobuf2-core.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Use a good one ;) Here, I use claws-mail, with works fine if configured
-to send text-only e-mails and to not break long lines.
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index ef03ae5..956604d 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -130,7 +130,7 @@ struct vb2_mem_ops {
+  * @bytesused:	number of bytes occupied by data in the plane (payload)
+  * @length:	size of this plane (NOT the payload) in bytes
+  * @min_length:	minimum required size of this plane (NOT the payload) in bytes.
+- *		@length is always greater or equal to @min_length.
++  *		@length is always greater or equal to @min_length.
+  * @offset:	when memory in the associated struct vb2_buffer is
+  *		VB2_MEMORY_MMAP, equals the offset from the start of
+  *		the device memory for this plane (or is a "cookie" that
+-- 
+2.6.2
 
-Another alternative is to use git to send the email with something like:
-
-	git send-email HEAD~1 --annotate
-
-That requires some setup at the .git/config file:
-	https://git-scm.com/docs/git-send-email
-
-As you use gmail, you could add at the .git/config:
-
-[sendemail]
-    smtpEncryption = tls
-    smtpServer = smtp.gmail.com
-    smtpUser = yourname@gmail.com
-    smtpServerPort = 587
-
-> Is putting the patch in an attachment OK?
-
-No, because it doesn't make easy for people to reply with comments.
-
-Regards,
-Mauro
