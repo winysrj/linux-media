@@ -1,93 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35701 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760785AbbKTQ4m (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.134]:56153 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759684AbbKTNsc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:56:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 02/15] DocBook media: update VIDIOC_CREATE_BUFS documentation
-Date: Fri, 20 Nov 2015 17:45:35 +0100
-Message-Id: <1448037948-36820-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 20 Nov 2015 08:48:32 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+Date: Fri, 20 Nov 2015 14:48:20 +0100
+Message-ID: <5158930.I1IPZa4jtW@wuerfel>
+In-Reply-To: <564F1773.9030006@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <6118451.vaLZWOZEF5@wuerfel> <564F1773.9030006@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Friday 20 November 2015 14:52:03 Peter Ujfalusi wrote:
+> 
+> >> For legacy the filter function is pretty much needed to handle the differences
+> >> between the platforms as not all of them does the filtering in a same way. So
+> >> the first type of map would be feasible IMHO.
+> > 
+> > It certainly makes the transition to a map table much easier.
+> 
+> And the aim anyway is to convert everything to DT, right?
 
-During the Seoul media workshop we decided to relax the VIDIOC_CREATE_BUFS
-specification so it would no longer require drivers to validate the format
-field since almost no driver did that anyway.
+We won't be able to do that. Some architectures (avr32 and sh for instance)
+use the dmaengine API but will likely never support DT. On ARM, at
+least sa1100 is in the same category, probably also ep93xx and portions
+of pxa, omap1 and davinci.
 
-Instead drivers use the buffer size(s) based on the format type and the
-corresponding format fields and will ignore any other fields. If the size
-cannot be used an error is returned, otherwise the size is used as-is.
+> > int dmam_register_platform_map(struct device *dev, dma_filter_fn filter, struct dma_chan_map *map)
+> > {
+> >       struct dma_map_list *list = kmalloc(sizeof(*list), GFP_KERNEL);
+> > 
+> >       if (!list)
+> >               return -ENOMEM;
+> > 
+> >       list->dev = dev;
+> >       list->filter = filter;
+> >       list->map = map;
+> > 
+> >       mutex_lock(&dma_map_mutex);
+> >       list_add(&dma_map_list, &list->node);
+> >       mutex_unlock(&dma_map_mutex);
+> > }
+> > 
+> > Now we can completely remove the dependency on the filter function definition
+> > from platform code and slave drivers.
+> 
+> Sounds feasible for OMAP and daVinci and for others as well. I think 
+> I would go with this if someone asks my opinion 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-create-bufs.xml       | 30 ++++++++++------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+Ok.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index 8ffe74f..d81fa0d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -58,7 +58,7 @@
-     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
- mapped</link> or <link linkend="userp">user pointer</link> or <link
- linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
--addition to the <constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter
-+addition to the &VIDIOC-REQBUFS; ioctl, when a tighter
- control over buffers is required. This ioctl can be called multiple times to
- create buffers of different sizes.</para>
- 
-@@ -71,30 +71,28 @@ zeroed.</para>
- 
-     <para>The <structfield>format</structfield> field specifies the image format
- that the buffers must be able to handle. The application has to fill in this
--&v4l2-format;. Usually this will be done using the
--<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant> ioctl()
--to ensure that the requested format is supported by the driver. Unsupported
--formats will result in an error.</para>
-+&v4l2-format;. Usually this will be done using the &VIDIOC-TRY-FMT; or &VIDIOC-G-FMT; ioctls
-+to ensure that the requested format is supported by the driver.
-+Based on the format's <structfield>type</structfield> field the requested buffer
-+size (for single-planar) or plane sizes (for multi-planar formats) will be
-+used for the allocated buffers. The driver may return an error if the size(s)
-+are not supported by the hardware (usually because they are too small).</para>
- 
-     <para>The buffers created by this ioctl will have as minimum size the size
--defined by the <structfield>format.pix.sizeimage</structfield> field. If the
-+defined by the <structfield>format.pix.sizeimage</structfield> field (or the
-+corresponding fields for other format types). Usually if the
- <structfield>format.pix.sizeimage</structfield> field is less than the minimum
--required for the given format, then <structfield>sizeimage</structfield> will be
--increased by the driver to that minimum to allocate the buffers. If it is
--larger, then the value will be used as-is. The same applies to the
--<structfield>sizeimage</structfield> field of the
--<structname>v4l2_plane_pix_format</structname> structure in the case of
--multiplanar formats.</para>
-+required for the given format, then an error will be returned since drivers will
-+typically not allow this. If it is larger, then the value will be used as-is.
-+In other words, the driver may reject the requested size, but if it is accepted
-+the driver will use it unchanged.</para>
- 
-     <para>When the ioctl is called with a pointer to this structure the driver
- will attempt to allocate up to the requested number of buffers and store the
- actual number allocated and the starting index in the
- <structfield>count</structfield> and the <structfield>index</structfield> fields
- respectively. On return <structfield>count</structfield> can be smaller than
--the number requested. The driver may also increase buffer sizes if required,
--however, it will not update <structfield>sizeimage</structfield> field values.
--The user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
--information.</para>
-+the number requested.</para>
- 
-     <table pgwide="1" frame="none" id="v4l2-create-buffers">
-       <title>struct <structname>v4l2_create_buffers</structname></title>
--- 
-2.6.2
+> The core change to add the new API + the dma_map support should be pretty
+> straight forward. It can live alongside with the old API and we can phase out
+> the users of the old one.
+> The legacy support would need more time since we need to modify the arch codes
+> and the corresponding DMA drivers to get the map registered, but after that
+> the remaining drivers can be converted to use the new API.
 
+Right. It's not urgent and as long as we agree on the overall approach, we can
+always do the platform support first and wait for the following merge window
+before moving over the slave drivers.
+
+	Arnd
