@@ -1,41 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58518 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760750AbbKTQkP (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52379 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1162903AbbKTRCI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:40:15 -0500
+	Fri, 20 Nov 2015 12:02:08 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
 	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 15/15] test
-Date: Fri, 20 Nov 2015 17:34:18 +0100
-Message-Id: <1448037258-36305-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [PATCHv11 03/15] solo6x10: use v4l2_get_timestamp to fill in buffer timestamp
+Date: Fri, 20 Nov 2015 17:45:36 +0100
+Message-Id: <1448037948-36820-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The timestamp of a v4l2_buffer was advertised as being CLOCK_MONOTONIC,
+but instead a timestamp from a header field was used. This is inconsistent
+and not what applications expect. Use v4l2_get_timestamp to properly
+set the timestamp.
+
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/media/videobuf2-core.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef03ae5..956604d 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -130,7 +130,7 @@ struct vb2_mem_ops {
-  * @bytesused:	number of bytes occupied by data in the plane (payload)
-  * @length:	size of this plane (NOT the payload) in bytes
-  * @min_length:	minimum required size of this plane (NOT the payload) in bytes.
-- *		@length is always greater or equal to @min_length.
-+  *		@length is always greater or equal to @min_length.
-  * @offset:	when memory in the associated struct vb2_buffer is
-  *		VB2_MEMORY_MMAP, equals the offset from the start of
-  *		the device memory for this plane (or is a "cookie" that
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 1f81f8d..5b7853b 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -531,8 +531,7 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 
+ 	if (!ret) {
+ 		vbuf->sequence = solo_enc->sequence++;
+-		vbuf->timestamp.tv_sec = vop_sec(vh);
+-		vbuf->timestamp.tv_usec = vop_usec(vh);
++		v4l2_get_timestamp(&vbuf->timestamp);
+ 
+ 		/* Check for motion flags */
+ 		if (solo_is_motion_on(solo_enc) && enc_buf->motion) {
 -- 
 2.6.2
 
