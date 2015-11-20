@@ -1,76 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:33252 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163AbbK0RtM (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42834 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1161905AbbKTRCH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 12:49:12 -0500
-MIME-Version: 1.0
-In-Reply-To: <20151127131843.0416fe2b@recife.lan>
-References: <20151127050026.GX22011@ZenIV.linux.org.uk>
-	<20151127131843.0416fe2b@recife.lan>
-Date: Fri, 27 Nov 2015 09:49:11 -0800
-Message-ID: <CA+55aFw-9Y6c-wgiXkyFuce7bqA-RQsRUuW6wC42ayoN4nVo6g@mail.gmail.com>
-Subject: Re: ->poll() instances shouldn't be indefinitely blocking
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 20 Nov 2015 12:02:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv11 14/15] videobuf2-core: call __setup_offsets before buf_init()
+Date: Fri, 20 Nov 2015 17:45:47 +0100
+Message-Id: <1448037948-36820-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 27, 2015 at 7:18 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Al Viro <viro@ZenIV.linux.org.uk> escreveu:
->
->> Take a look at this:
->> static unsigned int gsc_m2m_poll(struct file *file,
->>                                         struct poll_table_struct *wait)
->> {
->>         struct gsc_ctx *ctx = fh_to_ctx(file->private_data);
->>         struct gsc_dev *gsc = ctx->gsc_dev;
->>         int ret;
->>
->>         if (mutex_lock_interruptible(&gsc->lock))
->>                 return -ERESTARTSYS;
->>
->>         ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
->>         mutex_unlock(&gsc->lock);
->>
->>         return ret;
->> }
->>
->> a) ->poll() should not return -E...; callers expect just a bitmap of
->> POLL... values.
->
-> Yeah. We fixed issues like that on other drivers along the time. I guess
-> this is a some bad code that people just cut-and-paste from legacy drivers
-> without looking into it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Actually, while returning -ERESTARTSYS is bogus, returning _zero_
-would not be. The top-level poll() code will happily notice the
-signal, and return -EINTR like poll should (unless something else is
-pending, in which case it will return zero and the bits set for that
-something else).
+Ensure that the offsets are correct before buf_init() is called.
+As a consequence the __setup_offsets() function now sets up the
+offsets for the given buffer instead of for all new buffers.
 
-So having a driver with a ->poll() function that does that kind of
-conditional locking is not wrong per se. It's just he return value
-that is crap.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 42 ++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 26 deletions(-)
 
-I also do wonder if we might not make the generic code a bit more
-robust wrt things like this. The bitmask we use is only about the low
-bits, so we *could* certainly allow the driver poll() functions to
-return errors - possibly just ignoring them. Or perhaps have a
-WARN_ON_OCNE() to find them.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 98b5449..26ba9e4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -288,37 +288,29 @@ static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
+ 
+ /**
+  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
+- * every buffer on the queue
++ * the buffer.
+  */
+-static void __setup_offsets(struct vb2_queue *q, unsigned int n)
++static void __setup_offsets(struct vb2_buffer *vb)
+ {
+-	unsigned int buffer, plane;
+-	struct vb2_buffer *vb;
+-	unsigned long off;
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++	unsigned long off = 0;
++
++	if (vb->index) {
++		struct vb2_buffer *prev = q->bufs[vb->index - 1];
++		struct vb2_plane *p = &prev->planes[prev->num_planes - 1];
+ 
+-	if (q->num_buffers) {
+-		struct vb2_plane *p;
+-		vb = q->bufs[q->num_buffers - 1];
+-		p = &vb->planes[vb->num_planes - 1];
+ 		off = PAGE_ALIGN(p->m.offset + p->length);
+-	} else {
+-		off = 0;
+ 	}
+ 
+-	for (buffer = q->num_buffers; buffer < q->num_buffers + n; ++buffer) {
+-		vb = q->bufs[buffer];
+-		if (!vb)
+-			continue;
+-
+-		for (plane = 0; plane < vb->num_planes; ++plane) {
+-			vb->planes[plane].m.offset = off;
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		vb->planes[plane].m.offset = off;
+ 
+-			dprintk(3, "buffer %d, plane %d offset 0x%08lx\n",
+-					buffer, plane, off);
++		dprintk(3, "buffer %d, plane %d offset 0x%08lx\n",
++				vb->index, plane, off);
+ 
+-			off += vb->planes[plane].length;
+-			off = PAGE_ALIGN(off);
+-		}
++		off += vb->planes[plane].length;
++		off = PAGE_ALIGN(off);
+ 	}
+ }
+ 
+@@ -364,6 +356,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 				q->bufs[vb->index] = NULL;
+ 				break;
+ 			}
++			__setup_offsets(vb);
+ 			/*
+ 			 * Call the driver-provided buffer initialization
+ 			 * callback, if given. An error in initialization
+@@ -381,9 +374,6 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 		}
+ 	}
+ 
+-	if (memory == VB2_MEMORY_MMAP)
+-		__setup_offsets(q, buffer);
+-
+ 	dprintk(1, "allocated %d buffers, %d plane(s) each\n",
+ 			buffer, num_planes);
+ 
+-- 
+2.6.2
 
-Al, what do you think? The whole "generic code should be robust wrt
-drivers making silly mistakes" just sounds like a good idea. Finding
-these things through code inspection is all well and good, but having
-a nice warning report from users might be even better.
-
-                Linus
