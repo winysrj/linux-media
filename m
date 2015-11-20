@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45272 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893AbbKIVRu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 16:17:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Boris BREZILLON <boris.brezillon@free-electrons.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 25/38] staging: media: davinci_vpfe: fix ipipe_mode type
-Date: Mon, 09 Nov 2015 23:18 +0200
-Message-ID: <2336989.CDC8Z195j7@avalon>
-In-Reply-To: <1442842450-29769-26-git-send-email-a.hajda@samsung.com>
-References: <1442842450-29769-1-git-send-email-a.hajda@samsung.com> <1442842450-29769-26-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56490 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760712AbbKTQee (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2015 11:34:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Geunyoung Kim <nenggun.kim@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv10 06/15] media: videobuf2: last_buffer_queued is set at fill_v4l2_buffer()
+Date: Fri, 20 Nov 2015 17:34:09 +0100
+Message-Id: <1448037258-36305-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+From: Junghak Sung <jh1009.sung@samsung.com>
 
-Thank you for the patch.
+The location in which last_buffer_queued is set is moved to fill_v4l2_buffer().
+So, __vb2_perform_fileio() can use vb2_core_dqbuf() instead of
+vb2_internal_dqbuf().
 
-On Monday 21 September 2015 15:33:57 Andrzej Hajda wrote:
-> The variable can take negative values.
-> 
-> The problem has been detected using proposed semantic patch
-> scripts/coccinelle/tests/unsigned_lesser_than_zero.cocci [1].
-> 
-> [1]: http://permalink.gmane.org/gmane.linux.kernel/2038576
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c index
-> 2a3a56b..b1d5e23 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
-> @@ -254,7 +254,7 @@ int config_ipipe_hw(struct vpfe_ipipe_device *ipipe)
->  	void __iomem *ipipe_base = ipipe->base_addr;
->  	struct v4l2_mbus_framefmt *outformat;
->  	u32 color_pat;
-> -	u32 ipipe_mode;
-> +	int ipipe_mode;
->  	u32 data_path;
-> 
->  	/* enable clock to IPIPE */
-
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index a6945ee..91728c1 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -270,6 +270,11 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	if (vb2_buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+ 
++	if (!q->is_output &&
++		b->flags & V4L2_BUF_FLAG_DONE &&
++		b->flags & V4L2_BUF_FLAG_LAST)
++		q->last_buffer_dequeued = true;
++
+ 	return 0;
+ }
+ 
+@@ -617,10 +622,6 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 
+ 	ret = vb2_core_dqbuf(q, b, nonblocking);
+ 
+-	if (!ret && !q->is_output &&
+-			b->flags & V4L2_BUF_FLAG_LAST)
+-		q->last_buffer_dequeued = true;
+-
+ 	return ret;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.2
 
