@@ -1,49 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44979 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbbKKLte (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35701 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760785AbbKTQ4m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 06:49:34 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andrew Meredith <andrew@anvil.org>,
-	Warren Sturm <warren.sturm@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 1/2] Revert "[media] ivtv: avoid going past input/audio array"
-Date: Wed, 11 Nov 2015 09:48:37 -0200
-Message-Id: <93fa669548266b15798131e0f5875bd85306caf4.1447242435.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 20 Nov 2015 11:56:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv11 02/15] DocBook media: update VIDIOC_CREATE_BUFS documentation
+Date: Fri, 20 Nov 2015 17:45:35 +0100
+Message-Id: <1448037948-36820-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch broke ivtv logic, as reported at
- https://bugzilla.redhat.com/show_bug.cgi?id=1278942
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This reverts commit 09290cc885937cab3b2d60a6d48fe3d2d3e04061.
+During the Seoul media workshop we decided to relax the VIDIOC_CREATE_BUFS
+specification so it would no longer require drivers to validate the format
+field since almost no driver did that anyway.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Instead drivers use the buffer size(s) based on the format type and the
+corresponding format fields and will ignore any other fields. If the size
+cannot be used an error is returned, otherwise the size is used as-is.
 
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
-index 3a6f668b14b8..21501c560610 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.c
-+++ b/drivers/media/pci/ivtv/ivtv-driver.c
-@@ -805,11 +805,11 @@ static void ivtv_init_struct2(struct ivtv *itv)
- {
- 	int i;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       | 30 ++++++++++------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index 8ffe74f..d81fa0d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -58,7 +58,7 @@
+     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+ mapped</link> or <link linkend="userp">user pointer</link> or <link
+ linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
+-addition to the <constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter
++addition to the &VIDIOC-REQBUFS; ioctl, when a tighter
+ control over buffers is required. This ioctl can be called multiple times to
+ create buffers of different sizes.</para>
  
--	for (i = 0; i < IVTV_CARD_MAX_VIDEO_INPUTS - 1; i++)
-+	for (i = 0; i < IVTV_CARD_MAX_VIDEO_INPUTS; i++)
- 		if (itv->card->video_inputs[i].video_type == 0)
- 			break;
- 	itv->nof_inputs = i;
--	for (i = 0; i < IVTV_CARD_MAX_AUDIO_INPUTS - 1; i++)
-+	for (i = 0; i < IVTV_CARD_MAX_AUDIO_INPUTS; i++)
- 		if (itv->card->audio_inputs[i].audio_type == 0)
- 			break;
- 	itv->nof_audio_inputs = i;
+@@ -71,30 +71,28 @@ zeroed.</para>
+ 
+     <para>The <structfield>format</structfield> field specifies the image format
+ that the buffers must be able to handle. The application has to fill in this
+-&v4l2-format;. Usually this will be done using the
+-<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant> ioctl()
+-to ensure that the requested format is supported by the driver. Unsupported
+-formats will result in an error.</para>
++&v4l2-format;. Usually this will be done using the &VIDIOC-TRY-FMT; or &VIDIOC-G-FMT; ioctls
++to ensure that the requested format is supported by the driver.
++Based on the format's <structfield>type</structfield> field the requested buffer
++size (for single-planar) or plane sizes (for multi-planar formats) will be
++used for the allocated buffers. The driver may return an error if the size(s)
++are not supported by the hardware (usually because they are too small).</para>
+ 
+     <para>The buffers created by this ioctl will have as minimum size the size
+-defined by the <structfield>format.pix.sizeimage</structfield> field. If the
++defined by the <structfield>format.pix.sizeimage</structfield> field (or the
++corresponding fields for other format types). Usually if the
+ <structfield>format.pix.sizeimage</structfield> field is less than the minimum
+-required for the given format, then <structfield>sizeimage</structfield> will be
+-increased by the driver to that minimum to allocate the buffers. If it is
+-larger, then the value will be used as-is. The same applies to the
+-<structfield>sizeimage</structfield> field of the
+-<structname>v4l2_plane_pix_format</structname> structure in the case of
+-multiplanar formats.</para>
++required for the given format, then an error will be returned since drivers will
++typically not allow this. If it is larger, then the value will be used as-is.
++In other words, the driver may reject the requested size, but if it is accepted
++the driver will use it unchanged.</para>
+ 
+     <para>When the ioctl is called with a pointer to this structure the driver
+ will attempt to allocate up to the requested number of buffers and store the
+ actual number allocated and the starting index in the
+ <structfield>count</structfield> and the <structfield>index</structfield> fields
+ respectively. On return <structfield>count</structfield> can be smaller than
+-the number requested. The driver may also increase buffer sizes if required,
+-however, it will not update <structfield>sizeimage</structfield> field values.
+-The user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
+-information.</para>
++the number requested.</para>
+ 
+     <table pgwide="1" frame="none" id="v4l2-create-buffers">
+       <title>struct <structname>v4l2_create_buffers</structname></title>
 -- 
-2.4.3
-
+2.6.2
 
