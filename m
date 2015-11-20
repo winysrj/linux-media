@@ -1,81 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:44552 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbbKPJf5 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35355 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760042AbbKTQec (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 04:35:57 -0500
-Message-id: <5649A37A.2050902@samsung.com>
-Date: Mon, 16 Nov 2015 10:35:54 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pavel@ucw.cz, sakari.ailus@linux.intel.com, andrew@lunn.ch,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 10/10] media: flash: use led_set_brightness_sync for
- torch brightness
-References: <1444209048-29415-1-git-send-email-j.anaszewski@samsung.com>
- <1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 20 Nov 2015 11:34:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Geunyoung Kim <nenggun.kim@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv10 04/15] media: videobuf2: Add copy_timestamp to struct vb2_queue
+Date: Fri, 20 Nov 2015 17:34:07 +0100
+Message-Id: <1448037258-36305-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Junghak Sung <jh1009.sung@samsung.com>
 
-This patch depends on the preceding LED core improvements patches
-from this patch set, and it would be best if it was merged through
-the LED tree. Can I get your ack for this? I've already obtained acks
-for the whole set from Sakari.
+Add copy_timestamp to struct vb2_queue as a flag set if vb2-core should
+copy timestamps.
 
-Best Regards,
-Jacek Anaszewski
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |  2 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 31 +++++++++++++------------------
+ include/media/videobuf2-core.h           |  4 +++-
+ 3 files changed, 17 insertions(+), 20 deletions(-)
 
-On 10/07/2015 11:10 AM, Jacek Anaszewski wrote:
-> LED subsystem shifted responsibility for choosing between SYNC or ASYNC
-> way of setting brightness from drivers to the caller. Adapt the wrapper
-> to those changes.
->
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: linux-media@vger.kernel.org
-> ---
->   drivers/media/v4l2-core/v4l2-flash-led-class.c |    8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> index 5bdfb8d..5d67335 100644
-> --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-> @@ -107,10 +107,10 @@ static void v4l2_flash_set_led_brightness(struct v4l2_flash *v4l2_flash,
->   		if (ctrls[LED_MODE]->val != V4L2_FLASH_LED_MODE_TORCH)
->   			return;
->
-> -		led_set_brightness(&v4l2_flash->fled_cdev->led_cdev,
-> +		led_set_brightness_sync(&v4l2_flash->fled_cdev->led_cdev,
->   					brightness);
->   	} else {
-> -		led_set_brightness(&v4l2_flash->iled_cdev->led_cdev,
-> +		led_set_brightness_sync(&v4l2_flash->iled_cdev->led_cdev,
->   					brightness);
->   	}
->   }
-> @@ -206,11 +206,11 @@ static int v4l2_flash_s_ctrl(struct v4l2_ctrl *c)
->   	case V4L2_CID_FLASH_LED_MODE:
->   		switch (c->val) {
->   		case V4L2_FLASH_LED_MODE_NONE:
-> -			led_set_brightness(led_cdev, LED_OFF);
-> +			led_set_brightness_sync(led_cdev, LED_OFF);
->   			return led_set_flash_strobe(fled_cdev, false);
->   		case V4L2_FLASH_LED_MODE_FLASH:
->   			/* Turn the torch LED off */
-> -			led_set_brightness(led_cdev, LED_OFF);
-> +			led_set_brightness_sync(led_cdev, LED_OFF);
->   			if (ctrls[STROBE_SOURCE]) {
->   				external_strobe = (ctrls[STROBE_SOURCE]->val ==
->   					V4L2_FLASH_STROBE_SOURCE_EXTERNAL);
->
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ebce7c7..bd96fb8 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1399,7 +1399,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+ 	q->waiting_for_buffers = false;
+ 	vb->state = VB2_BUF_STATE_QUEUED;
+ 
+-	call_bufop(q, set_timestamp, vb, pb);
++	call_bufop(q, copy_timestamp, vb, pb);
+ 
+ 	trace_vb2_qbuf(q, vb);
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index bfd7e34..e03f700 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -107,7 +107,7 @@ static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	return 0;
+ }
+ 
+-static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
++static int __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+ {
+ 	const struct v4l2_buffer *b = pb;
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+@@ -118,8 +118,7 @@ static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
+ 		 * For output buffers copy the timestamp if needed,
+ 		 * and the timecode field and flag if needed.
+ 		 */
+-		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-				V4L2_BUF_FLAG_TIMESTAMP_COPY)
++		if (q->copy_timestamp)
+ 			vb->timestamp = timeval_to_ns(&b->timestamp);
+ 		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
+ 		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
+@@ -238,8 +237,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	 */
+ 	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+ 	b->flags |= q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK;
+-	if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY) {
++	if (!q->copy_timestamp) {
+ 		/*
+ 		 * For non-COPY timestamps, drop timestamp source bits
+ 		 * and obtain the timestamp source from the queue.
+@@ -403,8 +401,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ 
+ 	/* Zero flags that the vb2 core handles */
+ 	vbuf->flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
+-	if ((vb->vb2_queue->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) !=
+-	    V4L2_BUF_FLAG_TIMESTAMP_COPY || !V4L2_TYPE_IS_OUTPUT(b->type)) {
++	if (!vb->vb2_queue->copy_timestamp || !V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 		/*
+ 		 * Non-COPY timestamps and non-OUTPUT queues will get
+ 		 * their timestamp and timestamp source flags from the
+@@ -433,7 +430,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ static const struct vb2_buf_ops v4l2_buf_ops = {
+ 	.fill_user_buffer	= __fill_v4l2_buffer,
+ 	.fill_vb2_buffer	= __fill_vb2_buffer,
+-	.set_timestamp		= __set_timestamp,
++	.copy_timestamp		= __copy_timestamp,
+ };
+ 
+ /**
+@@ -760,6 +757,8 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	q->buf_ops = &v4l2_buf_ops;
+ 	q->is_multiplanar = V4L2_TYPE_IS_MULTIPLANAR(q->type);
+ 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
++	q->copy_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
++			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_core_queue_init(q);
+ }
+@@ -1114,12 +1113,10 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	bool is_multiplanar = q->is_multiplanar;
+ 	/*
+ 	 * When using write() to write data to an output video node the vb2 core
+-	 * should set timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
++	 * should copy timestamps if V4L2_BUF_FLAG_TIMESTAMP_COPY is set. Nobody
+ 	 * else is able to provide this information with the write() operation.
+ 	 */
+-	bool set_timestamp = !read &&
+-		(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-		V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	bool copy_timestamp = !read && q->copy_timestamp;
+ 	int ret, index;
+ 
+ 	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
+@@ -1236,7 +1233,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 			fileio->b.m.planes = &fileio->p;
+ 			fileio->b.length = 1;
+ 		}
+-		if (set_timestamp)
++		if (copy_timestamp)
+ 			v4l2_get_timestamp(&fileio->b.timestamp);
+ 		ret = vb2_internal_qbuf(q, &fileio->b);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+@@ -1301,16 +1298,14 @@ static int vb2_thread(void *data)
+ 	struct vb2_queue *q = data;
+ 	struct vb2_threadio_data *threadio = q->threadio;
+ 	struct vb2_fileio_data *fileio = q->fileio;
+-	bool set_timestamp = false;
++	bool copy_timestamp = false;
+ 	int prequeue = 0;
+ 	int index = 0;
+ 	int ret = 0;
+ 
+ 	if (q->is_output) {
+ 		prequeue = q->num_buffers;
+-		set_timestamp =
+-			(q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
+-			V4L2_BUF_FLAG_TIMESTAMP_COPY;
++		copy_timestamp = q->copy_timestamp;
+ 	}
+ 
+ 	set_freezable();
+@@ -1343,7 +1338,7 @@ static int vb2_thread(void *data)
+ 			if (threadio->fnc(vb, threadio->priv))
+ 				break;
+ 		call_void_qop(q, wait_finish, q);
+-		if (set_timestamp)
++		if (copy_timestamp)
+ 			v4l2_get_timestamp(&fileio->b.timestamp);
+ 		if (!threadio->stop)
+ 			ret = vb2_internal_qbuf(q, &fileio->b);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 0774bf3..67da143 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -373,7 +373,7 @@ struct vb2_buf_ops {
+ 	int (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
+ 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
+ 				struct vb2_plane *planes);
+-	int (*set_timestamp)(struct vb2_buffer *vb, const void *pb);
++	int (*copy_timestamp)(struct vb2_buffer *vb, const void *pb);
+ };
+ 
+ /**
+@@ -436,6 +436,7 @@ struct vb2_buf_ops {
+  *		called since poll() needs to return POLLERR in that situation.
+  * @is_multiplanar: set if buffer type is multiplanar
+  * @is_output:	set if buffer type is output
++ * @copy_timestamp: set if vb2-core should set timestamps
+  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+  *		last decoded buffer was already dequeued. Set for capture queues
+  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
+@@ -485,6 +486,7 @@ struct vb2_queue {
+ 	unsigned int			waiting_for_buffers:1;
+ 	unsigned int			is_multiplanar:1;
+ 	unsigned int			is_output:1;
++	unsigned int			copy_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
+ 
+ 	struct vb2_fileio_data		*fileio;
+-- 
+2.6.2
 
