@@ -1,59 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58110 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932108AbbKQRKh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 12:10:37 -0500
-Date: Tue, 17 Nov 2015 15:10:32 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.5] Various fixes/enhancements
-Message-ID: <20151117151032.2c8f88e6@recife.lan>
-In-Reply-To: <5645E594.4090905@xs4all.nl>
-References: <5645E594.4090905@xs4all.nl>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54978 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760042AbbKTQZO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Nov 2015 11:25:14 -0500
+Subject: Re: cobalt & dma
+To: Ran Shalit <ranshalit@gmail.com>
+References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
+ <564ADD04.90700@xs4all.nl>
+ <CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
+ <564F346B.3090504@xs4all.nl>
+ <CAJ2oMhLWHCNxDmwOnwBxPdjjqbcO6Q2khBrzohMET=LsQ_AQjg@mail.gmail.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <564F4963.5050902@xs4all.nl>
+Date: Fri, 20 Nov 2015 17:25:07 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <CAJ2oMhLWHCNxDmwOnwBxPdjjqbcO6Q2khBrzohMET=LsQ_AQjg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Nov 2015 14:28:52 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 11/20/2015 05:14 PM, Ran Shalit wrote:
+>>>
+>>> 1. I tried to understand the code implementation of videobuf2 with
+>>> regards to read():
+>>> read() ->
+>>>     vb2_read() ->
+>>>           __vb2_perform_fileio()->
+>>>              vb2_internal_dqbuf() &  copy_to_user()
+>>>
+>>> Where is the actual allocation of dma contiguous memory ? Is done with
+>>> the userspace calloc() call in userspace (as shown in the v4l2 API
+>>> example) ? As I understand the calloc/malloc are not guaranteed to be
+>>> contiguous.
+>>>      How do I know if the try to allocate contigious memory has failed or not ?
+>>
+>> The actual allocation happens in videobuf2-vmalloc/dma-contig/dma-sg depending
+>> on the flavor of buffers you want (virtual memory, DMA into physically contiguous
+>> memory or DMA into scatter-gather memory). The alloc operation is the one that
+>> allocates the memory.
+> 
+> 
+> Thank you very much for the time.
+> 
+> Just to be sure I understand the general mechanism of DMA with regards
+> to the read() operation and in the case of using contiguous memory,
+> I try to draw the general sequence as I understand it from the code
+> and reading on this issue:
+> 
+> read() into user memory buffer ->
+>           vb2_read() ->
+>                 __vb2_perform_fileio() ->
+>                         deaque buffer with:  vb2_internal_dqbuf() into
+> contiguous DMA memory (kernel)  ->
+>                                copy_to_user() will actually copy from
+> the contigious dma memory(kernel)  into user buffer (userspace)
+> 
+> 1. Is the above sequence  correct ?
 
-> Hi Mauro,
-> 
-> A large pile of various fixes and enhancements.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 79f5b6ae960d380c829fb67d5dadcd1d025d2775:
-> 
->   [media] c8sectpfe: Remove select on CONFIG_FW_LOADER_USER_HELPER_FALLBACK (2015-10-20 16:02:41 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git for-v4.5a
-> 
-> for you to fetch changes up to 54adb10d0947478b3364640a131fff1f1ab190fa:
-> 
->   v4l2-dv-timings: add new arg to v4l2_match_dv_timings (2015-11-13 14:15:55 +0100)
-> 
-> ----------------------------------------------------------------
-> Antonio Ospite (1):
->       gspca: ov534/topro: prevent a division by 0
+Yes.
 
+> 2. When talking about contiguous dma memory (or scatter-gatther) we
+> actually always refer to memory allocated in kernel, right ?
 
-> Antti Palosaari (2):
->       hackrf: move RF gain ctrl enable behind module parameter
->       hackrf: fix possible null ptr on debug printing
+Usually. With the V4L2_MEMORY_USERPTR stream I/O mode it is userspace
+that allocates the memory, but when using physically contiguous DMA
+this particular streaming mode is normally not supported.
 
-The Antti's patches were already merged via his pull request.
-I added them for v4.4, as they fix a regression and a serious 
-trouble that could burn the hardware on a driver added on 4.3.
-
-The other patches got merged.
+With V4L2_MEMORY_MMAP it is always the kernel that allocates the memory.
 
 Regards,
-Mauro
+
+	Hans
