@@ -1,91 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:54219 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbbK0Fox (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:59839 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759620AbbKTK7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 00:44:53 -0500
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
- 64bit (built May  5 2014))
- with ESMTP id <0NYG00F7QLARU6C0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Nov 2015 14:44:51 +0900 (KST)
-Date: Fri, 27 Nov 2015 05:44:51 +0000 (GMT)
-From: =?euc-kr?B?sejBpLno?= <jb09.kim@samsung.com>
-Subject: [PATCH] driver:dma bug_fix : access freed memory
-To: sumit.semwal@linaro.org, gregkh@linuxfoundation.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Reply-to: jb09.kim@samsung.com
-MIME-version: 1.0
-Content-transfer-encoding: base64
-Content-type: text/plain; charset=euc-kr
-MIME-version: 1.0
-Message-id: <1606811477.1531761448603090175.JavaMail.weblogic@epmlwas01d>
+	Fri, 20 Nov 2015 05:59:17 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Linux MMC List <linux-mmc@vger.kernel.org>,
+	linux-crypto@vger.kernel.org,
+	linux-spi <linux-spi@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>
+Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
+Date: Fri, 20 Nov 2015 11:58:57 +0100
+Message-ID: <6118451.vaLZWOZEF5@wuerfel>
+In-Reply-To: <564EF502.6040708@ti.com>
+References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <4533695.7ZVFN1S94o@wuerfel> <564EF502.6040708@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RnJvbSA4ZjZhZWIzNjJkOWU0NGYyOWQ0NmFlNzY5NGNkZmVlNDQwODQwNmNlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQ0KRnJvbTogIktJTSBKVUdOQkFFIiA8amIwOS5raW1Ac2Ftc3VuZy5jb20+
-DQpEYXRlOiBUaHUsIDI2IE5vdiAyMDE1IDE2OjI4OjQ3ICswOTAwDQpTdWJqZWN0OiBbUEFUQ0hd
-IGJ1Z19maXggOiBhY2Nlc3MgZnJlZWQgbWVtb3J5DQoNCnN5bmNfZmVuY19mcmVlICYgZmVuY2Vf
-Y2hlY2tfY2JfZnVuYyB3b3VsZCBiZSBleGVjdXRlZCBhdA0Kb3RoZXIgY3B1LiBmZW5jZV9jaGVj
-a19jYl9mdW5jIGFjY2VzcyBmcmVlZCBmZW5jZSBtZW1vcnkgYWZ0ZXINCmtmcmVlKGZlbmNlKSBh
-dCBzeW5jX2ZlbmNlX2ZyZWUuDQpUbyBlc2NhcGVkIHRoaXMgaXNzdWUsIGF0b21pY19yZWFkKCZm
-ZW5jZS0+c3RhdHVzKSBuZWVkIHRvIGJlDQpwcm90ZWN0ZWQgYnkgY2hpbGRfbGlzdF9sb2NrLg0K
-DQpTaWduZWQtb2ZmLWJ5OiAia2ltanVuZ2JhZVwiICIgPGpiMDkua2ltQHNhbXN1bmcuY29tPiIN
-Ci0tLQ0KIGRyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jICAgICAgICAgICAgICB8ICAgMTMgKysrKysr
-KysrKysrKw0KIGRyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmMuYyAgICAgICB8ICAgMTAgKysr
-KysrKy0tLQ0KIGRyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmNfZGVidWcuYyB8ICAgIDIgKysN
-CiBpbmNsdWRlL2xpbnV4L2ZlbmNlLmggICAgICAgICAgICAgICAgfCAgICAxICsNCiA0IGZpbGVz
-IGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2RtYS1idWYvZmVuY2UuYyBiL2RyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jDQppbmRl
-eCA3YmI5ZDY1Li5kNDAyMTFlIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9kbWEtYnVmL2ZlbmNlLmMN
-CisrKyBiL2RyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jDQpAQCAtMzEwLDYgKzMxMCwxOSBAQCBmZW5j
-ZV9yZW1vdmVfY2FsbGJhY2soc3RydWN0IGZlbmNlICpmZW5jZSwgc3RydWN0IGZlbmNlX2NiICpj
-YikNCiB9DQogRVhQT1JUX1NZTUJPTChmZW5jZV9yZW1vdmVfY2FsbGJhY2spOw0KIA0KK2Jvb2wN
-CitmZW5jZV9yZW1vdmVfY2FsbGJhY2tfbG9ja2VkKHN0cnVjdCBmZW5jZSAqZmVuY2UsIHN0cnVj
-dCBmZW5jZV9jYiAqY2IpDQorew0KKwlib29sIHJldDsNCisNCisJcmV0ID0gIWxpc3RfZW1wdHko
-JmNiLT5ub2RlKTsNCisJaWYgKHJldCkNCisJCWxpc3RfZGVsX2luaXQoJmNiLT5ub2RlKTsNCisN
-CisJcmV0dXJuIHJldDsNCit9DQorRVhQT1JUX1NZTUJPTChmZW5jZV9yZW1vdmVfY2FsbGJhY2tf
-bG9ja2VkKTsNCisNCiBzdHJ1Y3QgZGVmYXVsdF93YWl0X2NiIHsNCiAJc3RydWN0IGZlbmNlX2Ni
-IGJhc2U7DQogCXN0cnVjdCB0YXNrX3N0cnVjdCAqdGFzazsNCmRpZmYgLS1naXQgYS9kcml2ZXJz
-L3N0YWdpbmcvYW5kcm9pZC9zeW5jLmMgYi9kcml2ZXJzL3N0YWdpbmcvYW5kcm9pZC9zeW5jLmMN
-CmluZGV4IDgzZjY0MGYuLjliNjA1NDIgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL3N0YWdpbmcvYW5k
-cm9pZC9zeW5jLmMNCisrKyBiL2RyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmMuYw0KQEAgLTUx
-OCwxMiArNTE4LDE2IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZmVuY2Vfb3BzIGFuZHJvaWRfZmVu
-Y2Vfb3BzID0gew0KIHN0YXRpYyB2b2lkIHN5bmNfZmVuY2VfZnJlZShzdHJ1Y3Qga3JlZiAqa3Jl
-ZikNCiB7DQogCXN0cnVjdCBzeW5jX2ZlbmNlICpmZW5jZSA9IGNvbnRhaW5lcl9vZihrcmVmLCBz
-dHJ1Y3Qgc3luY19mZW5jZSwga3JlZik7DQotCWludCBpLCBzdGF0dXMgPSBhdG9taWNfcmVhZCgm
-ZmVuY2UtPnN0YXR1cyk7DQorCWludCBpOw0KKwl1bnNpZ25lZCBsb25nIGZsYWdzOw0KIA0KIAlm
-b3IgKGkgPSAwOyBpIDwgZmVuY2UtPm51bV9mZW5jZXM7ICsraSkgew0KLQkJaWYgKHN0YXR1cykN
-Ci0JCQlmZW5jZV9yZW1vdmVfY2FsbGJhY2soZmVuY2UtPmNic1tpXS5zeW5jX3B0LA0KKwkJc3Bp
-bl9sb2NrX2lycXNhdmUoZmVuY2UtPmNic1tpXS5zeW5jX3B0LT5sb2NrLCBmbGFncyk7DQorCQlp
-ZiAoYXRvbWljX3JlYWQoJmZlbmNlLT5zdGF0dXMpKQ0KKwkJCWZlbmNlX3JlbW92ZV9jYWxsYmFj
-a19sb2NrZWQoZmVuY2UtPmNic1tpXS5zeW5jX3B0LA0KIAkJCQkJICAgICAgJmZlbmNlLT5jYnNb
-aV0uY2IpOw0KKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZShmZW5jZS0+Y2JzW2ldLnN5bmNfcHQt
-PmxvY2ssIGZsYWdzKTsNCisNCiAJCWZlbmNlX3B1dChmZW5jZS0+Y2JzW2ldLnN5bmNfcHQpOw0K
-IAl9DQogDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5j
-IGIvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5jDQppbmRleCAwMTUzY2QyLi5l
-ODU0ZjM1IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5j
-DQorKysgYi9kcml2ZXJzL3N0YWdpbmcvYW5kcm9pZC9zeW5jX2RlYnVnLmMNCkBAIC0xNTUsNyAr
-MTU1LDkgQEAgc3RhdGljIHZvaWQgc3luY19wcmludF9mZW5jZShzdHJ1Y3Qgc2VxX2ZpbGUgKnMs
-IHN0cnVjdCBzeW5jX2ZlbmNlICpmZW5jZSkNCiAJCQljb250YWluZXJfb2YoZmVuY2UtPmNic1tp
-XS5zeW5jX3B0LA0KIAkJCQkgICAgIHN0cnVjdCBzeW5jX3B0LCBiYXNlKTsNCiANCisJCXNwaW5f
-bG9ja19pcnFzYXZlKHB0LT5iYXNlLmxvY2ssIGZsYWdzKTsNCiAJCXN5bmNfcHJpbnRfcHQocywg
-cHQsIHRydWUpOw0KKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZShwdC0+YmFzZS5sb2NrLCBmbGFn
-cyk7DQogCX0NCiANCiAJc3Bpbl9sb2NrX2lycXNhdmUoJmZlbmNlLT53cS5sb2NrLCBmbGFncyk7
-DQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9mZW5jZS5oIGIvaW5jbHVkZS9saW51eC9mZW5j
-ZS5oDQppbmRleCBkMTc0NTg1Li5hNWEzZmQxIDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9saW51eC9m
-ZW5jZS5oDQorKysgYi9pbmNsdWRlL2xpbnV4L2ZlbmNlLmgNCkBAIC0yMjQsNiArMjI0LDcgQEAg
-c2lnbmVkIGxvbmcgZmVuY2VfZGVmYXVsdF93YWl0KHN0cnVjdCBmZW5jZSAqZmVuY2UsIGJvb2wg
-aW50ciwgc2lnbmVkIGxvbmcgdGltZW8NCiBpbnQgZmVuY2VfYWRkX2NhbGxiYWNrKHN0cnVjdCBm
-ZW5jZSAqZmVuY2UsIHN0cnVjdCBmZW5jZV9jYiAqY2IsDQogCQkgICAgICAgZmVuY2VfZnVuY190
-IGZ1bmMpOw0KIGJvb2wgZmVuY2VfcmVtb3ZlX2NhbGxiYWNrKHN0cnVjdCBmZW5jZSAqZmVuY2Us
-IHN0cnVjdCBmZW5jZV9jYiAqY2IpOw0KK2Jvb2wgZmVuY2VfcmVtb3ZlX2NhbGxiYWNrX2xvY2tl
-ZChzdHJ1Y3QgZmVuY2UgKmZlbmNlLCBzdHJ1Y3QgZmVuY2VfY2IgKmNiKTsNCiB2b2lkIGZlbmNl
-X2VuYWJsZV9zd19zaWduYWxpbmcoc3RydWN0IGZlbmNlICpmZW5jZSk7DQogDQogLyoqDQotLSAN
-CjEuNy45LjUNCg0K
+On Friday 20 November 2015 12:25:06 Peter Ujfalusi wrote:
+> On 11/19/2015 01:25 PM, Arnd Bergmann wrote:
+> >> dma_request_channel(mask); /* memcpy. etc, non slave mostly */
+> >>
+> >> Not sure how to name this as reusing existing (good, descriptive) function
+> >> names would mean changes all over the kernel to start off this.
+> >>
+> >> Not used and
+> >> request_dma_channel(); /* as _irq/_mem_region/_resource, etc */
+> >> request_dma();
+> >> dma_channel_request();
+> > 
+> > dma_request_slavechan();
+> > dma_request_slave();
+> > dma_request_mask();
+> 
+> Let me think aloud here a bit...
+> 1. To request slave channel which will return you the channel your device is
+> bind via DT/ACPI or the platform map table you propose later:
+> 
+> dma_request_chan(struct device *dev, const char *name);
+> 
+> 2. To request a channel (any channel) matching with the capabilities the
+> driver needs, like memcpy, memset, etc:
+> 
+> #define dma_request_chan_by_mask(mask) __dma_request_chan_by_mask(&(mask))
+> __dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+> 
+> I think the dma_request_chan() does not need mask to be passed, since via this
+> we request a specific channel which has been defined/set by DT/ACPI or the
+> lookup map. We could add a mask parameter which could be used to sanity check
+> the channel we got against the capabilities the driver needs from the channel.
+> We currently do this in the drivers where the author wanted to make sure that
+> the channel is capable of what it should be capable.
+> 
+> So two API to request channel:
+> struct dma_chan *dma_request_chan(struct device *dev, const char *name);
+> struct dma_chan *dma_request_chan_by_mask(const dma_cap_mask_t *mask);
+> 
+> Both will return with the valid channel pointer or in case of failure with
+> ERR_PTR().
+> 
+> We need to go through the code in regards to return codes also to have sane
+> mapping.
 
+Right.
+> > That way the vast majority of drivers can use one of the two nice interfaces
+> > and the rest can be converted to use __dma_request_chan().
+> > 
+> > On a related topic, we had in the past considered providing a way for
+> > platform code to register a lookup table of some sort, to associate
+> > a device/name pair with a configuration. That would let us use the
+> > simplified dma_request_slavechan(dev, name) pair everywhere. We could
+> > use the same method that we have for clk_register_clkdevs() or
+> > pinctrl_register_map().
+> > 
+> > Something like either
+> > 
+> > static struct dma_chan_map myplatform_dma_map[] = {
+> > 	{ .devname = "omap-aes0", .slave = "tx", .filter = omap_dma_filter_fn, .arg = (void *)65, },
+> > 	{ .devname = "omap-aes0", .slave = "rx", .filter = omap_dma_filter_fn, .arg = (void *)66, },
+> > };
+> > 
+> > or
+> > 
+> > static struct dma_chan_map myplatform_dma_map[] = {
+> > 	{ .devname = "omap-aes0", .slave = "tx", .master = "omap-dma-engine0", .req = 65, },
+> > 	{ .devname = "omap-aes0", .slave = "rx", .master = "omap-dma-engine0", .req = 66, },
+> 
+> sa11x0-dma expects the fn_param as string :o
 
+Some of them do, but the new API requires changes in both the DMA master and
+slave drivers, so that could be changed if we wanted to, or we just allow 
+both methods indefinitely and let sa11x0-dma pass the filterfn+data rather than
+a number.
+
+> > };
+> 
+> Basically we are deprecating the use of IORESOURCE_DMA?
+
+I thought we already had ;-)
+
+> For legacy the filter function is pretty much needed to handle the differences
+> between the platforms as not all of them does the filtering in a same way. So
+> the first type of map would be feasible IMHO.
+
+It certainly makes the transition to a map table much easier.
+
+> > we could even allow a combination of the two, so the simple case just specifies
+> > master and req number, which requires changes to the dmaengine driver, but we could
+> > also do a mass-conversion to the .filter/.arg variant.
+> 
+> This will get rid of the need for the fn and fn_param parameters when
+> requesting dma channel, but it will not get rid of the exported function from
+> the dma engine drivers since in arch code we need to have visibility to the
+> filter_fn.
+
+Correct. A lot of dmaengine drivers already need to be built-in so the platform
+code can put a pointer to the filter function, so it would not be worse for them.
+
+Another idea would be to remove the filter function from struct dma_chan_map
+and pass the map through platform data to the dmaengine driver, which then
+registers it to the core along with the mask. Something like:
+
+/* platform code */
+static struct dma_chan_map oma_dma_map[] = {
+ 	{ .devname = "omap-aes0", .slave = "tx", .arg = (void *)65, },
+ 	{ .devname = "omap-aes0", .slave = "rx", .arg = (void *)66, },
+	...
+	{},
+};
+
+static struct omap_system_dma_plat_info dma_plat_info __initdata = {
+	.dma_map = &oma_dma_map,
+	...
+};      
+
+machine_init(void)
+{
+	...
+	platform_device_register_data(NULL, "omap-dma-engine", 0, &dma_plat_info, sizeof(dma_plat_info);
+	...
+}
+
+/* dmaengine driver */
+
+static int omap_dma_probe(struct platform_device *pdev)
+{
+	struct omap_system_dma_plat_info *pdata = dev_get_platdata(&pdev->dev);
+	...
+
+	dmam_register_platform_map(&pdev->dev, omap_dma_filter_fn, pdata->dma_map);
+}
+
+/* dmaengine core */
+
+struct dma_map_list {
+	struct list_head node;
+	struct device *master;
+	dma_filter_fn filter;
+	struct dma_chan_map *map;
+};
+
+static LIST_HEAD(dma_map_list);
+static DEFINE_MUTEX(dma_map_mutex);
+
+int dmam_register_platform_map(struct device *dev, dma_filter_fn filter, struct dma_chan_map *map)
+{
+	struct dma_map_list *list = kmalloc(sizeof(*list), GFP_KERNEL);
+
+	if (!list)
+		return -ENOMEM;
+
+	list->dev = dev;
+	list->filter = filter;
+	list->map = map;
+
+	mutex_lock(&dma_map_mutex);
+	list_add(&dma_map_list, &list->node);
+	mutex_unlock(&dma_map_mutex);
+}
+
+Now we can completely remove the dependency on the filter function definition
+from platform code and slave drivers.
+
+	Arnd
