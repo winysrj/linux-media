@@ -1,91 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44908 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751829AbbKPKVX (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56490 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759932AbbKTQe1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:21:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 09/16] stb6100: get rid of tuner_state at struct stb6100_state
-Date: Mon, 16 Nov 2015 08:21:06 -0200
-Message-Id: <811ff75eeffa249b374643ae24c4dc907d127be5.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-In-Reply-To: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-References: <838f46d5554501921ca2d809691437118e59dd14.1447668702.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Fri, 20 Nov 2015 11:34:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv10 01/15] DocBook media: update VIDIOC_CREATE_BUFS documentation
+Date: Fri, 20 Nov 2015 17:34:04 +0100
+Message-Id: <1448037258-36305-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The stb6100 driver has a struct tuner_state on its state
-struct, that it is used only to store the bandwidth. Even so,
-this struct is not really used, as every time the bandwidth
-is get or set, it goes through the hardware.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, get rid of that.
+During the Seoul media workshop we decided to relax the VIDIOC_CREATE_BUFS
+specification so it would no longer require drivers to validate the format
+field since almost no driver did that anyway.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Instead drivers use the buffer size(s) based on the format type and the
+corresponding format fields and will ignore any other fields. If the size
+cannot be used an error is returned, otherwise the size is used as-is.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/stb6100.c | 9 ++++-----
- drivers/media/dvb-frontends/stb6100.h | 1 -
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       | 30 ++++++++++------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
-index e7f8d2c55565..5d8dbde03249 100644
---- a/drivers/media/dvb-frontends/stb6100.c
-+++ b/drivers/media/dvb-frontends/stb6100.c
-@@ -252,6 +252,7 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
- {
- 	int rc;
- 	u8 f;
-+	u32 bw;
- 	struct stb6100_state *state = fe->tuner_priv;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index 8ffe74f..d81fa0d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -58,7 +58,7 @@
+     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+ mapped</link> or <link linkend="userp">user pointer</link> or <link
+ linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
+-addition to the <constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter
++addition to the &VIDIOC-REQBUFS; ioctl, when a tighter
+ control over buffers is required. This ioctl can be called multiple times to
+ create buffers of different sizes.</para>
  
- 	rc = stb6100_read_reg(state, STB6100_F);
-@@ -259,9 +260,9 @@ static int stb6100_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
- 		return rc;
- 	f = rc & STB6100_F_F;
+@@ -71,30 +71,28 @@ zeroed.</para>
  
--	state->status.bandwidth = (f + 5) * 2000;	/* x2 for ZIF	*/
-+	bw = (f + 5) * 2000;	/* x2 for ZIF	*/
+     <para>The <structfield>format</structfield> field specifies the image format
+ that the buffers must be able to handle. The application has to fill in this
+-&v4l2-format;. Usually this will be done using the
+-<constant>VIDIOC_TRY_FMT</constant> or <constant>VIDIOC_G_FMT</constant> ioctl()
+-to ensure that the requested format is supported by the driver. Unsupported
+-formats will result in an error.</para>
++&v4l2-format;. Usually this will be done using the &VIDIOC-TRY-FMT; or &VIDIOC-G-FMT; ioctls
++to ensure that the requested format is supported by the driver.
++Based on the format's <structfield>type</structfield> field the requested buffer
++size (for single-planar) or plane sizes (for multi-planar formats) will be
++used for the allocated buffers. The driver may return an error if the size(s)
++are not supported by the hardware (usually because they are too small).</para>
  
--	*bandwidth = state->bandwidth = state->status.bandwidth * 1000;
-+	*bandwidth = state->bandwidth = bw * 1000;
- 	dprintk(verbose, FE_DEBUG, 1, "bandwidth = %u Hz", state->bandwidth);
- 	return 0;
- }
-@@ -495,15 +496,13 @@ static int stb6100_sleep(struct dvb_frontend *fe)
- static int stb6100_init(struct dvb_frontend *fe)
- {
- 	struct stb6100_state *state = fe->tuner_priv;
--	struct tuner_state *status = &state->status;
- 	int refclk = 27000000; /* Hz */
+     <para>The buffers created by this ioctl will have as minimum size the size
+-defined by the <structfield>format.pix.sizeimage</structfield> field. If the
++defined by the <structfield>format.pix.sizeimage</structfield> field (or the
++corresponding fields for other format types). Usually if the
+ <structfield>format.pix.sizeimage</structfield> field is less than the minimum
+-required for the given format, then <structfield>sizeimage</structfield> will be
+-increased by the driver to that minimum to allocate the buffers. If it is
+-larger, then the value will be used as-is. The same applies to the
+-<structfield>sizeimage</structfield> field of the
+-<structname>v4l2_plane_pix_format</structname> structure in the case of
+-multiplanar formats.</para>
++required for the given format, then an error will be returned since drivers will
++typically not allow this. If it is larger, then the value will be used as-is.
++In other words, the driver may reject the requested size, but if it is accepted
++the driver will use it unchanged.</para>
  
- 	/*
- 	 * iqsense = 1
- 	 * tunerstep = 125000
- 	 */
--	status->bandwidth	= 36000;	/* kHz	*/
--	state->bandwidth	= status->bandwidth * 1000;	/* Hz	*/
-+	state->bandwidth	= 36000000;	/* Hz	*/
- 	state->reference	= refclk / 1000;	/* kHz	*/
+     <para>When the ioctl is called with a pointer to this structure the driver
+ will attempt to allocate up to the requested number of buffers and store the
+ actual number allocated and the starting index in the
+ <structfield>count</structfield> and the <structfield>index</structfield> fields
+ respectively. On return <structfield>count</structfield> can be smaller than
+-the number requested. The driver may also increase buffer sizes if required,
+-however, it will not update <structfield>sizeimage</structfield> field values.
+-The user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
+-information.</para>
++the number requested.</para>
  
- 	/* Set default bandwidth. Modified, PN 13-May-10	*/
-diff --git a/drivers/media/dvb-frontends/stb6100.h b/drivers/media/dvb-frontends/stb6100.h
-index 218c8188865d..f7b468b6dc26 100644
---- a/drivers/media/dvb-frontends/stb6100.h
-+++ b/drivers/media/dvb-frontends/stb6100.h
-@@ -86,7 +86,6 @@ struct stb6100_state {
- 	const struct stb6100_config	*config;
- 	struct dvb_tuner_ops		ops;
- 	struct dvb_frontend		*frontend;
--	struct tuner_state		status;
- 
- 	u32 frequency;
- 	u32 srate;
+     <table pgwide="1" frame="none" id="v4l2-create-buffers">
+       <title>struct <structname>v4l2_create_buffers</structname></title>
 -- 
-2.5.0
+2.6.2
 
