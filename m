@@ -1,472 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50229 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920AbbKQJQU (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54244 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1163044AbbKTQuJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 04:16:20 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Acked-by: Arnd Bergmann" <arnd@arndb.de>,
-	Shawn Guo <shawnguo@kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Russell King <linux@arm.linux.org.uk>,
-	Daniel Mack <daniel@zonque.org>,
-	Haojian Zhuang <haojian.zhuang@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Daniel Ribeiro <drwyrm@gmail.com>,
-	Stefan Schmidt <stefan@openezx.org>,
-	Harald Welte <laforge@openezx.org>,
-	Tomas Cech <sleep_walker@suse.com>,
-	Sergey Lapin <slapin@ossfans.org>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Mark Brown <broonie@kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Timur Tabi <timur@tabi.org>,
-	Nicolin Chen <nicoleotsuka@gmail.com>,
-	Xiubo Li <Xiubo.Lee@gmail.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	David Gibson <david@gibson.dropbear.id.au>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	linux-arm-kernel@lists.infradead.org,
-	openezx-devel@lists.openezx.org, dmaengine@vger.kernel.org,
-	linux-mmc@vger.kernel.org, linux-spi@vger.kernel.org,
-	linux-serial@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	alsa-devel@alsa-project.org, linuxppc-dev@lists.ozlabs.org
-Subject: [PATCH] [media] move media platform data to linux/platform_data/media
-Date: Tue, 17 Nov 2015 07:15:59 -0200
-Message-Id: <4d99e49726942dc4d6a6ee1debf6665b2b47908b.1447751746.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Fri, 20 Nov 2015 11:50:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
+	inki.dae@samsung.com, Geunyoung Kim <nenggun.kim@samsung.com>,
+	Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv10 07/15] media: videobuf2: Refactor vb2_fileio_data and vb2_thread
+Date: Fri, 20 Nov 2015 17:34:10 +0100
+Message-Id: <1448037258-36305-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448037258-36305-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that media has its own subdirectory inside platform_data,
-let's move the headers that are already there to such subdir.
+From: Junghak Sung <jh1009.sung@samsung.com>
 
-After moving those files, the references were adjusted using this
-script:
+Replace v4l2-stuffs with common things in struct vb2_fileio_data and
+vb2_thread().
 
-    MAIN_DIR="linux/platform_data/"
-    PREV_DIR="linux/platform_data/"
-    DIRS="media/"
-
-    echo "Checking affected files" >&2
-    for i in $DIRS; do
-	for j in $(find include/$MAIN_DIR/$i -type f -name '*.h'); do
-		 n=`basename $j`
-		git grep -l $n
-	done
-    done|sort|uniq >files && (
-	echo "Handling files..." >&2;
-	echo "for i in \$(cat files|grep -v Documentation); do cat \$i | \\";
-	(
-		cd include/$MAIN_DIR;
-		for j in $DIRS; do
-			for i in $(ls $j); do
-				echo "perl -ne 's,(include [\\\"\\<])$PREV_DIR($i)([\\\"\\>]),\1$MAIN_DIR$j\2\3,; print \$_' |\\";
-			done;
-		done;
-		echo "cat > a && mv a \$i; done";
-	);
-	echo "Handling documentation..." >&2;
-	echo "for i in MAINTAINERS \$(cat files); do cat \$i | \\";
-	(
-		cd include/$MAIN_DIR;
-		for j in $DIRS; do
-			for i in $(ls $j); do
-				echo "  perl -ne 's,include/$PREV_DIR($i)\b,include/$MAIN_DIR$j\1,; print \$_' |\\";
-			done;
-		done;
-		echo "cat > a && mv a \$i; done"
-	);
-    ) >script && . ./script
-
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- arch/arm/mach-imx/devices/devices-common.h            | 4 ++--
- arch/arm/mach-pxa/devices.c                           | 2 +-
- arch/arm/mach-pxa/em-x270.c                           | 2 +-
- arch/arm/mach-pxa/ezx.c                               | 2 +-
- arch/arm/mach-pxa/mioa701.c                           | 2 +-
- arch/arm/mach-pxa/palmtreo.c                          | 2 +-
- arch/arm/mach-pxa/palmz72.c                           | 2 +-
- arch/arm/mach-pxa/pcm990-baseboard.c                  | 2 +-
- drivers/dma/imx-dma.c                                 | 2 +-
- drivers/dma/imx-sdma.c                                | 2 +-
- drivers/media/platform/coda/coda-common.c             | 2 +-
- drivers/media/platform/soc_camera/mx2_camera.c        | 2 +-
- drivers/media/platform/soc_camera/mx3_camera.c        | 4 ++--
- drivers/media/platform/soc_camera/pxa_camera.c        | 2 +-
- drivers/media/platform/soc_camera/rcar_vin.c          | 2 +-
- drivers/mmc/host/mxcmmc.c                             | 2 +-
- drivers/spi/spi-imx.c                                 | 2 +-
- drivers/tty/serial/imx.c                              | 2 +-
- drivers/video/fbdev/mx3fb.c                           | 2 +-
- include/linux/platform_data/{ => media}/camera-mx2.h  | 0
- include/linux/platform_data/{ => media}/camera-mx3.h  | 0
- include/linux/platform_data/{ => media}/camera-pxa.h  | 0
- include/linux/platform_data/{ => media}/camera-rcar.h | 0
- include/linux/platform_data/{ => media}/coda.h        | 0
- include/linux/platform_data/{ => media}/dma-imx.h     | 0
- sound/soc/fsl/fsl_asrc.c                              | 2 +-
- sound/soc/fsl/fsl_asrc_dma.c                          | 2 +-
- sound/soc/fsl/imx-pcm.h                               | 2 +-
- sound/soc/fsl/imx-ssi.h                               | 2 +-
- 29 files changed, 25 insertions(+), 25 deletions(-)
- rename include/linux/platform_data/{ => media}/camera-mx2.h (100%)
- rename include/linux/platform_data/{ => media}/camera-mx3.h (100%)
- rename include/linux/platform_data/{ => media}/camera-pxa.h (100%)
- rename include/linux/platform_data/{ => media}/camera-rcar.h (100%)
- rename include/linux/platform_data/{ => media}/coda.h (100%)
- rename include/linux/platform_data/{ => media}/dma-imx.h (100%)
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 104 +++++++++++++++----------------
+ 1 file changed, 49 insertions(+), 55 deletions(-)
 
-diff --git a/arch/arm/mach-imx/devices/devices-common.h b/arch/arm/mach-imx/devices/devices-common.h
-index 67f7fb13050d..09cebd8cef2b 100644
---- a/arch/arm/mach-imx/devices/devices-common.h
-+++ b/arch/arm/mach-imx/devices/devices-common.h
-@@ -177,7 +177,7 @@ struct platform_device *__init imx_add_imx_uart_1irq(
- 		const struct imxuart_platform_data *pdata);
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 91728c1..9dff50f 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -959,9 +959,10 @@ struct vb2_fileio_buf {
+  * or write function.
+  */
+ struct vb2_fileio_data {
+-	struct v4l2_requestbuffers req;
+-	struct v4l2_plane p;
+-	struct v4l2_buffer b;
++	unsigned int count;
++	unsigned int type;
++	unsigned int memory;
++	struct vb2_buffer *b;
+ 	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
+ 	unsigned int cur_index;
+ 	unsigned int initial_index;
+@@ -1014,6 +1015,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	if (fileio == NULL)
+ 		return -ENOMEM;
  
- #include <linux/platform_data/video-mx3fb.h>
--#include <linux/platform_data/camera-mx3.h>
-+#include <linux/platform_data/media/camera-mx3.h>
- struct imx_ipu_core_data {
- 	resource_size_t iobase;
- 	resource_size_t synirq;
-@@ -192,7 +192,7 @@ struct platform_device *__init imx_add_mx3_sdc_fb(
- 		const struct imx_ipu_core_data *data,
- 		struct mx3fb_platform_data *pdata);
++	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
++	if (fileio->b == NULL)
++		return -ENOMEM;
++
+ 	fileio->read_once = q->fileio_read_once;
+ 	fileio->write_immediately = q->fileio_write_immediately;
  
--#include <linux/platform_data/camera-mx2.h>
-+#include <linux/platform_data/media/camera-mx2.h>
- struct imx_mx2_camera_data {
- 	const char *devid;
- 	resource_size_t iobasecsi;
-diff --git a/arch/arm/mach-pxa/devices.c b/arch/arm/mach-pxa/devices.c
-index 2a6e0ae2b920..d1211a40f400 100644
---- a/arch/arm/mach-pxa/devices.c
-+++ b/arch/arm/mach-pxa/devices.c
-@@ -14,7 +14,7 @@
- #include <mach/irqs.h>
- #include <linux/platform_data/usb-ohci-pxa27x.h>
- #include <linux/platform_data/keypad-pxa27x.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
- #include <mach/audio.h>
- #include <mach/hardware.h>
- #include <linux/platform_data/mmp_dma.h>
-diff --git a/arch/arm/mach-pxa/em-x270.c b/arch/arm/mach-pxa/em-x270.c
-index 9d7072b04045..8b1f89e096c6 100644
---- a/arch/arm/mach-pxa/em-x270.c
-+++ b/arch/arm/mach-pxa/em-x270.c
-@@ -46,7 +46,7 @@
- #include <linux/platform_data/usb-ohci-pxa27x.h>
- #include <linux/platform_data/mmc-pxamci.h>
- #include <linux/platform_data/keypad-pxa27x.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
+@@ -1021,11 +1026,11 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 * Request buffers and use MMAP type to force driver
+ 	 * to allocate buffers by itself.
+ 	 */
+-	fileio->req.count = count;
+-	fileio->req.memory = VB2_MEMORY_MMAP;
+-	fileio->req.type = q->type;
++	fileio->count = count;
++	fileio->memory = VB2_MEMORY_MMAP;
++	fileio->type = q->type;
+ 	q->fileio = fileio;
+-	ret = vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
++	ret = vb2_core_reqbufs(q, fileio->memory, &fileio->count);
+ 	if (ret)
+ 		goto err_kfree;
  
- #include "generic.h"
- #include "devices.h"
-diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
-index 9a9c15bfcd34..12af6e2d597c 100644
---- a/arch/arm/mach-pxa/ezx.c
-+++ b/arch/arm/mach-pxa/ezx.c
-@@ -34,7 +34,7 @@
- #include <linux/platform_data/usb-ohci-pxa27x.h>
- #include <mach/hardware.h>
- #include <linux/platform_data/keypad-pxa27x.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
+@@ -1054,24 +1059,17 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 * Read mode requires pre queuing of all buffers.
+ 	 */
+ 	if (read) {
+-		bool is_multiplanar = q->is_multiplanar;
+-
+ 		/*
+ 		 * Queue all buffers.
+ 		 */
+ 		for (i = 0; i < q->num_buffers; i++) {
+-			struct v4l2_buffer *b = &fileio->b;
++			struct vb2_buffer *b = fileio->b;
  
- #include "devices.h"
- #include "generic.h"
-diff --git a/arch/arm/mach-pxa/mioa701.c b/arch/arm/mach-pxa/mioa701.c
-index 3b52b1aa0659..ccfd2b63c6a4 100644
---- a/arch/arm/mach-pxa/mioa701.c
-+++ b/arch/arm/mach-pxa/mioa701.c
-@@ -54,7 +54,7 @@
- #include <linux/platform_data/mmc-pxamci.h>
- #include <mach/udc.h>
- #include <mach/pxa27x-udc.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
- #include <mach/audio.h>
- #include <mach/smemc.h>
- #include <media/soc_camera.h>
-diff --git a/arch/arm/mach-pxa/palmtreo.c b/arch/arm/mach-pxa/palmtreo.c
-index d8b937c870de..2dc56062fb7e 100644
---- a/arch/arm/mach-pxa/palmtreo.c
-+++ b/arch/arm/mach-pxa/palmtreo.c
-@@ -43,7 +43,7 @@
- #include <linux/platform_data/usb-ohci-pxa27x.h>
- #include <mach/pxa2xx-regs.h>
- #include <linux/platform_data/asoc-palm27x.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
- #include <mach/palm27x.h>
+-			memset(b, 0, sizeof(*b));
++			memset(b, 0, q->buf_struct_size);
+ 			b->type = q->type;
+-			if (is_multiplanar) {
+-				memset(&fileio->p, 0, sizeof(fileio->p));
+-				b->m.planes = &fileio->p;
+-				b->length = 1;
+-			}
+ 			b->memory = q->memory;
+ 			b->index = i;
+-			ret = vb2_internal_qbuf(q, b);
++			ret = vb2_core_qbuf(q, i, b);
+ 			if (ret)
+ 				goto err_reqbufs;
+ 			fileio->bufs[i].queued = 1;
+@@ -1094,8 +1092,8 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	return ret;
  
- #include <sound/pxa2xx-lib.h>
-diff --git a/arch/arm/mach-pxa/palmz72.c b/arch/arm/mach-pxa/palmz72.c
-index 1a35ddf218da..e3df17a7e8d4 100644
---- a/arch/arm/mach-pxa/palmz72.c
-+++ b/arch/arm/mach-pxa/palmz72.c
-@@ -49,7 +49,7 @@
- #include <mach/palm27x.h>
+ err_reqbufs:
+-	fileio->req.count = 0;
+-	vb2_core_reqbufs(q, fileio->req.memory, &fileio->req.count);
++	fileio->count = 0;
++	vb2_core_reqbufs(q, fileio->memory, &fileio->count);
  
- #include <mach/pm.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
+ err_kfree:
+ 	q->fileio = NULL;
+@@ -1114,8 +1112,9 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q)
+ 	if (fileio) {
+ 		vb2_core_streamoff(q, q->type);
+ 		q->fileio = NULL;
+-		fileio->req.count = 0;
+-		vb2_reqbufs(q, &fileio->req);
++		fileio->count = 0;
++		vb2_core_reqbufs(q, fileio->memory, &fileio->count);
++		kfree(fileio->b);
+ 		kfree(fileio);
+ 		dprintk(3, "file io emulator closed\n");
+ 	}
+@@ -1168,24 +1167,21 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 */
+ 	index = fileio->cur_index;
+ 	if (index >= q->num_buffers) {
++		struct vb2_buffer *b = fileio->b;
++
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
+-		if (is_multiplanar) {
+-			memset(&fileio->p, 0, sizeof(fileio->p));
+-			fileio->b.m.planes = &fileio->p;
+-			fileio->b.length = 1;
+-		}
+-		ret = vb2_internal_dqbuf(q, &fileio->b, nonblock);
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
++		ret = vb2_core_dqbuf(q, b, nonblock);
+ 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+ 		fileio->dq_count += 1;
  
- #include <media/soc_camera.h>
+-		fileio->cur_index = index = fileio->b.index;
++		fileio->cur_index = index = b->index;
+ 		buf = &fileio->bufs[index];
  
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index e3b58cb84c06..8459239a093c 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -30,7 +30,7 @@
- #include <media/i2c/mt9v022.h>
- #include <media/soc_camera.h>
+ 		/*
+@@ -1197,8 +1193,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 				 : vb2_plane_size(q->bufs[index], 0);
+ 		/* Compensate for data_offset on read in the multiplanar case. */
+ 		if (is_multiplanar && read &&
+-		    fileio->b.m.planes[0].data_offset < buf->size) {
+-			buf->pos = fileio->b.m.planes[0].data_offset;
++				b->planes[0].data_offset < buf->size) {
++			buf->pos = b->planes[0].data_offset;
+ 			buf->size -= buf->pos;
+ 		}
+ 	} else {
+@@ -1237,6 +1233,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 	 * Queue next buffer if required.
+ 	 */
+ 	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
++		struct vb2_buffer *b = fileio->b;
++
+ 		/*
+ 		 * Check if this is the last buffer to read.
+ 		 */
+@@ -1248,20 +1246,15 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
+ 		/*
+ 		 * Call vb2_qbuf and give buffer to the driver.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
+-		fileio->b.index = index;
+-		fileio->b.bytesused = buf->pos;
+-		if (is_multiplanar) {
+-			memset(&fileio->p, 0, sizeof(fileio->p));
+-			fileio->p.bytesused = buf->pos;
+-			fileio->b.m.planes = &fileio->p;
+-			fileio->b.length = 1;
+-		}
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
++		b->index = index;
++		b->planes[0].bytesused = buf->pos;
++
+ 		if (copy_timestamp)
+-			v4l2_get_timestamp(&fileio->b.timestamp);
+-		ret = vb2_internal_qbuf(q, &fileio->b);
++			b->timestamp = ktime_get_ns();
++		ret = vb2_core_qbuf(q, index, b);
+ 		dprintk(5, "vb2_dbuf result: %d\n", ret);
+ 		if (ret)
+ 			return ret;
+@@ -1338,20 +1331,21 @@ static int vb2_thread(void *data)
  
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
- #include <asm/mach/map.h>
- #include <mach/pxa27x.h>
- #include <mach/audio.h>
-diff --git a/drivers/dma/imx-dma.c b/drivers/dma/imx-dma.c
-index 48d85f8b95fe..8d1856369af4 100644
---- a/drivers/dma/imx-dma.c
-+++ b/drivers/dma/imx-dma.c
-@@ -31,7 +31,7 @@
- #include <linux/of_dma.h>
+ 	for (;;) {
+ 		struct vb2_buffer *vb;
++		struct vb2_buffer *b = fileio->b;
  
- #include <asm/irq.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
+ 		/*
+ 		 * Call vb2_dqbuf to get buffer back.
+ 		 */
+-		memset(&fileio->b, 0, sizeof(fileio->b));
+-		fileio->b.type = q->type;
+-		fileio->b.memory = q->memory;
++		memset(b, 0, q->buf_struct_size);
++		b->type = q->type;
++		b->memory = q->memory;
+ 		if (prequeue) {
+-			fileio->b.index = index++;
++			b->index = index++;
+ 			prequeue--;
+ 		} else {
+ 			call_void_qop(q, wait_finish, q);
+ 			if (!threadio->stop)
+-				ret = vb2_internal_dqbuf(q, &fileio->b, 0);
++				ret = vb2_core_dqbuf(q, b, 0);
+ 			call_void_qop(q, wait_prepare, q);
+ 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+ 		}
+@@ -1359,15 +1353,15 @@ static int vb2_thread(void *data)
+ 			break;
+ 		try_to_freeze();
  
- #include "dmaengine.h"
- #define IMXDMA_MAX_CHAN_DESCRIPTORS	16
-diff --git a/drivers/dma/imx-sdma.c b/drivers/dma/imx-sdma.c
-index 7058d58ba588..fde0537b55ed 100644
---- a/drivers/dma/imx-sdma.c
-+++ b/drivers/dma/imx-sdma.c
-@@ -41,7 +41,7 @@
- 
- #include <asm/irq.h>
- #include <linux/platform_data/dma-imx-sdma.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <linux/regmap.h>
- #include <linux/mfd/syscon.h>
- #include <linux/mfd/syscon/imx6q-iomuxc-gpr.h>
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 15516a6e3a39..f821627d015b 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -28,7 +28,7 @@
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- #include <linux/of.h>
--#include <linux/platform_data/coda.h>
-+#include <linux/platform_data/media/coda.h>
- #include <linux/reset.h>
- 
- #include <media/v4l2-ctrls.h>
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 55437ec3a3e2..276beaefca7c 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -39,7 +39,7 @@
- 
- #include <linux/videodev2.h>
- 
--#include <linux/platform_data/camera-mx2.h>
-+#include <linux/platform_data/media/camera-mx2.h>
- 
- #include <asm/dma.h>
- 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 3e67b9517a5a..a7d449dd84f9 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -25,8 +25,8 @@
- #include <media/soc_camera.h>
- #include <media/drv-intf/soc_mediabus.h>
- 
--#include <linux/platform_data/camera-mx3.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/camera-mx3.h>
-+#include <linux/platform_data/media/dma-imx.h>
- 
- #define MX3_CAM_DRV_NAME "mx3-camera"
- 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 34762a82ebd2..415f3bda60bf 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -39,7 +39,7 @@
- #include <linux/videodev2.h>
- 
- #include <mach/dma.h>
--#include <linux/platform_data/camera-pxa.h>
-+#include <linux/platform_data/media/camera-pxa.h>
- 
- #define PXA_CAM_VERSION "0.0.6"
- #define PXA_CAM_DRV_NAME "pxa27x-camera"
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 32aa64c3fc7e..defee08f073c 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -21,7 +21,7 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
--#include <linux/platform_data/camera-rcar.h>
-+#include <linux/platform_data/media/camera-rcar.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-diff --git a/drivers/mmc/host/mxcmmc.c b/drivers/mmc/host/mxcmmc.c
-index d110f9e98c4b..9b8aba09a56d 100644
---- a/drivers/mmc/host/mxcmmc.c
-+++ b/drivers/mmc/host/mxcmmc.c
-@@ -44,7 +44,7 @@
- #include <asm/irq.h>
- #include <linux/platform_data/mmc-mxcmmc.h>
- 
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- 
- #define DRIVER_NAME "mxc-mmc"
- #define MXCMCI_TIMEOUT_MS 10000
-diff --git a/drivers/spi/spi-imx.c b/drivers/spi/spi-imx.c
-index 0e5723ab47f0..0a84ab47c8c9 100644
---- a/drivers/spi/spi-imx.c
-+++ b/drivers/spi/spi-imx.c
-@@ -39,7 +39,7 @@
- #include <linux/of_device.h>
- #include <linux/of_gpio.h>
- 
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <linux/platform_data/spi-imx.h>
- 
- #define DRIVER_NAME "spi_imx"
-diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
-index 016e4be05cec..cfc622fd02ab 100644
---- a/drivers/tty/serial/imx.c
-+++ b/drivers/tty/serial/imx.c
-@@ -42,7 +42,7 @@
- 
- #include <asm/irq.h>
- #include <linux/platform_data/serial-imx.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- 
- /* Register definitions */
- #define URXD0 0x0  /* Receiver Register */
-diff --git a/drivers/video/fbdev/mx3fb.c b/drivers/video/fbdev/mx3fb.c
-index 7947634ee6b0..702b6ff23370 100644
---- a/drivers/video/fbdev/mx3fb.c
-+++ b/drivers/video/fbdev/mx3fb.c
-@@ -29,7 +29,7 @@
- #include <linux/dma/ipu-dma.h>
- #include <linux/backlight.h>
- 
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <linux/platform_data/video-mx3fb.h>
- 
- #include <asm/io.h>
-diff --git a/include/linux/platform_data/camera-mx2.h b/include/linux/platform_data/media/camera-mx2.h
-similarity index 100%
-rename from include/linux/platform_data/camera-mx2.h
-rename to include/linux/platform_data/media/camera-mx2.h
-diff --git a/include/linux/platform_data/camera-mx3.h b/include/linux/platform_data/media/camera-mx3.h
-similarity index 100%
-rename from include/linux/platform_data/camera-mx3.h
-rename to include/linux/platform_data/media/camera-mx3.h
-diff --git a/include/linux/platform_data/camera-pxa.h b/include/linux/platform_data/media/camera-pxa.h
-similarity index 100%
-rename from include/linux/platform_data/camera-pxa.h
-rename to include/linux/platform_data/media/camera-pxa.h
-diff --git a/include/linux/platform_data/camera-rcar.h b/include/linux/platform_data/media/camera-rcar.h
-similarity index 100%
-rename from include/linux/platform_data/camera-rcar.h
-rename to include/linux/platform_data/media/camera-rcar.h
-diff --git a/include/linux/platform_data/coda.h b/include/linux/platform_data/media/coda.h
-similarity index 100%
-rename from include/linux/platform_data/coda.h
-rename to include/linux/platform_data/media/coda.h
-diff --git a/include/linux/platform_data/dma-imx.h b/include/linux/platform_data/media/dma-imx.h
-similarity index 100%
-rename from include/linux/platform_data/dma-imx.h
-rename to include/linux/platform_data/media/dma-imx.h
-diff --git a/sound/soc/fsl/fsl_asrc.c b/sound/soc/fsl/fsl_asrc.c
-index 9f087d4f73ed..0ca75915ff12 100644
---- a/sound/soc/fsl/fsl_asrc.c
-+++ b/sound/soc/fsl/fsl_asrc.c
-@@ -15,7 +15,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/module.h>
- #include <linux/of_platform.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <linux/pm_runtime.h>
- #include <sound/dmaengine_pcm.h>
- #include <sound/pcm_params.h>
-diff --git a/sound/soc/fsl/fsl_asrc_dma.c b/sound/soc/fsl/fsl_asrc_dma.c
-index ffc000bc1f15..96e3fb0db535 100644
---- a/sound/soc/fsl/fsl_asrc_dma.c
-+++ b/sound/soc/fsl/fsl_asrc_dma.c
-@@ -12,7 +12,7 @@
- 
- #include <linux/dma-mapping.h>
- #include <linux/module.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <sound/dmaengine_pcm.h>
- #include <sound/pcm_params.h>
- 
-diff --git a/sound/soc/fsl/imx-pcm.h b/sound/soc/fsl/imx-pcm.h
-index 133c4470acad..367e1a768d42 100644
---- a/sound/soc/fsl/imx-pcm.h
-+++ b/sound/soc/fsl/imx-pcm.h
-@@ -13,7 +13,7 @@
- #ifndef _IMX_PCM_H
- #define _IMX_PCM_H
- 
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- 
- /*
-  * Do not change this as the FIQ handler depends on this size
-diff --git a/sound/soc/fsl/imx-ssi.h b/sound/soc/fsl/imx-ssi.h
-index be6562365b6a..7a7d55b54cf5 100644
---- a/sound/soc/fsl/imx-ssi.h
-+++ b/sound/soc/fsl/imx-ssi.h
-@@ -186,7 +186,7 @@
- #define DRV_NAME "imx-ssi"
- 
- #include <linux/dmaengine.h>
--#include <linux/platform_data/dma-imx.h>
-+#include <linux/platform_data/media/dma-imx.h>
- #include <sound/dmaengine_pcm.h>
- #include "imx-pcm.h"
- 
+-		vb = q->bufs[fileio->b.index];
+-		if (!(fileio->b.flags & V4L2_BUF_FLAG_ERROR))
++		vb = q->bufs[b->index];
++		if (b->state == VB2_BUF_STATE_DONE)
+ 			if (threadio->fnc(vb, threadio->priv))
+ 				break;
+ 		call_void_qop(q, wait_finish, q);
+ 		if (copy_timestamp)
+-			v4l2_get_timestamp(&fileio->b.timestamp);
++			b->timestamp = ktime_get_ns();
+ 		if (!threadio->stop)
+-			ret = vb2_internal_qbuf(q, &fileio->b);
++			ret = vb2_core_qbuf(q, b->index, b);
+ 		call_void_qop(q, wait_prepare, q);
+ 		if (ret || threadio->stop)
+ 			break;
 -- 
-2.5.0
+2.6.2
 
