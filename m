@@ -1,84 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:56153 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759684AbbKTNsc (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:1404 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751307AbbKVR43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 08:48:32 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Vinod Koul <vinod.koul@intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	linux-crypto@vger.kernel.org,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Fri, 20 Nov 2015 14:48:20 +0100
-Message-ID: <5158930.I1IPZa4jtW@wuerfel>
-In-Reply-To: <564F1773.9030006@ti.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <6118451.vaLZWOZEF5@wuerfel> <564F1773.9030006@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 22 Nov 2015 12:56:29 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] cx231xx: constify cx2341x_handler_ops structures
+Date: Sun, 22 Nov 2015 18:44:38 +0100
+Message-Id: <1448214278-5261-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 20 November 2015 14:52:03 Peter Ujfalusi wrote:
-> 
-> >> For legacy the filter function is pretty much needed to handle the differences
-> >> between the platforms as not all of them does the filtering in a same way. So
-> >> the first type of map would be feasible IMHO.
-> > 
-> > It certainly makes the transition to a map table much easier.
-> 
-> And the aim anyway is to convert everything to DT, right?
+The cx2341x_handler_ops structures are never modified, so declare them as
+const.
 
-We won't be able to do that. Some architectures (avr32 and sh for instance)
-use the dmaengine API but will likely never support DT. On ARM, at
-least sa1100 is in the same category, probably also ep93xx and portions
-of pxa, omap1 and davinci.
+Done with the help of Coccinelle.
 
-> > int dmam_register_platform_map(struct device *dev, dma_filter_fn filter, struct dma_chan_map *map)
-> > {
-> >       struct dma_map_list *list = kmalloc(sizeof(*list), GFP_KERNEL);
-> > 
-> >       if (!list)
-> >               return -ENOMEM;
-> > 
-> >       list->dev = dev;
-> >       list->filter = filter;
-> >       list->map = map;
-> > 
-> >       mutex_lock(&dma_map_mutex);
-> >       list_add(&dma_map_list, &list->node);
-> >       mutex_unlock(&dma_map_mutex);
-> > }
-> > 
-> > Now we can completely remove the dependency on the filter function definition
-> > from platform code and slave drivers.
-> 
-> Sounds feasible for OMAP and daVinci and for others as well. I think 
-> I would go with this if someone asks my opinion 
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Ok.
+---
+ drivers/media/pci/cx18/cx18-controls.c  |    2 +-
+ drivers/media/pci/cx18/cx18-controls.h  |    2 +-
+ drivers/media/pci/ivtv/ivtv-controls.c  |    2 +-
+ drivers/media/pci/ivtv/ivtv-controls.h  |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-> The core change to add the new API + the dma_map support should be pretty
-> straight forward. It can live alongside with the old API and we can phase out
-> the users of the old one.
-> The legacy support would need more time since we need to modify the arch codes
-> and the corresponding DMA drivers to get the map registered, but after that
-> the remaining drivers can be converted to use the new API.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index f59a6f1..66b1b00 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1901,7 +1901,7 @@ static int cx231xx_s_audio_sampling_freq(struct cx2341x_handler *cxhdl, u32 idx)
+ 	return 0;
+ }
+ 
+-static struct cx2341x_handler_ops cx231xx_ops = {
++static const struct cx2341x_handler_ops cx231xx_ops = {
+ 	/* needed for the video clock freq */
+ 	.s_audio_sampling_freq = cx231xx_s_audio_sampling_freq,
+ 	/* needed for setting up the video resolution */
+diff --git a/drivers/media/pci/cx18/cx18-controls.c b/drivers/media/pci/cx18/cx18-controls.c
+index 71227a1..adb5a8c 100644
+--- a/drivers/media/pci/cx18/cx18-controls.c
++++ b/drivers/media/pci/cx18/cx18-controls.c
+@@ -126,7 +126,7 @@ static int cx18_s_audio_mode(struct cx2341x_handler *cxhdl, u32 val)
+ 	return 0;
+ }
+ 
+-struct cx2341x_handler_ops cx18_cxhdl_ops = {
++const struct cx2341x_handler_ops cx18_cxhdl_ops = {
+ 	.s_audio_mode = cx18_s_audio_mode,
+ 	.s_audio_sampling_freq = cx18_s_audio_sampling_freq,
+ 	.s_video_encoding = cx18_s_video_encoding,
+diff --git a/drivers/media/pci/cx18/cx18-controls.h b/drivers/media/pci/cx18/cx18-controls.h
+index cb5dfc7..3267948 100644
+--- a/drivers/media/pci/cx18/cx18-controls.h
++++ b/drivers/media/pci/cx18/cx18-controls.h
+@@ -21,4 +21,4 @@
+  *  02111-1307  USA
+  */
+ 
+-extern struct cx2341x_handler_ops cx18_cxhdl_ops;
++extern const struct cx2341x_handler_ops cx18_cxhdl_ops;
+diff --git a/drivers/media/pci/ivtv/ivtv-controls.c b/drivers/media/pci/ivtv/ivtv-controls.c
+index 8a55ccb..9666ca0 100644
+--- a/drivers/media/pci/ivtv/ivtv-controls.c
++++ b/drivers/media/pci/ivtv/ivtv-controls.c
+@@ -96,7 +96,7 @@ static int ivtv_s_audio_mode(struct cx2341x_handler *cxhdl, u32 val)
+ 	return 0;
+ }
+ 
+-struct cx2341x_handler_ops ivtv_cxhdl_ops = {
++const struct cx2341x_handler_ops ivtv_cxhdl_ops = {
+ 	.s_audio_mode = ivtv_s_audio_mode,
+ 	.s_audio_sampling_freq = ivtv_s_audio_sampling_freq,
+ 	.s_video_encoding = ivtv_s_video_encoding,
+diff --git a/drivers/media/pci/ivtv/ivtv-controls.h b/drivers/media/pci/ivtv/ivtv-controls.h
+index 3999e63..ea397ba 100644
+--- a/drivers/media/pci/ivtv/ivtv-controls.h
++++ b/drivers/media/pci/ivtv/ivtv-controls.h
+@@ -21,7 +21,7 @@
+ #ifndef IVTV_CONTROLS_H
+ #define IVTV_CONTROLS_H
+ 
+-extern struct cx2341x_handler_ops ivtv_cxhdl_ops;
++extern const struct cx2341x_handler_ops ivtv_cxhdl_ops;
+ extern const struct v4l2_ctrl_ops ivtv_hdl_out_ops;
+ int ivtv_g_pts_frame(struct ivtv *itv, s64 *pts, s64 *frame);
+ 
 
-Right. It's not urgent and as long as we agree on the overall approach, we can
-always do the platform support first and wait for the following merge window
-before moving over the slave drivers.
-
-	Arnd
