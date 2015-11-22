@@ -1,191 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:33621 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143AbbKPTyK (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:46165
+	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751166AbbKVJYs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 14:54:10 -0500
-Received: by wmec201 with SMTP id c201so194737448wme.0
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 11:54:09 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 6/8] media: rc: treat lirc like any other protocol
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
-Message-ID: <564A3430.5020103@gmail.com>
-Date: Mon, 16 Nov 2015 20:53:20 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 22 Nov 2015 04:24:48 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] soc_camera: constify v4l2_subdev_sensor_ops structures
+Date: Sun, 22 Nov 2015 10:12:56 +0100
+Message-Id: <1448183576-10330-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Introduce a protocol bit for lirc and treat it like any other protocol.
-This allows to get rid of all the lirc-specific code.
+The v4l2_subdev_sensor_ops structures are never modified, so declare them
+as const.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Done with the help of Coccinelle.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/rc/ir-lirc-codec.c |  2 +-
- drivers/media/rc/rc-core-priv.h  | 16 ++--------------
- drivers/media/rc/rc-ir-raw.c     | 13 +------------
- drivers/media/rc/rc-main.c       | 37 ++++---------------------------------
- 4 files changed, 8 insertions(+), 60 deletions(-)
+ drivers/media/i2c/soc_camera/mt9m001.c |    2 +-
+ drivers/media/i2c/soc_camera/mt9t031.c |    2 +-
+ drivers/media/i2c/soc_camera/mt9v022.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index a32659f..40c66c8 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -421,7 +421,7 @@ static int ir_lirc_unregister(struct rc_dev *dev)
- }
- 
- static struct ir_raw_handler lirc_handler = {
--	.protocols	= 0,
-+	.protocols	= RC_BIT_LIRC,
- 	.decode		= ir_lirc_decode,
- 	.raw_register	= ir_lirc_register,
- 	.raw_unregister	= ir_lirc_unregister,
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 071651a..74f2f15 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -20,6 +20,8 @@
- #include <linux/spinlock.h>
- #include <media/rc-core.h>
- 
-+#define RC_BIT_LIRC	(1ULL << 63)
-+
- struct ir_raw_handler {
- 	struct list_head list;
- 
-@@ -160,18 +162,4 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_init(void);
- 
--/*
-- * Decoder initialization code
-- *
-- * Those load logic are called during ir-core init, and automatically
-- * loads the compiled decoders for their usage with IR raw events
-- */
--
--/* from ir-lirc-codec.c */
--#ifdef CONFIG_IR_LIRC_CODEC_MODULE
--#define load_lirc_codec()	request_module_nowait("ir-lirc-codec")
--#else
--static inline void load_lirc_codec(void) { }
--#endif
--
- #endif /* _RC_CORE_PRIV */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index c6433e8..dbd8db5 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -59,8 +59,7 @@ static int ir_raw_event_thread(void *data)
- 
- 		mutex_lock(&ir_raw_handler_lock);
- 		list_for_each_entry(handler, &ir_raw_handler_list, list)
--			if (raw->dev->enabled_protocols & handler->protocols ||
--			    !handler->protocols)
-+			if (raw->dev->enabled_protocols & handler->protocols)
- 				handler->decode(raw->dev, ev);
- 		raw->prev_ev = ev;
- 		mutex_unlock(&ir_raw_handler_lock);
-@@ -360,13 +359,3 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- 	mutex_unlock(&ir_raw_handler_lock);
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
--
--void ir_raw_init(void)
--{
--	/* Load the decoder modules */
--	load_lirc_codec();
--
--	/* If needed, we may later add some init code. In this case,
--	   it is needed to change the CONFIG_MODULE test at rc-core.h
--	 */
--}
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index f2d5c50..d1611f1 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -802,6 +802,7 @@ static const struct {
- 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
- 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
- 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
-+	{ RC_BIT_LIRC,		"lirc",		"ir-lirc-codec"		},
+diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/mt9m001.c
+index 2e14e52..69becc3 100644
+--- a/drivers/media/i2c/soc_camera/mt9m001.c
++++ b/drivers/media/i2c/soc_camera/mt9m001.c
+@@ -632,7 +632,7 @@ static struct v4l2_subdev_video_ops mt9m001_subdev_video_ops = {
+ 	.s_mbus_config	= mt9m001_s_mbus_config,
  };
  
- /**
-@@ -829,23 +830,6 @@ struct rc_filter_attribute {
- 		.mask = (_mask),					\
- 	}
+-static struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
++static const struct v4l2_subdev_sensor_ops mt9m001_subdev_sensor_ops = {
+ 	.g_skip_top_lines	= mt9m001_g_skip_top_lines,
+ };
  
--static bool lirc_is_present(void)
--{
--#if defined(CONFIG_LIRC_MODULE)
--	struct module *lirc;
--
--	mutex_lock(&module_mutex);
--	lirc = find_module("lirc_dev");
--	mutex_unlock(&module_mutex);
--
--	return lirc ? true : false;
--#elif defined(CONFIG_LIRC)
--	return true;
--#else
--	return false;
--#endif
--}
--
- /**
-  * show_protocols() - shows the current/wakeup IR protocol(s)
-  * @device:	the device descriptor
-@@ -900,9 +884,6 @@ static ssize_t show_protocols(struct device *device,
- 			allowed &= ~proto_names[i].type;
- 	}
+diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
+index 3b6eeed..5c8e3ff 100644
+--- a/drivers/media/i2c/soc_camera/mt9t031.c
++++ b/drivers/media/i2c/soc_camera/mt9t031.c
+@@ -728,7 +728,7 @@ static struct v4l2_subdev_video_ops mt9t031_subdev_video_ops = {
+ 	.s_mbus_config	= mt9t031_s_mbus_config,
+ };
  
--	if (dev->driver_type == RC_DRIVER_IR_RAW && lirc_is_present())
--		tmp += sprintf(tmp, "[lirc] ");
--
- 	if (tmp != buf)
- 		tmp--;
- 	*tmp = '\n';
-@@ -954,12 +935,8 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
- 		}
+-static struct v4l2_subdev_sensor_ops mt9t031_subdev_sensor_ops = {
++static const struct v4l2_subdev_sensor_ops mt9t031_subdev_sensor_ops = {
+ 	.g_skip_top_lines	= mt9t031_g_skip_top_lines,
+ };
  
- 		if (i == ARRAY_SIZE(proto_names)) {
--			if (!strcasecmp(tmp, "lirc"))
--				mask = 0;
--			else {
--				IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
--				return -EINVAL;
--			}
-+			IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
-+			return -EINVAL;
- 		}
+diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+index c2ba1fb..2721e58 100644
+--- a/drivers/media/i2c/soc_camera/mt9v022.c
++++ b/drivers/media/i2c/soc_camera/mt9v022.c
+@@ -860,7 +860,7 @@ static struct v4l2_subdev_video_ops mt9v022_subdev_video_ops = {
+ 	.s_mbus_config	= mt9v022_s_mbus_config,
+ };
  
- 		count++;
-@@ -1376,7 +1353,6 @@ EXPORT_SYMBOL_GPL(rc_free_device);
+-static struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
++static const struct v4l2_subdev_sensor_ops mt9v022_subdev_sensor_ops = {
+ 	.g_skip_top_lines	= mt9v022_g_skip_top_lines,
+ };
  
- int rc_register_device(struct rc_dev *dev)
- {
--	static bool raw_init = false; /* raw decoders loaded? */
- 	struct rc_map *rc_map;
- 	const char *path;
- 	int attr = 0;
-@@ -1471,12 +1447,7 @@ int rc_register_device(struct rc_dev *dev)
- 	kfree(path);
- 
- 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
--		/* Load raw decoders, if they aren't already */
--		if (!raw_init) {
--			IR_dprintk(1, "Loading raw decoders\n");
--			ir_raw_init();
--			raw_init = true;
--		}
-+		dev->allowed_protocols |= RC_BIT_LIRC;
- 		/* calls ir_register_device so unlock mutex here*/
- 		mutex_unlock(&dev->lock);
- 		rc = ir_raw_event_register(dev);
--- 
-2.6.2
 
