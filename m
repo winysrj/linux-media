@@ -1,76 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54978 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760042AbbKTQZO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39366 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126AbbKWWDy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 11:25:14 -0500
-Subject: Re: cobalt & dma
-To: Ran Shalit <ranshalit@gmail.com>
-References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
- <564ADD04.90700@xs4all.nl>
- <CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
- <564F346B.3090504@xs4all.nl>
- <CAJ2oMhLWHCNxDmwOnwBxPdjjqbcO6Q2khBrzohMET=LsQ_AQjg@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <564F4963.5050902@xs4all.nl>
-Date: Fri, 20 Nov 2015 17:25:07 +0100
+	Mon, 23 Nov 2015 17:03:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 49/55] [media] media-device: add support for MEDIA_IOC_G_TOPOLOGY ioctl
+Date: Tue, 24 Nov 2015 00:04:02 +0200
+Message-ID: <9023513.eAoiovcSfY@avalon>
+In-Reply-To: <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhLWHCNxDmwOnwBxPdjjqbcO6Q2khBrzohMET=LsQ_AQjg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/20/2015 05:14 PM, Ran Shalit wrote:
->>>
->>> 1. I tried to understand the code implementation of videobuf2 with
->>> regards to read():
->>> read() ->
->>>     vb2_read() ->
->>>           __vb2_perform_fileio()->
->>>              vb2_internal_dqbuf() &  copy_to_user()
->>>
->>> Where is the actual allocation of dma contiguous memory ? Is done with
->>> the userspace calloc() call in userspace (as shown in the v4l2 API
->>> example) ? As I understand the calloc/malloc are not guaranteed to be
->>> contiguous.
->>>      How do I know if the try to allocate contigious memory has failed or not ?
->>
->> The actual allocation happens in videobuf2-vmalloc/dma-contig/dma-sg depending
->> on the flavor of buffers you want (virtual memory, DMA into physically contiguous
->> memory or DMA into scatter-gather memory). The alloc operation is the one that
->> allocates the memory.
-> 
-> 
-> Thank you very much for the time.
-> 
-> Just to be sure I understand the general mechanism of DMA with regards
-> to the read() operation and in the case of using contiguous memory,
-> I try to draw the general sequence as I understand it from the code
-> and reading on this issue:
-> 
-> read() into user memory buffer ->
->           vb2_read() ->
->                 __vb2_perform_fileio() ->
->                         deaque buffer with:  vb2_internal_dqbuf() into
-> contiguous DMA memory (kernel)  ->
->                                copy_to_user() will actually copy from
-> the contigious dma memory(kernel)  into user buffer (userspace)
-> 
-> 1. Is the above sequence  correct ?
+Hi Mauro,
 
-Yes.
+Thank you for the patch.
 
-> 2. When talking about contiguous dma memory (or scatter-gatther) we
-> actually always refer to memory allocated in kernel, right ?
+Sakari and Hans have made several comments on this and the previous version of 
+the same patch and I generally agree with them. I'll thus review the next 
+version.
 
-Usually. With the V4L2_MEMORY_USERPTR stream I/O mode it is userspace
-that allocates the memory, but when using physically contiguous DMA
-this particular streaming mode is normally not supported.
+On Sunday 06 September 2015 09:03:09 Mauro Carvalho Chehab wrote:
+> Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
+> with the RFC for the MC next generation.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 5b2c9f7fcd45..96a476eeb16e 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -232,6 +232,156 @@ static long media_device_setup_link(struct
+> media_device *mdev, return ret;
+>  }
+> 
+> +static long __media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology *topo)
+> +{
+> +	struct media_entity *entity;
+> +	struct media_interface *intf;
+> +	struct media_pad *pad;
+> +	struct media_link *link;
+> +	struct media_v2_entity uentity;
+> +	struct media_v2_interface uintf;
+> +	struct media_v2_pad upad;
+> +	struct media_v2_link ulink;
+> +	int ret = 0, i;
+> +
+> +	topo->topology_version = mdev->topology_version;
+> +
+> +	/* Get entities and number of entities */
+> +	i = 0;
+> +	media_device_for_each_entity(entity, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->entities)
+> +			continue;
+> +
+> +		if (i > topo->num_entities) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		/* Copy fields to userspace struct if not error */
+> +		memset(&uentity, 0, sizeof(uentity));
+> +		uentity.id = entity->graph_obj.id;
+> +		strncpy(uentity.name, entity->name,
+> +			sizeof(uentity.name));
+> +
+> +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_entities = i;
+> +
+> +	/* Get interfaces and number of interfaces */
+> +	i = 0;
+> +	media_device_for_each_intf(intf, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->interfaces)
+> +			continue;
+> +
+> +		if (i > topo->num_interfaces) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&uintf, 0, sizeof(uintf));
+> +
+> +		/* Copy intf fields to userspace struct */
+> +		uintf.id = intf->graph_obj.id;
+> +		uintf.intf_type = intf->type;
+> +		uintf.flags = intf->flags;
+> +
+> +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
+> +			struct media_intf_devnode *devnode;
+> +
+> +			devnode = intf_to_devnode(intf);
+> +
+> +			uintf.devnode.major = devnode->major;
+> +			uintf.devnode.minor = devnode->minor;
+> +		}
+> +
+> +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_interfaces = i;
+> +
+> +	/* Get pads and number of pads */
+> +	i = 0;
+> +	media_device_for_each_pad(pad, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->pads)
+> +			continue;
+> +
+> +		if (i > topo->num_pads) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&upad, 0, sizeof(upad));
+> +
+> +		/* Copy pad fields to userspace struct */
+> +		upad.id = pad->graph_obj.id;
+> +		upad.entity_id = pad->entity->graph_obj.id;
+> +		upad.flags = pad->flags;
+> +
+> +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_pads = i;
+> +
+> +	/* Get links and number of links */
+> +	i = 0;
+> +	media_device_for_each_link(link, mdev) {
+> +		i++;
+> +
+> +		if (ret || !topo->links)
+> +			continue;
+> +
+> +		if (i > topo->num_links) {
+> +			ret = -ENOSPC;
+> +			continue;
+> +		}
+> +
+> +		memset(&ulink, 0, sizeof(ulink));
+> +
+> +		/* Copy link fields to userspace struct */
+> +		ulink.id = link->graph_obj.id;
+> +		ulink.source_id = link->gobj0->id;
+> +		ulink.sink_id = link->gobj1->id;
+> +		ulink.flags = link->flags;
+> +
+> +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
+> +			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
+> +
+> +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
+> +			ret = -EFAULT;
+> +	}
+> +	topo->num_links = i;
+> +
+> +	return ret;
+> +}
+> +
+> +static long media_device_get_topology(struct media_device *mdev,
+> +				      struct media_v2_topology __user *utopo)
+> +{
+> +	struct media_v2_topology ktopo;
+> +	int ret;
+> +
+> +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
+> +
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = __media_device_get_topology(mdev, &ktopo);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
+> +
+> +	return ret;
+> +}
+> +
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+>  {
+> @@ -264,6 +414,13 @@ static long media_device_ioctl(struct file *filp,
+> unsigned int cmd, mutex_unlock(&dev->graph_mutex);
+>  		break;
+> 
+> +	case MEDIA_IOC_G_TOPOLOGY:
+> +		mutex_lock(&dev->graph_mutex);
+> +		ret = media_device_get_topology(dev,
+> +				(struct media_v2_topology __user *)arg);
+> +		mutex_unlock(&dev->graph_mutex);
+> +		break;
+> +
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> @@ -312,6 +469,7 @@ static long media_device_compat_ioctl(struct file *filp,
+> unsigned int cmd, case MEDIA_IOC_DEVICE_INFO:
+>  	case MEDIA_IOC_ENUM_ENTITIES:
+>  	case MEDIA_IOC_SETUP_LINK:
+> +	case MEDIA_IOC_G_TOPOLOGY:
+>  		return media_device_ioctl(filp, cmd, arg);
+> 
+>  	case MEDIA_IOC_ENUM_LINKS32:
 
-With V4L2_MEMORY_MMAP it is always the kernel that allocates the memory.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
