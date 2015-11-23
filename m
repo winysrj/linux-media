@@ -1,111 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40992 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750773AbbKKHW5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39316 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753448AbbKWVWs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 02:22:57 -0500
-Subject: Re: PCIe capture driver
-To: Ran Shalit <ranshalit@gmail.com>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
- <5625DDCA.2040203@xs4all.nl>
- <CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
- <562B5178.5040303@xs4all.nl>
- <CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
- <562D5DE2.5020406@xs4all.nl>
- <CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
- <CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
- <562EA780.7070706@xs4all.nl>
- <CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
- <562FFF9D.3070502@xs4all.nl>
- <CAJ2oMh+suc1nkqR7+oMFugcAnhChgBXVF288Z2VkNrWzm73czQ@mail.gmail.com>
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5642ECCB.3000408@xs4all.nl>
-Date: Wed, 11 Nov 2015 08:22:51 +0100
+	Mon, 23 Nov 2015 16:22:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 52/55] [media] media-device: remove interfaces and interface links
+Date: Mon, 23 Nov 2015 23:22:56 +0200
+Message-ID: <2308569.EQQ6uCyAre@avalon>
+In-Reply-To: <fcb7fe56b016191b35dfc9fbc007ba1a1f35e837.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <fcb7fe56b016191b35dfc9fbc007ba1a1f35e837.1441540862.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+suc1nkqR7+oMFugcAnhChgBXVF288Z2VkNrWzm73czQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2015 07:04 AM, Ran Shalit wrote:
-> On Wed, Oct 28, 2015 at 12:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->>
->> On 10/27/2015 22:56, Ran Shalit wrote:
->>> On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>
->>>>
->>>> On 10/27/2015 02:04, Ran Shalit wrote:
->>>>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
->>>>>>> No, use V4L2. What you do with the frame after it has been captured
->>>>>>> into memory has no relevance to the API you use to capture into memory.
->>>>>>
->>>>>> Ran, I've built many open and closed source Linux drivers over the
->>>>>> last 10 years - so I can speak with authority on this.
->>>>>>
->>>>>> Hans is absolutely correct, don't make the mistake of going
->>>>>> proprietary with your API. Take advantage of the massive amount of
->>>>>> video related frameworks the kernel has to offer. It will get you to
->>>>>> market faster, assuming your goal is to build a driver that is open
->>>>>> source. If your licensing prohibits an open source driver solution,
->>>>>> you'll have no choice but to build your own proprietary API.
->>>>>>
->>>>>> --
->>>>>> Steven Toth - Kernel Labs
->>>>>> http://www.kernellabs.com
->>>>>
->>>>> Hi,
->>>>>
->>>>> Thank you very much for these valuable comments.
->>>>> If I may ask one more on this issue:
->>>>> Is there an example in linux tree, for a pci device which is used both
->>>>> as a capture and a display device ? (I've made a search but did not
->>>>> find any)
->>>>> The PCIe device we are using will be both a capture device and output
->>>>> video device (for display).
->>>>
->>>> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
->>>>
->>>> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
->>>>
->>>> Regards,
->>>>
->>>>         Hans
->>>
->>> Hi Hans,
->>>
->>> Thank you very much for the reference.
->>> I see that the cobalt card is not for sale ?  If it was it could help
->>> us in our development.
->>
->> No, sorry. It's a Cisco-internal card only.
->>
->>> In our case it is more custom design which is based on FPGA:
->>>
->>> Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
->>>
->>> As I understand there is no product chip which can do the above
->>> (3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
->>> the board design.
->>
->> The ivtv driver (drivers/media/pci/ivtv) has SD input and output, so that can be a
->> useful reference for that as well. The Hauppauge PVR-350 board is no longer
->> sold, but you might be able to pick one up on ebay.
->>
-> 
-> 
-> Hello Hans,
-> 
-> Is it possible to use the PVR-350 which is a PCI device connected to
-> PCI express in mothrboard ? (I think it will required an adapter )
-> Does the ivtv driver function correctly if an adapter to PCIe is connected ?
+Hi Mauro,
 
-Yes, that should work. You need an adapter like this one:
+Thank you for the patch.
 
-http://www.dx.com/p/pci-express-to-pci-adapter-card-26080#.VkLso3yrRwE
+On Sunday 06 September 2015 09:03:12 Mauro Carvalho Chehab wrote:
+> Just like what's done with entities, when the media controller is
+> unregistered, release any interface and interface links that
+> might still be there.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7c37aeab05bb..0238885fcc74 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -574,6 +574,22 @@ void media_device_unregister(struct media_device *mdev)
+> {
+>  	struct media_entity *entity;
+>  	struct media_entity *next;
+> +	struct media_link *link, *tmp_link;
+> +	struct media_interface *intf, *tmp_intf;
+> +
+> +	/* Remove interface links from the media device */
+> +	list_for_each_entry_safe(link, tmp_link, &mdev->links,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&link->graph_obj);
+> +		kfree(link);
+> +	}
+> +
+> +	/* Remove all interfaces from the media device */
+> +	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+> +				 graph_obj.list) {
+> +		media_gobj_remove(&intf->graph_obj);
+> +		kfree(intf);
+> +	}
+> 
+>  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+>  		media_device_unregister_entity(entity);
+> @@ -651,7 +667,6 @@ void media_device_unregister_entity(struct media_entity
+> *entity) /* Remove all data links that belong to this entity */
+>  	list_for_each_entry_safe(link, tmp, &entity->links, list) {
+>  		media_gobj_remove(&link->graph_obj);
+> -		list_del(&link->list);
+>  		kfree(link);
 
+The link has already been freed in media_device_unregister(). You have access-
+after-free and double-free issues here.
+
+>  	}
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index a37ccd2edfd5..cd4d767644df 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -206,6 +206,10 @@ void media_gobj_remove(struct media_gobj *gobj)
+> 
+>  	/* Remove the object from mdev list */
+>  	list_del(&gobj->list);
+> +
+> +	/* Links have their own list - we need to drop them there too */
+> +	if (media_type(gobj) == MEDIA_GRAPH_LINK)
+> +		list_del(&gobj_to_link(gobj)->list);
+
+Please... That's a very bad layering violation. Let's not do that. Generic 
+graph object code should not contain any type-specific code. You can create a 
+media_link_remove() function for links that will remove the link from the 
+entity links list and call media_gobj_remove().
+
+>  }
+> 
+>  /**
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index ca4a4f23362f..fb5f0e21f137 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -153,7 +153,7 @@ struct media_entity {
+>  };
+> 
+>  /**
+> - * struct media_intf_devnode - Define a Kernel API interface
+> + * struct media_interface - Define a Kernel API interface
+
+This belongs to a different patch ;-)
+
+>   *
+>   * @graph_obj:		embedded graph object
+>   * @list:		Linked list used to find other interfaces that belong
+> @@ -163,6 +163,11 @@ struct media_entity {
+>   *			uapi/media/media.h header, e. g.
+>   *			MEDIA_INTF_T_*
+>   * @flags:		Interface flags as defined at uapi/media/media.h
+> + *
+> + * NOTE: As media_device_unregister() will free the address of the
+> + *	 media_interface, this structure should be embedded as the first
+> + *	 element of the derived functions, in order for the address to be
+> + *	 the same.
+
+s/NOTE/DIRTY HACK/
+
+Or, much better, let's fix it :-) If you want to be able to destroy graph 
+object without needing to know their type, you can add a destroy operation to 
+the graph objects and have per-type implementations. There's probably other 
+options as well.
+
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> @@ -179,11 +184,11 @@ struct media_interface {
+>   * @minor:	Minor number of a device node
+>   */
+>  struct media_intf_devnode {
+> -	struct media_interface		intf;
+> +	struct media_interface	intf; /* must be first field in struct */
+> 
+>  	/* Should match the fields at media_v2_intf_devnode */
+> -	u32				major;
+> -	u32				minor;
+> +	u32			major;
+> +	u32			minor;
+
+This doesn't belong to this patch either.
+
+>  };
+> 
+>  static inline u32 media_entity_id(struct media_entity *entity)
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
