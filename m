@@ -1,82 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45190 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbbKIUQf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 15:16:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 04/19] v4l: omap3isp: fix handling platform_get_irq result
-Date: Mon, 09 Nov 2015 22:16:47 +0200
-Message-ID: <5373820.hJbPzosF9i@avalon>
-In-Reply-To: <1443103227-25612-5-git-send-email-a.hajda@samsung.com>
-References: <1443103227-25612-1-git-send-email-a.hajda@samsung.com> <1443103227-25612-5-git-send-email-a.hajda@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45994 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752738AbbKWOHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2015 09:07:18 -0500
+Subject: Re: DVBSky T330 DVB-C regression Linux 4.1.12 to 4.3
+To: Stephan Eisvogel <eisvogel@seitics.de>,
+	Olli Salonen <olli.salonen@iki.fi>
+References: <CAAZRmGwzsqFYtSNDCCCwFR4vCRgtz9CrixsZyc0xJzb=S6OEsw@mail.gmail.com>
+ <564D0B81.5040604@seitics.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <56531D93.3070007@iki.fi>
+Date: Mon, 23 Nov 2015 16:07:15 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <564D0B81.5040604@seitics.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Moikka!
 
-Thank you for the patch.
+On 11/19/2015 01:36 AM, Stephan Eisvogel wrote:
+> Hey Olli, Antti,
 
-On Thursday 24 September 2015 16:00:12 Andrzej Hajda wrote:
-> The function can return negative value.
-> 
-> The problem has been detected using proposed semantic patch
-> scripts/coccinelle/tests/assign_signed_to_unsigned.cocci [1].
-> 
-> [1]: http://permalink.gmane.org/gmane.linux.kernel/2046107
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
-> Hi,
-> 
-> To avoid problems with too many mail recipients I have sent whole
-> patchset only to LKML. Anyway patches have no dependencies.
-> 
-> Regards
-> Andrzej
-> ---
->  drivers/media/platform/omap3isp/isp.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 56e683b..df9d2c2 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2442,12 +2442,13 @@ static int isp_probe(struct platform_device *pdev)
->  	}
-> 
->  	/* Interrupt */
-> -	isp->irq_num = platform_get_irq(pdev, 0);
-> -	if (isp->irq_num <= 0) {
-> +	ret = platform_get_irq(pdev, 0);
-> +	if (ret <= 0) {
+> culprit is:
+>
+> http://git.linuxtv.org/cgit.cgi/linux.git/commit/drivers/media/dvb-frontends/si2168.c?id=7adf99d20ce0e96a70755f452e3a63824b14060f
+>
+> I removed it like this:
+>          /* error bit set? */
+> /*
+>          if ((cmd->args[0] >> 6) & 0x01) {
+>              ret = -EREMOTEIO;
+>              goto err;
+>          }
+> */
+>
+> With this change backed out I zapped through about a 100 channels, and
+> my DVB stick works
+> again. Of course demodulator error handling would be nice anyhow. Beyond
+> my time budget
+> for now.
 
-Looking at platform_get_irq() all error values are negative. You could just 
-test for ret < 0 here, and remove the ret = -ENODEV assignment below to keep 
-the error code returned by platform_get_irq().
+Surprising finding. Init succeeded already as firmware was downloaded so 
+that error likely happens during si2168_set_frontend(). As set frontend 
+is called once for each tuning request one failure should not cause more 
+harm than one tuning failure. It could be nice to see which function is 
+failing and if it fails repeatedly.
 
-If you're fine with that modification there's no need to resubmit, just let me 
-know and I'll fix it when applying it to my tree.
+To see that, debug messages should be enabled:
+modprobe si2168 dyndbg==pmftl
+or
+modprobe si2168; echo -n 'module si2168 =pft' > 
+/sys/kernel/debug/dynamic_debug/control
 
->  		dev_err(isp->dev, "No IRQ resource\n");
->  		ret = -ENODEV;
->  		goto error_iommu;
->  	}
-> +	isp->irq_num = ret;
-> 
->  	if (devm_request_irq(isp->dev, isp->irq_num, isp_isr, IRQF_SHARED,
->  			     "OMAP3 ISP", isp)) {
+You could also replace all dev_dbg with dev_info if you don't care 
+compile kernel with dynamic debugs enabled needed for normal debug logging.
+
+Also, you used 4.0.19 firmware. Could you test that old one:
+http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
+
+Unfortunately I don't have that device at all, so I cannot do much 
+myself. It is more up to Olli :]
+
+regards
+Antti
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
