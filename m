@@ -1,49 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:59888 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224AbbKZNnz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39134 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbbKWTqp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2015 08:43:55 -0500
-Date: Thu, 26 Nov 2015 13:43:40 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Subject: reservation.h: build error with lockdep disabled
-Message-ID: <20151126134340.GB8644@n2100.arm.linux.org.uk>
+	Mon, 23 Nov 2015 14:46:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 05/18] [media] media-controller: enable all interface links at init
+Date: Mon, 23 Nov 2015 21:46:53 +0200
+Message-ID: <29585066.DcXagjeG5R@avalon>
+In-Reply-To: <2ddddaaaecbdbf624441793ca4c57e81530eaf05.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <2ddddaaaecbdbf624441793ca4c57e81530eaf05.1441559233.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As of 3c3b177a9369 ("reservation: add suppport for read-only access
-using rcu") linux/reservation.h uses lockdep macros:
+Hi Mauro,
 
-+#define reservation_object_held(obj) lockdep_is_held(&(obj)->lock.base)
+Thank you for the patch.
 
-This results in build errors when lockdep is disabled as lockdep_is_held()
-is only available when lockdep is enabled.  This has been reported today
-to break the etnaviv kernel driver, which we're hoping to submit for 4.5.
+On Sunday 06 September 2015 14:30:48 Mauro Carvalho Chehab wrote:
+> Interface links are normally enabled, meaning that the interfaces are
+> bound to the entities. So, any ioctl send to the interface are reflected
 
-As this gets used with rcu_dereference_protected(), eg:
+s/send/sent/
 
-static inline struct reservation_object_list *
-reservation_object_get_list(struct reservation_object *obj)
-{
-        return rcu_dereference_protected(obj->fence,
-                                         reservation_object_held(obj));
-}
+> at the entities managed by the interface.
+> 
+> However, when a device is usage, other interfaces for the same hardware
 
-I'm guessing that it's not going to be a simple case of making it always
-return true or always return false.
+s/usage/in use/
 
-Any ideas how to solve this?
+> could be decoupled from the entities linked to them, because the
+> hardware may have some parts busy.
+> 
+> That's for example, what happens when an hybrid TV device is in usage.
+
+s/usage/use/
+
+> If it is streaming analog TV or capturing signals from S-Video/Composite
+> connectors, typically the digital part of the hardware can't be used and
+> vice-versa.
+> 
+> This is generally due to some internal hardware or firmware limitation,
+> that it is not easily mapped via data pipelines.
+> 
+> What the Kernel drivers do internally is that they decouple the hardware
+> from the interface. So, all changes, if allowed, are done only at some
+> interface cache, but not physically changed at the hardware.
+> 
+> The usage is similar to the usage of the MEDIA_LNK_FL_ENABLED on data
+> links. So, let's use the same flag to indicate if ether the interface
+
+s/ether/either/
+
+> to entity link is bound/enabled or not.
+
+I believe we'll need to experiment with the interface links to see what's 
+really needed there. As a general rule I'd like to avoid exposing too much 
+information to userspace without a clear indication that the information is 
+actually needed, as it's always easier to expose additional information later 
+than to remove information already exposed.
+
+For this reason I'd like to see as a first step how we would do in userspace 
+without making those links dynamic. If we then realize that we're lacking 
+information we'll decide on the best course of action and on exactly what to 
+expose and how to expose it, using concrete userspace use cases.
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c
+> b/drivers/media/dvb-core/dvbdev.c index a8e7e2398f7a..5c4fb41060b4 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -396,7 +396,8 @@ static void dvb_register_media_device(struct dvb_device
+> *dvbdev, if (!dvbdev->entity || !dvbdev->intf_devnode)
+>  		return;
+> 
+> -	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
+> +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
+> +			       MEDIA_LNK_FL_ENABLED);
+> 
+>  #endif
+>  }
+> @@ -583,20 +584,24 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+>  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca 
+*/
+> media_device_for_each_intf(intf, mdev) {
+>  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
+> -			media_create_intf_link(ca, intf, 0);
+> +			media_create_intf_link(ca, intf, MEDIA_LNK_FL_ENABLED);
+> 
+>  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
+> -			media_create_intf_link(tuner, intf, 0);
+> +			media_create_intf_link(tuner, intf,
+> +					       MEDIA_LNK_FL_ENABLED);
+> 
+>  		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
+> -			media_create_intf_link(demux, intf, 0);
+> +			media_create_intf_link(demux, intf,
+> +					       MEDIA_LNK_FL_ENABLED);
+> 
+>  		media_device_for_each_entity(entity, mdev) {
+>  			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
+>  				if (!strcmp(entity->name, DVR_TSOUT))
+> -					media_create_intf_link(entity, intf, 0);
+> +					media_create_intf_link(entity, intf,
+> +							       MEDIA_LNK_FL_ENABLED);
+>  				if (!strcmp(entity->name, DEMUX_TSOUT))
+> -					media_create_intf_link(entity, intf, 0);
+> +					media_create_intf_link(entity, intf,
+> +							       MEDIA_LNK_FL_ENABLED);
+>  				break;
+>  			}
+>  		}
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> b/drivers/media/v4l2-core/v4l2-dev.c index 07123dd569c4..8429da66754a
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -788,7 +788,8 @@ static int video_register_media_controller(struct
+> video_device *vdev, int type) struct media_link *link;
+> 
+>  		link = media_create_intf_link(&vdev->entity,
+> -					      &vdev->intf_devnode->intf, 0);
+> +					      &vdev->intf_devnode->intf,
+> +					      MEDIA_LNK_FL_ENABLED);
+>  		if (!link) {
+>  			media_devnode_remove(vdev->intf_devnode);
+>  			media_device_unregister_entity(&vdev->entity);
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c
+> b/drivers/media/v4l2-core/v4l2-device.c index e788a085ba96..bb58d90fde5e
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -256,7 +256,7 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device
+> *v4l2_dev)
+> 
+>  			link = media_create_intf_link(&sd->entity,
+>  						      &vdev->intf_devnode->intf,
+> -						      0);
+> +						      MEDIA_LNK_FL_ENABLED);
+>  			if (!link)
+>  				goto clean_up;
+>  		}
 
 -- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Regards,
+
+Laurent Pinchart
+
