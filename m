@@ -1,75 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:36490 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932355AbbKRPOb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39405 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432AbbKWWck (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 10:14:31 -0500
-Received: by qgad10 with SMTP id d10so29912800qga.3
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 07:14:31 -0800 (PST)
+	Mon, 23 Nov 2015 17:32:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 46/55] [media] media: move mdev list init to gobj
+Date: Tue, 24 Nov 2015 00:32:49 +0200
+Message-ID: <3064066.jNbDTAyJ1A@avalon>
+In-Reply-To: <7b800aebe4c9f6549942fd95b40d4263dcffe3bc.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <7b800aebe4c9f6549942fd95b40d4263dcffe3bc.1441540862.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Date: Wed, 18 Nov 2015 17:14:30 +0200
-Message-ID: <CAFrxexg3nVqAvG5mT8HKiDUpm5DDH0uKvuGb2zvJRfVEs2BqmQ@mail.gmail.com>
-Subject: saa7134 card help request
-From: Alec Rusanda <alecg.rusanda@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, i have trouble installing a saa7134 card who is a pain in the
-grrrrrr......
-My board is a AOP-9104A with chipset PI7C8140A MA 0514BT with 4 channels.
+Hi Mauro,
 
-I`m running a FedoraCore 23 64bit (4.2.3-300.fc23.x86_64) at the
-moment (i can change it on whatever is need less windows) and have
-tried to set in /etc/modprobe.d/saa7134.conf
+Thank you for the patch.
 
-" options saa7134 card=21,21,21,21   || also 33,42,61,81,109  "
+On Sunday 06 September 2015 09:03:06 Mauro Carvalho Chehab wrote:
+> Let's control the topology changes inside the graph_object. So, move the
+> addition and removal of interfaces/entities from the mdev lists to
+> media_gobj_init() and media_gobj_remove().
+> 
+> The main reason is that mdev should have lists for all object types, as
+> the new MC api will require to store objects in separate places.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 134fe7510195..ec98595b8a7a 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
+>  	struct media_entity *entity;
+>  	struct media_entity *next;
+> 
+> -	list_for_each_entry_safe(entity, next, &mdev->entities, list)
+> +	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+>  		media_device_unregister_entity(entity);
+> 
+>  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> @@ -449,7 +449,6 @@ int __must_check media_device_register_entity(struct
+> media_device *mdev, spin_lock(&mdev->lock);
+>  	/* Initialize media_gobj embedded at the entity */
+>  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+> -	list_add_tail(&entity->list, &mdev->entities);
+> 
+>  	/* Initialize objects at the pads */
+>  	for (i = 0; i < entity->num_pads; i++)
+> @@ -487,7 +486,6 @@ void media_device_unregister_entity(struct media_entity
+> *entity) for (i = 0; i < entity->num_pads; i++)
+>  		media_gobj_remove(&entity->pads[i].graph_obj);
+>  	media_gobj_remove(&entity->graph_obj);
+> -	list_del(&entity->list);
+>  	spin_unlock(&mdev->lock);
+>  	entity->graph_obj.mdev = NULL;
+>  }
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 6ed5eef88593..cbb0604e81c1 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -170,6 +170,7 @@ void media_gobj_init(struct media_device *mdev,
+>  	switch (type) {
+>  	case MEDIA_GRAPH_ENTITY:
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
+> +		list_add_tail(&gobj->list, &mdev->entities);
+>  		break;
+>  	case MEDIA_GRAPH_PAD:
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+> @@ -178,6 +179,7 @@ void media_gobj_init(struct media_device *mdev,
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+>  		break;
+>  	case MEDIA_GRAPH_INTF_DEVNODE:
+> +		list_add_tail(&gobj->list, &mdev->interfaces);
+>  		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
+>  		break;
+>  	}
+> @@ -193,6 +195,16 @@ void media_gobj_init(struct media_device *mdev,
+>   */
+>  void media_gobj_remove(struct media_gobj *gobj)
+>  {
+> +	/* Remove the object from mdev list */
+> +	switch (media_type(gobj)) {
+> +	case MEDIA_GRAPH_ENTITY:
+> +	case MEDIA_GRAPH_INTF_DEVNODE:
+> +		list_del(&gobj->list);
+> +		break;
 
-but on each one i get " saa7134: saa7134[1]: Huh, no eeprom present (err=-5)? "
+Type-specific handling in the graph object code doesn't seem right. I'd keep 
+the list_del calls in the type-specific remove functions. Same for the 
+list_add_tail calls above, unless we switch from per-type lists to a single 
+graph objects list as I mentioned in a reply to another patch (and the more I 
+think about it the more tempting it gets).
 
-I have also found on internet a script for probing each card model:
+> +	default:
+> +		break;
+> +	}
+> +
+>  	dev_dbg_obj(__func__, gobj);
+>  }
+> 
+> @@ -864,8 +876,6 @@ static void media_interface_init(struct media_device
+> *mdev, INIT_LIST_HEAD(&intf->links);
+> 
+>  	media_gobj_init(mdev, gobj_type, &intf->graph_obj);
+> -
+> -	list_add_tail(&intf->list, &mdev->interfaces);
+>  }
+> 
+>  /* Functions related to the media interface via device nodes */
+> @@ -894,7 +904,6 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
+>  void media_devnode_remove(struct media_intf_devnode *devnode)
+>  {
+>  	media_gobj_remove(&devnode->intf.graph_obj);
+> -	list_del(&devnode->intf.list);
+>  	kfree(devnode);
+>  }
+>  EXPORT_SYMBOL_GPL(media_devnode_remove);
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index f23d686aaac6..85fa302047bd 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -111,11 +111,11 @@ struct media_device *media_device_find_devres(struct
+> device *dev);
+> 
+>  /* Iterate over all entities. */
+>  #define media_device_for_each_entity(entity, mdev)			\
+> -	list_for_each_entry(entity, &(mdev)->entities, list)
+> +	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
+> 
+>  /* Iterate over all interfaces. */
+>  #define media_device_for_each_intf(intf, mdev)			\
+> -	list_for_each_entry(intf, &(mdev)->interfaces, list)
+> +	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+> 
+> 
+>  #else
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 2d5ad40254b7..bc7eb6240795 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -66,6 +66,7 @@ enum media_gobj_type {
+>  struct media_gobj {
+>  	struct media_device	*mdev;
+>  	u32			id;
+> +	struct list_head	list;
+>  };
+> 
+> 
+> @@ -114,7 +115,6 @@ struct media_entity_operations {
+> 
+>  struct media_entity {
+>  	struct media_gobj graph_obj;	/* must be first field in struct */
+> -	struct list_head list;
+>  	const char *name;		/* Entity name */
+>  	u32 type;			/* Entity type (MEDIA_ENT_T_*) */
+>  	u32 revision;			/* Entity revision, driver specific */
+> @@ -166,7 +166,6 @@ struct media_entity {
+>   */
+>  struct media_interface {
+>  	struct media_gobj		graph_obj;
+> -	struct list_head		list;
+>  	struct list_head		links;
+>  	u32				type;
+>  	u32				flags;
 
-#!/bin/bash
-card=1
-while [ $card -lt 175 ] ; do
-    /etc/init.d/motion stop
-    lsmod | cut -d ' ' -f 1 | grep saa713 | xargs rmmod
-    modprobe saa7134 card=$card,$card,$card,$card
-    /etc/init.d/motion restart
-    echo "Give it a shot for card $card"
-    read junk
-    /etc/init.d/motion stop
-    card=$(($card+1))
-done
+-- 
+Regards,
 
-Unfortunately, on this one i got also errors :
-rmmod: ERROR: Module saa7134_alsa is in use
-rmmod: ERROR: Module saa7134 is in use by: saa7134_alsa
+Laurent Pinchart
 
-Also on rmmod --force i get :
-
-rmmod: ERROR: could not remove 'saa7134_alsa': Device or resource busy
-rmmod: ERROR: could not remove module saa7134_alsa: Device or resource busy
-rmmod: ERROR: could not remove 'saa7134': Resource temporarily unavailable
-rmmod: ERROR: could not remove module saa7134: Resource temporarily unavailable
-
-# lsmod | grep saa713
-saa7134_alsa           20480   -1
-saa7134                   188416   1  saa7134_alsa
-videobuf2_core         49152    1  saa7134
-videobuf2_dma_sg   20480    1  saa7134
-tveeprom                   24576   1  saa7134
-rc_core                      28672   1  saa7134
-v4l2_common           16384    2  saa7134,videobuf2_core
-videodev                   163840  3  saa7134,v4l2_common,videobuf2_core
-snd_pcm                   114688  5
-snd_hda_codec_hdmi,snd_hda_codec,snd_hda_intel,saa7134_alsa,snd_hda_core
-snd                            77824  11 snd_hda_codec_realtek ,
-snd_hwdep,snd_timer, snd_hda_codec_hdmi,
-                                   snd_pcm,snd_seq,
-snd_hda_codec_generic,  snd_hda_codec,  snd_hda_intel,
-snd_seq_device, saa7134_alsa
-
-
-Thank you in advanced, and wish a great day all.
