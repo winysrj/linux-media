@@ -1,110 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39766 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752396AbbK2TWn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38951 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104AbbKWSIy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:43 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v2 06/22] media: Move media graph state for streamon/off to the pipeline
-Date: Sun, 29 Nov 2015 21:20:07 +0200
-Message-Id: <1448824823-10372-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	Mon, 23 Nov 2015 13:08:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH 06/18] [media] media.h: create connector entities for hybrid TV devices
+Date: Mon, 23 Nov 2015 20:09:02 +0200
+Message-ID: <2199127.5C1OIPJBTt@avalon>
+In-Reply-To: <9af2bbe9e63004f843e8478bc3d31cd03ea75d64.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <9af2bbe9e63004f843e8478bc3d31cd03ea75d64.1441559233.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct media_entity_graph was allocated in the stack, limiting the
-number of entities that could be reasonably allocated. Instead, move the
-struct to struct media_pipeline which is typically allocated using
-kmalloc() instead.
+Hi Mauro,
 
-The intent is to keep the enumeration around for later use for the
-duration of the streaming. As streaming is eventually stopped, an
-unfortunate memory allocation failure would prevent stopping the
-streaming. As no memory will need to be allocated, the problem is avoided
-altogether.
+Thank you for the patch.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 16 ++++++++--------
- include/media/media-entity.h |  6 ++++++
- 2 files changed, 14 insertions(+), 8 deletions(-)
+On Sunday 06 September 2015 14:30:49 Mauro Carvalho Chehab wrote:
+> Add entities to represent the connectors that exists inside a
+> hybrid TV device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index b17f6763aff4..69433405aec2 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -61,6 +61,7 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DVB_BASE		0x00000000
+>  #define MEDIA_ENT_T_V4L2_BASE		0x00010000
+>  #define MEDIA_ENT_T_V4L2_SUBDEV_BASE	0x00020000
+> +#define MEDIA_ENT_T_CONNECTOR_BASE	0x00030000
+> 
+>  /*
+>   * V4L2 entities - Those are used for DMA (mmap/DMABUF) and
+> @@ -105,6 +106,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 4)
+>  #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 5)
+> 
+> +/* Connectors */
+> +#define MEDIA_ENT_T_CONN_RF		(MEDIA_ENT_T_CONNECTOR_BASE)
+> +#define MEDIA_ENT_T_CONN_SVIDEO		(MEDIA_ENT_T_CONNECTOR_BASE + 1)
+> +#define MEDIA_ENT_T_CONN_COMPOSITE	(MEDIA_ENT_T_CONNECTOR_BASE + 2)
+> +	/* For internal test signal generators and other debug connectors */
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index fceaf44..667ab32 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -456,16 +456,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 					     struct media_pipeline *pipe)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
--	struct media_entity_graph graph;
-+	struct media_entity_graph *graph = &pipe->graph;
- 	struct media_entity *entity_err = entity;
- 	struct media_link *link;
- 	int ret;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(graph))) {
- 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
- 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
- 
-@@ -546,9 +546,9 @@ error:
- 	 * Link validation on graph failed. We revert what we did and
- 	 * return the error.
- 	 */
--	media_entity_graph_walk_start(&graph, entity_err);
-+	media_entity_graph_walk_start(graph, entity_err);
- 
--	while ((entity_err = media_entity_graph_walk_next(&graph))) {
-+	while ((entity_err = media_entity_graph_walk_next(graph))) {
- 		entity_err->stream_count--;
- 		if (entity_err->stream_count == 0)
- 			entity_err->pipe = NULL;
-@@ -582,13 +582,13 @@ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
- void media_entity_pipeline_stop(struct media_entity *entity)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
--	struct media_entity_graph graph;
-+	struct media_entity_graph *graph = &entity->pipe->graph;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(graph))) {
- 		entity->stream_count--;
- 		if (entity->stream_count == 0)
- 			entity->pipe = NULL;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8fd888f..4b5ca39 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -113,7 +113,13 @@ struct media_entity_graph {
- 	int top;
- };
- 
-+/*
-+ * struct media_pipeline - Media pipeline related information
-+ *
-+ * @graph:	Media graph walk during pipeline start / stop
-+ */
- struct media_pipeline {
-+	struct media_entity_graph graph;
- };
- 
- /**
+No need to a \t at the beginning of the line.
+
+> +#define MEDIA_ENT_T_CONN_TEST		(MEDIA_ENT_T_CONNECTOR_BASE + 3)
+
+I'd like to see more information about this.
+
+When later renaming types to functions you rename this type as well, and I'm 
+still not convinced that we shouldn't have both types and functions.
+
+Let's discuss these topics and the one below on the documentation patches.
+
+>  #ifndef __KERNEL__
+>  /* Legacy symbols used to avoid userspace compilation breakages */
+>  #define MEDIA_ENT_TYPE_SHIFT		16
+> @@ -121,9 +129,9 @@ struct media_device_info {
+>  #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+>  #endif
+> 
+> -/* Entity types */
+> -
+> +/* Entity flags */
+>  #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+> +#define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
+
+Ditto, I'm not sure about the use cases.
+
+>  struct media_entity_desc {
+>  	__u32 id;
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
