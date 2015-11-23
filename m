@@ -1,138 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56874 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752295AbbKCQnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Nov 2015 11:43:51 -0500
-Subject: Re: [PATCH MC Next Gen v2 2/3] sound/usb: Create media mixer function
- and control interface entities
-To: Takashi Iwai <tiwai@suse.de>
-References: <cover.1445380851.git.shuahkh@osg.samsung.com>
- <2f95ce0190c05e994e02bdc4393be21ec7609adf.1445380851.git.shuahkh@osg.samsung.com>
- <s5hzizbweye.wl-tiwai@suse.de> <562D4B9E.7010006@osg.samsung.com>
- <5638DB95.3070007@osg.samsung.com> <s5hy4efnjad.wl-tiwai@suse.de>
-Cc: mchehab@osg.samsung.com, perex@perex.cz, chehabrafael@gmail.com,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	chris.j.arges@canonical.com, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5638E445.50900@osg.samsung.com>
-Date: Tue, 3 Nov 2015 09:43:49 -0700
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39157 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751549AbbKWUBP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2015 15:01:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
+	<chehabrafael@gmail.com>, Shuah Khan <shuahkh@osg.samsung.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: Re: [PATCH 01/18] [media] tuner-core: add an input pad
+Date: Mon, 23 Nov 2015 22:01:23 +0200
+Message-ID: <2280184.FRmr0h2MEz@avalon>
+In-Reply-To: <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
+References: <cover.1441559233.git.mchehab@osg.samsung.com> <7e90c4ecdcdc15ebb3b32ac075168a93a6b63f4f.1441559233.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <s5hy4efnjad.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/03/2015 09:23 AM, Takashi Iwai wrote:
-> On Tue, 03 Nov 2015 17:06:45 +0100,
-> Shuah Khan wrote:
->>
->> On 10/25/2015 03:37 PM, Shuah Khan wrote:
->>> On 10/22/2015 01:16 AM, Takashi Iwai wrote:
->>>> On Wed, 21 Oct 2015 01:25:15 +0200,
->>>> Shuah Khan wrote:
->>>>>
->>>>> Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
->>>>> each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
->>>>> entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
->>>>> entity corresponds to the control device for the card.
->>>>>
->>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>>>> ---
->>>>>   sound/usb/card.c     |  5 +++
->>>>>   sound/usb/media.c    | 89
->>>>> ++++++++++++++++++++++++++++++++++++++++++++++++++++
->>>>>   sound/usb/media.h    | 20 ++++++++++++
->>>>>   sound/usb/mixer.h    |  1 +
->>>>>   sound/usb/usbaudio.h |  1 +
->>>>>   5 files changed, 116 insertions(+)
->>>>>
->>>>> diff --git a/sound/usb/card.c b/sound/usb/card.c
->>>>> index 469d2bf..d004cb4 100644
->>>>> --- a/sound/usb/card.c
->>>>> +++ b/sound/usb/card.c
->>>>> @@ -560,6 +560,9 @@ static int usb_audio_probe(struct usb_interface
->>>>> *intf,
->>>>>       if (err < 0)
->>>>>           goto __error;
->>>>>
->>>>> +    /* Create media entities for mixer and control dev */
->>>>> +    media_mixer_init(chip);
->>>>> +
->>>>>       usb_chip[chip->index] = chip;
->>>>>       chip->num_interfaces++;
->>>>>       chip->probing = 0;
->>>>> @@ -616,6 +619,8 @@ static void usb_audio_disconnect(struct
->>>>> usb_interface *intf)
->>>>>           list_for_each(p, &chip->midi_list) {
->>>>>               snd_usbmidi_disconnect(p);
->>>>>           }
->>>>> +        /* delete mixer media resources */
->>>>> +        media_mixer_delete(chip);
->>>>>           /* release mixer resources */
->>>>>           list_for_each_entry(mixer, &chip->mixer_list, list) {
->>>>>               snd_usb_mixer_disconnect(mixer);
->>>>> diff --git a/sound/usb/media.c b/sound/usb/media.c
->>>>> index 0cbfee6..a26ea8b 100644
->>>>> --- a/sound/usb/media.c
->>>>> +++ b/sound/usb/media.c
->>>>> @@ -199,4 +199,93 @@ void media_stop_pipeline(struct
->>>>> snd_usb_substream *subs)
->>>>>       if (mctl)
->>>>>           media_disable_source(mctl);
->>>>>   }
->>>>> +
->>>>> +int media_mixer_init(struct snd_usb_audio *chip)
->>>>> +{
->>>>> +    struct device *ctl_dev = &chip->card->ctl_dev;
->>>>> +    struct media_intf_devnode *ctl_intf;
->>>>> +    struct usb_mixer_interface *mixer;
->>>>> +    struct media_device *mdev;
->>>>> +    struct media_mixer_ctl *mctl;
->>>>> +    u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
->>>>> +    int ret;
->>>>> +
->>>>> +    mdev = media_device_find_devres(&chip->dev->dev);
->>>>> +    if (!mdev)
->>>>> +        return -ENODEV;
->>>>> +
->>>>> +    ctl_intf = (struct media_intf_devnode *)
->>>>> chip->ctl_intf_media_devnode;
->>>>
->>>> Why do we need cast?  Can't chip->ctl_intf_media_devnode itself be
->>>> struct media_intf_devndoe pointer?
->>>
->>> Yeah. There is no need to cast here. I will fix it.
->>
->> Sorry I misspoke. The reason for this cast is ctl_intf_media_devnode
->> is void to avoid including media.h and other media files in usbaudio.h
-> 
-> You can declare the struct without definition in each header file.
-> So just declare it and use it in usbaudio.h like:
-> 
-> struct media_intf_devnode;
-> 
-> struct snd_usb_audio {
-> 	....
-> 	struct media_intf_devnode *ctl_intf_media_devnode;
-> 	....
-> 
-> And even if you're using a void pointer there instead of the explicit
-> struct pointer, the cast is superfluous.  The implicit cast between a
-> void pointer and any other pointer is valid in plain C.
-> 
+Hi Mauro,
 
-Yes. cast is definitely not necessary. I will drop the cast and leave
-the rest alone.
+Thank you for the patch.
 
-thanks,
--- Shuah
+On Sunday 06 September 2015 14:30:44 Mauro Carvalho Chehab wrote:
+> Tuners actually have at least one connector on its
+> input.
+> 
+> Add a PAD to connect it.
 
+The patch looks fine to me, but have you checked that there are no driver 
+instantiating a tuner that would get confused by this additional pad, for 
+instance in graph traversal code ?
+
+Additionally it should be documented somewhere that drivers instantiating 
+tuners are responsible for creating and linking a connector to the tuner 
+input.
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c
+> b/drivers/media/dvb-core/dvbdev.c index f00f1a5f279c..a8e7e2398f7a 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -34,6 +34,9 @@
+>  #include <linux/mutex.h>
+>  #include "dvbdev.h"
+> 
+> +/* Due to enum tuner_pad_index */
+> +#include <media/tuner.h>
+> +
+>  static DEFINE_MUTEX(dvbdev_mutex);
+>  static int dvbdev_debug;
+> 
+> @@ -552,7 +555,7 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+>  	}
+> 
+>  	if (tuner && demod)
+> -		media_create_pad_link(tuner, 0, demod, 0, 0);
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, demod, 0, 0);
+> 
+>  	if (demod && demux)
+>  		media_create_pad_link(demod, 1, demux, 0, MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/usb/au0828/au0828-core.c
+> b/drivers/media/usb/au0828/au0828-core.c index e28cabe65934..f54c7d10f350
+> 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -27,6 +27,9 @@
+>  #include <media/v4l2-common.h>
+>  #include <linux/mutex.h>
+> 
+> +/* Due to enum tuner_pad_index */
+> +#include <media/tuner.h>
+> +
+>  /*
+>   * 1 = General debug messages
+>   * 2 = USB handling
+> @@ -260,7 +263,7 @@ static void au0828_create_media_graph(struct au0828_dev
+> *dev) return;
+> 
+>  	if (tuner)
+> -		media_create_pad_link(tuner, 0, decoder, 0,
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+>  				      MEDIA_LNK_FL_ENABLED);
+>  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+>  			      MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> b/drivers/media/usb/cx231xx/cx231xx-cards.c index
+> 3b5c9ae39ad3..1070d87efc65 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -1264,7 +1264,7 @@ static void cx231xx_create_media_graph(struct cx231xx
+> *dev) return;
+> 
+>  	if (tuner)
+> -		media_create_pad_link(tuner, 0, decoder, 0,
+> +		media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT, decoder, 0,
+>  					 MEDIA_LNK_FL_ENABLED);
+>  	media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+>  				 MEDIA_LNK_FL_ENABLED);
+> diff --git a/drivers/media/v4l2-core/tuner-core.c
+> b/drivers/media/v4l2-core/tuner-core.c index 100b8f069640..b90f2a52db96
+> 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -134,8 +134,9 @@ struct tuner {
+>  	unsigned int        type; /* chip type id */
+>  	void                *config;
+>  	const char          *name;
+> +
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	struct media_pad	pad;
+> +	struct media_pad	pad[TUNER_NUM_PADS];
+>  #endif
+>  };
+> 
+> @@ -695,11 +696,12 @@ static int tuner_probe(struct i2c_client *client,
+>  	/* Should be just before return */
+>  register_client:
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> -	t->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> +	t->pad[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
+>  	t->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_TUNER;
+>  	t->sd.entity.name = t->name;
+> 
+> -	ret = media_entity_init(&t->sd.entity, 1, &t->pad);
+> +	ret = media_entity_init(&t->sd.entity, TUNER_NUM_PADS, &t->pad[0]);
+>  	if (ret < 0) {
+>  		tuner_err("failed to initialize media entity!\n");
+>  		kfree(t);
+> diff --git a/include/media/tuner.h b/include/media/tuner.h
+> index b46ebb48fe74..95835c8069dd 100644
+> --- a/include/media/tuner.h
+> +++ b/include/media/tuner.h
+> @@ -25,6 +25,14 @@
+> 
+>  #include <linux/videodev2.h>
+> 
+> +/* Tuner PADs */
+> +/* FIXME: is this the right place for it? */
+> +enum tuner_pad_index {
+> +	TUNER_PAD_RF_INPUT,
+> +	TUNER_PAD_IF_OUTPUT,
+> +	TUNER_NUM_PADS
+> +};
+> +
+>  #define ADDR_UNSET (255)
+> 
+>  #define TUNER_TEMIC_PAL			0        /* 4002 FH5 (3X 7756, 9483) */
 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Regards,
+
+Laurent Pinchart
+
