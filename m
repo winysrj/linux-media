@@ -1,325 +1,422 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44572 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38677 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487AbbKINV5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 08:21:57 -0500
+	with ESMTP id S1752495AbbKWPhr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2015 10:37:47 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Markus Pargmann <mpa@pengutronix.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] mt9v032: Add V4L2 controls for AEC and AGC
-Date: Mon, 09 Nov 2015 15:22:06 +0200
-Message-ID: <2275245.3FVoKjERuu@avalon>
-In-Reply-To: <1446815625-18413-3-git-send-email-mpa@pengutronix.de>
-References: <1446815625-18413-1-git-send-email-mpa@pengutronix.de> <1446815625-18413-3-git-send-email-mpa@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Akihiro Tsukada <tskd08@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>
+Subject: Re: [PATCH v8.2 19/55] [media] media: convert links from array to list
+Date: Mon, 23 Nov 2015 17:37:54 +0200
+Message-ID: <5056555.41pfqro2xG@avalon>
+In-Reply-To: <ba0462d54436f101880bd43fe217f47533bcbcf3.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <ba0462d54436f101880bd43fe217f47533bcbcf3.1441540862.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+Hi Mauro,
+
+(Resending as I've replied by mistake to the version of the patch you had sent 
+to the media workshop list only)
 
 Thank you for the patch.
 
-On Friday 06 November 2015 14:13:45 Markus Pargmann wrote:
-> This patch adds V4L2 controls for Auto Exposure Control and Auto Gain
-> Control settings. These settings include low pass filter, update
-> frequency of these settings and the update interval for those units.
+On Monday 12 October 2015 13:43:13 Mauro Carvalho Chehab wrote:
+> The entire logic that represent graph links were developed on a
+> time where there were no needs to dynamic remove links. So,
+> although links are created/removed one by one via some
+> functions, they're stored as an array inside the entity struct.
 > 
-> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> As the array may grow, there's a logic inside the code that
+> checks if the amount of space is not enough to store
+> the needed links. If it isn't the core uses krealloc()
+> to change the size of the link, with is bad, as it
+> leaves the memory fragmented.
+
+I agree with the change made in this patch, but I'm not sure if fragmentation 
+is really the issue. I wouldn't be surprised if we ended up with more 
+fragmented memory.
+
+> So, convert links into a list.
+> 
+> Also, currently,  both source and sink entities need the link
+> at the graph traversal logic inside media_entity. So there's
+> a logic duplicating all links. That makes it to spend
+> twice the memory needed. This is not a big deal for today's
+> usage, where the number of links are not big.
+> 
+> Yet, if during the MC workshop discussions, it was said that
+> IIO graphs could have up to 4,000 entities. So, we may
+> want to remove the duplication on some future. The problem
+> is that it would require a separate linked list to store
+> the backlinks inside the entity, or to use a more complex
+> algorithm to do graph backlink traversal, with is something
+> that the current graph traversal inside the core can't cope
+> with. So, let's postpone a such change if/when it is actually
+> needed.
+
+The media_link structure uses 44 bytes on 32-bit architectures and 84 bytes on 
+64-bit architecture. It will thus be allocated out of the 64-bytes and 96-
+bytes pools respectively. That's a 12.5% memory waste on 64-bit architectures 
+and 31.25% on 32-bit architecture. If you're concerned about memory usage (and 
+I think we all should) a linked list is less efficient than an array in this 
+case (and even more so if you take the struct list_head into account).
+
+> Change-Id: I558e8f87f200fe5f83ddaafe5560f91f0d906b63
+
+No need to infect mainline with gerrit nonsense 
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > ---
->  drivers/media/i2c/mt9v032.c | 153 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 153 insertions(+)
+>  drivers/media/dvb-core/dvb_frontend.c     |   9 +--
+>  drivers/media/media-device.c              |  25 +++---
+>  drivers/media/media-entity.c              | 128 ++++++++++++---------------
+>  drivers/media/usb/au0828/au0828-core.c    |  12 ++-
+>  drivers/media/usb/au0828/au0828-video.c   |   8 +-
+>  drivers/media/usb/cx231xx/cx231xx-video.c |   8 +-
+>  include/media/media-entity.h              |  10 +--
+>  7 files changed, 97 insertions(+), 103 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 0d85c6c28004..3e649cacfc07 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/ioctl.h>
+>  #include <linux/media.h>
+>  #include <linux/types.h>
+> +#include <linux/slab.h>
+
+Could you please keep headers sorted alphabetically ?
+
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+
+[snip]
+
+> @@ -150,22 +151,21 @@ static long __media_device_enum_links(struct
+> media_device *mdev, }
 > 
-> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-> index 943c3f39ea73..978ae8cbb0cc 100644
-> --- a/drivers/media/i2c/mt9v032.c
-> +++ b/drivers/media/i2c/mt9v032.c
-> @@ -133,9 +133,16 @@
->  #define		MT9V032_TEST_PATTERN_GRAY_DIAGONAL	(3 << 11)
->  #define		MT9V032_TEST_PATTERN_ENABLE		(1 << 13)
->  #define		MT9V032_TEST_PATTERN_FLIP		(1 << 14)
-> +#define MT9V032_AEC_LPF					0xa8
-> +#define MT9V032_AGC_LPF					0xaa
-> +#define MT9V032_DESIRED_BIN				0xa5
+>       if (links->links) {
+> -             struct media_link_desc __user *ulink;
+> -             unsigned int l;
+> +             struct media_link *ent_link;
+> +             struct media_link_desc __user *ulink = links->links;
 
-To better match the datasheet, could you call this MT9V032_AEGC_DESIRED_BIN ? 
-Same comment for the related control name.
+Might be slightly nitpicking, but I think variables would be more coherent if 
+they were called
 
-> +#define MT9V032_AEC_UPDATE_INTERVAL			0xa6
-> +#define MT9V032_AGC_UPDATE_INTERVAL			0xa9
+                struct media_link_desc __user *ulink = links->links;
+                struct media_link *link;
 
-Simalarly I'd call these two registers MT9V032_AEC_UPDATE_FREQUENCY and 
-MT9V032_AGC_UPDATE_FREQUENCY as that's how they're named in the datasheet (at 
-least the version I have). It makes sense to keep using interval in the 
-control names though, as that's how they operate.
+...
 
-Could you please keep the registers sorted numerically ?
-
->  #define MT9V032_AEC_AGC_ENABLE				0xaf
->  #define		MT9V032_AEC_ENABLE			(1 << 0)
->  #define		MT9V032_AGC_ENABLE			(1 << 1)
-> +#define MT9V024_AEC_MAX_SHUTTER_WIDTH			0xad
-
-As other registers specific to the MT9V024 and MT9V034 use the MT9V034 prefix, 
-could you do so here as well ?
-
-Would it make sense to add the minimum shutter width too ?
-
-> +#define MT9V032_AEC_MAX_SHUTTER_WIDTH			0xbd
->  #define MT9V032_THERMAL_INFO				0xc1
 > 
->  enum mt9v032_model {
-> @@ -162,6 +169,7 @@ struct mt9v032_model_data {
->  	unsigned int min_shutter;
->  	unsigned int max_shutter;
->  	unsigned int pclk_reg;
-> +	unsigned int aec_max_shutter_reg;
->  };
+> -             for (l = 0, ulink = links->links; l < entity->num_links; l++) 
+{
+> +             list_for_each_entry(ent_link, &entity->links, list) {
+>                       struct media_link_desc link;
+
+and
+
+                        struct media_link_desc klink;
+
+here.
+
+>                       /* Ignore backlinks. */
+> -                     if (entity->links[l].source->entity != entity)
+> +                     if (ent_link->source->entity != entity)
+>                               continue;
+> -
+>                       memset(&link, 0, sizeof(link));
+> -                     media_device_kpad_to_upad(entity->links[l].source,
+> +                     media_device_kpad_to_upad(ent_link->source,
+>                                                 &link.source);
+> -                     media_device_kpad_to_upad(entity->links[l].sink,
+> +                     media_device_kpad_to_upad(ent_link->sink,
+>                                                 &link.sink);
+> -                     link.flags = entity->links[l].flags;
+> +                     link.flags = ent_link->flags;
+>                       if (copy_to_user(ulink, &link, sizeof(*ulink)))
+>                               return -EFAULT;
+>                       ulink++;
+> @@ -437,6 +437,7 @@ int __must_check media_device_register_entity(struct
+> media_device *mdev, /* Warn if we apparently re-register an entity */
+>       WARN_ON(entity->graph_obj.mdev != NULL);
+>       entity->graph_obj.mdev = mdev;
+> +     INIT_LIST_HEAD(&entity->links);
+
+I'd move this to media_entity_init(). I've spent time wondering how the code 
+could work without crashing during testing as the list wasn't initialized in 
+media_entity_init().
+
+Speaking of testing, have you checked for memory leaks with kmemleak ? Given 
+the extent of the rework I think this should really be tested.
+
 > 
->  struct mt9v032_model_info {
-> @@ -185,6 +193,7 @@ static const struct mt9v032_model_data
-> mt9v032_model_data[] = { .min_shutter = MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
->  		.max_shutter = MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
->  		.pclk_reg = MT9V032_PIXEL_CLOCK,
-> +		.aec_max_shutter_reg = MT9V032_AEC_MAX_SHUTTER_WIDTH,
->  	}, {
->  		/* MT9V024, MT9V034 */
->  		.min_row_time = 690,
-> @@ -194,6 +203,7 @@ static const struct mt9v032_model_data
-> mt9v032_model_data[] = { .min_shutter = MT9V034_TOTAL_SHUTTER_WIDTH_MIN,
->  		.max_shutter = MT9V034_TOTAL_SHUTTER_WIDTH_MAX,
->  		.pclk_reg = MT9V034_PIXEL_CLOCK,
-> +		.aec_max_shutter_reg = MT9V024_AEC_MAX_SHUTTER_WIDTH,
->  	},
->  };
+>       spin_lock(&mdev->lock);
+>       /* Initialize media_gobj embedded at the entity */
+> @@ -465,13 +466,17 @@ void media_device_unregister_entity(struct
+> media_entity *entity) {
+>       int i;
+>       struct media_device *mdev = entity->graph_obj.mdev;
+> +     struct media_link *link, *tmp;
 > 
-> @@ -265,6 +275,12 @@ struct mt9v032 {
->  	struct {
->  		struct v4l2_ctrl *test_pattern;
->  		struct v4l2_ctrl *test_pattern_color;
-> +		struct v4l2_ctrl *desired_bin;
-> +		struct v4l2_ctrl *aec_lpf;
-> +		struct v4l2_ctrl *agc_lpf;
-> +		struct v4l2_ctrl *aec_update_interval;
-> +		struct v4l2_ctrl *agc_update_interval;
-> +		struct v4l2_ctrl *aec_max_shutter_width;
-
-You don't need to store all those controls in the mt9v032 structure as you 
-don't use the pointers anywhere. The reason why the test_pattern and 
-test_pattern_color controls are stored there is that they both affect the same 
-register and are thus grouped into a control cluster.
-
->  	};
->  };
+>       if (mdev == NULL)
+>               return;
 > 
-> @@ -643,6 +659,33 @@ static int mt9v032_set_selection(struct v4l2_subdev
-> *subdev, */
-> 
->  #define V4L2_CID_TEST_PATTERN_COLOR	(V4L2_CID_USER_BASE | 0x1001)
-> +/*
-> + * Value between 1 and 64 to set the desired bin. This is effectively a
-> measure
-> + * of how bright the image is supposed to be. Both AGC and AEC try to reach
-> + * this.
-> + */
+>       spin_lock(&mdev->lock);
+> -     for (i = 0; i < entity->num_links; i++)
+> -             media_gobj_remove(&entity->links[i].graph_obj);
+> +     list_for_each_entry_safe(link, tmp, &entity->links, list) {
+> +             media_gobj_remove(&link->graph_obj);
+> +             list_del(&link->list);
+> +             kfree(link);
 
-Do you know what the value represents exactly ? Does it have a linear 
-relationship with the overall image luminance ? Is it related to image binning 
-at all ?
+Shouldn't you remove the backlinks too ? How about calling 
+__media_entity_remove_link() to centralize the link removal code ?
 
-> +#define V4L2_CID_DESIRED_BIN		(V4L2_CID_USER_BASE | 0x1002)
-> +/*
-> + * LPF is the low pass filter capability of the chip. Both AEC and AGC have
-> + * this setting. This limits the speed in which AGC/AEC adjust their
-> settings.
-> + * Possible values are 0-2. 0 means no LPF. For 1 and 2 this equation is
-> used:
-> + * 	if |(Calculated new exp - current exp)| > (current exp / 4)
-> + * 		next exp = Calculated new exp
-> + * 	else
-> + * 		next exp = Current exp +- (Calculated new exp / 2^LPF)
-
-I know this comes directly from the datasheet, but it doesn't make too much 
-sense to me. I wonder whether the correct formula wouldn't be
-
-next exp = current exp + ((calculated new exp - current exp) / 2^LPF)
-
-> + */
-> +#define V4L2_CID_AEC_LPF		(V4L2_CID_USER_BASE | 0x1003)
-> +#define V4L2_CID_AGC_LPF		(V4L2_CID_USER_BASE | 0x1004)
-> +/*
-> + * Value between 0 and 15. This is the number of frames being skipped
-> before
-> + * updating the auto exposure/gain.
-> + */
-> +#define V4L2_CID_AEC_UPDATE_INTERVAL	(V4L2_CID_USER_BASE | 0x1005)
-> +#define V4L2_CID_AGC_UPDATE_INTERVAL	(V4L2_CID_USER_BASE | 0x1006)
-> +/*
-> + * Maximum shutter width used for AEC.
-> + */
-> +#define V4L2_CID_AEC_MAX_SHUTTER_WIDTH	(V4L2_CID_USER_BASE | 0x1007)
-> 
->  static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+> +     }
+>       for (i = 0; i < entity->num_pads; i++)
+>               media_gobj_remove(&entity->pads[i].graph_obj);
+>       media_gobj_remove(&entity->graph_obj);
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 0926f08be981..d5efa0e2c88c 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -221,21 +221,13 @@ int
+>  media_entity_init(struct media_entity *entity, u16 num_pads,
+>                 struct media_pad *pads)
 >  {
-> @@ -712,6 +755,28 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
->  			break;
->  		}
->  		return regmap_write(map, MT9V032_TEST_PATTERN, data);
-> +
-> +	case V4L2_CID_DESIRED_BIN:
-> +		return regmap_write(map, MT9V032_DESIRED_BIN, ctrl->val);
-> +
-> +	case V4L2_CID_AEC_LPF:
-> +		return regmap_write(map, MT9V032_AEC_LPF, ctrl->val);
-> +
-> +	case V4L2_CID_AGC_LPF:
-> +		return regmap_write(map, MT9V032_AGC_LPF, ctrl->val);
-> +
-> +	case V4L2_CID_AEC_UPDATE_INTERVAL:
-> +		return regmap_write(map, MT9V032_AEC_UPDATE_INTERVAL,
-> +				    ctrl->val);
-> +
-> +	case V4L2_CID_AGC_UPDATE_INTERVAL:
-> +		return regmap_write(map, MT9V032_AGC_UPDATE_INTERVAL,
-> +				    ctrl->val);
-> +
-> +	case V4L2_CID_AEC_MAX_SHUTTER_WIDTH:
-> +		return regmap_write(map,
-> +				    mt9v032->model->data->aec_max_shutter_reg,
-> +				    ctrl->val);
->  	}
+> -     struct media_link *links;
+> -     unsigned int max_links = num_pads;
+>       unsigned int i;
 > 
->  	return 0;
-> @@ -741,6 +806,78 @@ static const struct v4l2_ctrl_config
-> mt9v032_test_pattern_color = { .flags		= 0,
->  };
+> -     links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
+> -     if (links == NULL)
+> -             return -ENOMEM;
+> -
+
+Now that the function doesn't allocate links anymore you should fix its 
+kerneldoc that still mentions preallocation.
+
+>       entity->group_id = 0;
+> -     entity->max_links = max_links;
+>       entity->num_links = 0;
+>       entity->num_backlinks = 0;
+>       entity->num_pads = num_pads;
+>       entity->pads = pads;
+> -     entity->links = links;
 > 
-> +static const struct v4l2_ctrl_config mt9v032_desired_bin = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_DESIRED_BIN,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "aec_agc_desired_bin",
-
-Please use proper controls names.
-
-> +	.min		= 1,
-> +	.max		= 64,
-> +	.step		= 1,
-> +	.def		= 58,
-> +	.flags		= 0,
-> +};
+>       for (i = 0; i < num_pads; i++) {
+>               pads[i].entity = entity;
+> @@ -249,7 +241,13 @@ EXPORT_SYMBOL_GPL(media_entity_init);
+>  void
+>  media_entity_cleanup(struct media_entity *entity)
+>  {
+> -     kfree(entity->links);
+> +     struct media_link *link, *tmp;
 > +
-> +static const struct v4l2_ctrl_config mt9v032_aec_lpf = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_AEC_LPF,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "aec_lpf",
-> +	.min		= 0,
-> +	.max		= 2,
-> +	.step		= 1,
-> +	.def		= 0,
-> +	.flags		= 0,
-> +};
-> +
-> +static const struct v4l2_ctrl_config mt9v032_agc_lpf = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_AGC_LPF,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "agc_lpf",
-> +	.min		= 0,
-> +	.max		= 2,
-> +	.step		= 1,
-> +	.def		= 2,
-> +	.flags		= 0,
-> +};
-> +
-> +static const struct v4l2_ctrl_config mt9v032_aec_update_interval = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_AEC_UPDATE_INTERVAL,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "aec_update_interval",
-> +	.min		= 0,
-> +	.max		= 16,
-> +	.step		= 1,
-> +	.def		= 2,
-> +	.flags		= 0,
-> +};
-> +
-> +static const struct v4l2_ctrl_config mt9v032_agc_update_interval = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_AGC_UPDATE_INTERVAL,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "agc_update_interval",
-> +	.min		= 0,
-> +	.max		= 16,
-> +	.step		= 1,
-> +	.def		= 2,
-> +	.flags		= 0,
-> +};
-> +
-> +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_width = {
-> +	.ops		= &mt9v032_ctrl_ops,
-> +	.id		= V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
-> +	.type		= V4L2_CTRL_TYPE_INTEGER,
-> +	.name		= "aec_max_shutter_width",
-> +	.min		= 1,
-> +	.max		= MT9V034_TOTAL_SHUTTER_WIDTH_MAX,
-
-Isn't the maximum value 2047 for the MT9V0[23]2 ?
-
-> +	.step		= 1,
-> +	.def		= MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
-> +	.flags		= 0,
-> +};
-> +
->  /*
-> ---------------------------------------------------------------------------
-> -- * V4L2 subdev core operations
->   */
-> @@ -1010,6 +1147,22 @@ static int mt9v032_probe(struct i2c_client *client,
->  				mt9v032_test_pattern_menu);
->  	mt9v032->test_pattern_color = v4l2_ctrl_new_custom(&mt9v032->ctrls,
->  				      &mt9v032_test_pattern_color, NULL);
-> +	mt9v032->desired_bin = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						    &mt9v032_desired_bin,
-> +						    NULL);
-> +	mt9v032->aec_lpf = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						&mt9v032_aec_lpf, NULL);
-> +	mt9v032->agc_lpf = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						&mt9v032_agc_lpf, NULL);
-> +	mt9v032->aec_update_interval = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						&mt9v032_aec_update_interval,
-> +						NULL);
-> +	mt9v032->agc_update_interval = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						&mt9v032_agc_update_interval,
-> +						NULL);
-> +	mt9v032->aec_max_shutter_width = v4l2_ctrl_new_custom(&mt9v032->ctrls,
-> +						&mt9v032_aec_max_shutter_width,
-> +						NULL);
-
-As there's no need to store the control pointers I would create an array of 
-struct v4l2_ctrl_config above instead of defining one variable per control, 
-and then loop over the array here.
-
-        for (i = 0; i < ARRAY_SIZE(mt9v032_aegc_controls); ++i)
-                v4l2_ctrl_new_custom(&mt9v032->ctrls,
-                                     &mt9v032_aegc_controls[i]);
-
-You should also update the above v4l2_ctrl_handler_init() call to take the new 
-controls into account, as that will improve performances of the control 
-framework.
-
-        v4l2_ctrl_handler_init(&mt9v032->ctrls,
-                               10 + ARRAY_SIZE(mt9v032_aegc_controls));
-
+> +     list_for_each_entry_safe(link, tmp, &entity->links, list) {
+> +             media_gobj_remove(&link->graph_obj);
+> +             list_del(&link->list);
+> +             kfree(link);
+> +     }
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_cleanup);
 > 
->  	v4l2_ctrl_cluster(2, &mt9v032->test_pattern);
+> @@ -275,7 +273,7 @@ static void stack_push(struct media_entity_graph *graph,
+> return;
+>       }
+>       graph->top++;
+> -     graph->stack[graph->top].link = 0;
+> +     graph->stack[graph->top].link = (&entity->links)->next;
+
+Anything wrong with entity->links.next ?
+
+>       graph->stack[graph->top].entity = entity;
+>  }
+> 
+> @@ -317,6 +315,7 @@ void media_entity_graph_walk_start(struct
+> media_entity_graph *graph, }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+> 
+> +
+
+No need for an extra blank line.
+
+>  /**
+>   * media_entity_graph_walk_next - Get the next entity in the graph
+>   * @graph: Media graph structure
+> @@ -340,14 +339,16 @@ media_entity_graph_walk_next(struct media_entity_graph
+> *graph) * top of the stack until no more entities on the level can be
+>        * found.
+>        */
+> -     while (link_top(graph) < stack_top(graph)->num_links) {
+> +     while (link_top(graph) != &(stack_top(graph)->links)) {
+
+No need for parentheses around the second operand of !=.
+
+>               struct media_entity *entity = stack_top(graph);
+> -             struct media_link *link = &entity->links[link_top(graph)];
+> +             struct media_link *link;
+>               struct media_entity *next;
+> 
+> +             link = list_entry(link_top(graph), typeof(*link), list);
+> +
+>               /* The link is not enabled so we do not follow. */
+>               if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+> -                     link_top(graph)++;
+> +                     link_top(graph) = link_top(graph)->next;
+>                       continue;
+>               }
+
+[snip]
+
+> @@ -395,6 +396,7 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, struct media_device *mdev = entity->graph_obj.mdev;
+>       struct media_entity_graph graph;
+>       struct media_entity *entity_err = entity;
+> +     struct media_link *link;
+
+Nitpicking, I would have placed the variable declaration inside of the while 
+loop, where i was declared.
+
+>       int ret;
+> 
+>       mutex_lock(&mdev->graph_mutex);
+> @@ -404,7 +406,6 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, while ((entity =
+> media_entity_graph_walk_next(&graph))) {
+>               DECLARE_BITMAP(active, entity->num_pads);
+>               DECLARE_BITMAP(has_no_links, entity->num_pads);
+> -             unsigned int i;
+> 
+>               entity->stream_count++;
+>               WARN_ON(entity->pipe && entity->pipe != pipe);
+> @@ -420,8 +421,7 @@ __must_check int media_entity_pipeline_start(struct
+> media_entity *entity, bitmap_zero(active, entity->num_pads);
+>               bitmap_fill(has_no_links, entity->num_pads);
+> 
+> -             for (i = 0; i < entity->num_links; i++) {
+> -                     struct media_link *link = &entity->links[i];
+> +             list_for_each_entry(link, &entity->links, list) {
+>                       struct media_pad *pad = link->sink->entity == entity
+>                                               ? link->sink : link->source;
+
+[snip]
+
+> +static void __media_entity_remove_link(struct media_entity *entity,
+> +                                    struct media_link *link);
+> +
+
+No forward declaration please, let's reorder functions instead.
+
+>  int
+>  media_create_pad_link(struct media_entity *source, u16 source_pad,
+>                        struct media_entity *sink, u16 sink_pad, u32 flags)
+
+[snip]
+
+> -void __media_entity_remove_links(struct media_entity *entity)
+> +static void __media_entity_remove_link(struct media_entity *entity,
+> +                                    struct media_link *link)
+
+No need for a __ in the function name, there's not media_entity_remove_link() 
+function.
+
+>  {
+> -     unsigned int i;
+> +     struct media_link *rlink, *tmp;
+> +     struct media_entity *remote;
+> +     unsigned int r = 0;
+> +
+> +     if (link->source->entity == entity)
+> +             remote = link->sink->entity;
+> +     else
+> +             remote = link->source->entity;
+> 
+> -     for (i = 0; i < entity->num_links; i++) {
+> -             struct media_link *link = &entity->links[i];
+> -             struct media_entity *remote;
+> -             unsigned int r = 0;
+> +     list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
+> +             if (rlink != link->reverse) {
+> +                     r++;
+
+The variable is incremented here but otherwise never used, you can remove it.
+
+> +                     continue;
+> +             }
+> 
+>               if (link->source->entity == entity)
+> -                     remote = link->sink->entity;
+> -             else
+> -                     remote = link->source->entity;
+> +                     remote->num_backlinks--;
+> 
+> -             while (r < remote->num_links) {
+> -                     struct media_link *rlink = &remote->links[r];
+> -
+> -                     if (rlink != link->reverse) {
+> -                             r++;
+> -                             continue;
+> -                     }
+> +             if (--remote->num_links == 0)
+> +                     break;
+> 
+> -                     if (link->source->entity == entity)
+> -                             remote->num_backlinks--;
+> +             /* Remove the remote link */
+
+Shouldn't you call media_gobj_remove() ?
+
+> +             list_del(&rlink->list);
+> +             kfree(rlink);
+> +     }
+
+And here too ?
+
+> +     list_del(&link->list);
+> +     kfree(link);
+> +}
+> 
+> -                     if (--remote->num_links == 0)
+> -                             break;
+> +void __media_entity_remove_links(struct media_entity *entity)
+> +{
+> +     struct media_link *link, *tmp;
+> 
+> -                     /* Insert last entry in place of the dropped link. */
+> -                     *rlink = remote->links[remote->num_links];
+> -             }
+> -     }
+> +     list_for_each_entry_safe(link, tmp, &entity->links, list)
+> +             __media_entity_remove_link(entity, link);
+> 
+>       entity->num_links = 0;
+>       entity->num_backlinks = 0;
 
 -- 
 Regards,
 
 Laurent Pinchart
-
