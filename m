@@ -1,74 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45232 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbbKIUsQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 15:48:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	kernel-janitors@vger.kernel.org, linux-ia64@vger.kernel.org,
-	ceph-devel@vger.kernel.org, toralf.foerster@gmx.de, hmh@hmh.eng.br,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/9] drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c: use correct structure type name in sizeof
-Date: Mon, 09 Nov 2015 22:48:26 +0200
-Message-ID: <1915769.aHlhsWqSsK@avalon>
-In-Reply-To: <1406647011-8543-2-git-send-email-Julia.Lawall@lip6.fr>
-References: <1406647011-8543-1-git-send-email-Julia.Lawall@lip6.fr> <1406647011-8543-2-git-send-email-Julia.Lawall@lip6.fr>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:41007 "EHLO
+	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751727AbbKWXtQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2015 18:49:16 -0500
+Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
+	by mailout.nyi.internal (Postfix) with ESMTP id A60E52075B
+	for <linux-media@vger.kernel.org>; Mon, 23 Nov 2015 18:49:15 -0500 (EST)
+Received: from scrappy.walters.io (unknown [181.61.129.241])
+	by mail.messagingengine.com (Postfix) with ESMTPA id 3C17468009D
+	for <linux-media@vger.kernel.org>; Mon, 23 Nov 2015 18:49:13 -0500 (EST)
+From: Dan Walters <dan@walters.io>
+To: linux-media@vger.kernel.org
+Date: Mon, 23 Nov 2015 18:28:13 -0500
+Subject: [PATCH] dtv-scan-tables: Add all muxes currently in use for Colombia.
+Message-Id: <20151123234914.3C17468009D@frontend2.nyi.internal>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+Works for me in conjuction with the latest dvbv5-scan.
 
-Thank you for the patch.
+-Dan
 
-On Tuesday 29 July 2014 17:16:43 Julia Lawall wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> Correct typo in the name of the type given to sizeof.  Because it is the
-> size of a pointer that is wanted, the typo has no impact on compilation or
-> execution.
-> 
-> This problem was found using Coccinelle (http://coccinelle.lip6.fr/).  The
-> semantic patch used can be found in message 0 of this patch series.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> ---
->  drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c index
-> cda8388..255590f 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> @@ -227,7 +227,7 @@ static int vpfe_enable_clock(struct vpfe_device
-> *vpfe_dev) return 0;
-> 
->  	vpfe_dev->clks = kzalloc(vpfe_cfg->num_clocks *
-> -				   sizeof(struct clock *), GFP_KERNEL);
-> +				   sizeof(struct clk *), GFP_KERNEL);
+---
+ dvb-t/co-All | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 dvb-t/co-All
 
-I'd use sizeof(*vpfe_dev->clks) to avoid such issues.
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I've applied the patch to my tree with the above change, there's no need to 
-resubmit if you agree with the proposal.
-
->  	if (vpfe_dev->clks == NULL) {
->  		v4l2_err(vpfe_dev->pdev->driver, "Memory allocation failed\n");
->  		return -ENOMEM;
-
+diff --git a/dvb-t/co-All b/dvb-t/co-All
+new file mode 100644
+index 0000000..c06056a
+--- /dev/null
++++ b/dvb-t/co-All
+@@ -0,0 +1,34 @@
++# initial scan file for Colombia, national level
++# DVB-T2, 470-860MHz, 6MHz bandwidth
++# See: https://es.wikipedia.org/wiki/Televisi%C3%B3n_Digital_Terrestre_en_Colombia
++# See: https://www.crcom.gov.co/recursos_user/Documentos_CRC_2012/Actividades_Regulatorias/TDT/documentos_soporte_TDT_20120914.pdf#page=51
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 473000000
++	BANDWIDTH_HZ = 6000000
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 479000000
++	BANDWIDTH_HZ = 6000000
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 485000000
++	BANDWIDTH_HZ = 6000000
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 491000000
++	BANDWIDTH_HZ = 6000000
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 551000000
++	BANDWIDTH_HZ = 6000000
++
++[CHANNEL]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 557000000
++	BANDWIDTH_HZ = 6000000
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
