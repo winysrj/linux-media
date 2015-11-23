@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59989 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752190AbbKPRzs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 12:55:48 -0500
-From: Vladis Dronov <vdronov@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Vladis Dronov <vdronov@redhat.com>
-Subject: [PATCH 1/1] [media] usbvision: fix crash on detecting device with invalid configuration
-Date: Mon, 16 Nov 2015 18:55:11 +0100
-Message-Id: <1447696511-17704-2-git-send-email-vdronov@redhat.com>
-In-Reply-To: <1447696511-17704-1-git-send-email-vdronov@redhat.com>
-References: <1447696511-17704-1-git-send-email-vdronov@redhat.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:59773 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751510AbbKWIsg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Nov 2015 03:48:36 -0500
+Subject: Re: Interrupt handler responsibility
+To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
+References: <CAJ2oMhL93kMM8i9Mc9ayRmtAkCyN1Stq2SRsjNpeLrVvR5DWNw@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5652D2DD.2040903@xs4all.nl>
+Date: Mon, 23 Nov 2015 09:48:29 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ2oMhL93kMM8i9Mc9ayRmtAkCyN1Stq2SRsjNpeLrVvR5DWNw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usbvision driver crashes when a specially crafted usb device with invalid
-number of interfaces or endpoints is detected. This fix adds checks that the
-device has proper configuration expected by the driver.
+On 11/21/2015 11:20 PM, Ran Shalit wrote:
+> Hello,
+> 
+> I am trying to understand the interrupt handler responsibility in
+> v4l2, also with respect to dma usage. I see that it is not defined as
+> part of the videobuf2 API.
+> 
+> This is what I understand this far:
+> 1. start_streaming is responsible for getting into "streaming" state.
+> dma start should be trigggered at this point.
 
-Reported-by: Ralf Spenneberg <ralf@spenneberg.net>
-Signed-off-by: Vladis Dronov <vdronov@redhat.com>
----
- drivers/media/usb/usbvision/usbvision-video.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+Right.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index b693206..d1dc1a1 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1463,9 +1463,23 @@ static int usbvision_probe(struct usb_interface *intf,
- 
- 	if (usbvision_device_data[model].interface >= 0)
- 		interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
--	else
-+	else if (ifnum < dev->actconfig->desc.bNumInterfaces)
- 		interface = &dev->actconfig->interface[ifnum]->altsetting[0];
-+	else {
-+		dev_err(&intf->dev, "interface %d is invalid, max is %d\n",
-+		    ifnum, dev->actconfig->desc.bNumInterfaces - 1);
-+		ret = -ENODEV;
-+		goto err_usb;
-+	}
-+
-+	if (interface->desc.bNumEndpoints < 2) {
-+		dev_err(&intf->dev, "interface %d has %d endpoints, but must"
-+		    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
-+		ret = -ENODEV;
-+		goto err_usb;
-+	}
- 	endpoint = &interface->endpoint[1].desc;
-+
- 	if (!usb_endpoint_xfer_isoc(endpoint)) {
- 		dev_err(&intf->dev, "%s: interface %d. has non-ISO endpoint!\n",
- 		    __func__, ifnum);
--- 
-2.6.2
+> 2. interrupt handler: is responsible for passing back the buffer to
+> user using vb2_buffer_done() call.
 
+Right.
+
+> 
+> But what is the exact reponsibility of interrupt handler with respect
+> to dma usage  ?
+
+Typically when the DMA has finished DMAing a frame it will generate an interrupt.
+The interrupt handler will then call vb2_buffer_done() handing the buffer back
+to the vb2 framework. Think of it as who owns the buffer: when buf_queue is called
+the buffer is handed from vb2 to the driver, and the driver calls vb2_buffer_done()
+when it is finished with the buffer (i.e. the data is DMAed into the buffer) and
+it hands it back to vb2.
+
+> In some of the drivers I see that the interrupt start/stop dma, but in
+>  v4l2-pci-skeleton.c I don't see any usage of dma in the interrupt
+> handler, so I'm not sure.
+
+The interrupt handler is called in response of a DMA interrupt. How that interrupt
+is generated is hardware specific, so that's why you don't see it in the skeleton
+driver.
+
+Regards,
+
+	Hans
