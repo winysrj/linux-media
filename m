@@ -1,154 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:32774 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352AbbKPNBb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39382 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754693AbbKWWR7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 08:01:31 -0500
-Received: by wmec201 with SMTP id c201so175082761wme.0
-        for <linux-media@vger.kernel.org>; Mon, 16 Nov 2015 05:01:30 -0800 (PST)
-Date: Mon, 16 Nov 2015 13:01:26 +0000
-From: Lee Jones <lee.jones@linaro.org>
+	Mon, 23 Nov 2015 17:17:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Eduardo Valentin <edubezval@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Ulf Hansson <ulf.hansson@linaro.org>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	Fabian Frederick <fabf@skynet.be>,
-	Heiko Stuebner <heiko@sntech.de>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-sh@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 3/3] [media] include/media: move platform_data to
- linux/platform_data/media
-Message-ID: <20151116130126.GE17829@x1>
-References: <013152dcb3d4eaddd39aa4a37868430567bdc2d6.1447671420.git.mchehab@osg.samsung.com>
- <b8bd73bedde742571b1ab8a7c0917a732dbf2ca1.1447671420.git.mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 48/55] [media] media_device: add a topology version field
+Date: Tue, 24 Nov 2015 00:18:07 +0200
+Message-ID: <2524858.zcGD9LHCc4@avalon>
+In-Reply-To: <20150904140827.424c6d81@recife.lan>
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <55E4582A.5050205@xs4all.nl> <20150904140827.424c6d81@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b8bd73bedde742571b1ab8a7c0917a732dbf2ca1.1447671420.git.mchehab@osg.samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 16 Nov 2015, Mauro Carvalho Chehab wrote:
+Hi Mauro,
 
-> Let's not mix platform_data headers with the core headers. Instead, let's
-> create a subdir at linux/platform_data and move the headers to that
-> common place, adding it to MAINTAINERS.
-> 
-> The headers were moved with:
-> 	mkdir include/linux/platform_data/media/; git mv include/media/gpio-ir-recv.h include/media/ir-rx51.h include/media/mmp-camera.h include/media/omap1_camera.h include/media/omap4iss.h include/media/s5p_hdmi.h include/media/si4713.h include/media/sii9234.h include/media/smiapp.h include/media/soc_camera.h include/media/soc_camera_platform.h include/media/timb_radio.h include/media/timb_video.h include/linux/platform_data/media/
-> 
-> And the references fixed with this script:
->     MAIN_DIR="linux/platform_data/"
->     PREV_DIR="media/"
->     DIRS="media/"
-> 
->     echo "Checking affected files" >&2
->     for i in $DIRS; do
-> 	for j in $(find include/$MAIN_DIR/$i -type f -name '*.h'); do
-> 		 n=`basename $j`
-> 		git grep -l $n
-> 	done
->     done|sort|uniq >files && (
-> 	echo "Handling files..." >&2;
-> 	echo "for i in \$(cat files|grep -v Documentation); do cat \$i | \\";
-> 	(
-> 		cd include/$MAIN_DIR;
-> 		for j in $DIRS; do
-> 			for i in $(ls $j); do
-> 				echo "perl -ne 's,(include [\\\"\\<])$PREV_DIR($i)([\\\"\\>]),\1$MAIN_DIR$j\2\3,; print \$_' |\\";
-> 			done;
-> 		done;
-> 		echo "cat > a && mv a \$i; done";
-> 	);
-> 	echo "Handling documentation..." >&2;
-> 	echo "for i in MAINTAINERS \$(cat files); do cat \$i | \\";
-> 	(
-> 		cd include/$MAIN_DIR;
-> 		for j in $DIRS; do
-> 			for i in $(ls $j); do
-> 				echo "  perl -ne 's,include/$PREV_DIR($i)\b,include/$MAIN_DIR$j\1,; print \$_' |\\";
-> 			done;
-> 		done;
-> 		echo "cat > a && mv a \$i; done"
-> 	);
->     ) >script && . ./script
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  Documentation/video4linux/omap4_camera.txt                    | 2 +-
->  Documentation/video4linux/si4713.txt                          | 2 +-
->  MAINTAINERS                                                   | 1 +
->  arch/arm/mach-omap1/include/mach/camera.h                     | 2 +-
->  arch/arm/mach-omap2/board-rx51-peripherals.c                  | 4 ++--
->  arch/arm/plat-samsung/devs.c                                  | 2 +-
->  arch/sh/boards/mach-ap325rxa/setup.c                          | 2 +-
->  drivers/media/platform/marvell-ccic/mmp-driver.c              | 2 +-
->  drivers/media/platform/s5p-tv/hdmi_drv.c                      | 2 +-
->  drivers/media/platform/s5p-tv/sii9234_drv.c                   | 2 +-
->  drivers/media/platform/soc_camera/omap1_camera.c              | 2 +-
->  drivers/media/platform/soc_camera/soc_camera_platform.c       | 2 +-
->  drivers/media/platform/timblogiw.c                            | 2 +-
->  drivers/media/radio/radio-timb.c                              | 2 +-
->  drivers/media/radio/si4713/radio-usb-si4713.c                 | 2 +-
->  drivers/media/radio/si4713/si4713.h                           | 2 +-
->  drivers/media/rc/gpio-ir-recv.c                               | 2 +-
->  drivers/media/rc/ir-rx51.c                                    | 2 +-
->  drivers/mfd/timberdale.c                                      | 4 ++--
+On Friday 04 September 2015 14:08:27 Mauro Carvalho Chehab wrote:
+> Em Mon, 31 Aug 2015 15:35:38 +0200 Hans Verkuil escreveu:
+> > On 08/31/2015 02:52 PM, Mauro Carvalho Chehab wrote:
+> >> Em Mon, 31 Aug 2015 14:29:28 +0200 Hans Verkuil escreveu:
+> >>> On 08/30/2015 05:06 AM, Mauro Carvalho Chehab wrote:
+> >>>> Every time a graph object is added or removed, the version
+> >>>> of the topology changes. That's a requirement for the new
+> >>>> MEDIA_IOC_G_TOPOLOGY, in order to allow userspace to know
+> >>>> that the topology has changed after a previous call to it.
+> >>>> 
+> >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>> 
+> >>> I think this should be postponed until we actually have dynamic
+> >>> reconfigurable graphs.
+> >> 
+> >> So far, we're using the term "dynamic" to mean partial graph object
+> >> removal.
+> >> 
+> >> But even today, MC does support "dynamic" in the sense of graph object
+> >> additions.
+> >> 
+> >> You should notice that having a topology_version is something that IMHO,
+> >> it is needed since the beginning, even without dynamic reconfigurable
+> >> graphs, because the graph may grow in runtime.
+> >> 
+> >> That will happen, for example, if usb-snd-audio is blacklisted at
+> >> /etc/modprobe*, and someone connects an au0828.
+> >> 
+> >> New entities/links will be created (after Shuah patches) if one would
+> >> modprobe latter snd-usb-audio.
+> > 
+> > latter -> later :-)
+> > 
+> > You are right, this would trigger a topology change. I hadn't thought
+> > about that.
 
-Acked-by: Lee Jones <lee.jones@linaro.org>
-  
->  drivers/staging/media/omap4iss/iss.h                          | 2 +-
->  drivers/staging/media/omap4iss/iss_csiphy.h                   | 2 +-
->  include/{ => linux/platform_data}/media/gpio-ir-recv.h        | 1 -
->  include/{ => linux/platform_data}/media/ir-rx51.h             | 0
->  include/{ => linux/platform_data}/media/mmp-camera.h          | 0
->  include/{ => linux/platform_data}/media/omap1_camera.h        | 0
->  include/{ => linux/platform_data}/media/omap4iss.h            | 0
->  include/{ => linux/platform_data}/media/s5p_hdmi.h            | 1 -
->  include/{ => linux/platform_data}/media/si4713.h              | 2 +-
->  include/{ => linux/platform_data}/media/sii9234.h             | 0
->  include/{ => linux/platform_data}/media/soc_camera_platform.h | 0
->  include/{ => linux/platform_data}/media/timb_radio.h          | 0
->  include/{ => linux/platform_data}/media/timb_video.h          | 0
->  32 files changed, 24 insertions(+), 25 deletions(-)
->  rename include/{ => linux/platform_data}/media/gpio-ir-recv.h (99%)
->  rename include/{ => linux/platform_data}/media/ir-rx51.h (100%)
->  rename include/{ => linux/platform_data}/media/mmp-camera.h (100%)
->  rename include/{ => linux/platform_data}/media/omap1_camera.h (100%)
->  rename include/{ => linux/platform_data}/media/omap4iss.h (100%)
->  rename include/{ => linux/platform_data}/media/s5p_hdmi.h (99%)
->  rename include/{ => linux/platform_data}/media/si4713.h (96%)
->  rename include/{ => linux/platform_data}/media/sii9234.h (100%)
->  rename include/{ => linux/platform_data}/media/soc_camera_platform.h (100%)
->  rename include/{ => linux/platform_data}/media/timb_radio.h (100%)
->  rename include/{ => linux/platform_data}/media/timb_video.h (100%)
+First of all it won't be very useful without a topology change notification, 
+so until we have them it doesn't matter too much. Then, the code is full of 
+race conditions when it comes to dynamic updates, and I'm afraid Shua's 
+patches can't go in before we fix them.
 
-[...]
+> >>> I would also like to reserve version 0: if 0 is returned, then the graph
+> >>> is static.
+> >> 
+> >> Why? Implementing this would be really hard, as that would mean that
+> >> G_TOPOLOGY would need to be blocked until all drivers and subdevices get
+> >> probed.
+> >> 
+> >> In order to implement that, some logic would be needed at the drivers to
+> >> identify if everything was set and unlock G_TOPOLOGY.
+> > 
+> > That wouldn't be needed if the media device node was created last. Which I
+> > think is a good idea anyway.
+> 
+> Creating the media device node last won't work. It should be the first thing
+> to be created, as all objects should be added to media_device linked lists.
+
+I disagree with that. The media_device needs to be initialized first, but can 
+be registered with userspace last. We don't want to generate a topology update 
+event for every new entity, link or pad during the device probe sequence. 
+Drivers should be in control and tell when they're done with initialization.
+
+> Also, the numberspace should be local to a given media_device, as the graph
+> traversal algorithm relies on having the number of entities <= 64,
+> currently, in order to be able to detect loops. We should increase that
+> number, but removing an "as low as possible" entity number limit is not
+> trivial.
+> 
+> > > What would be the gain for that? I fail to see any.
+> > 
+> > It would tell userspace that it doesn't have to cope with dynamically
+> > changing graphs.
+> > 
+> > Even though with the au0828 example you can expect to see cases like that,
+> > I can pretty much guarantee that no generic v4l2 applications will ever
+> > support dynamic changes.
+> 
+> Well, my test app supports it and it is generic ;) My plan is to use it as a
+> basis for the library to be used on userspace for generic apps, extending it
+> to be used by other tools like xawtv, qv4l2 and the dvbv5 apps.
+> 
+> I don't think it is hard to handle it on a generic app,
+
+I'll quote you later on that :-)
+
+> and this should be done anyway if we want dynamic support.
+>
+> The logic seems actually be simple:
+> 
+> at G_TOPOLOGY, if the topology changes, reload the objects;
+
+And update everything in userspace. That's a very hard task if you don't 
+design your applications extremely carefully.
+
+> at SETUP_LINK_V2, the topology will be sent. if the driver detects that
+> topology changed, it returns an error.
+> 
+> The caller will then need to reload the topology and re-apply the
+> transaction to select the links, if the entities affected still exists. In
+> other words, if the user's intent were to change the pipeline to receive the
+> data at /dev/video2, e. g. something like:
+> 	./yavta/yavta -f UYVY -s 720x312 -n 1 --capture=1 -F /dev/video2
+> 
+> What userspace would do is to reload everything, check if /dev/video2 still
+> exists and then redo the function that it is equivalent to the above
+> command, failing otherwise. That doesn't sound hard to implement.
+> 
+> > Those that will support it will be custom-made.
+> > 
+> > Being able to see that graphs can change dynamically would allow such apps
+> > to either refuse to use the device, or warn the user.
+> 
+> The way I see is that applications that will assume that the graph
+> is static will be the custom-made ones.
+
+Or (some of) the generic ones.
+
+> As they know the hardware, they can just either ignore the topology_version
+> or wait for it to stabilize when the hardware is still being probed.
+> 
+> In any case, if we end by needing to have an explicit way for the
+> Kernelspace to tell userspace that a graph is static, that could be done via
+> an extra flag at MEDIA_INFO.
+
+Why ? I don't see anything wrong with reversing version 0 for that purpose, as 
+Hans proposed.
+
+> Enabling this flag could be as easy as waiting for all graph elements to be
+> created (where the topology is still dynamic), and raise such flag after
+> finishing the probe sequence.
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Regards,
+
+Laurent Pinchart
+
