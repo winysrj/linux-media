@@ -1,145 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.133]:63524 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156AbbKYPNj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38813 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081AbbKWQla (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 10:13:39 -0500
-From: Arnd Bergmann <arnd@arndb.de>
+	Mon, 23 Nov 2015 11:41:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <greg@kroah.com>,
-	Tapasweni Pathak <tapaswenipathak@gmail.com>,
-	y2038@lists.linaro.org
-Subject: [PATCH 3/3] staging: media: lirc: Replace timeval with ktime_t in lirc_parallel.c
-Date: Wed, 25 Nov 2015 16:13:26 +0100
-Message-ID: <4716726.5GsAHSDJCO@wuerfel>
-In-Reply-To: <3966611.mJGTQOXNKU@wuerfel>
-References: <3966611.mJGTQOXNKU@wuerfel>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 1/2] [media] media_entity: remove gfp_flags argument
+Date: Mon, 23 Nov 2015 18:41:37 +0200
+Message-ID: <3372556.3faHDQeKTD@avalon>
+In-Reply-To: <a00239aa63f30980876da9fa563bb86a80caa7c6.1441798267.git.mchehab@osg.samsung.com>
+References: <cover.1441798267.git.mchehab@osg.samsung.com> <a00239aa63f30980876da9fa563bb86a80caa7c6.1441798267.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'struct timeval tv' and 'struct timeval now' is used to calculate the
-elapsed time. 'LIRC_SFH506_DELAY' is a delay t_phl in usecs.
+Hi Mauro,
 
-32-bit systems using 'struct timeval' will break in the year 2038,
-so we have to replace that code with more appropriate types.
-This patch changes the lirc_parallel.c file of  media: lirc driver
-to use ktime_t.
+Thank you for the patch.
 
-ktime_get() is  better than using do_gettimeofday(),
-because it uses the monotonic clock. ktime_sub is used
-to subtract two ktime variables. ktime_to_us() is used to
-convert ktime to microsecond.
+On Wednesday 09 September 2015 08:32:02 Mauro Carvalho Chehab wrote:
+> We should not be creating device nodes at IRQ contexts. So,
+> the only flags we'll be using will be GFP_KERNEL. Let's
+> remove the gfp_flags, in order to make the interface simpler.
+> 
+> If we ever need it, it would be easy to revert those changes.
+> 
+> While here, remove an extra blank line.
+> 
+> Suggested-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvbdev.c
+> b/drivers/media/dvb-core/dvbdev.c index e9f24c1479dd..60828a9537a0 100644
+> --- a/drivers/media/dvb-core/dvbdev.c
+> +++ b/drivers/media/dvb-core/dvbdev.c
+> @@ -379,8 +379,7 @@ static int dvb_register_media_device(struct dvb_device
+> *dvbdev,
+> 
+>  	dvbdev->intf_devnode = media_devnode_create(dvbdev->adapter->mdev,
+>  						    intf_type, 0,
+> -						    DVB_MAJOR, minor,
+> -						    GFP_KERNEL);
+> +						    DVB_MAJOR, minor);
+> 
+>  	if (!dvbdev->intf_devnode)
+>  		return -ENOMEM;
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 4868b8269204..f28265864b76 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -887,12 +887,11 @@ static void media_interface_init(struct media_device
+> *mdev,
+> 
+>  struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
+>  						u32 type, u32 flags,
+> -						u32 major, u32 minor,
+> -						gfp_t gfp_flags)
+> +						u32 major, u32 minor)
+>  {
+>  	struct media_intf_devnode *devnode;
+> 
+> -	devnode = kzalloc(sizeof(*devnode), gfp_flags);
+> +	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+>  	if (!devnode)
+>  		return NULL;
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> b/drivers/media/v4l2-core/v4l2-dev.c index 430aa2330d07..982255d2063f
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -777,8 +777,7 @@ static int video_register_media_controller(struct
+> video_device *vdev, int type) vdev->intf_devnode =
+> media_devnode_create(vdev->v4l2_dev->mdev,
+>  						  intf_type,
+>  						  0, VIDEO_MAJOR,
+> -						  vdev->minor,
+> -						  GFP_KERNEL);
+> +						  vdev->minor);
+>  	if (!vdev->intf_devnode) {
+>  		media_device_unregister_entity(&vdev->entity);
+>  		return -ENOMEM;
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 9cbb10079024..44ab153c37fc 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -71,7 +71,6 @@ struct media_gobj {
+>  	struct list_head	list;
+>  };
+> 
+> -
 
-New ktime_t variable timeout, is added in lirc_off(),to improve
-clarity. Introduced a new ktime_t variable in lirc_lirc_irq_handler()
-function, to avoid the use of signal variable for storing
-seconds in the first part of this fucntion as later it uses
-a time unit that is defined by the global "timer" variable.
-This makes it more clear.
+This belongs to "media: add a common struct to be embed on media graph 
+objects". I know that you're reluctant to rebase, split and squash patches 
+from fear of introducing breakages, but white space fixes should be really 
+harmless :-)
 
-ktime_set() is used to set a value in seconds to a value in
-nanosecond so that ktime_compare() can be used appropriately.
-ktime_compare() is used to compare two ktime values.
-ktime_add_ns() is used to increment a ktime value by 1 sec.
+The rest of the patch looks good to me, but as mentioned over IRC, I still 
+think it would be beneficial to do a final round of rebase, split and squash 
+as otherwise it's pretty difficult to perform a final review and ensure 
+everything is right. This patch looks like a pretty safe candidate in that 
+regard.
 
-One comment is also shifted a line up, as it was creating a 80
-character warning.
+>  struct media_pipeline {
+>  };
+> 
+> @@ -373,8 +372,7 @@ void media_entity_pipeline_stop(struct media_entity
+> *entity); struct media_intf_devnode *
+>  __must_check media_devnode_create(struct media_device *mdev,
+>  				  u32 type, u32 flags,
+> -				  u32 major, u32 minor,
+> -				  gfp_t gfp_flags);
+> +				  u32 major, u32 minor);
+>  void media_devnode_remove(struct media_intf_devnode *devnode);
+>  struct media_link *
+>  __must_check media_create_intf_link(struct media_entity *entity,
 
-Build tested it. Also tested it with sparse.
+-- 
+Regards,
 
-Signed-off-by: Tapasweni Pathak <tapaswenipathak@gmail.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index c1408342b1d0..c7987c01d9e0 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -33,7 +33,7 @@
- #include <linux/fs.h>
- #include <linux/kernel.h>
- #include <linux/ioport.h>
--#include <linux/time.h>
-+#include <linux/ktime.h>
- #include <linux/mm.h>
- #include <linux/delay.h>
- 
-@@ -144,25 +144,22 @@ static void lirc_off(void)
- 
- static unsigned int init_lirc_timer(void)
- {
--	struct timeval tv, now;
-+	ktime_t kt, now, timeout;
- 	unsigned int level, newlevel, timeelapsed, newtimer;
- 	int count = 0;
- 
--	do_gettimeofday(&tv);
--	tv.tv_sec++;                     /* wait max. 1 sec. */
-+	kt = ktime_get();
-+	/* wait max. 1 sec. */
-+	timeout = ktime_add_ns(kt, NSEC_PER_SEC);
- 	level = lirc_get_timer();
- 	do {
- 		newlevel = lirc_get_timer();
- 		if (level == 0 && newlevel != 0)
- 			count++;
- 		level = newlevel;
--		do_gettimeofday(&now);
--	} while (count < 1000 && (now.tv_sec < tv.tv_sec
--			     || (now.tv_sec == tv.tv_sec
--				 && now.tv_usec < tv.tv_usec)));
--
--	timeelapsed = (now.tv_sec + 1 - tv.tv_sec)*1000000
--		     + (now.tv_usec - tv.tv_usec);
-+		now = ktime_get();
-+	} while (count < 1000 && (ktime_before(now, timeout)));
-+	timeelapsed = ktime_us_delta(now, kt);
- 	if (count >= 1000 && timeelapsed > 0) {
- 		if (default_timer == 0) {
- 			/* autodetect timer */
-@@ -220,8 +217,8 @@ static void rbuf_write(int signal)
- 
- static void lirc_lirc_irq_handler(void *blah)
- {
--	struct timeval tv;
--	static struct timeval lasttv;
-+	ktime_t kt, delkt;
-+	static ktime_t lastkt;
- 	static int init;
- 	long signal;
- 	int data;
-@@ -244,16 +241,14 @@ static void lirc_lirc_irq_handler(void *blah)
- 
- #ifdef LIRC_TIMER
- 	if (init) {
--		do_gettimeofday(&tv);
-+		kt = ktime_get();
- 
--		signal = tv.tv_sec - lasttv.tv_sec;
--		if (signal > 15)
-+		delkt = ktime_sub(kt, lastkt);
-+		if (ktime_compare(delkt, ktime_set(15, 0)) > 0)
- 			/* really long time */
- 			data = PULSE_MASK;
- 		else
--			data = (int) (signal*1000000 +
--					 tv.tv_usec - lasttv.tv_usec +
--					 LIRC_SFH506_DELAY);
-+			data = (int) (ktime_to_us(delkt) + LIRC_SFH506_DELAY);
- 
- 		rbuf_write(data); /* space */
- 	} else {
-@@ -301,7 +296,7 @@ static void lirc_lirc_irq_handler(void *blah)
- 			data = 1;
- 		rbuf_write(PULSE_BIT|data); /* pulse */
- 	}
--	do_gettimeofday(&lasttv);
-+	lastkt = ktime_get();
- #else
- 	/* add your code here */
- #endif
+Laurent Pinchart
 
