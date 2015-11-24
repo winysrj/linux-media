@@ -1,370 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:55393 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933203AbbKRQza (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 11:55:30 -0500
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH 2/9] [media] tvp5150: add userspace subdev API
-Date: Wed, 18 Nov 2015 17:55:21 +0100
-Message-Id: <1447865728-5726-2-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
-References: <1447865728-5726-1-git-send-email-l.stach@pengutronix.de>
+Received: from lists.s-osg.org ([54.187.51.154]:49364 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752617AbbKXMUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2015 07:20:01 -0500
+Date: Tue, 24 Nov 2015 10:19:57 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 47/55] [media] media-device: add pads and links to
+ media_device
+Message-ID: <20151124101957.73b2eb83@recife.lan>
+In-Reply-To: <1719719.uHu2Ij6nVQ@avalon>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+	<ab2ed3a063cca99241aee1b488245b7ddeac7185.1441540862.git.mchehab@osg.samsung.com>
+	<1719719.uHu2Ij6nVQ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi Laurent,
 
-This patch adds userspace V4L2 subdevice API support.
+Em Tue, 24 Nov 2015 00:28:24 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 259 ++++++++++++++++++++++++++++++++++----------
- 1 file changed, 200 insertions(+), 59 deletions(-)
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 06 September 2015 09:03:07 Mauro Carvalho Chehab wrote:
+> > The MC next gen API sends objects to userspace grouped by
+> > their types.
+> > 
+> > In the case of pads and links, in order to improve performance
+> 
+> Are we sure it really improves performances ?
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index a7495d2856c3..8670b478dcd6 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -36,7 +36,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- 
- struct tvp5150 {
- 	struct v4l2_subdev sd;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_mbus_framefmt format;
- 	struct v4l2_rect rect;
- 	struct regmap *regmap;
- 
-@@ -819,38 +821,68 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_format *format)
-+static void tvp5150_try_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
-+			       v4l2_std_id std)
- {
--	struct v4l2_mbus_framefmt *f;
--	struct tvp5150 *decoder = to_tvp5150(sd);
-+	unsigned int hmax;
- 
--	if (!format || format->pad)
--		return -EINVAL;
-+	/* Clamp the crop rectangle boundaries to tvp5150 limits */
-+	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
-+	rect->width = clamp(rect->width,
-+			    TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
-+			    TVP5150_H_MAX - rect->left);
-+	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
- 
--	f = &format->format;
-+	/* tvp5150 has some special limits */
-+	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
-+	rect->width = clamp_t(unsigned int, rect->width,
-+			      TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
-+			      TVP5150_H_MAX - rect->left);
-+	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
- 
--	tvp5150_reset(sd, 0);
-+	/* Calculate height based on current standard */
-+	if (std & V4L2_STD_525_60)
-+		hmax = TVP5150_V_MAX_525_60;
-+	else
-+		hmax = TVP5150_V_MAX_OTHERS;
- 
--	f->width = decoder->rect.width;
--	f->height = decoder->rect.height;
-+	rect->height = clamp(rect->height,
-+			     hmax - TVP5150_MAX_CROP_TOP - rect->top,
-+			     hmax - rect->top);
-+}
- 
--	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	f->field = V4L2_FIELD_SEQ_TB;
--	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+static void tvp5150_set_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
-+			       v4l2_std_id std)
-+{
-+	struct regmap *map = decoder->regmap;
-+	unsigned int hmax;
- 
--	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
--			f->height);
--	return 0;
-+	if (std & V4L2_STD_525_60)
-+		hmax = TVP5150_V_MAX_525_60;
-+	else
-+		hmax = TVP5150_V_MAX_OTHERS;
-+
-+	regmap_write(map, TVP5150_VERT_BLANKING_START, rect->top);
-+	regmap_write(map, TVP5150_VERT_BLANKING_STOP,
-+		     rect->top + rect->height - hmax);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_ST_MSB,
-+		     rect->left >> TVP5150_CROP_SHIFT);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_ST_LSB,
-+		     rect->left | (1 << TVP5150_CROP_SHIFT));
-+	regmap_write(map, TVP5150_ACT_VD_CROP_STP_MSB,
-+		     (rect->left + rect->width - TVP5150_MAX_CROP_LEFT) >>
-+		     TVP5150_CROP_SHIFT);
-+	regmap_write(map, TVP5150_ACT_VD_CROP_STP_LSB,
-+		     rect->left + rect->width - TVP5150_MAX_CROP_LEFT);
-+
-+	decoder->rect = *rect;
- }
- 
- static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- {
--	struct v4l2_rect rect = a->c;
- 	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct v4l2_rect rect = a->c;
- 	v4l2_std_id std;
--	unsigned int hmax;
- 
- 	v4l2_dbg(1, debug, sd, "%s left=%d, top=%d, width=%d, height=%d\n",
- 		__func__, rect.left, rect.top, rect.width, rect.height);
-@@ -858,42 +890,13 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	/* tvp5150 has some special limits */
--	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
--	rect.width = clamp_t(unsigned int, rect.width,
--			     TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
--			     TVP5150_H_MAX - rect.left);
--	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
--
--	/* Calculate height based on current standard */
- 	if (decoder->norm == V4L2_STD_ALL)
- 		std = tvp5150_read_std(sd);
- 	else
- 		std = decoder->norm;
- 
--	if (std & V4L2_STD_525_60)
--		hmax = TVP5150_V_MAX_525_60;
--	else
--		hmax = TVP5150_V_MAX_OTHERS;
--
--	rect.height = clamp_t(unsigned int, rect.height,
--			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
--			      hmax - rect.top);
--
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
--	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
--		      rect.top + rect.height - hmax);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
--		      rect.left >> TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
--		      rect.left | (1 << TVP5150_CROP_SHIFT));
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
--		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
--		      TVP5150_CROP_SHIFT);
--	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
--		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
--
--	decoder->rect = rect;
-+	tvp5150_try_crop(decoder, &rect, std);
-+	tvp5150_set_crop(decoder, &rect, std);
- 
- 	return 0;
- }
-@@ -1049,6 +1052,138 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static struct v4l2_mbus_framefmt *
-+tvp5150_get_pad_format(struct tvp5150 *decoder, struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-+			 enum v4l2_subdev_format_whence which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &decoder->format;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static struct v4l2_rect *
-+tvp5150_get_pad_crop(struct tvp5150 *decoder, struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
-+		       enum v4l2_subdev_format_whence which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_crop(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &decoder->rect;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
-+	if (fse->index > 0 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
-+		return -EINVAL;
-+
-+	fse->min_width = TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT;
-+	fse->max_width = TVP5150_H_MAX;
-+
-+	/* Calculate height based on current standard */
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	if (std & V4L2_STD_525_60) {
-+		fse->min_height = TVP5150_V_MAX_525_60 - TVP5150_MAX_CROP_TOP;
-+		fse->max_height = TVP5150_V_MAX_525_60;
-+	} else {
-+		fse->min_height = TVP5150_V_MAX_OTHERS - TVP5150_MAX_CROP_TOP;
-+		fse->max_height = TVP5150_V_MAX_OTHERS;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tvp5150_get_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *format)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+
-+	format->format = *tvp5150_get_pad_format(decoder, sd, cfg,
-+						   format->pad, format->which);
-+	return 0;
-+}
-+
-+static int tvp5150_set_format(struct v4l2_subdev *sd,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_format *format)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	struct v4l2_mbus_framefmt *mbus_format;
-+	struct v4l2_rect *crop;
-+
-+	crop = tvp5150_get_pad_crop(decoder, sd, cfg, format->pad,
-+					format->which);
-+	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg, format->pad,
-+					    format->which);
-+	mbus_format->width = crop->width;
-+	mbus_format->height = crop->height;
-+
-+	format->format = *mbus_format;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		tvp5150_reset(sd, 0);
-+
-+	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
-+			mbus_format->height);
-+
-+	return 0;
-+}
-+
-+static void tvp5150_set_default(v4l2_std_id std, struct v4l2_rect *crop,
-+				struct v4l2_mbus_framefmt *format)
-+{
-+	crop->left = 0;
-+	crop->width = TVP5150_H_MAX;
-+	crop->top = 0;
-+	if (std & V4L2_STD_525_60)
-+		crop->height = TVP5150_V_MAX_525_60;
-+	else
-+		crop->height = TVP5150_V_MAX_OTHERS;
-+
-+	format->width = crop->width;
-+	format->height = crop->height;
-+	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	format->field = V4L2_FIELD_SEQ_TB;
-+	format->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+}
-+
-+static int tvp5150_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
-+	if (decoder->norm == V4L2_STD_ALL)
-+		std = tvp5150_read_std(sd);
-+	else
-+		std = decoder->norm;
-+
-+	tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
-+				 v4l2_subdev_get_try_format(fh, 0));
-+	return 0;
-+}
-+
-+/* ----------------------------------------------------------------------- */
-+
- static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
- 	.s_ctrl = tvp5150_s_ctrl,
- };
-@@ -1083,8 +1218,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
- 
- static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
- 	.enum_mbus_code = tvp5150_enum_mbus_code,
--	.set_fmt = tvp5150_fill_fmt,
--	.get_fmt = tvp5150_fill_fmt,
-+	.enum_frame_size = tvp5150_enum_frame_size,
-+	.get_fmt = tvp5150_get_format,
-+	.set_fmt = tvp5150_set_format,
- };
- 
- static const struct v4l2_subdev_ops tvp5150_ops = {
-@@ -1095,6 +1231,9 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 	.pad = &tvp5150_pad_ops,
- };
- 
-+static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
-+	.open = tvp5150_open,
-+};
- 
- /****************************************************************************
- 			I2C Client & Driver
-@@ -1196,6 +1335,13 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->regmap = map;
- 	sd = &core->sd;
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-+	sd->internal_ops = &tvp5150_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-+	core->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	res = media_entity_init(&sd->entity, 1, &core->pad, 0);
-+	if (res < 0)
-+		return res;
- 
- 	/* 
- 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
-@@ -1250,14 +1396,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 	v4l2_ctrl_handler_setup(&core->hdl);
- 
- 	/* Default is no cropping */
--	core->rect.top = 0;
--	if (tvp5150_read_std(sd) & V4L2_STD_525_60)
--		core->rect.height = TVP5150_V_MAX_525_60;
--	else
--		core->rect.height = TVP5150_V_MAX_OTHERS;
--	core->rect.left = 0;
--	core->rect.width = TVP5150_H_MAX;
-+	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
- 
-+	sd->dev = &c->dev;
- 	res = v4l2_async_register_subdev(sd);
- 	if (res < 0)
- 		goto err;
--- 
-2.6.2
+Yes. The comment here describes what would be needed at
+__media_device_get_topology() to implement the logic that would
+retrieve the topology.
 
+Assuming that we have:
+	e - number of entities
+	i - number of interfaces
+	p - number of pads
+	dl - number of data links
+	il - number of interface links
+
+With the current code, the number of loop interactions is:
+	e + i + p + 2 x (dl + il)
+
+If we use, instead, a single list, the number of loop interactions
+would be:
+	4 x (e + i + p + dl + il)
+
+This is at least two times slower than the option I used.
+
+If we use instead:
+> > 	for each entity:
+> > 		for each pad:
+> > 			store pads
+> > 
+> > 	for each entity:
+> > 		for each link:
+> > 			store link
+> > 
+> > 	for each interface:
+> > 		for each link:
+> > 			store link
+
+We would have:
+	(e + p) + (e + dl + il) + (i + dl + il)
+
+With is worse than the loop we're doing, as it will go twice each
+entity. Also, the logic of each loop interaction will be more
+complex. So, the time spent on each loop interaction will be bigger.
+
+The only doubt I actually have is if we should have a separate list
+to distinguish data links and interface links, as this would improve
+it even further, reducing the number of loop interactions to:
+	e + i + p + dl + il
+
+(with is the absolute minimum of interactions for it)
+
+In any case, such change could be done latter, if we identify the
+need in the future.
+
+> 
+> > and have a simpler code, the best is to store them also on
+> > separate linked lists at MC.
+> 
+> Have you considered the approach of storing them in a single list of objects 
+> instead of per-type lists ? I wonder if it could be helpful.
+
+For the implementation of the __media_device_get_topology(), if
+we implement the userspace API in a way that we would mix different
+graph objects, e. g., if we define the API as something like:
+
+struct media_v2_topology {
+	__u32 topology_version;
+
+	__u32 num_graph_objects;
+	struct media_graph_object *obj;
+
+	void *obj_properties;
+};
+
+Then it would make sense to have a single list, because we could
+just send objects to userspace on any order. However, as we need to
+split objects per their type, multiple lists can reduce up to 4 times
+the number of loop interactions when passing those data to userspace.
+
+About the same 4x impact happens internally every time some driver
+or the core would need to use the object list to find for some
+specific object of a given type.
+
+> What bothers me 
+> here is that we violate layers by using the list field in the graph object 
+> structure to store it in lists specific to the individual graph object types. 
+> Such violations have proved to be bad ideas in most cases, even if I can't 
+> pinpoint why right now. It could of course also be an exception.
+
+I guess your review on patch 46/55 and 52/55 about bad layering
+violation are based on the above principle of avoiding to mix
+layers. If I understood well, in your view media_graph_init()
+should not do any type-specific code.
+
+Well, on my view, we're actually implementing in C an optimized code
+for an object-oriented implementation for the media objects.
+
+In that sense, media_graph_init() is actually the constructor of
+any graph object, and media_graph_remove() its destructor. While
+on C++ we would use some virtual methods for type-specific handling
+(and we could be doing that by adding some ops for the type-specific
+handling at object creation/removal, I opted to just fold such
+code inside those functions, as:
+	1) the type-specific handling is actually a very small logic
+	   with just a few lines per type;
+	2) the code will be smaller and simpler;
+	3) no need to add an "ops" field to be passed to the
+	   constructor and be used by the destructor.
+
+So, I think we should handle this as an exception. If this proofs to
+be wrong, we can redesign it later, as changing it won't affect the
+uAPI.
+
+
+> 
+> > If we don't do that, we would need this kind of interaction
+> > to send data to userspace (code is in structured english):
+> > 
+> > 	for each entity:
+> > 		for each pad:
+> > 			store pads
+> > 
+> > 	for each entity:
+> > 		for each link:
+> > 			store link
+> > 
+> > 	for each interface:
+> > 		for each link:
+> > 			store link
+> > 
+> > With would require one nexted loop for pads and two nested
+> 
+> s/nexted loop/nested loop/
+> 
+> > loops for links. By using  separate linked lists for them,
+> > just one loop would be enough.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index ec98595b8a7a..5b2c9f7fcd45 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -382,6 +382,8 @@ int __must_check __media_device_register(struct
+> > media_device *mdev,
+> > 
+> >  	INIT_LIST_HEAD(&mdev->entities);
+> >  	INIT_LIST_HEAD(&mdev->interfaces);
+> > +	INIT_LIST_HEAD(&mdev->pads);
+> > +	INIT_LIST_HEAD(&mdev->links);
+> >  	spin_lock_init(&mdev->lock);
+> >  	mutex_init(&mdev->graph_mutex);
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index cbb0604e81c1..568553d41f5d 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -174,13 +174,15 @@ void media_gobj_init(struct media_device *mdev,
+> >  		break;
+> >  	case MEDIA_GRAPH_PAD:
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+> > +		list_add_tail(&gobj->list, &mdev->pads);
+> >  		break;
+> >  	case MEDIA_GRAPH_LINK:
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+> > +		list_add_tail(&gobj->list, &mdev->links);
+> >  		break;
+> >  	case MEDIA_GRAPH_INTF_DEVNODE:
+> > -		list_add_tail(&gobj->list, &mdev->interfaces);
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
+> > +		list_add_tail(&gobj->list, &mdev->interfaces);
+> >  		break;
+> >  	}
+> >  	dev_dbg_obj(__func__, gobj);
+> > @@ -195,17 +197,10 @@ void media_gobj_init(struct media_device *mdev,
+> >   */
+> >  void media_gobj_remove(struct media_gobj *gobj)
+> >  {
+> > +	dev_dbg_obj(__func__, gobj);
+> > +
+> >  	/* Remove the object from mdev list */
+> > -	switch (media_type(gobj)) {
+> > -	case MEDIA_GRAPH_ENTITY:
+> > -	case MEDIA_GRAPH_INTF_DEVNODE:
+> > -		list_del(&gobj->list);
+> > -		break;
+> > -	default:
+> > -		break;
+> > -	}
+> > -
+> > -	dev_dbg_obj(__func__, gobj);
+> > +	list_del(&gobj->list);
+> >  }
+> > 
+> >  /**
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index 85fa302047bd..0d1b9c687454 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -47,6 +47,8 @@ struct device;
+> >   * @intf_devnode_id: Unique ID used on the last interface devnode
+> > registered * @entities:	List of registered entities
+> >   * @interfaces:	List of registered interfaces
+> > + * @pads:	List of registered pads
+> > + * @links:	List of registered links
+> >   * @lock:	Entities list lock
+> >   * @graph_mutex: Entities graph operation lock
+> >   * @link_notify: Link state change notification callback
+> > @@ -79,6 +81,8 @@ struct media_device {
+> > 
+> >  	struct list_head entities;
+> >  	struct list_head interfaces;
+> > +	struct list_head pads;
+> > +	struct list_head links;
+> > 
+> >  	/* Protects the entities list */
+> >  	spinlock_t lock;
+> > @@ -117,6 +121,14 @@ struct media_device *media_device_find_devres(struct
+> > device *dev); #define media_device_for_each_intf(intf, mdev)			\
+> >  	list_for_each_entry(intf, &(mdev)->interfaces, graph_obj.list)
+> > 
+> > +/* Iterate over all pads. */
+> > +#define media_device_for_each_pad(pad, mdev)			\
+> > +	list_for_each_entry(pad, &(mdev)->pads, graph_obj.list)
+> > +
+> > +/* Iterate over all links. */
+> > +#define media_device_for_each_link(link, mdev)			\
+> > +	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
+> > +
+> > 
+> >  #else
+> >  static inline int media_device_register(struct media_device *mdev)
+> 
