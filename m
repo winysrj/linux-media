@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:35964 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752764AbbKRDiW (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47088 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752377AbbKXDza (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Nov 2015 22:38:22 -0500
+	Mon, 23 Nov 2015 22:55:30 -0500
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A03C0E3982
-	for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 04:38:14 +0100 (CET)
-Date: Wed, 18 Nov 2015 04:38:14 +0100
+	by tschai.lan (Postfix) with ESMTPSA id 0CD9CE0BBB
+	for <linux-media@vger.kernel.org>; Tue, 24 Nov 2015 04:55:25 +0100 (CET)
+Date: Tue, 24 Nov 2015 04:55:24 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151118033814.A03C0E3982@tschai.lan>
+Message-Id: <20151124035525.0CD9CE0BBB@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -20,27 +20,27 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Wed Nov 18 04:00:18 CET 2015
+date:		Tue Nov 24 04:00:25 CET 2015
 git branch:	test
-git hash:	217bdb0741ff4f2db8a1d52b967101702e8694c1
+git hash:	10897dacea26943dd80bd6629117f4620fc320ef
 gcc version:	i686-linux-gcc (GCC) 5.1.0
 sparse version:	v0.5.0
 smatch version:	host hardware:	x86_64
 host os:	4.2.0-164
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
 linux-git-i686: OK
 linux-git-m32r: OK
-linux-git-mips: ERRORS
+linux-git-mips: OK
 linux-git-powerpc64: OK
-linux-git-sh: ERRORS
+linux-git-sh: OK
 linux-git-x86_64: OK
 linux-2.6.32.27-i686: ERRORS
 linux-2.6.33.7-i686: ERRORS
@@ -56,21 +56,21 @@ linux-3.2.37-i686: ERRORS
 linux-3.3.8-i686: ERRORS
 linux-3.4.27-i686: ERRORS
 linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
 linux-4.1.1-i686: OK
 linux-4.2-i686: OK
 linux-4.3-i686: OK
@@ -89,21 +89,21 @@ linux-3.2.37-x86_64: ERRORS
 linux-3.3.8-x86_64: ERRORS
 linux-3.4.27-x86_64: ERRORS
 linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
 linux-4.1.1-x86_64: OK
 linux-4.2-x86_64: OK
 linux-4.3-x86_64: OK
@@ -111,19 +111,15 @@ linux-4.4-rc1-x86_64: OK
 apps: WARNINGS
 spec-git: OK
 sparse: ERRORS
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for powerpc64
-ABI WARNING: change for x86_64
 smatch: OK
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
