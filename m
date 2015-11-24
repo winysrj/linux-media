@@ -1,58 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:33379 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449AbbKKVaQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 16:30:16 -0500
-Received: by obbww6 with SMTP id ww6so32078232obb.0
-        for <linux-media@vger.kernel.org>; Wed, 11 Nov 2015 13:30:15 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:49205 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754271AbbKXKcT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:32:19 -0500
+Date: Tue, 24 Nov 2015 08:32:08 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Rafael =?UTF-8?B?TG91cmVu?= =?UTF-8?B?w6dv?= de Lima
+	 Chehab <chehabrafael@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Joe Perches <joe@perches.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 13/18] [media] media-entity.h: rename entity.type to
+ entity.function
+Message-ID: <20151124083208.590bebbb@recife.lan>
+In-Reply-To: <7197567.LfPs5Bvqpi@avalon>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+	<10e7edf1c85965d8ef8c6c5f527fd695a2660fc4.1441559233.git.mchehab@osg.samsung.com>
+	<7197567.LfPs5Bvqpi@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1446489100.15819.15.camel@collabora.com>
-References: <1394578325-11298-1-git-send-email-sheu@google.com>
- <1394578325-11298-5-git-send-email-sheu@google.com> <06c801cf526f$7b0498a0$710dc9e0$%debski@samsung.com>
- <5343D4BD.4090809@samsung.com> <1446489100.15819.15.camel@collabora.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Wed, 11 Nov 2015 22:29:56 +0100
-Message-ID: <CAH-u=82JZ0S6+5KcEuVjTD4roM0PGWGNccjiUzu_aRes2gyjZw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] v4l2-mem2mem: allow reqbufs(0) with "in use" MMAP buffers
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	John Sheu <sheu@google.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	posciak@google.com, arun.m@samsung.com, kgene.kim@samsung.com,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Mon, 23 Nov 2015 19:51:41 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-2015-11-02 19:31 GMT+01:00 Nicolas Dufresne <nicolas.dufresne@collabora.com>:
-> Le mardi 08 avril 2014 à 12:51 +0200, Marek Szyprowski a écrit :
->> Hello,
->>
->> On 2014-04-07 16:41, Kamil Debski wrote:
->> > Pawel, Marek,
->> >
->> > Before taking this to my tree I wanted to get an ACK from one of
->> > the
->> > videobuf2 maintainers. Could you spare a moment to look through
->> > this
->> > patch?
->>
->> It's not a bug, it is a feature. This was one of the fundamental
->> design
->> requirements to allow applications to track if the memory is used or
->> not.
->
-> I still have the impression it is not fully correct for the case
-> buffers are exported using DMABUF. Like if the dmabuf was owning the
-> vb2 buffer instead of the opposite ...
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 06 September 2015 14:30:56 Mauro Carvalho Chehab wrote:
+> > Entities should have one or more functions. Calling it as a
+> > type proofed to not be correct, as an entity could eventually
+> 
+> s/proofed/proved/
+> 
+> > have more than one type.
+> > 
+> > So, rename the field as function.
+> 
+> s/as/to/
+> 
+> > Please notice that this patch doesn't extend support for
+> > multiple function entities. Such change will happen when
+> > we have real case drivers using it.
+> > 
+> > No functional changes.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> [snip]
+> 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 8bdc10dcc5e7..10f7d5f0eb66 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -152,7 +152,8 @@ struct media_entity_operations {
+> >   *
+> >   * @graph_obj:	Embedded structure containing the media object common data.
+> >   * @name:	Entity name.
+> > - * @type:	Entity type, as defined at uapi/media.h (MEDIA_ENT_T_*)
+> > + * @function:	Entity main function, as defined at uapi/media.h
+> > + *		(MEDIA_ENT_F_*)
+> 
+> I would squash this patch with "uapi/media.h: Rename entities types to 
+> functions" as they essentially touch the same lines. 
 
-I am observing this behaviour too... Tried it, but seems to not do the
-job on dmabuf buffers... with gstreamer at least ;-).
+They touch at the same lines, but the rationale is different. Keeping
+it separate is, IMHO, better, as one logical change per patch is preferred.
 
-JM
+> If you want to keep them 
+> separate I would use MEDIA_ENT_T_* here and rename it to MEDIA_ENT_F_* in 
+> "uapi/media.h: Rename entities types to functions".
+
+IMHO, that would be confusing, as this patch would be incomplete, and
+the other one would be renaming from MEDIA_ENT_T_* to MEDIA_ENT_F_*
+due to a reason that it is on a different patch.
+
+> 
+> >   * @revision:	Entity revision - OBSOLETE - should be removed soon.
+> >   * @flags:	Entity flags, as defined at uapi/media.h (MEDIA_ENT_FL_*)
+> >   * @group_id:	Entity group ID - OBSOLETE - should be removed soon.
+> 
+> [snip]
+> 
