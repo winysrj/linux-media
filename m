@@ -1,129 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:57856 "EHLO mga09.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:49183 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbbKIN0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Nov 2015 08:26:45 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 3/4] libv4l2subdev: Add a function to list library supported pixel codes
-Date: Mon,  9 Nov 2015 15:25:24 +0200
-Message-Id: <1447075525-32321-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1447075525-32321-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S1752574AbbKXKWa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:22:30 -0500
+Date: Tue, 24 Nov 2015 08:22:24 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [media-workshop] [PATCH v8.4 81/83] [media] media-entity: init
+ pads on entity init if was registered before
+Message-ID: <20151124082224.6edac981@recife.lan>
+In-Reply-To: <56537542.6060204@osg.samsung.com>
+References: <1444668252-2303-1-git-send-email-mchehab@osg.samsung.com>
+	<1444668252-2303-82-git-send-email-mchehab@osg.samsung.com>
+	<2341331.P6c9pT8HFp@avalon>
+	<56537542.6060204@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also mark which format definitions are compat definitions for the
-pre-existing codes. This way we don't end up listing the same formats
-twice.
+Em Mon, 23 Nov 2015 17:21:22 -0300
+Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/libv4l2subdev.c | 63 +++++++++++++++++++++++------------------
- utils/media-ctl/v4l2subdev.h    | 11 +++++++
- 2 files changed, 47 insertions(+), 27 deletions(-)
+> Hello Laurent,
+> 
+> On 11/23/2015 01:20 PM, Laurent Pinchart wrote:
+> > Hi Javier,
+> > 
+> > (Replying to linux-media instead of media-workshop, I can't find this patch in 
+> > my linux-media folder)
+> >
+> > Thank you for the patch.
+> >
+> 
+> Thanks for your feedback.
+>  
+> > On Monday 12 October 2015 13:44:10 Mauro Carvalho Chehab wrote:
+> >> From: Javier Martinez Canillas <javier@osg.samsung.com>
+> >>
+> >> If an entity is registered with a media device before is initialized
+> >> with media_device_register_entity(), the number of pads won't be set
+> >> so media_device_register_entity() won't create pad objects and add
+> >> it to the media device pads list.
+> >>
+> >> Do this at entity initialization time if the entity was registered
+> >> before so the graph is complete and correct regardless of the order
+> >> in which the entities are initialized and registered.
+> > 
+> > We now have two places where the pads graph objects are initialized and that 
+> > looks like a bug to me as media_gobj_init() allocates IDs and, even worse, 
+> > adds the entity to the media device entities list.
+> >
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 607e943..7e0da46 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -718,35 +718,36 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p)
- static struct {
- 	const char *name;
- 	enum v4l2_mbus_pixelcode code;
-+	bool compat;
- } mbus_formats[] = {
- #include "media-bus-formats.h"
--	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
--	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
--	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
--	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
--	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
--	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
--	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
--	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
--	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
--	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8 },
--	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8 },
--	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8 },
--	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8 },
--	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10 },
--	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10 },
--	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10 },
--	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10 },
--	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8 },
--	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8 },
--	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8 },
--	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8 },
--	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12 },
--	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12 },
--	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12 },
--	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12 },
--	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32 },
--	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32 },
-+	{ "Y8", MEDIA_BUS_FMT_Y8_1X8, true },
-+	{ "Y10", MEDIA_BUS_FMT_Y10_1X10, true },
-+	{ "Y12", MEDIA_BUS_FMT_Y12_1X12, true },
-+	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16, true },
-+	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8, true },
-+	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8, true },
-+	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16, true },
-+	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8, true },
-+	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8, true },
-+	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8, true },
-+	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8, true },
-+	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8, true },
-+	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8, true },
-+	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10, true },
-+	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10, true },
-+	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10, true },
-+	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10, true },
-+	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8, true },
-+	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8, true },
-+	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8, true },
-+	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8, true },
-+	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12, true },
-+	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12, true },
-+	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12, true },
-+	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12, true },
-+	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32, true },
-+	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32, true },
- };
- 
- const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
-@@ -820,3 +821,11 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
- 
- 	return fields[i].field;
- }
-+
-+enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i)
-+{
-+	if (i >= ARRAY_SIZE(mbus_formats) || mbus_formats[i].compat)
-+		return (enum v4l2_mbus_pixelcode)-1;
-+
-+	return mbus_formats[i].code;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 104e420..ef8ef95 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -279,4 +279,15 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
- enum v4l2_field v4l2_subdev_string_to_field(const char *string,
- 					    unsigned int length);
- 
-+/**
-+ * @brief Enumerate library supported media bus pixel codes.
-+ * @param i - index starting from zero
-+ *
-+ * Enumerate pixel codes supported by libv4l2subdev starting from
-+ * index 0.
-+ *
-+ * @return media bus pixelcode on success, -1 on failure.
-+ */
-+enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i);
-+
- #endif
--- 
-2.1.0.231.g7484e3b
+As Sakari commented on one of his reviews, media_gobj_init() should
+actually be renamed to media_gobj_create(), as it is the function that
+creates and registers a graph object on a given media device.
 
+The hole idea is that any kind of graph object should be created at one
+single point: media_gobj_init - to be renamed to media_gobj_create(), as
+proposed by Sakari.
+
+There's indeed bug on the existing subdev drivers: they want to create
+pads and links without even knowing to what media_device those will be
+associated! Every driver should be doing, instead:
+
+1) create the media_device (or get a reference to an already created one);
+2) create the entities associated with the mdev;
+3) create the pads associated with the already created entity(ies);
+4) register the entity;
+5) create the links associated with two already created pads.
+
+The above workflow is the correct one, as all graph objects should
+be added to the mdev graph object lists that will be used by the
+ioctl handler.
+
+Also, please notice that, if all drivers follow the above procedure,
+we could also merge entity create and register functions into one,
+with is, IMHO, a good thing, as entity creation/registration will
+be atomic.
+
+However, several subdevs do, instead:
+
+1) create entity(ies);
+2) create pads;
+3) get a reference for the media device;
+4) register the entity;
+5) create the links associated with two already created pads.
+
+Changing such logic is not trivial, and require tests with devices
+that we don't have.
+
+So, the approach we took is to allow the above workflow to keep
+working. That's what this patch does.
+
+If you think it is worth to push for a change on those drivers, we
+could eventually add a printk_once() to warn that the driver is
+doing the wrong thing, and give some time for the drivers maintainers
+to fix their drivers, and remove the backward compat code after done.
+
+> Yes but the idea of this patch was in fact to make it less error prone and
+> more robust since entities could either be initialized and later registered
+> or first be registered and then later initialized.
+>  
+> > We need to standardize on where graph objects are initialized across the 
+> > different kind of objects and document this clearly otherwise drivers will get 
+> > it wrong.
+> >
+> 
+> I'm OK with having more strict rules of the order in which objects should
+> be initialized and registered and force all drivers to follow these docs.
+> 
+> >> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> This patch was suggested by Mauro so I'll also let him to comment what he
+> prefers or if he has another opinion on this.
+> 
+> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> >> ---
+> >>  drivers/media/media-entity.c | 10 ++++++++++
+> >>  1 file changed, 10 insertions(+)
+> >>
+> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> >> index f28265864b76..2c984fb7d497 100644
+> >> --- a/drivers/media/media-entity.c
+> >> +++ b/drivers/media/media-entity.c
+> >> @@ -238,6 +238,7 @@ int
+> >>  media_entity_init(struct media_entity *entity, u16 num_pads,
+> >>  		  struct media_pad *pads)
+> >>  {
+> >> +	struct media_device *mdev = entity->graph_obj.mdev;
+> >>  	unsigned int i;
+> >>
+> >>  	entity->group_id = 0;
+> >> @@ -246,11 +247,20 @@ media_entity_init(struct media_entity *entity, u16
+> >> num_pads, entity->num_pads = num_pads;
+> >>  	entity->pads = pads;
+> >>
+> >> +	if (mdev)
+> >> +		spin_lock(&mdev->lock);
+> >> +
+> >>  	for (i = 0; i < num_pads; i++) {
+> >>  		pads[i].entity = entity;
+> >>  		pads[i].index = i;
+> >> +		if (mdev)
+> >> +			media_gobj_init(mdev, MEDIA_GRAPH_PAD,
+> >> +					&entity->pads[i].graph_obj);
+> >>  	}
+> >>
+> >> +	if (mdev)
+> >> +		spin_unlock(&mdev->lock);
+> >> +
+> >>  	return 0;
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(media_entity_init);
+> > 
+> 
+> Best regards,
