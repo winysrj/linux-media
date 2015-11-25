@@ -1,47 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44803 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751504AbbK0Na7 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57769 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217AbbKYRie (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 08:30:59 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 84B0BE0BBB
-	for <linux-media@vger.kernel.org>; Fri, 27 Nov 2015 14:30:54 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.5] New ti-cal driver
-Message-ID: <56585B0E.8090907@xs4all.nl>
-Date: Fri, 27 Nov 2015 14:30:54 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 25 Nov 2015 12:38:34 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v2 3/9] [media] tvp5150: determine BT.656 or YUV 4:2:2 mode from device tree
+Date: Wed, 25 Nov 2015 18:38:30 +0100
+Message-Id: <1448473116-24735-3-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
+References: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 10897dacea26943dd80bd6629117f4620fc320ef:
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-  Merge tag 'v4.4-rc2' into patchwork (2015-11-23 14:16:58 -0200)
+By looking at the endpoint flags, it can be determined whether the link
+should be of V4L2_MBUS_PARALLEL or V4L2_MBUS_BT656 type. Disable the
+dedicated HSYNC/VSYNC outputs in BT.656 mode.
 
-are available in the git repository at:
+For devices that are not instantiated through DT the current behavior
+is preserved.
 
-  git://linuxtv.org/hverkuil/media_tree.git cal
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 34 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
-for you to fetch changes up to 5df9a7909b737e9725c1005b3b39383e9c2490ca:
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 3eab4d918c54..f504fc005222 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -11,10 +11,12 @@
+ #include <linux/delay.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
++#include <linux/of_graph.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/tvp5150.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
+ 
+ #include "tvp5150_reg.h"
+ 
+@@ -38,6 +40,7 @@ struct tvp5150 {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
++	enum v4l2_mbus_type bus_type;
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
+@@ -424,8 +427,6 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
+ 		TVP5150_MISC_CTL, 0x6f
+ 	},{	/* Activates video std autodetection for all standards */
+ 		TVP5150_AUTOSW_MSK, 0x0
+-	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
+-		TVP5150_DATA_RATE_SEL, 0x47
+ 	},{
+ 		TVP5150_CHROMA_PROC_CTL_1, 0x0c
+ 	},{
+@@ -760,6 +761,25 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Initializes TVP5150 to stream enabled values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_enable);
+ 
++	switch (decoder->bus_type) {
++	case V4L2_MBUS_BT656:
++		/* 8-bit ITU BT.656 */
++		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
++				   0x7, 0x7);
++		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
++		break;
++	case V4L2_MBUS_PARALLEL:
++		/* 8-bit YUV 4:2:2 */
++		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
++				   0x7, 0x0);
++		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	/* Initialize image preferences */
+ 	v4l2_ctrl_handler_setup(&decoder->hdl);
+ 
+@@ -1332,6 +1352,8 @@ static struct regmap_config tvp5150_config = {
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
++	struct v4l2_of_endpoint bus_cfg;
++	struct device_node *endpoint;
+ 	struct tvp5150 *core;
+ 	struct v4l2_subdev *sd;
+ 	struct regmap *map;
+@@ -1398,6 +1420,14 @@ static int tvp5150_probe(struct i2c_client *c,
+ 		}
+ 	}
+ 
++	endpoint = of_graph_get_next_endpoint(c->dev.of_node, NULL);
++	if (endpoint) {
++		v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++		core->bus_type = bus_cfg.bus_type;
++	} else {
++		core->bus_type = V4L2_MBUS_BT656;
++	}
++
+ 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+ 	core->input = TVP5150_COMPOSITE1;
+ 	core->enable = 1;
+-- 
+2.6.2
 
-  media: v4l: ti-vpe: Document DRA72 CAL h/w module (2015-11-27 14:25:07 +0100)
-
-----------------------------------------------------------------
-Benoit Parrot (2):
-      media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
-      media: v4l: ti-vpe: Document DRA72 CAL h/w module
-
- Documentation/devicetree/bindings/media/ti-cal.txt |   72 ++
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/ti-vpe/Makefile             |    4 +
- drivers/media/platform/ti-vpe/cal.c                | 2143 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/cal_regs.h           |  779 +++++++++++++++++++++
- 6 files changed, 3012 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
- create mode 100644 drivers/media/platform/ti-vpe/cal.c
- create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
