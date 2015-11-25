@@ -1,138 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55239 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754637AbbKYOYv convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46488 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbbKYRie (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 09:24:51 -0500
-Date: Wed, 25 Nov 2015 12:24:44 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Lukas Wunner <lukas@wunner.de>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Michal Marek <mmarek@suse.cz>,
-	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH 3/3] DocBook: make index.html generation less verbose by
- default
-Message-ID: <20151125122444.4636304e@recife.lan>
-In-Reply-To: <20151125114038.GU17050@phenom.ffwll.local>
-References: <cover.1447943571.git.mchehab@osg.samsung.com>
-	<4178c97531d615b88b2208ad6fd1284b4fc50519.1447943571.git.mchehab@osg.samsung.com>
-	<20151125114038.GU17050@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 25 Nov 2015 12:38:34 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v2 5/9] [media] tvp5150: split reset/enable routine
+Date: Wed, 25 Nov 2015 18:38:32 +0100
+Message-Id: <1448473116-24735-5-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
+References: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 25 Nov 2015 12:40:38 +0100
-Daniel Vetter <daniel.vetter@ffwll.ch> escreveu:
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-> On Thu, Nov 19, 2015 at 3:38 PM, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > When make htmldocs is called on non-verbose mode, it will still be
-> > verbose with index.html generation for no good reason, printing:
-> >
-> >         rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/iio.html >> Documentation/DocBook/index.html
-> >
-> > Instead, use the standard non-verbose mode, using:
-> >
-> >           HTML    Documentation/DocBook/index.html
-> >
-> > if not called with V=1.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> Interesting, but seems to fail for e.g. gpu.xml:
-> 
-> $ git clean -dfx Documentation/
-> $ make DOCBOOKS="gpu.xml" htmldocs
->  HOSTCC  scripts/basic/fixdep
->  HOSTCC  scripts/docproc
->  HOSTCC  scripts/check-lc_ctype
->  DOCPROC Documentation/DocBook/gpu.xml
-> 
-> ... lots of warnings about kerneldoc issues in gpu.xml
-> 
->  XMLREF  Documentation/DocBook/gpu.aux.xml
->  HTML    Documentation/DocBook/gpu.html
-> rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/gpu.html >> Documentation/DocBook/index.html
-> cp: cannot stat ‘./Documentation/DocBook//bayer.png’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//constraints.png’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//crop.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//dvbstb.png’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//fieldseq_bt.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//fieldseq_tb.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//nv12mt.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//nv12mt_example.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//pipeline.png’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//selection.png’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//vbi_525.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//vbi_625.gif’: No such file or directory
-> cp: cannot stat ‘./Documentation/DocBook//vbi_hsync.gif’: No such file or directory
-> Documentation/DocBook/Makefile:55: recipe for target 'htmldocs' failed
-> make[1]: [htmldocs] Error 1 (ignored)
-> 
-> Once I've built media_api.xml the above goes away
+To trigger standard autodetection only the reset part of the routine
+is necessary. Split this out to make it callable on its own.
 
-There's actually one patch fixing this at media tree:
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
->From d01b2d53a5a4db38c7c95651ca9ff23bb930844e Mon Sep 17 00:00:00 2001
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Date: Thu, 19 Nov 2015 07:41:40 -0200
-Subject: [PATCH] DocBook: only copy stuff to media_api if media xml is
- generated
-
-It is possible to use:
-	make DOCBOOKS=device-drivers.xml htmldocs
-
-To produce just a few docbooks. In such case, the media docs
-won't be built, causing the makefile target to return an error.
-
-While this is ok for human eyes, if the above is used on an script,
-it would cause troubles.
-
-Fix it by only creating/filling the media_api directory if the
-media_api.xml is found at DOCBOOKS.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 02848146fc3a..2840ff483d5a 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
- #
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index cb9675fbf358..6d0f2dede866 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -768,9 +768,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
  
- install_media_images = \
--	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
--	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
-+	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
-+		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
-+		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
-+	fi
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
+-	struct tvp5150 *decoder = to_tvp5150(sd);
+-	v4l2_std_id std;
+-
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
  
- $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
- 	$(Q)base64 -d $< >$@
+@@ -780,6 +777,14 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Selects decoder input */
+ 	tvp5150_selmux(sd);
+ 
++	return 0;
++}
++
++static int tvp5150_enable(struct v4l2_subdev *sd)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
+ 	/* Initializes TVP5150 to stream enabled values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_enable);
+ 
+@@ -844,6 +849,7 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++
+ 	return 0;
+ }
+ 
+@@ -1179,8 +1185,10 @@ static int tvp5150_set_format(struct v4l2_subdev *sd,
+ 
+ 	format->format = *mbus_format;
+ 
+-	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+ 		tvp5150_reset(sd, 0);
++		tvp5150_enable(sd);
++	}
+ 
+ 	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
+ 			mbus_format->height);
+@@ -1454,6 +1462,7 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	}
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
++	tvp5150_reset(sd, 0);
+ 	/* Default is no cropping */
+ 	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
+-- 
+2.6.2
 
-
-> and then I get a new warning when trying to rebuild:
-> 
-> $ make DOCBOOKS="media_api.xml" htmldocs      
-> 
-> ... output cut ...
-> 
-> $ make DOCBOOKS="gpu.xml" htmldocs      
-> rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/gpu.html >> Documentation/DocBook/index.html
-> mkdir: cannot create directory ‘./Documentation/DocBook//media_api’: File exists
-
-There are two other patches for Documentation/DocBook/media/Makefile
-that will fix this trouble.
-
-Those patches are already at linux-next, via my tree.
-
-Regards,
-Mauro
