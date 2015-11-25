@@ -1,280 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49295 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:55239 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797AbbKXLZe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Nov 2015 06:25:34 -0500
-Date: Tue, 24 Nov 2015 09:25:28 -0200
+	id S1754637AbbKYOYv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2015 09:24:51 -0500
+Date: Wed, 25 Nov 2015 12:24:44 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Shuah Khan <shuah.kh@samsung.com>
-Subject: Re: [PATCH v8 53/55] [media] v4l2-core: create MC interfaces for
- devnodes
-Message-ID: <20151124092528.67284bc6@recife.lan>
-In-Reply-To: <1645986.8pcHtPeim4@avalon>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<c9b312c5cff8d2024ebb48871b62b6366e73ea8c.1441540862.git.mchehab@osg.samsung.com>
-	<1645986.8pcHtPeim4@avalon>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Lukas Wunner <lukas@wunner.de>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Michal Marek <mmarek@suse.cz>,
+	Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 3/3] DocBook: make index.html generation less verbose by
+ default
+Message-ID: <20151125122444.4636304e@recife.lan>
+In-Reply-To: <20151125114038.GU17050@phenom.ffwll.local>
+References: <cover.1447943571.git.mchehab@osg.samsung.com>
+	<4178c97531d615b88b2208ad6fd1284b4fc50519.1447943571.git.mchehab@osg.samsung.com>
+	<20151125114038.GU17050@phenom.ffwll.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 23:10:04 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Em Wed, 25 Nov 2015 12:40:38 +0100
+Daniel Vetter <daniel.vetter@ffwll.ch> escreveu:
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 06 September 2015 09:03:13 Mauro Carvalho Chehab wrote:
-> > V4L2 device (and subdevice) nodes should create an interface, if the
-> > Media Controller support is enabled.
-> > 
-> > Please notice that radio devices should not create an entity, as radio
-> > input/output is either via wires or via ALSA.
-> 
-> I'd go one step further, video nodes should not create an entity, ever. This 
-> was one of the design principles behind the MC rework. We'll need to patch 
-> drivers to create DMA engine entity explicitly, possibly through a helper 
-> function (maybe a function to create and initialize a DMA engine entity based 
-> on a struct video_device). This can of course be done on a separate patch, but 
-> removing the entity field from struct video_device should be part of the 
-> series.
-
-Not sure what exactly you mean here.
-
-There are two separate things happening with regards to device
-nodes that do stream I/O:
-
-1) They may have a DMA engine somewhere at the hardware pipeline.
-   On some drivers, like USB ones, the DMA engine is actually not
-   responsible to deliver the data to userspace. This is also
-   true on ALSA and DVB (right now). Also, eventually, some
-   drivers may not have a DMA engine (they may eventually use PIO
-   like some old sound cards);
-
-2) The I/O interface to where the data stream is delivered. This is
-   actually not a hardware interface, but a software implementation
-   on Linux. Ok, on V4L2, this is typically associated with a DMA
-   engine, but the actual interface is a buffer that could be
-   obtained by one of the delivery methods: read()/write() sysctl,
-   mmapped buffer and/or DMABUF.
-
-IMHO, (2) would ideally be mapped as a media_interface, as this is
-not hardware, but linux software. However, such change won't be
-backward compatible. So, as agreed at the MC workshop, we're using
-a media entity for such I/O interface, calling its function as
-MEDIA_ENT_F_IO (as you may see at the review comments from the
-others, Shuah requested to actually split this function into one
-I/O function per type of interface, in order to be able to easily
-distinguish ALSA I/O from V4L2 I/O). 
-
-I agree that (1) should be driver-specific, as only the driver knows
-where the DMA engine is at the pipeline.
-
-However, (2) should be created by the media core. So, I can't see
-any rationale to remove the entity field from struct video_device.
-
-> 
+> On Thu, Nov 19, 2015 at 3:38 PM, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> > When make htmldocs is called on non-verbose mode, it will still be
+> > verbose with index.html generation for no good reason, printing:
+> >
+> >         rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/iio.html >> Documentation/DocBook/index.html
+> >
+> > Instead, use the standard non-verbose mode, using:
+> >
+> >           HTML    Documentation/DocBook/index.html
+> >
+> > if not called with V=1.
+> >
 > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> > b/drivers/media/v4l2-core/v4l2-dev.c index 44b330589787..07123dd569c4
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -194,9 +194,12 @@ static void v4l2_device_release(struct device *cd)
-> >  	mutex_unlock(&videodev_lock);
-> > 
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> > -	if (v4l2_dev->mdev &&
-> > -	    vdev->vfl_type != VFL_TYPE_SUBDEV)
-> > -		media_device_unregister_entity(&vdev->entity);
-> > +	if (v4l2_dev->mdev) {
-> > +		/* Remove interfaces and interface links */
-> > +		media_devnode_remove(vdev->intf_devnode);
-> > +		if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN)
-> > +			media_device_unregister_entity(&vdev->entity);
-> > +	}
-> >  #endif
-> > 
-> >  	/* Do not call v4l2_device_put if there is no release callback set.
-> > @@ -713,6 +716,92 @@ static void determine_valid_ioctls(struct video_device
-> > *vdev) BASE_VIDIOC_PRIVATE);
-> >  }
-> > 
-> > +
 > 
-> Extra blank line.
+> Interesting, but seems to fail for e.g. gpu.xml:
 > 
-> > +static int video_register_media_controller(struct video_device *vdev, int
-> > type)
-> > +{
-> > +#if defined(CONFIG_MEDIA_CONTROLLER)
-> > +	u32 intf_type;
-> > +	int ret;
-> > +
-> > +	if (!vdev->v4l2_dev->mdev)
-> > +		return 0;
-> > +
-> > +	vdev->entity.type = MEDIA_ENT_T_UNKNOWN;
-> > +
-> > +	switch (type) {
-> > +	case VFL_TYPE_GRABBER:
-> > +		intf_type = MEDIA_INTF_T_V4L_VIDEO;
-> > +		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
-> > +		break;
-> > +	case VFL_TYPE_VBI:
-> > +		intf_type = MEDIA_INTF_T_V4L_VBI;
-> > +		vdev->entity.type = MEDIA_ENT_T_V4L2_VBI;
-> > +		break;
-> > +	case VFL_TYPE_SDR:
-> > +		intf_type = MEDIA_INTF_T_V4L_SWRADIO;
-> > +		vdev->entity.type = MEDIA_ENT_T_V4L2_SWRADIO;
-> > +		break;
-> > +	case VFL_TYPE_RADIO:
-> > +		intf_type = MEDIA_INTF_T_V4L_RADIO;
-> > +		/*
-> > +		 * Radio doesn't have an entity at the V4L2 side to represent
-> > +		 * radio input or output. Instead, the audio input/output goes
-> > +		 * via either physical wires or ALSA.
-> > +		 */
-> > +		break;
-> > +	case VFL_TYPE_SUBDEV:
-> > +		intf_type = MEDIA_INTF_T_V4L_SUBDEV;
-> > +		/* Entity will be created via v4l2_device_register_subdev() */
-> > +		break;
-> > +	default:
-> > +		return 0;
-> > +	}
-> > +
-> > +	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-> > +		vdev->entity.name = vdev->name;
-> > +
-> > +		/* Needed just for backward compatibility with legacy MC API */
-> > +		vdev->entity.info.dev.major = VIDEO_MAJOR;
-> > +		vdev->entity.info.dev.minor = vdev->minor;
-> > +
-> > +		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> > +						   &vdev->entity);
-> > +		if (ret < 0) {
-> > +			printk(KERN_WARNING
-> > +				"%s: media_device_register_entity failed\n",
-> > +				__func__);
-> > +			return ret;
-> > +		}
-> > +	}
-> > +
-> > +	vdev->intf_devnode = media_devnode_create(vdev->v4l2_dev->mdev,
-> > +						  intf_type,
-> > +						  0, VIDEO_MAJOR,
-> > +						  vdev->minor,
-> > +						  GFP_KERNEL);
-> > +	if (!vdev->intf_devnode) {
-> > +		media_device_unregister_entity(&vdev->entity);
-> > +		return -ENOMEM;
-> > +	}
-> > +
-> > +	if (vdev->entity.type != MEDIA_ENT_T_UNKNOWN) {
-> > +		struct media_link *link;
-> > +
-> > +		link = media_create_intf_link(&vdev->entity,
-> > +					      &vdev->intf_devnode->intf, 0);
-> > +		if (!link) {
-> > +			media_devnode_remove(vdev->intf_devnode);
-> > +			media_device_unregister_entity(&vdev->entity);
-> > +			return -ENOMEM;
-> > +		}
-> > +	}
-> > +
-> > +	/* FIXME: how to create the other interface links? */
+> $ git clean -dfx Documentation/
+> $ make DOCBOOKS="gpu.xml" htmldocs
+>  HOSTCC  scripts/basic/fixdep
+>  HOSTCC  scripts/docproc
+>  HOSTCC  scripts/check-lc_ctype
+>  DOCPROC Documentation/DocBook/gpu.xml
 > 
-> If they're needed (and I'm still not sure they are) they should be created by 
-> drivers, possibly with the help of helper functions.
+> ... lots of warnings about kerneldoc issues in gpu.xml
 > 
-> > +
-> > +#endif
-> > +	return 0;
-> > +}
-> > +
-> >  /**
-> >   *	__video_register_device - register video4linux devices
-> >   *	@vdev: video device structure we want to register
-> > @@ -908,22 +997,9 @@ int __video_register_device(struct video_device *vdev,
-> > int type, int nr, /* Increase v4l2_device refcount */
-> >  	v4l2_device_get(vdev->v4l2_dev);
-> > 
-> > -#if defined(CONFIG_MEDIA_CONTROLLER)
-> >  	/* Part 5: Register the entity. */
-> > -	if (vdev->v4l2_dev->mdev &&
-> > -	    vdev->vfl_type != VFL_TYPE_SUBDEV) {
-> > -		vdev->entity.type = MEDIA_ENT_T_V4L2_VIDEO;
-> > -		vdev->entity.name = vdev->name;
-> > -		vdev->entity.info.dev.major = VIDEO_MAJOR;
-> > -		vdev->entity.info.dev.minor = vdev->minor;
-> > -		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-> > -			&vdev->entity);
-> > -		if (ret < 0)
-> > -			printk(KERN_WARNING
-> > -			       "%s: media_device_register_entity failed\n",
-> > -			       __func__);
-> > -	}
-> > -#endif
-> > +	ret = video_register_media_controller(vdev, type);
-> > +
-> >  	/* Part 6: Activate this minor. The char device can now be used. */
-> >  	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-device.c
-> > b/drivers/media/v4l2-core/v4l2-device.c index 5b0a30b9252b..e788a085ba96
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-device.c
-> > +++ b/drivers/media/v4l2-core/v4l2-device.c
-> > @@ -249,6 +249,17 @@ int v4l2_device_register_subdev_nodes(struct
-> > v4l2_device *v4l2_dev) #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  		sd->entity.info.dev.major = VIDEO_MAJOR;
-> >  		sd->entity.info.dev.minor = vdev->minor;
-> > +
-> > +		/* Interface is created by __video_register_device() */
-> > +		if (vdev->v4l2_dev->mdev) {
-> > +			struct media_link *link;
-> > +
-> > +			link = media_create_intf_link(&sd->entity,
-> > +						      &vdev->intf_devnode->intf,
-> > +						      0);
-> > +			if (!link)
-> > +				goto clean_up;
-> > +		}
-> >  #endif
-> >  		sd->devnode = vdev;
-> >  	}
-> > @@ -285,7 +296,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
-> > *sd)
-> > 
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  	if (v4l2_dev->mdev) {
-> > -		media_entity_remove_links(&sd->entity);
-> > +		/*
-> > +		 * No need to explicitly remove links, as both pads and
-> > +		 * links are removed by the function below, in the right order
-> > +		 */
-> >  		media_device_unregister_entity(&sd->entity);
-> >  	}
-> >  #endif
-> > diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> > index acbcd2f5fe7f..eeabf20e87a6 100644
-> > --- a/include/media/v4l2-dev.h
-> > +++ b/include/media/v4l2-dev.h
-> > @@ -86,6 +86,7 @@ struct video_device
-> >  {
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  	struct media_entity entity;
-> > +	struct media_intf_devnode *intf_devnode;
-> >  #endif
-> >  	/* device ops */
-> >  	const struct v4l2_file_operations *fops;
+>  XMLREF  Documentation/DocBook/gpu.aux.xml
+>  HTML    Documentation/DocBook/gpu.html
+> rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/gpu.html >> Documentation/DocBook/index.html
+> cp: cannot stat ‘./Documentation/DocBook//bayer.png’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//constraints.png’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//crop.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//dvbstb.png’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//fieldseq_bt.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//fieldseq_tb.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//nv12mt.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//nv12mt_example.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//pipeline.png’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//selection.png’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//vbi_525.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//vbi_625.gif’: No such file or directory
+> cp: cannot stat ‘./Documentation/DocBook//vbi_hsync.gif’: No such file or directory
+> Documentation/DocBook/Makefile:55: recipe for target 'htmldocs' failed
+> make[1]: [htmldocs] Error 1 (ignored)
 > 
+> Once I've built media_api.xml the above goes away
+
+There's actually one patch fixing this at media tree:
+
+>From d01b2d53a5a4db38c7c95651ca9ff23bb930844e Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date: Thu, 19 Nov 2015 07:41:40 -0200
+Subject: [PATCH] DocBook: only copy stuff to media_api if media xml is
+ generated
+
+It is possible to use:
+	make DOCBOOKS=device-drivers.xml htmldocs
+
+To produce just a few docbooks. In such case, the media docs
+won't be built, causing the makefile target to return an error.
+
+While this is ok for human eyes, if the above is used on an script,
+it would cause troubles.
+
+Fix it by only creating/filling the media_api directory if the
+media_api.xml is found at DOCBOOKS.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 02848146fc3a..2840ff483d5a 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -199,8 +199,10 @@ DVB_DOCUMENTED = \
+ #
+ 
+ install_media_images = \
+-	$(Q)-mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
+-	cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
++	$(Q)if [ "x$(findstring media_api.xml,$(DOCBOOKS))" != "x" ]; then \
++		mkdir -p $(MEDIA_OBJ_DIR)/media_api; \
++		cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/*.svg $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api; \
++	fi
+ 
+ $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
+ 	$(Q)base64 -d $< >$@
+
+
+> and then I get a new warning when trying to rebuild:
+> 
+> $ make DOCBOOKS="media_api.xml" htmldocs      
+> 
+> ... output cut ...
+> 
+> $ make DOCBOOKS="gpu.xml" htmldocs      
+> rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 4.4.0-rc2</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/gpu.html >> Documentation/DocBook/index.html
+> mkdir: cannot create directory ‘./Documentation/DocBook//media_api’: File exists
+
+There are two other patches for Documentation/DocBook/media/Makefile
+that will fix this trouble.
+
+Those patches are already at linux-next, via my tree.
+
+Regards,
+Mauro
