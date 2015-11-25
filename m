@@ -1,186 +1,397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48341 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbbKPWwx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Nov 2015 17:52:53 -0500
-Date: Mon, 16 Nov 2015 16:52:49 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Rob Herring <robh@kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [Patch v4 2/2] media: v4l: ti-vpe: Document CAL driver
-Message-ID: <20151116225249.GQ3999@ti.com>
-References: <1447631628-9459-1-git-send-email-bparrot@ti.com>
- <1447631628-9459-3-git-send-email-bparrot@ti.com>
- <20151116152615.GA9256@rob-hp-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20151116152615.GA9256@rob-hp-laptop>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43677 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbbKYRie (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Nov 2015 12:38:34 -0500
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v2 2/9] [media] tvp5150: add userspace subdev API
+Date: Wed, 25 Nov 2015 18:38:29 +0100
+Message-Id: <1448473116-24735-2-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
+References: <1448473116-24735-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rob Herring <robh@kernel.org> wrote on Mon [2015-Nov-16 09:26:16 -0600]:
-> On Sun, Nov 15, 2015 at 05:53:48PM -0600, Benoit Parrot wrote:
-> > Device Tree bindings for the Camera Adaptation Layer (CAL) driver
-> 
-> Bindings are for h/w blocks, not drivers...
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-OK I'll fix that.
+This patch adds userspace V4L2 subdevice API support.
 
-> 
-> > 
-> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> > ---
-> >  Documentation/devicetree/bindings/media/ti-cal.txt | 70 ++++++++++++++++++++++
-> >  1 file changed, 70 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
-> > new file mode 100644
-> > index 000000000000..680efadb6208
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/ti-cal.txt
-> > @@ -0,0 +1,70 @@
-> > +Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
-> > +------------------------------------------------------
-> > +
-> > +The Camera Adaptation Layer (CAL) is a key component for image capture
-> > +applications. The capture module provides the system interface and the
-> > +processing capability to connect CSI2 image-sensor modules to the
-> > +DRA72x device.
-> > +
-> > +Required properties:
-> > +- compatible: must be "ti,cal"
-> 
-> Needs to be more specific.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+v2: Allow the driver to be built without MEDIA_CONTROLLER and
+    VIDEO_V4L2_SUBDEV_API, to keep it working for devices that
+    don't want or need the userspace subdev API.
+---
+ drivers/media/i2c/tvp5150.c | 282 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 223 insertions(+), 59 deletions(-)
 
-See potential patch below.
-
-> 
-> > +- reg:	physical base address and length of the registers set for the 4
-> > +	memory regions required;
-> 
-> Please list what the 4 regions are.
-
-See potential patch below.
-
-> 
-> > +- reg-names: name associated with the memory regions described is <reg>;
-> 
-> Please list the names.
-
-See potential patch below.
-
-> 
-> > +- interrupts: should contain IRQ line for the CAL;
-> > +
-> > +CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
-> > +should contain a 'port' child node with child 'endpoint' node. Please
-> > +refer to the bindings defined in
-> > +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > +
-> > +Example:
-> > +	cal: cal@4845b000 {
-> > +		compatible = "ti,cal";
-> > +		ti,hwmods = "cal";
-> > +		reg = <0x4845B000 0x400>,
-> > +		      <0x4845B800 0x40>,
-> > +		      <0x4845B900 0x40>,
-> > +		      <0x4A002e94 0x4>;
-> > +		reg-names = "cal_top",
-> > +			    "cal_rx_core0",
-> > +			    "cal_rx_core1",
-> > +			    "camerrx_control";
-> > +		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-> > +		#address-cells = <1>;
-> > +		#size-cells = <0>;
-> > +
-> > +		csi2_0: port@0 {
-> 
-> Multiple ports should be under a ports node.
-
-The video-interfaces.txt bindings doc state:
-"All 'port' nodes can be grouped under optional 'ports' node"
-Doesn't that mean that 'ports' is then optional has show in the csi2
-example provide in the same documents?
-
-> 
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <0>;
-> > +			endpoint {
-> > +				slave-mode;
-> > +				remote-endpoint = <&ar0330_1>;
-> > +			};
-> > +		};
-> > +		csi2_1: port@1 {
-> > +			#address-cells = <1>;
-> > +			#size-cells = <0>;
-> > +			reg = <1>;
-> > +		};
-> > +	};
-> > +
-> > +	i2c5: i2c@4807c000 {
-> > +		ar0330@10 {
-> > +			compatible = "ti,ar0330";
-> > +			reg = <0x10>;
-> > +
-> > +			port {
-> > +				#address-cells = <1>;
-> > +				#size-cells = <0>;
-> > +
-> > +				ar0330_1: endpoint {
-> > +					reg = <0>;
-> > +					clock-lanes = <1>;
-> > +					data-lanes = <0 2 3 4>;
-> > +					remote-endpoint = <&csi2_0>;
-> > +				};
-> > +			};
-> > +		};
-> > +	};
-> > -- 
-> > 1.8.5.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Potential fix for the above comments:
-
-
-diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
-index 680efadb6208..ef6f88de38c0 100644
---- a/Documentation/devicetree/bindings/media/ti-cal.txt
-+++ b/Documentation/devicetree/bindings/media/ti-cal.txt
-@@ -7,10 +7,11 @@ processing capability to connect CSI2 image-sensor modules to the
- DRA72x device.
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index a7495d2856c3..3eab4d918c54 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -36,7 +36,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
  
- Required properties:
--- compatible: must be "ti,cal"
--- reg:	physical base address and length of the registers set for the 4
--	memory regions required;
--- reg-names: name associated with the memory regions described is <reg>;
-+- compatible: must be "ti,dra72-cal"
-+- reg:	CAL Top level, Receiver Core #0, Receiver Core #1 and Camera RX
-+	control address space
-+- reg-names: cal_top, cal_rx_core0, cal_rx_core1, and camerrx_control
-+	     registers
- - interrupts: should contain IRQ line for the CAL;
+ struct tvp5150 {
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
  
- CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
-@@ -20,7 +21,7 @@ Documentation/devicetree/bindings/media/video-interfaces.txt.
+@@ -819,38 +821,68 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+ 	return 0;
+ }
  
- Example:
- 	cal: cal@4845b000 {
--		compatible = "ti,cal";
-+		compatible = "ti,dra72-cal";
- 		ti,hwmods = "cal";
- 		reg = <0x4845B000 0x400>,
- 		      <0x4845B800 0x40>,
-
-
-Regards,
-Benoit
+-static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
++static void tvp5150_try_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
++			       v4l2_std_id std)
+ {
+-	struct v4l2_mbus_framefmt *f;
+-	struct tvp5150 *decoder = to_tvp5150(sd);
++	unsigned int hmax;
+ 
+-	if (!format || format->pad)
+-		return -EINVAL;
++	/* Clamp the crop rectangle boundaries to tvp5150 limits */
++	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
++	rect->width = clamp(rect->width,
++			    TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
++			    TVP5150_H_MAX - rect->left);
++	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
+ 
+-	f = &format->format;
++	/* tvp5150 has some special limits */
++	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
++	rect->width = clamp_t(unsigned int, rect->width,
++			      TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
++			      TVP5150_H_MAX - rect->left);
++	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
++
++	/* Calculate height based on current standard */
++	if (std & V4L2_STD_525_60)
++		hmax = TVP5150_V_MAX_525_60;
++	else
++		hmax = TVP5150_V_MAX_OTHERS;
+ 
+-	tvp5150_reset(sd, 0);
++	rect->height = clamp(rect->height,
++			     hmax - TVP5150_MAX_CROP_TOP - rect->top,
++			     hmax - rect->top);
++}
+ 
+-	f->width = decoder->rect.width;
+-	f->height = decoder->rect.height;
++static void tvp5150_set_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
++			       v4l2_std_id std)
++{
++	struct regmap *map = decoder->regmap;
++	unsigned int hmax;
+ 
+-	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	f->field = V4L2_FIELD_SEQ_TB;
+-	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	if (std & V4L2_STD_525_60)
++		hmax = TVP5150_V_MAX_525_60;
++	else
++		hmax = TVP5150_V_MAX_OTHERS;
+ 
+-	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
+-			f->height);
+-	return 0;
++	regmap_write(map, TVP5150_VERT_BLANKING_START, rect->top);
++	regmap_write(map, TVP5150_VERT_BLANKING_STOP,
++		     rect->top + rect->height - hmax);
++	regmap_write(map, TVP5150_ACT_VD_CROP_ST_MSB,
++		     rect->left >> TVP5150_CROP_SHIFT);
++	regmap_write(map, TVP5150_ACT_VD_CROP_ST_LSB,
++		     rect->left | (1 << TVP5150_CROP_SHIFT));
++	regmap_write(map, TVP5150_ACT_VD_CROP_STP_MSB,
++		     (rect->left + rect->width - TVP5150_MAX_CROP_LEFT) >>
++		     TVP5150_CROP_SHIFT);
++	regmap_write(map, TVP5150_ACT_VD_CROP_STP_LSB,
++		     rect->left + rect->width - TVP5150_MAX_CROP_LEFT);
++
++	decoder->rect = *rect;
+ }
+ 
+ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ {
+-	struct v4l2_rect rect = a->c;
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_rect rect = a->c;
+ 	v4l2_std_id std;
+-	unsigned int hmax;
+ 
+ 	v4l2_dbg(1, debug, sd, "%s left=%d, top=%d, width=%d, height=%d\n",
+ 		__func__, rect.left, rect.top, rect.width, rect.height);
+@@ -858,42 +890,13 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	/* tvp5150 has some special limits */
+-	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
+-	rect.width = clamp_t(unsigned int, rect.width,
+-			     TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
+-			     TVP5150_H_MAX - rect.left);
+-	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
+-
+-	/* Calculate height based on current standard */
+ 	if (decoder->norm == V4L2_STD_ALL)
+ 		std = tvp5150_read_std(sd);
+ 	else
+ 		std = decoder->norm;
+ 
+-	if (std & V4L2_STD_525_60)
+-		hmax = TVP5150_V_MAX_525_60;
+-	else
+-		hmax = TVP5150_V_MAX_OTHERS;
+-
+-	rect.height = clamp_t(unsigned int, rect.height,
+-			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
+-			      hmax - rect.top);
+-
+-	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
+-	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
+-		      rect.top + rect.height - hmax);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
+-		      rect.left >> TVP5150_CROP_SHIFT);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
+-		      rect.left | (1 << TVP5150_CROP_SHIFT));
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
+-		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
+-		      TVP5150_CROP_SHIFT);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
+-		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
+-
+-	decoder->rect = rect;
++	tvp5150_try_crop(decoder, &rect, std);
++	tvp5150_set_crop(decoder, &rect, std);
+ 
+ 	return 0;
+ }
+@@ -1049,6 +1052,153 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static struct v4l2_mbus_framefmt *
++tvp5150_get_pad_format(struct tvp5150 *decoder, struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
++			 enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(sd, cfg, pad);
++#endif
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &decoder->format;
++	default:
++		return NULL;
++	}
++}
++
++static struct v4l2_rect *
++tvp5150_get_pad_crop(struct tvp5150 *decoder, struct v4l2_subdev *sd,
++		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
++		       enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(sd, cfg, pad);
++#endif
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &decoder->rect;
++	default:
++		return NULL;
++	}
++}
++
++static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (fse->index > 0 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
++		return -EINVAL;
++
++	fse->min_width = TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT;
++	fse->max_width = TVP5150_H_MAX;
++
++	/* Calculate height based on current standard */
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	if (std & V4L2_STD_525_60) {
++		fse->min_height = TVP5150_V_MAX_525_60 - TVP5150_MAX_CROP_TOP;
++		fse->max_height = TVP5150_V_MAX_525_60;
++	} else {
++		fse->min_height = TVP5150_V_MAX_OTHERS - TVP5150_MAX_CROP_TOP;
++		fse->max_height = TVP5150_V_MAX_OTHERS;
++	}
++
++	return 0;
++}
++
++static int tvp5150_get_format(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_format *format)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_mbus_framefmt *mbus_format;
++
++	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg,
++					     format->pad, format->which);
++	if (!mbus_format)
++		return -ENOTTY;
++
++	format->format = *mbus_format;
++
++	return 0;
++}
++
++static int tvp5150_set_format(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_format *format)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_mbus_framefmt *mbus_format;
++	struct v4l2_rect *crop;
++
++	crop = tvp5150_get_pad_crop(decoder, sd, cfg, format->pad,
++				    format->which);
++	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg, format->pad,
++					     format->which);
++	if (!crop || !mbus_format)
++		return -ENOTTY;
++
++	mbus_format->width = crop->width;
++	mbus_format->height = crop->height;
++
++	format->format = *mbus_format;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++		tvp5150_reset(sd, 0);
++
++	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
++			mbus_format->height);
++
++	return 0;
++}
++
++static void tvp5150_set_default(v4l2_std_id std, struct v4l2_rect *crop,
++				struct v4l2_mbus_framefmt *format)
++{
++	crop->left = 0;
++	crop->width = TVP5150_H_MAX;
++	crop->top = 0;
++	if (std & V4L2_STD_525_60)
++		crop->height = TVP5150_V_MAX_525_60;
++	else
++		crop->height = TVP5150_V_MAX_OTHERS;
++
++	format->width = crop->width;
++	format->height = crop->height;
++	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	format->field = V4L2_FIELD_SEQ_TB;
++	format->colorspace = V4L2_COLORSPACE_SMPTE170M;
++}
++
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++static int tvp5150_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
++				 v4l2_subdev_get_try_format(fh, 0));
++	return 0;
++}
++#endif
++
++/* ----------------------------------------------------------------------- */
++
+ static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+ 	.s_ctrl = tvp5150_s_ctrl,
+ };
+@@ -1083,8 +1233,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+ 
+ static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
+ 	.enum_mbus_code = tvp5150_enum_mbus_code,
+-	.set_fmt = tvp5150_fill_fmt,
+-	.get_fmt = tvp5150_fill_fmt,
++	.enum_frame_size = tvp5150_enum_frame_size,
++	.get_fmt = tvp5150_get_format,
++	.set_fmt = tvp5150_set_format,
+ };
+ 
+ static const struct v4l2_subdev_ops tvp5150_ops = {
+@@ -1095,6 +1246,11 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+ 	.pad = &tvp5150_pad_ops,
+ };
+ 
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
++	.open = tvp5150_open,
++};
++#endif
+ 
+ /****************************************************************************
+ 			I2C Client & Driver
+@@ -1197,6 +1353,19 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	sd = &core->sd;
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+ 
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	sd->internal_ops = &tvp5150_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++#endif
++#ifdef CONFIG_MEDIA_CONTROLLER
++	sd->entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++	core->pad.flags = MEDIA_PAD_FL_SOURCE;
++	res = media_entity_init(&sd->entity, 1, &core->pad, 0);
++	if (res < 0)
++		return res;
++#endif
++
+ 	/* 
+ 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
+ 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
+@@ -1250,14 +1419,9 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
+ 	/* Default is no cropping */
+-	core->rect.top = 0;
+-	if (tvp5150_read_std(sd) & V4L2_STD_525_60)
+-		core->rect.height = TVP5150_V_MAX_525_60;
+-	else
+-		core->rect.height = TVP5150_V_MAX_OTHERS;
+-	core->rect.left = 0;
+-	core->rect.width = TVP5150_H_MAX;
++	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
++	sd->dev = &c->dev;
+ 	res = v4l2_async_register_subdev(sd);
+ 	if (res < 0)
+ 		goto err;
+-- 
+2.6.2
 
