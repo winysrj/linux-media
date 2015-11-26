@@ -1,72 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34257 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798AbbKROz7 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54529 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753357AbbKZXgu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 09:55:59 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] [media] fix dvb_frontend_sleep_until() logic
-Date: Wed, 18 Nov 2015 12:55:47 -0200
-Message-Id: <aa7a865d4f9ca8b7e668ac126a8980af79ec272f.1447858534.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Thu, 26 Nov 2015 18:36:50 -0500
+Date: Fri, 27 Nov 2015 01:36:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [media-workshop] [PATCH v8.4 81/83] [media] media-entity: init
+ pads on entity init if was registered before
+Message-ID: <20151126233616.GD17128@valkosipuli.retiisi.org.uk>
+References: <1444668252-2303-1-git-send-email-mchehab@osg.samsung.com>
+ <1444668252-2303-82-git-send-email-mchehab@osg.samsung.com>
+ <2341331.P6c9pT8HFp@avalon>
+ <56537542.6060204@osg.samsung.com>
+ <20151124082224.6edac981@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151124082224.6edac981@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As pointed by Laurent Navet:
-	"Calling ktime_add_us() seems useless as is only useful
-	 for it's return value which is ignored."
+Hi Mauro and Laurent,
 
-That's reported by coverity CID 1309761.
+On Tue, Nov 24, 2015 at 08:22:24AM -0200, Mauro Carvalho Chehab wrote:
+> Em Mon, 23 Nov 2015 17:21:22 -0300
+> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+> 
+> > Hello Laurent,
+> > 
+> > On 11/23/2015 01:20 PM, Laurent Pinchart wrote:
+> > > Hi Javier,
+> > > 
+> > > (Replying to linux-media instead of media-workshop, I can't find this patch in 
+> > > my linux-media folder)
+> > >
+> > > Thank you for the patch.
+> > >
+> > 
+> > Thanks for your feedback.
+> >  
+> > > On Monday 12 October 2015 13:44:10 Mauro Carvalho Chehab wrote:
+> > >> From: Javier Martinez Canillas <javier@osg.samsung.com>
+> > >>
+> > >> If an entity is registered with a media device before is initialized
+> > >> with media_device_register_entity(), the number of pads won't be set
+> > >> so media_device_register_entity() won't create pad objects and add
+> > >> it to the media device pads list.
+> > >>
+> > >> Do this at entity initialization time if the entity was registered
+> > >> before so the graph is complete and correct regardless of the order
+> > >> in which the entities are initialized and registered.
+> > > 
+> > > We now have two places where the pads graph objects are initialized and that 
+> > > looks like a bug to me as media_gobj_init() allocates IDs and, even worse, 
+> > > adds the entity to the media device entities list.
+> > >
+> 
+> As Sakari commented on one of his reviews, media_gobj_init() should
+> actually be renamed to media_gobj_create(), as it is the function that
+> creates and registers a graph object on a given media device.
+> 
+> The hole idea is that any kind of graph object should be created at one
+> single point: media_gobj_init - to be renamed to media_gobj_create(), as
+> proposed by Sakari.
 
-Laurent proposed to just remove ktime_add_us, but the fact is that
-the logic of this function is broken. Instead, we need to use the
-value of the timeout, and ensure that it will work on the loops
-to emulate the legacy DiSEqC ioctl (FE_DISHNETWORK_SEND_LEGACY_CMD).
+I think I proposed "register"; what I indeed wanted to underline with that
+was that it was added to an external data structure, and cannot be released
+without that reference being removed.
 
-Please notice that the logic was also broken if, for any reason,
-msleep() would sleep a little less than what it was expected, as
-newdelta would be smaller than delta, and udelay() would not be called.
+"init" or "create" lack that suggestion, well, with the exception of
+possible memory allocation. But that's not relevant to the problem at
+hand...
 
-It should also be noticed that nobody noticed that trouble before
-likely because the FE_DISHNETWORK_SEND_LEGACY_CMD is not used
-anymore by modern DVB applications.
+> 
+> There's indeed bug on the existing subdev drivers: they want to create
+> pads and links without even knowing to what media_device those will be
+> associated! Every driver should be doing, instead:
 
-Reported-by: Laurent Navet <laurent.navet@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+This used to be at least allowed if not the preferred until recently. But I
+agree we need to agree on the rules; earlier drivers just did what they
+wanted to do. :-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 0b52cfc2d53d..291093b8cd05 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -899,14 +899,13 @@ static void dvb_frontend_stop(struct dvb_frontend *fe)
-  */
- void dvb_frontend_sleep_until(ktime_t *waketime, u32 add_usec)
- {
--	s32 delta, newdelta;
-+	s32 delta;
- 
--	ktime_add_us(*waketime, add_usec);
-+	*waketime = ktime_add_us(*waketime, add_usec);
- 	delta = ktime_us_delta(ktime_get_real(), *waketime);
- 	if (delta > 2500) {
- 		msleep((delta - 1500) / 1000);
--		newdelta = ktime_us_delta(ktime_get_real(), *waketime);
--		delta = (newdelta > delta) ? 0 : newdelta;
-+		delta = ktime_us_delta(ktime_get_real(), *waketime);
- 	}
- 	if (delta > 0)
- 		udelay(delta);
+> 
+> 1) create the media_device (or get a reference to an already created one);
+> 2) create the entities associated with the mdev;
+> 3) create the pads associated with the already created entity(ies);
+> 4) register the entity;
+> 5) create the links associated with two already created pads.
+> 
+> The above workflow is the correct one, as all graph objects should
+> be added to the mdev graph object lists that will be used by the
+> ioctl handler.
+> 
+> Also, please notice that, if all drivers follow the above procedure,
+> we could also merge entity create and register functions into one,
+> with is, IMHO, a good thing, as entity creation/registration will
+> be atomic.
+> 
+> However, several subdevs do, instead:
+> 
+> 1) create entity(ies);
+> 2) create pads;
+> 3) get a reference for the media device;
+> 4) register the entity;
+> 5) create the links associated with two already created pads.
+> 
+> Changing such logic is not trivial, and require tests with devices
+> that we don't have.
+> 
+> So, the approach we took is to allow the above workflow to keep
+> working. That's what this patch does.
+> 
+> If you think it is worth to push for a change on those drivers, we
+> could eventually add a printk_once() to warn that the driver is
+> doing the wrong thing, and give some time for the drivers maintainers
+> to fix their drivers, and remove the backward compat code after done.
+
+Sounds good to me. Such warnings tend to be a lot more efficient than
+changing the documentation, whether in code or elsewhere.
+
+> > Yes but the idea of this patch was in fact to make it less error prone and
+> > more robust since entities could either be initialized and later registered
+> > or first be registered and then later initialized.
+> >  
+> > > We need to standardize on where graph objects are initialized across the 
+> > > different kind of objects and document this clearly otherwise drivers will get 
+> > > it wrong.
+> > >
+> > 
+> > I'm OK with having more strict rules of the order in which objects should
+> > be initialized and registered and force all drivers to follow these docs.
+> > 
+> > >> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > This patch was suggested by Mauro so I'll also let him to comment what he
+> > prefers or if he has another opinion on this.
+> > 
+> > >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > >> ---
+> > >>  drivers/media/media-entity.c | 10 ++++++++++
+> > >>  1 file changed, 10 insertions(+)
+> > >>
+> > >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > >> index f28265864b76..2c984fb7d497 100644
+> > >> --- a/drivers/media/media-entity.c
+> > >> +++ b/drivers/media/media-entity.c
+> > >> @@ -238,6 +238,7 @@ int
+> > >>  media_entity_init(struct media_entity *entity, u16 num_pads,
+> > >>  		  struct media_pad *pads)
+> > >>  {
+> > >> +	struct media_device *mdev = entity->graph_obj.mdev;
+> > >>  	unsigned int i;
+> > >>
+> > >>  	entity->group_id = 0;
+> > >> @@ -246,11 +247,20 @@ media_entity_init(struct media_entity *entity, u16
+> > >> num_pads, entity->num_pads = num_pads;
+> > >>  	entity->pads = pads;
+> > >>
+> > >> +	if (mdev)
+> > >> +		spin_lock(&mdev->lock);
+> > >> +
+> > >>  	for (i = 0; i < num_pads; i++) {
+> > >>  		pads[i].entity = entity;
+> > >>  		pads[i].index = i;
+> > >> +		if (mdev)
+> > >> +			media_gobj_init(mdev, MEDIA_GRAPH_PAD,
+> > >> +					&entity->pads[i].graph_obj);
+> > >>  	}
+> > >>
+> > >> +	if (mdev)
+> > >> +		spin_unlock(&mdev->lock);
+> > >> +
+> > >>  	return 0;
+> > >>  }
+> > >>  EXPORT_SYMBOL_GPL(media_entity_init);
+> > > 
+> > 
+> > Best regards,
+
 -- 
-2.5.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
