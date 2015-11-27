@@ -1,64 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:33483 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbbKTOtS (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:54219 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750833AbbK0Fox (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 09:49:18 -0500
-Received: by igvi2 with SMTP id i2so34219125igv.0
-        for <linux-media@vger.kernel.org>; Fri, 20 Nov 2015 06:49:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <564ADD04.90700@xs4all.nl>
-References: <CAJ2oMhLN1T5GL3OhdcOLpK=t74NpULTz4ezu=fZDOEaXYVoWdg@mail.gmail.com>
-	<564ADD04.90700@xs4all.nl>
-Date: Fri, 20 Nov 2015 16:49:18 +0200
-Message-ID: <CAJ2oMhKX4uq=Wd02=ZN7YUEVHuo_rjFi3VNkbfQDxL0O+_YmOA@mail.gmail.com>
-Subject: Re: cobalt & dma
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Fri, 27 Nov 2015 00:44:53 -0500
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7.0.5.31.0
+ 64bit (built May  5 2014))
+ with ESMTP id <0NYG00F7QLARU6C0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Nov 2015 14:44:51 +0900 (KST)
+Date: Fri, 27 Nov 2015 05:44:51 +0000 (GMT)
+From: =?euc-kr?B?sejBpLno?= <jb09.kim@samsung.com>
+Subject: [PATCH] driver:dma bug_fix : access freed memory
+To: sumit.semwal@linaro.org, gregkh@linuxfoundation.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Reply-to: jb09.kim@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=euc-kr
+MIME-version: 1.0
+Message-id: <1606811477.1531761448603090175.JavaMail.weblogic@epmlwas01d>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+RnJvbSA4ZjZhZWIzNjJkOWU0NGYyOWQ0NmFlNzY5NGNkZmVlNDQwODQwNmNlIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQ0KRnJvbTogIktJTSBKVUdOQkFFIiA8amIwOS5raW1Ac2Ftc3VuZy5jb20+
+DQpEYXRlOiBUaHUsIDI2IE5vdiAyMDE1IDE2OjI4OjQ3ICswOTAwDQpTdWJqZWN0OiBbUEFUQ0hd
+IGJ1Z19maXggOiBhY2Nlc3MgZnJlZWQgbWVtb3J5DQoNCnN5bmNfZmVuY19mcmVlICYgZmVuY2Vf
+Y2hlY2tfY2JfZnVuYyB3b3VsZCBiZSBleGVjdXRlZCBhdA0Kb3RoZXIgY3B1LiBmZW5jZV9jaGVj
+a19jYl9mdW5jIGFjY2VzcyBmcmVlZCBmZW5jZSBtZW1vcnkgYWZ0ZXINCmtmcmVlKGZlbmNlKSBh
+dCBzeW5jX2ZlbmNlX2ZyZWUuDQpUbyBlc2NhcGVkIHRoaXMgaXNzdWUsIGF0b21pY19yZWFkKCZm
+ZW5jZS0+c3RhdHVzKSBuZWVkIHRvIGJlDQpwcm90ZWN0ZWQgYnkgY2hpbGRfbGlzdF9sb2NrLg0K
+DQpTaWduZWQtb2ZmLWJ5OiAia2ltanVuZ2JhZVwiICIgPGpiMDkua2ltQHNhbXN1bmcuY29tPiIN
+Ci0tLQ0KIGRyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jICAgICAgICAgICAgICB8ICAgMTMgKysrKysr
+KysrKysrKw0KIGRyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmMuYyAgICAgICB8ICAgMTAgKysr
+KysrKy0tLQ0KIGRyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmNfZGVidWcuYyB8ICAgIDIgKysN
+CiBpbmNsdWRlL2xpbnV4L2ZlbmNlLmggICAgICAgICAgICAgICAgfCAgICAxICsNCiA0IGZpbGVz
+IGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL2RtYS1idWYvZmVuY2UuYyBiL2RyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jDQppbmRl
+eCA3YmI5ZDY1Li5kNDAyMTFlIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9kbWEtYnVmL2ZlbmNlLmMN
+CisrKyBiL2RyaXZlcnMvZG1hLWJ1Zi9mZW5jZS5jDQpAQCAtMzEwLDYgKzMxMCwxOSBAQCBmZW5j
+ZV9yZW1vdmVfY2FsbGJhY2soc3RydWN0IGZlbmNlICpmZW5jZSwgc3RydWN0IGZlbmNlX2NiICpj
+YikNCiB9DQogRVhQT1JUX1NZTUJPTChmZW5jZV9yZW1vdmVfY2FsbGJhY2spOw0KIA0KK2Jvb2wN
+CitmZW5jZV9yZW1vdmVfY2FsbGJhY2tfbG9ja2VkKHN0cnVjdCBmZW5jZSAqZmVuY2UsIHN0cnVj
+dCBmZW5jZV9jYiAqY2IpDQorew0KKwlib29sIHJldDsNCisNCisJcmV0ID0gIWxpc3RfZW1wdHko
+JmNiLT5ub2RlKTsNCisJaWYgKHJldCkNCisJCWxpc3RfZGVsX2luaXQoJmNiLT5ub2RlKTsNCisN
+CisJcmV0dXJuIHJldDsNCit9DQorRVhQT1JUX1NZTUJPTChmZW5jZV9yZW1vdmVfY2FsbGJhY2tf
+bG9ja2VkKTsNCisNCiBzdHJ1Y3QgZGVmYXVsdF93YWl0X2NiIHsNCiAJc3RydWN0IGZlbmNlX2Ni
+IGJhc2U7DQogCXN0cnVjdCB0YXNrX3N0cnVjdCAqdGFzazsNCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L3N0YWdpbmcvYW5kcm9pZC9zeW5jLmMgYi9kcml2ZXJzL3N0YWdpbmcvYW5kcm9pZC9zeW5jLmMN
+CmluZGV4IDgzZjY0MGYuLjliNjA1NDIgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL3N0YWdpbmcvYW5k
+cm9pZC9zeW5jLmMNCisrKyBiL2RyaXZlcnMvc3RhZ2luZy9hbmRyb2lkL3N5bmMuYw0KQEAgLTUx
+OCwxMiArNTE4LDE2IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgZmVuY2Vfb3BzIGFuZHJvaWRfZmVu
+Y2Vfb3BzID0gew0KIHN0YXRpYyB2b2lkIHN5bmNfZmVuY2VfZnJlZShzdHJ1Y3Qga3JlZiAqa3Jl
+ZikNCiB7DQogCXN0cnVjdCBzeW5jX2ZlbmNlICpmZW5jZSA9IGNvbnRhaW5lcl9vZihrcmVmLCBz
+dHJ1Y3Qgc3luY19mZW5jZSwga3JlZik7DQotCWludCBpLCBzdGF0dXMgPSBhdG9taWNfcmVhZCgm
+ZmVuY2UtPnN0YXR1cyk7DQorCWludCBpOw0KKwl1bnNpZ25lZCBsb25nIGZsYWdzOw0KIA0KIAlm
+b3IgKGkgPSAwOyBpIDwgZmVuY2UtPm51bV9mZW5jZXM7ICsraSkgew0KLQkJaWYgKHN0YXR1cykN
+Ci0JCQlmZW5jZV9yZW1vdmVfY2FsbGJhY2soZmVuY2UtPmNic1tpXS5zeW5jX3B0LA0KKwkJc3Bp
+bl9sb2NrX2lycXNhdmUoZmVuY2UtPmNic1tpXS5zeW5jX3B0LT5sb2NrLCBmbGFncyk7DQorCQlp
+ZiAoYXRvbWljX3JlYWQoJmZlbmNlLT5zdGF0dXMpKQ0KKwkJCWZlbmNlX3JlbW92ZV9jYWxsYmFj
+a19sb2NrZWQoZmVuY2UtPmNic1tpXS5zeW5jX3B0LA0KIAkJCQkJICAgICAgJmZlbmNlLT5jYnNb
+aV0uY2IpOw0KKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZShmZW5jZS0+Y2JzW2ldLnN5bmNfcHQt
+PmxvY2ssIGZsYWdzKTsNCisNCiAJCWZlbmNlX3B1dChmZW5jZS0+Y2JzW2ldLnN5bmNfcHQpOw0K
+IAl9DQogDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5j
+IGIvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5jDQppbmRleCAwMTUzY2QyLi5l
+ODU0ZjM1IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9zdGFnaW5nL2FuZHJvaWQvc3luY19kZWJ1Zy5j
+DQorKysgYi9kcml2ZXJzL3N0YWdpbmcvYW5kcm9pZC9zeW5jX2RlYnVnLmMNCkBAIC0xNTUsNyAr
+MTU1LDkgQEAgc3RhdGljIHZvaWQgc3luY19wcmludF9mZW5jZShzdHJ1Y3Qgc2VxX2ZpbGUgKnMs
+IHN0cnVjdCBzeW5jX2ZlbmNlICpmZW5jZSkNCiAJCQljb250YWluZXJfb2YoZmVuY2UtPmNic1tp
+XS5zeW5jX3B0LA0KIAkJCQkgICAgIHN0cnVjdCBzeW5jX3B0LCBiYXNlKTsNCiANCisJCXNwaW5f
+bG9ja19pcnFzYXZlKHB0LT5iYXNlLmxvY2ssIGZsYWdzKTsNCiAJCXN5bmNfcHJpbnRfcHQocywg
+cHQsIHRydWUpOw0KKwkJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZShwdC0+YmFzZS5sb2NrLCBmbGFn
+cyk7DQogCX0NCiANCiAJc3Bpbl9sb2NrX2lycXNhdmUoJmZlbmNlLT53cS5sb2NrLCBmbGFncyk7
+DQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9mZW5jZS5oIGIvaW5jbHVkZS9saW51eC9mZW5j
+ZS5oDQppbmRleCBkMTc0NTg1Li5hNWEzZmQxIDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9saW51eC9m
+ZW5jZS5oDQorKysgYi9pbmNsdWRlL2xpbnV4L2ZlbmNlLmgNCkBAIC0yMjQsNiArMjI0LDcgQEAg
+c2lnbmVkIGxvbmcgZmVuY2VfZGVmYXVsdF93YWl0KHN0cnVjdCBmZW5jZSAqZmVuY2UsIGJvb2wg
+aW50ciwgc2lnbmVkIGxvbmcgdGltZW8NCiBpbnQgZmVuY2VfYWRkX2NhbGxiYWNrKHN0cnVjdCBm
+ZW5jZSAqZmVuY2UsIHN0cnVjdCBmZW5jZV9jYiAqY2IsDQogCQkgICAgICAgZmVuY2VfZnVuY190
+IGZ1bmMpOw0KIGJvb2wgZmVuY2VfcmVtb3ZlX2NhbGxiYWNrKHN0cnVjdCBmZW5jZSAqZmVuY2Us
+IHN0cnVjdCBmZW5jZV9jYiAqY2IpOw0KK2Jvb2wgZmVuY2VfcmVtb3ZlX2NhbGxiYWNrX2xvY2tl
+ZChzdHJ1Y3QgZmVuY2UgKmZlbmNlLCBzdHJ1Y3QgZmVuY2VfY2IgKmNiKTsNCiB2b2lkIGZlbmNl
+X2VuYWJsZV9zd19zaWduYWxpbmcoc3RydWN0IGZlbmNlICpmZW5jZSk7DQogDQogLyoqDQotLSAN
+CjEuNy45LjUNCg0K
 
 
-
->
-> No. All video capture/output devices all use DMA since it would be prohibitively
-> expensive for the CPU to do otherwise. So just dig in and implement it.
-
-I am trying to better understand how read() operation actually use the
-dma, but I can't yet understand it from code.
-
->
-> No. The vmalloc variant is typically used for USB devices. For PCI(e) you'll
-> use videobuf2-dma-contig if the DMA engine requires physically contiguous DMA,
-> or videobuf2-dma-sg if the DMA engine supports scatter-gather DMA. You can
-> start with dma-contig since the DMA code tends to be simpler, but it is
-> harder to get the required physically contiguous memory if memory fragmentation
-> takes place. So you may not be able to allocate the buffers. dma-sg works much
-> better with virtual memory.
->
->
-
-
-1. I tried to understand the code implementation of videobuf2 with
-regards to read():
-read() ->
-    vb2_read() ->
-          __vb2_perform_fileio()->
-             vb2_internal_dqbuf() &  copy_to_user()
-
-Where is the actual allocation of dma contiguous memory ? Is done with
-the userspace calloc() call in userspace (as shown in the v4l2 API
-example) ? As I understand the calloc/malloc are not guaranteed to be
-contiguous.
-     How do I know if the try to allocate contigious memory has failed or not ?
-
-
-2. Is the call to copy_to_user results is performance degredation of
-read() in compare to mmap() method ?
-
-Best Regards,
-Ran
