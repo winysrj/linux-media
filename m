@@ -1,64 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from e33.co.us.ibm.com ([32.97.110.151]:49915 "EHLO
-	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbKZPWt (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59311 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750978AbbK0NhJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Nov 2015 10:22:49 -0500
-Received: from localhost
-	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-media@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Thu, 26 Nov 2015 08:22:48 -0700
-Date: Thu, 26 Nov 2015 07:23:17 -0800
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Subject: Re: reservation.h: build error with lockdep disabled
-Message-ID: <20151126152317.GL26643@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
-References: <20151126134340.GB8644@n2100.arm.linux.org.uk>
+	Fri, 27 Nov 2015 08:37:09 -0500
+Subject: Re: [PATCH] cx18: Fix VIDIOC_TRY_FMT to fill in sizeimage and
+ bytesperline
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
+References: <1448388580-22082-1-git-send-email-simon.farnsworth@onelan.co.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56585C80.2030805@xs4all.nl>
+Date: Fri, 27 Nov 2015 14:37:04 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20151126134340.GB8644@n2100.arm.linux.org.uk>
+In-Reply-To: <1448388580-22082-1-git-send-email-simon.farnsworth@onelan.co.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 26, 2015 at 01:43:40PM +0000, Russell King - ARM Linux wrote:
-> As of 3c3b177a9369 ("reservation: add suppport for read-only access
-> using rcu") linux/reservation.h uses lockdep macros:
+On 11/24/2015 07:09 PM, Simon Farnsworth wrote:
+> I was having trouble capturing raw video from GStreamer; turns out that I
+> now need VIDIOC_TRY_FMT to fill in sizeimage and bytesperline to make it work.
 > 
-> +#define reservation_object_held(obj) lockdep_is_held(&(obj)->lock.base)
+> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+> ---
 > 
-> This results in build errors when lockdep is disabled as lockdep_is_held()
-> is only available when lockdep is enabled.  This has been reported today
-> to break the etnaviv kernel driver, which we're hoping to submit for 4.5.
+> I'm leaving ONELAN on Friday, so this is a drive-by patch being sent for the
+> benefit of anyone else trying to use raw capture from a cx18 card. If it's
+> not suitable for applying as-is, please feel free to just leave it in the
+> archives so that someone else hitting the same problem can find my fix.
 > 
-> As this gets used with rcu_dereference_protected(), eg:
+>  drivers/media/pci/cx18/cx18-ioctl.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> static inline struct reservation_object_list *
-> reservation_object_get_list(struct reservation_object *obj)
-> {
->         return rcu_dereference_protected(obj->fence,
->                                          reservation_object_held(obj));
-> }
-> 
-> I'm guessing that it's not going to be a simple case of making it always
-> return true or always return false.
-> 
-> Any ideas how to solve this?
+> diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+> index 55525af..1c9924a 100644
+> --- a/drivers/media/pci/cx18/cx18-ioctl.c
+> +++ b/drivers/media/pci/cx18/cx18-ioctl.c
+> @@ -234,6 +234,13 @@ static int cx18_try_fmt_vid_cap(struct file *file, void *fh,
+>  
+>  	fmt->fmt.pix.width = w;
+>  	fmt->fmt.pix.height = h;
+> +	if (fmt->fmt.pix.pixelformat == V4L2_PIX_FMT_HM12) {
+> +		fmt->fmt.pix.sizeimage = h * 720 * 3 / 2;
+> +		fmt->fmt.pix.bytesperline = 720; /* First plane */
+> +	} else {
+> +		fmt->fmt.pix.sizeimage = h * 720 * 2;
+> +		fmt->fmt.pix.bytesperline = 1440; /* Packed */
+> +	}
 
-The usual approach is something like this:
+This isn't correct: for MPEG formats bytesperline should be 0 and sizeimage is fixed
+at 128*1024.
 
-#ifdef CONFIG_PROVE_LOCKING
-#define reservation_object_held(obj) lockdep_is_held(&(obj)->lock.base)
-#else
-#define reservation_object_held(obj) true
-#endif
+I really have no time to make a proper patch, Andy is this something you can look at?
 
-							Thanx, Paul
+Hmm, ivtv does it a bit better but it will return the wrong sizeimage.
+
+Regards,
+
+	Hans
+
+>  	return 0;
+>  }
+>  
+> 
 
