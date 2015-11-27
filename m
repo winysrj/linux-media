@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:54368 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161082AbbKSUE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 15:04:58 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, crope@iki.fi, xpert-reactos@gmx.de,
-	Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 05/10] si2165: move setting ts config to init
-Date: Thu, 19 Nov 2015 21:03:57 +0100
-Message-Id: <1447963442-9764-6-git-send-email-zzam@gentoo.org>
-In-Reply-To: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
-References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:32779 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755246AbbK0WDF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Nov 2015 17:03:05 -0500
+Received: by wmec201 with SMTP id c201so85285782wme.0
+        for <linux-media@vger.kernel.org>; Fri, 27 Nov 2015 14:03:03 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: nuvoton: mark wakeup-related resources
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>
+Message-ID: <5658CD64.1030604@gmail.com>
+Date: Fri, 27 Nov 2015 22:38:44 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The TS config is fixed, so no need to write it for each tune.
+When requesting resources use different names for the normal and
+the wakeup part. This makes it easier to interpret the output
+of e.g. /proc/interrupts and /proc/ioports.
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/dvb-frontends/si2165.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ drivers/media/rc/nuvoton-cir.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 07247e3..0c1f4c4 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -690,6 +690,20 @@ static int si2165_init(struct dvb_frontend *fe)
- 			goto error;
- 	}
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 18adf58..081435c 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -1079,12 +1079,12 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 		goto exit_unregister_device;
  
-+	/* ts output config */
-+	ret = si2165_writereg8(state, 0x04e4, 0x20);
-+	if (ret < 0)
-+		return ret;
-+	ret = si2165_writereg16(state, 0x04ef, 0x00fe);
-+	if (ret < 0)
-+		return ret;
-+	ret = si2165_writereg24(state, 0x04f4, 0x555555);
-+	if (ret < 0)
-+		return ret;
-+	ret = si2165_writereg8(state, 0x04e5, 0x01);
-+	if (ret < 0)
-+		return ret;
-+
- 	return 0;
- error:
- 	return ret;
-@@ -824,19 +838,6 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
- 	ret = si2165_writereg8(state, 0x08f8, 0x00);
- 	if (ret < 0)
- 		return ret;
--	/* ts output config */
--	ret = si2165_writereg8(state, 0x04e4, 0x20);
--	if (ret < 0)
--		return ret;
--	ret = si2165_writereg16(state, 0x04ef, 0x00fe);
--	if (ret < 0)
--		return ret;
--	ret = si2165_writereg24(state, 0x04f4, 0x555555);
--	if (ret < 0)
--		return ret;
--	ret = si2165_writereg8(state, 0x04e5, 0x01);
--	if (ret < 0)
--		return ret;
- 	/* bandwidth in 10KHz steps */
- 	ret = si2165_writereg16(state, 0x0308, bw10k);
- 	if (ret < 0)
+ 	if (!devm_request_region(&pdev->dev, nvt->cir_wake_addr,
+-			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
++			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME "-wake"))
+ 		goto exit_unregister_device;
+ 
+ 	if (devm_request_irq(&pdev->dev, nvt->cir_wake_irq,
+ 			     nvt_cir_wake_isr, IRQF_SHARED,
+-			     NVT_DRIVER_NAME, (void *)nvt))
++			     NVT_DRIVER_NAME "-wake", (void *)nvt))
+ 		goto exit_unregister_device;
+ 
+ 	device_init_wakeup(&pdev->dev, true);
 -- 
-2.6.3
+2.6.2
 
