@@ -1,399 +1,522 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:15931 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433AbbKLMWG (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:33758 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754834AbbK0Qes (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Nov 2015 07:22:06 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv10 13/16] cec: adv7842: add cec support
-Date: Thu, 12 Nov 2015 13:21:42 +0100
-Message-Id: <d2281c4be413ccddf142fdf677b72dc1491ac3a4.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
-In-Reply-To: <cover.1447329279.git.hansverk@cisco.com>
-References: <cover.1447329279.git.hansverk@cisco.com>
+	Fri, 27 Nov 2015 11:34:48 -0500
+Received: by wmec201 with SMTP id c201so77163107wme.0
+        for <linux-media@vger.kernel.org>; Fri, 27 Nov 2015 08:34:45 -0800 (PST)
+Subject: Re: [RESEND RFC/PATCH 6/8] media: platform: mtk-vcodec: Add Mediatek
+ V4L2 Video Encoder Driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>
+References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+ <1447764885-23100-7-git-send-email-tiffany.lin@mediatek.com>
+Cc: Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Message-ID: <56588622.8060600@linaro.org>
+Date: Fri, 27 Nov 2015 16:34:42 +0000
+MIME-Version: 1.0
+In-Reply-To: <1447764885-23100-7-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Tiffany/Andrew
 
-Add CEC support to the adv7842 driver.
+This review is a rather more superficial than my previous one. Mostly 
+I'm just commenting on some of the bits I spotted whilst trying to find 
+my way around the patchset.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7842.c | 255 +++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 238 insertions(+), 17 deletions(-)
+I hope to another more detailed review for v2 (and feel free to add me 
+to Cc:).
 
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index b7269b8..0f29b33 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -39,6 +39,7 @@
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
-+#include <media/cec.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-ctrls.h>
-@@ -79,6 +80,8 @@ MODULE_LICENSE("GPL");
- 
- #define ADV7842_OP_SWAP_CB_CR				(1 << 0)
- 
-+#define ADV7842_MAX_ADDRS (3)
-+
- /*
- **********************************************************************
- *
-@@ -142,6 +145,10 @@ struct adv7842_state {
- 	struct v4l2_ctrl *free_run_color_ctrl_manual;
- 	struct v4l2_ctrl *free_run_color_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+
-+	u8   cec_addr[ADV7842_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
- };
- 
- /* Unsupported timings. This device cannot support 720p30. */
-@@ -418,9 +425,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -696,6 +703,18 @@ adv7842_get_dv_timings_cap(struct v4l2_subdev *sd)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static u16 adv7842_read_cable_det(struct v4l2_subdev *sd)
-+{
-+	u8 reg = io_read(sd, 0x6f);
-+	u16 val = 0;
-+
-+	if (reg & 0x02)
-+		val |= 1; /* port A */
-+	if (reg & 0x01)
-+		val |= 2; /* port B */
-+	return val;
-+}
-+
- static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
- {
- 	struct delayed_work *dwork = to_delayed_work(work);
-@@ -703,8 +722,13 @@ static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
- 			struct adv7842_state, delayed_work_enable_hotplug);
- 	struct v4l2_subdev *sd = &state->sd;
- 	int present = state->hdmi_edid.present;
-+	u16 connected_inputs;
- 	u8 mask = 0;
- 
-+	connected_inputs = present & adv7842_read_cable_det(sd);
-+	v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_CONN_INPUTS,
-+			   &connected_inputs);
-+
- 	v4l2_dbg(2, debug, sd, "%s: enable hotplug on ports: 0x%x\n",
- 			__func__, present);
- 
-@@ -983,20 +1007,16 @@ static int adv7842_s_register(struct v4l2_subdev *sd,
- static int adv7842_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
- {
- 	struct adv7842_state *state = to_state(sd);
--	int prev = v4l2_ctrl_g_ctrl(state->detect_tx_5v_ctrl);
--	u8 reg_io_6f = io_read(sd, 0x6f);
--	int val = 0;
-+	u16 cable_det = adv7842_read_cable_det(sd);
-+	u16 connected_inputs;
- 
--	if (reg_io_6f & 0x02)
--		val |= 1; /* port A */
--	if (reg_io_6f & 0x01)
--		val |= 2; /* port B */
-+	v4l2_dbg(1, debug, sd, "%s: 0x%x\n", __func__, cable_det);
- 
--	v4l2_dbg(1, debug, sd, "%s: 0x%x -> 0x%x\n", __func__, prev, val);
-+	connected_inputs = state->hdmi_edid.present & cable_det;
-+	v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_CONN_INPUTS,
-+			   &connected_inputs);
- 
--	if (val != prev)
--		return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, val);
--	return 0;
-+	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
- }
- 
- static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
-@@ -2157,6 +2177,183 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
- 	}
- }
- 
-+static void adv7842_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_ARB_LOST);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_RETRY_TIMEOUT);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE,
-+				   (void *)CEC_TX_STATUS_OK);
-+		return;
-+	}
-+}
-+
-+static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
-+{
-+	u8 cec_irq;
-+
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x93) & 0x0f;
-+	if (!cec_irq)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv7842_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		struct cec_msg msg;
-+
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
-+		}
-+	}
-+
-+	io_write(sd, 0x94, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static unsigned adv7842_cec_available_log_addrs(struct v4l2_subdev *sd)
-+{
-+	return ADV7842_MAX_ADDRS;
-+}
-+
-+static int adv7842_cec_enable(struct v4l2_subdev *sd, bool enable)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x01);	/* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_clr_set(sd, 0x11, 0x01, 0);  /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
-+		/* power down cec section */
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv7842_cec_log_addr(struct v4l2_subdev *sd, u8 addr)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	unsigned i, free_idx = ADV7842_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		cec_write_clr_set(sd, 0x27, 0x70, 0);
-+		state->cec_valid_addrs = 0;
-+		return 0;
-+	}
-+
-+	for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV7842_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV7842_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV7842_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_clr_set(sd, 0x28, 0x0f, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x29, 0x0f, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv7842_cec_transmit(struct v4l2_subdev *sd, u32 timeout_ms,
-+				u8 retries, struct cec_msg *msg)
-+{
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	if (len == 1)
-+		/* allow for one retry for polling */
-+		cec_write_clr_set(sd, 0x12, 0x07, 1);
-+	else
-+		/* allow for three retries */
-+		cec_write_clr_set(sd, 0x12, 0x07, 3);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
- static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -2228,6 +2425,9 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+	/* cec */
-+	adv7842_cec_isr(sd, handled);
-+
- 	/* tx 5v detect */
- 	if (irq_status[2] & 0x3) {
- 		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
-@@ -2308,10 +2508,12 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- 	case ADV7842_EDID_PORT_A:
- 	case ADV7842_EDID_PORT_B:
- 		memset(&state->hdmi_edid.edid, 0, 256);
--		if (e->blocks)
-+		if (e->blocks) {
- 			state->hdmi_edid.present |= 0x04 << e->pad;
--		else
-+		} else {
- 			state->hdmi_edid.present &= ~(0x04 << e->pad);
-+			adv7842_s_detect_tx_5v_ctrl(sd);
-+		}
- 		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
- 		err = edid_write_hdmi_segment(sd, e->pad);
- 		break;
-@@ -2496,8 +2698,19 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "HPD A %s, B %s\n",
- 		  reg_io_0x21 & 0x02 ? "enabled" : "disabled",
- 		  reg_io_0x21 & 0x01 ? "enabled" : "disabled");
--	v4l2_info(sd, "CEC %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
- 			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		int i;
-+
-+		for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
-+	}
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	if (state->hdmi_port_a) {
-@@ -3047,6 +3260,13 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- 	.query_dv_timings = adv7842_query_dv_timings,
- };
- 
-+static const struct v4l2_subdev_cec_ops adv7842_cec_ops = {
-+	.available_log_addrs = adv7842_cec_available_log_addrs,
-+	.enable = adv7842_cec_enable,
-+	.log_addr = adv7842_cec_log_addr,
-+	.transmit = adv7842_cec_transmit,
-+};
-+
- static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
- 	.enum_mbus_code = adv7842_enum_mbus_code,
- 	.get_fmt = adv7842_get_format,
-@@ -3061,6 +3281,7 @@ static const struct v4l2_subdev_ops adv7842_ops = {
- 	.core = &adv7842_core_ops,
- 	.video = &adv7842_video_ops,
- 	.pad = &adv7842_pad_ops,
-+	.cec = &adv7842_cec_ops,
- };
- 
- /* -------------------------- custom ctrls ---------------------------------- */
-@@ -3341,7 +3562,7 @@ static int adv7842_remove(struct i2c_client *client)
- 	struct adv7842_state *state = to_state(sd);
- 
- 	adv7842_irq_enable(sd, false);
--
-+	adv7842_cec_enable(sd, false);
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
- 	v4l2_device_unregister_subdev(sd);
--- 
-2.6.2
+
+On 17/11/15 12:54, Tiffany Lin wrote:
+ > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+
+There is no description of what this patch does. Its not enough to have 
+it on the cover letter (because that won't end up in version control). 
+You need something here.
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/Kconfig b/drivers/media/platform/mtk-vcodec/Kconfig
+> new file mode 100644
+> index 0000000..1c0b935
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/Kconfig
+> @@ -0,0 +1,5 @@
+> +config MEDIATEK_VPU
+> +	bool
+> +	---help---
+> +	  This driver provides downloading firmware vpu (video processor unit)
+> +	  and communicating with vpu.
+
+Haven't I seen this before (in patch 3)? Why is it being added to 
+another Kconfig file?
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/Makefile b/drivers/media/platform/mtk-vcodec/Makefile
+> new file mode 100644
+> index 0000000..c7f7174
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/Makefile
+> @@ -0,0 +1,12 @@
+> +obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += mtk_vcodec_intr.o \
+> +				       mtk_vcodec_util.o \
+> +				       mtk_vcodec_enc_drv.o \
+> +				       mtk_vcodec_enc.o \
+> +				       mtk_vcodec_enc_pm.o
+> +
+> +obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += common/
+> +
+> +ccflags-y += -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
+> +	     -I$(srctree)/drivers/media/platform/mtk-vcodec \
+> +	     -I$(srctree)/drivers/media/platform/mtk-vpu
+
+Seems like there's a lot of directories here. Are these files 
+(framework, common, vcodec, etc) so unrelated they really need to live 
+in separate directories?
+
+Why not just drivers/media/platform/mediatek?
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/common/Makefile b/drivers/media/platform/mtk-vcodec/common/Makefile
+> new file mode 100644
+> index 0000000..477ab80
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/common/Makefile
+> @@ -0,0 +1,8 @@
+> +obj-y += \
+> +    venc_drv_if.o
+> +
+> +ccflags-y += \
+> +    -I$(srctree)/include/ \
+> +    -I$(srctree)/drivers/media/platform/mtk-vcodec \
+> +    -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
+> +    -I$(srctree)/drivers/media/platform/mtk-vpu
+
+As above, this appears to be a directory to hold just one file.
+
+
+ > diff --git a/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c 
+b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+ > new file mode 100644
+ > index 0000000..9b3f025
+ > --- /dev/null
+ > +++ b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+ > @@ -0,0 +1,152 @@
+ > +/*
+ > + * Copyright (c) 2015 MediaTek Inc.
+ > + * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
+ > + *         Jungchang Tsao <jungchang.tsao@mediatek.com>
+ > + *
+ > + * This program is free software; you can redistribute it and/or
+ > + * modify
+ > + * it under the terms of the GNU General Public License version 2 as
+ > + * published by the Free Software Foundation.
+ > + *
+ > + * This program is distributed in the hope that it will be useful,
+ > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ > + * GNU General Public License for more details.
+ > + */
+ > +
+ > +#include <linux/interrupt.h>
+ > +#include <linux/kernel.h>
+ > +#include <linux/slab.h>
+ > +
+ > +#include "mtk_vcodec_drv.h"
+ > +#include "mtk_vcodec_enc.h"
+ > +#include "mtk_vcodec_pm.h"
+ > +#include "mtk_vcodec_util.h"
+ > +#include "mtk_vpu_core.h"
+ > +
+ > +#include "venc_drv_if.h"
+ > +#include "venc_drv_base.h"
+ > +
+ > +
+ > +int venc_if_create(void *ctx, unsigned int fourcc, unsigned long 
+*handle)
+ > +{
+ > +	struct venc_handle *h;
+ > +	char str[10];
+ > +
+ > +	mtk_vcodec_fmt2str(fourcc, str);
+ > +
+ > +	h = kzalloc(sizeof(*h), GFP_KERNEL);
+ > +	if (!h)
+ > +		return -ENOMEM;
+ > +
+ > +	h->fourcc = fourcc;
+ > +	h->ctx = ctx;
+ > +	mtk_vcodec_debug(h, "fmt = %s handle = %p", str, h);
+ > +
+ > +	switch (fourcc) {
+ > +	default:
+ > +		mtk_vcodec_err(h, "invalid format %s", str);
+ > +		goto err_out;
+ > +	}
+ > +
+ > +	*handle = (unsigned long)h;
+ > +	return 0;
+ > +
+ > +err_out:
+ > +	kfree(h);
+ > +	return -EINVAL;
+ > +}
+ > +
+ > +int venc_if_init(unsigned long handle)
+ > +{
+ > +	int ret = 0;
+ > +	struct venc_handle *h = (struct venc_handle *)handle;
+ > +
+ > +	mtk_vcodec_debug_enter(h);
+ > +
+ > +	mtk_venc_lock(h->ctx);
+ > +	mtk_vcodec_enc_clock_on();
+ > +	vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
+ > +	ret = h->enc_if->init(h->ctx, (unsigned long *)&h->drv_handle);
+ > +	vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
+ > +	mtk_vcodec_enc_clock_off();
+ > +	mtk_venc_unlock(h->ctx);
+ > +
+ > +	return ret;
+ > +}
+
+To me this looks more like an obfuscation layer rather than a 
+abstraction layer. I don't understand why we need to hide things from 
+the V4L2 implementation that this code forms part of.
+
+More importantly, if this code was included somewhere where it could be 
+properly integrated with the device model you might be able to use the 
+pm_runtime system to avoid this sort of "heroics" to manage the clocks 
+anyway.
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+> new file mode 100644
+> index 0000000..22239f8
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
+> @@ -0,0 +1,441 @@
+> +/*
+> +* Copyright (c) 2015 MediaTek Inc.
+> +* Author: PC Chen <pc.chen@mediatek.com>
+> +*         Tiffany Lin <tiffany.lin@mediatek.com>
+> +*
+> +* This program is free software; you can redistribute it and/or modify
+> +* it under the terms of the GNU General Public License version 2 as
+> +* published by the Free Software Foundation.
+> +*
+> +* This program is distributed in the hope that it will be useful,
+> +* but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +* GNU General Public License for more details.
+> +*/
+> +
+> +#ifndef _MTK_VCODEC_DRV_H_
+> +#define _MTK_VCODEC_DRV_H_
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-core.h>
+> +#include <media/videobuf2-v4l2.h>
+> +
+> +#include "venc_drv_if.h"
+> +
+> +#define MTK_VCODEC_MAX_INSTANCES	32
+> +#define MTK_VCODEC_MAX_FRAME_SIZE	0x800000
+> +#define MTK_VIDEO_MAX_FRAME		32
+> +#define MTK_MAX_CTRLS			10
+> +
+> +#define MTK_VCODEC_DRV_NAME		"mtk_vcodec_drv"
+> +#define MTK_VCODEC_ENC_NAME		"mtk-vcodec-enc"
+> +
+> +#define MTK_VENC_IRQ_STATUS_SPS          0x1
+> +#define MTK_VENC_IRQ_STATUS_PPS          0x2
+> +#define MTK_VENC_IRQ_STATUS_FRM          0x4
+> +#define MTK_VENC_IRQ_STATUS_DRAM         0x8
+> +#define MTK_VENC_IRQ_STATUS_PAUSE        0x10
+> +#define MTK_VENC_IRQ_STATUS_SWITCH       0x20
+
+Probably better to use BIT(0) .. BIT(5).
+
+
+> +#define MTK_VENC_IRQ_STATUS_OFFSET       0x05C
+> +#define MTK_VENC_IRQ_ACK_OFFSET          0x060
+> +
+> +#define MTK_VCODEC_MAX_PLANES		3
+> +
+> +#define VDEC_HW_ACTIVE	0x10
+> +#define VDEC_IRQ_CFG    0x11
+> +#define VDEC_IRQ_CLR    0x10
+> +
+> +#define VDEC_IRQ_CFG_REG	0xa4
+> +#define NUM_MAX_ALLOC_CTX  4
+> +#define MTK_V4L2_BENCHMARK 0
+> +#define USE_ENCODE_THREAD  1
+> +
+> +/**
+> + * enum mtk_hw_reg_idx - MTK hw register base index
+> + */
+> +enum mtk_hw_reg_idx {
+> +	VDEC_SYS,
+> +	VDEC_MISC,
+> +	VDEC_LD,
+> +	VDEC_TOP,
+> +	VDEC_CM,
+> +	VDEC_AD,
+> +	VDEC_AV,
+> +	VDEC_PP,
+> +	VDEC_HWD,
+> +	VDEC_HWQ,
+> +	VDEC_HWB,
+> +	VDEC_HWG,
+> +	NUM_MAX_VDEC_REG_BASE,
+> +	VENC_SYS = NUM_MAX_VDEC_REG_BASE,
+> +	VENC_LT_SYS,
+> +	NUM_MAX_VCODEC_REG_BASE
+> +};
+> +
+> +/**
+> + * enum mtk_instance_type - The type of an MTK Vcodec instance.
+> + */
+> +enum mtk_instance_type {
+> +	MTK_INST_DECODER		= 0,
+> +	MTK_INST_ENCODER		= 1,
+> +};
+> +
+> +/**
+> + * enum mtk_instance_state - The state of an MTK Vcodec instance.
+> + * @MTK_STATE_FREE - default state when instance create
+> + * @MTK_STATE_CREATE - vdec instance is create
+> + * @MTK_STATE_INIT - vdec instance is init
+> + * @MTK_STATE_CONFIG - reserved for encoder
+> + * @MTK_STATE_HEADER - vdec had sps/pps header parsed
+> + * @MTK_STATE_RUNNING - vdec is decoding
+> + * @MTK_STATE_FLUSH - vdec is flushing
+> + * @MTK_STATE_RES_CHANGE - vdec detect resolution change
+> + * @MTK_STATE_FINISH - ctx instance is stopped streaming
+> + * @MTK_STATE_DEINIT - before release ctx instance
+> + * @MTK_STATE_ERROR - vdec has something wrong
+> + * @MTK_STATE_ABORT - abort work in working thread
+> + */
+> +enum mtk_instance_state {
+> +	MTK_STATE_FREE		= 0,
+> +	MTK_STATE_CREATE	= (1 << 0),
+> +	MTK_STATE_INIT		= (1 << 1),
+> +	MTK_STATE_CONFIG	= (1 << 2),
+> +	MTK_STATE_HEADER	= (1 << 3),
+> +	MTK_STATE_RUNNING	= (1 << 4),
+> +	MTK_STATE_FLUSH		= (1 << 5),
+> +	MTK_STATE_RES_CHANGE	= (1 << 6),
+> +	MTK_STATE_FINISH	= (1 << 7),
+> +	MTK_STATE_DEINIT	= (1 << 8),
+> +	MTK_STATE_ERROR		= (1 << 9),
+> +	MTK_STATE_ABORT		= (1 << 10),
+
+This looks like it started as a state machine and somehow turned into 
+flags, resulting in a state machine with 2048 states or, to give it a 
+different name, a debugging nightmare.
+
+If the start streaming operation implemented cleanup-on-error properly 
+then there would only be two useful states: Started and stopped. Even 
+the "sticky" error behavior looks unnecessary to me (meaning we don't 
+need to track its state).
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> new file mode 100644
+> index 0000000..8e1b6f0
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> @@ -0,0 +1,1773 @@
+> [...]
+> +static int vb2ops_venc_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(q);
+> +	struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
+> +	int ret;
+> +#if MTK_V4L2_BENCHMARK
+> +	struct timeval begin, end;
+> +
+> +	do_gettimeofday(&begin);
+> +#endif
+> +
+> +	if (!(vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q) &
+> +	      vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q))) {
+> +		mtk_v4l2_debug(1, "[%d]-> out=%d cap=%d",
+> +		 ctx->idx,
+> +		 vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q),
+> +		 vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q));
+> +		return 0;
+> +	}
+> +
+> +	if ((ctx->state & (MTK_STATE_ERROR | MTK_STATE_ABORT)))
+> +		return -EINVAL;
+
+This is the sort of thing I mean.
+
+This sticky error behaviour means that every subsequent call to 
+vb2ops_venc_start_streaming() will fail. Note also that the user will 
+never try to stop streaming (which can clear the error state) because 
+according to the return code it got when it tried to start streaming we 
+never actually started.
+
+This is what I mean about having two many states. From the user's 
+perspective there are only two states. There needs to be a good reason 
+for the driver to manage so many extra secret states internally.
+
+
+> +
+> +	if (ctx->state == MTK_STATE_FREE) {
+> +		ret = venc_if_create(ctx,
+> +				     ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc,
+> +				     &ctx->h_enc);
+> +
+> +		if (ret != 0) {
+> +			ctx->state |= MTK_STATE_ERROR;
+> +			v4l2_err(v4l2_dev, "invalid codec type=%x\n",
+> +				 ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc);
+> +			v4l2_err(v4l2_dev, "venc_if_create failed=%d\n", ret);
+> +			return -EINVAL;
+> +		}
+> +
+> +		if (ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc ==
+> +			V4L2_PIX_FMT_H264)
+> +			ctx->hdr = 1;
+> +
+> +		ctx->state |= MTK_STATE_CREATE;
+> +	}
+> +
+> +	if ((ctx->state & MTK_STATE_CREATE) && !(ctx->state & MTK_STATE_INIT)) {
+> +		ret = venc_if_init(ctx->h_enc);
+> +		if (ret != 0) {
+> +			ctx->state |= MTK_STATE_ERROR;
+> +			v4l2_err(v4l2_dev, "venc_if_init failed=%d\n", ret);
+> +			return -EINVAL;
+
+This error path leaves the encoder partially constructed and relies on 
+something else to tidy things up. It would be much better to tidy things 
+up from this function and
+
+Also I don't think both venc_if_create and venc_if_init are needed. They 
+are only ever called one after the other and thus they only serve to 
+complicate the error handling code.
+
+
+> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> new file mode 100644
+> index 0000000..a8e683a
+> --- /dev/null
+> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> @@ -0,0 +1,66 @@
+> +/*
+> +* Copyright (c) 2015 MediaTek Inc.
+> +* Author: PC Chen <pc.chen@mediatek.com>
+> +*         Tiffany Lin <tiffany.lin@mediatek.com>
+> +*
+> +* This program is free software; you can redistribute it and/or modify
+> +* it under the terms of the GNU General Public License version 2 as
+> +* published by the Free Software Foundation.
+> +*
+> +* This program is distributed in the hope that it will be useful,
+> +* but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +* GNU General Public License for more details.
+> +*/
+> +
+> +#ifndef _MTK_VCODEC_UTIL_H_
+> +#define _MTK_VCODEC_UTIL_H_
+> +
+> +#include <linux/types.h>
+> +#include <linux/dma-direction.h>
+> +
+> +struct mtk_vcodec_mem {
+> +	size_t size;
+> +	void *va;
+> +	dma_addr_t dma_addr;
+> +};
+> +
+> +extern int mtk_v4l2_dbg_level;
+> +extern bool mtk_vcodec_dbg;
+> +
+> +#define mtk_v4l2_debug(level, fmt, args...)				 \
+> +	do {								 \
+> +		if (mtk_v4l2_dbg_level >= level)			 \
+> +			pr_info("[MTK_V4L2] level=%d %s(),%d: " fmt "\n",\
+> +				level, __func__, __LINE__, ##args);	 \
+> +	} while (0)
+ > +
+> +#define mtk_v4l2_err(fmt, args...)                \
+> +	pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
+> +	       ##args)
+
+Obviously the code should be structured to make use of dev_dbg/dev_err 
+possible.
+
+However where this won't work do you really need special macros for 
+this. Assuming your error messages are well written 'git grep' and the 
+following should be enough:
+
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+
+> +#define mtk_v4l2_debug_enter()  mtk_v4l2_debug(5, "+\n")
+> +#define mtk_v4l2_debug_leave()  mtk_v4l2_debug(5, "-\n")
+
+Remove these. If you care about function entry and exit for debugging 
+you should be able to use ftrace.
+
+
+> +#define mtk_vcodec_debug(h, fmt, args...)				\
+> +	do {								\
+> +		if (mtk_vcodec_dbg)					\
+> +			pr_info("[MTK_VCODEC][%d]: %s() " fmt "\n",	\
+> +				((struct mtk_vcodec_ctx *)h->ctx)->idx, \
+> +				__func__, ##args);			\
+> +	} while (0)
+> +
+> +#define mtk_vcodec_err(h, fmt, args...)					\
+> +	pr_err("[MTK_VCODEC][ERROR][%d]: %s() " fmt "\n",		\
+> +	       ((struct mtk_vcodec_ctx *)h->ctx)->idx, __func__, ##args)
+> +
+> +#define mtk_vcodec_debug_enter(h)  mtk_vcodec_debug(h, "+\n")
+> +#define mtk_vcodec_debug_leave(h)  mtk_vcodec_debug(h, "-\n")
+
+All above comments apply to these too.
 
