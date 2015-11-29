@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:34715 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025AbbK0H1U (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39772 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752488AbbK2TWr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Nov 2015 02:27:20 -0500
-Date: Fri, 27 Nov 2015 12:57:08 +0530
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: =?utf-8?B?6rmA7KCV67Cw?= <jb09.kim@samsung.com>
-Cc: sumit.semwal@linaro.org, gregkh@linuxfoundation.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] driver:dma bug_fix : access freed memory
-Message-ID: <20151127072708.GA29368@sudip-pc>
-References: <1606811477.1531761448603090175.JavaMail.weblogic@epmlwas01d>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1606811477.1531761448603090175.JavaMail.weblogic@epmlwas01d>
+	Sun, 29 Nov 2015 14:22:47 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v2 22/22] media: Update media graph walk documentation for the changed API
+Date: Sun, 29 Nov 2015 21:20:23 +0200
+Message-Id: <1448824823-10372-23-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 27, 2015 at 05:44:53AM +0000, 김정배 wrote:
-> From 8f6aeb362d9e44f29d46ae7694cdfee4408406ce Mon Sep 17 00:00:00 2001
-> From: "KIM JUGNBAE" <jb09.kim@samsung.com>
-> Date: Thu, 26 Nov 2015 16:28:47 +0900
-> Subject: [PATCH] bug_fix : access freed memory
+media_entity_graph_walk_init() and media_entity_graph_walk_cleanup() are
+now mandatory.
 
-This part should not be present in the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media-framework.txt | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-> 
-> sync_fenc_free & fence_check_cb_func would be executed at
-> other cpu. fence_check_cb_func access freed fence memory after
-> kfree(fence) at sync_fence_free.
-> To escaped this issue, atomic_read(&fence->status) need to be
-> protected by child_list_lock.
-> 
-> Signed-off-by: "kimjungbae\" " <jb09.kim@samsung.com>"
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index b424de6..738a526 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -241,13 +241,22 @@ supported by the graph traversal API. To prevent infinite loops, the graph
+ traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
+ currently defined as 16.
+ 
+-Drivers initiate a graph traversal by calling
++The graph traversal must be initialised calling
++
++	media_entity_graph_walk_init(struct media_entity_graph *graph);
++
++The return value of the function must be checked. Should the number of
++graph entities exceed the pre-allocated memory, it will also allocate
++memory for the enumeration.
++
++Once initialised, the graph walk may be started by calling
+ 
+ 	media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 				      struct media_entity *entity);
+ 
+-The graph structure, provided by the caller, is initialized to start graph
+-traversal at the given entity.
++The graph structure, provided by the caller, is initialized to start
++graph traversal at the given entity. It is possible to start the graph
++walk multiple times using the same graph struct.
+ 
+ Drivers can then retrieve the next entity by calling
+ 
+@@ -255,8 +264,11 @@ Drivers can then retrieve the next entity by calling
+ 
+ When the graph traversal is complete the function will return NULL.
+ 
+-Graph traversal can be interrupted at any moment. No cleanup function call is
+-required and the graph structure can be freed normally.
++Graph traversal can be interrupted at any moment. Once the graph
++structure is no longer needed, the resources that have been allocated
++by media_entity_graph_walk_init() are released using
++
++	media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+ 
+ Helper functions can be used to find a link between two given pads, or a pad
+ connected to another pad through an enabled link
+-- 
+2.1.4
 
-The From name and the Signed-off-by name shouls be same. Mayvbe you can
-consider having Kim Jugnbae (or Jungbae) as both.
-
-> ---
->  drivers/dma-buf/fence.c              |   13 +++++++++++++
->  drivers/staging/android/sync.c       |   10 +++++++---
->  drivers/staging/android/sync_debug.c |    2 ++
->  include/linux/fence.h                |    1 +
->  4 files changed, 23 insertions(+), 3 deletions(-)
-
-Usually staging patches can not touch anything outside staging.
-
-regards
-sudip
