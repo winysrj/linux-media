@@ -1,126 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48090 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758427AbbKTDfK (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39725 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752346AbbK2TWm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Nov 2015 22:35:10 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D0FC8E3982
-	for <linux-media@vger.kernel.org>; Fri, 20 Nov 2015 04:35:04 +0100 (CET)
-Date: Fri, 20 Nov 2015 04:35:04 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 29 Nov 2015 14:22:42 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151120033504.D0FC8E3982@tschai.lan>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v2 04/22] media: Move struct media_entity_graph definition up
+Date: Sun, 29 Nov 2015 21:20:05 +0200
+Message-Id: <1448824823-10372-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+It will be needed in struct media_pipeline shortly.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/media-entity.h | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-date:		Fri Nov 20 04:00:18 CET 2015
-git branch:	test
-git hash:	ca78946853eb23a37260cefc074a5bf86e8b866c
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	host hardware:	x86_64
-host os:	4.2.0-164
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 5a0339a..2601bb0 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -95,6 +95,16 @@ struct media_entity_enum {
+ 	int idx_max;
+ };
+ 
++struct media_entity_graph {
++	struct {
++		struct media_entity *entity;
++		struct list_head *link;
++	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++
++	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
++	int top;
++};
++
+ struct media_pipeline {
+ };
+ 
+@@ -437,16 +447,6 @@ static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
+ 	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
+ }
+ 
+-struct media_entity_graph {
+-	struct {
+-		struct media_entity *entity;
+-		struct list_head *link;
+-	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+-
+-	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+-	int top;
+-};
+-
+ #define gobj_to_entity(gobj) \
+ 		container_of(gobj, struct media_entity, graph_obj)
+ 
+-- 
+2.1.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
