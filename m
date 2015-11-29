@@ -1,116 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:36543 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752606AbbK3Lnp (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39773 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752425AbbK2TWo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2015 06:43:45 -0500
-Message-ID: <1448883819.15961.7.camel@mtksdaap41>
-Subject: Re: [RESEND RFC/PATCH 3/8] media: platform: mtk-vpu: Support
- Mediatek VPU
-From: andrew-ct chen <andrew-ct.chen@mediatek.com>
-To: Daniel Thompson <daniel.thompson@linaro.org>
-CC: Mark Rutland <mark.rutland@arm.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Darren Etheridge <detheridge@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	"Peter Griffin" <peter.griffin@linaro.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Benoit Parrot <bparrot@ti.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	<linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Kumar Gala <galak@codeaurora.org>
-Date: Mon, 30 Nov 2015 19:43:39 +0800
-In-Reply-To: <56584AC5.7020704@linaro.org>
-References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1447764885-23100-4-git-send-email-tiffany.lin@mediatek.com>
-	 <5655DDB4.2080002@linaro.org> <1448626209.7734.26.camel@mtksdaap41>
-	 <56584AC5.7020704@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+	Sun, 29 Nov 2015 14:22:44 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v2 11/22] v4l: xilinx: Use the new media_entity_graph_walk_start() interface
+Date: Sun, 29 Nov 2015 21:20:12 +0200
+Message-Id: <1448824823-10372-12-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2015-11-27 at 12:21 +0000, Daniel Thompson wrote:
-> On 27/11/15 12:10, andrew-ct chen wrote:
-> >>> +
-> >>> > >+	memcpy((void *)send_obj->share_buf, buf, len);
-> >>> > >+	send_obj->len = len;
-> >>> > >+	send_obj->id = id;
-> >>> > >+	vpu_cfg_writel(vpu, 0x1, HOST_TO_VPU);
-> >>> > >+
-> >>> > >+	/* Wait until VPU receives the command */
-> >>> > >+	timeout = jiffies + msecs_to_jiffies(IPI_TIMEOUT_MS);
-> >>> > >+	do {
-> >>> > >+		if (time_after(jiffies, timeout)) {
-> >>> > >+			dev_err(vpu->dev, "vpu_ipi_send: IPI timeout!\n");
-> >>> > >+			return -EIO;
-> >>> > >+		}
-> >>> > >+	} while (vpu_cfg_readl(vpu, HOST_TO_VPU));
-> >> >
-> >> >Do we need to busy wait every time we communicate with the co-processor?
-> >> >Couldn't we put this wait*before*  we write to HOST_TO_VPU above.
-> >> >
-> >> >That way we only spin when there is a need to.
-> >> >
-> > Since the hardware VPU only allows that one client sends the command to
-> > it each time.
-> > We need the wait to make sure VPU accepted the command and cleared the
-> > interrupt and then the next command would be served.
-> 
-> I understand that the VPU  can only have on message outstanding at once.
-> 
-> I just wonder why we busy wait *after* sending the first command rather 
-> than *before* sending the second one.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hyun Kwon <hyun.kwon@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-dma.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-No other special reasons. Just send one command and wait until VPU gets
-the command. Then, I think this wait also can be put before we write to
-HOST_TO_VPU.Is this better than former? May I know the reason?
-
-
-> 
-> Streamed decode/encode typically ends up being rate controlled by 
-> capture or display meaning that in these cases we don't need to busy 
-> wait at all (because by the time we send the next frame the VPU has 
-> already accepted the previous message).
-
-For now, only one device "encoder" exists, it is true.
-But, we'll have encoder and decoder devices, the decode and encode
-requested to VPU are simultaneous.
-Is this supposed to be removed for this patches and we can add it back
-if the another device(decoder) is ready for review?
-
-
-Andrew
-
-
-> 
-> 
-> Daniel.
-> 
-> 
-> _______________________________________________
-> Linux-mediatek mailing list
-> Linux-mediatek@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-mediatek
-
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index bc244a0..0a19824 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -182,10 +182,17 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int num_inputs = 0;
+ 	unsigned int num_outputs = 0;
++	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+ 	/* Walk the graph to locate the video nodes. */
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&mdev->graph_mutex);
++		return ret;
++	}
++
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+@@ -206,6 +213,8 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&graph);
++
+ 	/* We need exactly one output and zero or one input. */
+ 	if (num_outputs != 1 || num_inputs > 1)
+ 		return -EPIPE;
+-- 
+2.1.4
 
