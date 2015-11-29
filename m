@@ -1,105 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:35058 "EHLO
-	mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778AbbKKGE2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39771 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752409AbbK2TWo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Nov 2015 01:04:28 -0500
-Received: by ioc74 with SMTP id 74so24996475ioc.2
-        for <linux-media@vger.kernel.org>; Tue, 10 Nov 2015 22:04:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <562FFF9D.3070502@xs4all.nl>
-References: <CAJ2oMhJinTjko5N+JdCYrenxme7xUJ_LudwtUy4TJMi1RD6Xag@mail.gmail.com>
-	<5625DDCA.2040203@xs4all.nl>
-	<CAJ2oMhJvwZLypAXfYfrwdGLBvpFkVYkAm4POUVxfKEW+Qm7Cdw@mail.gmail.com>
-	<562B5178.5040303@xs4all.nl>
-	<CAJ2oMhJ1FhMqm_P0h+dzmTUJuvfK=DawPAO-R3duS6-XncsrMQ@mail.gmail.com>
-	<562D5DE2.5020406@xs4all.nl>
-	<CALzAhNUwq3p8OSG32VfffMbwSnpF_tGyUMmLgk+L-0XOTHZJjQ@mail.gmail.com>
-	<CAJ2oMh++Ed43esZi3jnO7SZtc6ySmkmxaydEGPU=PY=UCxhGig@mail.gmail.com>
-	<562EA780.7070706@xs4all.nl>
-	<CAJ2oMhL+qBVics7596WcxdBD6Dz3YkuBA-PmZhFr-8yx4ioCCA@mail.gmail.com>
-	<562FFF9D.3070502@xs4all.nl>
-Date: Wed, 11 Nov 2015 08:04:27 +0200
-Message-ID: <CAJ2oMh+suc1nkqR7+oMFugcAnhChgBXVF288Z2VkNrWzm73czQ@mail.gmail.com>
-Subject: Re: PCIe capture driver
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Sun, 29 Nov 2015 14:22:44 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 10/22] v4l: exynos4-is: Use the new media_entity_graph_walk_start() interface
+Date: Sun, 29 Nov 2015 21:20:11 +0200
+Message-Id: <1448824823-10372-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 28, 2015 at 12:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->
-> On 10/27/2015 22:56, Ran Shalit wrote:
->> On Tue, Oct 27, 2015 at 12:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>
->>>
->>> On 10/27/2015 02:04, Ran Shalit wrote:
->>>> On Mon, Oct 26, 2015 at 1:46 PM, Steven Toth <stoth@kernellabs.com> wrote:
->>>>>> No, use V4L2. What you do with the frame after it has been captured
->>>>>> into memory has no relevance to the API you use to capture into memory.
->>>>>
->>>>> Ran, I've built many open and closed source Linux drivers over the
->>>>> last 10 years - so I can speak with authority on this.
->>>>>
->>>>> Hans is absolutely correct, don't make the mistake of going
->>>>> proprietary with your API. Take advantage of the massive amount of
->>>>> video related frameworks the kernel has to offer. It will get you to
->>>>> market faster, assuming your goal is to build a driver that is open
->>>>> source. If your licensing prohibits an open source driver solution,
->>>>> you'll have no choice but to build your own proprietary API.
->>>>>
->>>>> --
->>>>> Steven Toth - Kernel Labs
->>>>> http://www.kernellabs.com
->>>>
->>>> Hi,
->>>>
->>>> Thank you very much for these valuable comments.
->>>> If I may ask one more on this issue:
->>>> Is there an example in linux tree, for a pci device which is used both
->>>> as a capture and a display device ? (I've made a search but did not
->>>> find any)
->>>> The PCIe device we are using will be both a capture device and output
->>>> video device (for display).
->>>
->>> The cobalt driver (drivers/media/pci/cobalt) does exactly that: multiple HDMI inputs and an optional HDMI output (through a daughterboard).
->>>
->>> Please note: using V4L2 for an output only makes sense if you will be outputting video, if the goal is to output a graphical desktop then the drm/kms API is much more suitable.
->>>
->>> Regards,
->>>
->>>         Hans
->>
->> Hi Hans,
->>
->> Thank you very much for the reference.
->> I see that the cobalt card is not for sale ?  If it was it could help
->> us in our development.
->
-> No, sorry. It's a Cisco-internal card only.
->
->> In our case it is more custom design which is based on FPGA:
->>
->> Cpu ---PCIe---- FPGA <<<-->>>     3xHD+3xSD inputs & 1xHD(or SD) output
->>
->> As I understand there is no product chip which can do the above
->> (3xHD+3xSD inputs & 1xHD(or SD) output), that's why the use of FPGA in
->> the board design.
->
-> The ivtv driver (drivers/media/pci/ivtv) has SD input and output, so that can be a
-> useful reference for that as well. The Hauppauge PVR-350 board is no longer
-> sold, but you might be able to pick one up on ebay.
->
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c | 31 +++++++++++++++++----------
+ drivers/media/platform/exynos4-is/media-dev.h |  1 +
+ 2 files changed, 21 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index d55b4f3..704040c 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1046,10 +1046,10 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
+ }
+ 
+ /* Locking: called with entity->graph_obj.mdev->graph_mutex mutex held. */
+-static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
++static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
++				      struct media_entity_graph *graph)
+ {
+ 	struct media_entity *entity_err = entity;
+-	struct media_entity_graph graph;
+ 	int ret;
+ 
+ 	/*
+@@ -1058,9 +1058,9 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+ 	 * through active links. This is needed as we cannot power on/off the
+ 	 * subdevs in random order.
+ 	 */
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_io(entity))
+ 			continue;
+ 
+@@ -1071,10 +1071,11 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+ 	}
+ 
+ 	return 0;
+- err:
+-	media_entity_graph_walk_start(&graph, entity_err);
+ 
+-	while ((entity_err = media_entity_graph_walk_next(&graph))) {
++err:
++	media_entity_graph_walk_start(graph, entity_err);
++
++	while ((entity_err = media_entity_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_io(entity_err))
+ 			continue;
+ 
+@@ -1090,21 +1091,29 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+ 				unsigned int notification)
+ {
++	struct media_entity_graph *graph =
++		&container_of(link->graph_obj.mdev, struct fimc_md,
++			      media_dev)->link_setup_graph;
+ 	struct media_entity *sink = link->sink->entity;
+ 	int ret = 0;
+ 
+ 	/* Before link disconnection */
+ 	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
++		ret = media_entity_graph_walk_init(graph,
++						   link->graph_obj.mdev);
++		if (ret)
++			return ret;
+ 		if (!(flags & MEDIA_LNK_FL_ENABLED))
+-			ret = __fimc_md_modify_pipelines(sink, false);
++			ret = __fimc_md_modify_pipelines(sink, false, graph);
+ #if 0
+ 		else
+ 			/* TODO: Link state change validation */
+ #endif
+ 	/* After link activation */
+-	} else if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+-		   (link->flags & MEDIA_LNK_FL_ENABLED)) {
+-		ret = __fimc_md_modify_pipelines(sink, true);
++	} else if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH) {
++		if (link->flags & MEDIA_LNK_FL_ENABLED)
++			ret = __fimc_md_modify_pipelines(sink, true, graph);
++		media_entity_graph_walk_cleanup(graph);
+ 	}
+ 
+ 	return ret ? -EPIPE : 0;
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 9a69913..e80c55d 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -154,6 +154,7 @@ struct fimc_md {
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
++	struct media_entity_graph link_setup_graph;
+ };
+ 
+ static inline
+-- 
+2.1.4
 
-Hello Hans,
-
-Is it possible to use the PVR-350 which is a PCI device connected to
-PCI express in mothrboard ? (I think it will required an adapter )
-Does the ivtv driver function correctly if an adapter to PCIe is connected ?
-
-Best Regards,
-Ran
