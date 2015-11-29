@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:34295 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169AbbKDBwy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Nov 2015 20:52:54 -0500
-Received: by ykdr3 with SMTP id r3so48536661ykd.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Nov 2015 17:52:53 -0800 (PST)
-MIME-Version: 1.0
-From: Felipe Eduardo Concha Avello <felipec84@gmail.com>
-Date: Tue, 3 Nov 2015 22:52:24 -0300
-Message-ID: <CADR3MB+gkJcqLUWfi775pW+7d+0d3XtFN4CJmJ=7y2gR1czv2A@mail.gmail.com>
-Subject: [PATCH] libdvbv5: fix the count of partial receptions
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39773 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752483AbbK2TWr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2015 14:22:47 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v2 21/22] media: Rename MEDIA_ENTITY_ENUM_MAX_ID as MEDIA_ENTITY_ENUM_STACK_ALLOC
+Date: Sun, 29 Nov 2015 21:20:22 +0200
+Message-Id: <1448824823-10372-22-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the number of elements are counted wrong, its divided by the size
-of a pointer and not the size of the struct
-isdb_desc_partial_reception (uint16_t).
+The purpose of the macro has changed, rename it accordingly. It is not and
+should no longer be used in drivers directly, but only for the purpose for
+defining how many bits can be allocated from the stack for entity
+enumerations.
 
-I noticed this when using "dvbv5-scan -v" in order to debug an ISDB-T table.
-
-Signed-off-by: Felipe Concha Avello <felipec84@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-diff --git a/lib/libdvbv5/descriptors/desc_partial_reception.c
-b/lib/libdvbv5/descriptors/desc_partial_reception.c
-index ce40882..63b8a07 100644
---- a/lib/libdvbv5/descriptors/desc_partial_reception.c
-+++ b/lib/libdvbv5/descriptors/desc_partial_reception.c
-@@ -38,7 +38,7 @@ int isdb_desc_partial_reception_init(struct
-dvb_v5_fe_parms *parms,
+ drivers/media/media-entity.c | 2 +-
+ include/media/media-entity.h | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-        memcpy(d->partial_reception, p, d->length);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 137aa09d..feca976 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -222,7 +222,7 @@ void media_gobj_remove(struct media_gobj *gobj)
+  */
+ int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
+ {
+-	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
++	if (idx_max > MEDIA_ENTITY_ENUM_STACK_ALLOC) {
+ 		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
+ 			       sizeof(long), GFP_KERNEL);
+ 		if (!e->e)
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 85c2656..145d339 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -72,14 +72,14 @@ struct media_gobj {
+ };
+ 
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+-#define MEDIA_ENTITY_ENUM_MAX_ID	64
++#define MEDIA_ENTITY_ENUM_STACK_ALLOC	64
+ 
+ /*
+  * The number of pads can't be bigger than the number of entities,
+  * as the worse-case scenario is to have one entity linked up to
+- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
++ * MEDIA_ENTITY_ENUM_STACK_ALLOC - 1 entities.
+  */
+-#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
++#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_STACK_ALLOC - 1)
+ 
+ /* struct media_entity_enum - An enumeration of media entities.
+  *
+@@ -90,7 +90,7 @@ struct media_gobj {
+  * @idx_max:	Number of bits in the enum.
+  */
+ struct media_entity_enum {
+-	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
++	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_STACK_ALLOC);
+ 	unsigned long *e;
+ 	int idx_max;
+ };
+-- 
+2.1.4
 
--       len = d->length / sizeof(d->partial_reception);
-+       len = d->length / sizeof(*d->partial_reception);
-
-        for (i = 0; i < len; i++)
-                bswap16(d->partial_reception[i].service_id);
-@@ -58,7 +58,7 @@ void isdb_desc_partial_reception_print(struct
-dvb_v5_fe_parms *parms, const stru
-        int i;
-        size_t len;
-
--       len = d->length / sizeof(d->partial_reception);
-+       len = d->length / sizeof(*d->partial_reception);
-
-        for (i = 0; i < len; i++) {
-                dvb_loginfo("|           service ID[%d]     %d", i,
-d->partial_reception[i].service_id);
-diff --git a/lib/libdvbv5/dvb-scan.c b/lib/libdvbv5/dvb-scan.c
-index 1ffb98a..38f558b 100644
---- a/lib/libdvbv5/dvb-scan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -905,7 +905,7 @@ static void add_update_nit_1seg(struct dvb_table_nit *nit,
-        if (!tr->update)
-                return;
-
--       len = d->length / sizeof(d->partial_reception);
-+       len = d->length / sizeof(*d->partial_reception);
-
-        for (i = 0; i < len; i++) {
-                if (tr->entry->service_id ==
-d->partial_reception[i].service_id) {
