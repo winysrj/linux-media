@@ -1,95 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:51319 "EHLO
-	resqmta-po-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751285AbbKJUq5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39767 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752446AbbK2TWp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Nov 2015 15:46:57 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen v3 3/6] media: au0828 create link between ALSA Mixer and decoder
-Date: Tue, 10 Nov 2015 13:40:46 -0700
-Message-Id: <f6f2b7c42ade7842503b512f6a3435afff8e803d.1447184000.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1447183999.git.shuahkh@osg.samsung.com>
-References: <cover.1447183999.git.shuahkh@osg.samsung.com>
+	Sun, 29 Nov 2015 14:22:45 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 16/22] v4l: vsp1: Use media entity enumeration API
+Date: Sun, 29 Nov 2015 21:20:17 +0200
+Message-Id: <1448824823-10372-17-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828_create_media_graph() to create pad link
-between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
-AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
-decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
-mixer's source pad.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/usb/au0828/au0828-core.c | 17 ++++++++++++++---
- drivers/media/usb/au0828/au0828.h      |  1 +
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 7af5d0d..3ef6fee 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -225,6 +225,7 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 	struct media_entity *entity;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
- 	struct media_entity *audio_capture = NULL;
-+	struct media_entity *mixer = NULL;
- 	int i, ret;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index ce10d86..b3fd2be 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 					 struct vsp1_rwpf *output)
+ {
+ 	struct vsp1_entity *entity;
+-	unsigned int entities = 0;
++	struct media_entity_enum entities;
+ 	struct media_pad *pad;
++	int rval;
+ 	bool bru_found = false;
  
- 	if (!mdev)
-@@ -245,6 +246,9 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 		case MEDIA_ENT_F_AUDIO_CAPTURE:
- 			audio_capture = entity;
- 			break;
-+		case MEDIA_ENT_F_AUDIO_MIXER:
-+			mixer = entity;
-+			break;
- 		}
- 	}
+ 	input->location.left = 0;
+ 	input->location.top = 0;
  
-@@ -309,13 +313,20 @@ void au0828_create_media_graph(struct media_entity *new, void *notify_data)
- 		}
- 	}
- 
--	if (audio_capture && !dev->audio_capture_linked) {
--		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
--					    audio_capture, 0,
-+	if (mixer && audio_capture && !dev->audio_capture_linked) {
-+		ret = media_create_pad_link(mixer, 1, audio_capture, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret == 0)
- 			dev->audio_capture_linked = 1;
- 	}
++	rval = media_entity_enum_init(
++		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
++	if (rval)
++		return rval;
 +
-+	if (mixer && !dev->mixer_linked) {
-+		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
-+					    mixer, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret == 0)
-+			dev->mixer_linked = 1;
-+	}
- #endif
+ 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
+ 
+ 	while (1) {
+-		if (pad == NULL)
+-			return -EPIPE;
++		if (pad == NULL) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+ 		/* We've reached a video node, that shouldn't have happened. */
+-		if (!is_media_entity_v4l2_subdev(pad->entity))
+-			return -EPIPE;
++		if (!is_media_entity_v4l2_subdev(pad->entity)) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+-		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
++		entity = to_vsp1_entity(
++			media_entity_to_v4l2_subdev(pad->entity));
+ 
+ 		/* A BRU is present in the pipeline, store the compose rectangle
+ 		 * location in the input RPF for use when configuring the RPF.
+@@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 			break;
+ 
+ 		/* Ensure the branch has no loop. */
+-		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
+-			return -EPIPE;
+-
+-		entities |= 1 << media_entity_id(&entity->subdev.entity);
++		if (media_entity_enum_test_and_set(&entities,
++						   &entity->subdev.entity)) {
++			rval = -EPIPE;
++			goto out;
++		}
+ 
+ 		/* UDS can't be chained. */
+ 		if (entity->type == VSP1_ENTITY_UDS) {
+-			if (pipe->uds)
+-				return -EPIPE;
++			if (pipe->uds) {
++				rval = -EPIPE;
++				goto out;
++			}
+ 
+ 			pipe->uds = entity;
+ 			pipe->uds_input = bru_found ? pipe->bru
+@@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 
+ 	/* The last entity must be the output WPF. */
+ 	if (entity != &output->entity)
+-		return -EPIPE;
++		rval = -EPIPE;
+ 
+-	return 0;
++out:
++	media_entity_enum_cleanup(&entities);
++
++	return rval;
  }
  
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 2f4d597..6dd81b2 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -288,6 +288,7 @@ struct au0828_dev {
- 	bool vdev_linked;
- 	bool vbi_linked;
- 	bool audio_capture_linked;
-+	bool mixer_linked;
- 	struct media_link *active_link;
- 	struct media_entity *active_link_owner;
- #endif
+ static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
 -- 
-2.5.0
+2.1.4
 
