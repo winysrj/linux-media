@@ -1,47 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52379 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1162903AbbKTRCI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39769 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752407AbbK2TWo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 12:02:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 29 Nov 2015 14:22:44 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 03/15] solo6x10: use v4l2_get_timestamp to fill in buffer timestamp
-Date: Fri, 20 Nov 2015 17:45:36 +0100
-Message-Id: <1448037948-36820-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v2 07/22] media: Amend media graph walk API by init and cleanup functions
+Date: Sun, 29 Nov 2015 21:20:08 +0200
+Message-Id: <1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add media_entity_graph_walk_init() and media_entity_graph_walk_cleanup()
+functions in order to dynamically allocate memory for the graph. This is
+not done in media_entity_graph_walk_start() as there are situations where
+e.g. correct error handling, that itself may not fail, requires successful
+graph walk.
 
-The timestamp of a v4l2_buffer was advertised as being CLOCK_MONOTONIC,
-but instead a timestamp from a header field was used. This is inconsistent
-and not what applications expect. Use v4l2_get_timestamp to properly
-set the timestamp.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/media-entity.c | 39 ++++++++++++++++++++++++++++++++++-----
+ include/media/media-entity.h |  5 ++++-
+ 2 files changed, 38 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 1f81f8d..5b7853b 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -531,8 +531,7 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 667ab32..bf3c31f 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -353,14 +353,44 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+ #define stack_top(en)	((en)->stack[(en)->top].entity)
  
- 	if (!ret) {
- 		vbuf->sequence = solo_enc->sequence++;
--		vbuf->timestamp.tv_sec = vop_sec(vh);
--		vbuf->timestamp.tv_usec = vop_usec(vh);
-+		v4l2_get_timestamp(&vbuf->timestamp);
+ /**
++ * media_entity_graph_walk_init - Allocate resources for graph walk
++ * @graph: Media graph structure that will be used to walk the graph
++ * @mdev: Media device
++ *
++ * Reserve resources for graph walk in media device's current
++ * state. The memory must be released using
++ * media_entity_graph_walk_free().
++ *
++ * Returns error on failure, zero on success.
++ */
++__must_check int media_entity_graph_walk_init(
++	struct media_entity_graph *graph, struct media_device *mdev)
++{
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
++
++/**
++ * media_entity_graph_walk_cleanup - Release resources related to graph walking
++ * @graph: Media graph structure that was used to walk the graph
++ */
++void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
++{
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
++
++/**
+  * media_entity_graph_walk_start - Start walking the media graph at a given entity
+  * @graph: Media graph structure that will be used to walk the graph
+  * @entity: Starting entity
+  *
+- * This function initializes the graph traversal structure to walk the entities
+- * graph starting at the given entity. The traversal structure must not be
+- * modified by the caller during graph traversal. When done the structure can
+- * safely be freed.
++ * Before using this function, media_entity_graph_walk_init() must be
++ * used to allocate resources used for walking the graph. This
++ * function initializes the graph traversal structure to walk the
++ * entities graph starting at the given entity. The traversal
++ * structure must not be modified by the caller during graph
++ * traversal. After the graph walk, the resources must be released
++ * using media_entity_graph_walk_cleanup().
+  */
+ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 				   struct media_entity *entity)
+@@ -377,7 +407,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
  
- 		/* Check for motion flags */
- 		if (solo_is_motion_on(solo_enc) && enc_buf->motion) {
+-
+ /**
+  * media_entity_graph_walk_next - Get the next entity in the graph
+  * @graph: Media graph structure
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 4b5ca39..f0652e2 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -506,8 +506,11 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ void media_entity_put(struct media_entity *entity);
+ 
++__must_check int media_entity_graph_walk_init(
++	struct media_entity_graph *graph, struct media_device *mdev);
++void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+-		struct media_entity *entity);
++				   struct media_entity *entity);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+ __must_check int media_entity_pipeline_start(struct media_entity *entity,
 -- 
-2.6.2
+2.1.4
 
