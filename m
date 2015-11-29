@@ -1,71 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45286 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093AbbKIVXk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Nov 2015 16:23:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	"linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 2/2] [media] uvcvideo: Remain runtime-suspended at sleeps
-Date: Mon, 09 Nov 2015 23:23:52 +0200
-Message-ID: <5182419.7mg9xmtEix@avalon>
-In-Reply-To: <CAAObsKCP4dTvOPB=XrZexauHmdC99JYkc6cYKoaT-vZjnLaynw@mail.gmail.com>
-References: <1429284290-25153-3-git-send-email-tomeu.vizoso@collabora.com> <Pine.LNX.4.44L0.1504171331050.1319-100000@iolanthe.rowland.org> <CAAObsKCP4dTvOPB=XrZexauHmdC99JYkc6cYKoaT-vZjnLaynw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39769 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752464AbbK2TWq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Nov 2015 14:22:46 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 18/22] staging: v4l: omap4iss: Use media entity enum API
+Date: Sun, 29 Nov 2015 21:20:19 +0200
+Message-Id: <1448824823-10372-19-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomeu,
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-On Monday 20 April 2015 09:11:36 Tomeu Vizoso wrote:
-> On 17 April 2015 at 19:32, Alan Stern <stern@rowland.harvard.edu> wrote:
-> > On Fri, 17 Apr 2015, Tomeu Vizoso wrote:
-> >> When the system goes to sleep and afterwards resumes, a significant
-> >> amount of time is spent suspending and resuming devices that were
-> >> already runtime-suspended.
-> >> 
-> >> By setting the power.force_direct_complete flag, the PM core will ignore
-> >> the state of descendant devices and the device will be let in
-> >> runtime-suspend.
-> >> 
-> >> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> >> ---
-> >> 
-> >>  drivers/media/usb/uvc/uvc_driver.c | 2 ++
-> >>  1 file changed, 2 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> >> b/drivers/media/usb/uvc/uvc_driver.c index 5970dd6..ae75a70 100644
-> >> --- a/drivers/media/usb/uvc/uvc_driver.c
-> >> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> >> @@ -1945,6 +1945,8 @@ static int uvc_probe(struct usb_interface *intf,
-> >> 
-> >>                       "supported.\n", ret);
-> >>       
-> >>       }
-> >> 
-> >> +     intf->dev.parent->power.force_direct_complete = true;
-> > 
-> > This seems wrong.  The uvc driver is bound to intf, not to intf's
-> > parent.  So it would be okay for the driver to set
-> > intf->dev.power.force_direct_complete, but it's wrong to set
-> > intf->dev.parent->power.force_direct_complete.
-> 
-> Agreed.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/staging/media/omap4iss/iss.c       | 15 +++++++++++----
+ drivers/staging/media/omap4iss/iss.h       |  4 ++--
+ drivers/staging/media/omap4iss/iss_video.c | 13 +++++++++++--
+ drivers/staging/media/omap4iss/iss_video.h |  4 ++--
+ 4 files changed, 26 insertions(+), 10 deletions(-)
 
-Do you plan to resubmit this patch series with the above fix ? I know you've 
-had a hard time trying to find an approach that could get accepted, but please 
-rest assured that your work on the uvcvideo driver is appreciated.
-
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index c097fd5..7b0561f 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -606,7 +606,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+ 			 * crashed. Mark it as such, the ISS will be reset when
+ 			 * applications will release it.
+ 			 */
+-			iss->crashed |= 1U << media_entity_id(&subdev->entity);
++			media_entity_enum_set(&iss->crashed, &subdev->entity);
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+@@ -641,7 +641,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+ 	 * pipeline won't start anyway (those entities would then likely fail to
+ 	 * stop, making the problem worse).
+ 	 */
+-	if (pipe->entities & iss->crashed)
++	if (media_entity_enum_intersects(&pipe->entities, &iss->crashed))
+ 		return -EIO;
+ 
+ 	spin_lock_irqsave(&pipe->lock, flags);
+@@ -761,7 +761,8 @@ static int iss_reset(struct iss_device *iss)
+ 		return -ETIMEDOUT;
+ 	}
+ 
+-	iss->crashed = 0;
++	media_entity_enum_zero(&iss->crashed);
++
+ 	return 0;
+ }
+ 
+@@ -1090,7 +1091,7 @@ void omap4iss_put(struct iss_device *iss)
+ 		 * be worth investigating whether resetting the ISP only can't
+ 		 * fix the problem in some cases.
+ 		 */
+-		if (iss->crashed)
++		if (!media_entity_enum_empty(&iss->crashed))
+ 			iss_reset(iss);
+ 		iss_disable_clocks(iss);
+ 	}
+@@ -1490,6 +1491,10 @@ static int iss_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_modules;
+ 
++	ret = media_entity_enum_init(&iss->crashed, &iss->media_dev);
++	if (ret)
++		goto error_entities;
++
+ 	ret = iss_create_pads_links(iss);
+ 	if (ret < 0)
+ 		goto error_entities;
+@@ -1500,6 +1505,7 @@ static int iss_probe(struct platform_device *pdev)
+ 
+ error_entities:
+ 	iss_unregister_entities(iss);
++	media_entity_enum_cleanup(&iss->crashed);
+ error_modules:
+ 	iss_cleanup_modules(iss);
+ error_iss:
+@@ -1517,6 +1523,7 @@ static int iss_remove(struct platform_device *pdev)
+ 	struct iss_device *iss = platform_get_drvdata(pdev);
+ 
+ 	iss_unregister_entities(iss);
++	media_entity_enum_cleanup(&iss->crashed);
+ 	iss_cleanup_modules(iss);
+ 
+ 	return 0;
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 35df8b4..5dd0d99 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -82,7 +82,7 @@ struct iss_reg {
+ /*
+  * struct iss_device - ISS device structure.
+  * @syscon: Regmap for the syscon register space
+- * @crashed: Bitmask of crashed entities (indexed by entity ID)
++ * @crashed: Crashed entities
+  */
+ struct iss_device {
+ 	struct v4l2_device v4l2_dev;
+@@ -101,7 +101,7 @@ struct iss_device {
+ 	u64 raw_dmamask;
+ 
+ 	struct mutex iss_mutex;	/* For handling ref_count field */
+-	unsigned int crashed;
++	struct media_entity_enum crashed;
+ 	int has_context;
+ 	int ref_count;
+ 
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index cbe5783..b56f999 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -761,6 +761,10 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (type != video->type)
+ 		return -EINVAL;
+ 
++	ret = media_entity_enum_init(&pipe->entities, entity->graph_obj.mdev);
++	if (ret)
++		return ret;
++
+ 	mutex_lock(&video->stream_lock);
+ 
+ 	/* Start streaming on the pipeline. No link touching an entity in the
+@@ -771,7 +775,6 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->external = NULL;
+ 	pipe->external_rate = 0;
+ 	pipe->external_bpp = 0;
+-	pipe->entities = 0;
+ 
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, true);
+@@ -783,7 +786,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	entity = &video->video.entity;
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph)))
+-		pipe->entities |= 1 << media_entity_id(entity);
++		media_entity_enum_set(&pipe->entities, entity);
+ 
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+@@ -854,6 +857,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	}
+ 
+ 	mutex_unlock(&video->stream_lock);
++
+ 	return 0;
+ 
+ err_omap4iss_set_stream:
+@@ -866,6 +870,9 @@ err_media_entity_pipeline_start:
+ 	video->queue = NULL;
+ 
+ 	mutex_unlock(&video->stream_lock);
++
++	media_entity_enum_cleanup(&pipe->entities);
++
+ 	return ret;
+ }
+ 
+@@ -903,6 +910,8 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	vb2_streamoff(&vfh->queue, type);
+ 	video->queue = NULL;
+ 
++	media_entity_enum_cleanup(&pipe->entities);
++
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+ 	media_entity_pipeline_stop(&video->video.entity);
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index f11fce2..b5d3a96 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -77,7 +77,7 @@ enum iss_pipeline_state {
+ 
+ /*
+  * struct iss_pipeline - An OMAP4 ISS hardware pipeline
+- * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
++ * @entities: Entities in the pipeline
+  * @error: A hardware error occurred during capture
+  */
+ struct iss_pipeline {
+@@ -87,7 +87,7 @@ struct iss_pipeline {
+ 	enum iss_pipeline_stream_state stream_state;
+ 	struct iss_video *input;
+ 	struct iss_video *output;
+-	unsigned int entities;
++	struct media_entity_enum entities;
+ 	atomic_t frame_number;
+ 	bool do_propagation; /* of frame number */
+ 	bool error;
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
