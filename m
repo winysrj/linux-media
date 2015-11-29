@@ -1,232 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37819 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719AbbKRS2d (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39770 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752413AbbK2TWo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 13:28:33 -0500
-Received: by wmww144 with SMTP id w144so84552541wmw.0
-        for <linux-media@vger.kernel.org>; Wed, 18 Nov 2015 10:28:31 -0800 (PST)
-Message-ID: <564CC34C.3060903@gmail.com>
-Date: Wed, 18 Nov 2015 19:28:28 +0100
-From: =?windows-1252?Q?Tycho_L=FCrsen?= <tycholursen@gmail.com>
-MIME-Version: 1.0
-To: Christoph Hellwig <hch@lst.de>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: cx23885: use pci_set_dma_mask insted of pci_dma_supported
-References: <20151112175329.6ccc66f3@recife.lan> <20151118092156.762dc600@recife.lan> <564C841E.1050601@gmail.com> <20151118150802.GA20457@lst.de> <564CA89F.4030306@gmail.com>
-In-Reply-To: <564CA89F.4030306@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+	Sun, 29 Nov 2015 14:22:44 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v2 09/22] v4l: omap3isp: Use the new media_entity_graph_walk_start() interface
+Date: Sun, 29 Nov 2015 21:20:10 +0200
+Message-Id: <1448824823-10372-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christoph,
-that additional patch fixed the problem indeed.
-Thanks again.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/isp.c      | 63 ++++++++++++++++++------------
+ drivers/media/platform/omap3isp/isp.h      |  4 +-
+ drivers/media/platform/omap3isp/ispvideo.c | 19 ++++++++-
+ drivers/media/platform/omap3isp/ispvideo.h |  1 +
+ 4 files changed, 60 insertions(+), 27 deletions(-)
 
-Regards, Tycho
-
-Op 18-11-15 om 17:34 schreef Tycho Lürsen:
-> Hi Christoph,
-> thanks, will do and report back shortly.
->
-> Op 18-11-15 om 16:08 schreef Christoph Hellwig:
->> Hi Tycho,
->>
->> please try the patch below - Andrew should be sending it on to Linux 
->> soon.
->>
->> ---
->>  From 4c03a9f77104b04af45833e0424954191ca94a12 Mon Sep 17 00:00:00 2001
->> From: Christoph Hellwig <hch@lst.de>
->> Date: Wed, 11 Nov 2015 18:13:09 +0100
->> Subject: various: fix pci_set_dma_mask return value checking
->>
->> pci_set_dma_mask returns a negative errno value, not a bool
->> like pci_dma_supported.  This of course was just a giant test
->> for attention :)
->>
->> Reported-by: Jongman Heo <jongman.heo@samsung.com>
->> Tested-by: Jongman Heo <jongman.heo@samsung.com> [pcnet32]
->> Signed-off-by: Christoph Hellwig <hch@lst.de>
->> ---
->>   drivers/media/pci/cx23885/cx23885-core.c           | 4 ++--
->>   drivers/media/pci/cx25821/cx25821-core.c           | 3 ++-
->>   drivers/media/pci/cx88/cx88-alsa.c                 | 4 ++--
->>   drivers/media/pci/cx88/cx88-mpeg.c                 | 3 ++-
->>   drivers/media/pci/cx88/cx88-video.c                | 4 ++--
->>   drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 2 +-
->>   drivers/media/pci/saa7134/saa7134-core.c           | 4 ++--
->>   drivers/media/pci/saa7164/saa7164-core.c           | 4 ++--
->>   drivers/media/pci/tw68/tw68-core.c                 | 4 ++--
->>   drivers/net/ethernet/amd/pcnet32.c                 | 5 +++--
->>   10 files changed, 20 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/media/pci/cx23885/cx23885-core.c 
->> b/drivers/media/pci/cx23885/cx23885-core.c
->> index 35759a9..e8f8472 100644
->> --- a/drivers/media/pci/cx23885/cx23885-core.c
->> +++ b/drivers/media/pci/cx23885/cx23885-core.c
->> @@ -1992,9 +1992,9 @@ static int cx23885_initdev(struct pci_dev 
->> *pci_dev,
->>           (unsigned long long)pci_resource_start(pci_dev, 0));
->>         pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
->> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
->> +    if (err) {
->>           printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
->> -        err = -EIO;
->>           goto fail_context;
->>       }
->>   diff --git a/drivers/media/pci/cx25821/cx25821-core.c 
->> b/drivers/media/pci/cx25821/cx25821-core.c
->> index dbc695f..0042803 100644
->> --- a/drivers/media/pci/cx25821/cx25821-core.c
->> +++ b/drivers/media/pci/cx25821/cx25821-core.c
->> @@ -1319,7 +1319,8 @@ static int cx25821_initdev(struct pci_dev 
->> *pci_dev,
->>           dev->pci_lat, (unsigned long long)dev->base_io_addr);
->>         pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
->> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
->> +    if (err) {
->>           pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
->>           err = -EIO;
->>           goto fail_irq;
->> diff --git a/drivers/media/pci/cx88/cx88-alsa.c 
->> b/drivers/media/pci/cx88/cx88-alsa.c
->> index 0ed1b65..1b5268f 100644
->> --- a/drivers/media/pci/cx88/cx88-alsa.c
->> +++ b/drivers/media/pci/cx88/cx88-alsa.c
->> @@ -890,9 +890,9 @@ static int snd_cx88_create(struct snd_card *card, 
->> struct pci_dev *pci,
->>           return err;
->>       }
->>   -    if (!pci_set_dma_mask(pci,DMA_BIT_MASK(32))) {
->> +    err = pci_set_dma_mask(pci,DMA_BIT_MASK(32));
->> +    if (err) {
->>           dprintk(0, "%s/1: Oops: no 32bit PCI DMA ???\n",core->name);
->> -        err = -EIO;
->>           cx88_core_put(core, pci);
->>           return err;
->>       }
->> diff --git a/drivers/media/pci/cx88/cx88-mpeg.c 
->> b/drivers/media/pci/cx88/cx88-mpeg.c
->> index 9db7767..f34c229 100644
->> --- a/drivers/media/pci/cx88/cx88-mpeg.c
->> +++ b/drivers/media/pci/cx88/cx88-mpeg.c
->> @@ -393,7 +393,8 @@ static int cx8802_init_common(struct cx8802_dev 
->> *dev)
->>       if (pci_enable_device(dev->pci))
->>           return -EIO;
->>       pci_set_master(dev->pci);
->> -    if (!pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32))) {
->> +    err = pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32));
->> +    if (err) {
->>           printk("%s/2: Oops: no 32bit PCI DMA ???\n",dev->core->name);
->>           return -EIO;
->>       }
->> diff --git a/drivers/media/pci/cx88/cx88-video.c 
->> b/drivers/media/pci/cx88/cx88-video.c
->> index 0de1ad5..aef9acf 100644
->> --- a/drivers/media/pci/cx88/cx88-video.c
->> +++ b/drivers/media/pci/cx88/cx88-video.c
->> @@ -1314,9 +1314,9 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
->>              dev->pci_lat,(unsigned long 
->> long)pci_resource_start(pci_dev,0));
->>         pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32))) {
->> +    err = pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32));
->> +    if (err) {
->>           printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
->> -        err = -EIO;
->>           goto fail_core;
->>       }
->>       dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
->> diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c 
->> b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
->> index 60b2d46..3fdbd81 100644
->> --- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
->> +++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
->> @@ -810,7 +810,7 @@ static int netup_unidvb_initdev(struct pci_dev 
->> *pci_dev,
->>           "%s(): board vendor 0x%x, revision 0x%x\n",
->>           __func__, board_vendor, board_revision);
->>       pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
->> +    if (pci_set_dma_mask(pci_dev, 0xffffffff) < 0) {
->>           dev_err(&pci_dev->dev,
->>               "%s(): 32bit PCI DMA is not supported\n", __func__);
->>           goto pci_detect_err;
->> diff --git a/drivers/media/pci/saa7134/saa7134-core.c 
->> b/drivers/media/pci/saa7134/saa7134-core.c
->> index e79d63e..f720cea 100644
->> --- a/drivers/media/pci/saa7134/saa7134-core.c
->> +++ b/drivers/media/pci/saa7134/saa7134-core.c
->> @@ -951,9 +951,9 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
->>              pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
->>              dev->pci_lat,(unsigned long 
->> long)pci_resource_start(pci_dev,0));
->>       pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
->> +    err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
->> +    if (err) {
->>           pr_warn("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
->> -        err = -EIO;
->>           goto fail1;
->>       }
->>   diff --git a/drivers/media/pci/saa7164/saa7164-core.c 
->> b/drivers/media/pci/saa7164/saa7164-core.c
->> index 8f36b48..8bbd092 100644
->> --- a/drivers/media/pci/saa7164/saa7164-core.c
->> +++ b/drivers/media/pci/saa7164/saa7164-core.c
->> @@ -1264,9 +1264,9 @@ static int saa7164_initdev(struct pci_dev 
->> *pci_dev,
->>         pci_set_master(pci_dev);
->>       /* TODO */
->> -    if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
->> +    err = pci_set_dma_mask(pci_dev, 0xffffffff);
->> +    if (err) {
->>           printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
->> -        err = -EIO;
->>           goto fail_irq;
->>       }
->>   diff --git a/drivers/media/pci/tw68/tw68-core.c 
->> b/drivers/media/pci/tw68/tw68-core.c
->> index 8c5655d..4e77618 100644
->> --- a/drivers/media/pci/tw68/tw68-core.c
->> +++ b/drivers/media/pci/tw68/tw68-core.c
->> @@ -257,9 +257,9 @@ static int tw68_initdev(struct pci_dev *pci_dev,
->>           dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
->>           dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
->>       pci_set_master(pci_dev);
->> -    if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
->> +    err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
->> +    if (err) {
->>           pr_info("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
->> -        err = -EIO;
->>           goto fail1;
->>       }
->>   diff --git a/drivers/net/ethernet/amd/pcnet32.c 
->> b/drivers/net/ethernet/amd/pcnet32.c
->> index e2afabf..7ccebae 100644
->> --- a/drivers/net/ethernet/amd/pcnet32.c
->> +++ b/drivers/net/ethernet/amd/pcnet32.c
->> @@ -1500,10 +1500,11 @@ pcnet32_probe_pci(struct pci_dev *pdev, const 
->> struct pci_device_id *ent)
->>           return -ENODEV;
->>       }
->>   -    if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
->> +    err = pci_set_dma_mask(pdev, PCNET32_DMA_MASK);
->> +    if (err) {
->>           if (pcnet32_debug & NETIF_MSG_PROBE)
->>               pr_err("architecture does not support 32bit PCI 
->> busmaster DMA\n");
->> -        return -ENODEV;
->> +        return err;
->>       }
->>       if (!request_region(ioaddr, PCNET32_TOTAL_SIZE, 
->> "pcnet32_probe_pci")) {
->>           if (pcnet32_debug & NETIF_MSG_PROBE)
->
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 0d1249f..4a01a36 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -683,14 +683,14 @@ static irqreturn_t isp_isr(int irq, void *_isp)
+  *
+  * Return the total number of users of all video device nodes in the pipeline.
+  */
+-static int isp_pipeline_pm_use_count(struct media_entity *entity)
++static int isp_pipeline_pm_use_count(struct media_entity *entity,
++	struct media_entity_graph *graph)
+ {
+-	struct media_entity_graph graph;
+ 	int use = 0;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		if (is_media_entity_v4l2_io(entity))
+ 			use += entity->use_count;
+ 	}
+@@ -742,27 +742,27 @@ static int isp_pipeline_pm_power_one(struct media_entity *entity, int change)
+  *
+  * Return 0 on success or a negative error code on failure.
+  */
+-static int isp_pipeline_pm_power(struct media_entity *entity, int change)
++static int isp_pipeline_pm_power(struct media_entity *entity, int change,
++	struct media_entity_graph *graph)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *first = entity;
+ 	int ret = 0;
+ 
+ 	if (!change)
+ 		return 0;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
++	while (!ret && (entity = media_entity_graph_walk_next(graph)))
+ 		if (is_media_entity_v4l2_subdev(entity))
+ 			ret = isp_pipeline_pm_power_one(entity, change);
+ 
+ 	if (!ret)
+-		return 0;
++		return ret;
+ 
+-	media_entity_graph_walk_start(&graph, first);
++	media_entity_graph_walk_start(graph, first);
+ 
+-	while ((first = media_entity_graph_walk_next(&graph))
++	while ((first = media_entity_graph_walk_next(graph))
+ 	       && first != entity)
+ 		if (is_media_entity_v4l2_subdev(first))
+ 			isp_pipeline_pm_power_one(first, -change);
+@@ -782,7 +782,8 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+  * off is assumed to never fail. No failure can occur when the use parameter is
+  * set to 0.
+  */
+-int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
++int omap3isp_pipeline_pm_use(struct media_entity *entity, int use,
++			     struct media_entity_graph *graph)
+ {
+ 	int change = use ? 1 : -1;
+ 	int ret;
+@@ -794,7 +795,7 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ 	WARN_ON(entity->use_count < 0);
+ 
+ 	/* Apply power change to connected non-nodes. */
+-	ret = isp_pipeline_pm_power(entity, change);
++	ret = isp_pipeline_pm_power(entity, change, graph);
+ 	if (ret < 0)
+ 		entity->use_count -= change;
+ 
+@@ -820,35 +821,49 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
+ 				    unsigned int notification)
+ {
++	struct media_entity_graph *graph =
++		&container_of(link->graph_obj.mdev, struct isp_device,
++			      media_dev)->pm_count_graph;
+ 	struct media_entity *source = link->source->entity;
+ 	struct media_entity *sink = link->sink->entity;
+-	int source_use = isp_pipeline_pm_use_count(source);
+-	int sink_use = isp_pipeline_pm_use_count(sink);
+-	int ret;
++	int source_use;
++	int sink_use;
++	int ret = 0;
++
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
++		ret = media_entity_graph_walk_init(graph,
++						   link->graph_obj.mdev);
++		if (ret)
++			return ret;
++	}
++
++	source_use = isp_pipeline_pm_use_count(source, graph);
++	sink_use = isp_pipeline_pm_use_count(sink, graph);
+ 
+ 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+ 	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+ 		/* Powering off entities is assumed to never fail. */
+-		isp_pipeline_pm_power(source, -sink_use);
+-		isp_pipeline_pm_power(sink, -source_use);
++		isp_pipeline_pm_power(source, -sink_use, graph);
++		isp_pipeline_pm_power(sink, -source_use, graph);
+ 		return 0;
+ 	}
+ 
+ 	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+ 		(flags & MEDIA_LNK_FL_ENABLED)) {
+ 
+-		ret = isp_pipeline_pm_power(source, sink_use);
++		ret = isp_pipeline_pm_power(source, sink_use, graph);
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		ret = isp_pipeline_pm_power(sink, source_use);
++		ret = isp_pipeline_pm_power(sink, source_use, graph);
+ 		if (ret < 0)
+-			isp_pipeline_pm_power(source, -sink_use);
+-
+-		return ret;
++			isp_pipeline_pm_power(source, -sink_use, graph);
+ 	}
+ 
+-	return 0;
++	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH)
++		media_entity_graph_walk_cleanup(graph);
++
++	return ret;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 5acc2e6..b6f81f2 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -176,6 +176,7 @@ struct isp_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct v4l2_async_notifier notifier;
+ 	struct media_device media_dev;
++	struct media_entity_graph pm_count_graph;
+ 	struct device *dev;
+ 	u32 revision;
+ 
+@@ -265,7 +266,8 @@ void omap3isp_subclk_enable(struct isp_device *isp,
+ void omap3isp_subclk_disable(struct isp_device *isp,
+ 			     enum isp_subclk_resource res);
+ 
+-int omap3isp_pipeline_pm_use(struct media_entity *entity, int use);
++int omap3isp_pipeline_pm_use(struct media_entity *entity, int use,
++			     struct media_entity_graph *graph);
+ 
+ int omap3isp_register_entities(struct platform_device *pdev,
+ 			       struct v4l2_device *v4l2_dev);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 52843ac..e68ec2f 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -227,8 +227,15 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct isp_video *far_end = NULL;
++	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&mdev->graph_mutex);
++		return ret;
++	}
++
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+@@ -252,6 +259,8 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&graph);
++
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		pipe->input = far_end;
+ 		pipe->output = video;
+@@ -1242,7 +1251,12 @@ static int isp_video_open(struct file *file)
+ 		goto done;
+ 	}
+ 
+-	ret = omap3isp_pipeline_pm_use(&video->video.entity, 1);
++	ret = media_entity_graph_walk_init(&handle->graph,
++					   &video->isp->media_dev);
++	if (ret)
++		goto done;
++
++	ret = omap3isp_pipeline_pm_use(&video->video.entity, 1, &handle->graph);
+ 	if (ret < 0) {
+ 		omap3isp_put(video->isp);
+ 		goto done;
+@@ -1273,6 +1287,7 @@ static int isp_video_open(struct file *file)
+ done:
+ 	if (ret < 0) {
+ 		v4l2_fh_del(&handle->vfh);
++		media_entity_graph_walk_cleanup(&handle->graph);
+ 		kfree(handle);
+ 	}
+ 
+@@ -1292,7 +1307,7 @@ static int isp_video_release(struct file *file)
+ 	vb2_queue_release(&handle->queue);
+ 	mutex_unlock(&video->queue_lock);
+ 
+-	omap3isp_pipeline_pm_use(&video->video.entity, 0);
++	omap3isp_pipeline_pm_use(&video->video.entity, 0, &handle->graph);
+ 
+ 	/* Release the file handle. */
+ 	v4l2_fh_del(vfh);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 4071dd7..6c498ea 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -189,6 +189,7 @@ struct isp_video_fh {
+ 	struct vb2_queue queue;
+ 	struct v4l2_format format;
+ 	struct v4l2_fract timeperframe;
++	struct media_entity_graph graph;
+ };
+ 
+ #define to_isp_video_fh(fh)	container_of(fh, struct isp_video_fh, vfh)
+-- 
+2.1.4
 
