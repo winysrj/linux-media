@@ -1,129 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55421 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753276AbbK3U1j (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38695 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752173AbbK2NIU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Nov 2015 15:27:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: stoth@kernellabs.com, dheitmueller@kernellabs.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 05/11] cx25840: more cx23888 register address changes
-Date: Mon, 30 Nov 2015 21:27:15 +0100
-Message-Id: <1448915241-415-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 29 Nov 2015 08:08:20 -0500
+Date: Sun, 29 Nov 2015 15:07:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	javier@osg.samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 04/19] media: Move struct media_entity_graph definition up
+Message-ID: <20151129130747.GE17128@valkosipuli.retiisi.org.uk>
+References: <1445900510-1398-1-git-send-email-sakari.ailus@iki.fi>
+ <1445900510-1398-5-git-send-email-sakari.ailus@iki.fi>
+ <20151028093650.67648946@concha.lan>
+ <20151103222238.GJ17128@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151103222238.GJ17128@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Nov 04, 2015 at 12:22:38AM +0200, Sakari Ailus wrote:
+> Hi Mauro,
+> 
+> On Wed, Oct 28, 2015 at 09:36:50AM +0900, Mauro Carvalho Chehab wrote:
+> > Em Tue, 27 Oct 2015 01:01:35 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > 
+> > > It will be needed in struct media_pipeline shortly.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > 
+> > Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > (but see below)
+> > 
+> > > ---
+> > >  include/media/media-entity.h | 20 ++++++++++----------
+> > >  1 file changed, 10 insertions(+), 10 deletions(-)
+> > > 
+> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > > index fc54192..dde9a5f 100644
+> > > --- a/include/media/media-entity.h
+> > > +++ b/include/media/media-entity.h
+> > > @@ -87,6 +87,16 @@ struct media_entity_enum {
+> > >  	int idx_max;
+> > >  };
+> > >  
+> > > +struct media_entity_graph {
+> > 
+> > Not a problem on this patch itself, but since you're touching this
+> > struct, it would be nice to take the opportunity and document it ;)
+> 
+> I'll document it in a separate patch on top of the set. Would you be fine
+> with that?
 
-The cx23888 also moves the following registers around:
+Thinking about this, I'll change the patches to include the documentation.
+It's better that way, I agree.
 
-!cx23888	cx23888
---------	-------
-0x418, 0x41c	0x434, 0x438
-0x420		0x418 (expect for bit 29 which has a different meaning)
-0x478		0x454
-
-Also drop the set_input code where the scaler is changed: this does not
-belong here, changing the input should not change the scaler.
-
-And that's besides the fact that that code is plain wrong.
-
-After this change the cx23888 behaves much better. In particular, calling
-set_input no longer changes the saturation to 0, causing a grayscale
-image.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/cx25840/cx25840-core.c | 49 +++++++++++++++-----------------
- 1 file changed, 23 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index ec11ba7..a741c30 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -559,7 +559,10 @@ static void cx23885_initialize(struct i2c_client *client)
- 	cx25840_write4(client, 0x414, 0x00107d12);
- 
- 	/* Chroma */
--	cx25840_write4(client, 0x420, 0x3d008282);
-+	if (is_cx23888(state))
-+		cx25840_write4(client, 0x418, 0x1d008282);
-+	else
-+		cx25840_write4(client, 0x420, 0x3d008282);
- 
- 	/*
- 	 * Aux PLL
-@@ -673,7 +676,10 @@ static void cx23885_initialize(struct i2c_client *client)
- 	cx25840_write4(client, 0x130, 0x0);
- 
- 	/* Undocumented */
--	cx25840_write4(client, 0x478, 0x6628021F);
-+	if (is_cx23888(state))
-+		cx25840_write4(client, 0x454, 0x6628021F);
-+	else
-+		cx25840_write4(client, 0x478, 0x6628021F);
- 
- 	/* AFE_CLK_OUT_CTRL - Select the clock output source as output */
- 	cx25840_write4(client, 0x144, 0x5);
-@@ -1106,25 +1112,10 @@ static int set_input(struct i2c_client *client, enum cx25840_video_input vid_inp
- 			cx25840_write4(client, 0x410, 0xffff0dbf);
- 			cx25840_write4(client, 0x414, 0x00137d03);
- 
--			/* on the 887, 0x418 is HSCALE_CTRL, on the 888 it is 
--			   CHROMA_CTRL */
--			if (is_cx23888(state))
--				cx25840_write4(client, 0x418, 0x01008080);
--			else
--				cx25840_write4(client, 0x418, 0x01000000);
--
--			cx25840_write4(client, 0x41c, 0x00000000);
--
--			/* on the 887, 0x420 is CHROMA_CTRL, on the 888 it is 
--			   CRUSH_CTRL */
--			if (is_cx23888(state))
--				cx25840_write4(client, 0x420, 0x001c3e0f);
--			else
--				cx25840_write4(client, 0x420, 0x001c8282);
--
- 			cx25840_write4(client, state->vbi_regs_offset + 0x42c, 0x42600000);
- 			cx25840_write4(client, state->vbi_regs_offset + 0x430, 0x0000039b);
- 			cx25840_write4(client, state->vbi_regs_offset + 0x438, 0x00000000);
-+
- 			cx25840_write4(client, state->vbi_regs_offset + 0x440, 0xF8E3E824);
- 			cx25840_write4(client, state->vbi_regs_offset + 0x444, 0x401040dc);
- 			cx25840_write4(client, state->vbi_regs_offset + 0x448, 0xcd3f02a0);
-@@ -1425,14 +1416,20 @@ static int cx25840_set_fmt(struct v4l2_subdev *sd,
- 			fmt->width, fmt->height, HSC, VSC);
- 
- 	/* HSCALE=HSC */
--	cx25840_write(client, 0x418, HSC & 0xff);
--	cx25840_write(client, 0x419, (HSC >> 8) & 0xff);
--	cx25840_write(client, 0x41a, HSC >> 16);
--	/* VSCALE=VSC */
--	cx25840_write(client, 0x41c, VSC & 0xff);
--	cx25840_write(client, 0x41d, VSC >> 8);
--	/* VS_INTRLACE=1 VFILT=filter */
--	cx25840_write(client, 0x41e, 0x8 | filter);
-+	if (is_cx23888(state)) {
-+		cx25840_write4(client, 0x434, HSC | (1 << 24));
-+		/* VSCALE=VSC VS_INTRLACE=1 VFILT=filter */
-+		cx25840_write4(client, 0x438, VSC | (1 << 19) | (filter << 16));
-+	} else {
-+		cx25840_write(client, 0x418, HSC & 0xff);
-+		cx25840_write(client, 0x419, (HSC >> 8) & 0xff);
-+		cx25840_write(client, 0x41a, HSC >> 16);
-+		/* VSCALE=VSC */
-+		cx25840_write(client, 0x41c, VSC & 0xff);
-+		cx25840_write(client, 0x41d, VSC >> 8);
-+		/* VS_INTRLACE=1 VFILT=filter */
-+		cx25840_write(client, 0x41e, 0x8 | filter);
-+	}
- 	return 0;
- }
- 
 -- 
-2.6.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
