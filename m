@@ -1,244 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48869 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750727AbbKDM2j (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39770 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752481AbbK2TWq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2015 07:28:39 -0500
-Subject: Re: [RFC PATCH v9 1/6] media: videobuf2: Move timestamp to vb2_buffer
-To: Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	pawel@osciak.com
-References: <1446545802-28496-1-git-send-email-jh1009.sung@samsung.com>
- <1446545802-28496-2-git-send-email-jh1009.sung@samsung.com>
-Cc: inki.dae@samsung.com, sw0312.kim@samsung.com,
-	nenggun.kim@samsung.com, sangbae90.lee@samsung.com,
-	rany.kwon@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5639F9EA.7080400@xs4all.nl>
-Date: Wed, 4 Nov 2015 13:28:26 +0100
-MIME-Version: 1.0
-In-Reply-To: <1446545802-28496-2-git-send-email-jh1009.sung@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 29 Nov 2015 14:22:46 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v2 20/22] staging: v4l: davinci_vpbe: Use the new media_entity_graph_walk_start() interface
+Date: Sun, 29 Nov 2015 21:20:21 +0200
+Message-Id: <1448824823-10372-21-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/03/15 11:16, Junghak Sung wrote:
-> Move timestamp from struct vb2_v4l2_buffer to struct vb2_buffer
-> for common use, and change its type to u64 in order to handling
-> y2038 problem. This patch also includes all device drivers' changes related to
-> this restructuring.
-> 
-> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Acked-by: Inki Dae <inki.dae@samsung.com>
-> ---
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 37 ++++++++++++++++++-------
+ drivers/staging/media/davinci_vpfe/vpfe_video.h |  1 +
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-<snip>
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 2dbf14b..1bacd19 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -127,13 +127,14 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
+ }
+ 
+ /* make a note of pipeline details */
+-static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
++static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ {
++	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video_dev.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct vpfe_pipeline *pipe = &video->pipe;
+ 	struct vpfe_video_device *far_end = NULL;
+-	struct media_entity_graph graph;
++	int ret;
+ 
+ 	pipe->input_num = 0;
+ 	pipe->output_num = 0;
+@@ -144,6 +145,11 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		pipe->outputs[pipe->output_num++] = video;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&video->lock);
++		return -ENOMEM;
++	}
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		if (entity == &video->video_dev.entity)
+@@ -156,7 +162,10 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		else
+ 			pipe->outputs[pipe->output_num++] = far_end;
+ 	}
++	media_entity_graph_walk_cleanup(&graph);
+ 	mutex_unlock(&mdev->graph_mutex);
++
++	return 0;
+ }
+ 
+ /* update pipe state selected by user */
+@@ -165,7 +174,9 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
+ 	struct vpfe_pipeline *pipe = &video->pipe;
+ 	int ret;
+ 
+-	vpfe_prepare_pipeline(video);
++	ret = vpfe_prepare_pipeline(video);
++	if (ret)
++		return ret;
+ 
+ 	/* Find out if there is any input video
+ 	  if yes, it is single shot.
+@@ -276,11 +287,10 @@ static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
+  */
+ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *entity;
+ 	struct v4l2_subdev *subdev;
+ 	struct media_device *mdev;
+-	int ret = 0;
++	int ret;
+ 
+ 	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
+ 		entity = vpfe_get_input_entity(pipe->outputs[0]);
+@@ -289,8 +299,12 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_entity_graph_walk_start(&graph, entity);
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	ret = media_entity_graph_walk_init(&pipe->graph,
++					   entity->graph_obj.mdev);
++	if (ret)
++		goto out;
++	media_entity_graph_walk_start(&pipe->graph, entity);
++	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -299,6 +313,9 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 		if (ret < 0 && ret != -ENOIOCTLCMD)
+ 			break;
+ 	}
++out:
++	if (ret)
++		media_entity_graph_walk_cleanup(&pipe->graph);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	return ret;
+ }
+@@ -316,7 +333,6 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+  */
+ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *entity;
+ 	struct v4l2_subdev *subdev;
+ 	struct media_device *mdev;
+@@ -329,9 +345,9 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(&pipe->graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -342,6 +358,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 	}
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&pipe->graph);
+ 	return ret ? -ETIMEDOUT : 0;
+ }
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+index 1b1b6c4..81f7698 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -51,6 +51,7 @@ enum vpfe_video_state {
+ struct vpfe_pipeline {
+ 	/* media pipeline */
+ 	struct media_pipeline		*pipe;
++	struct media_entity_graph	graph;
+ 	/* state of the pipeline, continuous,
+ 	 * single-shot or stopped
+ 	 */
+-- 
+2.1.4
 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> index 1bd2fd4..61df3e4 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> @@ -531,8 +531,8 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
->  
->  	if (!ret) {
->  		vbuf->sequence = solo_enc->sequence++;
-> -		vbuf->timestamp.tv_sec = vop_sec(vh);
-> -		vbuf->timestamp.tv_usec = vop_usec(vh);
-> +		vb->timestamp = ((u64) vop_sec(vh) * NSEC_PER_SEC) +
-> +				(vop_usec(vh) * NSEC_PER_USEC);
-
-This is wrong. Just use ktime_get_ns() here. It is probably best to first make a
-single patch to change the solo driver to use v4l2_get_timestamp(), then convert
-that to ktime_get_ns() in this patch.
-
-The problem is that the timestamp is taken from the mpeg header, and so it is
-not a CLOCK_MONOTONIC timestamp as is signaled to the user. Never noticed this
-before, but it is a solo driver bug.
-
->  
->  		/* Check for motion flags */
->  		if (solo_is_motion_on(solo_enc) && enc_buf->motion) {
-> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> index 26df903..44b00b8 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-> @@ -225,7 +225,7 @@ finish_buf:
->  		vb2_set_plane_payload(vb, 0,
->  			solo_vlines(solo_dev) * solo_bytesperline(solo_dev));
->  		vbuf->sequence = solo_dev->sequence++;
-> -		v4l2_get_timestamp(&vbuf->timestamp);
-> +		vb->timestamp = ktime_get_ns();
->  	}
->  
->  	vb2_buffer_done(vb, error ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-
-<snip>
-
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-cap.c b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> index 83cc6d3..b0ad054 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-cap.c
-> @@ -441,7 +441,7 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->  	 * "Start of Exposure".
->  	 */
->  	if (dev->tstamp_src_is_soe)
-> -		v4l2_get_timestamp(&buf->vb.timestamp);
-> +		buf->vb.vb2_buf.timestamp = ktime_get_ns();
->  	if (dev->field_cap == V4L2_FIELD_ALTERNATE) {
->  		/*
->  		 * 60 Hz standards start with the bottom field, 50 Hz standards
-> @@ -558,8 +558,9 @@ static void vivid_fillbuff(struct vivid_dev *dev, struct vivid_buffer *buf)
->  	 * the timestamp now.
->  	 */
->  	if (!dev->tstamp_src_is_soe)
-> -		v4l2_get_timestamp(&buf->vb.timestamp);
-> -	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +		buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +	buf->vb.vb2_buf.timestamp +=
-> +			((u64) dev->time_wrap_offset * NSEC_PER_SEC);
-
-I'd do this differently: make time_wrap_offset of type u64 and assign it
-accordingly with nanoseconds. That way you can just do:
-
-	timestamp += dev->time_wrap_offset
-
-vivid-ctrls.c also needs to be modified (vivid_streaming_s_ctrl(), VIVID_CID_TIME_WRAP
-case) to:
-
-	dev->time_wrap_offset = (0x100000000ULL - 16) * NSEC_PER_SEC - ktime_get_ns();
-
-The v4l2_get_timestamp() call there can be dropped.
-
->  }
->  
->  /*
-> diff --git a/drivers/media/platform/vivid/vivid-kthread-out.c b/drivers/media/platform/vivid/vivid-kthread-out.c
-> index c2c46dc..6fd02c9 100644
-> --- a/drivers/media/platform/vivid/vivid-kthread-out.c
-> +++ b/drivers/media/platform/vivid/vivid-kthread-out.c
-> @@ -95,8 +95,9 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
->  			 */
->  			vid_out_buf->vb.sequence /= 2;
->  		}
-> -		v4l2_get_timestamp(&vid_out_buf->vb.timestamp);
-> -		vid_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +		vid_out_buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +		vid_out_buf->vb.vb2_buf.timestamp +=
-> +				((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->  		vb2_buffer_done(&vid_out_buf->vb.vb2_buf, dev->dqbuf_error ?
->  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  		dprintk(dev, 2, "vid_out buffer %d done\n",
-> @@ -108,8 +109,9 @@ static void vivid_thread_vid_out_tick(struct vivid_dev *dev)
->  			vivid_sliced_vbi_out_process(dev, vbi_out_buf);
->  
->  		vbi_out_buf->vb.sequence = dev->vbi_out_seq_count;
-> -		v4l2_get_timestamp(&vbi_out_buf->vb.timestamp);
-> -		vbi_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +		vbi_out_buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +		vbi_out_buf->vb.vb2_buf.timestamp +=
-> +				((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->  		vb2_buffer_done(&vbi_out_buf->vb.vb2_buf, dev->dqbuf_error ?
->  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  		dprintk(dev, 2, "vbi_out buffer %d done\n",
-> diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-> index 082c401..dbdb43d 100644
-> --- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-> @@ -117,8 +117,9 @@ static void vivid_thread_sdr_cap_tick(struct vivid_dev *dev)
->  	if (sdr_cap_buf) {
->  		sdr_cap_buf->vb.sequence = dev->sdr_cap_seq_count;
->  		vivid_sdr_cap_process(dev, sdr_cap_buf);
-> -		v4l2_get_timestamp(&sdr_cap_buf->vb.timestamp);
-> -		sdr_cap_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +		sdr_cap_buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +		sdr_cap_buf->vb.vb2_buf.timestamp +=
-> +				((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->  		vb2_buffer_done(&sdr_cap_buf->vb.vb2_buf, dev->dqbuf_error ?
->  				VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  		dev->dqbuf_error = false;
-> diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-> index e903d02..2f5f330 100644
-> --- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-> +++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-> @@ -108,8 +108,9 @@ void vivid_raw_vbi_cap_process(struct vivid_dev *dev, struct vivid_buffer *buf)
->  	if (!VIVID_INVALID_SIGNAL(dev->std_signal_mode))
->  		vivid_vbi_gen_raw(&dev->vbi_gen, &vbi, vbuf);
->  
-> -	v4l2_get_timestamp(&buf->vb.timestamp);
-> -	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +	buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +	buf->vb.vb2_buf.timestamp +=
-> +			((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->  }
->  
->  
-> @@ -133,8 +134,9 @@ void vivid_sliced_vbi_cap_process(struct vivid_dev *dev,
->  			vbuf[i] = dev->vbi_gen.data[i];
->  	}
->  
-> -	v4l2_get_timestamp(&buf->vb.timestamp);
-> -	buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> +	buf->vb.vb2_buf.timestamp = ktime_get_ns();
-> +	buf->vb.vb2_buf.timestamp +=
-> +			((u64) dev->time_wrap_offset * NSEC_PER_SEC);
->  }
->  
->  static int vbi_cap_queue_setup(struct vb2_queue *vq, const void *parg,
-
-<snip>
-
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 27b4b9e..93e16375 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -119,8 +119,9 @@ static int __set_timestamp(struct vb2_buffer *vb, const void *pb)
->  		 * and the timecode field and flag if needed.
->  		 */
->  		if ((q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) ==
-> -				V4L2_BUF_FLAG_TIMESTAMP_COPY)
-> -			vbuf->timestamp = b->timestamp;
-> +				V4L2_BUF_FLAG_TIMESTAMP_COPY) {
-> +			vb->timestamp = timeval_to_ns(&b->timestamp);
-> +		}
-
-No need to add {} for a one-line statement.
-
->  		vbuf->flags |= b->flags & V4L2_BUF_FLAG_TIMECODE;
->  		if (b->flags & V4L2_BUF_FLAG_TIMECODE)
->  			vbuf->timecode = b->timecode;
-
-<snip>
-
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 647ebfe..6404f81 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -211,6 +211,7 @@ struct vb2_queue;
->   * @num_planes:		number of planes in the buffer
->   *			on an internal driver queue
->   * @planes:		private per-plane information; do not change
-> + * @timestamp:		frame timestamp
-
-Please mention the unit (ns).
-
->   */
->  struct vb2_buffer {
->  	struct vb2_queue	*vb2_queue;
-> @@ -219,6 +220,7 @@ struct vb2_buffer {
->  	unsigned int		memory;
->  	unsigned int		num_planes;
->  	struct vb2_plane	planes[VB2_MAX_PLANES];
-> +	u64			timestamp;
->  
->  	/* private: internal use only
->  	 *
-
-Other than these minor issues it looks good.
-
-Regards,
-
-	Hans
