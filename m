@@ -1,47 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53825 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068AbbKYXNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Nov 2015 18:13:45 -0500
-Subject: Re: [DVBT USB dongle] problem with Zolid Mini DVB-T Stick on linux
- mint 17.2
-To: Mark Croft <mark.croft.lug@gmail.com>, linux-media@vger.kernel.org,
-	Robert Treen <robert@radioshare.co.uk>
-References: <CAL9Js5Kn1d9-1_LOQ09J_cp743S1dyksRDpWB2RMtbpWABTGFg@mail.gmail.com>
- <56563CC7.4050305@iki.fi>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <565640A8.1030207@iki.fi>
-Date: Thu, 26 Nov 2015 01:13:44 +0200
-MIME-Version: 1.0
-In-Reply-To: <56563CC7.4050305@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53577 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751915AbbK3U1b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2015 15:27:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: stoth@kernellabs.com, dheitmueller@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/11] cx231xx: fix NTSC cropcap, add missing cropcap for 417
+Date: Mon, 30 Nov 2015 21:27:12 +0100
+Message-Id: <1448915241-415-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/26/2015 12:57 AM, Antti Palosaari wrote:
-> On 11/26/2015 12:53 AM, Mark Croft wrote:
->> hi
->>
->> hope this is the correct list about trying to get linux to talk to
->> dvb-t usb stick?
->>
->> check out all the logs etc here http://pastebin.com/V3RQ17hz
->
-> and antenna is plugged and it is good antenna with strong signal? Test
-> it first using windows. Logs says all is OK.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I started looking that initial tuning file and noticed I don't even have 
-those old dvbv3 tuning files you are using.
+The pixelaspect ratio was set incorrectly for 60Hz formats.
+And since cropcap wasn't implemented at all for the -417 (compressed
+video) the pixelaspect was unknown for compressed video.
 
-You probably want use dvbv5 scan instead:
-$ dvbv5-scan /usr/share/dvbv5/dvb-t/uk-BeaconHill
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c   | 22 ++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-video.c |  5 +++--
+ 2 files changed, 25 insertions(+), 2 deletions(-)
 
-w_scan is also very good blind scanning app - no need for initial tuning 
-files.
-$ w_scan -c GB
-
-regards
-Antti
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index f59a6f1..1564ade 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1492,6 +1492,27 @@ static struct videobuf_queue_ops cx231xx_qops = {
+ 
+ /* ------------------------------------------------------------------ */
+ 
++static int vidioc_cropcap(struct file *file, void *priv,
++			  struct v4l2_cropcap *cc)
++{
++	struct cx231xx_fh *fh = priv;
++	struct cx231xx *dev = fh->dev;
++	bool is_50hz = dev->encodernorm.id & V4L2_STD_625_50;
++
++	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	cc->bounds.left = 0;
++	cc->bounds.top = 0;
++	cc->bounds.width = dev->ts1.width;
++	cc->bounds.height = dev->ts1.height;
++	cc->defrect = cc->bounds;
++	cc->pixelaspect.numerator = is_50hz ? 54 : 11;
++	cc->pixelaspect.denominator = is_50hz ? 59 : 10;
++
++	return 0;
++}
++
+ static int vidioc_g_std(struct file *file, void *fh0, v4l2_std_id *norm)
+ {
+ 	struct cx231xx_fh  *fh  = file->private_data;
+@@ -1834,6 +1855,7 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_g_input		 = cx231xx_g_input,
+ 	.vidioc_s_input		 = cx231xx_s_input,
+ 	.vidioc_s_ctrl		 = vidioc_s_ctrl,
++	.vidioc_cropcap		 = vidioc_cropcap,
+ 	.vidioc_querycap	 = cx231xx_querycap,
+ 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap	 = vidioc_g_fmt_vid_cap,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 246fb2b..a70850f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1444,6 +1444,7 @@ static int vidioc_cropcap(struct file *file, void *priv,
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
++	bool is_50hz = dev->norm & V4L2_STD_625_50;
+ 
+ 	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -1453,8 +1454,8 @@ static int vidioc_cropcap(struct file *file, void *priv,
+ 	cc->bounds.width = dev->width;
+ 	cc->bounds.height = dev->height;
+ 	cc->defrect = cc->bounds;
+-	cc->pixelaspect.numerator = 54;	/* 4:3 FIXME: remove magic numbers */
+-	cc->pixelaspect.denominator = 59;
++	cc->pixelaspect.numerator = is_50hz ? 54 : 11;
++	cc->pixelaspect.denominator = is_50hz ? 59 : 10;
+ 
+ 	return 0;
+ }
 -- 
-http://palosaari.fi/
+2.6.2
+
