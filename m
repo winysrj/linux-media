@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38078 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1162891AbbKTRCF (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48285 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753553AbbK3U1m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Nov 2015 12:02:05 -0500
+	Mon, 30 Nov 2015 15:27:42 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: pawel@osciak.com, sakari.ailus@iki.fi, jh1009.sung@samsung.com,
-	inki.dae@samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 13/15] videobuf2-core: fill in q->bufs[vb->index] before buf_init()
-Date: Fri, 20 Nov 2015 17:45:46 +0100
-Message-Id: <1448037948-36820-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
-References: <1448037948-36820-1-git-send-email-hverkuil@xs4all.nl>
+Cc: stoth@kernellabs.com, dheitmueller@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 08/11] cx25840: initialize the standard to NTSC_M
+Date: Mon, 30 Nov 2015 21:27:18 +0100
+Message-Id: <1448915241-415-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Fill in q->bufs[vb->index] before the call to buf_init: it makes
-sense that this is initialized correctly.
+This is necessary since the *_std_setup functions rely on a valid state->std
+field.
+
+Also fix the cx23888_std_setup() to test for 60Hz instead of NTSC, just like
+cx25840_std_setup() does.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/i2c/cx25840/cx25840-core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 96dca47..98b5449 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -352,6 +352,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 		vb->memory = memory;
- 		for (plane = 0; plane < num_planes; ++plane)
- 			vb->planes[plane].length = q->plane_sizes[plane];
-+		q->bufs[vb->index] = vb;
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index a8b1a03..f2e2c34 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -4977,7 +4977,7 @@ static void cx23888_std_setup(struct i2c_client *client)
+ 	cx25840_write4(client, 0x4b4, 0x20524030);
+ 	cx25840_write4(client, 0x47c, 0x010a8263);
  
- 		/* Allocate video buffer memory for the MMAP type */
- 		if (memory == VB2_MEMORY_MMAP) {
-@@ -360,6 +361,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 				dprintk(1, "failed allocating memory for "
- 						"buffer %d\n", buffer);
- 				kfree(vb);
-+				q->bufs[vb->index] = NULL;
- 				break;
- 			}
- 			/*
-@@ -372,12 +374,11 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 				dprintk(1, "buffer %d %p initialization"
- 					" failed\n", buffer, vb);
- 				__vb2_buf_mem_free(vb);
-+				q->bufs[vb->index] = NULL;
- 				kfree(vb);
- 				break;
- 			}
- 		}
--
--		q->bufs[q->num_buffers + buffer] = vb;
- 	}
+-	if (std & V4L2_STD_NTSC) {
++	if (std & V4L2_STD_525_60) {
+ 		v4l_dbg(1, cx25840_debug, client, "%s() Selecting NTSC",
+ 			__func__);
  
- 	if (memory == VB2_MEMORY_MMAP)
+@@ -5268,6 +5268,7 @@ static int cx25840_probe(struct i2c_client *client,
+ 	state->id = id;
+ 	state->rev = device_id;
+ 	state->vbi_regs_offset = id == CX23888_AV ? 0x500 - 0x424 : 0;
++	state->std = V4L2_STD_NTSC_M;
+ 	v4l2_ctrl_handler_init(&state->hdl, 9);
+ 	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
+ 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 -- 
 2.6.2
 
