@@ -1,42 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:33217 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbbKATV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Nov 2015 14:21:28 -0500
-Received: by iodd200 with SMTP id d200so125007137iod.0
-        for <linux-media@vger.kernel.org>; Sun, 01 Nov 2015 11:21:28 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 1 Nov 2015 21:21:27 +0200
-Message-ID: <CAJ2oMhJOu8Ltra-bbb6FW3gLrCab1yKKu_zdSTNmqT5ecMkELQ@mail.gmail.com>
-Subject: videobuf & read/write operation
-From: Ran Shalit <ranshalit@gmail.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59683 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753553AbbK3U1k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2015 15:27:40 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: stoth@kernellabs.com, dheitmueller@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/11] cx25840: relax a Vsrc check
+Date: Mon, 30 Nov 2015 21:27:16 +0100
+Message-Id: <1448915241-415-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm trying to understand how to imeplement v4l driver using videobuf.
-The videobuf documentation if very helpful.
-When the documentation refers to " I/O stream" , does it also include
-the read/write operation or only streaming I/O method ?
+The cx23888 reports a slightly different Vsrc value than the other
+chip variants do. Relax the check by 1, otherwise cx25840_set_fmt()
+would fail for the cx23888.
 
-In case I am using only read/write, do I need to implement all these 4  APIs:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/cx25840/cx25840-core.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-struct videobuf_queue_ops {
- int (*buf_setup)(struct videobuf_queue *q,
- unsigned int *count, unsigned int *size);
- int (*buf_prepare)(struct videobuf_queue *q,
- struct videobuf_buffer *vb,
-enum v4l2_field field);
- void (*buf_queue)(struct videobuf_queue *q,
- struct videobuf_buffer *vb);
- void (*buf_release)(struct videobuf_queue *q,
- struct videobuf_buffer *vb);
-};
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index a741c30..d8b5343 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -1390,8 +1390,14 @@ static int cx25840_set_fmt(struct v4l2_subdev *sd,
+ 
+ 	Vlines = fmt->height + (is_50Hz ? 4 : 7);
+ 
++	/*
++	 * We keep 1 margin for the Vsrc < Vlines check since the
++	 * cx23888 reports a Vsrc of 486 instead of 487 for the NTSC
++	 * height. Without that margin the cx23885 fails in this
++	 * check.
++	 */
+ 	if ((fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
+-			(Vlines * 8 < Vsrc) || (Vsrc < Vlines)) {
++			(Vlines * 8 < Vsrc) || (Vsrc + 1 < Vlines)) {
+ 		v4l_err(client, "%dx%d is not a valid size!\n",
+ 				fmt->width, fmt->height);
+ 		return -ERANGE;
+-- 
+2.6.2
 
-Are these APIs relevant for both read/write and streaminf I/O ?
-
-Best Regards,
-Ran
