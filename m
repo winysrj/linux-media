@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45613 "EHLO mail.kapsi.fi"
+Received: from mga03.intel.com ([134.134.136.65]:35207 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030342AbbKECHu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Nov 2015 21:07:50 -0500
-Received: from dyn3-82-128-185-10.psoas.suomi.net ([82.128.185.10] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1Zu9xs-0008Ig-Tp
-	for linux-media@vger.kernel.org; Thu, 05 Nov 2015 04:07:48 +0200
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL 4.4] 2 small hackrf changes
-Message-ID: <563AB9F4.2030301@iki.fi>
-Date: Thu, 5 Nov 2015 04:07:48 +0200
+	id S1754107AbbK3OqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2015 09:46:20 -0500
+From: Tuukka Toivonen <tuukka.toivonen@intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH] Return proper error code if STREAMON fails
+Date: Mon, 30 Nov 2015 16:46:17 +0200
+Message-ID: <207011196.fyjkdD1C8L@ttoivone-desk1>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 79f5b6ae960d380c829fb67d5dadcd1d025d2775:
+Fix the bug causing success to be returned even if VIDIOC_STREAMON
+failed. Also check returned error from VIDIOC_STREAMOFF.
 
-   [media] c8sectpfe: Remove select on 
-CONFIG_FW_LOADER_USER_HELPER_FALLBACK (2015-10-20 16:02:41 -0200)
+Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
+---
+ yavta.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git hackrf
-
-for you to fetch changes up to 15b651b5e0a0f45a770ed1cd0f2b5511c8c103eb:
-
-   hackrf: move RF gain ctrl enable behind module parameter (2015-10-24 
-01:01:31 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (2):
-       hackrf: fix possible null ptr on debug printing
-       hackrf: move RF gain ctrl enable behind module parameter
-
-  drivers/media/usb/hackrf/hackrf.c | 13 ++++++++++++-
-  1 file changed, 12 insertions(+), 1 deletion(-)
-
+diff --git a/yavta.c b/yavta.c
+index b627725..3ad1c97 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -1623,7 +1623,7 @@ static int video_do_capture(struct device *dev, 
+unsigned int nframes,
+ 	unsigned int i;
+ 	double bps;
+ 	double fps;
+-	int ret;
++	int ret, ret2;
+ 
+ 	/* Start streaming. */
+ 	ret = video_enable(dev, 1);
+@@ -1708,7 +1708,9 @@ static int video_do_capture(struct device *dev, 
+unsigned int nframes,
+ 	}
+ 
+ 	/* Stop streaming. */
+-	video_enable(dev, 0);
++	ret = video_enable(dev, 0);
++	if (ret < 0)
++		goto done;
+ 
+ 	if (nframes == 0) {
+ 		printf("No frames captured.\n");
+@@ -1732,7 +1734,11 @@ static int video_do_capture(struct device *dev, 
+unsigned int nframes,
+ 		i, ts.tv_sec, ts.tv_nsec/1000, fps, bps);
+ 
+ done:
+-	return video_free_buffers(dev);
++	ret2 = video_free_buffers(dev);
++	if (ret >= 0)
++		ret = ret2;
++
++	return ret;
+ }
+ 
+ #define V4L_BUFFERS_DEFAULT	8
 -- 
-http://palosaari.fi/
+1.9.1
+
+
