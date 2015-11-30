@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:50656 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755415AbbKRPwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Nov 2015 10:52:13 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine <dmaengine@vger.kernel.org>,
-	"linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Linux MMC List <linux-mmc@vger.kernel.org>,
-	linux-crypto <linux-crypto@vger.kernel.org>,
-	linux-spi <linux-spi@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>
-Subject: Re: [PATCH 02/13] dmaengine: Introduce dma_request_slave_channel_compat_reason()
-Date: Wed, 18 Nov 2015 16:51:54 +0100
-Message-ID: <8215351.e99Q2vhQ5T@wuerfel>
-In-Reply-To: <CAHp75VeZFXp9i_zz7CBkVQVPGQxuzYk9AbWbbbn33r8YX3LCdw@mail.gmail.com>
-References: <1432646768-12532-1-git-send-email-peter.ujfalusi@ti.com> <6358656.jIv3GGCCXu@wuerfel> <CAHp75VeZFXp9i_zz7CBkVQVPGQxuzYk9AbWbbbn33r8YX3LCdw@mail.gmail.com>
+Received: from mail.sig21.net ([80.244.240.74]:52834 "EHLO mail.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753988AbbK3Nft (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Nov 2015 08:35:49 -0500
+Received: from p57b4eb84.dip0.t-ipconnect.de ([87.180.235.132] helo=abc.local)
+	by mail.sig21.net with esmtpsa (TLS1.1:RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <js@sig21.net>)
+	id 1a3OcM-0006Vs-Id
+	for linux-media@vger.kernel.org; Mon, 30 Nov 2015 14:35:47 +0100
+Received: from js by abc.local with local (Exim 4.86)
+	(envelope-from <js@sig21.net>)
+	id 1a3OcM-0001d6-3I
+	for linux-media@vger.kernel.org; Mon, 30 Nov 2015 14:35:46 +0100
+Date: Mon, 30 Nov 2015 14:35:46 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: Re: linuxtv.org downtime around Mon Nov 30 12:00 UTC
+Message-ID: <20151130133546.GA6255@linuxtv.org>
+References: <20151129161145.GA25209@linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151129161145.GA25209@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 November 2015 17:43:04 Andy Shevchenko wrote:
-> >
-> > I assume that the sst-firmware.c case is a mistake, it should just use a
-> > plain DMA_SLAVE and not DMA_MEMCPY.
-> 
-> Other way around.
-> 
+On Sun, Nov 29, 2015 at 05:11:45PM +0100, Johannes Stezenbach wrote:
+> the linuxtv.org server will move to a new, freshly installed
+> machine tomorrow.  Expect some downtime while we do the
+> final rsync and database export+import.  I'm planning
+> to start disabling services on the old server about
+> 30min before 12:00 UTC (13:00 CET) on Mon Nov 30.
+> If all goes well the new server will be available
+> soon after 12:00 UTC.  The IP address will not change.
 
-Ok, I see. In that case I guess it also shouldn't call
-dmaengine_slave_config(), right? I don't think that's valid
-on a MEMCPY channel.
+Done.  The new ssh host key:
+RSA   SHA256:UY3VeEO8B/F7D/zghHGj46ioWcOqcpnGYCeEfVhTP1Q.
+ECDSA key fingerprint is SHA256:xUEF4X6LaZeXMNiRkmLWx7Wj4jnIPB8+UsDLC35t8ik.
 
-	Arnd
+
+Johannes
