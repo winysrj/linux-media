@@ -1,51 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39768 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752448AbbK2TWp (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40652 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753276AbbK3U1l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Nov 2015 14:22:45 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 30 Nov 2015 15:27:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v2 17/22] staging: v4l: omap4iss: Fix sub-device power management code
-Date: Sun, 29 Nov 2015 21:20:18 +0200
-Message-Id: <1448824823-10372-18-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+Cc: stoth@kernellabs.com, dheitmueller@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/11] cx25840: fix cx25840_s_stream for cx2388x and cx231xx
+Date: Mon, 30 Nov 2015 21:27:17 +0100
+Message-Id: <1448915241-415-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
+References: <1448915241-415-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The same bug was present in the omap4iss driver as was in the omap3isp
-driver. The code got copied to the omap4iss driver while broken. Fix the
-omap4iss driver as well.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+For those two devices the code wrote to addresses 0x115/6, but on
+those devices those addresses have nothing to do with power controls.
+So clearly this never worked. Rather than writing to bogus addresses,
+just do nothing for the cx2388x and cx231xx.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/omap4iss/iss.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/i2c/cx25840/cx25840-core.c | 37 ++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 076ddd4..c097fd5 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -533,14 +533,14 @@ static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
- 	int ret;
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index d8b5343..a8b1a03 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -1716,26 +1716,27 @@ static int cx25840_s_stream(struct v4l2_subdev *sd, int enable)
  
- 	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
--	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
-+	    !(flags & MEDIA_LNK_FL_ENABLED)) {
- 		/* Powering off entities is assumed to never fail. */
- 		iss_pipeline_pm_power(source, -sink_use);
- 		iss_pipeline_pm_power(sink, -source_use);
- 		return 0;
+ 	v4l_dbg(1, cx25840_debug, client, "%s video output\n",
+ 			enable ? "enable" : "disable");
++
++	/*
++	 * It's not clear what should be done for these devices.
++	 * The original code used the same addresses as for the cx25840, but
++	 * those addresses do something else entirely on the cx2388x and
++	 * cx231xx. Since it never did anything in the first place, just do
++	 * nothing.
++	 */
++	if (is_cx2388x(state) || is_cx231xx(state))
++		return 0;
++
+ 	if (enable) {
+-		if (is_cx2388x(state) || is_cx231xx(state)) {
+-			v = cx25840_read(client, 0x421) | 0x0b;
+-			cx25840_write(client, 0x421, v);
+-		} else {
+-			v = cx25840_read(client, 0x115) | 0x0c;
+-			cx25840_write(client, 0x115, v);
+-			v = cx25840_read(client, 0x116) | 0x04;
+-			cx25840_write(client, 0x116, v);
+-		}
++		v = cx25840_read(client, 0x115) | 0x0c;
++		cx25840_write(client, 0x115, v);
++		v = cx25840_read(client, 0x116) | 0x04;
++		cx25840_write(client, 0x116, v);
+ 	} else {
+-		if (is_cx2388x(state) || is_cx231xx(state)) {
+-			v = cx25840_read(client, 0x421) & ~(0x0b);
+-			cx25840_write(client, 0x421, v);
+-		} else {
+-			v = cx25840_read(client, 0x115) & ~(0x0c);
+-			cx25840_write(client, 0x115, v);
+-			v = cx25840_read(client, 0x116) & ~(0x04);
+-			cx25840_write(client, 0x116, v);
+-		}
++		v = cx25840_read(client, 0x115) & ~(0x0c);
++		cx25840_write(client, 0x115, v);
++		v = cx25840_read(client, 0x116) & ~(0x04);
++		cx25840_write(client, 0x116, v);
  	}
- 
--	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-+	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
- 		(flags & MEDIA_LNK_FL_ENABLED)) {
- 		ret = iss_pipeline_pm_power(source, sink_use);
- 		if (ret < 0)
+ 	return 0;
+ }
 -- 
-2.1.4
+2.6.2
 
