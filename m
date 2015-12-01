@@ -1,65 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33702 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755275AbbLKQFB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57859 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752006AbbLAMkE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 11:05:01 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH 2/3] media: adv7604: implement cropcap
-Date: Fri, 11 Dec 2015 17:04:52 +0100
-Message-Id: <1449849893-14865-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Tue, 1 Dec 2015 07:40:04 -0500
+Date: Tue, 1 Dec 2015 14:39:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: linuxtv.org downtime around Mon Nov 30 12:00 UTC
+Message-ID: <20151201123958.GF17128@valkosipuli.retiisi.org.uk>
+References: <20151129161145.GA25209@linuxtv.org>
+ <20151130133546.GA6255@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151130133546.GA6255@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used by the rcar_vin driver.
+On Mon, Nov 30, 2015 at 02:35:46PM +0100, Johannes Stezenbach wrote:
+> On Sun, Nov 29, 2015 at 05:11:45PM +0100, Johannes Stezenbach wrote:
+> > the linuxtv.org server will move to a new, freshly installed
+> > machine tomorrow.  Expect some downtime while we do the
+> > final rsync and database export+import.  I'm planning
+> > to start disabling services on the old server about
+> > 30min before 12:00 UTC (13:00 CET) on Mon Nov 30.
+> > If all goes well the new server will be available
+> > soon after 12:00 UTC.  The IP address will not change.
+> 
+> Done.  The new ssh host key:
+> RSA   SHA256:UY3VeEO8B/F7D/zghHGj46ioWcOqcpnGYCeEfVhTP1Q.
+> ECDSA key fingerprint is SHA256:xUEF4X6LaZeXMNiRkmLWx7Wj4jnIPB8+UsDLC35t8ik.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+For folks using OpenSSH prior version 7, the ECDSA key fingerprint (as in
+#v4l) appears to be:
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index d30e7cc..1bfa9f3 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -1896,6 +1896,22 @@ static int adv76xx_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	return 0;
- }
- 
-+static int adv76xx_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-+{
-+	struct adv76xx_state *state = to_state(sd);
-+
-+	a->bounds.left	 = 0;
-+	a->bounds.top	 = 0;
-+	a->bounds.width	 = state->timings.bt.width;
-+	a->bounds.height = state->timings.bt.height;
-+	a->defrect	 = a->bounds;
-+	a->type		 = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	a->pixelaspect.numerator   = 1;
-+	a->pixelaspect.denominator = 1;
-+
-+	return 0;
-+}
-+
- static int adv76xx_set_format(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_format *format)
-@@ -2419,6 +2435,7 @@ static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
- static const struct v4l2_subdev_video_ops adv76xx_video_ops = {
- 	.s_routing = adv76xx_s_routing,
- 	.g_crop = adv76xx_g_crop,
-+	.cropcap = adv76xx_cropcap,
- 	.g_input_status = adv76xx_g_input_status,
- 	.s_dv_timings = adv76xx_s_dv_timings,
- 	.g_dv_timings = adv76xx_g_dv_timings,
+b8:92:8d:94:03:05:b8:88:53:34:e7:bf:69:f2:ff:c1
+
 -- 
-2.6.3
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
