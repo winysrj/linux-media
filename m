@@ -1,149 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933227AbbLQIks (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54172 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754744AbbLADz1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:48 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 30 Nov 2015 22:55:27 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 41767E0BBC
+	for <linux-media@vger.kernel.org>; Tue,  1 Dec 2015 04:55:21 +0100 (CET)
+Date: Tue, 01 Dec 2015 04:55:21 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 09/48] v4l: vsp1: Don't setup control handler when starting streaming
-Date: Thu, 17 Dec 2015 10:39:47 +0200
-Message-Id: <1450341626-6695-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151201035521.41767E0BBC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler set operations don't program the hardware anymore,
-there's thus no need to call them when starting the stream.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_bru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_entity.c | 18 +-----------------
- drivers/media/platform/vsp1/vsp1_entity.h |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_sru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_wpf.c    |  5 +----
- 6 files changed, 6 insertions(+), 34 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 4c1bd0419e12..27a9043b11e2 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -66,11 +66,8 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int flags;
- 	unsigned int i;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&bru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&bru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index c005d374c254..a366cb64ae9d 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -45,29 +45,13 @@ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
- 	return streaming;
- }
- 
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
- {
- 	unsigned long flags;
--	int ret;
- 
- 	spin_lock_irqsave(&entity->lock, flags);
- 	entity->streaming = streaming;
- 	spin_unlock_irqrestore(&entity->lock, flags);
--
--	if (!streaming)
--		return 0;
--
--	if (!entity->vsp1->info->uapi || !entity->subdev.ctrl_handler)
--		return 0;
--
--	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
--	if (ret < 0) {
--		spin_lock_irqsave(&entity->lock, flags);
--		entity->streaming = false;
--		spin_unlock_irqrestore(&entity->lock, flags);
--	}
--
--	return ret;
- }
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source)
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 259880e524fe..c0d6db82ebfb 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -101,7 +101,7 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg);
- 
- bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 9ccfb572b4a5..48870b257a81 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -45,11 +45,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	const struct v4l2_rect *crop = &rpf->crop;
- 	u32 pstride;
- 	u32 infmt;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&rpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&rpf->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index ec4741efc7f8..15fc562a52da 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -113,11 +113,8 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *input;
- 	struct v4l2_mbus_framefmt *output;
- 	u32 ctrl0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&sru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&sru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 2135cca2490e..d68c90d45232 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -46,11 +46,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	unsigned int i;
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&wpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&wpf->entity, enable);
- 
- 	if (!enable) {
- 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
--- 
-2.4.10
+date:		Tue Dec  1 04:00:18 CET 2015
+git branch:	test
+git hash:	10897dacea26943dd80bd6629117f4620fc320ef
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
