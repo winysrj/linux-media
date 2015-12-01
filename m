@@ -1,306 +1,596 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60356 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750781AbbL1DGf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 22:06:35 -0500
-Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
- <20151216140301.GO17128@valkosipuli.retiisi.org.uk>
- <20151223103242.44deaea4@recife.lan> <26879584.9P9vDMYfPM@avalon>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	=?UTF-8?Q?Beno=c3=aet_Cousson?= <bcousson@baylibre.com>,
+Received: from mailgw02.mediatek.com ([210.61.82.184]:32973 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752345AbbLAKmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2015 05:42:38 -0500
+Message-ID: <1448966550.7534.95.camel@mtksdaap41>
+Subject: Re: [RESEND RFC/PATCH 6/8] media: platform: mtk-vcodec: Add
+ Mediatek V4L2 Video Encoder Driver
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Daniel Thompson <daniel.thompson@linaro.org>
+CC: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
+	"Mark Rutland" <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"Catalin Marinas" <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	"Hans Verkuil" <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
 	Arnd Bergmann <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org
-Message-ID: <5680A732.1010601@osg.samsung.com>
-Date: Mon, 28 Dec 2015 00:06:26 -0300
-MIME-Version: 1.0
-In-Reply-To: <26879584.9P9vDMYfPM@avalon>
-Content-Type: text/plain; charset=windows-1252
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	"Benoit Parrot" <bparrot@ti.com>,
+	Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
+	<Andrew-CT.Chen@mediatek.com>,
+	Eddie Huang =?UTF-8?Q?=28=E9=BB=83=E6=99=BA=E5=82=91=29?=
+	<eddie.huang@mediatek.com>,
+	Yingjoe Chen =?UTF-8?Q?=28=E9=99=B3=E8=8B=B1=E6=B4=B2=29?=
+	<Yingjoe.Chen@mediatek.com>,
+	JamesJJ Liao =?UTF-8?Q?=28=E5=BB=96=E5=BB=BA=E6=99=BA=29?=
+	<jamesjj.liao@mediatek.com>,
+	Daniel Hsiao =?UTF-8?Q?=28=E8=95=AD=E4=BC=AF=E5=89=9B=29?=
+	<daniel.hsiao@mediatek.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-mediatek@lists.infradead.org"
+	<linux-mediatek@lists.infradead.org>,
+	PoChun Lin =?UTF-8?Q?=28=E6=9E=97=E6=9F=8F=E5=90=9B=29?=
+	<PoChun.Lin@mediatek.com>
+Date: Tue, 1 Dec 2015 18:42:30 +0800
+In-Reply-To: <CAMTL27FchgtJZS4YpVge-x+TstnVHmG1aAnaOV32qCU3zMUbAQ@mail.gmail.com>
+References: <1447764885-23100-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1447764885-23100-7-git-send-email-tiffany.lin@mediatek.com>
+	 <56588622.8060600@linaro.org>	<1448883594.25093.45.camel@mtksdaap41>
+	 <CAMTL27FchgtJZS4YpVge-x+TstnVHmG1aAnaOV32qCU3zMUbAQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
-
-On 12/27/2015 02:11 PM, Laurent Pinchart wrote:
-> Hi Mauro,
+On Mon, 2015-11-30 at 22:58 +0800, Daniel Thompson wrote:
+> On 30 November 2015 at 11:39, tiffany lin <tiffany.lin@mediatek.com> wrote:
+> >> > diff --git a/drivers/media/platform/mtk-vcodec/Makefile b/drivers/media/platform/mtk-vcodec/Makefile
+> >> > new file mode 100644
+> >> > index 0000000..c7f7174
+> >> > --- /dev/null
+> >> > +++ b/drivers/media/platform/mtk-vcodec/Makefile
+> >> > @@ -0,0 +1,12 @@
+> >> > +obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += mtk_vcodec_intr.o \
+> >> > +                                  mtk_vcodec_util.o \
+> >> > +                                  mtk_vcodec_enc_drv.o \
+> >> > +                                  mtk_vcodec_enc.o \
+> >> > +                                  mtk_vcodec_enc_pm.o
+> >> > +
+> >> > +obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += common/
+> >> > +
+> >> > +ccflags-y += -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
+> >> > +        -I$(srctree)/drivers/media/platform/mtk-vcodec \
+> >> > +        -I$(srctree)/drivers/media/platform/mtk-vpu
+> >>
+> >> Seems like there's a lot of directories here. Are these files
+> >> (framework, common, vcodec, etc) so unrelated they really need to live
+> >> in separate directories?
+> >>
+> >> Why not just drivers/media/platform/mediatek?
+> > This is because VPU and Vcodec are two different drivers.
+> > Driver in mtk-vpu is for controlling VPU device and provide
+> > communication API to VPU.
+> > Driver in mtk-vcodec is for control different encoder (vp8, h264), it
+> > include v4l2 driver layer, glue layer between encoders and vp8 and h264
+> > encoder.
 > 
-> On Wednesday 23 December 2015 10:32:42 Mauro Carvalho Chehab wrote:
->> Em Wed, 16 Dec 2015 16:03:01 +0200 Sakari Ailus escreveu:
->>> On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
->>>> This is the third version of the unrestricted media entity ID range
->>>> support set. I've taken Mauro's comments into account and fixed a number
->>>> of bugs as well (omap3isp memory leak and omap4iss stream start).
->>>
->>> Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
->>> test the OMAP4 ISS with these patches?
->>>
->>> Thanks.
->>
->> Sakari,
->>
->> Testing with OMAP4 is not possible. The driver is broken: it doesn't
->> support DT, and the required pdata definition is missing.
+> They may be separate pieces of hardware the drivers for them are very
+> clearly interlinked. This is obvious because the Makefiles are having
+> to set ccflags to pick up the headers of the other drivers.
 > 
-> What do you mean by missing ? struct iss_platform_data is defined in 
-> include/media/omap4iss.h.
->
-
-That's true but at the very least the omap4iss hwmod is broken in mainline
-as you mentioned in the linux-media thread that Mauro shared below.
-
-I think what Mauro meant is that there isn't an omap4 board supported in
-mainline that makes use of the iss platform data structures. So testing the
-driver in a popular omap4 board such as the pandaboard isn't possible without
-adding plumbing board code. And even in that case, the driver fails to probe
-due a missing iss_fck clock as Mauro mentioned in his boot log below as well.
-
-I know is not a requirement for a driver to have mainline users but without
-DT bindings, using this driver will not be possible sooner rather than later
-once the mach-omap2 pdata-quirks.c workaround is removed from mainline since
-the omap4 board files were deleted almost 3 years ago (3.11 according to git).
- 
->> Both Javier and I tried to fix it in the last couple days, in order to test
->> it with a PandaBoard. We came with the enclosed patch, but it is still
->> incomplete. Based on what's written on this e-mail:
->> 	 https://www.mail-archive.com/linux-media@vger.kernel.org/msg89247.html
->>
->> It seems that this is an already known issue.
->>
->> So, I'm considering this driver as BROKEN. Not much sense on doing any
->> tests on it, while this doesn't get fixed.
->>
->> Regards,
->> Mauro
->>
->> PS.: With the enclosed patch, I got this error:
->> 	[    0.267639] platform omap4iss: failed to claim resource 2
->>
->> But, even if I comment out the platform code that returns this error,
->> there are still other missing things:
->> 	[    7.131622] omap4iss omap4iss: Unable to get iss_fck clock info
->> 	[    7.137878] omap4iss omap4iss: Unable to get clocks
->>
->> ---
->>
->> ARM: add a pdata quirks for OMAP4 panda camera
->>
->> This is a hack to make it to believe that the pandaboard
->> has a camera.
->>
->>
->> diff --git a/arch/arm/mach-omap2/pdata-quirks.c
->> b/arch/arm/mach-omap2/pdata-quirks.c index 1dfe34654c43..998bb6936dc0
->> 100644
->> --- a/arch/arm/mach-omap2/pdata-quirks.c
->> +++ b/arch/arm/mach-omap2/pdata-quirks.c
->> @@ -36,6 +36,8 @@
->>  #include "soc.h"
->>  #include "hsmmc.h"
->>
->> +#include "../../../drivers/staging/media/omap4iss/iss.h"
->> +
->>  struct pdata_init {
->>  	const char *compatible;
->>  	void (*fn)(void);
->> @@ -408,6 +410,124 @@ static void __init t410_abort_init(void)
->>  }
->>  #endif
->>
->> +#ifdef CONFIG_ARCH_OMAP4
->> +
->> +static struct resource panda_iss_resource[] = {
->> +	{
->> +		.start = 0x52000000,
->> +		.end = 0x52000000 + 0x100,
->> +		.name = "top",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001000,
->> +		.end = 0x52001000 + 0x170,
->> +		.name = "csi2_a_regs1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001170,
->> +		.end = 0x52001170 + 0x020,
->> +		.name = "camerarx_core1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001400,
->> +		.end = 0x52001400 + 0x170,
->> +		.name = "csi2_b_regs1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52001570,
->> +		.end = 0x52001570 + 0x020,
->> +		.name = "camerarx_core2",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52002000,
->> +		.end = 0x52002000 + 0x200,
->> +		.name = "bte",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010000,
->> +		.end = 0x52010000 + 0x0a0,
->> +		.name = "isp_sys1",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010400,
->> +		.end = 0x52010400 + 0x400,
->> +		.name = "isp_resizer",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52010800,
->> +		.end = 0x52010800 + 0x800,
->> +		.name = "isp_ipipe",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52011000,
->> +		.end = 0x52011000 + 0x200,
->> +		.name = "isp_isif",
->> +		.flags = IORESOURCE_MEM,
->> +	}, {
->> +		.start = 0x52011200,
->> +		.end = 0x52011200 + 0x080,
->> +		.name = "isp_ipipeif",
->> +		.flags = IORESOURCE_MEM,
->> +	}
->> +};
->> +
->> +static struct i2c_board_info panda_camera_i2c_device = {
->> +	I2C_BOARD_INFO("smia", 0x10),
->> +};
->> +
->> +static struct iss_subdev_i2c_board_info panda_camera_subdevs[] = {
->> +	{
->> +		.board_info = &panda_camera_i2c_device,
->> +		.i2c_adapter_id = 3,
->> +	},
->> +};
->> +
->> +static struct iss_v4l2_subdevs_group iss_subdevs[] = {
->> +	{
->> +		.subdevs = panda_camera_subdevs,
->> +		.interface = ISS_INTERFACE_CSI2A_PHY1,
->> +		.bus = {
->> +			.csi2 = {
->> +				.lanecfg = {
->> +					.clk = {
->> +						.pol = 0,
->> +						.pos = 2,
->> +					},
->> +					.data[0] = {
->> +						.pol = 0,
->> +						.pos = 1,
->> +					},
->> +					.data[1] = {
->> +						.pol = 0,
->> +						.pos = 3,
->> +					},
->> +				},
->> +			} },
->> +	},
->> +	{ /* sentinel */ },
->> +};
->> +
->> +static struct iss_platform_data iss_pdata = {
->> +	.subdevs = iss_subdevs,
->> +};
->> +
->> +static struct platform_device omap4iss_device = {
->> +	.name           = "omap4iss",
->> +	.id             = -1,
->> +	.dev = {
->> +		.platform_data = &iss_pdata,
->> +	},
->> +	.num_resources  = ARRAY_SIZE(panda_iss_resource),
->> +	.resource       = panda_iss_resource,
->> +};
->> +
->> +static void __init omap4_panda_legacy_init(void)
->> +{
->> +	platform_device_register(&omap4iss_device);
->> +}
->> +
->> +#endif /* CONFIG_ARCH_OMAP4 */
->> +
->>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
->>  static struct iommu_platform_data omap4_iommu_pdata = {
->>  	.reset_name = "mmu_cache",
->> @@ -539,6 +659,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
->>  #ifdef CONFIG_SOC_TI81XX
->>  	{ "hp,t410", t410_abort_init, },
->>  #endif
->> +#ifdef CONFIG_ARCH_OMAP4
->> +	{ "ti,omap4-panda", omap4_panda_legacy_init, },
->> +#endif
->>  #ifdef CONFIG_SOC_OMAP5
->>  	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
->>  #endif
->>
->> diff --git a/drivers/staging/media/omap4iss/iss.c
->> b/drivers/staging/media/omap4iss/iss.c index 30b473cfb020..b528cacda17b
->> 100644
->> --- a/drivers/staging/media/omap4iss/iss.c
->> +++ b/drivers/staging/media/omap4iss/iss.c
->> @@ -1412,6 +1412,9 @@ static int iss_probe(struct platform_device *pdev)
->>  	unsigned int i;
->>  	int ret;
->>
->> +
->> +printk("%s: pdata=%p\n", __func__, pdata);
->> +
->>  	if (!pdata)
->>  		return -EINVAL;
->>
->> @@ -1437,24 +1440,33 @@ static int iss_probe(struct platform_device *pdev)
->>  	iss->syscon = syscon_regmap_lookup_by_compatible("syscon");
->>  	if (IS_ERR(iss->syscon)) {
->>  		ret = PTR_ERR(iss->syscon);
->> +		dev_err(iss->dev, "Unable to find syscon");
->>  		goto error;
->>  	}
->>
->>  	/* Clocks */
->>  	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to map memory resource\n");
->>  		goto error;
->> +	}
->>
->>  	ret = iss_get_clocks(iss);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to get clocks\n");
->>  		goto error;
->> +	}
->>
->> -	if (!omap4iss_get(iss))
->> +	if (!omap4iss_get(iss)) {
->> +		dev_err(iss->dev, "Failed to acquire ISS resource\n");
->>  		goto error;
->> +	}
->>
->>  	ret = iss_reset(iss);
->> -	if (ret < 0)
->> +	if (ret < 0) {
->> +		dev_err(iss->dev, "Unable to reset ISS\n");
->>  		goto error_iss;
->> +	}
->>
->>  	iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
->>  	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
+> No other V4L2 driver uses ccflags-y in this manner.
 > 
+Got it.
+We will remove -I from Makefile and put VPU header file in
+include/soc/mediatek
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+> 
+> >> > diff --git a/drivers/media/platform/mtk-vcodec/common/Makefile b/drivers/media/platform/mtk-vcodec/common/Makefile
+> >> > new file mode 100644
+> >> > index 0000000..477ab80
+> >> > --- /dev/null
+> >> > +++ b/drivers/media/platform/mtk-vcodec/common/Makefile
+> >> > @@ -0,0 +1,8 @@
+> >> > +obj-y += \
+> >> > +    venc_drv_if.o
+> >> > +
+> >> > +ccflags-y += \
+> >> > +    -I$(srctree)/include/ \
+> >> > +    -I$(srctree)/drivers/media/platform/mtk-vcodec \
+> >> > +    -I$(srctree)/drivers/media/platform/mtk-vcodec/include \
+> >> > +    -I$(srctree)/drivers/media/platform/mtk-vpu
+> >>
+> >> As above, this appears to be a directory to hold just one file.
+> >>
+> > Sorry, I didn't get it. Could you explain more?
+> 
+> Just that this is another example of the excessive directory structure.
+> 
+> A directory that contains only one source file is a strong indication
+> that the splitting of the V4L2 implementation into directories is
+> excessive.
+> 
+The directory that contains only one source file is because now we only
+upstream encoder patches. We have decoder patches in future.
+We will remove "common", "include" two directories and put files in
+mtk-vcodec in next version.
+
+> 
+> >>  > diff --git a/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+> >> b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+> >>  > new file mode 100644
+> >>  > index 0000000..9b3f025
+> >>  > --- /dev/null
+> >>  > +++ b/drivers/media/platform/mtk-vcodec/common/venc_drv_if.c
+> >>  > @@ -0,0 +1,152 @@
+> >>  > +/*
+> >>  > + * Copyright (c) 2015 MediaTek Inc.
+> >>  > + * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
+> >>  > + *         Jungchang Tsao <jungchang.tsao@mediatek.com>
+> >>  > + *
+> >>  > + * This program is free software; you can redistribute it and/or
+> >>  > + * modify
+> >>  > + * it under the terms of the GNU General Public License version 2 as
+> >>  > + * published by the Free Software Foundation.
+> >>  > + *
+> >>  > + * This program is distributed in the hope that it will be useful,
+> >>  > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >>  > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >>  > + * GNU General Public License for more details.
+> >>  > + */
+> >>  > +
+> >>  > +#include <linux/interrupt.h>
+> >>  > +#include <linux/kernel.h>
+> >>  > +#include <linux/slab.h>
+> >>  > +
+> >>  > +#include "mtk_vcodec_drv.h"
+> >>  > +#include "mtk_vcodec_enc.h"
+> >>  > +#include "mtk_vcodec_pm.h"
+> >>  > +#include "mtk_vcodec_util.h"
+> >>  > +#include "mtk_vpu_core.h"
+> >>  > +
+> >>  > +#include "venc_drv_if.h"
+> >>  > +#include "venc_drv_base.h"
+> >>  > +
+> >>  > +
+> >>  > +int venc_if_create(void *ctx, unsigned int fourcc, unsigned long
+> >> *handle)
+> >>  > +{
+> >>  > +  struct venc_handle *h;
+> >>  > +  char str[10];
+> >>  > +
+> >>  > +  mtk_vcodec_fmt2str(fourcc, str);
+> >>  > +
+> >>  > +  h = kzalloc(sizeof(*h), GFP_KERNEL);
+> >>  > +  if (!h)
+> >>  > +          return -ENOMEM;
+> >>  > +
+> >>  > +  h->fourcc = fourcc;
+> >>  > +  h->ctx = ctx;
+> >>  > +  mtk_vcodec_debug(h, "fmt = %s handle = %p", str, h);
+> >>  > +
+> >>  > +  switch (fourcc) {
+> >>  > +  default:
+> >>  > +          mtk_vcodec_err(h, "invalid format %s", str);
+> >>  > +          goto err_out;
+> >>  > +  }
+> >>  > +
+> >>  > +  *handle = (unsigned long)h;
+> >>  > +  return 0;
+> >>  > +
+> >>  > +err_out:
+> >>  > +  kfree(h);
+> >>  > +  return -EINVAL;
+> >>  > +}
+> >>  > +
+> >>  > +int venc_if_init(unsigned long handle)
+> >>  > +{
+> >>  > +  int ret = 0;
+> >>  > +  struct venc_handle *h = (struct venc_handle *)handle;
+> >>  > +
+> >>  > +  mtk_vcodec_debug_enter(h);
+> >>  > +
+> >>  > +  mtk_venc_lock(h->ctx);
+> >>  > +  mtk_vcodec_enc_clock_on();
+> >>  > +  vpu_enable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
+> >>  > +  ret = h->enc_if->init(h->ctx, (unsigned long *)&h->drv_handle);
+> >>  > +  vpu_disable_clock(vpu_get_plat_device(h->ctx->dev->plat_dev));
+> >>  > +  mtk_vcodec_enc_clock_off();
+> >>  > +  mtk_venc_unlock(h->ctx);
+> >>  > +
+> >>  > +  return ret;
+> >>  > +}
+> >>
+> >> To me this looks more like an obfuscation layer rather than a
+> >> abstraction layer. I don't understand why we need to hide things from
+> >> the V4L2 implementation that this code forms part of.
+> >>
+> >> More importantly, if this code was included somewhere where it could be
+> >> properly integrated with the device model you might be able to use the
+> >> pm_runtime system to avoid this sort of "heroics" to manage the clocks
+> >> anyway.
+> >>
+> > We want to abstract common part from encoder driver.
+> > Every encoder driver follow same calling flow and only need to take care
+> > about how to communicate with vpu to encode specific format.
+> > Encoder driver do not need to take care clock and multiple instance
+> > issue.
+> 
+> Looking at each of those stages:
+> 
+> mtk_venc_lock():
+> Why isn't one of the existing V4L2 locking strategies ok for you?
+> 
+We only has one encoder hw.
+To support multiple encode instances.
+When one encoder ctx access encoder hw, it need to get lock first.
+
+> mtk_vcodec_enc_clock_on():
+> This does seem like something a sub-driver *should* be doing for itself
+This is for enabling encoder hw related clock.
+To support multiple instances, one encode ctx must get hw lock first
+then clock on/off hw relate clock.
+
+> vpu_enable_clock():
+> Why can't the VPU driver manage this internally using pm_runtime?
+> 
+Our VPU do not have power domain.
+We will remove VPU clock on/off and let vpu control it in next version.
+
+> 
+> That is why I described this as an obfuscation layer. It is collecting
+> a bunch of stuff that can be handled using the kernel driver model and
+> clumping them together in a special middle layer.
+> 
+We do use kernel driver model, but we put it in
+mtk_vcodec_enc_clock_on/mtk_vcodec_enc_clock_off.
+Every sub-driver has no need to write the same code.
+And once clock configuration change or porting to other chips, we don't
+need to change sub-driver one-by-one, just change abstract layer.
+
+> 
+> >> > +/**
+> >> > + * enum mtk_instance_type - The type of an MTK Vcodec instance.
+> >> > + */
+> >> > +enum mtk_instance_type {
+> >> > +   MTK_INST_DECODER                = 0,
+> >> > +   MTK_INST_ENCODER                = 1,
+> >> > +};
+> >> > +
+> >> > +/**
+> >> > + * enum mtk_instance_state - The state of an MTK Vcodec instance.
+> >> > + * @MTK_STATE_FREE - default state when instance create
+> >> > + * @MTK_STATE_CREATE - vdec instance is create
+> >> > + * @MTK_STATE_INIT - vdec instance is init
+> >> > + * @MTK_STATE_CONFIG - reserved for encoder
+> >> > + * @MTK_STATE_HEADER - vdec had sps/pps header parsed
+> >> > + * @MTK_STATE_RUNNING - vdec is decoding
+> >> > + * @MTK_STATE_FLUSH - vdec is flushing
+> >> > + * @MTK_STATE_RES_CHANGE - vdec detect resolution change
+> >> > + * @MTK_STATE_FINISH - ctx instance is stopped streaming
+> >> > + * @MTK_STATE_DEINIT - before release ctx instance
+> >> > + * @MTK_STATE_ERROR - vdec has something wrong
+> >> > + * @MTK_STATE_ABORT - abort work in working thread
+> >> > + */
+> >> > +enum mtk_instance_state {
+> >> > +   MTK_STATE_FREE          = 0,
+> >> > +   MTK_STATE_CREATE        = (1 << 0),
+> >> > +   MTK_STATE_INIT          = (1 << 1),
+> >> > +   MTK_STATE_CONFIG        = (1 << 2),
+> >> > +   MTK_STATE_HEADER        = (1 << 3),
+> >> > +   MTK_STATE_RUNNING       = (1 << 4),
+> >> > +   MTK_STATE_FLUSH         = (1 << 5),
+> >> > +   MTK_STATE_RES_CHANGE    = (1 << 6),
+> >> > +   MTK_STATE_FINISH        = (1 << 7),
+> >> > +   MTK_STATE_DEINIT        = (1 << 8),
+> >> > +   MTK_STATE_ERROR         = (1 << 9),
+> >> > +   MTK_STATE_ABORT         = (1 << 10),
+> >>
+> >> This looks like it started as a state machine and somehow turned into
+> >> flags, resulting in a state machine with 2048 states or, to give it a
+> >> different name, a debugging nightmare.
+> >>
+> > It's define some state happened rather than state machine.
+> > Though some states are for v4l2 decoder driver and not used in encoder
+> > driver.
+> 
+> Saying the flags track when "something happened" doesn't stop this
+> from being an extremely complex (and poorly documented) state machine.
+> 
+> There are way too many states compared to what is needed to implement
+> V4L2 correctly. To make clear why I am raising this point: with the
+> current driver state management code it is close to impossible to
+> properly review the error paths in this driver. The cause of error and
+> the recovery after error are too decoupled.
+Some state defines are shared with decoder that we will upstream in
+future.
+We will review if each state is really needed and reduce state that
+encoder need in next version.
+
+> 
+> >> If the start streaming operation implemented cleanup-on-error properly
+> >> then there would only be two useful states: Started and stopped. Even
+> >> the "sticky" error behavior looks unnecessary to me (meaning we don't
+> >> need to track its state).
+> >>
+> > We cannot guaranteed that IOCTLs called from the user space follow
+> > required sequence.
+> > We need states to know if our driver could accept IOCTL command.
+> 
+> I believe that knowing whether the streaming is started or stopped
+> (e.g. two states) is sufficient for a driver to correctly handle
+> abitrary ioctls from userspace and even then, the core code tracks
+> this state for you so there's no need for you do it.
+> 
+> The queue/dequeue ioctls succeed or fail based on the length of the
+> queue (i.e. is the buffer queue overflowing or not) and have no need
+> to check the streaming state.
+
+> If you are absolutely sure that the other states are needed then
+> please provide an example of an ioctl() sequence where the additional
+> state is needed.
+> 
+I know your point that we have too many state changes in start_streaming
+and stop_streaming function.
+We will refine these two functions in next version.
+
+For the example, we need MTK_STATE_HEADER state, to make sure before
+encode start, driver already get information to set encode parameters.
+We need MTK_STATE_ABORT to inform encoder thread (mtk_venc_worker) that
+stop encodeing job from stopped ctx instance.
+When user space qbuf, we need to make sure everything is ready to sent
+buf to encode.
+
+
+> 
+> >> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> >> > new file mode 100644
+> >> > index 0000000..8e1b6f0
+> >> > --- /dev/null
+> >> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
+> >> > @@ -0,0 +1,1773 @@
+> >> > [...]
+> >> > +static int vb2ops_venc_start_streaming(struct vb2_queue *q, unsigned int count)
+> >> > +{
+> >> > +   struct mtk_vcodec_ctx *ctx = vb2_get_drv_priv(q);
+> >> > +   struct v4l2_device *v4l2_dev = &ctx->dev->v4l2_dev;
+> >> > +   int ret;
+> >> > +#if MTK_V4L2_BENCHMARK
+> >> > +   struct timeval begin, end;
+> >> > +
+> >> > +   do_gettimeofday(&begin);
+> >> > +#endif
+> >> > +
+> >> > +   if (!(vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q) &
+> >> > +         vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q))) {
+> >> > +           mtk_v4l2_debug(1, "[%d]-> out=%d cap=%d",
+> >> > +            ctx->idx,
+> >> > +            vb2_start_streaming_called(&ctx->m2m_ctx->out_q_ctx.q),
+> >> > +            vb2_start_streaming_called(&ctx->m2m_ctx->cap_q_ctx.q));
+> >> > +           return 0;
+> >> > +   }
+> >> > +
+> >> > +   if ((ctx->state & (MTK_STATE_ERROR | MTK_STATE_ABORT)))
+> >> > +           return -EINVAL;
+> >>
+> >> This is the sort of thing I mean.
+> >>
+> >> This sticky error behaviour means that every subsequent call to
+> >> vb2ops_venc_start_streaming() will fail. Note also that the user will
+> >> never try to stop streaming (which can clear the error state) because
+> >> according to the return code it got when it tried to start streaming we
+> >> never actually started.
+> >>
+> >> This is what I mean about having two many states. From the user's
+> >> perspective there are only two states. There needs to be a good reason
+> >> for the driver to manage so many extra secret states internally.
+> >>
+> > For my understanding, that vb2ops_venc_start_streaming cannot fail.
+> 
+> I disagree: See
+> http://lxr.free-electrons.com/source/include/media/videobuf2-core.h#L288
+> 
+> How did you confirm your understanding before replying?
+> 
+Sorry that I did not explain well.
+What I want to said about "cannot fail" is that once start streaming
+fail, all subsequent calls will fail.
+The only recover step is close this instance and open instance again.
+
+> When this function returns an error the simplest (and easiest to
+> review) error recovery strategy is simply to undo any actions which
+> have already been performed (like resource allocation) and return an
+> error code.#
+> 
+> There is no need for the driver to remember that it has already
+> reported an error. If the userspace tries again then its OK for us to
+> fail again.
+> 
+Our original though is that when start_streaming fail, user space will
+close this instance. And if user space called start_streaming again, it
+just return fail.
+I got what you means now, we will try to reduce state changes and remove
+state check in start_streaming/stop_streaming in next version.
+
+> 
+> > If it fail, user space will close and release this encoder instance
+> > (fd).
+> 
+> The userspace is not required to do this and the driver must not
+> assume that it will. It could attempt some kind of reconfiguration and
+> retry.
+> 
+> 
+> > We really need to state driver to see what it should do when receive
+> > current IOCTL.
+> 
+> I think you'll find that the v4l2-core does this for you.
+> 
+We will review each state and make sure if it really need for encoder in
+next version.
+> 
+> >> > +
+> >> > +   if (ctx->state == MTK_STATE_FREE) {
+> >> > +           ret = venc_if_create(ctx,
+> >> > +                                ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc,
+> >> > +                                &ctx->h_enc);
+> >> > +
+> >> > +           if (ret != 0) {
+> >> > +                   ctx->state |= MTK_STATE_ERROR;
+> >> > +                   v4l2_err(v4l2_dev, "invalid codec type=%x\n",
+> >> > +                            ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc);
+> >> > +                   v4l2_err(v4l2_dev, "venc_if_create failed=%d\n", ret);
+> >> > +                   return -EINVAL;
+> >> > +           }
+> >> > +
+> >> > +           if (ctx->q_data[MTK_Q_DATA_DST].fmt->fourcc ==
+> >> > +                   V4L2_PIX_FMT_H264)
+> >> > +                   ctx->hdr = 1;
+> >> > +
+> >> > +           ctx->state |= MTK_STATE_CREATE;
+> >> > +   }
+> >> > +
+> >> > +   if ((ctx->state & MTK_STATE_CREATE) && !(ctx->state & MTK_STATE_INIT)) {
+> >> > +           ret = venc_if_init(ctx->h_enc);
+> >> > +           if (ret != 0) {
+> >> > +                   ctx->state |= MTK_STATE_ERROR;
+> >> > +                   v4l2_err(v4l2_dev, "venc_if_init failed=%d\n", ret);
+> >> > +                   return -EINVAL;
+> >>
+> >> This error path leaves the encoder partially constructed and relies on
+> >> something else to tidy things up. It would be much better to tidy things
+> >> up from this function and
+> >>
+> >> Also I don't think both venc_if_create and venc_if_init are needed. They
+> >> are only ever called one after the other and thus they only serve to
+> >> complicate the error handling code.
+> >>
+> > venc_if_create is for creating instance in arm side and base on encode
+> > format hook corresponding encoder driver interface.
+> > venc_if_init is trying to init encoder instance in VPU side.
+> > Failures from two functions should have different error handling.
+> > We will enhance this part in next version.
+> 
+> As mentioned above, I'm very uncomfortable about this API in its
+> entirety and think it should be reconsidered.
+> 
+> So whilst I disagree here (the caller does not have any significant
+> difference in error handling so using -ENOMEM/-EINVAL/-EIO should be
+> quite sufficient to distringuish between errors) I rather you spent
+> some time trying to eliminate this API.
+I got it. We will merge venc_if_create and venc_if_init in next
+version. 
+
+> 
+> >> > diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> >> > new file mode 100644
+> >> > index 0000000..a8e683a
+> >> > --- /dev/null
+> >> > +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
+> >> > @@ -0,0 +1,66 @@
+> >> > +/*
+> >> > +* Copyright (c) 2015 MediaTek Inc.
+> >> > +* Author: PC Chen <pc.chen@mediatek.com>
+> >> > +*         Tiffany Lin <tiffany.lin@mediatek.com>
+> >> > +*
+> >> > +* This program is free software; you can redistribute it and/or modify
+> >> > +* it under the terms of the GNU General Public License version 2 as
+> >> > +* published by the Free Software Foundation.
+> >> > +*
+> >> > +* This program is distributed in the hope that it will be useful,
+> >> > +* but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> > +* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >> > +* GNU General Public License for more details.
+> >> > +*/
+> >> > +
+> >> > +#ifndef _MTK_VCODEC_UTIL_H_
+> >> > +#define _MTK_VCODEC_UTIL_H_
+> >> > +
+> >> > +#include <linux/types.h>
+> >> > +#include <linux/dma-direction.h>
+> >> > +
+> >> > +struct mtk_vcodec_mem {
+> >> > +   size_t size;
+> >> > +   void *va;
+> >> > +   dma_addr_t dma_addr;
+> >> > +};
+> >> > +
+> >> > +extern int mtk_v4l2_dbg_level;
+> >> > +extern bool mtk_vcodec_dbg;
+> >> > +
+> >> > +#define mtk_v4l2_debug(level, fmt, args...)                                 \
+> >> > +   do {                                                             \
+> >> > +           if (mtk_v4l2_dbg_level >= level)                         \
+> >> > +                   pr_info("[MTK_V4L2] level=%d %s(),%d: " fmt "\n",\
+> >> > +                           level, __func__, __LINE__, ##args);      \
+> >> > +   } while (0)
+> >>  > +
+> >> > +#define mtk_v4l2_err(fmt, args...)                \
+> >> > +   pr_err("[MTK_V4L2][ERROR] %s:%d: " fmt "\n", __func__, __LINE__, \
+> >> > +          ##args)
+> >>
+> >> Obviously the code should be structured to make use of dev_dbg/dev_err
+> >> possible.
+> >>
+> >> However where this won't work do you really need special macros for
+> >> this. Assuming your error messages are well written 'git grep' and the
+> >> following should be enough:
+> >>
+> >> #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> >>
+> > Thanks.
+> > For pr_err case, we will try to use "#define pr_fmt(fmt) KBUILD_MODNAME
+> > ": " fmt" in next version.
+> > For pr_info case, we still need debug level to control output messages.
+> 
+> To be honest I expect new code to be able to rely on -DDEBUG and/or
+> CONFIG_DYNAMIC_DEBUG.
+> 
+> I really can't see why a single V4L2 driver needs to hand roll a six
+> level debug message framework. If it really, really, really needs it
+> then it should at least have the good manners to copy the prior art in
+> the existing V4L2 drivers.
+> 
+We will add -DDEBUG in next version.
+In development stage, we need it when debugging.
+> 
+> 
+> >
+> >>
+> >> > +#define mtk_v4l2_debug_enter()  mtk_v4l2_debug(5, "+\n")
+> >> > +#define mtk_v4l2_debug_leave()  mtk_v4l2_debug(5, "-\n")
+> >>
+> >> Remove these. If you care about function entry and exit for debugging
+> >> you should be able to use ftrace.
+> >>
+> > I am not familiar with ftrace.
+> > What if we only want to trace v4l2 video encoder driver called flow not
+> > called stack? And only for functions we are interested not all
+> > functions.
+> > I will check if it is convenience for us using ftrace.
+> 
+> It is find for ftrace to only track a subset of functions.
+> 
+> 
+> Daniel.
+
+best regards,
+Tiffany
+
