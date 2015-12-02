@@ -1,83 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37534 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755490AbbLKRRB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 12:17:01 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 03/10] [media] omap3isp: rename single labels to just error
-Date: Fri, 11 Dec 2015 14:16:29 -0300
-Message-Id: <1449854196-13296-4-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
-References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:35420 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933095AbbLBRzz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 12:55:55 -0500
+Received: by wmuu63 with SMTP id u63so225662505wmu.0
+        for <linux-media@vger.kernel.org>; Wed, 02 Dec 2015 09:55:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAHwmhgGhdH8_+_5abeJZg=sL2nrr3psqzwHz3xrL_u1aV6mNCg@mail.gmail.com>
+References: <CAHwmhgFyjLOT6Na6oLXQT+FiUjyjrPX_CmKvQVDP-k9kawnMHw@mail.gmail.com>
+	<CALF0-+UtHzo6-vYvUWtvS0hU7jyuPU+Ku4JC85T4gn4AHLgS0w@mail.gmail.com>
+	<CAHwmhgGhdH8_+_5abeJZg=sL2nrr3psqzwHz3xrL_u1aV6mNCg@mail.gmail.com>
+Date: Wed, 2 Dec 2015 14:55:53 -0300
+Message-ID: <CAAEAJfDzpafBTqcTqjvEJWVxOQu7j=zK6m47VhnSVgM4kWhG5Q@mail.gmail.com>
+Subject: Re: Sabrent (stk1160) / Easycap driver problem
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: Philippe Desrochers <desrochers.philippe@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit bc36b30fe06b ("[media] omap3isp: separate links creation from
-entities init") moved the link creation logic from the entities init
-functions and so removed the error_link labels from the error paths.
+On 2 December 2015 at 14:43, Philippe Desrochers
+<desrochers.philippe@gmail.com> wrote:
+> I'm sending the email again (in plain text) since it seems it was blocked by
+> the server.
+>
+> EASYCAP CHINA CLONE (OK):
+> [ 8630.596236] usb 2-1: new high-speed USB device number 6 using ehci-pci
+> [ 8630.729074] usb 2-1: New USB device found, idVendor=05e1, idProduct=0408
+> [ 8630.729084] usb 2-1: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [ 8630.729091] usb 2-1: Product: USB 2.0 Video Capture Controller
+> [ 8630.729097] usb 2-1: Manufacturer: Syntek Semiconductor
+> [ 8630.729648] usb 2-1: New device Syntek Semiconductor USB 2.0 Video
+> Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
+> [ 8630.729656] usb 2-1: video interface 0 found
+> [ 8631.242258] saa7115 7-0025: saa7113 found @ 0x4a (stk1160)
 
-But after that, some functions have a single error label so it makes
-more sense to rename the label to just "error" in thi case.
-
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
----
-
-This patch addresses the last remaining issue Laurent pointed in patch [0]:
-
-1- Rename label to just "error" if there is a single error label.
-
-[0]: https://patchwork.linuxtv.org/patch/31147/
-
- drivers/media/platform/omap3isp/ispccdc.c | 4 ++--
- drivers/media/platform/omap3isp/ispccp2.c | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 5e16b5f594b7..4eaf926d6073 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -2669,11 +2669,11 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
- 
- 	ret = omap3isp_video_init(&ccdc->video_out, "CCDC");
- 	if (ret < 0)
--		goto error_video;
-+		goto error;
- 
- 	return 0;
- 
--error_video:
-+error:
- 	media_entity_cleanup(me);
- 	return ret;
- }
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index 27f5fe4edefc..ca095238510d 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -1102,11 +1102,11 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
- 
- 	ret = omap3isp_video_init(&ccp2->video_in, "CCP2");
- 	if (ret < 0)
--		goto error_video;
-+		goto error;
- 
- 	return 0;
- 
--error_video:
-+error:
- 	media_entity_cleanup(&ccp2->subdev.entity);
- 	return ret;
- }
+Hmm.. seems the bad device doesn't found a decoder chip. Let me
+refresh my mind and get back to you.
 -- 
-2.4.3
-
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
