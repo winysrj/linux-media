@@ -1,118 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60597 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754629AbbLPNev (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:51 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 16/23] v4l: vsp1: Use media entity enumeration interface
-Date: Wed, 16 Dec 2015 15:32:31 +0200
-Message-Id: <1450272758-29446-17-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:19239 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbbLBIXk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 03:23:40 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NYQ00BC61ZFAV00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Dec 2015 08:23:39 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
+	Format Codec (MFC)...), s.nawrocki@samsung.com
+Subject: [PATCH 3/6] s5p-mfc: remove unnecessary callbacks
+Date: Wed, 02 Dec 2015 09:22:30 +0100
+Message-id: <1449044553-27115-4-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
+References: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Many version specific functions are not called by common code, so there
+is no need to use callbacks. Additionally some of them are not used at all,
+so they can be safely removed.
 
-Instead of using a bitmap directly in a driver, use the new media entity
-enumeration interface to perform the same.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
- 1 file changed, 31 insertions(+), 14 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    | 17 ---------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 38 --------------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 47 -------------------------
+ 3 files changed, 102 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index ce10d86..58e6429 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 					 struct vsp1_rwpf *output)
- {
- 	struct vsp1_entity *entity;
--	unsigned int entities = 0;
-+	struct media_entity_enum ent_enum;
- 	struct media_pad *pad;
-+	int rval;
- 	bool bru_found = false;
- 
- 	input->location.left = 0;
- 	input->location.top = 0;
- 
-+	rval = media_entity_enum_init(
-+		&ent_enum, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
-+	if (rval)
-+		return rval;
-+
- 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
- 
- 	while (1) {
--		if (pad == NULL)
--			return -EPIPE;
-+		if (pad == NULL) {
-+			rval = -EPIPE;
-+			goto out;
-+		}
- 
- 		/* We've reached a video node, that shouldn't have happened. */
--		if (!is_media_entity_v4l2_subdev(pad->entity))
--			return -EPIPE;
-+		if (!is_media_entity_v4l2_subdev(pad->entity)) {
-+			rval = -EPIPE;
-+			goto out;
-+		}
- 
--		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-+		entity = to_vsp1_entity(
-+			media_entity_to_v4l2_subdev(pad->entity));
- 
- 		/* A BRU is present in the pipeline, store the compose rectangle
- 		 * location in the input RPF for use when configuring the RPF.
-@@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 			break;
- 
- 		/* Ensure the branch has no loop. */
--		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
--			return -EPIPE;
--
--		entities |= 1 << media_entity_id(&entity->subdev.entity);
-+		if (media_entity_enum_test_and_set(&ent_enum,
-+						   &entity->subdev.entity)) {
-+			rval = -EPIPE;
-+			goto out;
-+		}
- 
- 		/* UDS can't be chained. */
- 		if (entity->type == VSP1_ENTITY_UDS) {
--			if (pipe->uds)
--				return -EPIPE;
-+			if (pipe->uds) {
-+				rval = -EPIPE;
-+				goto out;
-+			}
- 
- 			pipe->uds = entity;
- 			pipe->uds_input = bru_found ? pipe->bru
-@@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 
- 	/* The last entity must be the output WPF. */
- 	if (entity != &output->entity)
--		return -EPIPE;
-+		rval = -EPIPE;
- 
--	return 0;
-+out:
-+	media_entity_enum_cleanup(&ent_enum);
-+
-+	return rval;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index b89df89..33dae96 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -281,26 +281,14 @@ struct s5p_mfc_hw_ops {
+ 	void (*release_dev_context_buffer)(struct s5p_mfc_dev *dev);
+ 	void (*dec_calc_dpb_size)(struct s5p_mfc_ctx *ctx);
+ 	void (*enc_calc_src_size)(struct s5p_mfc_ctx *ctx);
+-	int (*set_dec_stream_buffer)(struct s5p_mfc_ctx *ctx,
+-			int buf_addr, unsigned int start_num_byte,
+-			unsigned int buf_size);
+-	int (*set_dec_frame_buffer)(struct s5p_mfc_ctx *ctx);
+ 	int (*set_enc_stream_buffer)(struct s5p_mfc_ctx *ctx,
+ 			unsigned long addr, unsigned int size);
+ 	void (*set_enc_frame_buffer)(struct s5p_mfc_ctx *ctx,
+ 			unsigned long y_addr, unsigned long c_addr);
+ 	void (*get_enc_frame_buffer)(struct s5p_mfc_ctx *ctx,
+ 			unsigned long *y_addr, unsigned long *c_addr);
+-	int (*set_enc_ref_buffer)(struct s5p_mfc_ctx *ctx);
+-	int (*init_decode)(struct s5p_mfc_ctx *ctx);
+-	int (*init_encode)(struct s5p_mfc_ctx *ctx);
+-	int (*encode_one_frame)(struct s5p_mfc_ctx *ctx);
+ 	void (*try_run)(struct s5p_mfc_dev *dev);
+ 	void (*clear_int_flags)(struct s5p_mfc_dev *dev);
+-	void (*write_info)(struct s5p_mfc_ctx *ctx, unsigned int data,
+-			unsigned int ofs);
+-	unsigned int (*read_info)(struct s5p_mfc_ctx *ctx,
+-			unsigned long ofs);
+ 	int (*get_dspl_y_adr)(struct s5p_mfc_dev *dev);
+ 	int (*get_dec_y_adr)(struct s5p_mfc_dev *dev);
+ 	int (*get_dspl_status)(struct s5p_mfc_dev *dev);
+@@ -311,7 +299,6 @@ struct s5p_mfc_hw_ops {
+ 	int (*get_int_reason)(struct s5p_mfc_dev *dev);
+ 	int (*get_int_err)(struct s5p_mfc_dev *dev);
+ 	int (*err_dec)(unsigned int err);
+-	int (*err_dspl)(unsigned int err);
+ 	int (*get_img_width)(struct s5p_mfc_dev *dev);
+ 	int (*get_img_height)(struct s5p_mfc_dev *dev);
+ 	int (*get_dpb_count)(struct s5p_mfc_dev *dev);
+@@ -320,10 +307,6 @@ struct s5p_mfc_hw_ops {
+ 	int (*get_enc_strm_size)(struct s5p_mfc_dev *dev);
+ 	int (*get_enc_slice_type)(struct s5p_mfc_dev *dev);
+ 	int (*get_enc_dpb_count)(struct s5p_mfc_dev *dev);
+-	int (*get_enc_pic_count)(struct s5p_mfc_dev *dev);
+-	int (*get_sei_avail_status)(struct s5p_mfc_ctx *ctx);
+-	int (*get_mvc_num_views)(struct s5p_mfc_dev *dev);
+-	int (*get_mvc_view_id)(struct s5p_mfc_dev *dev);
+ 	unsigned int (*get_pic_type_top)(struct s5p_mfc_ctx *ctx);
+ 	unsigned int (*get_pic_type_bot)(struct s5p_mfc_ctx *ctx);
+ 	unsigned int (*get_crop_info_h)(struct s5p_mfc_ctx *ctx);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index ae4c950..8754b7e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -1554,11 +1554,6 @@ static int s5p_mfc_err_dec_v5(unsigned int err)
+ 	return (err & S5P_FIMV_ERR_DEC_MASK) >> S5P_FIMV_ERR_DEC_SHIFT;
  }
  
- static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
+-static int s5p_mfc_err_dspl_v5(unsigned int err)
+-{
+-	return (err & S5P_FIMV_ERR_DSPL_MASK) >> S5P_FIMV_ERR_DSPL_SHIFT;
+-}
+-
+ static int s5p_mfc_get_img_width_v5(struct s5p_mfc_dev *dev)
+ {
+ 	return mfc_read(dev, S5P_FIMV_SI_HRESOL);
+@@ -1600,26 +1595,6 @@ static int s5p_mfc_get_enc_dpb_count_v5(struct s5p_mfc_dev *dev)
+ 	return -1;
+ }
+ 
+-static int s5p_mfc_get_enc_pic_count_v5(struct s5p_mfc_dev *dev)
+-{
+-	return mfc_read(dev, S5P_FIMV_ENC_SI_PIC_CNT);
+-}
+-
+-static int s5p_mfc_get_sei_avail_status_v5(struct s5p_mfc_ctx *ctx)
+-{
+-	return s5p_mfc_read_info_v5(ctx, FRAME_PACK_SEI_AVAIL);
+-}
+-
+-static int s5p_mfc_get_mvc_num_views_v5(struct s5p_mfc_dev *dev)
+-{
+-	return -1;
+-}
+-
+-static int s5p_mfc_get_mvc_view_id_v5(struct s5p_mfc_dev *dev)
+-{
+-	return -1;
+-}
+-
+ static unsigned int s5p_mfc_get_pic_type_top_v5(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v5(ctx, PIC_TIME_TOP);
+@@ -1652,19 +1627,11 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v5 = {
+ 	.release_dev_context_buffer = s5p_mfc_release_dev_context_buffer_v5,
+ 	.dec_calc_dpb_size = s5p_mfc_dec_calc_dpb_size_v5,
+ 	.enc_calc_src_size = s5p_mfc_enc_calc_src_size_v5,
+-	.set_dec_stream_buffer = s5p_mfc_set_dec_stream_buffer_v5,
+-	.set_dec_frame_buffer = s5p_mfc_set_dec_frame_buffer_v5,
+ 	.set_enc_stream_buffer = s5p_mfc_set_enc_stream_buffer_v5,
+ 	.set_enc_frame_buffer = s5p_mfc_set_enc_frame_buffer_v5,
+ 	.get_enc_frame_buffer = s5p_mfc_get_enc_frame_buffer_v5,
+-	.set_enc_ref_buffer = s5p_mfc_set_enc_ref_buffer_v5,
+-	.init_decode = s5p_mfc_init_decode_v5,
+-	.init_encode = s5p_mfc_init_encode_v5,
+-	.encode_one_frame = s5p_mfc_encode_one_frame_v5,
+ 	.try_run = s5p_mfc_try_run_v5,
+ 	.clear_int_flags = s5p_mfc_clear_int_flags_v5,
+-	.write_info = s5p_mfc_write_info_v5,
+-	.read_info = s5p_mfc_read_info_v5,
+ 	.get_dspl_y_adr = s5p_mfc_get_dspl_y_adr_v5,
+ 	.get_dec_y_adr = s5p_mfc_get_dec_y_adr_v5,
+ 	.get_dspl_status = s5p_mfc_get_dspl_status_v5,
+@@ -1675,7 +1642,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v5 = {
+ 	.get_int_reason = s5p_mfc_get_int_reason_v5,
+ 	.get_int_err = s5p_mfc_get_int_err_v5,
+ 	.err_dec = s5p_mfc_err_dec_v5,
+-	.err_dspl = s5p_mfc_err_dspl_v5,
+ 	.get_img_width = s5p_mfc_get_img_width_v5,
+ 	.get_img_height = s5p_mfc_get_img_height_v5,
+ 	.get_dpb_count = s5p_mfc_get_dpb_count_v5,
+@@ -1684,10 +1650,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v5 = {
+ 	.get_enc_strm_size = s5p_mfc_get_enc_strm_size_v5,
+ 	.get_enc_slice_type = s5p_mfc_get_enc_slice_type_v5,
+ 	.get_enc_dpb_count = s5p_mfc_get_enc_dpb_count_v5,
+-	.get_enc_pic_count = s5p_mfc_get_enc_pic_count_v5,
+-	.get_sei_avail_status = s5p_mfc_get_sei_avail_status_v5,
+-	.get_mvc_num_views = s5p_mfc_get_mvc_num_views_v5,
+-	.get_mvc_view_id = s5p_mfc_get_mvc_view_id_v5,
+ 	.get_pic_type_top = s5p_mfc_get_pic_type_top_v5,
+ 	.get_pic_type_bot = s5p_mfc_get_pic_type_bot_v5,
+ 	.get_crop_info_h = s5p_mfc_get_crop_info_h_v5,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index fbff09a..764a675 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1829,14 +1829,6 @@ static void s5p_mfc_clear_int_flags_v6(struct s5p_mfc_dev *dev)
+ 	writel(0, mfc_regs->risc2host_int);
+ }
+ 
+-static void s5p_mfc_write_info_v6(struct s5p_mfc_ctx *ctx, unsigned int data,
+-		unsigned int ofs)
+-{
+-	s5p_mfc_clock_on();
+-	writel(data, (void __iomem *)((unsigned long)ofs));
+-	s5p_mfc_clock_off();
+-}
+-
+ static unsigned int
+ s5p_mfc_read_info_v6(struct s5p_mfc_ctx *ctx, unsigned long ofs)
+ {
+@@ -1903,11 +1895,6 @@ static int s5p_mfc_err_dec_v6(unsigned int err)
+ 	return (err & S5P_FIMV_ERR_DEC_MASK_V6) >> S5P_FIMV_ERR_DEC_SHIFT_V6;
+ }
+ 
+-static int s5p_mfc_err_dspl_v6(unsigned int err)
+-{
+-	return (err & S5P_FIMV_ERR_DSPL_MASK_V6) >> S5P_FIMV_ERR_DSPL_SHIFT_V6;
+-}
+-
+ static int s5p_mfc_get_img_width_v6(struct s5p_mfc_dev *dev)
+ {
+ 	return readl(dev->mfc_regs->d_display_frame_width);
+@@ -1948,27 +1935,6 @@ static int s5p_mfc_get_enc_slice_type_v6(struct s5p_mfc_dev *dev)
+ 	return readl(dev->mfc_regs->e_slice_type);
+ }
+ 
+-static int s5p_mfc_get_enc_pic_count_v6(struct s5p_mfc_dev *dev)
+-{
+-	return readl(dev->mfc_regs->e_picture_count);
+-}
+-
+-static int s5p_mfc_get_sei_avail_status_v6(struct s5p_mfc_ctx *ctx)
+-{
+-	struct s5p_mfc_dev *dev = ctx->dev;
+-	return readl(dev->mfc_regs->d_frame_pack_sei_avail);
+-}
+-
+-static int s5p_mfc_get_mvc_num_views_v6(struct s5p_mfc_dev *dev)
+-{
+-	return readl(dev->mfc_regs->d_mvc_num_views);
+-}
+-
+-static int s5p_mfc_get_mvc_view_id_v6(struct s5p_mfc_dev *dev)
+-{
+-	return readl(dev->mfc_regs->d_mvc_view_id);
+-}
+-
+ static unsigned int s5p_mfc_get_pic_type_top_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	return s5p_mfc_read_info_v6(ctx,
+@@ -2243,19 +2209,11 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 		s5p_mfc_release_dev_context_buffer_v6,
+ 	.dec_calc_dpb_size = s5p_mfc_dec_calc_dpb_size_v6,
+ 	.enc_calc_src_size = s5p_mfc_enc_calc_src_size_v6,
+-	.set_dec_stream_buffer = s5p_mfc_set_dec_stream_buffer_v6,
+-	.set_dec_frame_buffer = s5p_mfc_set_dec_frame_buffer_v6,
+ 	.set_enc_stream_buffer = s5p_mfc_set_enc_stream_buffer_v6,
+ 	.set_enc_frame_buffer = s5p_mfc_set_enc_frame_buffer_v6,
+ 	.get_enc_frame_buffer = s5p_mfc_get_enc_frame_buffer_v6,
+-	.set_enc_ref_buffer = s5p_mfc_set_enc_ref_buffer_v6,
+-	.init_decode = s5p_mfc_init_decode_v6,
+-	.init_encode = s5p_mfc_init_encode_v6,
+-	.encode_one_frame = s5p_mfc_encode_one_frame_v6,
+ 	.try_run = s5p_mfc_try_run_v6,
+ 	.clear_int_flags = s5p_mfc_clear_int_flags_v6,
+-	.write_info = s5p_mfc_write_info_v6,
+-	.read_info = s5p_mfc_read_info_v6,
+ 	.get_dspl_y_adr = s5p_mfc_get_dspl_y_adr_v6,
+ 	.get_dec_y_adr = s5p_mfc_get_dec_y_adr_v6,
+ 	.get_dspl_status = s5p_mfc_get_dspl_status_v6,
+@@ -2266,7 +2224,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 	.get_int_reason = s5p_mfc_get_int_reason_v6,
+ 	.get_int_err = s5p_mfc_get_int_err_v6,
+ 	.err_dec = s5p_mfc_err_dec_v6,
+-	.err_dspl = s5p_mfc_err_dspl_v6,
+ 	.get_img_width = s5p_mfc_get_img_width_v6,
+ 	.get_img_height = s5p_mfc_get_img_height_v6,
+ 	.get_dpb_count = s5p_mfc_get_dpb_count_v6,
+@@ -2275,10 +2232,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 	.get_enc_strm_size = s5p_mfc_get_enc_strm_size_v6,
+ 	.get_enc_slice_type = s5p_mfc_get_enc_slice_type_v6,
+ 	.get_enc_dpb_count = s5p_mfc_get_enc_dpb_count_v6,
+-	.get_enc_pic_count = s5p_mfc_get_enc_pic_count_v6,
+-	.get_sei_avail_status = s5p_mfc_get_sei_avail_status_v6,
+-	.get_mvc_num_views = s5p_mfc_get_mvc_num_views_v6,
+-	.get_mvc_view_id = s5p_mfc_get_mvc_view_id_v6,
+ 	.get_pic_type_top = s5p_mfc_get_pic_type_top_v6,
+ 	.get_pic_type_bot = s5p_mfc_get_pic_type_bot_v6,
+ 	.get_crop_info_h = s5p_mfc_get_crop_info_h_v6,
 -- 
-2.1.4
+1.9.1
 
