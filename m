@@ -1,241 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934270AbbLQIlQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:16 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 35/48] DocBook: media: Document the media request API
-Date: Thu, 17 Dec 2015 10:40:13 +0200
-Message-Id: <1450341626-6695-36-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-io0-f172.google.com ([209.85.223.172]:34703 "EHLO
+	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758260AbbLBOJc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 09:09:32 -0500
+Received: by ioir85 with SMTP id r85so46331405ioi.1
+        for <linux-media@vger.kernel.org>; Wed, 02 Dec 2015 06:09:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <565EE51C.2010509@xs4all.nl>
+References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
+	<1411310909-32825-5-git-send-email-hverkuil@xs4all.nl>
+	<20141114154433.GF8907@valkosipuli.retiisi.org.uk>
+	<5469B5EF.6070408@xs4all.nl>
+	<CAFqH_52f6Nh7LsjpkWavFXUAMDMqHX3E4DFYzMGonHDzucsasA@mail.gmail.com>
+	<565EE51C.2010509@xs4all.nl>
+Date: Wed, 2 Dec 2015 15:09:31 +0100
+Message-ID: <CAFqH_50PpEha6ms+LoNXCb_d5vetPWNitkZX7a+qDRVw2pq3jg@mail.gmail.com>
+Subject: Re: [RFC PATCH 04/11] v4l2-ctrls: add config store support
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media request API is made of a new ioctl to implement request
-management. Document it.
+2015-12-02 13:33 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> On 12/02/15 13:03, Enric Balletbo Serra wrote:
+>> Dear Hans,
+>>
+>> We've a driver that uses your confstore stuff and we'd like to push
+>> upstream. I'm wondering if there is any plan to upstream the confstore
+>> patches or if this was abandoned for some reason. Thanks
+>
+> Ouch, that's really old code you're using.
+>
+> The latest version is here:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests
+>
+> But that too won't be the final version.
+>
+> There is still work going on in this area (specifically by Laurent Pinchart)
+> since we really need this functionality. But we need to make sure that the
+> API is good enough to handle complex hardware before it can be upstreamed.
+>
+> I suspect that once Laurent has it working for his non-trivial use-case we
+> can start looking at upstreaming it.
+>
+> I recommend rebasing to at least the version in my git tree as that will
+> be much closer to the final version. I'll try to rebase that branch to
+> the latest kernel, but that's a bit difficult and takes more time than I
+> have at the moment.
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- .../DocBook/media/v4l/media-controller.xml         |   1 +
- .../DocBook/media/v4l/media-ioc-request-cmd.xml    | 194 +++++++++++++++++++++
- 2 files changed, 195 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
+Thanks to point me in the right direction.
 
-diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
-index 873ac3a621f0..09be5231fd88 100644
---- a/Documentation/DocBook/media/v4l/media-controller.xml
-+++ b/Documentation/DocBook/media/v4l/media-controller.xml
-@@ -85,5 +85,6 @@
-   &sub-media-ioc-device-info;
-   &sub-media-ioc-enum-entities;
-   &sub-media-ioc-enum-links;
-+  &sub-media-ioc-request-cmd;
-   &sub-media-ioc-setup-link;
- </appendix>
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
-new file mode 100644
-index 000000000000..202b248c872c
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
-@@ -0,0 +1,194 @@
-+<refentry id="media-ioc-request-cmd">
-+  <refmeta>
-+    <refentrytitle>ioctl MEDIA_IOC_REQUEST_CMD</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>MEDIA_IOC_REQUEST_CMD</refname>
-+    <refpurpose>Manage media device requests</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct media_request_cmd *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='media-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>MEDIA_IOC_REQUEST_CMD</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media
-+    device requests. A request is an object that can group media device
-+    configuration parameters, including subsystem-specific parameters, in order
-+    to apply all the parameters atomically. Applications are responsible for
-+    allocating and deleting requests, filling them with configuration parameters
-+    and (synchronously) applying or (asynchronously) queuing them.</para>
-+
-+    <para>Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD
-+    ioctl with a pointer to a &media-request-cmd; with the
-+    <structfield>cmd</structfield> set to the appropriate command.
-+    <xref linkend="media-request-commands" /> lists the commands supported by
-+    the ioctl.</para>
-+
-+    <para>The &media-request-cmd; <structfield>request</structfield> field
-+    contains the ID of the request on which the command operates. For the
-+    <constant>MEDIA_REQ_CMD_ALLOC</constant> command the field is set to zero
-+    by applications and filled by the driver. For all other commands the field
-+    is set by applications and left untouched by the driver.</para>
-+
-+    <para>To allocate a new request applications use the
-+    <constant>MEDIA_REQ_CMD_ALLOC</constant>. The driver will allocate a new
-+    request and return its ID in the <structfield>request</structfield> field.
-+    </para>
-+
-+    <para>Requests are reference-counted. A newly allocate request is referenced
-+    by the media device file handled on which it has been created, and can be
-+    later referenced by subsystem-specific operations using the request ID.
-+    Requests will thus be automatically deleted when they're not longer used
-+    after the media device file handle is closed.</para>
-+
-+    <para>If a request isn't needed applications can delete it using the
-+    <constant>MEDIA_REQ_CMD_DELETE</constant> command. The driver will drop the
-+    reference to the request stored in the media device file handle. The request
-+    will not be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will
-+    only be deleted when the last reference is released. If no other reference
-+    exists when the delete command is invoked the request will be deleted
-+    immediately.</para>
-+
-+    <para>After creating a request applications should fill it with
-+    configuration parameters. This is performed through subsystem-specific
-+    request APIs outside the scope of the media controller API. See the
-+    appropriate subsystem APIs for more information, including how they interact
-+    with the MEDIA_IOC_REQUEST_CMD ioctl.</para>
-+
-+    <para>Once a request contains all the desired configuration parameters it
-+    can be applied synchronously or queued asynchronously. To apply a request
-+    applications use the <constant>MEDIA_REQ_CMD_APPLY</constant> command. The
-+    driver will apply all configuration parameters stored in the request to the
-+    device atomically. The ioctl will return once all parameters have been
-+    applied, but it should be noted that they might not have fully taken effect
-+    yet.</para>
-+
-+    <para>To queue a request applications use the
-+    <constant>MEDIA_REQ_CMD_QUEUE</constant> command. The driver will queue the
-+    request for processing and return immediately. The request will then be
-+    processed and applied after all previously queued requests.</para>
-+
-+    <para>Once a request has been queued applications are not allowed to modify
-+    its configuration parameters until the request has been fully processed.
-+    Any attempt to do so will result in the related subsystem API returning
-+    an error. The media device request API doesn't notify applications of
-+    request processing completion, this is left to the other subsystems APIs to
-+    implement.</para>
-+
-+    <table pgwide="1" frame="none" id="media-request-cmd">
-+      <title>struct <structname>media_request_cmd</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>cmd</structfield></entry>
-+	    <entry>Command, set by the application. See
-+	    <xref linkend="media-request-commands" /> for the list of supported
-+	    commands.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, set by the driver for the
-+	    <constant>MEDIA_REQ_CMD_ALLOC</constant> and by the application
-+	    for all other commands.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[10]</entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set this array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table frame="none" pgwide="1" id="media-request-commands">
-+      <title>Media request commands</title>
-+      <tgroup cols="2">
-+        <colspec colname="c1"/>
-+        <colspec colname="c2"/>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_ALLOC</constant></entry>
-+	    <entry>Allocate a new request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_DELETE</constant></entry>
-+	    <entry>Delete a request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_APPLY</constant></entry>
-+	    <entry>Apply all settings from a request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_QUEUE</constant></entry>
-+	    <entry>Queue a request for processing.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &media-request-cmd; specifies an invalid command or
-+	  references a non-existing request.
-+	  </para>
-+	</listitem>
-+	<term><errorcode>ENOSYS</errorcode></term>
-+	<listitem>
-+	  <para>The &media-request-cmd; specifies the
-+	  <constant>MEDIA_REQ_CMD_QUEUE</constant> or
-+	  <constant>MEDIA_REQ_CMD_APPLY</constant> and that command isn't
-+	  implemented by the device.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
--- 
-2.4.10
+Regards,
+    Enric
 
+> Regards,
+>
+>         Hans
