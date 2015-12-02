@@ -1,377 +1,541 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755429AbbLQIlC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:02 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 23/48] media: Add request API
-Date: Thu, 17 Dec 2015 10:40:01 +0200
-Message-Id: <1450341626-6695-24-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:13781 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbbLBIXr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 03:23:47 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NYQ00CGJ1ZK0Q00@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Dec 2015 08:23:44 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
+	Format Codec (MFC)...), s.nawrocki@samsung.com
+Subject: [PATCH 6/6] s5p-mfc: remove volatile attribute from MFC register
+ addresses
+Date: Wed, 02 Dec 2015 09:22:33 +0100
+Message-id: <1449044553-27115-7-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
+References: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The request API allows bundling media device parameters with request
-objects and applying them atomically, either synchronously or
-asynchronously.
+MFC register addresses are used only by writel/readl macros which already
+takes care of proper register accessing.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h | 488 +++++++++++++--------------
+ 1 file changed, 244 insertions(+), 244 deletions(-)
 
-Changes since v0:
-
-- Make the request ID 32 bits wide internally
----
- drivers/media/media-device.c | 175 +++++++++++++++++++++++++++++++++++++++++++
- include/media/media-device.h |  41 ++++++++++
- include/uapi/linux/media.h   |  12 +++
- 3 files changed, 228 insertions(+)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 285f7d79d848..37da26806ed8 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -33,6 +33,7 @@
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 33dae96..b6ac417 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -20,254 +20,254 @@
+ struct s5p_mfc_regs {
  
- struct media_device_fh {
- 	struct media_devnode_fh fh;
-+	struct list_head requests;
+ 	/* codec common registers */
+-	volatile void __iomem *risc_on;
+-	volatile void __iomem *risc2host_int;
+-	volatile void __iomem *host2risc_int;
+-	volatile void __iomem *risc_base_address;
+-	volatile void __iomem *mfc_reset;
+-	volatile void __iomem *host2risc_command;
+-	volatile void __iomem *risc2host_command;
+-	volatile void __iomem *mfc_bus_reset_ctrl;
+-	volatile void __iomem *firmware_version;
+-	volatile void __iomem *instance_id;
+-	volatile void __iomem *codec_type;
+-	volatile void __iomem *context_mem_addr;
+-	volatile void __iomem *context_mem_size;
+-	volatile void __iomem *pixel_format;
+-	volatile void __iomem *metadata_enable;
+-	volatile void __iomem *mfc_version;
+-	volatile void __iomem *dbg_info_enable;
+-	volatile void __iomem *dbg_buffer_addr;
+-	volatile void __iomem *dbg_buffer_size;
+-	volatile void __iomem *hed_control;
+-	volatile void __iomem *mfc_timeout_value;
+-	volatile void __iomem *hed_shared_mem_addr;
+-	volatile void __iomem *dis_shared_mem_addr;/* only v7 */
+-	volatile void __iomem *ret_instance_id;
+-	volatile void __iomem *error_code;
+-	volatile void __iomem *dbg_buffer_output_size;
+-	volatile void __iomem *metadata_status;
+-	volatile void __iomem *metadata_addr_mb_info;
+-	volatile void __iomem *metadata_size_mb_info;
+-	volatile void __iomem *dbg_info_stage_counter;
++	void __iomem *risc_on;
++	void __iomem *risc2host_int;
++	void __iomem *host2risc_int;
++	void __iomem *risc_base_address;
++	void __iomem *mfc_reset;
++	void __iomem *host2risc_command;
++	void __iomem *risc2host_command;
++	void __iomem *mfc_bus_reset_ctrl;
++	void __iomem *firmware_version;
++	void __iomem *instance_id;
++	void __iomem *codec_type;
++	void __iomem *context_mem_addr;
++	void __iomem *context_mem_size;
++	void __iomem *pixel_format;
++	void __iomem *metadata_enable;
++	void __iomem *mfc_version;
++	void __iomem *dbg_info_enable;
++	void __iomem *dbg_buffer_addr;
++	void __iomem *dbg_buffer_size;
++	void __iomem *hed_control;
++	void __iomem *mfc_timeout_value;
++	void __iomem *hed_shared_mem_addr;
++	void __iomem *dis_shared_mem_addr;/* only v7 */
++	void __iomem *ret_instance_id;
++	void __iomem *error_code;
++	void __iomem *dbg_buffer_output_size;
++	void __iomem *metadata_status;
++	void __iomem *metadata_addr_mb_info;
++	void __iomem *metadata_size_mb_info;
++	void __iomem *dbg_info_stage_counter;
+ 
+ 	/* decoder registers */
+-	volatile void __iomem *d_crc_ctrl;
+-	volatile void __iomem *d_dec_options;
+-	volatile void __iomem *d_display_delay;
+-	volatile void __iomem *d_set_frame_width;
+-	volatile void __iomem *d_set_frame_height;
+-	volatile void __iomem *d_sei_enable;
+-	volatile void __iomem *d_min_num_dpb;
+-	volatile void __iomem *d_min_first_plane_dpb_size;
+-	volatile void __iomem *d_min_second_plane_dpb_size;
+-	volatile void __iomem *d_min_third_plane_dpb_size;/* only v8 */
+-	volatile void __iomem *d_min_num_mv;
+-	volatile void __iomem *d_mvc_num_views;
+-	volatile void __iomem *d_min_num_dis;/* only v7 */
+-	volatile void __iomem *d_min_first_dis_size;/* only v7 */
+-	volatile void __iomem *d_min_second_dis_size;/* only v7 */
+-	volatile void __iomem *d_min_third_dis_size;/* only v7 */
+-	volatile void __iomem *d_post_filter_luma_dpb0;/*  v7 and v8 */
+-	volatile void __iomem *d_post_filter_luma_dpb1;/* v7 and v8 */
+-	volatile void __iomem *d_post_filter_luma_dpb2;/* only v7 */
+-	volatile void __iomem *d_post_filter_chroma_dpb0;/* v7 and v8 */
+-	volatile void __iomem *d_post_filter_chroma_dpb1;/* v7 and v8 */
+-	volatile void __iomem *d_post_filter_chroma_dpb2;/* only v7 */
+-	volatile void __iomem *d_num_dpb;
+-	volatile void __iomem *d_num_mv;
+-	volatile void __iomem *d_init_buffer_options;
+-	volatile void __iomem *d_first_plane_dpb_stride_size;/* only v8 */
+-	volatile void __iomem *d_second_plane_dpb_stride_size;/* only v8 */
+-	volatile void __iomem *d_third_plane_dpb_stride_size;/* only v8 */
+-	volatile void __iomem *d_first_plane_dpb_size;
+-	volatile void __iomem *d_second_plane_dpb_size;
+-	volatile void __iomem *d_third_plane_dpb_size;/* only v8 */
+-	volatile void __iomem *d_mv_buffer_size;
+-	volatile void __iomem *d_first_plane_dpb;
+-	volatile void __iomem *d_second_plane_dpb;
+-	volatile void __iomem *d_third_plane_dpb;
+-	volatile void __iomem *d_mv_buffer;
+-	volatile void __iomem *d_scratch_buffer_addr;
+-	volatile void __iomem *d_scratch_buffer_size;
+-	volatile void __iomem *d_metadata_buffer_addr;
+-	volatile void __iomem *d_metadata_buffer_size;
+-	volatile void __iomem *d_nal_start_options;/* v7 and v8 */
+-	volatile void __iomem *d_cpb_buffer_addr;
+-	volatile void __iomem *d_cpb_buffer_size;
+-	volatile void __iomem *d_available_dpb_flag_upper;
+-	volatile void __iomem *d_available_dpb_flag_lower;
+-	volatile void __iomem *d_cpb_buffer_offset;
+-	volatile void __iomem *d_slice_if_enable;
+-	volatile void __iomem *d_picture_tag;
+-	volatile void __iomem *d_stream_data_size;
+-	volatile void __iomem *d_dynamic_dpb_flag_upper;/* v7 and v8 */
+-	volatile void __iomem *d_dynamic_dpb_flag_lower;/* v7 and v8 */
+-	volatile void __iomem *d_display_frame_width;
+-	volatile void __iomem *d_display_frame_height;
+-	volatile void __iomem *d_display_status;
+-	volatile void __iomem *d_display_first_plane_addr;
+-	volatile void __iomem *d_display_second_plane_addr;
+-	volatile void __iomem *d_display_third_plane_addr;/* only v8 */
+-	volatile void __iomem *d_display_frame_type;
+-	volatile void __iomem *d_display_crop_info1;
+-	volatile void __iomem *d_display_crop_info2;
+-	volatile void __iomem *d_display_picture_profile;
+-	volatile void __iomem *d_display_luma_crc;/* v7 and v8 */
+-	volatile void __iomem *d_display_chroma0_crc;/* v7 and v8 */
+-	volatile void __iomem *d_display_chroma1_crc;/* only v8 */
+-	volatile void __iomem *d_display_luma_crc_top;/* only v6 */
+-	volatile void __iomem *d_display_chroma_crc_top;/* only v6 */
+-	volatile void __iomem *d_display_luma_crc_bot;/* only v6 */
+-	volatile void __iomem *d_display_chroma_crc_bot;/* only v6 */
+-	volatile void __iomem *d_display_aspect_ratio;
+-	volatile void __iomem *d_display_extended_ar;
+-	volatile void __iomem *d_decoded_frame_width;
+-	volatile void __iomem *d_decoded_frame_height;
+-	volatile void __iomem *d_decoded_status;
+-	volatile void __iomem *d_decoded_first_plane_addr;
+-	volatile void __iomem *d_decoded_second_plane_addr;
+-	volatile void __iomem *d_decoded_third_plane_addr;/* only v8 */
+-	volatile void __iomem *d_decoded_frame_type;
+-	volatile void __iomem *d_decoded_crop_info1;
+-	volatile void __iomem *d_decoded_crop_info2;
+-	volatile void __iomem *d_decoded_picture_profile;
+-	volatile void __iomem *d_decoded_nal_size;
+-	volatile void __iomem *d_decoded_luma_crc;
+-	volatile void __iomem *d_decoded_chroma0_crc;
+-	volatile void __iomem *d_decoded_chroma1_crc;/* only v8 */
+-	volatile void __iomem *d_ret_picture_tag_top;
+-	volatile void __iomem *d_ret_picture_tag_bot;
+-	volatile void __iomem *d_ret_picture_time_top;
+-	volatile void __iomem *d_ret_picture_time_bot;
+-	volatile void __iomem *d_chroma_format;
+-	volatile void __iomem *d_vc1_info;/* v7 and v8 */
+-	volatile void __iomem *d_mpeg4_info;
+-	volatile void __iomem *d_h264_info;
+-	volatile void __iomem *d_metadata_addr_concealed_mb;
+-	volatile void __iomem *d_metadata_size_concealed_mb;
+-	volatile void __iomem *d_metadata_addr_vc1_param;
+-	volatile void __iomem *d_metadata_size_vc1_param;
+-	volatile void __iomem *d_metadata_addr_sei_nal;
+-	volatile void __iomem *d_metadata_size_sei_nal;
+-	volatile void __iomem *d_metadata_addr_vui;
+-	volatile void __iomem *d_metadata_size_vui;
+-	volatile void __iomem *d_metadata_addr_mvcvui;/* v7 and v8 */
+-	volatile void __iomem *d_metadata_size_mvcvui;/* v7 and v8 */
+-	volatile void __iomem *d_mvc_view_id;
+-	volatile void __iomem *d_frame_pack_sei_avail;
+-	volatile void __iomem *d_frame_pack_arrgment_id;
+-	volatile void __iomem *d_frame_pack_sei_info;
+-	volatile void __iomem *d_frame_pack_grid_pos;
+-	volatile void __iomem *d_display_recovery_sei_info;/* v7 and v8 */
+-	volatile void __iomem *d_decoded_recovery_sei_info;/* v7 and v8 */
+-	volatile void __iomem *d_display_first_addr;/* only v7 */
+-	volatile void __iomem *d_display_second_addr;/* only v7 */
+-	volatile void __iomem *d_display_third_addr;/* only v7 */
+-	volatile void __iomem *d_decoded_first_addr;/* only v7 */
+-	volatile void __iomem *d_decoded_second_addr;/* only v7 */
+-	volatile void __iomem *d_decoded_third_addr;/* only v7 */
+-	volatile void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+-	volatile void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
++	void __iomem *d_crc_ctrl;
++	void __iomem *d_dec_options;
++	void __iomem *d_display_delay;
++	void __iomem *d_set_frame_width;
++	void __iomem *d_set_frame_height;
++	void __iomem *d_sei_enable;
++	void __iomem *d_min_num_dpb;
++	void __iomem *d_min_first_plane_dpb_size;
++	void __iomem *d_min_second_plane_dpb_size;
++	void __iomem *d_min_third_plane_dpb_size;/* only v8 */
++	void __iomem *d_min_num_mv;
++	void __iomem *d_mvc_num_views;
++	void __iomem *d_min_num_dis;/* only v7 */
++	void __iomem *d_min_first_dis_size;/* only v7 */
++	void __iomem *d_min_second_dis_size;/* only v7 */
++	void __iomem *d_min_third_dis_size;/* only v7 */
++	void __iomem *d_post_filter_luma_dpb0;/*  v7 and v8 */
++	void __iomem *d_post_filter_luma_dpb1;/* v7 and v8 */
++	void __iomem *d_post_filter_luma_dpb2;/* only v7 */
++	void __iomem *d_post_filter_chroma_dpb0;/* v7 and v8 */
++	void __iomem *d_post_filter_chroma_dpb1;/* v7 and v8 */
++	void __iomem *d_post_filter_chroma_dpb2;/* only v7 */
++	void __iomem *d_num_dpb;
++	void __iomem *d_num_mv;
++	void __iomem *d_init_buffer_options;
++	void __iomem *d_first_plane_dpb_stride_size;/* only v8 */
++	void __iomem *d_second_plane_dpb_stride_size;/* only v8 */
++	void __iomem *d_third_plane_dpb_stride_size;/* only v8 */
++	void __iomem *d_first_plane_dpb_size;
++	void __iomem *d_second_plane_dpb_size;
++	void __iomem *d_third_plane_dpb_size;/* only v8 */
++	void __iomem *d_mv_buffer_size;
++	void __iomem *d_first_plane_dpb;
++	void __iomem *d_second_plane_dpb;
++	void __iomem *d_third_plane_dpb;
++	void __iomem *d_mv_buffer;
++	void __iomem *d_scratch_buffer_addr;
++	void __iomem *d_scratch_buffer_size;
++	void __iomem *d_metadata_buffer_addr;
++	void __iomem *d_metadata_buffer_size;
++	void __iomem *d_nal_start_options;/* v7 and v8 */
++	void __iomem *d_cpb_buffer_addr;
++	void __iomem *d_cpb_buffer_size;
++	void __iomem *d_available_dpb_flag_upper;
++	void __iomem *d_available_dpb_flag_lower;
++	void __iomem *d_cpb_buffer_offset;
++	void __iomem *d_slice_if_enable;
++	void __iomem *d_picture_tag;
++	void __iomem *d_stream_data_size;
++	void __iomem *d_dynamic_dpb_flag_upper;/* v7 and v8 */
++	void __iomem *d_dynamic_dpb_flag_lower;/* v7 and v8 */
++	void __iomem *d_display_frame_width;
++	void __iomem *d_display_frame_height;
++	void __iomem *d_display_status;
++	void __iomem *d_display_first_plane_addr;
++	void __iomem *d_display_second_plane_addr;
++	void __iomem *d_display_third_plane_addr;/* only v8 */
++	void __iomem *d_display_frame_type;
++	void __iomem *d_display_crop_info1;
++	void __iomem *d_display_crop_info2;
++	void __iomem *d_display_picture_profile;
++	void __iomem *d_display_luma_crc;/* v7 and v8 */
++	void __iomem *d_display_chroma0_crc;/* v7 and v8 */
++	void __iomem *d_display_chroma1_crc;/* only v8 */
++	void __iomem *d_display_luma_crc_top;/* only v6 */
++	void __iomem *d_display_chroma_crc_top;/* only v6 */
++	void __iomem *d_display_luma_crc_bot;/* only v6 */
++	void __iomem *d_display_chroma_crc_bot;/* only v6 */
++	void __iomem *d_display_aspect_ratio;
++	void __iomem *d_display_extended_ar;
++	void __iomem *d_decoded_frame_width;
++	void __iomem *d_decoded_frame_height;
++	void __iomem *d_decoded_status;
++	void __iomem *d_decoded_first_plane_addr;
++	void __iomem *d_decoded_second_plane_addr;
++	void __iomem *d_decoded_third_plane_addr;/* only v8 */
++	void __iomem *d_decoded_frame_type;
++	void __iomem *d_decoded_crop_info1;
++	void __iomem *d_decoded_crop_info2;
++	void __iomem *d_decoded_picture_profile;
++	void __iomem *d_decoded_nal_size;
++	void __iomem *d_decoded_luma_crc;
++	void __iomem *d_decoded_chroma0_crc;
++	void __iomem *d_decoded_chroma1_crc;/* only v8 */
++	void __iomem *d_ret_picture_tag_top;
++	void __iomem *d_ret_picture_tag_bot;
++	void __iomem *d_ret_picture_time_top;
++	void __iomem *d_ret_picture_time_bot;
++	void __iomem *d_chroma_format;
++	void __iomem *d_vc1_info;/* v7 and v8 */
++	void __iomem *d_mpeg4_info;
++	void __iomem *d_h264_info;
++	void __iomem *d_metadata_addr_concealed_mb;
++	void __iomem *d_metadata_size_concealed_mb;
++	void __iomem *d_metadata_addr_vc1_param;
++	void __iomem *d_metadata_size_vc1_param;
++	void __iomem *d_metadata_addr_sei_nal;
++	void __iomem *d_metadata_size_sei_nal;
++	void __iomem *d_metadata_addr_vui;
++	void __iomem *d_metadata_size_vui;
++	void __iomem *d_metadata_addr_mvcvui;/* v7 and v8 */
++	void __iomem *d_metadata_size_mvcvui;/* v7 and v8 */
++	void __iomem *d_mvc_view_id;
++	void __iomem *d_frame_pack_sei_avail;
++	void __iomem *d_frame_pack_arrgment_id;
++	void __iomem *d_frame_pack_sei_info;
++	void __iomem *d_frame_pack_grid_pos;
++	void __iomem *d_display_recovery_sei_info;/* v7 and v8 */
++	void __iomem *d_decoded_recovery_sei_info;/* v7 and v8 */
++	void __iomem *d_display_first_addr;/* only v7 */
++	void __iomem *d_display_second_addr;/* only v7 */
++	void __iomem *d_display_third_addr;/* only v7 */
++	void __iomem *d_decoded_first_addr;/* only v7 */
++	void __iomem *d_decoded_second_addr;/* only v7 */
++	void __iomem *d_decoded_third_addr;/* only v7 */
++	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
++	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 
+ 	/* encoder registers */
+-	volatile void __iomem *e_frame_width;
+-	volatile void __iomem *e_frame_height;
+-	volatile void __iomem *e_cropped_frame_width;
+-	volatile void __iomem *e_cropped_frame_height;
+-	volatile void __iomem *e_frame_crop_offset;
+-	volatile void __iomem *e_enc_options;
+-	volatile void __iomem *e_picture_profile;
+-	volatile void __iomem *e_vbv_buffer_size;
+-	volatile void __iomem *e_vbv_init_delay;
+-	volatile void __iomem *e_fixed_picture_qp;
+-	volatile void __iomem *e_rc_config;
+-	volatile void __iomem *e_rc_qp_bound;
+-	volatile void __iomem *e_rc_qp_bound_pb;/* v7 and v8 */
+-	volatile void __iomem *e_rc_mode;
+-	volatile void __iomem *e_mb_rc_config;
+-	volatile void __iomem *e_padding_ctrl;
+-	volatile void __iomem *e_air_threshold;
+-	volatile void __iomem *e_mv_hor_range;
+-	volatile void __iomem *e_mv_ver_range;
+-	volatile void __iomem *e_num_dpb;
+-	volatile void __iomem *e_luma_dpb;
+-	volatile void __iomem *e_chroma_dpb;
+-	volatile void __iomem *e_me_buffer;
+-	volatile void __iomem *e_scratch_buffer_addr;
+-	volatile void __iomem *e_scratch_buffer_size;
+-	volatile void __iomem *e_tmv_buffer0;
+-	volatile void __iomem *e_tmv_buffer1;
+-	volatile void __iomem *e_ir_buffer_addr;/* v7 and v8 */
+-	volatile void __iomem *e_source_first_plane_addr;
+-	volatile void __iomem *e_source_second_plane_addr;
+-	volatile void __iomem *e_source_third_plane_addr;/* v7 and v8 */
+-	volatile void __iomem *e_source_first_plane_stride;/* v7 and v8 */
+-	volatile void __iomem *e_source_second_plane_stride;/* v7 and v8 */
+-	volatile void __iomem *e_source_third_plane_stride;/* v7 and v8 */
+-	volatile void __iomem *e_stream_buffer_addr;
+-	volatile void __iomem *e_stream_buffer_size;
+-	volatile void __iomem *e_roi_buffer_addr;
+-	volatile void __iomem *e_param_change;
+-	volatile void __iomem *e_ir_size;
+-	volatile void __iomem *e_gop_config;
+-	volatile void __iomem *e_mslice_mode;
+-	volatile void __iomem *e_mslice_size_mb;
+-	volatile void __iomem *e_mslice_size_bits;
+-	volatile void __iomem *e_frame_insertion;
+-	volatile void __iomem *e_rc_frame_rate;
+-	volatile void __iomem *e_rc_bit_rate;
+-	volatile void __iomem *e_rc_roi_ctrl;
+-	volatile void __iomem *e_picture_tag;
+-	volatile void __iomem *e_bit_count_enable;
+-	volatile void __iomem *e_max_bit_count;
+-	volatile void __iomem *e_min_bit_count;
+-	volatile void __iomem *e_metadata_buffer_addr;
+-	volatile void __iomem *e_metadata_buffer_size;
+-	volatile void __iomem *e_encoded_source_first_plane_addr;
+-	volatile void __iomem *e_encoded_source_second_plane_addr;
+-	volatile void __iomem *e_encoded_source_third_plane_addr;/* v7 and v8 */
+-	volatile void __iomem *e_stream_size;
+-	volatile void __iomem *e_slice_type;
+-	volatile void __iomem *e_picture_count;
+-	volatile void __iomem *e_ret_picture_tag;
+-	volatile void __iomem *e_stream_buffer_write_pointer; /*  only v6 */
+-	volatile void __iomem *e_recon_luma_dpb_addr;
+-	volatile void __iomem *e_recon_chroma_dpb_addr;
+-	volatile void __iomem *e_metadata_addr_enc_slice;
+-	volatile void __iomem *e_metadata_size_enc_slice;
+-	volatile void __iomem *e_mpeg4_options;
+-	volatile void __iomem *e_mpeg4_hec_period;
+-	volatile void __iomem *e_aspect_ratio;
+-	volatile void __iomem *e_extended_sar;
+-	volatile void __iomem *e_h264_options;
+-	volatile void __iomem *e_h264_options_2;/* v7 and v8 */
+-	volatile void __iomem *e_h264_lf_alpha_offset;
+-	volatile void __iomem *e_h264_lf_beta_offset;
+-	volatile void __iomem *e_h264_i_period;
+-	volatile void __iomem *e_h264_fmo_slice_grp_map_type;
+-	volatile void __iomem *e_h264_fmo_num_slice_grp_minus1;
+-	volatile void __iomem *e_h264_fmo_slice_grp_change_dir;
+-	volatile void __iomem *e_h264_fmo_slice_grp_change_rate_minus1;
+-	volatile void __iomem *e_h264_fmo_run_length_minus1_0;
+-	volatile void __iomem *e_h264_aso_slice_order_0;
+-	volatile void __iomem *e_h264_chroma_qp_offset;
+-	volatile void __iomem *e_h264_num_t_layer;
+-	volatile void __iomem *e_h264_hierarchical_qp_layer0;
+-	volatile void __iomem *e_h264_frame_packing_sei_info;
+-	volatile void __iomem *e_h264_nal_control;/* v7 and v8 */
+-	volatile void __iomem *e_mvc_frame_qp_view1;
+-	volatile void __iomem *e_mvc_rc_bit_rate_view1;
+-	volatile void __iomem *e_mvc_rc_qbound_view1;
+-	volatile void __iomem *e_mvc_rc_mode_view1;
+-	volatile void __iomem *e_mvc_inter_view_prediction_on;
+-	volatile void __iomem *e_vp8_options;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_filter_options;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_golden_frame_option;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_num_t_layer;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_hierarchical_qp_layer0;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
+-	volatile void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
++	void __iomem *e_frame_width;
++	void __iomem *e_frame_height;
++	void __iomem *e_cropped_frame_width;
++	void __iomem *e_cropped_frame_height;
++	void __iomem *e_frame_crop_offset;
++	void __iomem *e_enc_options;
++	void __iomem *e_picture_profile;
++	void __iomem *e_vbv_buffer_size;
++	void __iomem *e_vbv_init_delay;
++	void __iomem *e_fixed_picture_qp;
++	void __iomem *e_rc_config;
++	void __iomem *e_rc_qp_bound;
++	void __iomem *e_rc_qp_bound_pb;/* v7 and v8 */
++	void __iomem *e_rc_mode;
++	void __iomem *e_mb_rc_config;
++	void __iomem *e_padding_ctrl;
++	void __iomem *e_air_threshold;
++	void __iomem *e_mv_hor_range;
++	void __iomem *e_mv_ver_range;
++	void __iomem *e_num_dpb;
++	void __iomem *e_luma_dpb;
++	void __iomem *e_chroma_dpb;
++	void __iomem *e_me_buffer;
++	void __iomem *e_scratch_buffer_addr;
++	void __iomem *e_scratch_buffer_size;
++	void __iomem *e_tmv_buffer0;
++	void __iomem *e_tmv_buffer1;
++	void __iomem *e_ir_buffer_addr;/* v7 and v8 */
++	void __iomem *e_source_first_plane_addr;
++	void __iomem *e_source_second_plane_addr;
++	void __iomem *e_source_third_plane_addr;/* v7 and v8 */
++	void __iomem *e_source_first_plane_stride;/* v7 and v8 */
++	void __iomem *e_source_second_plane_stride;/* v7 and v8 */
++	void __iomem *e_source_third_plane_stride;/* v7 and v8 */
++	void __iomem *e_stream_buffer_addr;
++	void __iomem *e_stream_buffer_size;
++	void __iomem *e_roi_buffer_addr;
++	void __iomem *e_param_change;
++	void __iomem *e_ir_size;
++	void __iomem *e_gop_config;
++	void __iomem *e_mslice_mode;
++	void __iomem *e_mslice_size_mb;
++	void __iomem *e_mslice_size_bits;
++	void __iomem *e_frame_insertion;
++	void __iomem *e_rc_frame_rate;
++	void __iomem *e_rc_bit_rate;
++	void __iomem *e_rc_roi_ctrl;
++	void __iomem *e_picture_tag;
++	void __iomem *e_bit_count_enable;
++	void __iomem *e_max_bit_count;
++	void __iomem *e_min_bit_count;
++	void __iomem *e_metadata_buffer_addr;
++	void __iomem *e_metadata_buffer_size;
++	void __iomem *e_encoded_source_first_plane_addr;
++	void __iomem *e_encoded_source_second_plane_addr;
++	void __iomem *e_encoded_source_third_plane_addr;/* v7 and v8 */
++	void __iomem *e_stream_size;
++	void __iomem *e_slice_type;
++	void __iomem *e_picture_count;
++	void __iomem *e_ret_picture_tag;
++	void __iomem *e_stream_buffer_write_pointer; /*  only v6 */
++	void __iomem *e_recon_luma_dpb_addr;
++	void __iomem *e_recon_chroma_dpb_addr;
++	void __iomem *e_metadata_addr_enc_slice;
++	void __iomem *e_metadata_size_enc_slice;
++	void __iomem *e_mpeg4_options;
++	void __iomem *e_mpeg4_hec_period;
++	void __iomem *e_aspect_ratio;
++	void __iomem *e_extended_sar;
++	void __iomem *e_h264_options;
++	void __iomem *e_h264_options_2;/* v7 and v8 */
++	void __iomem *e_h264_lf_alpha_offset;
++	void __iomem *e_h264_lf_beta_offset;
++	void __iomem *e_h264_i_period;
++	void __iomem *e_h264_fmo_slice_grp_map_type;
++	void __iomem *e_h264_fmo_num_slice_grp_minus1;
++	void __iomem *e_h264_fmo_slice_grp_change_dir;
++	void __iomem *e_h264_fmo_slice_grp_change_rate_minus1;
++	void __iomem *e_h264_fmo_run_length_minus1_0;
++	void __iomem *e_h264_aso_slice_order_0;
++	void __iomem *e_h264_chroma_qp_offset;
++	void __iomem *e_h264_num_t_layer;
++	void __iomem *e_h264_hierarchical_qp_layer0;
++	void __iomem *e_h264_frame_packing_sei_info;
++	void __iomem *e_h264_nal_control;/* v7 and v8 */
++	void __iomem *e_mvc_frame_qp_view1;
++	void __iomem *e_mvc_rc_bit_rate_view1;
++	void __iomem *e_mvc_rc_qbound_view1;
++	void __iomem *e_mvc_rc_mode_view1;
++	void __iomem *e_mvc_inter_view_prediction_on;
++	void __iomem *e_vp8_options;/* v7 and v8 */
++	void __iomem *e_vp8_filter_options;/* v7 and v8 */
++	void __iomem *e_vp8_golden_frame_option;/* v7 and v8 */
++	void __iomem *e_vp8_num_t_layer;/* v7 and v8 */
++	void __iomem *e_vp8_hierarchical_qp_layer0;/* v7 and v8 */
++	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
++	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
  };
  
- static inline struct media_device_fh *media_device_fh(struct file *filp)
-@@ -41,6 +42,161 @@ static inline struct media_device_fh *media_device_fh(struct file *filp)
- }
- 
- /* -----------------------------------------------------------------------------
-+ * Requests
-+ */
-+
-+/**
-+ * media_device_request_find - Find a request based from its ID
-+ * @mdev: The media device
-+ * @reqid: The request ID
-+ *
-+ * Find and return the request associated with the given ID, or NULL if no such
-+ * request exists.
-+ *
-+ * When the function returns a non-NULL request it increases its reference
-+ * count. The caller is responsible for releasing the reference by calling
-+ * media_device_request_put() on the request.
-+ */
-+struct media_device_request *
-+media_device_request_find(struct media_device *mdev, u16 reqid)
-+{
-+	struct media_device_request *req;
-+	unsigned long flags;
-+	bool found = false;
-+
-+	spin_lock_irqsave(&mdev->req_lock, flags);
-+	list_for_each_entry(req, &mdev->requests, list) {
-+		if (req->id == reqid) {
-+			kref_get(&req->kref);
-+			found = true;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&mdev->req_lock, flags);
-+
-+	return found ? req : NULL;
-+}
-+EXPORT_SYMBOL_GPL(media_device_request_find);
-+
-+void media_device_request_get(struct media_device_request *req)
-+{
-+	kref_get(&req->kref);
-+}
-+EXPORT_SYMBOL_GPL(media_device_request_get);
-+
-+static void media_device_request_release(struct kref *kref)
-+{
-+	struct media_device_request *req =
-+		container_of(kref, struct media_device_request, kref);
-+	struct media_device *mdev = req->mdev;
-+
-+	mdev->ops->req_free(mdev, req);
-+}
-+
-+void media_device_request_put(struct media_device_request *req)
-+{
-+	kref_put(&req->kref, media_device_request_release);
-+}
-+EXPORT_SYMBOL_GPL(media_device_request_put);
-+
-+static int media_device_request_alloc(struct media_device *mdev,
-+				      struct media_device_fh *fh,
-+				      struct media_request_cmd *cmd)
-+{
-+	struct media_device_request *req;
-+	unsigned long flags;
-+
-+	req = mdev->ops->req_alloc(mdev);
-+	if (!req)
-+		return -ENOMEM;
-+
-+	req->mdev = mdev;
-+	kref_init(&req->kref);
-+
-+	spin_lock_irqsave(&mdev->req_lock, flags);
-+	req->id = ++mdev->req_id;
-+	list_add_tail(&req->list, &mdev->requests);
-+	list_add_tail(&req->fh_list, &fh->requests);
-+	spin_unlock_irqrestore(&mdev->req_lock, flags);
-+
-+	cmd->request = req->id;
-+	return 0;
-+}
-+
-+static void media_device_request_delete(struct media_device *mdev,
-+					struct media_device_request *req)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&mdev->req_lock, flags);
-+	list_del(&req->list);
-+	spin_unlock_irqrestore(&mdev->req_lock, flags);
-+
-+	media_device_request_put(req);
-+}
-+
-+static long media_device_request_cmd(struct media_device *mdev,
-+				     struct media_device_fh *fh,
-+				     struct media_request_cmd __user *_cmd)
-+{
-+	struct media_device_request *req = NULL;
-+	struct media_request_cmd cmd;
-+	int ret;
-+
-+	if (!mdev->ops || !mdev->ops->req_alloc || !mdev->ops->req_free)
-+		return -ENOTTY;
-+
-+	if (copy_from_user(&cmd, _cmd, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	if (cmd.cmd != MEDIA_REQ_CMD_ALLOC) {
-+		req = media_device_request_find(mdev, cmd.request);
-+		if (!req)
-+			return -EINVAL;
-+	}
-+
-+	switch (cmd.cmd) {
-+	case MEDIA_REQ_CMD_ALLOC:
-+		ret = media_device_request_alloc(mdev, fh, &cmd);
-+		break;
-+
-+	case MEDIA_REQ_CMD_DELETE:
-+		media_device_request_delete(mdev, req);
-+		ret = 0;
-+		break;
-+
-+	case MEDIA_REQ_CMD_APPLY:
-+		if (!mdev->ops->req_apply)
-+			return -ENOSYS;
-+
-+		ret = mdev->ops->req_apply(mdev, req);
-+		break;
-+
-+	case MEDIA_REQ_CMD_QUEUE:
-+		if (!mdev->ops->req_queue)
-+			return -ENOSYS;
-+
-+		ret = mdev->ops->req_queue(mdev, req);
-+		break;
-+
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	if (copy_to_user(_cmd, &cmd, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Userspace API
-  */
- 
-@@ -52,6 +208,7 @@ static int media_device_open(struct file *filp)
- 	if (!fh)
- 		return -ENOMEM;
- 
-+	INIT_LIST_HEAD(&fh->requests);
- 	filp->private_data = &fh->fh;
- 
- 	return 0;
-@@ -60,6 +217,15 @@ static int media_device_open(struct file *filp)
- static int media_device_close(struct file *filp)
- {
- 	struct media_device_fh *fh = media_device_fh(filp);
-+	struct media_device *mdev = to_media_device(fh->fh.devnode);
-+	struct media_device_request *req, *next;
-+
-+	spin_lock_irq(&mdev->req_lock);
-+	list_for_each_entry_safe(req, next, &fh->requests, fh_list) {
-+		list_del(&req->fh_list);
-+		media_device_request_put(req);
-+	}
-+	spin_unlock_irq(&mdev->req_lock);
- 
- 	kfree(fh);
- 
-@@ -257,6 +423,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- {
- 	struct media_devnode *devnode = media_devnode_data(filp);
- 	struct media_device *dev = to_media_device(devnode);
-+	struct media_device_fh *fh = media_device_fh(filp);
- 	long ret;
- 
- 	switch (cmd) {
-@@ -284,6 +451,11 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
-+	case MEDIA_IOC_REQUEST_CMD:
-+		ret = media_device_request_cmd(dev, fh,
-+				(struct media_request_cmd __user *)arg);
-+		break;
-+
- 	default:
- 		ret = -ENOIOCTLCMD;
- 	}
-@@ -404,6 +576,9 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
- 
-+	spin_lock_init(&mdev->req_lock);
-+	INIT_LIST_HEAD(&mdev->requests);
-+
- 	/* Register the device node. */
- 	mdev->devnode.fops = &media_device_fops;
- 	mdev->devnode.parent = mdev->dev;
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 7e6de4dbf497..bc003bedf087 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_DEVICE_H
- #define _MEDIA_DEVICE_H
- 
-+#include <linux/kref.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
-@@ -31,14 +32,42 @@
- #include <media/media-entity.h>
- 
- struct device;
-+struct media_device;
-+
-+/**
-+ * struct media_device_request - Media device request
-+ * @id: Request ID
-+ * @mdev: Media device this request belongs to
-+ * @kref: Reference count
-+ * @list: List entry in the media device requests list
-+ * @fh_list: List entry in the media file handle requests list
-+ */
-+struct media_device_request {
-+	u32 id;
-+	struct media_device *mdev;
-+	struct kref kref;
-+	struct list_head list;
-+	struct list_head fh_list;
-+};
- 
- /**
-  * struct media_device_ops - Media device operations
-  * @link_notify: Link state change notification callback
-+ * @req_alloc: Allocate a request
-+ * @req_free: Free a request
-+ * @req_apply: Apply a request
-+ * @req_queue: Queue a request
-  */
- struct media_device_ops {
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+	struct media_device_request *(*req_alloc)(struct media_device *mdev);
-+	void (*req_free)(struct media_device *mdev,
-+			 struct media_device_request *req);
-+	int (*req_apply)(struct media_device *mdev,
-+			 struct media_device_request *req);
-+	int (*req_queue)(struct media_device *mdev,
-+			 struct media_device_request *req);
- };
- 
- /**
-@@ -55,6 +84,9 @@ struct media_device_ops {
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-  * @ops:	Operation handler callbacks
-+ * @req_lock:	Protects the req_id and requests fields
-+ * @req_id:	Last request ID that was allocated
-+ * @requests:	List of allocated requests
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -86,6 +118,10 @@ struct media_device {
- 	struct mutex graph_mutex;
- 
- 	const struct media_device_ops *ops;
-+
-+	spinlock_t req_lock;
-+	u32 req_id;
-+	struct list_head requests;
- };
- 
- /* Supported link_notify @notification values. */
-@@ -108,4 +144,9 @@ void media_device_unregister_entity(struct media_entity *entity);
- #define media_device_for_each_entity(entity, mdev)			\
- 	list_for_each_entry(entity, &(mdev)->entities, list)
- 
-+struct media_device_request *
-+media_device_request_find(struct media_device *mdev, u16 reqid);
-+void media_device_request_get(struct media_device_request *req);
-+void media_device_request_put(struct media_device_request *req);
-+
- #endif
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 4e816be3de39..fd8887a03988 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -167,9 +167,21 @@ struct media_links_enum {
- 	__u32 reserved[4];
- };
- 
-+#define MEDIA_REQ_CMD_ALLOC		0
-+#define MEDIA_REQ_CMD_DELETE		1
-+#define MEDIA_REQ_CMD_APPLY		2
-+#define MEDIA_REQ_CMD_QUEUE		3
-+
-+struct media_request_cmd {
-+	__u32 cmd;
-+	__u32 request;
-+	__u32 reserved[9];
-+};
-+
- #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-+#define MEDIA_IOC_REQUEST_CMD		_IOWR('|', 0x04, struct media_request_cmd)
- 
- #endif /* __LINUX_MEDIA_H */
+ struct s5p_mfc_hw_ops {
 -- 
-2.4.10
+1.9.1
 
