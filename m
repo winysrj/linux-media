@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57260 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966302AbbLPRjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:39:47 -0500
-Date: Wed, 16 Dec 2015 15:39:36 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, javier@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
-Message-ID: <20151216153936.0227d179@recife.lan>
-In-Reply-To: <20151216140301.GO17128@valkosipuli.retiisi.org.uk>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-	<20151216140301.GO17128@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53983 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758877AbbLBRAV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Dec 2015 12:00:21 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 5/5] [media] coda: enable MPEG-2 ES decoding
+Date: Wed,  2 Dec 2015 17:58:54 +0100
+Message-Id: <1449075534-8072-5-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1449075534-8072-1-git-send-email-p.zabel@pengutronix.de>
+References: <1449075534-8072-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Dec 2015 16:03:01 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hook up the MPEG-2 ES decoder.
 
-> Hi Javier,
-> 
-> On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
-> > This is the third version of the unrestricted media entity ID range
-> > support set. I've taken Mauro's comments into account and fixed a number
-> > of bugs as well (omap3isp memory leak and omap4iss stream start).
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Patches merged on my experimental tree:
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 2452f46..2197032 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -131,6 +131,7 @@ static const struct coda_codec coda7_codecs[] = {
+ 	CODA_CODEC(CODA7_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1280, 720),
+ 	CODA_CODEC(CODA7_MODE_ENCODE_MJPG, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_JPEG,   8192, 8192),
+ 	CODA_CODEC(CODA7_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
++	CODA_CODEC(CODA7_MODE_DECODE_MP2,  V4L2_PIX_FMT_MPEG2,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ 	CODA_CODEC(CODA7_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ 	CODA_CODEC(CODA7_MODE_DECODE_MJPG, V4L2_PIX_FMT_JPEG,   V4L2_PIX_FMT_YUV420, 8192, 8192),
+ };
+@@ -139,6 +140,7 @@ static const struct coda_codec coda9_codecs[] = {
+ 	CODA_CODEC(CODA9_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_H264,   1920, 1088),
+ 	CODA_CODEC(CODA9_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_MPEG4,  1920, 1088),
+ 	CODA_CODEC(CODA9_MODE_DECODE_H264, V4L2_PIX_FMT_H264,   V4L2_PIX_FMT_YUV420, 1920, 1088),
++	CODA_CODEC(CODA9_MODE_DECODE_MP2,  V4L2_PIX_FMT_MPEG2,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ 	CODA_CODEC(CODA9_MODE_DECODE_MP4,  V4L2_PIX_FMT_MPEG4,  V4L2_PIX_FMT_YUV420, 1920, 1088),
+ };
+ 
+@@ -187,6 +189,7 @@ static const struct coda_video_device coda_bit_decoder = {
+ 	.ops = &coda_bit_decode_ops,
+ 	.src_formats = {
+ 		V4L2_PIX_FMT_H264,
++		V4L2_PIX_FMT_MPEG2,
+ 		V4L2_PIX_FMT_MPEG4,
+ 	},
+ 	.dst_formats = {
+@@ -470,6 +473,7 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
+ 		/* fallthrough */
+ 	case V4L2_PIX_FMT_H264:
+ 	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_MPEG2:
+ 		f->fmt.pix.bytesperline = 0;
+ 		f->fmt.pix.sizeimage = coda_estimate_sizeimage(ctx,
+ 							f->fmt.pix.sizeimage,
+-- 
+2.6.2
 
-	ssh://linuxtv.org/git/mchehab/experimental.git
-
-branch media-controller-rc4
-
-I had to do some rebase, as you were using some older changeset.
-Also, several documentation tags were with troubles (renamed
-vars not renamed there).
-
-Next time, please check the documentation with:
-	make DOCBOOKS=device-drivers.xml htmldocs 2>&1
-
-> Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
-> test the OMAP4 ISS with these patches?
-
-As Sakari patches were rebased, it would be good to test them again
-on omap3.
-
-Regards,
-Mauro
