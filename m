@@ -1,142 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60578 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753642AbbLPNes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:48 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 02/23] media: Introduce internal index for media entities
-Date: Wed, 16 Dec 2015 15:32:17 +0200
-Message-Id: <1450272758-29446-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:19239 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755720AbbLBIXj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 03:23:39 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NYQ00AFS1ZEIN00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Dec 2015 08:23:38 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
+	Format Codec (MFC)...), s.nawrocki@samsung.com
+Subject: [PATCH 2/6] s5p-mfc: make queue cleanup code common
+Date: Wed, 02 Dec 2015 09:22:29 +0100
+Message-id: <1449044553-27115-3-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
+References: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Code for queue cleanup has nothing specific to hardware version.
 
-The internal index can be used internally by the framework in order to keep
-track of entities for a purpose or another. The internal index is constant
-while it's registered to a media device, but the same index may be re-used
-once the entity having that index is unregistered.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
- drivers/media/media-device.c | 17 +++++++++++++++++
- include/media/media-device.h |  4 ++++
- include/media/media-entity.h |  3 +++
- 3 files changed, 24 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        | 26 +++++++++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  6 ++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  6 ++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 --
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c | 16 ---------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 16 ---------------
+ 7 files changed, 23 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c181758..ebb84cb 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -22,6 +22,7 @@
- 
- #include <linux/compat.h>
- #include <linux/export.h>
-+#include <linux/idr.h>
- #include <linux/ioctl.h>
- #include <linux/media.h>
- #include <linux/types.h>
-@@ -546,6 +547,7 @@ void media_device_init(struct media_device *mdev)
- 	INIT_LIST_HEAD(&mdev->links);
- 	spin_lock_init(&mdev->lock);
- 	mutex_init(&mdev->graph_mutex);
-+	ida_init(&mdev->entity_internal_idx);
- 
- 	dev_dbg(mdev->dev, "Media device initialized\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 8bae7df..79f5c81 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -125,6 +125,20 @@ static void wake_up_dev(struct s5p_mfc_dev *dev, unsigned int reason,
+ 	wake_up(&dev->queue);
  }
-@@ -558,6 +560,8 @@ EXPORT_SYMBOL_GPL(media_device_init);
-  */
- void media_device_cleanup(struct media_device *mdev)
- {
-+	ida_destroy(&mdev->entity_internal_idx);
-+	mdev->entity_internal_idx_max = 0;
- 	mutex_destroy(&mdev->graph_mutex);
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
-@@ -658,6 +662,17 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	INIT_LIST_HEAD(&entity->links);
  
- 	spin_lock(&mdev->lock);
++void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq)
++{
++	struct s5p_mfc_buf *b;
++	int i;
 +
-+	entity->internal_idx = ida_simple_get(&mdev->entity_internal_idx, 1, 0,
-+					      GFP_KERNEL);
-+	if (entity->internal_idx < 0) {
-+		spin_unlock(&mdev->lock);
-+		return entity->internal_idx;
++	while (!list_empty(lh)) {
++		b = list_entry(lh->next, struct s5p_mfc_buf, list);
++		for (i = 0; i < b->b->vb2_buf.num_planes; i++)
++			vb2_set_plane_payload(&b->b->vb2_buf, i, 0);
++		vb2_buffer_done(&b->b->vb2_buf, VB2_BUF_STATE_ERROR);
++		list_del(&b->list);
 +	}
++}
 +
-+	mdev->entity_internal_idx_max =
-+		max(mdev->entity_internal_idx_max, entity->internal_idx);
-+
- 	/* Initialize media_gobj embedded at the entity */
- 	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+ static void s5p_mfc_watchdog(unsigned long arg)
+ {
+ 	struct s5p_mfc_dev *dev = (struct s5p_mfc_dev *)arg;
+@@ -170,10 +184,8 @@ static void s5p_mfc_watchdog_worker(struct work_struct *work)
+ 		if (!ctx)
+ 			continue;
+ 		ctx->state = MFCINST_ERROR;
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->dst_queue, &ctx->vq_dst);
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->src_queue, &ctx->vq_src);
++		s5p_mfc_cleanup_queue(&ctx->dst_queue, &ctx->vq_dst);
++		s5p_mfc_cleanup_queue(&ctx->src_queue, &ctx->vq_src);
+ 		clear_work_bit(ctx);
+ 		wake_up_ctx(ctx, S5P_MFC_R2H_CMD_ERR_RET, 0);
+ 	}
+@@ -471,11 +483,9 @@ static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
+ 			ctx->state = MFCINST_ERROR;
+ 			/* Mark all dst buffers as having an error */
+ 			spin_lock_irqsave(&dev->irqlock, flags);
+-			s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->dst_queue, &ctx->vq_dst);
++			s5p_mfc_cleanup_queue(&ctx->dst_queue, &ctx->vq_dst);
+ 			/* Mark all src buffers as having an error */
+-			s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->src_queue, &ctx->vq_src);
++			s5p_mfc_cleanup_queue(&ctx->src_queue, &ctx->vq_src);
+ 			spin_unlock_irqrestore(&dev->irqlock, flags);
+ 			wake_up_ctx(ctx, reason, err);
+ 			break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 0cdb37e..f560240 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -711,6 +711,7 @@ void set_work_bit(struct s5p_mfc_ctx *ctx);
+ void clear_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ int s5p_mfc_get_new_ctx(struct s5p_mfc_dev *dev);
++void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
  
-@@ -690,6 +705,8 @@ void media_device_unregister_entity(struct media_entity *entity)
+ #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 1c4998c..c9999bb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -1033,8 +1033,7 @@ static void s5p_mfc_stop_streaming(struct vb2_queue *q)
+ 	}
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		spin_lock_irqsave(&dev->irqlock, flags);
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->dst_queue, &ctx->vq_dst);
++		s5p_mfc_cleanup_queue(&ctx->dst_queue, &ctx->vq_dst);
+ 		INIT_LIST_HEAD(&ctx->dst_queue);
+ 		ctx->dst_queue_cnt = 0;
+ 		ctx->dpb_flush_flag = 1;
+@@ -1051,8 +1050,7 @@ static void s5p_mfc_stop_streaming(struct vb2_queue *q)
+ 	}
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		spin_lock_irqsave(&dev->irqlock, flags);
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->src_queue, &ctx->vq_src);
++		s5p_mfc_cleanup_queue(&ctx->src_queue, &ctx->vq_src);
+ 		INIT_LIST_HEAD(&ctx->src_queue);
+ 		ctx->src_queue_cnt = 0;
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 115b7da..58008b0 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1990,15 +1990,13 @@ static void s5p_mfc_stop_streaming(struct vb2_queue *q)
+ 	ctx->state = MFCINST_FINISHED;
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue,
+-						&ctx->dst_queue, &ctx->vq_dst);
++		s5p_mfc_cleanup_queue(&ctx->dst_queue, &ctx->vq_dst);
+ 		INIT_LIST_HEAD(&ctx->dst_queue);
+ 		ctx->dst_queue_cnt = 0;
+ 	}
+ 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		cleanup_ref_queue(ctx);
+-		s5p_mfc_hw_call_void(dev->mfc_ops, cleanup_queue, &ctx->src_queue,
+-				&ctx->vq_src);
++		s5p_mfc_cleanup_queue(&ctx->src_queue, &ctx->vq_src);
+ 		INIT_LIST_HEAD(&ctx->src_queue);
+ 		ctx->src_queue_cnt = 0;
+ 	}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 77a08b1..b89df89 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -296,8 +296,6 @@ struct s5p_mfc_hw_ops {
+ 	int (*init_encode)(struct s5p_mfc_ctx *ctx);
+ 	int (*encode_one_frame)(struct s5p_mfc_ctx *ctx);
+ 	void (*try_run)(struct s5p_mfc_dev *dev);
+-	void (*cleanup_queue)(struct list_head *lh,
+-			struct vb2_queue *vq);
+ 	void (*clear_int_flags)(struct s5p_mfc_dev *dev);
+ 	void (*write_info)(struct s5p_mfc_ctx *ctx, unsigned int data,
+ 			unsigned int ofs);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index d9e5d68..ae4c950 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -1451,21 +1451,6 @@ static void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
+ 	}
+ }
  
- 	spin_lock(&mdev->lock);
+-
+-static void s5p_mfc_cleanup_queue_v5(struct list_head *lh, struct vb2_queue *vq)
+-{
+-	struct s5p_mfc_buf *b;
+-	int i;
+-
+-	while (!list_empty(lh)) {
+-		b = list_entry(lh->next, struct s5p_mfc_buf, list);
+-		for (i = 0; i < b->b->vb2_buf.num_planes; i++)
+-			vb2_set_plane_payload(&b->b->vb2_buf, i, 0);
+-		vb2_buffer_done(&b->b->vb2_buf, VB2_BUF_STATE_ERROR);
+-		list_del(&b->list);
+-	}
+-}
+-
+ static void s5p_mfc_clear_int_flags_v5(struct s5p_mfc_dev *dev)
+ {
+ 	mfc_write(dev, 0, S5P_FIMV_RISC_HOST_INT);
+@@ -1677,7 +1662,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v5 = {
+ 	.init_encode = s5p_mfc_init_encode_v5,
+ 	.encode_one_frame = s5p_mfc_encode_one_frame_v5,
+ 	.try_run = s5p_mfc_try_run_v5,
+-	.cleanup_queue = s5p_mfc_cleanup_queue_v5,
+ 	.clear_int_flags = s5p_mfc_clear_int_flags_v5,
+ 	.write_info = s5p_mfc_write_info_v5,
+ 	.read_info = s5p_mfc_read_info_v5,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index f68653f..fbff09a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -1822,21 +1822,6 @@ static void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
+ 	}
+ }
  
-+	ida_simple_remove(&mdev->entity_internal_idx, entity->internal_idx);
-+
- 	/* Remove interface links with this entity on it */
- 	list_for_each_entry_safe(link, tmp, &mdev->links, graph_obj.list) {
- 		if (media_type(link->gobj1) == MEDIA_GRAPH_ENTITY
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a2c7570..c0e1764 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -30,6 +30,7 @@
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
- 
-+struct ida;
- struct device;
- 
- /**
-@@ -47,6 +48,7 @@ struct device;
-  * @pad_id:	Unique ID used on the last pad registered
-  * @link_id:	Unique ID used on the last link registered
-  * @intf_devnode_id: Unique ID used on the last interface devnode registered
-+ * @entity_internal_idx: Allocated internal entity indices
-  * @entities:	List of registered entities
-  * @interfaces:	List of registered interfaces
-  * @pads:	List of registered pads
-@@ -82,6 +84,8 @@ struct media_device {
- 	u32 pad_id;
- 	u32 link_id;
- 	u32 intf_devnode_id;
-+	struct ida entity_internal_idx;
-+	int entity_internal_idx_max;
- 
- 	struct list_head entities;
- 	struct list_head interfaces;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index eebdd24..d3d3a39 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -159,6 +159,8 @@ struct media_entity_operations {
-  * @num_pads:	Number of sink and source pads.
-  * @num_links:	Number of existing links, both enabled and disabled.
-  * @num_backlinks: Number of backlinks
-+ * @internal_idx: An unique internal entity specific number. The numbers are
-+ *		re-used if entities are unregistered or registered again.
-  * @pads:	Pads array with the size defined by @num_pads.
-  * @links:	Linked list for the data links.
-  * @ops:	Entity operations.
-@@ -187,6 +189,7 @@ struct media_entity {
- 	u16 num_pads;
- 	u16 num_links;
- 	u16 num_backlinks;
-+	int internal_idx;
- 
- 	struct media_pad *pads;
- 	struct list_head links;
+-
+-static void s5p_mfc_cleanup_queue_v6(struct list_head *lh, struct vb2_queue *vq)
+-{
+-	struct s5p_mfc_buf *b;
+-	int i;
+-
+-	while (!list_empty(lh)) {
+-		b = list_entry(lh->next, struct s5p_mfc_buf, list);
+-		for (i = 0; i < b->b->vb2_buf.num_planes; i++)
+-			vb2_set_plane_payload(&b->b->vb2_buf, i, 0);
+-		vb2_buffer_done(&b->b->vb2_buf, VB2_BUF_STATE_ERROR);
+-		list_del(&b->list);
+-	}
+-}
+-
+ static void s5p_mfc_clear_int_flags_v6(struct s5p_mfc_dev *dev)
+ {
+ 	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
+@@ -2268,7 +2253,6 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 	.init_encode = s5p_mfc_init_encode_v6,
+ 	.encode_one_frame = s5p_mfc_encode_one_frame_v6,
+ 	.try_run = s5p_mfc_try_run_v6,
+-	.cleanup_queue = s5p_mfc_cleanup_queue_v6,
+ 	.clear_int_flags = s5p_mfc_clear_int_flags_v6,
+ 	.write_info = s5p_mfc_write_info_v6,
+ 	.read_info = s5p_mfc_read_info_v6,
 -- 
-2.1.4
+1.9.1
 
