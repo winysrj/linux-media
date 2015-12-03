@@ -1,61 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37540 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754214AbbLKRRF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 12:17:05 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 04/10] [media] omap3isp: consistently use v4l2_dev var in complete notifier
-Date: Fri, 11 Dec 2015 14:16:30 -0300
-Message-Id: <1449854196-13296-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
-References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-qg0-f50.google.com ([209.85.192.50]:33811 "EHLO
+	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311AbbLCUDq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 15:03:46 -0500
+Received: by qgeb1 with SMTP id b1so71020594qge.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 12:03:45 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAOS+5GFApYMJn68T97N_-MOWd=kTxn3XN5VoH1GbzLCxFrZHtA@mail.gmail.com>
+References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
+	<CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
+	<CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
+	<CAOS+5GFApYMJn68T97N_-MOWd=kTxn3XN5VoH1GbzLCxFrZHtA@mail.gmail.com>
+Date: Thu, 3 Dec 2015 15:03:45 -0500
+Message-ID: <CALzAhNUcG-jbMv7g+Ppr8ffxikVRmRut6GgMVYbyyS==_Vn+iQ@mail.gmail.com>
+Subject: Re: Dear TV card experts - I need you help
+From: Steven Toth <stoth@kernellabs.com>
+To: Another Sillyname <anothersname@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The isp_subdev_notifier_complete() complete callback defines a struct
-v4l2_device *v4l2_dev to avoid needing two level of indirections to
-access the V4L2 subdevs but the var is not always used when possible
-as when calling v4l2_device_register_subdev_nodes().
+> It occurs to me that someone who is so cavalier with not paying legal
+> royalties would be pretty unlikely to pay bills for the advice and
+> support.
 
-So change that to consistently use the defined v4l2_dev pointer var.
++1.
 
-Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Indeed.
 
-
-This patch addresses an issue pointed out by Sakari in patch [0]:
-
-- Don't mix struct v4l2_device *v4l2_dev and &isp->v4l2_dev usage.
-
-[0]: http://linuxtv.org/pipermail/media-workshop/2015-October/000928.html
-END
-
----
-
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index fb17746e4209..8226eca83327 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2365,7 +2365,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 		}
- 	}
- 
--	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-+	return v4l2_device_register_subdev_nodes(v4l2_dev);
- }
- 
- /*
 -- 
-2.4.3
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
