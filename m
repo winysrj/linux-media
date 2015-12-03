@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:54078 "EHLO mout.web.de"
+Received: from lists.s-osg.org ([54.187.51.154]:56089 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751846AbbL1Kay (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 05:30:54 -0500
-Subject: Re: [media] tuners: One check less in m88rs6000t_get_rf_strength()
- after error detection
-To: Julia Lawall <julia.lawall@lip6.fr>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5680FDB3.7060305@users.sourceforge.net>
- <alpine.DEB.2.10.1512281019050.2702@hadrien>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <56810F56.4080306@users.sourceforge.net>
-Date: Mon, 28 Dec 2015 11:30:46 +0100
+	id S1750952AbbLCNfT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2015 08:35:19 -0500
+Date: Thu, 3 Dec 2015 11:35:14 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+	pavel@ucw.cz, andrew@lunn.ch, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 10/10] media: flash: use led_set_brightness_sync for
+ torch brightness
+Message-ID: <20151203113514.06754498@recife.lan>
+In-Reply-To: <5649A64E.8050907@linux.intel.com>
+References: <1444209048-29415-1-git-send-email-j.anaszewski@samsung.com>
+	<1444209048-29415-11-git-send-email-j.anaszewski@samsung.com>
+	<5649A37A.2050902@samsung.com>
+	<5649A64E.8050907@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.10.1512281019050.2702@hadrien>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Move the jump label directly before the desired log statement
->> so that the variable "ret" will not be checked once more
->> after it was determined that a function call failed.
+Em Mon, 16 Nov 2015 11:47:58 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+
+> Jacek Anaszewski wrote:
+> > This patch depends on the preceding LED core improvements patches
+> > from this patch set, and it would be best if it was merged through
+> > the LED tree. Can I get your ack for this? I've already obtained acks
+> > for the whole set from Sakari.
 > 
-> Why not avoid both unnecessary ifs
+> I agree with this going through the LED tree.
 
-I would find such a fine-tuning also nice in principle at more source code places.
+Feel free to send it via the LED tree.
 
-
-> and the enormous ugliness of a label inside an if by making two returns:
-> a return 0 for success and a dev_dbg and return ret for failure?
-
-How should your suggestion finally work when the desired execution success
-can be determined for such functions only after several other calls succeeded?
-
-Is consistent checking of failure predicates usually required?
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
 Regards,
-Markus
+Mauro
