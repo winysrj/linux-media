@@ -1,180 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:21732 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755051AbbLGMJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 07:09:44 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH 7/7] media: s5p-mfc: add iommu support
-Date: Mon, 07 Dec 2015 13:09:02 +0100
-Message-id: <1449490142-27502-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
-References: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:56157 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755946AbbLCOP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2015 09:15:29 -0500
+Date: Thu, 3 Dec 2015 12:15:24 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: linux-media@vger.kernel.org, crope@iki.fi, xpert-reactos@gmx.de
+Subject: Re: [PATCH 07/10] si2165: Fix DVB-T bandwidth default
+Message-ID: <20151203121524.33bd3130@recife.lan>
+In-Reply-To: <1447963442-9764-8-git-send-email-zzam@gentoo.org>
+References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+	<1447963442-9764-8-git-send-email-zzam@gentoo.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for IOMMU to s5p-mfc device driver. MFC firmware
-is limited and it cannot use the default configuration. If IOMMU is
-available, the patch disables the default DMA address space
-configuration and creates a new address space of size limited to 256M
-and base address set to 0x20000000.
+Em Thu, 19 Nov 2015 21:03:59 +0100
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-For now the same address space is shared by both 'left' and 'right'
-memory channels, because the DMA/IOMMU frameworks do not support
-configuring them separately. This is not optimal, but besides limiting
-total address space available has no other drawbacks (MFC firmware
-supports 256M of address space per each channel).
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c       | 24 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 79 ++++++++++++++++++++++++++
- 2 files changed, 103 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+Please, add a description to your patches.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 55c557f835f2..dfbaadd22a3d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -30,6 +30,7 @@
- #include "s5p_mfc_dec.h"
- #include "s5p_mfc_enc.h"
- #include "s5p_mfc_intr.h"
-+#include "s5p_mfc_iommu.h"
- #include "s5p_mfc_opr.h"
- #include "s5p_mfc_cmd.h"
- #include "s5p_mfc_pm.h"
-@@ -1082,6 +1083,22 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	/*
-+	 * When IOMMU is available, we cannot use the default configuration,
-+	 * because of MFC firmware requirements: address space limited to
-+	 * 256M and non-zero default start address.
-+	 * This is still simplified, not optimal configuration, but for now
-+	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-+	 * separately.
-+	 */
-+	if (exynos_is_iommu_available(dev)) {
-+		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-+						 S5P_MFC_IOMMU_DMA_SIZE);
-+		if (ret == 0)
-+			mfc_dev->mem_dev_l = mfc_dev->mem_dev_r = dev;
-+		return ret;
-+	}
-+
-+	/*
- 	 * Create and initialize virtual devices for accessing
- 	 * reserved memory regions.
- 	 */
-@@ -1099,6 +1116,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 
- static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+
-+	if (exynos_is_iommu_available(dev)) {
-+		exynos_unconfigure_iommu(dev);
-+		return;
-+	}
-+
- 	device_unregister(mfc_dev->mem_dev_l);
- 	device_unregister(mfc_dev->mem_dev_r);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-new file mode 100644
-index 000000000000..5d1d1c2922e8
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (C) 2015 Samsung Electronics Co.Ltd
-+ * Authors: Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
-+ */
-+
-+#ifndef S5P_MFC_IOMMU_H_
-+#define S5P_MFC_IOMMU_H_
-+
-+#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
-+#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
-+
-+#ifdef CONFIG_EXYNOS_IOMMU
-+
-+#include <asm/dma-iommu.h>
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return dev->archdata.iommu != NULL;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev)
-+{
-+	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
-+
-+	arm_iommu_detach_device(dev);
-+	arm_iommu_release_mapping(mapping);
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	struct dma_iommu_mapping *mapping = NULL;
-+	int ret;
-+
-+	/* Disable the default mapping created by device core */
-+	if (to_dma_iommu_mapping(dev))
-+		exynos_unconfigure_iommu(dev);
-+
-+	mapping = arm_iommu_create_mapping(dev->bus, base, size);
-+	if (IS_ERR(mapping)) {
-+		pr_warn("Failed to create IOMMU mapping for device %s\n",
-+			dev_name(dev));
-+		return PTR_ERR(mapping);
-+	}
-+
-+	ret = arm_iommu_attach_device(dev, mapping);
-+	if (ret) {
-+		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
-+				dev_name(dev));
-+		arm_iommu_release_mapping(mapping);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev) { }
-+
-+#endif
-+
-+#endif /* S5P_MFC_IOMMU_H_ */
--- 
-1.9.2
+That's said, this patch should be called, instead:
 
+si2165: Fix DVB-T bandwidth auto
+
+DVB auto bandwidth mode (bandwidth_hz == 0) logic was setting
+the initial value for dvb_rate to a wrong value. Fix it.
+
+as a zero value here means to let the frontend to auto-detect
+the bandwidth. Of course, assuming that si2165 is capable of
+doing that.
+
+If si2165 chip or driver doesn't support bandwidth auto-detection, it
+should, instead, return -EINVAL.
+
+Are you sure that it will auto-detect the bandwidth if we keep it
+as 8MHz?
+
+Regards,
+Mauro
+
+
+
+
+
+> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> ---
+>  drivers/media/dvb-frontends/si2165.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
+> index 807a3c9..e97b0e6 100644
+> --- a/drivers/media/dvb-frontends/si2165.c
+> +++ b/drivers/media/dvb-frontends/si2165.c
+> @@ -811,19 +811,18 @@ static int si2165_set_frontend(struct dvb_frontend *fe)
+>  	u8 val[3];
+>  	u32 dvb_rate = 0;
+>  	u16 bw10k;
+> +	u32 bw_hz = p->bandwidth_hz;
+>  
+>  	dprintk("%s: called\n", __func__);
+>  
+>  	if (!state->has_dvbt)
+>  		return -EINVAL;
+>  
+> -	if (p->bandwidth_hz > 0) {
+> -		dvb_rate = p->bandwidth_hz * 8 / 7;
+> -		bw10k = p->bandwidth_hz / 10000;
+> -	} else {
+> -		dvb_rate = 8 * 8 / 7;
+> -		bw10k = 800;
+> -	}
+> +	if (bw_hz == 0)
+> +		bw_hz = 8000000;
+> +
+> +	dvb_rate = bw_hz * 8 / 7;
+> +	bw10k = bw_hz / 10000;
+>  
+>  	/* standard = DVB-T */
+>  	ret = si2165_writereg8(state, 0x00ec, 0x01);
