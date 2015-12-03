@@ -1,86 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37804 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418AbbLLPjy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:39:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tuukka Toivonen <tuukka.toivonen@intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH] Return proper error code if STREAMON fails
-Date: Sat, 12 Dec 2015 17:40:07 +0200
-Message-ID: <2149558.6ozUHQXHtS@avalon>
-In-Reply-To: <207011196.fyjkdD1C8L@ttoivone-desk1>
-References: <207011196.fyjkdD1C8L@ttoivone-desk1>
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:34440 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753426AbbLCUVE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 15:21:04 -0500
+Received: by lffu14 with SMTP id u14so98494213lff.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 12:21:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CALzAhNXoBRLFyFjmKzKmTiWJuq4jdV8zmhO4iVPSZqLL7f4DVA@mail.gmail.com>
+References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
+	<CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
+	<CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
+	<CALzAhNXoBRLFyFjmKzKmTiWJuq4jdV8zmhO4iVPSZqLL7f4DVA@mail.gmail.com>
+Date: Thu, 3 Dec 2015 21:21:01 +0100
+Message-ID: <CAAhQ-nDE9YgBEF8fpPsZ1TGthqyY+MYjYZugLCNKv8Rj0YaKcQ@mail.gmail.com>
+Subject: Re: Dear TV card experts - I need you help
+From: Mr Andersson <mr.andersson.001@gmail.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tuukka,
+@Steven,
 
-Thank you for the patch.
+How is that a concern of yours, and why would that have an impact on
+you providing some technological information on this topic? That's
+hardly illegal.
 
-On Monday 30 November 2015 16:46:17 Tuukka Toivonen wrote:
-> Fix the bug causing success to be returned even if VIDIOC_STREAMON
-> failed. Also check returned error from VIDIOC_STREAMOFF.
-> 
-> Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
-> ---
->  yavta.c | 12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index b627725..3ad1c97 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -1623,7 +1623,7 @@ static int video_do_capture(struct device *dev,
-> unsigned int nframes,
->  	unsigned int i;
->  	double bps;
->  	double fps;
-> -	int ret;
-> +	int ret, ret2;
-> 
->  	/* Start streaming. */
->  	ret = video_enable(dev, 1);
-> @@ -1708,7 +1708,9 @@ static int video_do_capture(struct device *dev,
-> unsigned int nframes,
->  	}
-> 
->  	/* Stop streaming. */
-> -	video_enable(dev, 0);
-> +	ret = video_enable(dev, 0);
-> +	if (ret < 0)
-> +		goto done;
-> 
->  	if (nframes == 0) {
->  		printf("No frames captured.\n");
-> @@ -1732,7 +1734,11 @@ static int video_do_capture(struct device *dev,
-> unsigned int nframes,
->  		i, ts.tv_sec, ts.tv_nsec/1000, fps, bps);
-> 
->  done:
-> -	return video_free_buffers(dev);
-> +	ret2 = video_free_buffers(dev);
-
-I wonder if there's really a point calling video_free_buffers() in the error 
-case. The function will return an error causing the caller to close the 
-device, which will free the buffers. There are other locations in yavta after 
-buffers are allocated where the buffers are not freed in the error path. What 
-would you think of just replacing the goto done statements by a return ret ?
-
-> +	if (ret >= 0)
-> +		ret = ret2;
-> +
-> +	return ret;
->  }
-> 
->  #define V4L_BUFFERS_DEFAULT	8
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On Thu, Dec 3, 2015 at 9:05 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>> But the legal parts are of no concern to us, and we are already aware
+>> of potential legal complexities, especially in western countries, but
+>> fortunately there are many other countries outside of the western
+>> hemisphere. There is also plenty of internet based providers that
+>> already offers this, albeit with a less than ideal quality of service.
+>> So consider that a non issue for now.
+>
+> You might, I don't. Good luck!
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
