@@ -1,70 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934024AbbLQIlN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:13 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 33/48] vb2: Add helper function to check for request buffers
-Date: Thu, 17 Dec 2015 10:40:11 +0200
-Message-Id: <1450341626-6695-34-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:34564 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319AbbLCW2q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 17:28:46 -0500
+Received: by qgeb1 with SMTP id b1so74400762qge.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 14:28:45 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1512032134120.8237@axis700.grange>
+References: <Pine.LNX.4.64.1512032134120.8237@axis700.grange>
+Date: Thu, 3 Dec 2015 14:28:45 -0800
+Message-ID: <CABrew9tA5enGhdozC1P8vfzL320=GBUTV3dJJS+pj_sXTCKWaQ@mail.gmail.com>
+Subject: Re: [git:media_tree/master] [media] UVC: Add support for ds4 depth
+ camera (fwd)
+From: Aviv Greenberg <avivgr@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	sakari.ailus@linux.intel.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vb2_queue_has_request() function will check whether a buffer has
-been prepared for the given request ID.
+On Thu, Dec 3, 2015 at 12:34 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+>
+>
+> ---------- Forwarded message ----------
+> Date: Thu, 3 Dec 2015 16:18:42 +0100
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+> To: linux-media@vger.kernel.org,
+>     Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Greenberg@linuxtv.org,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-v4l2.c | 17 +++++++++++++++++
- include/media/videobuf2-v4l2.h           |  2 ++
- 2 files changed, 19 insertions(+)
+Who is Greenberg@linuxtv.org? That is not my address :)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 2c8776891535..0db7d67092ab 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -753,6 +753,23 @@ void vb2_queue_release(struct vb2_queue *q)
- }
- EXPORT_SYMBOL_GPL(vb2_queue_release);
- 
-+bool vb2_queue_has_request(struct vb2_queue *q, unsigned int request)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < q->num_buffers; i++) {
-+		struct vb2_buffer *vb = q->bufs[i];
-+		struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+
-+		if (vb->state == VB2_BUF_STATE_PREPARED &&
-+		    vbuf->request == request)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+EXPORT_SYMBOL_GPL(vb2_queue_has_request);
-+
- /**
-  * vb2_poll() - implements poll userspace operation
-  * @q:		videobuf2 queue
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 48d6a34dcdb4..7cb428fc66ad 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -68,6 +68,8 @@ int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
- int __must_check vb2_queue_init(struct vb2_queue *q);
- void vb2_queue_release(struct vb2_queue *q);
- 
-+bool vb2_queue_has_request(struct vb2_queue *q, unsigned int request);
-+
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
- size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
- 		loff_t *ppos, int nonblock);
+>     sakari.ailus@linux.intel.com
+> Subject: Re: [git:media_tree/master] [media] UVC: Add support for ds4 depth
+>     camera
+>
+> Hi Mauro, Aviv,
+>
+> On 12/03/15 14:37, Mauro Carvalho Chehab wrote:
+>> This is an automatic generated email to let you know that the following patch were queued at the
+>> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+>>
+>> Subject: [media] UVC: Add support for ds4 depth camera
+>> Author:  Aviv Greenberg <avivgr@gmail.com>
+>> Date:    Fri Oct 16 08:48:51 2015 -0300
+>>
+>> Add support for Intel DS4 depth camera in uvc driver.
+>> This includes adding new uvc GUIDs for the new pixel formats,
+>> adding new V4L pixel format definition to user api headers,
+>> and updating the uvc driver GUID-to-4cc tables with the new formats.
+>>
+>> Change-Id: If240d95a7d4edc8dcc3e02d58cd8267a6bbf6fcb
+>>
+>> Tested-by: Greenberg, Aviv D <aviv.d.greenberg@intel.com>
+>> Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>>  drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+>>  drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+>>  include/uapi/linux/videodev2.h     |  3 +++
+>>  3 files changed, 35 insertions(+)
+>>
+>> ---
+>>
+>> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=120c41d3477a23c6941059401db63677736f1935
+>
+> <snip>
+>
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index bd2dc9431ac1..0014529606e2 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -621,6 +621,9 @@ struct v4l2_pix_format {
+>>  #define V4L2_PIX_FMT_JPGL    v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
+>>  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>>  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+>> +#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+>> +#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+>> +#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+>>
+>>  /* SDR formats - used only for Software Defined Radio devices */
+>>  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+>
+> I'm a bit surprised that this got accepted since there is no documentation for these new formats.
+> Building the DocBook should fail because of that.
+>
+> Aviv, can you make a patch adding documentation for these new formats? If people don't know
+> what the format looks like, then it will be really hard to use :-)
+
+Sure. We can provide a patch with basic documentation for these formats.
+
+>
+> Regards,
+>
+>         Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 -- 
-2.4.10
-
+Thanks,
+Aviv
