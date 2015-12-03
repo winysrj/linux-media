@@ -1,113 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39115 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029AbbLNBgm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 20:36:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] libmediactl.c: add poor man's udev support
-Date: Sun, 13 Dec 2015 21:29:32 +0200
-Message-ID: <2326047.llhSbUSKD9@avalon>
-In-Reply-To: <5669579B.8050706@xs4all.nl>
-References: <5669579B.8050706@xs4all.nl>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:33812 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbbLCRXo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 12:23:44 -0500
+Received: by oba1 with SMTP id 1so13966622oba.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 09:23:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
+References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
+	<CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
+	<CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
+Date: Thu, 3 Dec 2015 17:23:43 +0000
+Message-ID: <CAOS+5GFApYMJn68T97N_-MOWd=kTxn3XN5VoH1GbzLCxFrZHtA@mail.gmail.com>
+Subject: Re: Dear TV card experts - I need you help
+From: Another Sillyname <anothersname@googlemail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+It occurs to me that someone who is so cavalier with not paying legal
+royalties would be pretty unlikely to pay bills for the advice and
+support.
 
-Thank you for the patch.
-
-On Thursday 10 December 2015 11:44:43 Hans Verkuil wrote:
-> If libudev is not available (android!),
-
-It's time for Android to grow up and get rid of their LGPL hatred... That 
-might actually happen as a result of the Chrome/Android merge that seems to be 
-planned, as well as from the Android One project that will require something 
-like libudev (although knowing the Android folks they might decide to 
-reimplement it).
-
-> then just try to find the device in /dev. It's a poor man's solution, but it
-> is better than nothing.
-
-Can't we assume that, on such systems, the device will always be named 
-/dev/video* or /dev/v4l-subdev* ? If so we could lower the runtime impact by 
-only checking the /sys/class/video4linux/video* and 
-/sys/class/video4linux/v4l-subdev* entries to match the device minor and 
-major, and use the index from the sysfs entry to create the /dev path.
-
-My enumeration library (which I need to revive) implements that, feel free to 
-use the code if it can be useful.
-
-git://git.ideasonboard.org/media-enum.git
-
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-> index 4a82d24..1577783 100644
-> --- a/utils/media-ctl/libmediactl.c
-> +++ b/utils/media-ctl/libmediactl.c
-> @@ -441,7 +441,10 @@ static int media_get_devname_udev(struct udev *udev,
->  	return ret;
->  }
-> 
-> -#else	/* HAVE_LIBUDEV */
-> +#else
-> +
-> +#include <dirent.h>
-> +#include <sys/stat.h>
-> 
->  struct udev;
-> 
-> @@ -449,10 +452,36 @@ static inline int media_udev_open(struct udev **udev)
-> { return 0; }
-> 
->  static inline void media_udev_close(struct udev *udev) { }
-> 
-> -static inline int media_get_devname_udev(struct udev *udev,
-> -		struct media_entity *entity)
-> +static int media_get_devname_udev(struct udev *udev,
-> +				  struct media_entity *entity)
->  {
-> -	return -ENOTSUP;
-> +	DIR *dp;
-> +	struct dirent *ep;
-> +	dev_t devnum;
-> +
-> +	dp = opendir("/dev");
-> +	if (dp == NULL) {
-> +		media_dbg(entity->media, "couldn't open /dev\n");
-> +		return -ENODEV;
-> +	}
-> +	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
-> +	while ((ep = readdir(dp))) {
-> +		struct stat st;
-> +		char fname[256];
-> +
-> +		snprintf(fname, sizeof(fname) - 1, "/dev/%s", ep->d_name);
-> +		fname[sizeof(fname) - 1] = 0;
-> +		stat(fname, &st);
-> +		if ((st.st_mode & S_IFMT) != S_IFCHR)
-> +			continue;
-> +		if (st.st_rdev == devnum) {
-> +			strncpy(entity->devname, fname, sizeof(entity->devname));
-> +                        entity->devname[sizeof(entity->devname) - 1] =
-> '\0';
-> +			return 0;
-> +		}
-> +	}
-> +	closedir(dp);
-> +	return -ENODEV;
->  }
-> 
->  #endif	/* HAVE_LIBUDEV */
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On 3 December 2015 at 16:56, Mr Andersson <mr.andersson.001@gmail.com> wrote:
+> Steven, I appreciate your concern.
+>
+> But the legal parts are of no concern to us, and we are already aware
+> of potential legal complexities, especially in western countries, but
+> fortunately there are many other countries outside of the western
+> hemisphere. There is also plenty of internet based providers that
+> already offers this, albeit with a less than ideal quality of service.
+> So consider that a non issue for now.
+>
+> I'd like to keep this discussion on the technological aspects.
+>
+>
+>
+> On Thu, Dec 3, 2015 at 3:29 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>> (Please don't reply privately, keep all correspondence to this mailing list.)
+>>
+>>> Let me start of by presenting myself. I am a Computer Engineer and a
+>>> business man, looking to launch a service where TV channels from
+>>> primarily satellites will be made available to the public.
+>>
+>> You and 2 million other entrepreneurs, past, present and future.
+>>
+>> In most western countries, It's illegal to randomly redistribute
+>> television content unless you have specific paid-for negotiated rights
+>> with the content providers and the broadcasters. You should start by
+>> studying the law and contacting the content owners, negotiating
+>> contracts and seeking permission.
+>>
+>> Solve the legal contract / redistribution first, then the technology
+>> to make it happen is easily available.
+>>
+>> --
+>> Steven Toth - Kernel Labs
+>> http://www.kernellabs.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
