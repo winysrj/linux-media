@@ -1,112 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60655 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752038AbbLJUUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 15:20:09 -0500
-Date: Thu, 10 Dec 2015 18:20:04 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 18/18] [media] dvbdev: Don't create indirect links
-Message-ID: <20151210182004.721c4c33@recife.lan>
-In-Reply-To: <55F2F7C3.6030305@xs4all.nl>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-	<2460617268cac8bbabad0db7372914379f7c8644.1441559233.git.mchehab@osg.samsung.com>
-	<55F2F7C3.6030305@xs4all.nl>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37505 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757870AbbLCPQC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2015 10:16:02 -0500
+Subject: Re: [git:media_tree/master] [media] UVC: Add support for ds4 depth
+ camera
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greenberg@linuxtv.org, sakari.ailus@linux.intel.com
+References: <E1a4Ulw-0006sI-Qq@www.linuxtv.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56605D52.9090600@xs4all.nl>
+Date: Thu, 3 Dec 2015 16:18:42 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <E1a4Ulw-0006sI-Qq@www.linuxtv.org>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2015 17:48:19 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Mauro, Aviv,
 
-> On 09/06/2015 07:31 PM, Mauro Carvalho Chehab wrote:
-> > Indirect links are those whose the interface indirectly controls
+On 12/03/15 14:37, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
 > 
-> s/the//
+> Subject: [media] UVC: Add support for ds4 depth camera
+> Author:  Aviv Greenberg <avivgr@gmail.com>
+> Date:    Fri Oct 16 08:48:51 2015 -0300
 > 
-> > other functions.
-> > 
-> > There are two interfaces that have indirect controls at the DVB
-> > side:
-> > - the network interface, with also controls the demux;
+> Add support for Intel DS4 depth camera in uvc driver.
+> This includes adding new uvc GUIDs for the new pixel formats,
+> adding new V4L pixel format definition to user api headers,
+> and updating the uvc driver GUID-to-4cc tables with the new formats.
 > 
-> s/with/which/
+> Change-Id: If240d95a7d4edc8dcc3e02d58cd8267a6bbf6fcb
 > 
-> > - the DVR interface with also controls the demux.
+> Tested-by: Greenberg, Aviv D <aviv.d.greenberg@intel.com>
+> Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> ditto
+>  drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+>  drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+>  include/uapi/linux/videodev2.h     |  3 +++
+>  3 files changed, 35 insertions(+)
 > 
-> > 
-> > One could argue that the frontend control to the tuner is indirect.
-> > Well, that's debateable. There's no way to create subdef interfaces
+> ---
 > 
-> s/debateable/debatable/
-> s/subdef/subdev/
-> 
-> > for tuner and demod, as those devices are tightly coupled. So, it
-> > was decided that just one interface is the best to control both
-> > entities, and there's no plan (or easy way) to decouple both. So,
-> > the DVB frontend interface should link to both entities.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> With the typos fixed:
-> 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=120c41d3477a23c6941059401db63677736f1935
 
-Fixed, thanks.
+<snip>
 
-> 
-> Note: I am not convinced that the dvr->demux indirect link isn't needed, but
-> it can be enabled later, so it's OK for me to keep it under #if 0 for now.
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index bd2dc9431ac1..0014529606e2 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -621,6 +621,9 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
+>  #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+>  #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+> +#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+> +#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+> +#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+>  
+>  /* SDR formats - used only for Software Defined Radio devices */
+>  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 
-Yeah, I'm also not convinced if it would be worth to represent 
-indirect links. That's why I opted to comment, instead of striping them.
+I'm a bit surprised that this got accepted since there is no documentation for these new formats.
+Building the DocBook should fail because of that.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> > index ea76fe54e0e4..e9f24c1479dd 100644
-> > --- a/drivers/media/dvb-core/dvbdev.c
-> > +++ b/drivers/media/dvb-core/dvbdev.c
-> > @@ -619,7 +619,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
-> >  		}
-> >  	}
-> >  
-> > -	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca */
-> > +	/* Create interface links for FE->tuner, DVR->demux and CA->ca */
-> >  	media_device_for_each_intf(intf, mdev) {
-> >  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca) {
-> >  			link = media_create_intf_link(ca, intf,
-> > @@ -634,13 +634,19 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
-> >  			if (!link)
-> >  				return -ENOMEM;
-> >  		}
-> > -
-> > +#if 0
-> > +		/*
-> > +		 * Indirect link - let's not create yet, as we don't know how
-> > +		 *		   to handle indirect links, nor if this will
-> > +		 *		   actually be needed.
-> > +		 */
-> >  		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux) {
-> >  			link = media_create_intf_link(demux, intf,
-> >  						      MEDIA_LNK_FL_ENABLED);
-> >  			if (!link)
-> >  				return -ENOMEM;
-> >  		}
-> > +#endif
-> >  		if (intf->type == MEDIA_INTF_T_DVB_DVR) {
-> >  			ret = dvb_create_io_intf_links(adap, intf, DVR_TSOUT);
-> >  			if (ret)
-> > 
-> 
-> 
+Aviv, can you make a patch adding documentation for these new formats? If people don't know
+what the format looks like, then it will be really hard to use :-)
+
+Regards,
+
+	Hans
