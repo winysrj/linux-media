@@ -1,88 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56326 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753803AbbLFCdo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:33:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] [media] smiapp: create pad links after subdev registration
-Date: Sun, 06 Dec 2015 04:33:57 +0200
-Message-ID: <1752289.9imvS5bF0M@avalon>
-In-Reply-To: <1441296036-20727-6-git-send-email-javier@osg.samsung.com>
-References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com> <1441296036-20727-6-git-send-email-javier@osg.samsung.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:55404 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753428AbbLCULd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Dec 2015 15:11:33 -0500
+Subject: Re: [PATCH 07/10] si2165: Fix DVB-T bandwidth default
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1447963442-9764-1-git-send-email-zzam@gentoo.org>
+ <1447963442-9764-8-git-send-email-zzam@gentoo.org>
+ <20151203121524.33bd3130@recife.lan>
+Cc: linux-media@vger.kernel.org, crope@iki.fi, xpert-reactos@gmx.de
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <5660A1DC.8050701@gentoo.org>
+Date: Thu, 3 Dec 2015 21:11:08 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20151203121524.33bd3130@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-Thank you for the patch.
-
-On Thursday 03 September 2015 18:00:36 Javier Martinez Canillas wrote:
-> The smiapp driver creates the pads links before the media entity is
-> registered with the media device. This doesn't work now that object
-> IDs are used to create links so the media_device has to be set.
+Am 03.12.2015 um 15:15 schrieb Mauro Carvalho Chehab:
+> Em Thu, 19 Nov 2015 21:03:59 +0100
+> Matthias Schwarzott <zzam@gentoo.org> escreveu:
 > 
-> Move entity registration logic before pads links creation.
 > 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Please, add a description to your patches.
+> 
+> That's said, this patch should be called, instead:
+> 
+> si2165: Fix DVB-T bandwidth auto
+> 
+> DVB auto bandwidth mode (bandwidth_hz == 0) logic was setting
+> the initial value for dvb_rate to a wrong value. Fix it.
+> 
+> as a zero value here means to let the frontend to auto-detect
+> the bandwidth. Of course, assuming that si2165 is capable of
+> doing that.
+> 
+> If si2165 chip or driver doesn't support bandwidth auto-detection, it
+> should, instead, return -EINVAL.
+> 
+> Are you sure that it will auto-detect the bandwidth if we keep it
+> as 8MHz?
+> 
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks for the feedback.
+As far as I know si2165 does not support auto-detection of bandwidth.
 
-> ---
-> 
->  drivers/media/i2c/smiapp/smiapp-core.c | 20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 5aa49eb393a9..938201789ebc
-> 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2495,23 +2495,23 @@ static int smiapp_register_subdevs(struct
-> smiapp_sensor *sensor) return rval;
->  		}
-> 
-> -		rval = media_create_pad_link(&this->sd.entity,
-> -						this->source_pad,
-> -						&last->sd.entity,
-> -						last->sink_pad,
-> -						MEDIA_LNK_FL_ENABLED |
-> -						MEDIA_LNK_FL_IMMUTABLE);
-> +		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-> +						   &this->sd);
->  		if (rval) {
->  			dev_err(&client->dev,
-> -				"media_create_pad_link failed\n");
-> +				"v4l2_device_register_subdev failed\n");
->  			return rval;
->  		}
-> 
-> -		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-> -						   &this->sd);
-> +		rval = media_create_pad_link(&this->sd.entity,
-> +					     this->source_pad,
-> +					     &last->sd.entity,
-> +					     last->sink_pad,
-> +					     MEDIA_LNK_FL_ENABLED |
-> +					     MEDIA_LNK_FL_IMMUTABLE);
->  		if (rval) {
->  			dev_err(&client->dev,
-> -				"v4l2_device_register_subdev failed\n");
-> +				"media_create_pad_link failed\n");
->  			return rval;
->  		}
->  	}
+I only have 8MHz channels available I tried what happens when
+configuring other bandwidth values - it will not lock.
 
--- 
-Regards,
+So I will resend the modified the patch.
 
-Laurent Pinchart
+Regards
+Matthias
 
