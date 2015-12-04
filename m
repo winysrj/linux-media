@@ -1,129 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39107 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289AbbLLNug convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47838 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754753AbbLDWul (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 08:50:36 -0500
-Date: Sat, 12 Dec 2015 11:50:25 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 0/3] [media] Fix race between graph enumeration and
- entities registration
-Message-ID: <20151212115025.06e54516@recife.lan>
-In-Reply-To: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
-References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
+	Fri, 4 Dec 2015 17:50:41 -0500
+In-Reply-To: <1449266748-22317-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1449266748-22317-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: [PATCH] vivid: Add support for the dma-contig memory allocator
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Fri, 04 Dec 2015 23:50:31 +0100
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Message-ID: <6E4D785C-6536-400C-8665-DC42B97E9265@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Dec 2015 19:57:06 -0300
-Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+On December 4, 2015 11:05:48 PM GMT+01:00, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>To test buffer sharing with devices that require contiguous memory
+>buffers the dma-contig allocator is required. Support it and make the
+>allocator selectable through a module parameter. Support for the two
+>memory allocators can also be individually selected at compile-time to
+>avoid bloating the kernel with an unneeded allocator.
+>
+>Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>---
+> drivers/media/platform/vivid/Kconfig         | 21 ++++++++++++-
+>drivers/media/platform/vivid/vivid-core.c    | 44
+>++++++++++++++++++++++++----
+> drivers/media/platform/vivid/vivid-core.h    |  1 +
+> drivers/media/platform/vivid/vivid-sdr-cap.c |  3 ++
+> drivers/media/platform/vivid/vivid-vbi-cap.c |  2 ++
+> drivers/media/platform/vivid/vivid-vbi-out.c |  1 +
+> drivers/media/platform/vivid/vivid-vid-cap.c |  9 ++----
+> drivers/media/platform/vivid/vivid-vid-out.c |  9 ++----
+> 8 files changed, 72 insertions(+), 18 deletions(-)
+>
+>diff --git a/drivers/media/platform/vivid/Kconfig
+>b/drivers/media/platform/vivid/Kconfig
+>index 0885e93ad436..ddfec721c08c 100644
+>--- a/drivers/media/platform/vivid/Kconfig
+>+++ b/drivers/media/platform/vivid/Kconfig
+>@@ -6,7 +6,7 @@ config VIDEO_VIVID
+> 	select FB_CFB_FILLRECT
+> 	select FB_CFB_COPYAREA
+> 	select FB_CFB_IMAGEBLIT
+>-	select VIDEOBUF2_VMALLOC
+>+	select VIDEO_VIVID_MEM_VMALLOC if !VIDEO_VIVID_MEM_DMA_CONTIG
+> 	default n
+> 	---help---
+> 	  Enables a virtual video driver. This driver emulates a webcam,
+>@@ -28,3 +28,22 @@ config VIDEO_VIVID_MAX_DEVS
+> 	---help---
+> 	  This allows you to specify the maximum number of devices supported
+> 	  by the vivid driver.
+>+
+>+config VIDEO_VIVID_MEM_DMA_CONTIG
+>+	bool "Enable DMA-CONTIG Memory Type"
+>+	depends on VIDEO_VIVID
+>+	select VIDEOBUF2_DMA_CONTIG
+>+	default n
+>+	---help---
+>+	  Enable support for the DMA-CONTIG videobuf2 memory allocator. Say Y
+>+	  here if you want to test buffer sharing with devices that require
+>+	  contiguous memory buffers. When in doubt, say N.
+>+
+>+config VIDEO_VIVID_MEM_VMALLOC
+>+	bool "Enable VMALLOC Memory Type"
+>+	depends on VIDEO_VIVID
+>+	select VIDEOBUF2_VMALLOC
+>+	default y
+>+	---help---
+>+	  Enable support for the VMALLOC videobuf2 memory allocator. This is
+>the
+>+	  default memory allocator for the vivid driver. When in doubt, say
+>Y.
+>diff --git a/drivers/media/platform/vivid/vivid-core.c
+>b/drivers/media/platform/vivid/vivid-core.c
+>index f57ff1101e74..d526144151fc 100644
+>--- a/drivers/media/platform/vivid/vivid-core.c
+>+++ b/drivers/media/platform/vivid/vivid-core.c
+>@@ -29,6 +29,7 @@
+> #include <linux/platform_device.h>
+> #include <linux/videodev2.h>
+> #include <linux/v4l2-dv-timings.h>
+>+#include <media/videobuf2-dma-contig.h>
+> #include <media/videobuf2-vmalloc.h>
+> #include <media/v4l2-dv-timings.h>
+> #include <media/v4l2-ioctl.h>
+>@@ -150,6 +151,16 @@ static bool no_error_inj;
+> module_param(no_error_inj, bool, 0444);
+>MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting
+>controls");
+> 
+>+enum memory_type {
+>+	VIVID_MEM_VMALLOC,
+>+	VIVID_MEM_DMA_CONTIG,
+>+};
+>+
+>+static unsigned memory_type;
+>+module_param(memory_type, uint, 0444);
+>+MODULE_PARM_DESC(memory_type, " memory type, default is vmalloc,\n"
+>+			      "\t\t    0 == vmalloc, 1 == dma-contig");
+>+
+> static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
+> 
+> const struct v4l2_rect vivid_min_rect = {
+>@@ -634,6 +645,10 @@ static void vivid_dev_release(struct v4l2_device
+>*v4l2_dev)
+> {
+>	struct vivid_dev *dev = container_of(v4l2_dev, struct vivid_dev,
+>v4l2_dev);
+> 
+>+	if (memory_type == VIVID_MEM_DMA_CONTIG &&
+>+	    IS_ENABLED(CONFIG_VIDEO_VIVID_DMA_CONTIG))
+>+		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+>+
+> 	vivid_free_controls(dev);
+> 	v4l2_device_unregister(&dev->v4l2_dev);
+> 	vfree(dev->scaled_line);
+>@@ -659,6 +674,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 	struct vivid_dev *dev;
+> 	struct video_device *vfd;
+> 	struct vb2_queue *q;
+>+	const struct vb2_mem_ops *vb2_memops;
+> 	unsigned node_type = node_types[inst];
+> 	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
+> 	int ret;
+>@@ -1026,6 +1042,24 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 	INIT_LIST_HEAD(&dev->sdr_cap_active);
+> 
+> 	/* start creating the vb2 queues */
+>+	if (memory_type == VIVID_MEM_DMA_CONTIG &&
+>+	    IS_ENABLED(CONFIG_VIDEO_VIVID_DMA_CONTIG)) {
+>+		ret = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
+>+		if (ret)
+>+			goto unreg_dev;
+>+
+>+		vb2_memops = &vb2_dma_contig_memops;
+>+		dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+>+	} else if (memory_type == VIVID_MEM_VMALLOC &&
+>+		   IS_ENABLED(CONFIG_VIDEO_VIVID_VMALLOC)) {
+>+		vb2_memops = &vb2_vmalloc_memops;
+>+	} else {
+>+		dev_err(&pdev->dev, "unsupported memory type %u\n",
+>+			memory_type);
+>+		ret = -EINVAL;
+>+		goto unreg_dev;
+>+	}
+>+
+> 	if (dev->has_vid_cap) {
+> 		/* initialize vid_cap queue */
+> 		q = &dev->vb_vid_cap_q;
+>@@ -1035,7 +1069,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 		q->drv_priv = dev;
+> 		q->buf_struct_size = sizeof(struct vivid_buffer);
+> 		q->ops = &vivid_vid_cap_qops;
+>-		q->mem_ops = &vb2_vmalloc_memops;
+>+		q->mem_ops = vb2_memops;
+> 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> 		q->min_buffers_needed = 2;
+> 		q->lock = &dev->mutex;
+>@@ -1054,7 +1088,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 		q->drv_priv = dev;
+> 		q->buf_struct_size = sizeof(struct vivid_buffer);
+> 		q->ops = &vivid_vid_out_qops;
+>-		q->mem_ops = &vb2_vmalloc_memops;
+>+		q->mem_ops = vb2_memops;
+> 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> 		q->min_buffers_needed = 2;
+> 		q->lock = &dev->mutex;
+>@@ -1073,7 +1107,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 		q->drv_priv = dev;
+> 		q->buf_struct_size = sizeof(struct vivid_buffer);
+> 		q->ops = &vivid_vbi_cap_qops;
+>-		q->mem_ops = &vb2_vmalloc_memops;
+>+		q->mem_ops = vb2_memops;
+> 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> 		q->min_buffers_needed = 2;
+> 		q->lock = &dev->mutex;
+>@@ -1092,7 +1126,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 		q->drv_priv = dev;
+> 		q->buf_struct_size = sizeof(struct vivid_buffer);
+> 		q->ops = &vivid_vbi_out_qops;
+>-		q->mem_ops = &vb2_vmalloc_memops;
+>+		q->mem_ops = vb2_memops;
+> 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> 		q->min_buffers_needed = 2;
+> 		q->lock = &dev->mutex;
+>@@ -1110,7 +1144,7 @@ static int vivid_create_instance(struct
+>platform_device *pdev, int inst)
+> 		q->drv_priv = dev;
+> 		q->buf_struct_size = sizeof(struct vivid_buffer);
+> 		q->ops = &vivid_sdr_cap_qops;
+>-		q->mem_ops = &vb2_vmalloc_memops;
+>+		q->mem_ops = vb2_memops;
+> 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> 		q->min_buffers_needed = 8;
+> 		q->lock = &dev->mutex;
+>diff --git a/drivers/media/platform/vivid/vivid-core.h
+>b/drivers/media/platform/vivid/vivid-core.h
+>index 55b304a705d5..22be49c5d5eb 100644
+>--- a/drivers/media/platform/vivid/vivid-core.h
+>+++ b/drivers/media/platform/vivid/vivid-core.h
+>@@ -157,6 +157,7 @@ struct vivid_dev {
+> 	struct v4l2_ctrl_handler	ctrl_hdl_sdr_cap;
+> 	spinlock_t			slock;
+> 	struct mutex			mutex;
+>+	void				*alloc_ctx;
+> 
+> 	/* capabilities */
+> 	u32				vid_cap_caps;
+>diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c
+>b/drivers/media/platform/vivid/vivid-sdr-cap.c
+>index 082c401764ce..595501d96550 100644
+>--- a/drivers/media/platform/vivid/vivid-sdr-cap.c
+>+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
+>@@ -217,9 +217,12 @@ static int sdr_cap_queue_setup(struct vb2_queue
+>*vq, const void *parg,
+> 		       unsigned *nbuffers, unsigned *nplanes,
+> 		       unsigned sizes[], void *alloc_ctxs[])
+> {
+>+	struct vivid_dev *dev = vb2_get_drv_priv(vq);
+>+
+> 	/* 2 = max 16-bit sample returned */
+> 	sizes[0] = SDR_CAP_SAMPLES_PER_BUF * 2;
+> 	*nplanes = 1;
+>+	alloc_ctxs[0] = dev->alloc_ctx;
+> 	return 0;
+> }
+> 
+>diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c
+>b/drivers/media/platform/vivid/vivid-vbi-cap.c
+>index e903d023e9df..afb880fb7d5f 100644
+>--- a/drivers/media/platform/vivid/vivid-vbi-cap.c
+>+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
+>@@ -156,6 +156,8 @@ static int vbi_cap_queue_setup(struct vb2_queue
+>*vq, const void *parg,
+> 		*nbuffers = 2 - vq->num_buffers;
+> 
+> 	*nplanes = 1;
+>+	alloc_ctxs[0] = dev->alloc_ctx;
+>+
+> 	return 0;
+> }
+> 
+>diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c
+>b/drivers/media/platform/vivid/vivid-vbi-out.c
+>index 75c5709f938e..8ff5a41b9a0f 100644
+>--- a/drivers/media/platform/vivid/vivid-vbi-out.c
+>+++ b/drivers/media/platform/vivid/vivid-vbi-out.c
+>@@ -46,6 +46,7 @@ static int vbi_out_queue_setup(struct vb2_queue *vq,
+>const void *parg,
+> 		*nbuffers = 2 - vq->num_buffers;
+> 
+> 	*nplanes = 1;
+>+	alloc_ctxs[0] = dev->alloc_ctx;
+> 	return 0;
+> }
+> 
+>diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c
+>b/drivers/media/platform/vivid/vivid-vid-cap.c
+>index d9cb609b7381..305cf1b8b141 100644
+>--- a/drivers/media/platform/vivid/vivid-vid-cap.c
+>+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
+>@@ -156,14 +156,11 @@ static int vid_cap_queue_setup(struct vb2_queue
+>*vq, const void *parg,
+> 
+> 	*nplanes = buffers;
+> 
+>-	/*
+>-	 * videobuf2-vmalloc allocator is context-less so no need to set
+>-	 * alloc_ctxs array.
+>-	 */
+>-
+> 	dprintk(dev, 1, "%s: count=%d\n", __func__, *nbuffers);
+>-	for (p = 0; p < buffers; p++)
+>+	for (p = 0; p < buffers; p++) {
+>+		alloc_ctxs[p] = dev->alloc_ctx;
+> 		dprintk(dev, 1, "%s: size[%u]=%u\n", __func__, p, sizes[p]);
+>+	}
+> 
+> 	return 0;
+> }
+>diff --git a/drivers/media/platform/vivid/vivid-vid-out.c
+>b/drivers/media/platform/vivid/vivid-vid-out.c
+>index b77acb6a7013..36eb2a3c8c55 100644
+>--- a/drivers/media/platform/vivid/vivid-vid-out.c
+>+++ b/drivers/media/platform/vivid/vivid-vid-out.c
+>@@ -97,14 +97,11 @@ static int vid_out_queue_setup(struct vb2_queue
+>*vq, const void *parg,
+> 
+> 	*nplanes = planes;
+> 
+>-	/*
+>-	 * videobuf2-vmalloc allocator is context-less so no need to set
+>-	 * alloc_ctxs array.
+>-	 */
+>-
+> 	dprintk(dev, 1, "%s: count=%d\n", __func__, *nbuffers);
+>-	for (p = 0; p < planes; p++)
+>+	for (p = 0; p < planes; p++) {
+>+		alloc_ctxs[p] = dev->alloc_ctx;
+> 		dprintk(dev, 1, "%s: size[%u]=%u\n", __func__, p, sizes[p]);
+>+	}
+> 	return 0;
+> }
+> 
 
-> Hello,
-> 
-> This series fixes the issue of media device nodes being registered before
-> all the media entities and pads links are created so if user-space tries
-> to enumerate the graph too early, it may get a partial graph enumeration
-> since everything may not been registered yet.
-> 
-> The solution (suggested by Sakari Ailus) is to separate the media device
-> registration from the initialization so drivers can first initialize the
-> media device, create the graph and then finally register the media device
-> node once is finished.
-> 
-> This is the fifth version of the series and is a rebase on top of latest
-> MC next gen and the only important change is the addition of patch 3/3.
-> 
-> Patch #1 adds a check to the media_device_unregister() function to know if
-> the media device has been registed yet so calling it will be safe and the
-> cleanup functions of the drivers won't need to be changed in case register
-> failed.
-> 
-> Patch #2 does the init and registration split, changing all the drivers to
-> make the change atomic and also adds a cleanup function for media devices.
-> 
-> Patch #3 sets a topology version 0 at media device registration to allow
-> user-space to know that the graph is "static" (i.e: no graph updates after
-> the media device was registered).
+Apologies for top posting, I'm sending this from my Android phone.
 
-Got some troubles when compiling those patches:
+Laurent, did you test this on a regular pc? I've tried this before, but failed since I couldn't make it work on a pc. I didn't spend a huge amount of time on it,  though. 
 
-drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_init’:
-drivers/media/usb/dvb-usb/dvb-usb-dvb.c:104:6: warning: unused variable ‘ret’ [-Wunused-variable]
-  int ret;
-      ^
-drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_register’:
-drivers/media/usb/dvb-usb/dvb-usb-dvb.c:129:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
-  media_device_register(adap->dvb_adap.mdev);
-  ^
+Just want to make sure that this case is covered. 
 
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_init’:
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:409:6: warning: unused variable ‘ret’ [-Wunused-variable]
-  int ret;
-      ^
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_adapter_frontend_init’:
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:706:34: warning: passing argument 1 of ‘dvb_usbv2_media_device_register’ from incompatible pointer type [-Wincompatible-pointer-types]
-  dvb_usbv2_media_device_register(&adap->dvb_adap);
-                                  ^
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:432:13: note: expected ‘struct dvb_usb_adapter *’ but argument is of type ‘struct dvb_adapter *’
- static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
-             ^
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_register’:
-drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:435:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
-  media_device_register(adap->dvb_adap.mdev);
+Regards, 
+Hans 
 
-
-> 
-> Best regards,
-> Javier
-> 
-> Changes in v5:
-> - Add kernel-doc for media_device_init() and media_device_register().
-> 
-> Changes in v4:
-> - Remove the model check from BUG_ON() since shold not be fatal.
->   Suggested by Sakari Ailus.
-> 
-> Changes in v3:
-> - Replace the WARN_ON() in media_device_init() for a BUG_ON().
->   Suggested by Sakari Ailus.
-> 
-> Changes in v2:
-> - Reword the documentation for media_device_unregister(). Suggested by Sakari.
-> - Added Sakari's Acked-by tag for patch #1.
-> - Reword the documentation for media_device_unregister(). Suggested by Sakari.
-> - Added Sakari's Acked-by tag for patch #1.
-> - Change media_device_init() to return void instead of an error.
->   Suggested by Sakari Ailus.
-> - Remove the error messages when media_device_register() fails.
->   Suggested by Sakari Ailus.
-> - Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
-> 
-> Javier Martinez Canillas (3):
->   [media] media-device: check before unregister if mdev was registered
->   [media] media-device: split media initialization and registration
->   [media] media-device: set topology version 0 at media registration
-> 
->  drivers/media/common/siano/smsdvb-main.c      |  1 +
->  drivers/media/media-device.c                  | 46 +++++++++++++++++++++++----
->  drivers/media/platform/exynos4-is/media-dev.c | 15 ++++-----
->  drivers/media/platform/omap3isp/isp.c         | 14 ++++----
->  drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++---
->  drivers/media/platform/vsp1/vsp1_drv.c        | 12 +++----
->  drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++----
->  drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++--------
->  drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 ++++++++---------
->  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 ++++++++------
->  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++------
->  drivers/media/usb/siano/smsusb.c              |  5 +--
->  drivers/media/usb/uvc/uvc_driver.c            | 10 ++++--
->  include/media/media-device.h                  | 26 +++++++++++++++
->  14 files changed, 165 insertions(+), 95 deletions(-)
-> 
