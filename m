@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33887 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531AbbLHMjM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 07:39:12 -0500
-Received: by lbbcs9 with SMTP id cs9so10254833lbb.1
-        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2015 04:39:10 -0800 (PST)
-Subject: Re: [PATCH] rcar_jpu: add fallback compatibility string
-To: Simon Horman <horms+renesas@verge.net.au>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1449553349-20458-1-git-send-email-horms+renesas@verge.net.au>
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-sh@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <5666CF6D.70802@cogentembedded.com>
-Date: Tue, 8 Dec 2015 15:39:09 +0300
-MIME-Version: 1.0
-In-Reply-To: <1449553349-20458-1-git-send-email-horms+renesas@verge.net.au>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:34440 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751183AbbLDMqb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 07:46:31 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>
+Subject: [PATCH 2/4] WHENCE: use https://linuxtv.org for LinuxTV URLs
+Date: Fri,  4 Dec 2015 10:46:21 -0200
+Message-Id: <e9a73f67222e49579154d3b8cb3ae71aa7898d94.1449232861.git.mchehab@osg.samsung.com>
+In-Reply-To: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
+References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
+In-Reply-To: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
+References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+While https was always supported on linuxtv.org, only in
+Dec 3 2015 the website is using valid certificates.
 
-On 12/8/2015 8:42 AM, Simon Horman wrote:
+As we're planning to drop pure http support on some
+future, change the http://linuxtv.org references at firmware/WHENCE
+file to point to https://linuxtv.org instead.
 
-> Add fallback compatibility string.
-> This is in keeping with the fallback scheme being adopted wherever
-> appropriate for drivers for Renesas SoCs.
->
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> ---
->   Documentation/devicetree/bindings/media/renesas,jpu.txt | 13 +++++++------
->   drivers/media/platform/rcar_jpu.c                       |  1 +
->   2 files changed, 8 insertions(+), 6 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> index 0cb94201bf92..c96de75f0089 100644
-> --- a/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> +++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
-> @@ -5,11 +5,12 @@ and decoding function conforming to the JPEG baseline process, so that the JPU
->   can encode image data and decode JPEG data quickly.
->
->   Required properties:
-> -  - compatible: should containg one of the following:
-> -			- "renesas,jpu-r8a7790" for R-Car H2
-> -			- "renesas,jpu-r8a7791" for R-Car M2-W
-> -			- "renesas,jpu-r8a7792" for R-Car V2H
-> -			- "renesas,jpu-r8a7793" for R-Car M2-N
-> +- compatible: "renesas,jpu-<soctype>", "renesas,jpu" as fallback.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ firmware/WHENCE | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    Not "renesas,rcar[-gen2]-jpu"?
+diff --git a/firmware/WHENCE b/firmware/WHENCE
+index 0c4d96dee9b6..de6f22e008f1 100644
+--- a/firmware/WHENCE
++++ b/firmware/WHENCE
+@@ -677,7 +677,7 @@ File: av7110/bootcode.bin
+ 
+ Licence: GPLv2 or later
+ 
+-ARM assembly source code available at http://www.linuxtv.org/downloads/firmware/Boot.S
++ARM assembly source code available at https://linuxtv.org/downloads/firmware/Boot.S
+ 
+ --------------------------------------------------------------------------
+ 
+-- 
+2.5.0
 
-[...]
-
-MBR, Sergei
 
