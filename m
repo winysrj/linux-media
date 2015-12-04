@@ -1,222 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56346 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626AbbLFCuw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:50:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-sh@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/5] [media] v4l: vsp1: separate links creation from entities init
-Date: Sun, 06 Dec 2015 04:51:04 +0200
-Message-ID: <7559062.XA9lTlmQ7K@avalon>
-In-Reply-To: <1441296036-20727-4-git-send-email-javier@osg.samsung.com>
-References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com> <1441296036-20727-4-git-send-email-javier@osg.samsung.com>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:35655 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117AbbLDQf4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 11:35:56 -0500
+Received: by lbbed20 with SMTP id ed20so9299820lbb.2
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2015 08:35:55 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56619977.8070905@southpole.se>
+References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
+	<56619977.8070905@southpole.se>
+Date: Fri, 4 Dec 2015 17:35:54 +0100
+Message-ID: <CAAhQ-nDeF28mrCgZfOn+gD1053vubzorjwYmrU-cTbUMmXfWyw@mail.gmail.com>
+Subject: Re: Dear TV card experts - I need you help
+From: Mr Andersson <mr.andersson.001@gmail.com>
+To: Benjamin Larsson <benjamin@southpole.se>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Benjamin,
 
-Thank you for the patch.
+Thanks for your answer. Jag uppskattar din hjälp ;)
 
-On Thursday 03 September 2015 18:00:34 Javier Martinez Canillas wrote:
-> The vsp1 driver initializes the entities and creates the pads links
-> before the entities are registered with the media device. This doesn't
-> work now that object IDs are used to create links so the media_device
-> has to be set.
-> 
-> Split out the pads links creation from the entity initialization so are
-> made after the entities registration.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> ---
-> 
->  drivers/media/platform/vsp1/vsp1_drv.c  | 14 ++++++++++--
->  drivers/media/platform/vsp1/vsp1_rpf.c  | 29 ++++++++++++++++--------
->  drivers/media/platform/vsp1/vsp1_rwpf.h |  5 +++++
->  drivers/media/platform/vsp1/vsp1_wpf.c  | 40 +++++++++++++++++-------------
->  4 files changed, 62 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
-> b/drivers/media/platform/vsp1/vsp1_drv.c index 2aa427d3ff39..8f995d267646
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -260,9 +260,19 @@ static int vsp1_create_entities(struct vsp1_device
-> *vsp1)
-> 
->  	/* Create links. */
->  	list_for_each_entry(entity, &vsp1->entities, list_dev) {
-> -		if (entity->type == VSP1_ENTITY_LIF ||
-> -		    entity->type == VSP1_ENTITY_RPF)
-> +		if (entity->type == VSP1_ENTITY_LIF) {
-> +			ret = vsp1_wpf_create_pads_links(vsp1, entity);
+So 50 USD per mux. And I could simultaneously record up to  4 channels
+per mux ? Is that satellite dependant?
 
-Could you please s/pads_links/links/ ? There's no other type of links handled 
-by the driver.
+Could you give me an example of high quality/value cards I should look at first?
 
-> +			if (ret < 0)
-> +				goto done;
-> +			continue;
+Also, what linux software would be best to use together with these
+cards? I am looking initially at just streaming the content right of,
+although we might need to hook into the stream and manipulate it.
+Later, we'd also might be interested in recording the stream as well.
 
-I would use
+Thanks!
 
-	} else if (...) {
-
-instead of a continue.
-
-> +		}
-> +
-> +		if (entity->type == VSP1_ENTITY_RPF) {
-> +			ret = vsp1_rpf_create_pads_links(vsp1, entity);
-> +			if (ret < 0)
-> +				goto done;
->  			continue;
-
-Same here.
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +		}
-> 
->  		ret = vsp1_create_links(vsp1, entity);
->  		if (ret < 0)
-> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
-> b/drivers/media/platform/vsp1/vsp1_rpf.c index b60a528a8fe8..38aebdf691b5
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-> @@ -277,18 +277,29 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device
-> *vsp1, unsigned int index)
-> 
->  	rpf->entity.video = video;
-> 
-> -	/* Connect the video device to the RPF. */
-> -	ret = media_create_pad_link(&rpf->video.video.entity, 0,
-> -				       &rpf->entity.subdev.entity,
-> -				       RWPF_PAD_SINK,
-> -				       MEDIA_LNK_FL_ENABLED |
-> -				       MEDIA_LNK_FL_IMMUTABLE);
-> -	if (ret < 0)
-> -		goto error;
-> -
->  	return rpf;
-> 
->  error:
->  	vsp1_entity_destroy(&rpf->entity);
->  	return ERR_PTR(ret);
->  }
-> +
-> +/*
-> + * vsp1_rpf_create_pads_links_create_pads_links() - RPF pads links creation
-> + * @vsp1: Pointer to VSP1 device
-> + * @entity: Pointer to VSP1 entity
-> + *
-> + * return negative error code or zero on success
-> + */
-> +int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
-> +			       struct vsp1_entity *entity)
-> +{
-> +	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
-> +
-> +	/* Connect the video device to the RPF. */
-> +	return media_create_pad_link(&rpf->video.video.entity, 0,
-> +				     &rpf->entity.subdev.entity,
-> +				     RWPF_PAD_SINK,
-> +				     MEDIA_LNK_FL_ENABLED |
-> +				     MEDIA_LNK_FL_IMMUTABLE);
-> +}
-> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
-> b/drivers/media/platform/vsp1/vsp1_rwpf.h index f452dce1a931..6638b3587369
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-> @@ -50,6 +50,11 @@ static inline struct vsp1_rwpf *to_rwpf(struct
-> v4l2_subdev *subdev) struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device
-> *vsp1, unsigned int index); struct vsp1_rwpf *vsp1_wpf_create(struct
-> vsp1_device *vsp1, unsigned int index);
-> 
-> +int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
-> +			       struct vsp1_entity *entity);
-> +int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
-> +			       struct vsp1_entity *entity);
-> +
->  int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
->  			     struct v4l2_subdev_pad_config *cfg,
->  			     struct v4l2_subdev_mbus_code_enum *code);
-> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
-> b/drivers/media/platform/vsp1/vsp1_wpf.c index d39aa4b8aea1..1be363e4f741
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
-> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-> @@ -220,7 +220,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device
-> *vsp1, unsigned int index) struct v4l2_subdev *subdev;
->  	struct vsp1_video *video;
->  	struct vsp1_rwpf *wpf;
-> -	unsigned int flags;
->  	int ret;
-> 
->  	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
-> @@ -276,20 +275,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device
-> *vsp1, unsigned int index) goto error;
-> 
->  	wpf->entity.video = video;
-> -
-> -	/* Connect the video device to the WPF. All connections are immutable
-> -	 * except for the WPF0 source link if a LIF is present.
-> -	 */
-> -	flags = MEDIA_LNK_FL_ENABLED;
-> -	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || index != 0)
-> -		flags |= MEDIA_LNK_FL_IMMUTABLE;
-> -
-> -	ret = media_create_pad_link(&wpf->entity.subdev.entity,
-> -				       RWPF_PAD_SOURCE,
-> -				       &wpf->video.video.entity, 0, flags);
-> -	if (ret < 0)
-> -		goto error;
-> -
->  	wpf->entity.sink = &wpf->video.video.entity;
-> 
->  	return wpf;
-> @@ -298,3 +283,28 @@ error:
->  	vsp1_entity_destroy(&wpf->entity);
->  	return ERR_PTR(ret);
->  }
-> +
-> +/*
-> + * vsp1_wpf_create_pads_links_create_pads_links() - RPF pads links creation
-> + * @vsp1: Pointer to VSP1 device
-> + * @entity: Pointer to VSP1 entity
-> + *
-> + * return negative error code or zero on success
-> + */
-> +int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
-> +			       struct vsp1_entity *entity)
-> +{
-> +	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
-> +	unsigned int flags;
-> +
-> +	/* Connect the video device to the WPF. All connections are immutable
-> +	 * except for the WPF0 source link if a LIF is present.
-> +	 */
-> +	flags = MEDIA_LNK_FL_ENABLED;
-> +	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || entity->index != 0)
-> +		flags |= MEDIA_LNK_FL_IMMUTABLE;
-> +
-> +	return media_create_pad_link(&wpf->entity.subdev.entity,
-> +				     RWPF_PAD_SOURCE,
-> +				     &wpf->video.video.entity, 0, flags);
-> +}
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On Fri, Dec 4, 2015 at 2:47 PM, Benjamin Larsson <benjamin@southpole.se> wrote:
+> On 12/03/2015 02:45 PM, Mr Andersson wrote:
+>>
+>> Hi,
+>>
+> [,,,]
+>>
+>>
+>> Most cards out there supports maximum 4 channels per cards. Some I've
+>> looked into costs around 200 USD per card and for 2000 channels,
+>> excluding all other hardware, that would cost around 100 000 USD.
+>>
+> [...]
+>
+> The terminology you are looking for is 4 muxes per card, not channel. One
+> mux can hold several channels. One satellite I looked at had ca 24
+> fta muxes with ca 3-4 channels per mux. So to cover this whole satellite you
+> would need 6 quad cards. If a quad card costs $200 that gives you $50 / mux
+> cost. The cheapest single mux s2 card I could find cost ca $60. So $50/mux
+> is probably what you have to pay for this component if you buy from a
+> reseller.
+>
+> MvH
+> Benjamin Larsson
