@@ -1,30 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:33925 "EHLO
-	mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755385AbbLWMzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2015 07:55:22 -0500
-Received: by mail-io0-f170.google.com with SMTP id e126so215027498ioa.1
-        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2015 04:55:22 -0800 (PST)
+Received: from mail-db3hn0253.outbound.protection.outlook.com ([157.55.234.253]:9248
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756799AbbLDWBD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 17:01:03 -0500
+Content-Type: text/plain; charset=US-ASCII
 MIME-Version: 1.0
-Date: Wed, 23 Dec 2015 14:55:21 +0200
-Message-ID: <CAJ2oMh+kZ+41eTOzLB9meaKs1sZUZtiUC0=x=Jx9bpWJZKpECA@mail.gmail.com>
-Subject: dt3155 as a reference
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: RE
+To: Recipients@vger.kernel.org
+From: SHELL@vger.kernel.org, FEDERAL@vger.kernel.org,
+	CREDIT@vger.kernel.org, UNION@vger.kernel.org
+Date: Sat, 5 Dec 2015 01:00:34 +0300
+Reply-To: <shell.loan@qq.com>
+Message-ID: <AM2PR09MB009951C1C5882855D5ADB7FCB80C0@AM2PR09MB0099.eurprd09.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Are You In Need Of A Private Or Business Loans from $10,000.00 to $10.000.000.00 At 1% Rate For Various Purposes? If Yes;
+Contact us Via Email: shell.loan@qq.com
 
-I think to use dt3155 as a reference for new pci express driver ,
-becuase it is highly simple as a starting point, and contains only
-single file :)
-The driver I'll develop will eventually be used for multiple video
-capture and single video output.
 
-I just wanted to ask if you recommend it as a starting point.
+Full Name:
+Amount Needed:
+Duration:
+Country:
+Cell No:
+Sex:
 
-Best Regards,
-Ran
+Best Regards
