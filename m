@@ -1,66 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60580 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754462AbbLPNes (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43359 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754267AbbLDQfX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:48 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 04/23] media: Move struct media_entity_graph definition up
-Date: Wed, 16 Dec 2015 15:32:19 +0200
-Message-Id: <1450272758-29446-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Fri, 4 Dec 2015 11:35:23 -0500
+Message-ID: <1449246920.3451.18.camel@pengutronix.de>
+Subject: Re: [PATCH 3/4] drm, ipu-v3: use https://linuxtv.org for LinuxTV URL
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Airlie <airlied@linux.ie>,
+	dri-devel@lists.freedesktop.org, linux-api@vger.kernel.org
+Date: Fri, 04 Dec 2015 17:35:20 +0100
+In-Reply-To: <4a3d0cb06b3e4248ba4a659d7f2a7a8fa1a877fc.1449232861.git.mchehab@osg.samsung.com>
+References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
+	 <4a3d0cb06b3e4248ba4a659d7f2a7a8fa1a877fc.1449232861.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It will be needed in struct media_pipeline shortly.
+Am Freitag, den 04.12.2015, 10:46 -0200 schrieb Mauro Carvalho Chehab:
+> While https was always supported on linuxtv.org, only in
+> Dec 3 2015 the website is using valid certificates.
+> 
+> As we're planning to drop pure http support on some
+> future, change the references at DRM include and at
+> the ipu-v3 driver to point to the https://linuxtv.org
+> URL instead.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- include/media/media-entity.h | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 70803f7..4f789a4 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -97,6 +97,16 @@ struct media_entity_enum {
- 	int idx_max;
- };
- 
-+struct media_entity_graph {
-+	struct {
-+		struct media_entity *entity;
-+		struct list_head *link;
-+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+
-+	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
-+	int top;
-+};
-+
- struct media_pipeline {
- };
- 
-@@ -441,16 +451,6 @@ static inline bool media_entity_enum_intersects(
- 				 min(ent_enum1->idx_max, ent_enum2->idx_max));
- }
- 
--struct media_entity_graph {
--	struct {
--		struct media_entity *entity;
--		struct list_head *link;
--	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
--
--	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
--	int top;
--};
--
- #define gobj_to_entity(gobj) \
- 		container_of(gobj, struct media_entity, graph_obj)
- 
--- 
-2.1.4
+regards
+Philipp
 
