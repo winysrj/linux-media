@@ -1,96 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60775 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbbLHXK6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 18:10:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
-Date: Wed, 09 Dec 2015 01:11:12 +0200
-Message-ID: <1496823.l1L2kFkYyq@avalon>
-In-Reply-To: <20151208152915.GH17128@valkosipuli.retiisi.org.uk>
-References: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com> <20151208152915.GH17128@valkosipuli.retiisi.org.uk>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56187 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755406AbbLDX1i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Dec 2015 18:27:38 -0500
+In-Reply-To: <1755984.kluJNdl6XT@avalon>
+References: <1449266748-22317-1-git-send-email-laurent.pinchart@ideasonboard.com> <6E4D785C-6536-400C-8665-DC42B97E9265@xs4all.nl> <1755984.kluJNdl6XT@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: [PATCH] vivid: Add support for the dma-contig memory allocator
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 05 Dec 2015 00:27:32 +0100
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Message-ID: <B8540E50-45B3-48B0-9268-CFA0CE6F6ABC@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On December 5, 2015 12:02:11 AM GMT+01:00, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>Hi Hans,
+>
+>On Friday 04 December 2015 23:50:31 Hans Verkuil wrote:
+>> On December 4, 2015 11:05:48 PM GMT+01:00, Laurent Pinchart wrote:
+>> > To test buffer sharing with devices that require contiguous memory
+>> > buffers the dma-contig allocator is required. Support it and make
+>the
+>> > allocator selectable through a module parameter. Support for the
+>two
+>> > memory allocators can also be individually selected at compile-time
+>to
+>> > avoid bloating the kernel with an unneeded allocator.
+>> >
+>> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> >---
+>> >
+>> > drivers/media/platform/vivid/Kconfig         | 21 ++++++++++++-
+>> > drivers/media/platform/vivid/vivid-core.c    | 44
+>++++++++++++++++++++----
+>> > drivers/media/platform/vivid/vivid-core.h    |  1 +
+>> > drivers/media/platform/vivid/vivid-sdr-cap.c |  3 ++
+>> > drivers/media/platform/vivid/vivid-vbi-cap.c |  2 ++
+>> > drivers/media/platform/vivid/vivid-vbi-out.c |  1 +
+>> > drivers/media/platform/vivid/vivid-vid-cap.c |  9 ++----
+>> > drivers/media/platform/vivid/vivid-vid-out.c |  9 ++----
+>> > 8 files changed, 72 insertions(+), 18 deletions(-)
+>
+>[snip]
+>
+>> Apologies for top posting, I'm sending this from my Android phone.
+>
+>No need to, your message was at the bottom :-)
+>
+>> Laurent, did you test this on a regular pc? I've tried this before,
+>but
+>> failed since I couldn't make it work on a pc. I didn't spend a huge
+>amount
+>> of time on it, though.
+>> 
+>> Just want to make sure that this case is covered.
+>
+>I haven't tested that, no. Let's see who from you or me will find free
+>time 
+>first (hint: it might be you :-)).
 
-On Tuesday 08 December 2015 17:29:16 Sakari Ailus wrote:
-> On Mon, Dec 07, 2015 at 10:45:39AM +0200, Laurent Pinchart wrote:
-> > From: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> > 
-> > Buffer length is needed for single plane as well, otherwise
-> > is uninitialized and behaviour is undetermined.
-> 
-> How about:
-> 
-> The v4l2_buffer length field must be passed as well from user to kernel and
-> back, otherwise uninitialised values will be used.
-> 
-> > Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Shouldn't this be submitted to stable as well?
+This http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=vivid-alloc is my previous attempt. 
 
-I'll CC stable.
+I'll likely find time to test your version, but  I won't accept it if it doesn't work on a pc. Unless there is a good explanation for why it doesn't work. But in that case it shouldn't be enabled unless it really works. 
 
-> > ---
-> > 
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
-> >  1 file changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
-> > 8fd84a67478a..b0faa1f7e3a9 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp,
-> > struct v4l2_buffer32 __user> 
-> >  				return -EFAULT;
-> >  			
-> >  			break;
-> >  		
-> >  		case V4L2_MEMORY_DMABUF:
-> > -			if (get_user(kp->m.fd, &up->m.fd))
-> > +			if (get_user(kp->m.fd, &up->m.fd) ||
-> > +			    get_user(kp->length, &up->length))
-> > 
-> >  				return -EFAULT;
-> > 
-> > +
-> > 
-> >  			break;
-> >  		
-> >  		}
-> >  	
-> >  	}
-> > 
-> > @@ -550,7 +552,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp,
-> > struct v4l2_buffer32 __user> 
-> >  				return -EFAULT;
-> >  			
-> >  			break;
-> >  		
-> >  		case V4L2_MEMORY_DMABUF:
-> > -			if (put_user(kp->m.fd, &up->m.fd))
-> > +			if (put_user(kp->m.fd, &up->m.fd) ||
-> > +			    put_user(kp->length, &up->length))
-> > 
-> >  				return -EFAULT;
-> >  			
-> >  			break;
-> >  		
-> >  		}
+Regards, 
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Hans 
