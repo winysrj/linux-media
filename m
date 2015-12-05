@@ -1,36 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f170.google.com ([209.85.213.170]:33337 "EHLO
-	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbbLJBFB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 20:05:01 -0500
-Received: by mail-ig0-f170.google.com with SMTP id mv3so5597368igc.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2015 17:05:00 -0800 (PST)
-Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
-        by smtp.gmail.com with ESMTPSA id l41sm4256706iod.34.2015.12.09.17.04.58
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Wed, 09 Dec 2015 17:04:59 -0800 (PST)
-Content-Type: text/plain; charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Subject: dtv-scan-table has two ATSC files?
-From: Maury Markowitz <maury.markowitz@gmail.com>
-In-Reply-To: <56687B09.4050004@kapsi.fi>
-Date: Wed, 9 Dec 2015 20:04:57 -0500
-Content-Transfer-Encoding: 8BIT
-Message-Id: <BF55C1DA-2E39-4ACA-92C0-4E512E10196F@gmail.com>
-References: <201512081149525312370@gmail.com> <56687B09.4050004@kapsi.fi>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:32790 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754375AbbLEK5t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 05:57:49 -0500
+MIME-Version: 1.0
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Sat, 5 Dec 2015 11:57:49 +0100
+Message-ID: <CAMuHMdW13=rftd1HOWBGcjH8aYCjyGZ0u60TkVeTif7+HFuwsQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I’m making some updates to the ATSC dtv-scan-tables. Two questions:
+Hi Laurent,
 
-1)
-Why do we have "us-ATSC-center-frequencies-8VSB” *and* "us-NTSC-center-frequencies-8VSB”? They appear to be identical. The later could, theoretically, list NTSC encoded channels instead of 8VSB, but doesn’t actually do that. Suggest removing it?
+On Sat, Dec 5, 2015 at 3:12 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> This patch set adds support for the Renesas R-Car Gen3 SoC family to the VSP1
+> driver. The large number of patches is caused by a change in the display
+> controller architecture that makes usage of the VSP mandatory as the display
+> controller has lost the ability to read data from memory.
+>
+> Patch 01/32 to 27/32 prepare for the implementation of an API exported to the
+> DRM driver in patch 28/32. Patches 31/32 enables support for the R-Car Gen3
+> family, and patch 32/32 finally enhances perfomances by implementing support
+> for display lists.
+>
+> The major change compared to v1 is the usage of the IP version register
+> instead of DT properties to configure device parameters such as the number of
+> BRU inputs or the availability of the BRU.
 
-2)
-A number of the channel listings in those files have not been used for television use for several years now. Specifically channels 2 to 6 and everything from 51 and up were long ago sold off to cell phone use.
+Thanks for your series!
 
-Additionally, channel 37 was *never* used, at least in the US and Canada, because it interfered with radio astronomy (IIRC it was sitting on one of the Lyman lines).
+As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112 is
+getting old, and has lots of conflicts with recent -next, do you plan to publish
+this in a branch, and a separate branch for integration, to ease integration
+in renesas-drivers?
 
-Since scanning through all of these channels will no longer work, perhaps it would be time to remove them? It reduces the total scan list from 80 channels to only 45, and would greatly improve scan times.
+Alternatively, I can just import the series you posted, but having the
+broken-out integration part would be nice.
+
+Thanks again!
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
