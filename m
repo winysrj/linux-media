@@ -1,108 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50027 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289AbbLTDgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2015 22:36:49 -0500
-Subject: Re: [PATCH 3/3] rtl28xxu: change Astrometa DVB-T2 to always use
- hardware pid filters
-To: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
- <1448763016-10527-3-git-send-email-benjamin@southpole.se>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <5676224F.3030803@iki.fi>
-Date: Sun, 20 Dec 2015 05:36:47 +0200
-MIME-Version: 1.0
-In-Reply-To: <1448763016-10527-3-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:36117 "EHLO
+	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751489AbbLEAAi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Dec 2015 19:00:38 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
+	chehabrafael@gmail.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH MC Next Gen] sound/usb: Fix out of bounds access in media_entity_init()
+Date: Fri,  4 Dec 2015 17:00:29 -0700
+Message-Id: <1449273629-4991-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka!
-I did some testing and I cannot see reason to force hw pid filter for 
-that device. I assume you somehow think it does not work without 
-filtering, but I think it does.
+Fix the out of bounds access in media_entity_init() found
+by KASan. This is a result of media_mixer_init() failing
+to allocate memory for all 3 of its pads before calling
+media_entity_init(). Fix it to allocate memory for the
+right struct media_mixer_ctl instead of struct media_ctl.
 
-I tested streaming with mn88472 demod DVB-C and DVB-T2 modes without 
-stream errors. DVB-T2 (live) datarate 45Mbps and DVB-C (modulator) 
-datarate 50Mbps. Maximum DVB-T2 (8MHz) datarate is 50Mbps - in a real 
-life it is bit less.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
 
-DVB-C
-1fff 19870.47 p/s 29184.8 Kbps 207966 KB
-TOT 34313.26 p/s 50397.6 Kbps 359127 KB
+This patch fixes the mixer patch below:
+https://patchwork.linuxtv.org/patch/31827/
 
-DVB-T2
-1fff 2589.99 p/s 3804.0 Kbps 21400 KB
-TOT 30346.18 p/s 44570.9 Kbps 250745 KB
+ sound/usb/media.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-So point me the reason hw PID filters need to be forced.
-
-regards
-Antti
-
-
-On 11/29/2015 04:10 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 35 ++++++++++++++++++++++++++++++++-
->   1 file changed, 34 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 5a503a6..74201ec 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1848,6 +1848,39 @@ static const struct dvb_usb_device_properties rtl28xxu_props = {
->   	},
->   };
->
-> +static const struct dvb_usb_device_properties rtl28xxp_props = {
-> +	.driver_name = KBUILD_MODNAME,
-> +	.owner = THIS_MODULE,
-> +	.adapter_nr = adapter_nr,
-> +	.size_of_priv = sizeof(struct rtl28xxu_dev),
-> +
-> +	.identify_state = rtl28xxu_identify_state,
-> +	.power_ctrl = rtl28xxu_power_ctrl,
-> +	.frontend_ctrl = rtl28xxu_frontend_ctrl,
-> +	.i2c_algo = &rtl28xxu_i2c_algo,
-> +	.read_config = rtl28xxu_read_config,
-> +	.frontend_attach = rtl28xxu_frontend_attach,
-> +	.frontend_detach = rtl28xxu_frontend_detach,
-> +	.tuner_attach = rtl28xxu_tuner_attach,
-> +	.tuner_detach = rtl28xxu_tuner_detach,
-> +	.init = rtl28xxu_init,
-> +
-> +	.get_rc_config = rtl28xxu_get_rc_config,
-> +	.num_adapters = 1,
-> +	.adapter = {
-> +		{
-> +			.caps = DVB_USB_ADAP_NEED_PID_FILTERING |
-> +				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-> +
-> +			.pid_filter_count = 32,
-> +			.pid_filter_ctrl = rtl28xxu_pid_filter_ctrl,
-> +			.pid_filter = rtl28xxu_pid_filter,
-> +
-> +			.stream = DVB_USB_STREAM_BULK(0x81, 6, 8 * 512),
-> +		},
-> +	},
-> +};
-> +
->   static const struct usb_device_id rtl28xxu_id_table[] = {
->   	/* RTL2831U devices: */
->   	{ DVB_USB_DEVICE(USB_VID_REALTEK, USB_PID_REALTEK_RTL2831U,
-> @@ -1919,7 +1952,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->
->   	/* RTL2832P devices: */
->   	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
-> -		&rtl28xxu_props, "Astrometa DVB-T2", NULL) },
-> +		&rtl28xxp_props, "Astrometa DVB-T2", NULL) },
->   	{ DVB_USB_DEVICE(0x5654, 0xca42,
->   		&rtl28xxu_props, "GoTView MasterHD 3", NULL) },
->   	{ }
->
-
+diff --git a/sound/usb/media.c b/sound/usb/media.c
+index bebe27b..0cb44b9 100644
+--- a/sound/usb/media.c
++++ b/sound/usb/media.c
+@@ -233,8 +233,8 @@ int media_mixer_init(struct snd_usb_audio *chip)
+ 		if (mixer->media_mixer_ctl)
+ 			continue;
+ 
+-		/* allocate media_ctl */
+-		mctl = kzalloc(sizeof(struct media_ctl), GFP_KERNEL);
++		/* allocate media_mixer_ctl */
++		mctl = kzalloc(sizeof(struct media_mixer_ctl), GFP_KERNEL);
+ 		if (!mctl)
+ 			return -ENOMEM;
+ 
+@@ -244,6 +244,7 @@ int media_mixer_init(struct snd_usb_audio *chip)
+ 		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
+ 		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
+ 		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
++
+ 		media_entity_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
+ 				  mctl->media_pad);
+ 		ret =  media_device_register_entity(mctl->media_dev,
 -- 
-http://palosaari.fi/
+2.5.0
+
