@@ -1,70 +1,442 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:17116 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965175AbbLHPSZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:18:25 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932205AbbLECNE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:04 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 1/3] libv4l2subdev: Use generated format definitions in libv4l2subdev
-Date: Tue,  8 Dec 2015 17:15:14 +0200
-Message-Id: <1449587716-22954-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 05/32] v4l: vsp1: Move video device out of struct vsp1_rwpf
+Date: Sat,  5 Dec 2015 04:12:39 +0200
+Message-Id: <1449281586-25726-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of manually adding each and every new media bus pixel code to
-libv4l2subdev, generate the list automatically. The pre-existing formats
-that do not match the list are not modified so that existing users are
-unaffected by this change, with the exception of converting codes to
-strings, which will use the new definitions.
+To make the video device nodes optional we need to decouple the [rw]pf
+instances from the video devices. Move video devices out of struct
+vsp1_rwpf and instantiate them dynamically in the core driver code.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- utils/media-ctl/.gitignore      | 1 +
- utils/media-ctl/Makefile.am     | 8 ++++++++
- utils/media-ctl/libv4l2subdev.c | 1 +
- 3 files changed, 10 insertions(+)
+ drivers/media/platform/vsp1/vsp1.h        |  1 +
+ drivers/media/platform/vsp1/vsp1_bru.c    |  1 +
+ drivers/media/platform/vsp1/vsp1_drv.c    | 63 +++++++++++++++++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_entity.c |  3 --
+ drivers/media/platform/vsp1/vsp1_rpf.c    | 22 -----------
+ drivers/media/platform/vsp1/vsp1_rwpf.h   |  2 -
+ drivers/media/platform/vsp1/vsp1_video.c  | 45 ++++++++++++----------
+ drivers/media/platform/vsp1/vsp1_video.h  |  4 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 29 --------------
+ 9 files changed, 90 insertions(+), 80 deletions(-)
 
-diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
-index 95b6a57..8c7d576 100644
---- a/utils/media-ctl/.gitignore
-+++ b/utils/media-ctl/.gitignore
-@@ -1 +1,2 @@
- media-ctl
-+media-bus-formats.h
-diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-index a3931fb..a1a9225 100644
---- a/utils/media-ctl/Makefile.am
-+++ b/utils/media-ctl/Makefile.am
-@@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
- libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
- libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 989e96f7e360..b25032bd37a7 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -71,6 +71,7 @@ struct vsp1_device {
+ 	struct vsp1_rwpf *wpf[VSP1_MAX_WPF];
  
-+media-bus-formats.h: ../../include/linux/media-bus-format.h
-+	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
-+	< $< > $@
+ 	struct list_head entities;
++	struct list_head videos;
+ 
+ 	struct v4l2_device v4l2_dev;
+ 	struct media_device media_dev;
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 1308dfef0f92..b4cc9bc478af 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -19,6 +19,7 @@
+ #include "vsp1.h"
+ #include "vsp1_bru.h"
+ #include "vsp1_rwpf.h"
++#include "vsp1_video.h"
+ 
+ #define BRU_MIN_SIZE				1U
+ #define BRU_MAX_SIZE				8190U
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 4e61886384e3..de0b80e8d048 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -28,6 +28,7 @@
+ #include "vsp1_rwpf.h"
+ #include "vsp1_sru.h"
+ #include "vsp1_uds.h"
++#include "vsp1_video.h"
+ 
+ /* -----------------------------------------------------------------------------
+  * Interrupt Handling
+@@ -117,14 +118,19 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
+ 
+ static void vsp1_destroy_entities(struct vsp1_device *vsp1)
+ {
+-	struct vsp1_entity *entity;
+-	struct vsp1_entity *next;
++	struct vsp1_entity *entity, *_entity;
++	struct vsp1_video *video, *_video;
+ 
+-	list_for_each_entry_safe(entity, next, &vsp1->entities, list_dev) {
++	list_for_each_entry_safe(entity, _entity, &vsp1->entities, list_dev) {
+ 		list_del(&entity->list_dev);
+ 		vsp1_entity_destroy(entity);
+ 	}
+ 
++	list_for_each_entry_safe(video, _video, &vsp1->videos, list) {
++		list_del(&video->list);
++		vsp1_video_cleanup(video);
++	}
 +
-+BUILT_SOURCES = media-bus-formats.h
-+CLEANFILES = media-bus-formats.h
+ 	v4l2_device_unregister(&vsp1->v4l2_dev);
+ 	media_device_unregister(&vsp1->media_dev);
+ }
+@@ -202,6 +208,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
++		struct vsp1_video *video;
+ 		struct vsp1_rwpf *rpf;
+ 
+ 		rpf = vsp1_rpf_create(vsp1, i);
+@@ -212,6 +219,14 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 
+ 		vsp1->rpf[i] = rpf;
+ 		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
 +
-+nodist_libv4l2subdev_la_SOURCES = media-bus-formats.h
- libv4l2subdev_la_SOURCES = libv4l2subdev.c
- libv4l2subdev_la_LIBADD = libmediactl.la
- libv4l2subdev_la_CFLAGS = -static
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 33c1ee6..5bcfe34 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -719,6 +719,7 @@ static struct {
- 	const char *name;
- 	enum v4l2_mbus_pixelcode code;
- } mbus_formats[] = {
-+#include "media-bus-formats.h"
- 	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
- 	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
- 	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
++		video = vsp1_video_create(vsp1, rpf);
++		if (IS_ERR(video)) {
++			ret = PTR_ERR(video);
++			goto done;
++		}
++
++		list_add_tail(&video->list, &vsp1->videos);
+ 	}
+ 
+ 	if (vsp1->pdata.features & VSP1_HAS_SRU) {
+@@ -238,6 +253,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		struct vsp1_video *video;
+ 		struct vsp1_rwpf *wpf;
+ 
+ 		wpf = vsp1_wpf_create(vsp1, i);
+@@ -248,6 +264,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 
+ 		vsp1->wpf[i] = wpf;
+ 		list_add_tail(&wpf->entity.list_dev, &vsp1->entities);
++
++		video = vsp1_video_create(vsp1, wpf);
++		if (IS_ERR(video)) {
++			ret = PTR_ERR(video);
++			goto done;
++		}
++
++		list_add_tail(&video->list, &vsp1->videos);
++		wpf->entity.sink = &video->video.entity;
+ 	}
+ 
+ 	/* Create links. */
+@@ -261,6 +286,37 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 			goto done;
+ 	}
+ 
++	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
++		struct vsp1_rwpf *rpf = vsp1->rpf[i];
++
++		ret = media_entity_create_link(&rpf->entity.video->video.entity,
++					       0, &rpf->entity.subdev.entity,
++					       RWPF_PAD_SINK,
++					       MEDIA_LNK_FL_ENABLED |
++					       MEDIA_LNK_FL_IMMUTABLE);
++		if (ret < 0)
++			goto done;
++	}
++
++	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
++		/* Connect the video device to the WPF. All connections are
++		 * immutable except for the WPF0 source link if a LIF is
++		 * present.
++		 */
++		struct vsp1_rwpf *wpf = vsp1->wpf[i];
++		unsigned int flags = MEDIA_LNK_FL_ENABLED;
++
++		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || i != 0)
++			flags |= MEDIA_LNK_FL_IMMUTABLE;
++
++		ret = media_entity_create_link(&wpf->entity.subdev.entity,
++					       RWPF_PAD_SOURCE,
++					       &wpf->entity.video->video.entity,
++					       0, flags);
++		if (ret < 0)
++			goto done;
++	}
++
+ 	if (vsp1->pdata.features & VSP1_HAS_LIF) {
+ 		ret = media_entity_create_link(
+ 			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
+@@ -486,6 +542,7 @@ static int vsp1_probe(struct platform_device *pdev)
+ 	vsp1->dev = &pdev->dev;
+ 	mutex_init(&vsp1->lock);
+ 	INIT_LIST_HEAD(&vsp1->entities);
++	INIT_LIST_HEAD(&vsp1->videos);
+ 
+ 	ret = vsp1_parse_dt(vsp1);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index fd95a75b04f4..0c52e4b71a98 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -20,7 +20,6 @@
+ 
+ #include "vsp1.h"
+ #include "vsp1_entity.h"
+-#include "vsp1_video.h"
+ 
+ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
+ {
+@@ -225,8 +224,6 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 
+ void vsp1_entity_destroy(struct vsp1_entity *entity)
+ {
+-	if (entity->video)
+-		vsp1_video_cleanup(entity->video);
+ 	if (entity->subdev.ctrl_handler)
+ 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
+ 	media_entity_cleanup(&entity->subdev.entity);
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 1f91fc4c4857..085d10056297 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -217,7 +217,6 @@ static const struct vsp1_rwpf_operations rpf_vdev_ops = {
+ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+ 	struct v4l2_subdev *subdev;
+-	struct vsp1_video *video;
+ 	struct vsp1_rwpf *rpf;
+ 	int ret;
+ 
+@@ -264,27 +263,6 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 		goto error;
+ 	}
+ 
+-	/* Initialize the video device. */
+-	video = &rpf->video;
+-
+-	video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+-	video->vsp1 = vsp1;
+-
+-	ret = vsp1_video_init(video, rpf);
+-	if (ret < 0)
+-		goto error;
+-
+-	rpf->entity.video = video;
+-
+-	/* Connect the video device to the RPF. */
+-	ret = media_entity_create_link(&rpf->video.video.entity, 0,
+-				       &rpf->entity.subdev.entity,
+-				       RWPF_PAD_SINK,
+-				       MEDIA_LNK_FL_ENABLED |
+-				       MEDIA_LNK_FL_IMMUTABLE);
+-	if (ret < 0)
+-		goto error;
+-
+ 	return rpf;
+ 
+ error:
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index aa22cc062ff3..ee2a8bf269fa 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -19,7 +19,6 @@
+ 
+ #include "vsp1.h"
+ #include "vsp1_entity.h"
+-#include "vsp1_video.h"
+ 
+ #define RWPF_PAD_SINK				0
+ #define RWPF_PAD_SOURCE				1
+@@ -33,7 +32,6 @@ struct vsp1_rwpf_operations {
+ 
+ struct vsp1_rwpf {
+ 	struct vsp1_entity entity;
+-	struct vsp1_video video;
+ 	struct v4l2_ctrl_handler ctrls;
+ 
+ 	const struct vsp1_rwpf_operations *ops;
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index e96160d90b35..3086cdbeaf9a 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -435,11 +435,11 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 		if (e->type == VSP1_ENTITY_RPF) {
+ 			rwpf = to_rwpf(subdev);
+ 			pipe->inputs[pipe->num_inputs++] = rwpf;
+-			rwpf->video.pipe_index = pipe->num_inputs;
++			rwpf->entity.video->pipe_index = pipe->num_inputs;
+ 		} else if (e->type == VSP1_ENTITY_WPF) {
+ 			rwpf = to_rwpf(subdev);
+ 			pipe->output = to_rwpf(subdev);
+-			rwpf->video.pipe_index = 0;
++			rwpf->entity.video->pipe_index = 0;
+ 		} else if (e->type == VSP1_ENTITY_LIF) {
+ 			pipe->lif = e;
+ 		} else if (e->type == VSP1_ENTITY_BRU) {
+@@ -648,10 +648,10 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 
+ 	/* Complete buffers on all video nodes. */
+ 	for (i = 0; i < pipe->num_inputs; ++i)
+-		vsp1_video_frame_end(pipe, &pipe->inputs[i]->video);
++		vsp1_video_frame_end(pipe, pipe->inputs[i]->entity.video);
+ 
+ 	if (!pipe->lif)
+-		vsp1_video_frame_end(pipe, &pipe->output->video);
++		vsp1_video_frame_end(pipe, pipe->output->entity.video);
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+@@ -1190,29 +1190,34 @@ static struct v4l2_file_operations vsp1_video_fops = {
+  * Initialization and Cleanup
+  */
+ 
+-int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
++struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
++				     struct vsp1_rwpf *rwpf)
+ {
++	struct vsp1_video *video;
+ 	const char *direction;
+ 	int ret;
+ 
+-	switch (video->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+-		direction = "output";
+-		video->pad.flags = MEDIA_PAD_FL_SINK;
+-		break;
++	video = devm_kzalloc(vsp1->dev, sizeof(*video), GFP_KERNEL);
++	if (!video)
++		return ERR_PTR(-ENOMEM);
++
++	rwpf->entity.video = video;
++
++	video->vsp1 = vsp1;
++	video->rwpf = rwpf;
+ 
+-	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++	if (rwpf->entity.type == VSP1_ENTITY_RPF) {
+ 		direction = "input";
++		video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+ 		video->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 		video->video.vfl_dir = VFL_DIR_TX;
+-		break;
+-
+-	default:
+-		return -EINVAL;
++	} else {
++		direction = "output";
++		video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++		video->pad.flags = MEDIA_PAD_FL_SINK;
++		video->video.vfl_dir = VFL_DIR_RX;
+ 	}
+ 
+-	video->rwpf = rwpf;
+-
+ 	mutex_init(&video->lock);
+ 	spin_lock_init(&video->irqlock);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+@@ -1226,7 +1231,7 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
+ 	/* Initialize the media entity... */
+ 	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
+ 	if (ret < 0)
+-		return ret;
++		return ERR_PTR(ret);
+ 
+ 	/* ... and the format ... */
+ 	rwpf->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
+@@ -1281,12 +1286,12 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
+ 		goto error;
+ 	}
+ 
+-	return 0;
++	return video;
+ 
+ error:
+ 	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	vsp1_video_cleanup(video);
+-	return ret;
++	return ERR_PTR(ret);
+ }
+ 
+ void vsp1_video_cleanup(struct vsp1_video *video)
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index c7e143125ef7..cbd44c336169 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -109,6 +109,7 @@ to_vsp1_vb2_buffer(struct vb2_v4l2_buffer *vbuf)
+ }
+ 
+ struct vsp1_video {
++	struct list_head list;
+ 	struct vsp1_device *vsp1;
+ 	struct vsp1_rwpf *rwpf;
+ 
+@@ -133,7 +134,8 @@ static inline struct vsp1_video *to_vsp1_video(struct video_device *vdev)
+ 	return container_of(vdev, struct vsp1_video, video);
+ }
+ 
+-int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf);
++struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
++				     struct vsp1_rwpf *rwpf);
+ void vsp1_video_cleanup(struct vsp1_video *video);
+ 
+ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index e41d8bcd9d97..a4c0888a1b46 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -215,9 +215,7 @@ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
+ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+ 	struct v4l2_subdev *subdev;
+-	struct vsp1_video *video;
+ 	struct vsp1_rwpf *wpf;
+-	unsigned int flags;
+ 	int ret;
+ 
+ 	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
+@@ -263,33 +261,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 		goto error;
+ 	}
+ 
+-	/* Initialize the video device. */
+-	video = &wpf->video;
+-
+-	video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	video->vsp1 = vsp1;
+-
+-	ret = vsp1_video_init(video, wpf);
+-	if (ret < 0)
+-		goto error;
+-
+-	wpf->entity.video = video;
+-
+-	/* Connect the video device to the WPF. All connections are immutable
+-	 * except for the WPF0 source link if a LIF is present.
+-	 */
+-	flags = MEDIA_LNK_FL_ENABLED;
+-	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || index != 0)
+-		flags |= MEDIA_LNK_FL_IMMUTABLE;
+-
+-	ret = media_entity_create_link(&wpf->entity.subdev.entity,
+-				       RWPF_PAD_SOURCE,
+-				       &wpf->video.video.entity, 0, flags);
+-	if (ret < 0)
+-		goto error;
+-
+-	wpf->entity.sink = &wpf->video.video.entity;
+-
+ 	return wpf;
+ 
+ error:
 -- 
-2.1.0.231.g7484e3b
+2.4.10
 
