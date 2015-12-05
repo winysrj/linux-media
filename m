@@ -1,61 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:37276 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbLEGTU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 01:19:20 -0500
-Received: by wmww144 with SMTP id w144so90065995wmw.0
-        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2015 22:19:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHwmhgHsPZTLgChqO05NYv7h-rD_Sex2d+jqsK=PpYJxcHi78g@mail.gmail.com>
-References: <CAHwmhgFyjLOT6Na6oLXQT+FiUjyjrPX_CmKvQVDP-k9kawnMHw@mail.gmail.com>
-	<CALF0-+UtHzo6-vYvUWtvS0hU7jyuPU+Ku4JC85T4gn4AHLgS0w@mail.gmail.com>
-	<CAHwmhgGhdH8_+_5abeJZg=sL2nrr3psqzwHz3xrL_u1aV6mNCg@mail.gmail.com>
-	<CAAEAJfDzpafBTqcTqjvEJWVxOQu7j=zK6m47VhnSVgM4kWhG5Q@mail.gmail.com>
-	<CAHwmhgHsPZTLgChqO05NYv7h-rD_Sex2d+jqsK=PpYJxcHi78g@mail.gmail.com>
-Date: Sat, 5 Dec 2015 03:19:19 -0300
-Message-ID: <CAAEAJfCBBNC_Oj-pzVQWQV-hMFY99s+C6WdY+F+fDjjRBLk+qA@mail.gmail.com>
-Subject: Re: Sabrent (stk1160) / Easycap driver problem
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: Philippe Desrochers <desrochers.philippe@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932240AbbLECNJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:09 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 12/32] v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
+Date: Sat,  5 Dec 2015 04:12:46 +0200
+Message-Id: <1449281586-25726-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5 December 2015 at 01:29, Philippe Desrochers
-<desrochers.philippe@gmail.com> wrote:
-> The difference seems to be around the "saa7113" chip. Maybe the Sabrent is
-> using another video decoder chip ?
+Those functions are specific to video nodes, rename them for
+consistency.
 
-Yes, I believe that would explain the kernel log you sent.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-> I will open one and check the chips on the PCB.
->
-
-OK, that would help.
-
-> Do you know if the stk1160 driver was working with this device (Sabrent
-> USB-AVCPT) in the past ?
->
-
-I've only seen generic "Easycap" labeled stk1160 devices
-with either sa7115 or gm7113 decoder. Both of these are supported.c
-
-See drivers/media/i2c/saa7115.c:saa711x_detect_chip for details on how
-the decoder chip
-is identified.
-
-> Also, it seems the Sabrent USB-AVCPT is using the AC'97 Audio chip.
-> Could it be the problem ?
->
-
-Shouldn't affect.
-
-> Do you know if there a firmware in the Syntek 1160 chip ?
->
-
-There is not.
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 6a55eba88dba..cd4c2481e4ec 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -308,9 +308,9 @@ vsp1_video_format_adjust(struct vsp1_video *video,
+  * Pipeline Management
+  */
+ 
+-static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+-					 struct vsp1_rwpf *input,
+-					 struct vsp1_rwpf *output)
++static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
++					       struct vsp1_rwpf *input,
++					       struct vsp1_rwpf *output)
+ {
+ 	struct vsp1_entity *entity;
+ 	unsigned int entities = 0;
+@@ -384,8 +384,8 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+ 	return 0;
+ }
+ 
+-static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+-				  struct vsp1_video *video)
++static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
++					struct vsp1_video *video)
+ {
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+@@ -437,8 +437,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 	 * contains no loop and that all branches end at the output WPF.
+ 	 */
+ 	for (i = 0; i < pipe->num_inputs; ++i) {
+-		ret = vsp1_pipeline_validate_branch(pipe, pipe->inputs[i],
+-						    pipe->output);
++		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
++							  pipe->output);
+ 		if (ret < 0)
+ 			goto error;
+ 	}
+@@ -450,8 +450,8 @@ error:
+ 	return ret;
+ }
+ 
+-static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
+-			      struct vsp1_video *video)
++static int vsp1_video_pipeline_init(struct vsp1_pipeline *pipe,
++				    struct vsp1_video *video)
+ {
+ 	int ret;
+ 
+@@ -459,7 +459,7 @@ static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
+ 
+ 	/* If we're the first user validate and initialize the pipeline. */
+ 	if (pipe->use_count == 0) {
+-		ret = vsp1_pipeline_validate(pipe, video);
++		ret = vsp1_video_pipeline_validate(pipe, video);
+ 		if (ret < 0)
+ 			goto done;
+ 	}
+@@ -472,7 +472,7 @@ done:
+ 	return ret;
+ }
+ 
+-static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
++static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
+ {
+ 	mutex_lock(&pipe->lock);
+ 
+@@ -742,7 +742,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 
+ 	/* Remove all buffers from the IRQ queue. */
+@@ -883,7 +883,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_stop;
+ 
+-	ret = vsp1_pipeline_init(pipe, video);
++	ret = vsp1_video_pipeline_init(pipe, video);
+ 	if (ret < 0)
+ 		goto err_stop;
+ 
+@@ -895,7 +895,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_cleanup:
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ err_stop:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 	return ret;
 -- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+2.4.10
+
