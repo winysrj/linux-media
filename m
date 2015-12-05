@@ -1,287 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:55098 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751516AbbLOQqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 11:46:14 -0500
-Date: Tue, 15 Dec 2015 17:46:08 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-Message-ID: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932202AbbLECNQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:16 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 24/32] v4l: vsp1: Make the userspace API optional
+Date: Sat,  5 Dec 2015 04:12:58 +0200
+Message-Id: <1449281586-25726-25-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for 3 formats, used by RealSense cameras like R200.
+The R-Car Gen3 SoCs include VSP instances dedicated to the DU that will
+be controlled entirely by the rcar-du-drm driver through the KMS API. To
+support that use case make the userspace V4L2 API optional.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/pixfmt-y12i.xml | 49 +++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-y8i.xml  | 80 +++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-z16.xml  | 79 ++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml      | 10 ++++
- 4 files changed, 218 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y12i.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y8i.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-z16.xml
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-y12i.xml b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-new file mode 100644
-index 0000000..443598d
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-@@ -0,0 +1,49 @@
-+<refentry id="V4L2-PIX-FMT-Y12I">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-+pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-+24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
-+machine can be deinterlaced using</para>
-+
-+<para>
-+<programlisting>
-+__u8 *buf;
-+left0 = 0xfff &amp; *(__u16 *)buf;
-+rirhgt0 = *(__u16 *)(buf + 1) >> 4;
-+</programlisting>
-+</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y12I</constant> 2 pixel data stream taking 3 bytes</title>
-+
-+      <formalpara>
-+	<title>Bit-packed representation</title>
-+	<para>pixels cross the byte boundary and have a ratio of 3 bytes for each
-+          interleaved pixel.
-+	  <informaltable frame="all">
-+	    <tgroup cols="3" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>Y'<subscript>0left[7:0]</subscript></entry>
-+		  <entry>Y'<subscript>0right[3:0]</subscript>Y'<subscript>0left[11:8]</subscript></entry>
-+		  <entry>Y'<subscript>0right[11:4]</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-y8i.xml b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-new file mode 100644
-index 0000000..99f389d
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-@@ -0,0 +1,80 @@
-+<refentry id="V4L2-PIX-FMT-Y8I">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y8I ('Y8I ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y8I</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a grey-scale image with a depth of 8 bits per pixel, but with
-+pixels from 2 sources interleaved. Each pixel is stored in a 16-bit word. E.g.
-+the R200 RealSense camera stores pixel from the left sensor in lower and from
-+the right sensor in the higher 8 bits.</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y8I</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Y'<subscript>00left</subscript></entry>
-+		  <entry>Y'<subscript>00right</subscript></entry>
-+		  <entry>Y'<subscript>01left</subscript></entry>
-+		  <entry>Y'<subscript>01right</subscript></entry>
-+		  <entry>Y'<subscript>02left</subscript></entry>
-+		  <entry>Y'<subscript>02right</subscript></entry>
-+		  <entry>Y'<subscript>03left</subscript></entry>
-+		  <entry>Y'<subscript>03right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Y'<subscript>10left</subscript></entry>
-+		  <entry>Y'<subscript>10right</subscript></entry>
-+		  <entry>Y'<subscript>11left</subscript></entry>
-+		  <entry>Y'<subscript>11right</subscript></entry>
-+		  <entry>Y'<subscript>12left</subscript></entry>
-+		  <entry>Y'<subscript>12right</subscript></entry>
-+		  <entry>Y'<subscript>13left</subscript></entry>
-+		  <entry>Y'<subscript>13right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Y'<subscript>20left</subscript></entry>
-+		  <entry>Y'<subscript>20right</subscript></entry>
-+		  <entry>Y'<subscript>21left</subscript></entry>
-+		  <entry>Y'<subscript>21right</subscript></entry>
-+		  <entry>Y'<subscript>22left</subscript></entry>
-+		  <entry>Y'<subscript>22right</subscript></entry>
-+		  <entry>Y'<subscript>23left</subscript></entry>
-+		  <entry>Y'<subscript>23right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Y'<subscript>30left</subscript></entry>
-+		  <entry>Y'<subscript>30right</subscript></entry>
-+		  <entry>Y'<subscript>31left</subscript></entry>
-+		  <entry>Y'<subscript>31right</subscript></entry>
-+		  <entry>Y'<subscript>32left</subscript></entry>
-+		  <entry>Y'<subscript>32right</subscript></entry>
-+		  <entry>Y'<subscript>33left</subscript></entry>
-+		  <entry>Y'<subscript>33right</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-new file mode 100644
-index 0000000..fac3c68
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-@@ -0,0 +1,79 @@
-+<refentry id="V4L2-PIX-FMT-Z16">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a 16-bit format, representing depth data. Each pixel is a
-+distance in mm to the respective point in the image coordinates. Each pixel is
-+stored in a 16-bit word in the little endian byte order.</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Z16</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Z<subscript>00low</subscript></entry>
-+		  <entry>Z<subscript>00high</subscript></entry>
-+		  <entry>Z<subscript>01low</subscript></entry>
-+		  <entry>Z<subscript>01high</subscript></entry>
-+		  <entry>Z<subscript>02low</subscript></entry>
-+		  <entry>Z<subscript>02high</subscript></entry>
-+		  <entry>Z<subscript>03low</subscript></entry>
-+		  <entry>Z<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Z<subscript>10low</subscript></entry>
-+		  <entry>Z<subscript>10high</subscript></entry>
-+		  <entry>Z<subscript>11low</subscript></entry>
-+		  <entry>Z<subscript>11high</subscript></entry>
-+		  <entry>Z<subscript>12low</subscript></entry>
-+		  <entry>Z<subscript>12high</subscript></entry>
-+		  <entry>Z<subscript>13low</subscript></entry>
-+		  <entry>Z<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Z<subscript>20low</subscript></entry>
-+		  <entry>Z<subscript>20high</subscript></entry>
-+		  <entry>Z<subscript>21low</subscript></entry>
-+		  <entry>Z<subscript>21high</subscript></entry>
-+		  <entry>Z<subscript>22low</subscript></entry>
-+		  <entry>Z<subscript>22high</subscript></entry>
-+		  <entry>Z<subscript>23low</subscript></entry>
-+		  <entry>Z<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Z<subscript>30low</subscript></entry>
-+		  <entry>Z<subscript>30high</subscript></entry>
-+		  <entry>Z<subscript>31low</subscript></entry>
-+		  <entry>Z<subscript>31high</subscript></entry>
-+		  <entry>Z<subscript>32low</subscript></entry>
-+		  <entry>Z<subscript>32high</subscript></entry>
-+		  <entry>Z<subscript>33low</subscript></entry>
-+		  <entry>Z<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index d871245..9924732 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1620,6 +1620,8 @@ information.</para>
-     &sub-y10b;
-     &sub-y16;
-     &sub-y16-be;
-+    &sub-y8i;
-+    &sub-y12i;
-     &sub-uv8;
-     &sub-yuyv;
-     &sub-uyvy;
-@@ -1641,6 +1643,14 @@ information.</para>
-     &sub-m420;
-   </section>
+Changes since v1:
+
+- Store the uapi property in the vsp1_platform_data structure
+
+---
+ drivers/media/platform/vsp1/vsp1.h        |  1 +
+ drivers/media/platform/vsp1/vsp1_drv.c    | 57 ++++++++++++++++++-------------
+ drivers/media/platform/vsp1/vsp1_entity.c |  2 +-
+ drivers/media/platform/vsp1/vsp1_sru.c    |  6 ++--
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  6 ++--
+ 5 files changed, 43 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index d980f32aac0b..4fd4386a7049 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -50,6 +50,7 @@ struct vsp1_platform_data {
+ 	unsigned int uds_count;
+ 	unsigned int wpf_count;
+ 	unsigned int num_bru_inputs;
++	bool uapi;
+ };
  
-+  <section id="depth-formats">
-+    <title>Depth Formats</title>
-+    <para>Depth data provides distance to points, mapped onto the image plane
-+    </para>
-+
-+    &sub-z16;
-+  </section>
-+
-   <section>
-     <title>Compressed Formats</title>
+ struct vsp1_device {
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 42b6a106cbbb..3c8de1d5c80e 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -134,6 +134,17 @@ static int vsp1_create_links(struct vsp1_device *vsp1)
+ 			return ret;
+ 	}
  
++	if (vsp1->pdata.features & VSP1_HAS_LIF) {
++		ret = media_entity_create_link(
++			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
++			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (!vsp1->pdata.uapi)
++		return 0;
++
+ 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
+ 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+ 
+@@ -165,14 +176,6 @@ static int vsp1_create_links(struct vsp1_device *vsp1)
+ 			return ret;
+ 	}
+ 
+-	if (vsp1->pdata.features & VSP1_HAS_LIF) {
+-		ret = media_entity_create_link(
+-			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
+-			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
+-		if (ret < 0)
+-			return ret;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -270,7 +273,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
+-		struct vsp1_video *video;
+ 		struct vsp1_rwpf *rpf;
+ 
+ 		rpf = vsp1_rpf_create(vsp1, i);
+@@ -282,13 +284,16 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		vsp1->rpf[i] = rpf;
+ 		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
+ 
+-		video = vsp1_video_create(vsp1, rpf);
+-		if (IS_ERR(video)) {
+-			ret = PTR_ERR(video);
+-			goto done;
+-		}
++		if (vsp1->pdata.uapi) {
++			struct vsp1_video *video = vsp1_video_create(vsp1, rpf);
+ 
+-		list_add_tail(&video->list, &vsp1->videos);
++			if (IS_ERR(video)) {
++				ret = PTR_ERR(video);
++				goto done;
++			}
++
++			list_add_tail(&video->list, &vsp1->videos);
++		}
+ 	}
+ 
+ 	if (vsp1->pdata.features & VSP1_HAS_SRU) {
+@@ -315,7 +320,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
+-		struct vsp1_video *video;
+ 		struct vsp1_rwpf *wpf;
+ 
+ 		wpf = vsp1_wpf_create(vsp1, i);
+@@ -327,14 +331,17 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		vsp1->wpf[i] = wpf;
+ 		list_add_tail(&wpf->entity.list_dev, &vsp1->entities);
+ 
+-		video = vsp1_video_create(vsp1, wpf);
+-		if (IS_ERR(video)) {
+-			ret = PTR_ERR(video);
+-			goto done;
+-		}
++		if (vsp1->pdata.uapi) {
++			struct vsp1_video *video = vsp1_video_create(vsp1, wpf);
++
++			if (IS_ERR(video)) {
++				ret = PTR_ERR(video);
++				goto done;
++			}
+ 
+-		list_add_tail(&video->list, &vsp1->videos);
+-		wpf->entity.sink = &video->video.entity;
++			list_add_tail(&video->list, &vsp1->videos);
++			wpf->entity.sink = &video->video.entity;
++		}
+ 	}
+ 
+ 	/* Create links. */
+@@ -350,7 +357,8 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 			goto done;
+ 	}
+ 
+-	ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
++	if (vsp1->pdata.uapi)
++		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
+ 
+ done:
+ 	if (ret < 0)
+@@ -544,6 +552,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
+ 
+ 	pdata->features |= VSP1_HAS_BRU;
+ 	pdata->num_bru_inputs = 4;
++	pdata->uapi = true;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index cb9d480d8ee5..75bf85693f35 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -45,7 +45,7 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ 	if (!streaming)
+ 		return 0;
+ 
+-	if (!entity->subdev.ctrl_handler)
++	if (!entity->vsp1->pdata.uapi || !entity->subdev.ctrl_handler)
+ 		return 0;
+ 
+ 	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index d41ae950d1a1..cff4a1d82e3b 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -151,11 +151,13 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	/* Take the control handler lock to ensure that the CTRL0 value won't be
+ 	 * changed behind our back by a set control operation.
+ 	 */
+-	mutex_lock(sru->ctrls.lock);
++	if (sru->entity.vsp1->pdata.uapi)
++		mutex_lock(sru->ctrls.lock);
+ 	ctrl0 |= vsp1_sru_read(sru, VI6_SRU_CTRL0)
+ 	       & (VI6_SRU_CTRL0_PARAM0_MASK | VI6_SRU_CTRL0_PARAM1_MASK);
+ 	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
+-	mutex_unlock(sru->ctrls.lock);
++	if (sru->entity.vsp1->pdata.uapi)
++		mutex_unlock(sru->ctrls.lock);
+ 
+ 	vsp1_sru_write(sru, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d2537b46fc46..184a7e01aad5 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -151,10 +151,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	/* Take the control handler lock to ensure that the PDV value won't be
+ 	 * changed behind our back by a set control operation.
+ 	 */
+-	mutex_lock(wpf->ctrls.lock);
++	if (vsp1->pdata.uapi)
++		mutex_lock(wpf->ctrls.lock);
+ 	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
+ 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
+-	mutex_unlock(wpf->ctrls.lock);
++	if (vsp1->pdata.uapi)
++		mutex_unlock(wpf->ctrls.lock);
+ 
+ 	vsp1_write(vsp1, VI6_DPR_WPF_FPORCH(wpf->entity.index),
+ 		   VI6_DPR_WPF_FPORCH_FP_WPFN);
 -- 
-1.9.3
+2.4.10
 
