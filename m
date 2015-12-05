@@ -1,107 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39282 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032AbbLLP1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:27:01 -0500
-Date: Sat, 12 Dec 2015 13:26:56 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: Re: [PATCH v2 14/22] media: Keep using the same graph walk object
- for a given pipeline
-Message-ID: <20151212132656.6a28f757@recife.lan>
-In-Reply-To: <1448824823-10372-15-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-15-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932296AbbLECNS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:18 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 26/32] v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream handlers
+Date: Sat,  5 Dec 2015 04:13:00 +0200
+Message-Id: <1449281586-25726-27-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 29 Nov 2015 21:20:15 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+The RPF and WPF alpha values are set through V4L2 controls and applied
+when starting the video stream by a call to v4l2_ctrl_handler_setup().
+As that function uses the control handler mutex it can't be called in
+interrupt context, where the VSP+DU pipeline handler might need to
+reconfigure the pipeline.
 
-> Initialise a given graph walk object once, and then keep using it whilst
-> the same pipeline is running. Once the pipeline is stopped, release the
-> graph walk object.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 17 +++++++++++------
->  include/media/media-entity.h |  4 +++-
->  2 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 7429c03..137aa09d 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> -	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-> -	if (ret) {
-> -		mutex_unlock(&mdev->graph_mutex);
-> -		return ret;
-> +	if (!pipe->streaming_count++) {
-> +		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-> +		if (ret)
-> +			goto error_graph_walk_start;
->  	}
->  
->  	media_entity_graph_walk_start(&pipe->graph, entity);
-> @@ -592,7 +592,9 @@ error:
->  			break;
->  	}
->  
-> -	media_entity_graph_walk_cleanup(graph);
-> +error_graph_walk_start:
-> +	if (!--pipe->streaming_count)
-> +		media_entity_graph_walk_cleanup(graph);
->  
->  	mutex_unlock(&mdev->graph_mutex);
->  
-> @@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  {
->  	struct media_device *mdev = entity->graph_obj.mdev;
->  	struct media_entity_graph *graph = &entity->pipe->graph;
-> +	struct media_pipeline *pipe = entity->pipe;
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> +	BUG_ON(!pipe->streaming_count);
+Set the alpha value manually in the RPF and WPF s_stream handler to
+ensure that the hardware is properly configured even when controlled
+without the userspace API. If the userspace API is enabled protect that
+with the control lock to avoid race conditions with userspace.
 
-Cant it be replaced by a WARN_ON()?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 16 ++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c  |  7 ++++---
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> @@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  			entity->pipe = NULL;
->  	}
->  
-> -	media_entity_graph_walk_cleanup(graph);
-> +	if (!--pipe->streaming_count)
-> +		media_entity_graph_walk_cleanup(graph);
->  
->  	mutex_unlock(&mdev->graph_mutex);
->  }
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8122736..85c2656 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -116,9 +116,11 @@ struct media_entity_graph {
->  /*
->   * struct media_pipeline - Media pipeline related information
->   *
-> - * @graph:	Media graph walk during pipeline start / stop
-> + * @streaming_count:	Streaming start count - streaming stop count
-> + * @graph:		Media graph walk during pipeline start / stop
->   */
->  struct media_pipeline {
-> +	int streaming_count;
->  	struct media_entity_graph graph;
->  };
->  
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index b9c39f9e4458..b1d4a46f230e 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -68,7 +68,9 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
+ 
+ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
++	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&subdev->entity);
+ 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
++	struct vsp1_device *vsp1 = rpf->entity.vsp1;
+ 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
+ 	const struct v4l2_pix_format_mplane *format = &rpf->format;
+ 	const struct v4l2_rect *crop = &rpf->crop;
+@@ -148,6 +150,15 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
+ 		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
+ 				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
++
++	if (vsp1->pdata.uapi)
++		mutex_lock(rpf->ctrls.lock);
++	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
++		       rpf->alpha->cur.val << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
++	vsp1_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
++	if (vsp1->pdata.uapi)
++		mutex_unlock(rpf->ctrls.lock);
++
+ 	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
+ 	vsp1_rpf_write(rpf, VI6_RPF_CKEY_CTRL, 0);
+ 
+@@ -245,8 +256,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&rpf->ctrls, 1);
+-	v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
+-			  0, 255, 1, 255);
++	rpf->alpha = v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops,
++				       V4L2_CID_ALPHA_COMPONENT,
++				       0, 255, 1, 255);
+ 
+ 	rpf->entity.subdev.ctrl_handler = &rpf->ctrls;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 1a90c7c8e972..8e8235682ada 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -23,6 +23,7 @@
+ #define RWPF_PAD_SINK				0
+ #define RWPF_PAD_SOURCE				1
+ 
++struct v4l2_ctrl;
+ struct vsp1_rwpf;
+ struct vsp1_video;
+ 
+@@ -40,6 +41,7 @@ struct vsp1_rwpf_operations {
+ struct vsp1_rwpf {
+ 	struct vsp1_entity entity;
+ 	struct v4l2_ctrl_handler ctrls;
++	struct v4l2_ctrl *alpha;
+ 
+ 	struct vsp1_video *video;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d0edcde721bd..40eeaf2d76d2 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -156,7 +156,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	 */
+ 	if (vsp1->pdata.uapi)
+ 		mutex_lock(wpf->ctrls.lock);
+-	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
++	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;
+ 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
+ 	if (vsp1->pdata.uapi)
+ 		mutex_unlock(wpf->ctrls.lock);
+@@ -254,8 +254,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&wpf->ctrls, 1);
+-	v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
+-			  0, 255, 1, 255);
++	wpf->alpha = v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops,
++				       V4L2_CID_ALPHA_COMPONENT,
++				       0, 255, 1, 255);
+ 
+ 	wpf->entity.subdev.ctrl_handler = &wpf->ctrls;
+ 
+-- 
+2.4.10
+
