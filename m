@@ -1,541 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:13781 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479AbbLBIXr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 03:23:47 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NYQ00CGJ1ZK0Q00@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 02 Dec 2015 08:23:44 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES Multi
-	Format Codec (MFC)...), s.nawrocki@samsung.com
-Subject: [PATCH 6/6] s5p-mfc: remove volatile attribute from MFC register
- addresses
-Date: Wed, 02 Dec 2015 09:22:33 +0100
-Message-id: <1449044553-27115-7-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
-References: <1449044553-27115-1-git-send-email-a.hajda@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932309AbbLECNW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:22 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 31/32] v4l: vsp1: Add support for the R-Car Gen3 VSP2
+Date: Sat,  5 Dec 2015 04:13:05 +0200
+Message-Id: <1449281586-25726-32-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC register addresses are used only by writel/readl macros which already
-takes care of proper register accessing.
+Add DT compatible strings for the VSP2 instances found in the R-Car Gen3
+SoCs and support them in the vsp1 driver.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h | 488 +++++++++++++--------------
- 1 file changed, 244 insertions(+), 244 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index 33dae96..b6ac417 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -20,254 +20,254 @@
- struct s5p_mfc_regs {
+Changes since v1:
+
+- Configure device parameters based on the version register
+
+---
+ .../devicetree/bindings/media/renesas,vsp1.txt     | 20 ++++++++-------
+ drivers/media/platform/vsp1/vsp1_drv.c             | 25 ++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.c          |  3 ++-
+ drivers/media/platform/vsp1/vsp1_regs.h            | 30 +++++++++++++++++-----
+ 4 files changed, 62 insertions(+), 16 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 674c8c30d046..fe74fb38e4d5 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -1,24 +1,26 @@
+-* Renesas VSP1 Video Processing Engine
++* Renesas VSP Video Processing Engine
  
- 	/* codec common registers */
--	volatile void __iomem *risc_on;
--	volatile void __iomem *risc2host_int;
--	volatile void __iomem *host2risc_int;
--	volatile void __iomem *risc_base_address;
--	volatile void __iomem *mfc_reset;
--	volatile void __iomem *host2risc_command;
--	volatile void __iomem *risc2host_command;
--	volatile void __iomem *mfc_bus_reset_ctrl;
--	volatile void __iomem *firmware_version;
--	volatile void __iomem *instance_id;
--	volatile void __iomem *codec_type;
--	volatile void __iomem *context_mem_addr;
--	volatile void __iomem *context_mem_size;
--	volatile void __iomem *pixel_format;
--	volatile void __iomem *metadata_enable;
--	volatile void __iomem *mfc_version;
--	volatile void __iomem *dbg_info_enable;
--	volatile void __iomem *dbg_buffer_addr;
--	volatile void __iomem *dbg_buffer_size;
--	volatile void __iomem *hed_control;
--	volatile void __iomem *mfc_timeout_value;
--	volatile void __iomem *hed_shared_mem_addr;
--	volatile void __iomem *dis_shared_mem_addr;/* only v7 */
--	volatile void __iomem *ret_instance_id;
--	volatile void __iomem *error_code;
--	volatile void __iomem *dbg_buffer_output_size;
--	volatile void __iomem *metadata_status;
--	volatile void __iomem *metadata_addr_mb_info;
--	volatile void __iomem *metadata_size_mb_info;
--	volatile void __iomem *dbg_info_stage_counter;
-+	void __iomem *risc_on;
-+	void __iomem *risc2host_int;
-+	void __iomem *host2risc_int;
-+	void __iomem *risc_base_address;
-+	void __iomem *mfc_reset;
-+	void __iomem *host2risc_command;
-+	void __iomem *risc2host_command;
-+	void __iomem *mfc_bus_reset_ctrl;
-+	void __iomem *firmware_version;
-+	void __iomem *instance_id;
-+	void __iomem *codec_type;
-+	void __iomem *context_mem_addr;
-+	void __iomem *context_mem_size;
-+	void __iomem *pixel_format;
-+	void __iomem *metadata_enable;
-+	void __iomem *mfc_version;
-+	void __iomem *dbg_info_enable;
-+	void __iomem *dbg_buffer_addr;
-+	void __iomem *dbg_buffer_size;
-+	void __iomem *hed_control;
-+	void __iomem *mfc_timeout_value;
-+	void __iomem *hed_shared_mem_addr;
-+	void __iomem *dis_shared_mem_addr;/* only v7 */
-+	void __iomem *ret_instance_id;
-+	void __iomem *error_code;
-+	void __iomem *dbg_buffer_output_size;
-+	void __iomem *metadata_status;
-+	void __iomem *metadata_addr_mb_info;
-+	void __iomem *metadata_size_mb_info;
-+	void __iomem *dbg_info_stage_counter;
+-The VSP1 is a video processing engine that supports up-/down-scaling, alpha
++The VSP is a video processing engine that supports up-/down-scaling, alpha
+ blending, color space conversion and various other image processing features.
+ It can be found in the Renesas R-Car second generation SoCs.
  
- 	/* decoder registers */
--	volatile void __iomem *d_crc_ctrl;
--	volatile void __iomem *d_dec_options;
--	volatile void __iomem *d_display_delay;
--	volatile void __iomem *d_set_frame_width;
--	volatile void __iomem *d_set_frame_height;
--	volatile void __iomem *d_sei_enable;
--	volatile void __iomem *d_min_num_dpb;
--	volatile void __iomem *d_min_first_plane_dpb_size;
--	volatile void __iomem *d_min_second_plane_dpb_size;
--	volatile void __iomem *d_min_third_plane_dpb_size;/* only v8 */
--	volatile void __iomem *d_min_num_mv;
--	volatile void __iomem *d_mvc_num_views;
--	volatile void __iomem *d_min_num_dis;/* only v7 */
--	volatile void __iomem *d_min_first_dis_size;/* only v7 */
--	volatile void __iomem *d_min_second_dis_size;/* only v7 */
--	volatile void __iomem *d_min_third_dis_size;/* only v7 */
--	volatile void __iomem *d_post_filter_luma_dpb0;/*  v7 and v8 */
--	volatile void __iomem *d_post_filter_luma_dpb1;/* v7 and v8 */
--	volatile void __iomem *d_post_filter_luma_dpb2;/* only v7 */
--	volatile void __iomem *d_post_filter_chroma_dpb0;/* v7 and v8 */
--	volatile void __iomem *d_post_filter_chroma_dpb1;/* v7 and v8 */
--	volatile void __iomem *d_post_filter_chroma_dpb2;/* only v7 */
--	volatile void __iomem *d_num_dpb;
--	volatile void __iomem *d_num_mv;
--	volatile void __iomem *d_init_buffer_options;
--	volatile void __iomem *d_first_plane_dpb_stride_size;/* only v8 */
--	volatile void __iomem *d_second_plane_dpb_stride_size;/* only v8 */
--	volatile void __iomem *d_third_plane_dpb_stride_size;/* only v8 */
--	volatile void __iomem *d_first_plane_dpb_size;
--	volatile void __iomem *d_second_plane_dpb_size;
--	volatile void __iomem *d_third_plane_dpb_size;/* only v8 */
--	volatile void __iomem *d_mv_buffer_size;
--	volatile void __iomem *d_first_plane_dpb;
--	volatile void __iomem *d_second_plane_dpb;
--	volatile void __iomem *d_third_plane_dpb;
--	volatile void __iomem *d_mv_buffer;
--	volatile void __iomem *d_scratch_buffer_addr;
--	volatile void __iomem *d_scratch_buffer_size;
--	volatile void __iomem *d_metadata_buffer_addr;
--	volatile void __iomem *d_metadata_buffer_size;
--	volatile void __iomem *d_nal_start_options;/* v7 and v8 */
--	volatile void __iomem *d_cpb_buffer_addr;
--	volatile void __iomem *d_cpb_buffer_size;
--	volatile void __iomem *d_available_dpb_flag_upper;
--	volatile void __iomem *d_available_dpb_flag_lower;
--	volatile void __iomem *d_cpb_buffer_offset;
--	volatile void __iomem *d_slice_if_enable;
--	volatile void __iomem *d_picture_tag;
--	volatile void __iomem *d_stream_data_size;
--	volatile void __iomem *d_dynamic_dpb_flag_upper;/* v7 and v8 */
--	volatile void __iomem *d_dynamic_dpb_flag_lower;/* v7 and v8 */
--	volatile void __iomem *d_display_frame_width;
--	volatile void __iomem *d_display_frame_height;
--	volatile void __iomem *d_display_status;
--	volatile void __iomem *d_display_first_plane_addr;
--	volatile void __iomem *d_display_second_plane_addr;
--	volatile void __iomem *d_display_third_plane_addr;/* only v8 */
--	volatile void __iomem *d_display_frame_type;
--	volatile void __iomem *d_display_crop_info1;
--	volatile void __iomem *d_display_crop_info2;
--	volatile void __iomem *d_display_picture_profile;
--	volatile void __iomem *d_display_luma_crc;/* v7 and v8 */
--	volatile void __iomem *d_display_chroma0_crc;/* v7 and v8 */
--	volatile void __iomem *d_display_chroma1_crc;/* only v8 */
--	volatile void __iomem *d_display_luma_crc_top;/* only v6 */
--	volatile void __iomem *d_display_chroma_crc_top;/* only v6 */
--	volatile void __iomem *d_display_luma_crc_bot;/* only v6 */
--	volatile void __iomem *d_display_chroma_crc_bot;/* only v6 */
--	volatile void __iomem *d_display_aspect_ratio;
--	volatile void __iomem *d_display_extended_ar;
--	volatile void __iomem *d_decoded_frame_width;
--	volatile void __iomem *d_decoded_frame_height;
--	volatile void __iomem *d_decoded_status;
--	volatile void __iomem *d_decoded_first_plane_addr;
--	volatile void __iomem *d_decoded_second_plane_addr;
--	volatile void __iomem *d_decoded_third_plane_addr;/* only v8 */
--	volatile void __iomem *d_decoded_frame_type;
--	volatile void __iomem *d_decoded_crop_info1;
--	volatile void __iomem *d_decoded_crop_info2;
--	volatile void __iomem *d_decoded_picture_profile;
--	volatile void __iomem *d_decoded_nal_size;
--	volatile void __iomem *d_decoded_luma_crc;
--	volatile void __iomem *d_decoded_chroma0_crc;
--	volatile void __iomem *d_decoded_chroma1_crc;/* only v8 */
--	volatile void __iomem *d_ret_picture_tag_top;
--	volatile void __iomem *d_ret_picture_tag_bot;
--	volatile void __iomem *d_ret_picture_time_top;
--	volatile void __iomem *d_ret_picture_time_bot;
--	volatile void __iomem *d_chroma_format;
--	volatile void __iomem *d_vc1_info;/* v7 and v8 */
--	volatile void __iomem *d_mpeg4_info;
--	volatile void __iomem *d_h264_info;
--	volatile void __iomem *d_metadata_addr_concealed_mb;
--	volatile void __iomem *d_metadata_size_concealed_mb;
--	volatile void __iomem *d_metadata_addr_vc1_param;
--	volatile void __iomem *d_metadata_size_vc1_param;
--	volatile void __iomem *d_metadata_addr_sei_nal;
--	volatile void __iomem *d_metadata_size_sei_nal;
--	volatile void __iomem *d_metadata_addr_vui;
--	volatile void __iomem *d_metadata_size_vui;
--	volatile void __iomem *d_metadata_addr_mvcvui;/* v7 and v8 */
--	volatile void __iomem *d_metadata_size_mvcvui;/* v7 and v8 */
--	volatile void __iomem *d_mvc_view_id;
--	volatile void __iomem *d_frame_pack_sei_avail;
--	volatile void __iomem *d_frame_pack_arrgment_id;
--	volatile void __iomem *d_frame_pack_sei_info;
--	volatile void __iomem *d_frame_pack_grid_pos;
--	volatile void __iomem *d_display_recovery_sei_info;/* v7 and v8 */
--	volatile void __iomem *d_decoded_recovery_sei_info;/* v7 and v8 */
--	volatile void __iomem *d_display_first_addr;/* only v7 */
--	volatile void __iomem *d_display_second_addr;/* only v7 */
--	volatile void __iomem *d_display_third_addr;/* only v7 */
--	volatile void __iomem *d_decoded_first_addr;/* only v7 */
--	volatile void __iomem *d_decoded_second_addr;/* only v7 */
--	volatile void __iomem *d_decoded_third_addr;/* only v7 */
--	volatile void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
--	volatile void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
-+	void __iomem *d_crc_ctrl;
-+	void __iomem *d_dec_options;
-+	void __iomem *d_display_delay;
-+	void __iomem *d_set_frame_width;
-+	void __iomem *d_set_frame_height;
-+	void __iomem *d_sei_enable;
-+	void __iomem *d_min_num_dpb;
-+	void __iomem *d_min_first_plane_dpb_size;
-+	void __iomem *d_min_second_plane_dpb_size;
-+	void __iomem *d_min_third_plane_dpb_size;/* only v8 */
-+	void __iomem *d_min_num_mv;
-+	void __iomem *d_mvc_num_views;
-+	void __iomem *d_min_num_dis;/* only v7 */
-+	void __iomem *d_min_first_dis_size;/* only v7 */
-+	void __iomem *d_min_second_dis_size;/* only v7 */
-+	void __iomem *d_min_third_dis_size;/* only v7 */
-+	void __iomem *d_post_filter_luma_dpb0;/*  v7 and v8 */
-+	void __iomem *d_post_filter_luma_dpb1;/* v7 and v8 */
-+	void __iomem *d_post_filter_luma_dpb2;/* only v7 */
-+	void __iomem *d_post_filter_chroma_dpb0;/* v7 and v8 */
-+	void __iomem *d_post_filter_chroma_dpb1;/* v7 and v8 */
-+	void __iomem *d_post_filter_chroma_dpb2;/* only v7 */
-+	void __iomem *d_num_dpb;
-+	void __iomem *d_num_mv;
-+	void __iomem *d_init_buffer_options;
-+	void __iomem *d_first_plane_dpb_stride_size;/* only v8 */
-+	void __iomem *d_second_plane_dpb_stride_size;/* only v8 */
-+	void __iomem *d_third_plane_dpb_stride_size;/* only v8 */
-+	void __iomem *d_first_plane_dpb_size;
-+	void __iomem *d_second_plane_dpb_size;
-+	void __iomem *d_third_plane_dpb_size;/* only v8 */
-+	void __iomem *d_mv_buffer_size;
-+	void __iomem *d_first_plane_dpb;
-+	void __iomem *d_second_plane_dpb;
-+	void __iomem *d_third_plane_dpb;
-+	void __iomem *d_mv_buffer;
-+	void __iomem *d_scratch_buffer_addr;
-+	void __iomem *d_scratch_buffer_size;
-+	void __iomem *d_metadata_buffer_addr;
-+	void __iomem *d_metadata_buffer_size;
-+	void __iomem *d_nal_start_options;/* v7 and v8 */
-+	void __iomem *d_cpb_buffer_addr;
-+	void __iomem *d_cpb_buffer_size;
-+	void __iomem *d_available_dpb_flag_upper;
-+	void __iomem *d_available_dpb_flag_lower;
-+	void __iomem *d_cpb_buffer_offset;
-+	void __iomem *d_slice_if_enable;
-+	void __iomem *d_picture_tag;
-+	void __iomem *d_stream_data_size;
-+	void __iomem *d_dynamic_dpb_flag_upper;/* v7 and v8 */
-+	void __iomem *d_dynamic_dpb_flag_lower;/* v7 and v8 */
-+	void __iomem *d_display_frame_width;
-+	void __iomem *d_display_frame_height;
-+	void __iomem *d_display_status;
-+	void __iomem *d_display_first_plane_addr;
-+	void __iomem *d_display_second_plane_addr;
-+	void __iomem *d_display_third_plane_addr;/* only v8 */
-+	void __iomem *d_display_frame_type;
-+	void __iomem *d_display_crop_info1;
-+	void __iomem *d_display_crop_info2;
-+	void __iomem *d_display_picture_profile;
-+	void __iomem *d_display_luma_crc;/* v7 and v8 */
-+	void __iomem *d_display_chroma0_crc;/* v7 and v8 */
-+	void __iomem *d_display_chroma1_crc;/* only v8 */
-+	void __iomem *d_display_luma_crc_top;/* only v6 */
-+	void __iomem *d_display_chroma_crc_top;/* only v6 */
-+	void __iomem *d_display_luma_crc_bot;/* only v6 */
-+	void __iomem *d_display_chroma_crc_bot;/* only v6 */
-+	void __iomem *d_display_aspect_ratio;
-+	void __iomem *d_display_extended_ar;
-+	void __iomem *d_decoded_frame_width;
-+	void __iomem *d_decoded_frame_height;
-+	void __iomem *d_decoded_status;
-+	void __iomem *d_decoded_first_plane_addr;
-+	void __iomem *d_decoded_second_plane_addr;
-+	void __iomem *d_decoded_third_plane_addr;/* only v8 */
-+	void __iomem *d_decoded_frame_type;
-+	void __iomem *d_decoded_crop_info1;
-+	void __iomem *d_decoded_crop_info2;
-+	void __iomem *d_decoded_picture_profile;
-+	void __iomem *d_decoded_nal_size;
-+	void __iomem *d_decoded_luma_crc;
-+	void __iomem *d_decoded_chroma0_crc;
-+	void __iomem *d_decoded_chroma1_crc;/* only v8 */
-+	void __iomem *d_ret_picture_tag_top;
-+	void __iomem *d_ret_picture_tag_bot;
-+	void __iomem *d_ret_picture_time_top;
-+	void __iomem *d_ret_picture_time_bot;
-+	void __iomem *d_chroma_format;
-+	void __iomem *d_vc1_info;/* v7 and v8 */
-+	void __iomem *d_mpeg4_info;
-+	void __iomem *d_h264_info;
-+	void __iomem *d_metadata_addr_concealed_mb;
-+	void __iomem *d_metadata_size_concealed_mb;
-+	void __iomem *d_metadata_addr_vc1_param;
-+	void __iomem *d_metadata_size_vc1_param;
-+	void __iomem *d_metadata_addr_sei_nal;
-+	void __iomem *d_metadata_size_sei_nal;
-+	void __iomem *d_metadata_addr_vui;
-+	void __iomem *d_metadata_size_vui;
-+	void __iomem *d_metadata_addr_mvcvui;/* v7 and v8 */
-+	void __iomem *d_metadata_size_mvcvui;/* v7 and v8 */
-+	void __iomem *d_mvc_view_id;
-+	void __iomem *d_frame_pack_sei_avail;
-+	void __iomem *d_frame_pack_arrgment_id;
-+	void __iomem *d_frame_pack_sei_info;
-+	void __iomem *d_frame_pack_grid_pos;
-+	void __iomem *d_display_recovery_sei_info;/* v7 and v8 */
-+	void __iomem *d_decoded_recovery_sei_info;/* v7 and v8 */
-+	void __iomem *d_display_first_addr;/* only v7 */
-+	void __iomem *d_display_second_addr;/* only v7 */
-+	void __iomem *d_display_third_addr;/* only v7 */
-+	void __iomem *d_decoded_first_addr;/* only v7 */
-+	void __iomem *d_decoded_second_addr;/* only v7 */
-+	void __iomem *d_decoded_third_addr;/* only v7 */
-+	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
-+	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ Required properties:
  
- 	/* encoder registers */
--	volatile void __iomem *e_frame_width;
--	volatile void __iomem *e_frame_height;
--	volatile void __iomem *e_cropped_frame_width;
--	volatile void __iomem *e_cropped_frame_height;
--	volatile void __iomem *e_frame_crop_offset;
--	volatile void __iomem *e_enc_options;
--	volatile void __iomem *e_picture_profile;
--	volatile void __iomem *e_vbv_buffer_size;
--	volatile void __iomem *e_vbv_init_delay;
--	volatile void __iomem *e_fixed_picture_qp;
--	volatile void __iomem *e_rc_config;
--	volatile void __iomem *e_rc_qp_bound;
--	volatile void __iomem *e_rc_qp_bound_pb;/* v7 and v8 */
--	volatile void __iomem *e_rc_mode;
--	volatile void __iomem *e_mb_rc_config;
--	volatile void __iomem *e_padding_ctrl;
--	volatile void __iomem *e_air_threshold;
--	volatile void __iomem *e_mv_hor_range;
--	volatile void __iomem *e_mv_ver_range;
--	volatile void __iomem *e_num_dpb;
--	volatile void __iomem *e_luma_dpb;
--	volatile void __iomem *e_chroma_dpb;
--	volatile void __iomem *e_me_buffer;
--	volatile void __iomem *e_scratch_buffer_addr;
--	volatile void __iomem *e_scratch_buffer_size;
--	volatile void __iomem *e_tmv_buffer0;
--	volatile void __iomem *e_tmv_buffer1;
--	volatile void __iomem *e_ir_buffer_addr;/* v7 and v8 */
--	volatile void __iomem *e_source_first_plane_addr;
--	volatile void __iomem *e_source_second_plane_addr;
--	volatile void __iomem *e_source_third_plane_addr;/* v7 and v8 */
--	volatile void __iomem *e_source_first_plane_stride;/* v7 and v8 */
--	volatile void __iomem *e_source_second_plane_stride;/* v7 and v8 */
--	volatile void __iomem *e_source_third_plane_stride;/* v7 and v8 */
--	volatile void __iomem *e_stream_buffer_addr;
--	volatile void __iomem *e_stream_buffer_size;
--	volatile void __iomem *e_roi_buffer_addr;
--	volatile void __iomem *e_param_change;
--	volatile void __iomem *e_ir_size;
--	volatile void __iomem *e_gop_config;
--	volatile void __iomem *e_mslice_mode;
--	volatile void __iomem *e_mslice_size_mb;
--	volatile void __iomem *e_mslice_size_bits;
--	volatile void __iomem *e_frame_insertion;
--	volatile void __iomem *e_rc_frame_rate;
--	volatile void __iomem *e_rc_bit_rate;
--	volatile void __iomem *e_rc_roi_ctrl;
--	volatile void __iomem *e_picture_tag;
--	volatile void __iomem *e_bit_count_enable;
--	volatile void __iomem *e_max_bit_count;
--	volatile void __iomem *e_min_bit_count;
--	volatile void __iomem *e_metadata_buffer_addr;
--	volatile void __iomem *e_metadata_buffer_size;
--	volatile void __iomem *e_encoded_source_first_plane_addr;
--	volatile void __iomem *e_encoded_source_second_plane_addr;
--	volatile void __iomem *e_encoded_source_third_plane_addr;/* v7 and v8 */
--	volatile void __iomem *e_stream_size;
--	volatile void __iomem *e_slice_type;
--	volatile void __iomem *e_picture_count;
--	volatile void __iomem *e_ret_picture_tag;
--	volatile void __iomem *e_stream_buffer_write_pointer; /*  only v6 */
--	volatile void __iomem *e_recon_luma_dpb_addr;
--	volatile void __iomem *e_recon_chroma_dpb_addr;
--	volatile void __iomem *e_metadata_addr_enc_slice;
--	volatile void __iomem *e_metadata_size_enc_slice;
--	volatile void __iomem *e_mpeg4_options;
--	volatile void __iomem *e_mpeg4_hec_period;
--	volatile void __iomem *e_aspect_ratio;
--	volatile void __iomem *e_extended_sar;
--	volatile void __iomem *e_h264_options;
--	volatile void __iomem *e_h264_options_2;/* v7 and v8 */
--	volatile void __iomem *e_h264_lf_alpha_offset;
--	volatile void __iomem *e_h264_lf_beta_offset;
--	volatile void __iomem *e_h264_i_period;
--	volatile void __iomem *e_h264_fmo_slice_grp_map_type;
--	volatile void __iomem *e_h264_fmo_num_slice_grp_minus1;
--	volatile void __iomem *e_h264_fmo_slice_grp_change_dir;
--	volatile void __iomem *e_h264_fmo_slice_grp_change_rate_minus1;
--	volatile void __iomem *e_h264_fmo_run_length_minus1_0;
--	volatile void __iomem *e_h264_aso_slice_order_0;
--	volatile void __iomem *e_h264_chroma_qp_offset;
--	volatile void __iomem *e_h264_num_t_layer;
--	volatile void __iomem *e_h264_hierarchical_qp_layer0;
--	volatile void __iomem *e_h264_frame_packing_sei_info;
--	volatile void __iomem *e_h264_nal_control;/* v7 and v8 */
--	volatile void __iomem *e_mvc_frame_qp_view1;
--	volatile void __iomem *e_mvc_rc_bit_rate_view1;
--	volatile void __iomem *e_mvc_rc_qbound_view1;
--	volatile void __iomem *e_mvc_rc_mode_view1;
--	volatile void __iomem *e_mvc_inter_view_prediction_on;
--	volatile void __iomem *e_vp8_options;/* v7 and v8 */
--	volatile void __iomem *e_vp8_filter_options;/* v7 and v8 */
--	volatile void __iomem *e_vp8_golden_frame_option;/* v7 and v8 */
--	volatile void __iomem *e_vp8_num_t_layer;/* v7 and v8 */
--	volatile void __iomem *e_vp8_hierarchical_qp_layer0;/* v7 and v8 */
--	volatile void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
--	volatile void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
-+	void __iomem *e_frame_width;
-+	void __iomem *e_frame_height;
-+	void __iomem *e_cropped_frame_width;
-+	void __iomem *e_cropped_frame_height;
-+	void __iomem *e_frame_crop_offset;
-+	void __iomem *e_enc_options;
-+	void __iomem *e_picture_profile;
-+	void __iomem *e_vbv_buffer_size;
-+	void __iomem *e_vbv_init_delay;
-+	void __iomem *e_fixed_picture_qp;
-+	void __iomem *e_rc_config;
-+	void __iomem *e_rc_qp_bound;
-+	void __iomem *e_rc_qp_bound_pb;/* v7 and v8 */
-+	void __iomem *e_rc_mode;
-+	void __iomem *e_mb_rc_config;
-+	void __iomem *e_padding_ctrl;
-+	void __iomem *e_air_threshold;
-+	void __iomem *e_mv_hor_range;
-+	void __iomem *e_mv_ver_range;
-+	void __iomem *e_num_dpb;
-+	void __iomem *e_luma_dpb;
-+	void __iomem *e_chroma_dpb;
-+	void __iomem *e_me_buffer;
-+	void __iomem *e_scratch_buffer_addr;
-+	void __iomem *e_scratch_buffer_size;
-+	void __iomem *e_tmv_buffer0;
-+	void __iomem *e_tmv_buffer1;
-+	void __iomem *e_ir_buffer_addr;/* v7 and v8 */
-+	void __iomem *e_source_first_plane_addr;
-+	void __iomem *e_source_second_plane_addr;
-+	void __iomem *e_source_third_plane_addr;/* v7 and v8 */
-+	void __iomem *e_source_first_plane_stride;/* v7 and v8 */
-+	void __iomem *e_source_second_plane_stride;/* v7 and v8 */
-+	void __iomem *e_source_third_plane_stride;/* v7 and v8 */
-+	void __iomem *e_stream_buffer_addr;
-+	void __iomem *e_stream_buffer_size;
-+	void __iomem *e_roi_buffer_addr;
-+	void __iomem *e_param_change;
-+	void __iomem *e_ir_size;
-+	void __iomem *e_gop_config;
-+	void __iomem *e_mslice_mode;
-+	void __iomem *e_mslice_size_mb;
-+	void __iomem *e_mslice_size_bits;
-+	void __iomem *e_frame_insertion;
-+	void __iomem *e_rc_frame_rate;
-+	void __iomem *e_rc_bit_rate;
-+	void __iomem *e_rc_roi_ctrl;
-+	void __iomem *e_picture_tag;
-+	void __iomem *e_bit_count_enable;
-+	void __iomem *e_max_bit_count;
-+	void __iomem *e_min_bit_count;
-+	void __iomem *e_metadata_buffer_addr;
-+	void __iomem *e_metadata_buffer_size;
-+	void __iomem *e_encoded_source_first_plane_addr;
-+	void __iomem *e_encoded_source_second_plane_addr;
-+	void __iomem *e_encoded_source_third_plane_addr;/* v7 and v8 */
-+	void __iomem *e_stream_size;
-+	void __iomem *e_slice_type;
-+	void __iomem *e_picture_count;
-+	void __iomem *e_ret_picture_tag;
-+	void __iomem *e_stream_buffer_write_pointer; /*  only v6 */
-+	void __iomem *e_recon_luma_dpb_addr;
-+	void __iomem *e_recon_chroma_dpb_addr;
-+	void __iomem *e_metadata_addr_enc_slice;
-+	void __iomem *e_metadata_size_enc_slice;
-+	void __iomem *e_mpeg4_options;
-+	void __iomem *e_mpeg4_hec_period;
-+	void __iomem *e_aspect_ratio;
-+	void __iomem *e_extended_sar;
-+	void __iomem *e_h264_options;
-+	void __iomem *e_h264_options_2;/* v7 and v8 */
-+	void __iomem *e_h264_lf_alpha_offset;
-+	void __iomem *e_h264_lf_beta_offset;
-+	void __iomem *e_h264_i_period;
-+	void __iomem *e_h264_fmo_slice_grp_map_type;
-+	void __iomem *e_h264_fmo_num_slice_grp_minus1;
-+	void __iomem *e_h264_fmo_slice_grp_change_dir;
-+	void __iomem *e_h264_fmo_slice_grp_change_rate_minus1;
-+	void __iomem *e_h264_fmo_run_length_minus1_0;
-+	void __iomem *e_h264_aso_slice_order_0;
-+	void __iomem *e_h264_chroma_qp_offset;
-+	void __iomem *e_h264_num_t_layer;
-+	void __iomem *e_h264_hierarchical_qp_layer0;
-+	void __iomem *e_h264_frame_packing_sei_info;
-+	void __iomem *e_h264_nal_control;/* v7 and v8 */
-+	void __iomem *e_mvc_frame_qp_view1;
-+	void __iomem *e_mvc_rc_bit_rate_view1;
-+	void __iomem *e_mvc_rc_qbound_view1;
-+	void __iomem *e_mvc_rc_mode_view1;
-+	void __iomem *e_mvc_inter_view_prediction_on;
-+	void __iomem *e_vp8_options;/* v7 and v8 */
-+	void __iomem *e_vp8_filter_options;/* v7 and v8 */
-+	void __iomem *e_vp8_golden_frame_option;/* v7 and v8 */
-+	void __iomem *e_vp8_num_t_layer;/* v7 and v8 */
-+	void __iomem *e_vp8_hierarchical_qp_layer0;/* v7 and v8 */
-+	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
-+	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
+-  - compatible: Must contain "renesas,vsp1"
++  - compatible: Must contain one of the following values
++    - "renesas,vsp1" for the R-Car Gen2 VSP1
++    - "renesas,vsp2" for the R-Car Gen3 VSP2
+ 
+-  - reg: Base address and length of the registers block for the VSP1.
+-  - interrupts: VSP1 interrupt specifier.
+-  - clocks: A phandle + clock-specifier pair for the VSP1 functional clock.
++  - reg: Base address and length of the registers block for the VSP.
++  - interrupts: VSP interrupt specifier.
++  - clocks: A phandle + clock-specifier pair for the VSP functional clock.
+ 
+-  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
+-  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP1.
++  - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP.
++  - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP.
+ 
+ 
+ Optional properties:
+ 
+-  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1. Defaults
++  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP. Defaults
+     to 0 if not present.
+   - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
+     available.
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 377b167892e3..9a30c96dc642 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -575,6 +575,7 @@ static int vsp1_probe(struct platform_device *pdev)
+ 	struct vsp1_device *vsp1;
+ 	struct resource *irq;
+ 	struct resource *io;
++	u32 version;
+ 	int ret;
+ 
+ 	vsp1 = devm_kzalloc(&pdev->dev, sizeof(*vsp1), GFP_KERNEL);
+@@ -615,6 +616,29 @@ static int vsp1_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	/* Configure device parameters based on the version register. */
++	ret = clk_prepare_enable(vsp1->clock);
++	if (ret < 0)
++		return ret;
++
++	version = vsp1_read(vsp1, VI6_IP_VERSION);
++	clk_disable_unprepare(vsp1->clock);
++
++	dev_dbg(&pdev->dev, "IP version 0x%08x\n", version);
++
++	switch (version & VI6_IP_VERSION_MODEL_MASK) {
++	case VI6_IP_VERSION_MODEL_VSPD_GEN3:
++		vsp1->pdata.num_bru_inputs = 5;
++		vsp1->pdata.uapi = false;
++		break;
++
++	case VI6_IP_VERSION_MODEL_VSPI_GEN3:
++	case VI6_IP_VERSION_MODEL_VSPBD_GEN3:
++	case VI6_IP_VERSION_MODEL_VSPBC_GEN3:
++		vsp1->pdata.features &= ~VSP1_HAS_BRU;
++		break;
++	}
++
+ 	/* Instanciate entities */
+ 	ret = vsp1_create_entities(vsp1);
+ 	if (ret < 0) {
+@@ -638,6 +662,7 @@ static int vsp1_remove(struct platform_device *pdev)
+ 
+ static const struct of_device_id vsp1_of_match[] = {
+ 	{ .compatible = "renesas,vsp1" },
++	{ .compatible = "renesas,vsp2" },
+ 	{ },
  };
  
- struct s5p_mfc_hw_ops {
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 38a496f43050..4b46cb0e0e8a 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -165,7 +165,8 @@ int vsp1_entity_link_setup(struct media_entity *entity,
+ static const struct vsp1_route vsp1_routes[] = {
+ 	{ VSP1_ENTITY_BRU, 0, VI6_DPR_BRU_ROUTE,
+ 	  { VI6_DPR_NODE_BRU_IN(0), VI6_DPR_NODE_BRU_IN(1),
+-	    VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3), } },
++	    VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3),
++	    VI6_DPR_NODE_BRU_IN(4) } },
+ 	{ VSP1_ENTITY_HSI, 0, VI6_DPR_HSI_ROUTE, { VI6_DPR_NODE_HSI, } },
+ 	{ VSP1_ENTITY_HST, 0, VI6_DPR_HST_ROUTE, { VI6_DPR_NODE_HST, } },
+ 	{ VSP1_ENTITY_LIF, 0, 0, { VI6_DPR_NODE_LIF, } },
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 8173ceaab9f9..a3a0a15d9997 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -322,7 +322,7 @@
+ #define VI6_DPR_NODE_SRU		16
+ #define VI6_DPR_NODE_UDS(n)		(17 + (n))
+ #define VI6_DPR_NODE_LUT		22
+-#define VI6_DPR_NODE_BRU_IN(n)		(23 + (n))
++#define VI6_DPR_NODE_BRU_IN(n)		(((n) <= 3) ? 23 + (n) : 49)
+ #define VI6_DPR_NODE_BRU_OUT		27
+ #define VI6_DPR_NODE_CLU		29
+ #define VI6_DPR_NODE_HST		30
+@@ -504,12 +504,12 @@
+ #define VI6_BRU_VIRRPF_COL_BCB_MASK	(0xff << 0)
+ #define VI6_BRU_VIRRPF_COL_BCB_SHIFT	0
+ 
+-#define VI6_BRU_CTRL(n)			(0x2c10 + (n) * 8)
++#define VI6_BRU_CTRL(n)			(0x2c10 + (n) * 8 + ((n) <= 3 ? 0 : 4))
+ #define VI6_BRU_CTRL_RBC		(1 << 31)
+-#define VI6_BRU_CTRL_DSTSEL_BRUIN(n)	((n) << 20)
++#define VI6_BRU_CTRL_DSTSEL_BRUIN(n)	(((n) <= 3 ? (n) : (n)+1) << 20)
+ #define VI6_BRU_CTRL_DSTSEL_VRPF	(4 << 20)
+ #define VI6_BRU_CTRL_DSTSEL_MASK	(7 << 20)
+-#define VI6_BRU_CTRL_SRCSEL_BRUIN(n)	((n) << 16)
++#define VI6_BRU_CTRL_SRCSEL_BRUIN(n)	(((n) <= 3 ? (n) : (n)+1) << 16)
+ #define VI6_BRU_CTRL_SRCSEL_VRPF	(4 << 16)
+ #define VI6_BRU_CTRL_SRCSEL_MASK	(7 << 16)
+ #define VI6_BRU_CTRL_CROP(rop)		((rop) << 4)
+@@ -517,7 +517,7 @@
+ #define VI6_BRU_CTRL_AROP(rop)		((rop) << 0)
+ #define VI6_BRU_CTRL_AROP_MASK		(0xf << 0)
+ 
+-#define VI6_BRU_BLD(n)			(0x2c14 + (n) * 8)
++#define VI6_BRU_BLD(n)			(0x2c14 + (n) * 8 + ((n) <= 3 ? 0 : 4))
+ #define VI6_BRU_BLD_CBES		(1 << 31)
+ #define VI6_BRU_BLD_CCMDX_DST_A		(0 << 28)
+ #define VI6_BRU_BLD_CCMDX_255_DST_A	(1 << 28)
+@@ -551,7 +551,7 @@
+ #define VI6_BRU_BLD_COEFY_SHIFT		0
+ 
+ #define VI6_BRU_ROP			0x2c30
+-#define VI6_BRU_ROP_DSTSEL_BRUIN(n)	((n) << 20)
++#define VI6_BRU_ROP_DSTSEL_BRUIN(n)	(((n) <= 3 ? (n) : (n)+1) << 20)
+ #define VI6_BRU_ROP_DSTSEL_VRPF		(4 << 20)
+ #define VI6_BRU_ROP_DSTSEL_MASK		(7 << 20)
+ #define VI6_BRU_ROP_CROP(rop)		((rop) << 4)
+@@ -625,6 +625,24 @@
+ #define VI6_SECURITY_CTRL1		0x3d04
+ 
+ /* -----------------------------------------------------------------------------
++ * IP Version Registers
++ */
++
++#define VI6_IP_VERSION			0x3f00
++#define VI6_IP_VERSION_MODEL_MASK	(0xff << 8)
++#define VI6_IP_VERSION_MODEL_VSPS_H2	(0x09 << 8)
++#define VI6_IP_VERSION_MODEL_VSPR_GEN2	(0x0a << 8)
++#define VI6_IP_VERSION_MODEL_VSPD_H2	(0x0b << 8)
++#define VI6_IP_VERSION_MODEL_VSPS_M2	(0x0c << 8)
++#define VI6_IP_VERSION_MODEL_VSPI_GEN3	(0x14 << 8)
++#define VI6_IP_VERSION_MODEL_VSPBD_GEN3	(0x15 << 8)
++#define VI6_IP_VERSION_MODEL_VSPBC_GEN3	(0x16 << 8)
++#define VI6_IP_VERSION_MODEL_VSPD_GEN3	(0x17 << 8)
++#define VI6_IP_VERSION_SOC_MASK		(0xff << 0)
++#define VI6_IP_VERSION_SOC_H		(0x01 << 0)
++#define VI6_IP_VERSION_SOC_M		(0x02 << 0)
++
++/* -----------------------------------------------------------------------------
+  * RPF CLUT Registers
+  */
+ 
 -- 
-1.9.1
+2.4.10
 
