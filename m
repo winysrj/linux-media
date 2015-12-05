@@ -1,35 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:51350 "EHLO shell.v3.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750965AbbLUPSS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 10:18:18 -0500
-Message-ID: <1450710545.12572.17.camel@v3.sk>
-Subject: Re: [PATCH] usbtv: discard redundant video fields
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Nikola =?ISO-8859-1?Q?Forr=F3?= <nikola.forro@gmail.com>,
-	linux-media@vger.kernel.org
-Date: Mon, 21 Dec 2015 16:09:05 +0100
-In-Reply-To: <20151220125717.376e7903@urna>
-References: <20151220125717.376e7903@urna>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932256AbbLECNM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:12 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 18/32] v4l: vsp1: Set the SRU CTRL0 register when starting the stream
+Date: Sat,  5 Dec 2015 04:12:52 +0200
+Message-Id: <1449281586-25726-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2015-12-20 at 12:57 +0100, Nikola Forró wrote:
-> There are many dropped fields with some sources, leading to many
-> redundant fields without counterparts. When this redundant field
-> is odd, a new frame is pushed containing this odd field interleaved
-> with whatever was left in the buffer, causing video artifacts.
-> 
-> Do not push a new frame after processing every odd field, but do it
-> only after those which come after an even field.
-> 
-> Signed-off-by: Nikola Forró <nikola.forro@gmail.com>
+Commit 58f896d859ce ("[media] v4l: vsp1: sru: Make the intensity
+controllable during streaming") refactored the stream start code and
+removed the SRU CTRL0 register write by mistake. Add it back.
 
-Acked-by: Lubomir Rintel <lkundrak@v3.sk>
+Fixes: 58f896d859ce ("[media] v4l: vsp1: sru: Make the intensity controllable during streaming")
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_sru.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Thanks,
-Lubo
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 6310acab60e7..d41ae950d1a1 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -154,6 +154,7 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	mutex_lock(sru->ctrls.lock);
+ 	ctrl0 |= vsp1_sru_read(sru, VI6_SRU_CTRL0)
+ 	       & (VI6_SRU_CTRL0_PARAM0_MASK | VI6_SRU_CTRL0_PARAM1_MASK);
++	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
+ 	mutex_unlock(sru->ctrls.lock);
+ 
+ 	vsp1_sru_write(sru, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
+-- 
+2.4.10
+
