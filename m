@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:34614 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbbLFLrC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2015 06:47:02 -0500
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-To: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	mchehab@osg.samsung.com, kgene@kernel.org, k.kozlowski@samsung.com,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
-Subject: [PATCH 05/10] exynos4-is: Replace "hweight32(mask) == 1" with "is_power_of_2(mask)"
-Date: Sun,  6 Dec 2015 18:44:29 +0800
-Message-Id: <1449398669-14507-1-git-send-email-zhaoxiu.zeng@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932209AbbLECNF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:05 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 07/32] v4l: vsp1: Support VSP1 instances without any UDS
+Date: Sat,  5 Dec 2015 04:12:41 +0200
+Message-Id: <1449281586-25726-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
+Not all VSP1 instances include a UDS. Make the renesas,#uds DT property
+optional and accept a number of UDS equal to 0 as valid.
 
-Signed-off-by: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/exynos4-is/fimc-is-regs.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/media/renesas,vsp1.txt | 3 ++-
+ drivers/media/platform/vsp1/vsp1_drv.c                   | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-index cfe4406..ec75a24 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-@@ -11,6 +11,7 @@
-  * published by the Free Software Foundation.
-  */
- #include <linux/delay.h>
-+#include <linux/log2.h>
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 87fe08abf36d..674c8c30d046 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -13,12 +13,13 @@ Required properties:
+   - clocks: A phandle + clock-specifier pair for the VSP1 functional clock.
  
- #include "fimc-is.h"
- #include "fimc-is-command.h"
-@@ -107,7 +108,7 @@ int fimc_is_hw_get_params(struct fimc_is *is, unsigned int num_args)
+   - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
+-  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
+   - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP1.
  
- void fimc_is_hw_set_isp_buf_mask(struct fimc_is *is, unsigned int mask)
- {
--	if (hweight32(mask) == 1) {
-+	if (is_power_of_2(mask)) {
- 		dev_err(&is->pdev->dev, "%s(): not enough buffers (mask %#x)\n",
- 							__func__, mask);
- 		return;
+ 
+ Optional properties:
+ 
++  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1. Defaults
++    to 0 if not present.
+   - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
+     available.
+   - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module is
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index de0b80e8d048..5f93cbdcb0f1 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -513,7 +513,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pdata->uds_count <= 0 || pdata->uds_count > VSP1_MAX_UDS) {
++	if (pdata->uds_count > VSP1_MAX_UDS) {
+ 		dev_err(vsp1->dev, "invalid number of UDS (%u)\n",
+ 			pdata->uds_count);
+ 		return -EINVAL;
 -- 
-2.5.0
+2.4.10
 
