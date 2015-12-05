@@ -1,111 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43020 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754466AbbLPIlT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 03:41:19 -0500
-Received: from avalon.localnet (unknown [207.140.26.138])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 3E01F2000E
-	for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 09:41:18 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	with ESMTP id S932263AbbLECNO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:14 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.5] Renesas VSP1 improvements and fixes
-Date: Wed, 16 Dec 2015 10:41:16 +0200
-Message-ID: <3880424.K6feHa190s@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 20/32] v4l: vsp1: Move entity route setup function to vsp1_entity.c
+Date: Sat,  5 Dec 2015 04:12:54 +0200
+Message-Id: <1449281586-25726-21-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The function will be used by the DU code, move it out of vsp1_video.c.
 
-The following changes since commit 52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_entity.c | 12 ++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_video.c  | 12 ------------
+ 3 files changed, 14 insertions(+), 12 deletions(-)
 
-  Revert "[media] UVC: Add support for ds4 depth camera" (2015-12-12 08:10:40 
--0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/next
-
-for you to fetch changes up to 41db244b5b484f3f2afc1834552d6771f05c2ebe:
-
-  v4l: vsp1: Add display list support (2015-12-16 10:37:47 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (31):
-      v4l: vsp1: Change the type of the rwpf field in struct vsp1_video
-      v4l: vsp1: Store the memory format in struct vsp1_rwpf
-      v4l: vsp1: Move video operations to vsp1_rwpf
-      v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
-      v4l: vsp1: Move video device out of struct vsp1_rwpf
-      v4l: vsp1: Make rwpf operations independent of video device
-      v4l: vsp1: Support VSP1 instances without any UDS
-      v4l: vsp1: Move vsp1_video pointer from vsp1_entity to vsp1_rwpf
-      v4l: vsp1: Remove struct vsp1_pipeline num_video field
-      v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
-      v4l: vsp1: Split pipeline management code from vsp1_video.c
-      v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
-      v4l: vsp1: Extract pipeline initialization code into a function
-      v4l: vsp1: Reuse local variable instead of recomputing it
-      v4l: vsp1: Extract link creation to separate function
-      v4l: vsp1: Document the vsp1_pipeline structure
-      v4l: vsp1: Fix typo in VI6_DISP_IRQ_STA_DST register bit name
-      v4l: vsp1: Set the SRU CTRL0 register when starting the stream
-      v4l: vsp1: Remove unused module read functions
-      v4l: vsp1: Move entity route setup function to vsp1_entity.c
-      v4l: vsp1: Make number of BRU inputs configurable
-      v4l: vsp1: Make the BRU optional
-      v4l: vsp1: Move format info to vsp1_pipe.c
-      v4l: vsp1: Make the userspace API optional
-      v4l: vsp1: Make pipeline inputs array index by RPF index
-      v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream handlers
-      v4l: vsp1: Don't validate links when the userspace API is disabled
-      v4l: vsp1: Add VSP+DU support
-      v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
-      v4l: vsp1: Implement atomic update for the DRM driver
-      v4l: vsp1: Add support for the R-Car Gen3 VSP2
-
-Takashi Saito (1):
-      v4l: vsp1: Add display list support
-
- .../devicetree/bindings/media/renesas,vsp1.txt          |  21 +-
- drivers/media/platform/vsp1/Makefile                    |   3 +-
- drivers/media/platform/vsp1/vsp1.h                      |  24 +
- drivers/media/platform/vsp1/vsp1_bru.c                  |  33 +-
- drivers/media/platform/vsp1/vsp1_bru.h                  |   3 +-
- drivers/media/platform/vsp1/vsp1_dl.c                   | 304 ++++++++++++
- drivers/media/platform/vsp1/vsp1_dl.h                   |  42 ++
- drivers/media/platform/vsp1/vsp1_drm.c                  | 597 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_drm.h                  |  38 ++
- drivers/media/platform/vsp1/vsp1_drv.c                  | 254 ++++++++--
- drivers/media/platform/vsp1/vsp1_entity.c               |  31 +-
- drivers/media/platform/vsp1/vsp1_entity.h               |  14 +-
- drivers/media/platform/vsp1/vsp1_hsit.c                 |   2 +-
- drivers/media/platform/vsp1/vsp1_lif.c                  |  11 +-
- drivers/media/platform/vsp1/vsp1_lut.c                  |   7 +-
- drivers/media/platform/vsp1/vsp1_pipe.c                 | 405 ++++++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h                 | 134 ++++++
- drivers/media/platform/vsp1/vsp1_regs.h                 |  32 +-
- drivers/media/platform/vsp1/vsp1_rpf.c                  |  77 ++-
- drivers/media/platform/vsp1/vsp1_rwpf.h                 |  24 +-
- drivers/media/platform/vsp1/vsp1_sru.c                  |   9 +-
- drivers/media/platform/vsp1/vsp1_uds.c                  |   8 +-
- drivers/media/platform/vsp1/vsp1_video.c                | 516 +++------------
- drivers/media/platform/vsp1/vsp1_video.h                | 111 +----
- drivers/media/platform/vsp1/vsp1_wpf.c                  |  88 ++--
- include/media/vsp1.h                                    |  33 ++
- 26 files changed, 2071 insertions(+), 750 deletions(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_dl.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_dl.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drm.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_drm.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.h
-
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 0c52e4b71a98..cb9d480d8ee5 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -58,6 +58,18 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ 	return ret;
+ }
+ 
++void vsp1_entity_route_setup(struct vsp1_entity *source)
++{
++	struct vsp1_entity *sink;
++
++	if (source->route->reg == 0)
++		return;
++
++	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
++	vsp1_write(source->vsp1, source->route->reg,
++		   sink->route->inputs[source->sink_pad]);
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 Subdevice Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 9c95507ec762..9606d0d21263 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -96,4 +96,6 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
+ bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
+ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
+ 
++void vsp1_entity_route_setup(struct vsp1_entity *source);
++
+ #endif /* __VSP1_ENTITY_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index c958ba6a20ce..a9b7bafc5fa2 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -661,18 +661,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ }
+ 
+-static void vsp1_entity_route_setup(struct vsp1_entity *source)
+-{
+-	struct vsp1_entity *sink;
+-
+-	if (source->route->reg == 0)
+-		return;
+-
+-	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
+-	vsp1_write(source->vsp1, source->route->reg,
+-		   sink->route->inputs[source->sink_pad]);
+-}
+-
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.10
 
