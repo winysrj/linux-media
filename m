@@ -1,116 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49623 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079AbbLUEAG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 23:00:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH/RFC 27/48] v4l2-subdev.h: Add request field to format and selection structures
-Date: Mon, 21 Dec 2015 06:00:03 +0200
-Message-ID: <1476580.ayUQBMxAma@avalon>
-In-Reply-To: <5673EC16.6020302@xs4all.nl>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1450341626-6695-28-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <5673EC16.6020302@xs4all.nl>
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:37276 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbbLEGTU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 01:19:20 -0500
+Received: by wmww144 with SMTP id w144so90065995wmw.0
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2015 22:19:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAHwmhgHsPZTLgChqO05NYv7h-rD_Sex2d+jqsK=PpYJxcHi78g@mail.gmail.com>
+References: <CAHwmhgFyjLOT6Na6oLXQT+FiUjyjrPX_CmKvQVDP-k9kawnMHw@mail.gmail.com>
+	<CALF0-+UtHzo6-vYvUWtvS0hU7jyuPU+Ku4JC85T4gn4AHLgS0w@mail.gmail.com>
+	<CAHwmhgGhdH8_+_5abeJZg=sL2nrr3psqzwHz3xrL_u1aV6mNCg@mail.gmail.com>
+	<CAAEAJfDzpafBTqcTqjvEJWVxOQu7j=zK6m47VhnSVgM4kWhG5Q@mail.gmail.com>
+	<CAHwmhgHsPZTLgChqO05NYv7h-rD_Sex2d+jqsK=PpYJxcHi78g@mail.gmail.com>
+Date: Sat, 5 Dec 2015 03:19:19 -0300
+Message-ID: <CAAEAJfCBBNC_Oj-pzVQWQV-hMFY99s+C6WdY+F+fDjjRBLk+qA@mail.gmail.com>
+Subject: Re: Sabrent (stk1160) / Easycap driver problem
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: Philippe Desrochers <desrochers.philippe@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 5 December 2015 at 01:29, Philippe Desrochers
+<desrochers.philippe@gmail.com> wrote:
+> The difference seems to be around the "saa7113" chip. Maybe the Sabrent is
+> using another video decoder chip ?
 
-On Friday 18 December 2015 12:20:54 Hans Verkuil wrote:
-> On 12/17/2015 09:40 AM, Laurent Pinchart wrote:
-> > Let userspace specify a request ID when getting or setting formats or
-> > selection rectangles.
-> > 
-> > From a userspace point of view the API change is minimized and doesn't
-> > require any new ioctl.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  include/uapi/linux/v4l2-subdev.h | 15 +++++++++++++--
-> >  1 file changed, 13 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/include/uapi/linux/v4l2-subdev.h
-> > b/include/uapi/linux/v4l2-subdev.h index dbce2b554e02..2f1691ce9df5
-> > 100644
-> > --- a/include/uapi/linux/v4l2-subdev.h
-> > +++ b/include/uapi/linux/v4l2-subdev.h
-> > @@ -32,10 +32,12 @@
-> >   * enum v4l2_subdev_format_whence - Media bus format type
-> >   * @V4L2_SUBDEV_FORMAT_TRY: try format, for negotiation only
-> >   * @V4L2_SUBDEV_FORMAT_ACTIVE: active format, applied to the device
-> > + * @V4L2_SUBDEV_FORMAT_REQUEST: format stored in request
-> >   */
-> >  enum v4l2_subdev_format_whence {
-> >  	V4L2_SUBDEV_FORMAT_TRY = 0,
-> >  	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-> > +	V4L2_SUBDEV_FORMAT_REQUEST = 2,
-> >  };
-> >  
-> >  /**
-> > @@ -43,12 +45,17 @@ enum v4l2_subdev_format_whence {
-> >   * @which: format type (from enum v4l2_subdev_format_whence)
-> >   * @pad: pad number, as reported by the media API
-> >   * @format: media bus format (format code and frame size)
-> > + * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-> > + * @reserved2: for future use, set to zero for now
-> > + * @reserved: for future use, set to zero for now
-> >   */
-> >  struct v4l2_subdev_format {
-> >  	__u32 which;
-> >  	__u32 pad;
-> >  	struct v4l2_mbus_framefmt format;
-> > -	__u32 reserved[8];
-> > +	__u16 request;
-> > +	__u16 reserved2;
-> > +	__u32 reserved[7];
-> 
-> I would prefer:
-> 
-> 	__u16 request;
-> 	__u16 reserved[15];
-> 
-> >  };
-> >  
-> >  /**
-> > @@ -139,6 +146,8 @@ struct v4l2_subdev_frame_interval_enum {
-> >   *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
-> >   * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-> >   * @r: coordinates of the selection window
-> > + * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-> > + * @reserved2: for future use, set to zero for now
-> >   * @reserved: for future use, set to zero for now
-> >   *
-> >   * Hardware may use multiple helper windows to process a video stream.
-> > @@ -151,7 +160,9 @@ struct v4l2_subdev_selection {
-> >  	__u32 target;
-> >  	__u32 flags;
-> >  	struct v4l2_rect r;
-> > -	__u32 reserved[8];
-> > +	__u16 request;
-> > +	__u16 reserved2;
-> > +	__u32 reserved[7];
-> 
-> Ditto.
-> 
-> Generally apps do a memset of reserved, and that will just keep working.
-> But adding a reserved2 field means that they have to explicitly set
-> reserved2 to 0, which won't happen.
+Yes, I believe that would explain the kernel log you sent.
 
-Agreed. Consider it fixed.
+> I will open one and check the chips on the PCB.
+>
 
-> >  };
-> >  
-> >  /* Backwards compatibility define --- to be removed */
+OK, that would help.
 
+> Do you know if the stk1160 driver was working with this device (Sabrent
+> USB-AVCPT) in the past ?
+>
+
+I've only seen generic "Easycap" labeled stk1160 devices
+with either sa7115 or gm7113 decoder. Both of these are supported.c
+
+See drivers/media/i2c/saa7115.c:saa711x_detect_chip for details on how
+the decoder chip
+is identified.
+
+> Also, it seems the Sabrent USB-AVCPT is using the AC'97 Audio chip.
+> Could it be the problem ?
+>
+
+Shouldn't affect.
+
+> Do you know if there a firmware in the Syntek 1160 chip ?
+>
+
+There is not.
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
