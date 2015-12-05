@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35042 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbbL2Kay (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 05:30:54 -0500
-From: Thierry Reding <thierry.reding@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH] [media] uvcvideo: Fix build if !MEDIA_CONTROLLER
-Date: Tue, 29 Dec 2015 11:30:52 +0100
-Message-Id: <1451385052-20158-1-git-send-email-thierry.reding@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932250AbbLECNL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:11 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 17/32] v4l: vsp1: Fix typo in VI6_DISP_IRQ_STA_DST register name
+Date: Sat,  5 Dec 2015 04:12:51 +0200
+Message-Id: <1449281586-25726-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Thierry Reding <treding@nvidia.com>
+Rename the VI6_DISP_IRQ_STA_DSE register to VI6_DISP_IRQ_STA_DST to fix
+a typo and match the datasheet.
 
-Accesses to the UVC device's mdev field need to be protected by a
-preprocessor conditional to avoid build errors, since the field is only
-included if the MEDIA_CONTROLLER option is selected.
-
-Fixes: 1590ad7b5271 ("[media] media-device: split media initialization and registration")
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 4dfd3eb814e7..fc63f9aae63e 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1937,9 +1937,11 @@ static int uvc_probe(struct usb_interface *intf,
- 	if (uvc_register_chains(dev) < 0)
- 		goto error;
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 25b48738b147..8173ceaab9f9 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -46,7 +46,7 @@
+ #define VI6_DISP_IRQ_ENB_LNEE(n)	(1 << (n))
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
- 	/* Register the media device node */
- 	if (media_device_register(&dev->mdev) < 0)
- 		goto error;
-+#endif
+ #define VI6_DISP_IRQ_STA		0x007c
+-#define VI6_DISP_IRQ_STA_DSE		(1 << 8)
++#define VI6_DISP_IRQ_STA_DST		(1 << 8)
+ #define VI6_DISP_IRQ_STA_MAE		(1 << 5)
+ #define VI6_DISP_IRQ_STA_LNE(n)		(1 << (n))
  
- 	/* Save our data pointer in the interface data. */
- 	usb_set_intfdata(intf, dev);
 -- 
-2.5.0
+2.4.10
 
