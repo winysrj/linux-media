@@ -1,116 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38525 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbbLMLB7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 06:01:59 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 3/4] [media] media-devnode: move kernel-doc documentation to the header
-Date: Sun, 13 Dec 2015 09:01:42 -0200
-Message-Id: <25e821c6161f23c389980e03c6cc6d9ea4671e78.1450004500.git.mchehab@osg.samsung.com>
-In-Reply-To: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
-References: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
-In-Reply-To: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
-References: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932201AbbLECNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:15 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 22/32] v4l: vsp1: Make the BRU optional
+Date: Sat,  5 Dec 2015 04:12:56 +0200
+Message-Id: <1449281586-25726-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we're using the headers file only for documentation, move the
-two kernel-doc macros to the header, and fix it to avoid
-warnings.
+Not all VSP instances have a BRU on R-Car Gen3, make it optional. Set
+the feature unconditionally for now, this will be fixed when adding Gen3
+support.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/media-devnode.c | 24 ------------------------
- include/media/media-devnode.h | 27 +++++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index ebf9626e5ae5..cea35bf20011 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -217,20 +217,6 @@ static const struct file_operations media_devnode_fops = {
- 	.llseek = no_llseek,
- };
+Changes since v1:
+
+- Don't add a new DT property
+
+---
+ drivers/media/platform/vsp1/vsp1.h     |  1 +
+ drivers/media/platform/vsp1/vsp1_drv.c | 15 +++++++++------
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 29a8fd94a0aa..d980f32aac0b 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -42,6 +42,7 @@ struct vsp1_uds;
+ #define VSP1_HAS_LIF		(1 << 0)
+ #define VSP1_HAS_LUT		(1 << 1)
+ #define VSP1_HAS_SRU		(1 << 2)
++#define VSP1_HAS_BRU		(1 << 3)
  
--/**
-- * media_devnode_register - register a media device node
-- * @mdev: media device node structure we want to register
-- *
-- * The registration code assigns minor numbers and registers the new device node
-- * with the kernel. An error is returned if no free minor number can be found,
-- * or if the registration of the device node fails.
-- *
-- * Zero is returned on success.
-- *
-- * Note that if the media_devnode_register call fails, the release() callback of
-- * the media_devnode structure is *not* called, so the caller is responsible for
-- * freeing any data.
-- */
- int __must_check media_devnode_register(struct media_devnode *mdev,
- 					struct module *owner)
- {
-@@ -285,16 +271,6 @@ error:
- 	return ret;
- }
+ struct vsp1_platform_data {
+ 	unsigned int features;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 53a32f6ccbc0..42b6a106cbbb 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -223,13 +223,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
  
--/**
-- * media_devnode_unregister - unregister a media device node
-- * @mdev: the device node to unregister
-- *
-- * This unregisters the passed device. Future open calls will be met with
-- * errors.
-- *
-- * This function can safely be called if the device node has never been
-- * registered or has already been unregistered.
-- */
- void media_devnode_unregister(struct media_devnode *mdev)
- {
- 	/* Check if mdev was ever registered at all */
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index 17ddae32060d..77e9d3159be8 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -86,8 +86,35 @@ struct media_devnode {
- /* dev to media_devnode */
- #define to_media_devnode(cd) container_of(cd, struct media_devnode, dev)
+ 	/* Instantiate all the entities. */
+-	vsp1->bru = vsp1_bru_create(vsp1);
+-	if (IS_ERR(vsp1->bru)) {
+-		ret = PTR_ERR(vsp1->bru);
+-		goto done;
+-	}
++	if (vsp1->pdata.features & VSP1_HAS_BRU) {
++		vsp1->bru = vsp1_bru_create(vsp1);
++		if (IS_ERR(vsp1->bru)) {
++			ret = PTR_ERR(vsp1->bru);
++			goto done;
++		}
  
-+/**
-+ * media_devnode_register - register a media device node
-+ *
-+ * @mdev: media device node structure we want to register
-+ * @owner: should be filled with %THIS_MODULE
-+ *
-+ * The registration code assigns minor numbers and registers the new device node
-+ * with the kernel. An error is returned if no free minor number can be found,
-+ * or if the registration of the device node fails.
-+ *
-+ * Zero is returned on success.
-+ *
-+ * Note that if the media_devnode_register call fails, the release() callback of
-+ * the media_devnode structure is *not* called, so the caller is responsible for
-+ * freeing any data.
-+ */
- int __must_check media_devnode_register(struct media_devnode *mdev,
- 					struct module *owner);
-+
-+/**
-+ * media_devnode_unregister - unregister a media device node
-+ * @mdev: the device node to unregister
-+ *
-+ * This unregisters the passed device. Future open calls will be met with
-+ * errors.
-+ *
-+ * This function can safely be called if the device node has never been
-+ * registered or has already been unregistered.
-+ */
- void media_devnode_unregister(struct media_devnode *mdev);
+-	list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
++		list_add_tail(&vsp1->bru->entity.list_dev, &vsp1->entities);
++	}
  
- static inline struct media_devnode *media_devnode_data(struct file *filp)
+ 	vsp1->hsi = vsp1_hsit_create(vsp1, true);
+ 	if (IS_ERR(vsp1->hsi)) {
+@@ -540,6 +542,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
+ 		return -EINVAL;
+ 	}
+ 
++	pdata->features |= VSP1_HAS_BRU;
+ 	pdata->num_bru_inputs = 4;
+ 
+ 	return 0;
 -- 
-2.5.0
+2.4.10
 
