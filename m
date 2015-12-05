@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:28634 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750830AbbLQRRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 12:17:50 -0500
-Subject: Re: Automatic device driver back-porting with media_build
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
- <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
- <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
- <5672EAD6.2000706@free.fr>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <5672EE38.5040400@free.fr>
-Date: Thu, 17 Dec 2015 18:17:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <5672EAD6.2000706@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932248AbbLECNL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:11 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH v2 16/32] v4l: vsp1: Document the vsp1_pipeline structure
+Date: Sat,  5 Dec 2015 04:12:50 +0200
+Message-Id: <1449281586-25726-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/12/2015 18:03, Mason wrote:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.h | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-> On 17/12/2015 17:09, Mauro Carvalho Chehab wrote:
-> 
->> As I said before, heavily patched Kernel. It seems that the network stack
->> was updated to some newer version. The media_build backport considers
->> only the upstream Kernels. In the specific case of 3.4, it is known
->> to build fine with Kernel linux-3.4.27. See:
->> 	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
-> 
-> I don't think the network stack is different from vanilla...
-> 
-> I had a different idea:
-> 
-> The media_build process prints:
-> 
-> "Preparing to compile for kernel version 3.4.3913"
-> 
-> In fact, the custom kernel's Makefile contains:
-> 
-> VERSION = 3
-> PATCHLEVEL = 4
-> SUBLEVEL = 39
-> EXTRAVERSION = 13
-> NAME = Saber-toothed Squirrel
-> 
-> Is it possible that the build process gets confused by the EXTRAVERSION field?
-
-Could this be the problem?
-(Missing '.' between sublevel and extra)
-Although with vanilla kernels, it will print 3.4.39. which is
-probably wrong...
-
-diff --git a/v4l/Makefile b/v4l/Makefile
-index 1542092004fa..9147a98639b7 100644
---- a/v4l/Makefile
-+++ b/v4l/Makefile
-@@ -233,9 +233,9 @@ ifneq ($(DIR),)
-        -e '    elsif (/^EXTRAVERSION\s*=\s*(\S+)\n/){ $$extra=$$1; }' \
-        -e '    elsif (/^KERNELSRC\s*:=\s*(\S.*)\n/ || /^MAKEARGS\s*:=\s*-C\s*(\S.*)\n/)' \
-        -e '        { $$o=$$d; $$d=$$1; goto S; }' \
-        -e '};' \
--       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",' \
-+       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s.%s\n",' \
-        -e '    $$version,$$level,$$sublevel,$$version,$$level,$$sublevel,$$extra);' \
-        -e 'print "OUTDIR:=$$o\n" if($$o);' \
-        -e 'print "SRCDIR:=$$d\n";' > $(obj)/.version
-        @cat .version|grep KERNELRELEASE:|sed s,'KERNELRELEASE:=','Forcing compiling to version ',
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 8553d5a03aa3..9c8ded1c29f6 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -29,9 +29,23 @@ enum vsp1_pipeline_state {
+ 
+ /*
+  * struct vsp1_pipeline - A VSP1 hardware pipeline
+- * @media: the media pipeline
++ * @pipe: the media pipeline
+  * @irqlock: protects the pipeline state
++ * @state: current state
++ * @wq: work queue to wait for state change completion
++ * @frame_end: frame end interrupt handler
+  * @lock: protects the pipeline use count and stream count
++ * @use_count: number of video nodes using the pipeline
++ * @stream_count: number of streaming video nodes
++ * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
++ * @num_inputs: number of RPFs
++ * @inputs: array of RPFs in the pipeline
++ * @output: WPF at the output of the pipeline
++ * @bru: BRU entity, if present
++ * @lif: LIF entity, if present
++ * @uds: UDS entity, if present
++ * @uds_input: entity at the input of the UDS, if the UDS is present
++ * @entities: list of entities in the pipeline
+  */
+ struct vsp1_pipeline {
+ 	struct media_pipeline pipe;
+-- 
+2.4.10
 
