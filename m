@@ -1,123 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54049 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057AbbLOD4o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 22:56:44 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DB5E6E291F
-	for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 04:56:38 +0100 (CET)
-Date: Tue, 15 Dec 2015 04:56:38 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20151215035638.DB5E6E291F@tschai.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56335 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093AbbLFCoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:44:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/5] [media] uvcvideo: create pad links after subdev registration
+Date: Sun, 06 Dec 2015 04:44:12 +0200
+Message-ID: <2329250.FAlNbDTqBe@avalon>
+In-Reply-To: <55ED9AD1.1090205@osg.samsung.com>
+References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com> <1441296036-20727-5-git-send-email-javier@osg.samsung.com> <55ED9AD1.1090205@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Javier,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Tue Dec 15 04:00:15 CET 2015
-git branch:	test
-git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+On Monday 07 September 2015 16:10:25 Javier Martinez Canillas wrote:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+[snip]
 
-Detailed results are available here:
+> From 8be356e77eeefdc5c0738dd429205f3398c5b76c Mon Sep 17 00:00:00 2001
+> From: Javier Martinez Canillas <javier@osg.samsung.com>
+> Date: Thu, 3 Sep 2015 13:46:06 +0200
+> Subject: [PATCH v2 4/5] [media] uvcvideo: create pad links after subdev
+>  registration
+> 
+> The uvc driver creates the pads links before the media entity is
+> registered with the media device. This doesn't work now that obj
+> IDs are used to create links so the media_device has to be set.
+> 
+> Move entities registration logic before pads links creation.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> ---
+> 
+> Changes since v1:
+>  - Don't try to register a UVC entity subdev for type UVC_TT_STREAMING.
+> 
+>  drivers/media/usb/uvc/uvc_entity.c | 23 +++++++++++++++++++----
+>  1 file changed, 19 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_entity.c
+> b/drivers/media/usb/uvc/uvc_entity.c index 429e428ccd93..7f82b65b238e
+> 100644
+> --- a/drivers/media/usb/uvc/uvc_entity.c
+> +++ b/drivers/media/usb/uvc/uvc_entity.c
+> @@ -26,6 +26,15 @@
+>  static int uvc_mc_register_entity(struct uvc_video_chain *chain,
+>         struct uvc_entity *entity)
+>  {
+> +       if (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
+> +               return 0;
+> +
+> +       return v4l2_device_register_subdev(&chain->dev->vdev,
+> &entity->subdev);
+> +}
+> +
+> +static int uvc_mc_create_pads_links(struct uvc_video_chain *chain,
+> +                                   struct uvc_entity *entity)
+> +{
+>         const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
+>         struct media_entity *sink;
+>         unsigned int i;
+> @@ -62,10 +71,7 @@ static int uvc_mc_register_entity(struct uvc_video_chain
+> *chain, return ret;
+>         }
+>  
+> -       if (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
+> -               return 0;
+> -
+> -       return v4l2_device_register_subdev(&chain->dev->vdev,
+> &entity->subdev);
+> +       return 0;
+>  }
+>  
+>  static struct v4l2_subdev_ops uvc_subdev_ops = {
+> @@ -124,5 +130,14 @@ int uvc_mc_register_entities(struct uvc_video_chain
+> *chain) }
+>         }
+>  
+> +       list_for_each_entry(entity, &chain->entities, chain) {
+> +               ret = uvc_mc_create_pads_links(chain, entity);
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+You can call this uvc_mc_create_links(), there's no other type of links in the 
+driver.
 
-Full logs are available here:
+> +               if (ret < 0) {
+> +                       uvc_printk(KERN_INFO, "Failed to create pads links
+> for "
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Same here, I'd s/pad links/links/.
 
-The Media Infrastructure API from this daily build is here:
+> +                                  "entity %u\n", entity->id);
+> +                       return ret;
+> +               }
+> +       }
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+This creates three loops, and I think that's one too much. The reason why init 
+and register are separate is that the latter creates links, which requires all 
+entities to be initialized. If you move link create after registration I 
+believe you can init and register in a single loop (just move the 
+v4l2_device_register_subdev() call in the appropriate location in 
+uvc_mc_init_entity()) and then create links in a second loop.
+
+>         return 0;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
