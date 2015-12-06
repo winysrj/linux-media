@@ -1,93 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f170.google.com ([209.85.220.170]:35897 "EHLO
-	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932232AbbLOTAS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 14:00:18 -0500
-Date: Tue, 15 Dec 2015 17:00:08 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Dmitry Torokhov <dtor@chromium.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Andrew Bresticker <abrestic@chromium.org>,
-	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	Riley Andrews <riandrews@android.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] android: fix warning when releasing active sync point
-Message-ID: <20151215190008.GE883@joana>
-References: <20151215012955.GA28277@dtor-ws>
- <20151215092601.GI3189@phenom.ffwll.local>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56346 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbbLFCuw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:50:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-sh@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/5] [media] v4l: vsp1: separate links creation from entities init
+Date: Sun, 06 Dec 2015 04:51:04 +0200
+Message-ID: <7559062.XA9lTlmQ7K@avalon>
+In-Reply-To: <1441296036-20727-4-git-send-email-javier@osg.samsung.com>
+References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com> <1441296036-20727-4-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20151215092601.GI3189@phenom.ffwll.local>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2015-12-15 Daniel Vetter <daniel@ffwll.ch>:
+Hi Javier,
 
-> On Mon, Dec 14, 2015 at 05:29:55PM -0800, Dmitry Torokhov wrote:
-> > Userspace can close the sync device while there are still active fence
-> > points, in which case kernel produces the following warning:
-> > 
-> > [   43.853176] ------------[ cut here ]------------
-> > [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
-> > [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
-> > [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
-> > [   43.885834] Call trace:
-> > [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
-> > [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
-> > [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
-> > [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
-> > [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
-> > [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
-> > [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
-> > [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
-> > [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
-> > [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
-> > [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
-> > [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
-> > [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
-> > [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
-> > 
-> > Let's fix it by introducing a new optional callback (disable_signaling)
-> > to fence operations so that drivers can do proper clean ups when we
-> > remove last callback for given fence.
-> > 
-> > Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
-> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
-> > ---
-> >  drivers/dma-buf/fence.c        | 6 +++++-
-> >  drivers/staging/android/sync.c | 8 ++++++++
-> >  include/linux/fence.h          | 2 ++
-> >  3 files changed, 15 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
-> > index 7b05dbe..0ed73ad 100644
-> > --- a/drivers/dma-buf/fence.c
-> > +++ b/drivers/dma-buf/fence.c
-> > @@ -304,8 +304,12 @@ fence_remove_callback(struct fence *fence, struct fence_cb *cb)
-> >  	spin_lock_irqsave(fence->lock, flags);
-> >  
-> >  	ret = !list_empty(&cb->node);
-> > -	if (ret)
-> > +	if (ret) {
-> >  		list_del_init(&cb->node);
-> > +		if (list_empty(&fence->cb_list))
-> > +			if (fence->ops->disable_signaling)
-> > +				fence->ops->disable_signaling(fence);
+Thank you for the patch.
+
+On Thursday 03 September 2015 18:00:34 Javier Martinez Canillas wrote:
+> The vsp1 driver initializes the entities and creates the pads links
+> before the entities are registered with the media device. This doesn't
+> work now that object IDs are used to create links so the media_device
+> has to be set.
 > 
-> What exactly is the bug here? A fence with no callbacks registered any
-> more shouldn't have any problem. Why exactly does this blow up?
+> Split out the pads links creation from the entity initialization so are
+> made after the entities registration.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> ---
+> 
+>  drivers/media/platform/vsp1/vsp1_drv.c  | 14 ++++++++++--
+>  drivers/media/platform/vsp1/vsp1_rpf.c  | 29 ++++++++++++++++--------
+>  drivers/media/platform/vsp1/vsp1_rwpf.h |  5 +++++
+>  drivers/media/platform/vsp1/vsp1_wpf.c  | 40 +++++++++++++++++-------------
+>  4 files changed, 62 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> b/drivers/media/platform/vsp1/vsp1_drv.c index 2aa427d3ff39..8f995d267646
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -260,9 +260,19 @@ static int vsp1_create_entities(struct vsp1_device
+> *vsp1)
+> 
+>  	/* Create links. */
+>  	list_for_each_entry(entity, &vsp1->entities, list_dev) {
+> -		if (entity->type == VSP1_ENTITY_LIF ||
+> -		    entity->type == VSP1_ENTITY_RPF)
+> +		if (entity->type == VSP1_ENTITY_LIF) {
+> +			ret = vsp1_wpf_create_pads_links(vsp1, entity);
 
-The WARN_ON is probably this one:
-https://android.googlesource.com/kernel/common/+/android-3.18/drivers/staging/android/sync.c#433
+Could you please s/pads_links/links/ ? There's no other type of links handled 
+by the driver.
 
-I've been wondering in the last few days if this warning is really
-necessary. If the user is closing a sync_timeline that has unsignalled
-fences it should probably be aware of that already. Then I think it is
-okay to remove the the sync_pt from the active_list at the release-time.
-In fact I've already prepared a patch doing that. Thoughts?  
+> +			if (ret < 0)
+> +				goto done;
+> +			continue;
 
-	Gustavo
+I would use
+
+	} else if (...) {
+
+instead of a continue.
+
+> +		}
+> +
+> +		if (entity->type == VSP1_ENTITY_RPF) {
+> +			ret = vsp1_rpf_create_pads_links(vsp1, entity);
+> +			if (ret < 0)
+> +				goto done;
+>  			continue;
+
+Same here.
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +		}
+> 
+>  		ret = vsp1_create_links(vsp1, entity);
+>  		if (ret < 0)
+> diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c
+> b/drivers/media/platform/vsp1/vsp1_rpf.c index b60a528a8fe8..38aebdf691b5
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+> @@ -277,18 +277,29 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device
+> *vsp1, unsigned int index)
+> 
+>  	rpf->entity.video = video;
+> 
+> -	/* Connect the video device to the RPF. */
+> -	ret = media_create_pad_link(&rpf->video.video.entity, 0,
+> -				       &rpf->entity.subdev.entity,
+> -				       RWPF_PAD_SINK,
+> -				       MEDIA_LNK_FL_ENABLED |
+> -				       MEDIA_LNK_FL_IMMUTABLE);
+> -	if (ret < 0)
+> -		goto error;
+> -
+>  	return rpf;
+> 
+>  error:
+>  	vsp1_entity_destroy(&rpf->entity);
+>  	return ERR_PTR(ret);
+>  }
+> +
+> +/*
+> + * vsp1_rpf_create_pads_links_create_pads_links() - RPF pads links creation
+> + * @vsp1: Pointer to VSP1 device
+> + * @entity: Pointer to VSP1 entity
+> + *
+> + * return negative error code or zero on success
+> + */
+> +int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
+> +			       struct vsp1_entity *entity)
+> +{
+> +	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+> +
+> +	/* Connect the video device to the RPF. */
+> +	return media_create_pad_link(&rpf->video.video.entity, 0,
+> +				     &rpf->entity.subdev.entity,
+> +				     RWPF_PAD_SINK,
+> +				     MEDIA_LNK_FL_ENABLED |
+> +				     MEDIA_LNK_FL_IMMUTABLE);
+> +}
+> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> b/drivers/media/platform/vsp1/vsp1_rwpf.h index f452dce1a931..6638b3587369
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_rwpf.h
+> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+> @@ -50,6 +50,11 @@ static inline struct vsp1_rwpf *to_rwpf(struct
+> v4l2_subdev *subdev) struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device
+> *vsp1, unsigned int index); struct vsp1_rwpf *vsp1_wpf_create(struct
+> vsp1_device *vsp1, unsigned int index);
+> 
+> +int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
+> +			       struct vsp1_entity *entity);
+> +int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
+> +			       struct vsp1_entity *entity);
+> +
+>  int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+>  			     struct v4l2_subdev_pad_config *cfg,
+>  			     struct v4l2_subdev_mbus_code_enum *code);
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c
+> b/drivers/media/platform/vsp1/vsp1_wpf.c index d39aa4b8aea1..1be363e4f741
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -220,7 +220,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device
+> *vsp1, unsigned int index) struct v4l2_subdev *subdev;
+>  	struct vsp1_video *video;
+>  	struct vsp1_rwpf *wpf;
+> -	unsigned int flags;
+>  	int ret;
+> 
+>  	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
+> @@ -276,20 +275,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device
+> *vsp1, unsigned int index) goto error;
+> 
+>  	wpf->entity.video = video;
+> -
+> -	/* Connect the video device to the WPF. All connections are immutable
+> -	 * except for the WPF0 source link if a LIF is present.
+> -	 */
+> -	flags = MEDIA_LNK_FL_ENABLED;
+> -	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || index != 0)
+> -		flags |= MEDIA_LNK_FL_IMMUTABLE;
+> -
+> -	ret = media_create_pad_link(&wpf->entity.subdev.entity,
+> -				       RWPF_PAD_SOURCE,
+> -				       &wpf->video.video.entity, 0, flags);
+> -	if (ret < 0)
+> -		goto error;
+> -
+>  	wpf->entity.sink = &wpf->video.video.entity;
+> 
+>  	return wpf;
+> @@ -298,3 +283,28 @@ error:
+>  	vsp1_entity_destroy(&wpf->entity);
+>  	return ERR_PTR(ret);
+>  }
+> +
+> +/*
+> + * vsp1_wpf_create_pads_links_create_pads_links() - RPF pads links creation
+> + * @vsp1: Pointer to VSP1 device
+> + * @entity: Pointer to VSP1 entity
+> + *
+> + * return negative error code or zero on success
+> + */
+> +int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
+> +			       struct vsp1_entity *entity)
+> +{
+> +	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
+> +	unsigned int flags;
+> +
+> +	/* Connect the video device to the WPF. All connections are immutable
+> +	 * except for the WPF0 source link if a LIF is present.
+> +	 */
+> +	flags = MEDIA_LNK_FL_ENABLED;
+> +	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || entity->index != 0)
+> +		flags |= MEDIA_LNK_FL_IMMUTABLE;
+> +
+> +	return media_create_pad_link(&wpf->entity.subdev.entity,
+> +				     RWPF_PAD_SOURCE,
+> +				     &wpf->video.video.entity, 0, flags);
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
+
