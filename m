@@ -1,105 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:54776 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750975AbbL1JUR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 04:20:17 -0500
-Date: Mon, 28 Dec 2015 10:20:10 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] [media] tuners: One check less in m88rs6000t_get_rf_strength()
- after error detection
-In-Reply-To: <5680FDB3.7060305@users.sourceforge.net>
-Message-ID: <alpine.DEB.2.10.1512281019050.2702@hadrien>
-References: <566ABCD9.1060404@users.sourceforge.net> <5680FDB3.7060305@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33366 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752417AbbLFAX6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 19:23:58 -0500
+Message-ID: <1449361427.31991.17.camel@collabora.com>
+Subject: Re: v4l2 kernel module debugging methods
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
+Date: Sat, 05 Dec 2015 19:23:47 -0500
+In-Reply-To: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
+References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-kamWAJz9F0PdekzPzx1U"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 28 Dec 2015, SF Markus Elfring wrote:
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 28 Dec 2015 10:10:34 +0100
->
-> This issue was detected by using the Coccinelle software.
->
-> Move the jump label directly before the desired log statement
-> so that the variable "ret" will not be checked once more
-> after it was determined that a function call failed.
+--=-kamWAJz9F0PdekzPzx1U
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Why not avoid both unnecessary ifs and the enormous ugliness of a label
-inside an if by making two returns: a return 0 for success and a dev_dbg
-and return ret for failure?
+Le dimanche 06 d=C3=A9cembre 2015 =C3=A0 00:00 +0200, Ran Shalit a =C3=A9cr=
+it=C2=A0:
+> Hello,
+>=20
+> I would like to ask a general question regarding methods to debug a
+> v4l2 device driver.
+> Since I assume that the kernel driver will probably won't work in
+> first try after coding everything inside the device driver...
+>=20
+> 1. Do you think qemu/kgdb debugger is a good method for the device
+> driver debugging , or is it plain printing ?
+>=20
+> 2. Is there a simple way to display the image of a YUV-like buffer in
+> memory ?
 
-julia
+Most Linux distribution ships GStreamer. You can with GStreamer read
+and display a raw YUV images (you need to know the specific format)
+using videoparse element.
 
+=C2=A0 gst-launch-1.0 filesrc location=3Dmy.yuv ! videoparse format=3Dyuy2 =
+width=3D320 height=3D240 ! imagefreeze ! videoconvert ! autovideosink
 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/tuners/m88rs6000t.c | 16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
-> index 504bfbc..b45594e 100644
-> --- a/drivers/media/tuners/m88rs6000t.c
-> +++ b/drivers/media/tuners/m88rs6000t.c
-> @@ -510,27 +510,27 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
->
->  	ret = regmap_read(dev->regmap, 0x5A, &val);
->  	if (ret)
-> -		goto err;
-> +		goto report_failure;
->  	RF_GC = val & 0x0f;
->
->  	ret = regmap_read(dev->regmap, 0x5F, &val);
->  	if (ret)
-> -		goto err;
-> +		goto report_failure;
->  	IF_GC = val & 0x0f;
->
->  	ret = regmap_read(dev->regmap, 0x3F, &val);
->  	if (ret)
-> -		goto err;
-> +		goto report_failure;
->  	TIA_GC = (val >> 4) & 0x07;
->
->  	ret = regmap_read(dev->regmap, 0x77, &val);
->  	if (ret)
-> -		goto err;
-> +		goto report_failure;
->  	BB_GC = (val >> 4) & 0x0f;
->
->  	ret = regmap_read(dev->regmap, 0x76, &val);
->  	if (ret)
-> -		goto err;
-> +		goto report_failure;
->  	PGA2_GC = val & 0x3f;
->  	PGA2_cri = PGA2_GC >> 2;
->  	PGA2_crf = PGA2_GC & 0x03;
-> @@ -562,9 +562,11 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
->  	/* scale value to 0x0000-0xffff */
->  	gain = clamp_val(gain, 1000U, 10500U);
->  	*strength = (10500 - gain) * 0xffff / (10500 - 1000);
-> -err:
-> -	if (ret)
-> +
-> +	if (ret) {
-> +report_failure:
->  		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-> +	}
->  	return ret;
->  }
->
-> --
-> 2.6.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+You could also encode and store to various formats, replacing the
+imagefreeze ... section with an encoder and a filesink. Note that
+videoparse unfortunatly does not allow passing strides array or
+offsets. So it will work only if you set the width/height to padded
+width/height.
+
+regards,
+Nicolas
+--=-kamWAJz9F0PdekzPzx1U
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlZjgBMACgkQcVMCLawGqBwbtQCfS5YXdvBx+ERUHBJBdmqH0Eyz
+LlgAnipCsQnn9FMRcMEGgcjue42EZm1H
+=T7vn
+-----END PGP SIGNATURE-----
+
+--=-kamWAJz9F0PdekzPzx1U--
+
