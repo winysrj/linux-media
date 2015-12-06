@@ -1,73 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:7021 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062AbbLJEdn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 23:33:43 -0500
-From: "Wu, Xia" <xia.wu@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"horms+renesas@verge.net.au" <horms+renesas@verge.net.au>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: RE: [PATCH] media: videobuf2-core: Fix one __qbuf_dmabuf() error
- path
-Date: Thu, 10 Dec 2015 04:33:39 +0000
-Message-ID: <05B4341E5F09BF4E97AEC15A9DBEC11A1194513A@shsmsx102.ccr.corp.intel.com>
-References: <05B4341E5F09BF4E97AEC15A9DBEC11A1193CA21@shsmsx102.ccr.corp.intel.com>
- <5667E589.3090108@linux.intel.com>
-In-Reply-To: <5667E589.3090108@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56253 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbbLFBvt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:51:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v8 36/55] [media] davinci_vbpe: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
+Date: Sun, 06 Dec 2015 03:52:01 +0200
+Message-ID: <1764940.OloRuAWqP2@avalon>
+In-Reply-To: <d3cc1b1e74a7a8bd0379afefb4695257f0a0d308.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <d3cc1b1e74a7a8bd0379afefb4695257f0a0d308.1440902901.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari,
-On Wed, Dec 09, 2015 at 4:26PM, Sakari wrote:
+Hi Mauro,
 
-> Hi Wu,
-> 
-> Wu, Xia wrote:
-> > Add dma_buf_put() to decrease refcount of the dmabuf in error path if
-> DMABUF size is smaller than the requirement.
-> >
-> > Signed-off-by: wu xia <xia.wu@intel.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-core.c |    1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c
-> > index 33bdd81..1f232e7 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1084,6 +1084,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb,
-> const void *pb)
-> >  		if (planes[plane].length < q->plane_sizes[plane]) {
-> >  			dprintk(1, "invalid dmabuf length for plane %d\n",
-> >  				plane);
-> > +			dma_buf_put(dbuf);
-> >  			ret = -EINVAL;
-> >  			goto err;
-> >  		}
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Looks like the bug has been also in the original implementation, and the code
-> has been in a bit of flux since, yet the bug has remained...
-> 
-> I think it'd be nice to have this in stable kernels. Mauro, Hans, what do you
-> think?
+Thank you for the patch.
 
-Thank you for your feedback. Yes, it seems that the bug is there for a long time.
-It's better to have this fix in stable kernels.
+On Sunday 30 August 2015 00:06:47 Mauro Carvalho Chehab wrote:
+> This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV:
+> 
+> - it uses a hack to check if the remote entity is a subdev;
 
+Same comment as for "omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse", this isn't 
+a hack.
+
+> - it still uses the legacy entity subtype check macro, that
+>   will be removed soon.
 > 
-> --
-> Kind regards,
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c index
+> b89a057b8b7e..7fd78329e3e1 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> @@ -1711,8 +1711,11 @@ ipipe_link_setup(struct media_entity *entity, const
+> struct media_pad *local, struct vpfe_device *vpfe_dev =
+> to_vpfe_device(ipipe);
+>  	u16 ipipeif_sink = vpfe_dev->vpfe_ipipeif.input;
+> 
+> -	switch (local->index | media_entity_type(remote->entity)) {
+> -	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
+> +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> +		return -EINVAL;
+
+You can drop the check (even though the implementation in the switch looks 
+dubious to me, but that's not your fault).
+
+> +	switch (local->index) {
+> +	case IPIPE_PAD_SINK:
+>  		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+>  			ipipe->input = IPIPE_INPUT_NONE;
+>  			break;
+> @@ -1725,7 +1728,7 @@ ipipe_link_setup(struct media_entity *entity, const
+> struct media_pad *local, ipipe->input = IPIPE_INPUT_CCDC;
+>  		break;
+> 
+> -	case IPIPE_PAD_SOURCE | MEDIA_ENT_T_V4L2_SUBDEV:
+> +	case IPIPE_PAD_SOURCE:
+>  		/* out to RESIZER */
+>  		if (flags & MEDIA_LNK_FL_ENABLED)
+>  			ipipe->output = IPIPE_OUTPUT_RESIZER;
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index
+> 9eef64e0f0ab..2dbf14b9bb5f 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -88,7 +88,7 @@ vpfe_video_remote_subdev(struct vpfe_video_device *video,
+> u32 *pad) {
+>  	struct media_pad *remote = media_entity_remote_pad(&video->pad);
+> 
+> -	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+> +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+>  		return NULL;
+>  	if (pad)
+>  		*pad = remote->index;
+> @@ -243,8 +243,7 @@ static int vpfe_video_validate_pipeline(struct
+> vpfe_pipeline *pipe)
+> 
+>  		/* Retrieve the source format */
+>  		pad = media_entity_remote_pad(pad);
+> -		if (pad == NULL ||
+> -			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+> +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+>  			break;
+> 
+>  		subdev = media_entity_to_v4l2_subdev(pad->entity);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
