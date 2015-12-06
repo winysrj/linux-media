@@ -1,129 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52499 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754793AbbL3Ntk (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:51612 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752215AbbLFPqf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 08:49:40 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 6/6] [media] mxl111sf: Add a tuner entity
-Date: Wed, 30 Dec 2015 11:48:56 -0200
-Message-Id: <b408292fe9c107eeca30df484f684dc287983bd7.1451482760.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
-References: <cover.1451482760.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
-References: <cover.1451482760.git.mchehab@osg.samsung.com>
+	Sun, 6 Dec 2015 10:46:35 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: linux-kernel@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	Patrice Chotard <patrice.chotard@st.com>,
+	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com
+Subject: [PATCH] [media] constify stv6110x_devctl structure
+Date: Sun,  6 Dec 2015 16:34:26 +0100
+Message-Id: <1449416066-1202-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While mxl111sf may have multiple frontends, it has just one
-tuner. Reflect that on the media graph.
+The stv6110x_devctl structure is never modified, so declare is as
+const.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Done with the help of Coccinelle.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/dvb-core/dvbdev.h         |  6 ++++++
- drivers/media/usb/dvb-usb-v2/mxl111sf.c | 20 ++++++++++++++++++++
- drivers/media/usb/dvb-usb-v2/mxl111sf.h |  5 +++++
- 3 files changed, 31 insertions(+)
+ drivers/media/dvb-frontends/stv6110x.c               |    4 ++--
+ drivers/media/dvb-frontends/stv6110x.h               |    4 ++--
+ drivers/media/dvb-frontends/stv6110x_priv.h          |    2 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c           |    2 +-
+ drivers/media/pci/ngene/ngene-cards.c                |    2 +-
+ drivers/media/pci/ttpci/budget.c                     |    4 ++--
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c |    2 +-
+ drivers/media/usb/dvb-usb/technisat-usb2.c           |    2 +-
+ 8 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index d7c67baa885e..4aff7bd3dea8 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -242,6 +242,11 @@ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
- 	adap->mdev = mdev;
- }
- 
-+static inline struct media_device
-+*dvb_get_media_controller(struct dvb_adapter *adap)
-+{
-+	return adap->mdev;
-+}
- #else
- static inline
- int dvb_create_media_graph(struct dvb_adapter *adap,
-@@ -250,6 +255,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 	return 0;
+diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
+index e66154e..a62c01e 100644
+--- a/drivers/media/dvb-frontends/stv6110x.c
++++ b/drivers/media/dvb-frontends/stv6110x.c
+@@ -355,7 +355,7 @@ static struct dvb_tuner_ops stv6110x_ops = {
+ 	.release		= stv6110x_release
  };
- #define dvb_register_media_controller(a, b) {}
-+#define dvb_get_media_controller(a) NULL
- #endif
  
- int dvb_generic_open (struct inode *inode, struct file *file);
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index 1710f9038d75..b669deccc34c 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -10,6 +10,7 @@
+-static struct stv6110x_devctl stv6110x_ctl = {
++static const struct stv6110x_devctl stv6110x_ctl = {
+ 	.tuner_init		= stv6110x_init,
+ 	.tuner_sleep		= stv6110x_sleep,
+ 	.tuner_set_mode		= stv6110x_set_mode,
+@@ -369,7 +369,7 @@ static struct stv6110x_devctl stv6110x_ctl = {
+ 	.tuner_get_status	= stv6110x_get_status,
+ };
  
- #include <linux/vmalloc.h>
- #include <linux/i2c.h>
-+#include <media/tuner.h>
- 
- #include "mxl111sf.h"
- #include "mxl111sf-reg.h"
-@@ -868,6 +869,10 @@ static struct mxl111sf_tuner_config mxl_tuner_config = {
- static int mxl111sf_attach_tuner(struct dvb_usb_adapter *adap)
+-struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
++const struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
+ 					const struct stv6110x_config *config,
+ 					struct i2c_adapter *i2c)
  {
- 	struct mxl111sf_state *state = adap_to_priv(adap);
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	struct media_device *mdev = dvb_get_media_controller(&adap->dvb_adap);
-+	int ret;
-+#endif
- 	int i;
+diff --git a/drivers/media/dvb-frontends/stv6110x.h b/drivers/media/dvb-frontends/stv6110x.h
+index 9f7eb25..696b6e5 100644
+--- a/drivers/media/dvb-frontends/stv6110x.h
++++ b/drivers/media/dvb-frontends/stv6110x.h
+@@ -55,12 +55,12 @@ struct stv6110x_devctl {
  
- 	pr_debug("%s()\n", __func__);
-@@ -879,6 +884,21 @@ static int mxl111sf_attach_tuner(struct dvb_usb_adapter *adap)
- 		adap->fe[i]->ops.read_signal_strength = adap->fe[i]->ops.tuner_ops.get_rf_strength;
- 	}
+ #if IS_REACHABLE(CONFIG_DVB_STV6110x)
  
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	state->tuner.function = MEDIA_ENT_F_TUNER;
-+	state->tuner.name = "mxl111sf tuner";
-+	state->tuner_pads[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->tuner_pads[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	ret = media_entity_pads_init(&state->tuner,
-+				     TUNER_NUM_PADS, state->tuner_pads);
-+	if (ret)
-+		return ret;
-+
-+	ret = media_device_register_entity(mdev, &state->tuner);
-+	if (ret)
-+		return ret;
-+#endif
- 	return 0;
- }
+-extern struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
++extern const struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
+ 					       const struct stv6110x_config *config,
+ 					       struct i2c_adapter *i2c);
  
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.h b/drivers/media/usb/dvb-usb-v2/mxl111sf.h
-index ee70df1f1e94..846260e0eec0 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.h
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.h
-@@ -17,6 +17,7 @@
- #define DVB_USB_LOG_PREFIX "mxl111sf"
- #include "dvb_usb.h"
- #include <media/tveeprom.h>
-+#include <media/media-entity.h>
+ #else
+-static inline struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
++static inline const struct stv6110x_devctl *stv6110x_attach(struct dvb_frontend *fe,
+ 						      const struct stv6110x_config *config,
+ 						      struct i2c_adapter *i2c)
+ {
+diff --git a/drivers/media/dvb-frontends/stv6110x_priv.h b/drivers/media/dvb-frontends/stv6110x_priv.h
+index 0ec936a..a993aba 100644
+--- a/drivers/media/dvb-frontends/stv6110x_priv.h
++++ b/drivers/media/dvb-frontends/stv6110x_priv.h
+@@ -70,7 +70,7 @@ struct stv6110x_state {
+ 	const struct stv6110x_config	*config;
+ 	u8 				regs[8];
  
- #define MXL_EP1_REG_READ     1
- #define MXL_EP2_REG_WRITE    2
-@@ -85,6 +86,10 @@ struct mxl111sf_state {
- 	struct mutex fe_lock;
- 	u8 num_frontends;
- 	struct mxl111sf_adap_state adap_state[3];
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	struct media_entity tuner;
-+	struct media_pad tuner_pads[2];
-+#endif
+-	struct stv6110x_devctl		*devctl;
++	const struct stv6110x_devctl	*devctl;
  };
  
- int mxl111sf_read_reg(struct mxl111sf_state *state, u8 addr, u8 *data);
--- 
-2.5.0
-
+ #endif /* __STV6110x_PRIV_H */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index fba5b40..17f56a8 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -690,7 +690,7 @@ static int tuner_attach_stv6110(struct ddb_input *input, int type)
+ 	struct stv090x_config *feconf = type ? &stv0900_aa : &stv0900;
+ 	struct stv6110x_config *tunerconf = (input->nr & 1) ?
+ 		&stv6110b : &stv6110a;
+-	struct stv6110x_devctl *ctl;
++	const struct stv6110x_devctl *ctl;
+ 
+ 	ctl = dvb_attach(stv6110x_attach, input->fe, tunerconf, i2c);
+ 	if (!ctl) {
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 039bed3..4e783a6 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -57,7 +57,7 @@ static int tuner_attach_stv6110(struct ngene_channel *chan)
+ 		chan->dev->card_info->fe_config[chan->number];
+ 	struct stv6110x_config *tunerconf = (struct stv6110x_config *)
+ 		chan->dev->card_info->tuner_config[chan->number];
+-	struct stv6110x_devctl *ctl;
++	const struct stv6110x_devctl *ctl;
+ 
+ 	/* tuner 1+2: i2c adapter #0, tuner 3+4: i2c adapter #1 */
+ 	if (chan->number < 2)
+diff --git a/drivers/media/pci/ttpci/budget.c b/drivers/media/pci/ttpci/budget.c
+index 99972be..b44639c 100644
+--- a/drivers/media/pci/ttpci/budget.c
++++ b/drivers/media/pci/ttpci/budget.c
+@@ -644,7 +644,7 @@ static void frontend_init(struct budget *budget)
+ 		}
+ 
+ 	case 0x101c: { /* TT S2-1600 */
+-			struct stv6110x_devctl *ctl;
++			const struct stv6110x_devctl *ctl;
+ 			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
+ 			msleep(50);
+ 			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
+@@ -697,7 +697,7 @@ static void frontend_init(struct budget *budget)
+ 		break;
+ 
+ 	case 0x1020: { /* Omicom S2 */
+-			struct stv6110x_devctl *ctl;
++			const struct stv6110x_devctl *ctl;
+ 			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTLO);
+ 			msleep(50);
+ 			saa7146_setgpio(budget->dev, 2, SAA7146_GPIO_OUTHI);
+diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
+index 6c3c477..51487d2 100644
+--- a/drivers/media/usb/dvb-usb/technisat-usb2.c
++++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
+@@ -512,7 +512,7 @@ static int technisat_usb2_frontend_attach(struct dvb_usb_adapter *a)
+ 			&a->dev->i2c_adap, STV090x_DEMODULATOR_0);
+ 
+ 	if (a->fe_adap[0].fe) {
+-		struct stv6110x_devctl *ctl;
++		const struct stv6110x_devctl *ctl;
+ 
+ 		ctl = dvb_attach(stv6110x_attach,
+ 				a->fe_adap[0].fe,
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
+index 69d7fe4..2c0015b 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-dvb.c
+@@ -118,7 +118,7 @@ int c8sectpfe_frontend_attach(struct dvb_frontend **fe,
+ 		struct channel_info *tsin, int chan_num)
+ {
+ 	struct tda18212_config *tda18212;
+-	struct stv6110x_devctl *fe2;
++	const struct stv6110x_devctl *fe2;
+ 	struct i2c_client *client;
+ 	struct i2c_board_info tda18212_info = {
+ 		.type = "tda18212",
 
