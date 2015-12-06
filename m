@@ -1,45 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38827 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbbLRKfL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 05:35:11 -0500
-Received: by mail-wm0-f41.google.com with SMTP id l126so59071551wml.1
-        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 02:35:11 -0800 (PST)
-From: Jemma Denson <jdenson@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: [v4l-utils PATCH 1/1] dvbv5-zap.c: fix setting signal handlers
-Date: Fri, 18 Dec 2015 10:35:03 +0000
-Message-Id: <1450434903-15524-1-git-send-email-jdenson@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56326 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753803AbbLFCdo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:33:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] [media] smiapp: create pad links after subdev registration
+Date: Sun, 06 Dec 2015 04:33:57 +0200
+Message-ID: <1752289.9imvS5bF0M@avalon>
+In-Reply-To: <1441296036-20727-6-git-send-email-javier@osg.samsung.com>
+References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com> <1441296036-20727-6-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signal handlers are currently out of order - SIGALRM is always set, and
-SIGINT only set when timeout is set. These should be the other way round.
+Hi Javier,
 
-Signed-off-by: Jemma Denson <jdenson@gmail.com>
----
- utils/dvb/dvbv5-zap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thank you for the patch.
 
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index e19d7c2..e927383 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -959,10 +959,10 @@ int main(int argc, char **argv)
- 			goto err;
- 	}
- 
--	signal(SIGALRM, do_timeout);
- 	signal(SIGTERM, do_timeout);
-+	signal(SIGINT, do_timeout);
- 	if (args.timeout > 0) {
--		signal(SIGINT, do_timeout);
-+		signal(SIGALRM, do_timeout);
- 		alarm(args.timeout);
- 	}
- 
+On Thursday 03 September 2015 18:00:36 Javier Martinez Canillas wrote:
+> The smiapp driver creates the pads links before the media entity is
+> registered with the media device. This doesn't work now that object
+> IDs are used to create links so the media_device has to be set.
+> 
+> Move entity registration logic before pads links creation.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+> 
+>  drivers/media/i2c/smiapp/smiapp-core.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> b/drivers/media/i2c/smiapp/smiapp-core.c index 5aa49eb393a9..938201789ebc
+> 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2495,23 +2495,23 @@ static int smiapp_register_subdevs(struct
+> smiapp_sensor *sensor) return rval;
+>  		}
+> 
+> -		rval = media_create_pad_link(&this->sd.entity,
+> -						this->source_pad,
+> -						&last->sd.entity,
+> -						last->sink_pad,
+> -						MEDIA_LNK_FL_ENABLED |
+> -						MEDIA_LNK_FL_IMMUTABLE);
+> +		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
+> +						   &this->sd);
+>  		if (rval) {
+>  			dev_err(&client->dev,
+> -				"media_create_pad_link failed\n");
+> +				"v4l2_device_register_subdev failed\n");
+>  			return rval;
+>  		}
+> 
+> -		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
+> -						   &this->sd);
+> +		rval = media_create_pad_link(&this->sd.entity,
+> +					     this->source_pad,
+> +					     &last->sd.entity,
+> +					     last->sink_pad,
+> +					     MEDIA_LNK_FL_ENABLED |
+> +					     MEDIA_LNK_FL_IMMUTABLE);
+>  		if (rval) {
+>  			dev_err(&client->dev,
+> -				"v4l2_device_register_subdev failed\n");
+> +				"media_create_pad_link failed\n");
+>  			return rval;
+>  		}
+>  	}
+
 -- 
-2.1.0
+Regards,
+
+Laurent Pinchart
 
