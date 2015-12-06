@@ -1,127 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57988 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752952AbbLDECV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2015 23:02:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 60AA9E100E
-	for <linux-media@vger.kernel.org>; Fri,  4 Dec 2015 05:02:15 +0100 (CET)
-Date: Fri, 04 Dec 2015 05:02:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151204040215.60AA9E100E@tschai.lan>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56373 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753287AbbLFDQC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 22:16:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v8 03/55] [media] omap3isp: get entity ID using media_entity_id()
+Date: Sun, 06 Dec 2015 05:16:15 +0200
+Message-ID: <3875250.bDmIUeULzn@avalon>
+In-Reply-To: <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Javier,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Fri Dec  4 04:00:22 CET 2015
-git branch:	test
-git hash:	21312f6ddb1710750761c4b140b7367208b4f89e
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+On Sunday 30 August 2015 00:06:14 Mauro Carvalho Chehab wrote:
+> From: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Assessing media_entity ID should now use media_entity_id() macro to
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-smatch: ERRORS
+Did you mean "accessing" ?
 
-Detailed results are available here:
+> obtain the entity ID, as a next patch will remove the .id field from
+> struct media_entity .
+> 
+> So, get rid of it, otherwise the omap3isp driver will fail to build.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+With the typo fixed,
 
-Full logs are available here:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 56e683b19a73..e08183f9d0f7
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -975,6 +975,7 @@ static int isp_pipeline_disable(struct isp_pipeline
+> *pipe) struct v4l2_subdev *subdev;
+>  	int failure = 0;
+>  	int ret;
+> +	u32 id;
+> 
+>  	/*
+>  	 * We need to stop all the modules after CCDC first or they'll
+> @@ -1027,8 +1028,10 @@ static int isp_pipeline_disable(struct isp_pipeline
+> *pipe) if (ret) {
+>  			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
+>  			isp->stop_failure = true;
+> -			if (subdev == &isp->isp_prev.subdev)
+> -				isp->crashed |= 1U << subdev->entity.id;
+> +			if (subdev == &isp->isp_prev.subdev) {
+> +				id = media_entity_id(&subdev->entity);
+> +				isp->crashed |= 1U << id;
+> +			}
+>  			failure = -ETIMEDOUT;
+>  		}
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
+> b/drivers/media/platform/omap3isp/ispccdc.c index
+> 3b10304b580b..d96e3be5e252 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+> @@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device
+> *ccdc) /* Wait for the CCDC to become idle. */
+>  	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
+>  		dev_info(isp->dev, "CCDC won't become idle!\n");
+> -		isp->crashed |= 1U << ccdc->subdev.entity.id;
+> +		isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
+>  		omap3isp_pipeline_cancel_stream(pipe);
+>  		return 0;
+>  	}
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index
+> 3094572f8897..6c89dc40df85 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -235,7 +235,7 @@ static int isp_video_get_graph_data(struct isp_video
+> *video, while ((entity = media_entity_graph_walk_next(&graph))) {
+>  		struct isp_video *__video;
+> 
+> -		pipe->entities |= 1 << entity->id;
+> +		pipe->entities |= 1 << media_entity_id(entity);
+> 
+>  		if (far_end != NULL)
+>  			continue;
+> @@ -891,6 +891,7 @@ static int isp_video_check_external_subdevs(struct
+> isp_video *video, struct v4l2_ext_control ctrl;
+>  	unsigned int i;
+>  	int ret;
+> +	u32 id;
+> 
+>  	/* Memory-to-memory pipelines have no external subdev. */
+>  	if (pipe->input != NULL)
+> @@ -898,7 +899,7 @@ static int isp_video_check_external_subdevs(struct
+> isp_video *video,
+> 
+>  	for (i = 0; i < ARRAY_SIZE(ents); i++) {
+>  		/* Is the entity part of the pipeline? */
+> -		if (!(pipe->entities & (1 << ents[i]->id)))
+> +		if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
+>  			continue;
+> 
+>  		/* ISP entities have always sink pad == 0. Find source. */
+> @@ -950,7 +951,8 @@ static int isp_video_check_external_subdevs(struct
+> isp_video *video,
+> 
+>  	pipe->external_rate = ctrl.value64;
+> 
+> -	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
+> +	id = media_entity_id(&isp->isp_ccdc.subdev.entity);
+> +	if (pipe->entities & (1 << id)) {
+>  		unsigned int rate = UINT_MAX;
+>  		/*
+>  		 * Check that maximum allowed CCDC pixel rate isn't
 
-The Media Infrastructure API from this daily build is here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
+
