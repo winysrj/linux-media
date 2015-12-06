@@ -1,83 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:34267 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932208AbbLORTI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 12:19:08 -0500
-Received: by mail-io0-f177.google.com with SMTP id e126so26870305ioa.1
-        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:19:08 -0800 (PST)
-Received: from mail-io0-f177.google.com (mail-io0-f177.google.com. [209.85.223.177])
-        by smtp.gmail.com with ESMTPSA id 124sm1376094ioz.10.2015.12.15.09.19.06
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Tue, 15 Dec 2015 09:19:06 -0800 (PST)
-Received: by mail-io0-f177.google.com with SMTP id 186so27358714iow.0
-        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:19:06 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <566FE4E1.2040005@linux.intel.com>
-References: <20151215012955.GA28277@dtor-ws>
-	<566FE4E1.2040005@linux.intel.com>
-Date: Tue, 15 Dec 2015 09:19:06 -0800
-Message-ID: <CAE_wzQ-s1q4WA0QBsJvSCO28Wd_XRzYrieCkGxdT8p-2YubNAg@mail.gmail.com>
-Subject: Re: [PATCH] android: fix warning when releasing active sync point
-From: Dmitry Torokhov <dtor@chromium.org>
-To: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Dmitry Torokhov <dtor@chromium.org>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56240 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817AbbLFBqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:46:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	=?UTF-8?B?QXJ2ZSBIasO4bm5ldsOl?= <arve@android.com>,
-	Riley Andrews <riandrews@android.com>,
-	Andrew Bresticker <abrestic@chromium.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH v8 37/55] [media] omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
+Date: Sun, 06 Dec 2015 03:46:28 +0200
+Message-ID: <1463986.OOuIkiWRAs@avalon>
+In-Reply-To: <ac6f2a7a8afe83affe3b688e8b8f509987a13c96.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <ac6f2a7a8afe83affe3b688e8b8f509987a13c96.1440902901.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2015 at 2:01 AM, Maarten Lankhorst
-<maarten.lankhorst@linux.intel.com> wrote:
-> Op 15-12-15 om 02:29 schreef Dmitry Torokhov:
->> Userspace can close the sync device while there are still active fence
->> points, in which case kernel produces the following warning:
->>
->> [   43.853176] ------------[ cut here ]------------
->> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
->> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
->> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
->> [   43.885834] Call trace:
->> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
->> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
->> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
->> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
->> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
->> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
->> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
->> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
->> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
->> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
->> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
->> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
->> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
->> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
->>
->> Let's fix it by introducing a new optional callback (disable_signaling)
->> to fence operations so that drivers can do proper clean ups when we
->> remove last callback for given fence.
->>
->> Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
->> Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
->>
-> NACK! There's no way to do this race free.
+Hi Mauro,
 
-Can you please explain the race because as far as I can see there is not one.
+Thank you for the patch.
 
-> The driver should hold a refcount until fence is signaled.
+On Sunday 30 August 2015 00:06:48 Mauro Carvalho Chehab wrote:
+> This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, as it uses a
+> hack to check if the remote entity is a subdev. Get rid of it.
 
-If we are no longer interested in fence why do we need to wait for the
-fence to be signaled?
+While I agree with the idea of the patch I don't think this is a hack, it was 
+a totally valid implementation with the existing API.
 
-Thanks.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
+> b/drivers/staging/media/omap4iss/iss_ipipe.c index
+> e1a7b7ba7362..eb91ec48a21e 100644
+> --- a/drivers/staging/media/omap4iss/iss_ipipe.c
+> +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
+> @@ -447,8 +447,11 @@ static int ipipe_link_setup(struct media_entity
+> *entity, struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
+>  	struct iss_device *iss = to_iss_device(ipipe);
+> 
+> -	switch (local->index | media_entity_type(remote->entity)) {
+> -	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
+> +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> +		return -EINVAL;
+> +
+
+Furthermore the ipipe entity is never connected to anything else than a 
+subdev, so you can remove this check completely.
+
+I'd rewrite the subject line as "omap4iss: ipipe: Don't check entity type 
+needlessly during link setup" and update the commit message accordingly.
+
+> +	switch (local->index) {
+> +	case IPIPE_PAD_SINK:
+>  		/* Read from IPIPEIF. */
+>  		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+>  			ipipe->input = IPIPE_INPUT_NONE;
+> @@ -463,7 +466,7 @@ static int ipipe_link_setup(struct media_entity *entity,
+> 
+>  		break;
+> 
+> -	case IPIPE_PAD_SOURCE_VP | MEDIA_ENT_T_V4L2_SUBDEV:
+> +	case IPIPE_PAD_SOURCE_VP:
+>  		/* Send to RESIZER */
+>  		if (flags & MEDIA_LNK_FL_ENABLED) {
+>  			if (ipipe->output & ~IPIPE_OUTPUT_VP)
 
 -- 
-Dmitry
+Regards,
+
+Laurent Pinchart
+
