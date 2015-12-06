@@ -1,210 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41340 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934294AbbLPRLh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:11:37 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56229 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbbLFBgb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:36:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/5] [media] move documentation to the header files
-Date: Wed, 16 Dec 2015 15:11:11 -0200
-Message-Id: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	media-workshop@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: [media-workshop] [PATCH v8.4 43/83] [media] v4l2-subdev: use MEDIA_ENT_T_UNKNOWN for new subdevs
+Date: Sun, 06 Dec 2015 03:36:43 +0200
+Message-ID: <3698212.DSFTXWn1Di@avalon>
+In-Reply-To: <20151107220255.GT17128@valkosipuli.retiisi.org.uk>
+References: <1444668252-2303-1-git-send-email-mchehab@osg.samsung.com> <20151014183548.7180618e@concha.lan> <20151107220255.GT17128@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some exported functions were still documented at the .c file,
-instead of documenting at the .h one.
+Hello,
 
-Move the documentation to the right place, as we only use headers
-at media device-drivers.xml DocBook.
+CC'ing the linux-media mailing list, for real this time.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-device.c | 37 -------------------------------------
- drivers/media/media-entity.c | 13 -------------
- include/media/media-device.h |  6 ++++++
- include/media/media-entity.h | 18 ++++++++++++++++--
- 4 files changed, 22 insertions(+), 52 deletions(-)
+On Sunday 08 November 2015 00:02:55 Sakari Ailus wrote:
+> On Wed, Oct 14, 2015 at 06:35:48PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Wed, 14 Oct 2015 13:15:40 +0300 Sakari Ailus escreveu:
+> >> On Mon, Oct 12, 2015 at 09:26:04PM -0300, Mauro Carvalho Chehab wrote:
+> >>> Em Tue, 13 Oct 2015 01:25:35 +0300 Sakari Ailus escreveu:
+> >>>> On Mon, Oct 12, 2015 at 01:43:32PM -0300, Mauro Carvalho Chehab wrote:
+> >>>>> Instead of abusing MEDIA_ENT_T_V4L2_SUBDEV, initialize
+> >>>>> new subdev entities as MEDIA_ENT_T_UNKNOWN.
+> >>>>> 
+> >>>>> Change-Id: I294ee20f49b6c40dd95339d6730d90fa85b0dea9
+> >>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>>> ---
+> >>>>> 
+> >>>>>  drivers/media/media-device.c          |  6 ++++++
+> >>>>>  drivers/media/v4l2-core/v4l2-subdev.c |  2 +-
+> >>>>>  include/uapi/linux/media.h            | 17 +++++++++++++++++
+> >>>>>  3 files changed, 24 insertions(+), 1 deletion(-)
+> >>>>> 
+> >>>>> diff --git a/drivers/media/media-device.c
+> >>>>> b/drivers/media/media-device.c
+> >>>>> index 659507bce63f..134fe7510195 100644
+> >>>>> --- a/drivers/media/media-device.c
+> >>>>> +++ b/drivers/media/media-device.c
+> >>>>> @@ -435,6 +435,12 @@ int __must_check
+> >>>>> media_device_register_entity(struct media_device *mdev,
+> >>>>>  {
+> >>>>>  	int i;
+> >>>>> 
+> >>>>> +	if (entity->type == MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN ||
+> >>>>> +	    entity->type == MEDIA_ENT_T_UNKNOWN)
+> >>>>> +		dev_warn(mdev->dev,
+> >>>>> +			 "Entity type for entity %s was not initialized!\n",
+> >>>>> +			 entity->name);
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 49dd41cd047f..3e0227555196 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -577,13 +577,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(media_device_register_entity);
- 
--/**
-- * media_device_unregister_entity - Unregister an entity
-- * @entity:	The entity
-- *
-- * If the entity has never been registered this function will return
-- * immediately.
-- */
- static void __media_device_unregister_entity(struct media_entity *entity)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
-@@ -627,17 +620,6 @@ void media_device_unregister_entity(struct media_entity *entity)
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity);
- 
--
--/**
-- * media_device_init() - initialize a media device
-- * @mdev:	The media device
-- *
-- * The caller is responsible for initializing the media device before
-- * registration. The following fields must be set:
-- *
-- * - dev must point to the parent device
-- * - model must be filled with the device model name
-- */
- int __must_check media_device_init(struct media_device *mdev)
- {
- 	if (WARN_ON(mdev->dev == NULL))
-@@ -657,11 +639,6 @@ int __must_check media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
- 
--/**
-- * media_device_cleanup() - Cleanup a media device
-- * @mdev:	The media device
-- *
-- */
- void media_device_cleanup(struct media_device *mdev)
- {
- 	ida_destroy(&mdev->entity_internal_idx);
-@@ -670,13 +647,6 @@ void media_device_cleanup(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
- 
--/**
-- * __media_device_register() - register a media device
-- * @mdev:	The media device
-- * @owner:	The module owner
-- *
-- * returns zero on success or a negative error code.
-- */
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner)
- {
-@@ -706,13 +676,6 @@ int __must_check __media_device_register(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
--/**
-- * media_device_unregister - unregister a media device
-- * @mdev:	The media device
-- *
-- * It is safe to call this function on an unregistered
-- * (but initialised) media device.
-- */
- void media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 32a5f8cae72d..a2d28162213e 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -70,14 +70,6 @@ static inline const char *intf_type(struct media_interface *intf)
- 	}
- };
- 
--/**
-- * __media_entity_enum_init - Initialise an entity enumeration
-- *
-- * @ent_enum: Entity enumeration to be initialised
-- * @idx_max: Maximum number of entities in the enumeration
-- *
-- * Returns zero on success or a negative error code.
-- */
- __must_check int __media_entity_enum_init(struct media_entity_enum *ent_enum,
- 					  int idx_max)
- {
-@@ -93,11 +85,6 @@ __must_check int __media_entity_enum_init(struct media_entity_enum *ent_enum,
- }
- EXPORT_SYMBOL_GPL(__media_entity_enum_init);
- 
--/**
-- * media_entity_enum_cleanup - Release resources of an entity enumeration
-- *
-- * @e: Entity enumeration to be released
-- */
- void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
- {
- 	kfree(ent_enum->bmap);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index ded71f60d193..4b900c9c5cdd 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -428,6 +428,8 @@ void media_device_cleanup(struct media_device *mdev);
-  * a sysfs attribute.
-  *
-  * Unregistering a media device that hasn't been registered is *NOT* safe.
-+ *
-+ * Return: returns zero on success or a negative error code.
-  */
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner);
-@@ -437,6 +439,10 @@ int __must_check __media_device_register(struct media_device *mdev,
-  * __media_device_unregister() - Unegisters a media device element
-  *
-  * @mdev:	pointer to struct &media_device
-+ *
-+ *
-+ * It is safe to call this function on an unregistered (but initialised)
-+ * media device.
-  */
- void media_device_unregister(struct media_device *mdev);
- 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index f915ed62ac81..c4aaeb85229c 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -370,9 +370,23 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- 	}
- }
- 
-+/**
-+ * __media_entity_enum_init - Initialise an entity enumeration
-+ *
-+ * @ent_enum: Entity enumeration to be initialised
-+ * @idx_max: Maximum number of entities in the enumeration
-+ *
-+ * Return: Returns zero on success or a negative error code.
-+ */
- __must_check int __media_entity_enum_init(struct media_entity_enum *ent_enum,
- 					  int idx_max);
--void media_entity_enum_cleanup(struct media_entity_enum *e);
-+
-+/**
-+ * media_entity_enum_cleanup - Release resources of an entity enumeration
-+ *
-+ * @ent_enum: Entity enumeration to be released
-+ */
-+void media_entity_enum_cleanup(struct media_entity_enum *ent_enum);
- 
- /**
-  * media_entity_enum_zero - Clear the entire enum
-@@ -847,6 +861,7 @@ void media_remove_intf_link(struct media_link *link);
-  * Note: this is an unlocked version of media_remove_intf_links().
-  */
- void __media_remove_intf_links(struct media_interface *intf);
-+
- /**
-  * media_remove_intf_links() - remove all links associated with an interface
-  *
-@@ -861,7 +876,6 @@ void __media_remove_intf_links(struct media_interface *intf);
-  */
- void media_remove_intf_links(struct media_interface *intf);
- 
--
- #define media_entity_call(entity, operation, args...)			\
- 	(((entity)->ops && (entity)->ops->operation) ?			\
- 	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+First of all the subject of the patch is very misleading as you initialize the 
+entity type for new subdevs to MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN, not 
+MEDIA_ENT_T_UNKNOWN.
+
+> >>>> I don't think I'd warn about MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN ---
+> >>>> there are entities that do not fall into any category of existing
+> >>>> functions. For instance image signal processors have such; they are
+> >>>> hardware specific and often their functionality is somewhat so as
+> >>>> well. Some of them perform a variety of functions (image processing
+> >>>> algorithms) but I doubt it'd make sense to start e.g. listing those
+> >>>> until we have any standardised interface for them.
+
+Most of the subdevs we have today are of the "unknown" type, which isn't very 
+user-friendly. Part of the reason is that there has never been a big incentive 
+for driver writes to add proper subdev types, as the type is ignored in 
+userspace in most cases. This should hopefully change with functions, and 
+we'll need to push for new subdevs to have at least one function defined, even 
+if it's a generic function such as image processing for lack of a better 
+alternative. Warning on MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN has the advantage that 
+it will push driver authors to think about the issue instead of just ignoring 
+it and setting the type/function to unknown. That might be a wrong solution 
+though, as if we introduce a generic image processing function (which we'll 
+need for lack of a better or more precise alternative in some cases) driver 
+authors might just use that one instead of MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN, 
+and it would become the equivalent of the unknown type for all practical 
+purpose. We would only have pushed the problem one step further without 
+solving it. I wonder how we could improve that.
+
+> >>>> The two entities in smiapp don't have a specific function either.
+> >>>> Adding a new one (scaler) might make sense for the two, but I think
+> >>>> I'd leave that out from this set.
+> >>> 
+> >>> IMHO, if the entity function is really unknown, it shouldn't even be
+> >>> at the graph in the first place, as an unknown entity can't be
+> >>> controlled.
+> >> 
+> >> These used to be just "sub-devices" without a type that 1) did not fall
+> >> into any existing category
+> > 
+> > No problem. You can create a new function
+> > 
+> >> and 2) was not generic enough to warrant adding a
+> >> specific type for them. I don't think that has really changed with
+> >> functions.
+> >
+> > Well, you could add a device-specific function name. We have already
+> > other device specific things (like device-only FOURCCs, device-specific
+> > controls). I don't see why not having device-specific functions when
+> > we want/need to map such entities.
+> 
+> What would be the benefit of having device specific functions?
+> 
+> The user who would need to access such a device would probably use the name
+> instead, probably combined with the bus information in the future (or serial
+> number etc.).
+> 
+> >>> So, I think we should either add a new function for those entities,
+> >>> for them to be used on userspace, or simply remove them, if they won't
+> >>> be used on userspace, because they aren't documented.
+> >> 
+> >> What kind of "function" could you use for e.g. OMAP3ISP CCDC or preview
+> >> blocks?
+> > 
+> > ENT_F_OMAP3ISP_CCDC
+> > 
+> > if the preview is generic enough, it could be ENT_F_PREVIEW. If not,
+> > ENT_F_OMAP3ISP_PREVIEW.
+> > 
+> >> The issue is that for the user to meaningfully use the devices, one has
+> >> to know exactly what they are. The fact they do "image processing" for
+> >> instance is not really useful alone.
+> >> 
+> >> Flash devices, for instance, have a well defined control interface.
+> > 
+> > Yes, but a ENT_F_OMAP3_CCDC would also have a well defined control
+> > interface.
+> 
+> ..and its private IOCTLs as well.
+> 
+> I'd like to have Laurent's and Hans's opinion on this.
+
+I don't think it makes sense to create a device-specific function for those 
+subdevs. Functions should be defined generically, not in a hardware-specific 
+fashion. Otherwise we would mix two very different usages, the identification 
+of what an entity does and the identification of what an entity is. Locating 
+an entity precisely in the graph ("where is the OMAP3 ISP CCDC entity?") is 
+the purpose of the entity name. Using ENT_F_OMAP3_CCDC would mean "the OMAP3 
+ISP CCDC entity does ENT_F_OMAP3_CCDC, defined as whatever the OMAP3 ISP CCDC 
+entity does". That sounds tautological to me. I'd rather know that "the OMAP3 
+ISP CCDC entity does image processing", or possibly "the OMAP3 ISP CCDC entity 
+does black level compensation, fault pixel correction and lens shading 
+correction".
+
+> We'll also start needing multiple functions per entity in this case, since
+> existing device specific functions would need to be amended with
+> standardised functions. Supposing functions can be device specific, I think
+> functions such as "scaler" should be standardised as well.
+
+I agree with both statements, we'll need multiple functions per entity, and 
+the scaler function should be standardized.
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
