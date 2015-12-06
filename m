@@ -1,59 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:27588 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755763AbbLQMNn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 07:13:43 -0500
-To: linux-media <linux-media@vger.kernel.org>
-From: Mason <slash.tmp@free.fr>
-Subject: Automatic device driver back-porting with media_build
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Message-ID: <5672A6F0.6070003@free.fr>
-Date: Thu, 17 Dec 2015 13:13:36 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56212 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752505AbbLFBDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:03:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-api@vger.kernel.org
+Subject: Re: [PATCH v8 39/55] [media] media controller: get rid of entity subtype on Kernel
+Date: Sun, 06 Dec 2015 03:03:26 +0200
+Message-ID: <1534300.8hW6ASM2EE@avalon>
+In-Reply-To: <728826957177ee11793b6b28b4e61e94b2d3068c.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <728826957177ee11793b6b28b4e61e94b2d3068c.1441540862.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+Hi Mauro,
 
-I have a TechnoTrend TT-TVStick CT2-4400v2 USB tuner, as described here:
-http://linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400
+Thank you for the patch.
 
-According to the article, the device is supported since kernel 3.19
-and indeed, if I use a 4.1 kernel, I can pick CONFIG_DVB_USB_DVBSKY
-and everything seems to work.
+On Sunday 06 September 2015 09:02:59 Mauro Carvalho Chehab wrote:
+> Don't use anymore the type/subtype entity data/macros
+> inside the Kernel.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Unfortunately (for me), I've been asked to make this driver work on
-an ancient 3.4 kernel.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The linuxtv article mentions:
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 220864319d21..7320cdc45833 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -185,16 +185,6 @@ struct media_intf_devnode {
+>  	u32				minor;
+>  };
+> 
+> -static inline u32 media_entity_type(struct media_entity *entity)
+> -{
+> -	return entity->type & MEDIA_ENT_TYPE_MASK;
+> -}
+> -
+> -static inline u32 media_entity_subtype(struct media_entity *entity)
+> -{
+> -	return entity->type & MEDIA_ENT_SUBTYPE_MASK;
+> -}
+> -
+>  static inline u32 media_entity_id(struct media_entity *entity)
+>  {
+>  	return entity->graph_obj.id;
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 3d6210095336..f90147cb9b57 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -42,8 +42,6 @@ struct media_device_info {
+> 
+>  #define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+> 
+> -/* Used values for media_entity_desc::type */
+> -
+>  /*
+>   * Initial value to be used when a new entity is created
+>   * Drivers should change it to something useful
 
-"Drivers are included in kernel 3.17 (for version 1) and 3.19 (for version 2).
-They can be built with media_build for older kernels."
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-- 
+Regards,
 
-This seems to imply that I can use the media_build framework to
-automatically (??) back-port a 3.19 driver to a 3.4 kernel?
-This sounds too good to be true...
-How far back can I go?
+Laurent Pinchart
 
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-I find the instructions not very clear.
-
-I have cloned media_tree and media_build. And I have my 3.4 kernel source
-in a separate "my-linux-3.4" dir.
-
-How am I supposed to tell media_build: "hey, the latest drivers are in this
-"media_tree" dir, I'd like you to compile this one driver for the kernel in
-this "my-linux-3.4" dir" ?
-
-Note that media_build/linux has scripts which reference include/uapi which
-did not exist yet in 3.4
-
-Anyway, my confusion level is at 11. I'd be very grateful if anyone here
-can clear some of it!
-
-Regards.
