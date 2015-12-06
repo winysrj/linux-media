@@ -1,67 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41337 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934290AbbLPRLh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:11:37 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 4/5] [media] au0828-core: fix compilation when !CONFIG_MEDIA_CONTROLLER
-Date: Wed, 16 Dec 2015 15:11:14 -0200
-Message-Id: <a1532b4df91d3444bb8f5a8925b0d5f2c0606fbd.1450285867.git.mchehab@osg.samsung.com>
-In-Reply-To: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-References: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-In-Reply-To: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-References: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56307 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983AbbLFCU0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 21:20:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 31/55] [media] media: add macros to check if subdev or V4L2 DMA
+Date: Sun, 06 Dec 2015 04:20:38 +0200
+Message-ID: <24575825.N6z5OZzxrl@avalon>
+In-Reply-To: <a811ed07aab2bf1410ffe4c438fcbd4149581290.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <a811ed07aab2bf1410ffe4c438fcbd4149581290.1441540862.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit 1590ad7b52714 ("[media] media-device: split media initialization
-and registration") moved the media controller register to a
-separate function. That caused the following compilation issue,
-if !CONFIG_MEDIA_CONTROLLER:
+Hi Mauro,
 
-vim +445 drivers/media/usb/au0828/au0828-core.c
+Thank you for the patch.
 
-   439		if (retval) {
-   440			pr_err("%s() au0282_dev_register failed to create graph\n",
-   441			       __func__);
-   442			goto done;
-   443		}
-   444
- > 445		retval = media_device_register(dev->media_dev);
-   446
-   447	done:
-   448		if (retval < 0)
+On Sunday 06 September 2015 09:02:57 Mauro Carvalho Chehab wrote:
+> As we'll be removing entity subtypes from the Kernel, we need
+> to provide a way for drivers and core to check if a given
+> entity is represented by a V4L2 subdev or if it is an V4L2
+> I/O entity (typically with DMA).
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 4e36b1f2b2d7..220864319d21 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -220,6 +220,39 @@ static inline u32 media_gobj_gen_id(enum
+> media_gobj_type type, u32 local_id) return id;
+>  }
+> 
+> +static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+> +{
+> +	if (!entity)
+> +		return false;
+> +
+> +	switch (entity->type) {
+> +	case MEDIA_ENT_T_V4L2_VIDEO:
+> +	case MEDIA_ENT_T_V4L2_VBI:
+> +	case MEDIA_ENT_T_V4L2_SWRADIO:
+> +		return true;
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+> +static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+> +{
+> +	if (!entity)
+> +		return false;
+> +
+> +	switch (entity->type) {
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
+> +	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+I'm sorry but this simply won't scale. We need a better way to determine the 
+entity type, and this could be a valid use case to actually retain an entity 
+type field separate from the function, at least inside the kernel.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 2f91bbc633b4..101d32954fe8 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -458,7 +458,9 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 		goto done;
- 	}
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
- 	retval = media_device_register(dev->media_dev);
-+#endif
- 
- done:
- 	if (retval < 0)
+> +		return true;
+> +
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+>  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+>  #define MEDIA_ENTITY_ENUM_MAX_ID	64
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
