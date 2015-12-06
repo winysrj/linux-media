@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38754 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbbLVOVc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2015 09:21:32 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2] adv7604: add direct interrupt handling
-Date: Tue, 22 Dec 2015 15:21:27 +0100
-Message-Id: <1450794087-31153-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56198 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372AbbLFAxo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 19:53:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 43/55] [media] media: report if a pad is sink or source at debug msg
+Date: Sun, 06 Dec 2015 02:53:57 +0200
+Message-ID: <29589100.xT3BcZGtSY@avalon>
+In-Reply-To: <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <a5724b2c7cac1192cbd5033d90745daa586883aa.1441540862.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When probed from device tree, the i2c client driver can handle the
-interrupt on its own.
+Hi Mauro,
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-This revision implements the suggested style changes and drops the
-IRQF_TRIGGER_LOW flag, which is handled in the device tree.
+Thank you for the patch.
 
-CU
-Uli
+On Sunday 06 September 2015 09:03:03 Mauro Carvalho Chehab wrote:
+> Sometimes, it is important to see if the created pad is
+> sink or source. Add info to track that.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index d8038a53f945..6ed5eef88593 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -121,8 +121,11 @@ static void dev_dbg_obj(const char *event_name,  struct
+> media_gobj *gobj) struct media_pad *pad = gobj_to_pad(gobj);
+> 
+>  		dev_dbg(gobj->mdev->dev,
+> -			"%s: id 0x%08x pad#%d: '%s':%d\n",
+> -			event_name, gobj->id, media_localid(gobj),
+> +			"%s: id 0x%08x %s%spad#%d: '%s':%d\n",
+> +			event_name, gobj->id,
+> +			pad->flags & MEDIA_PAD_FL_SINK   ? "  sink " : "",
+> +			pad->flags & MEDIA_PAD_FL_SOURCE ? "source " : "",
 
+I'm wondering if we really need the two leading spaces in "  sink ", as a 
+bidirectional pad would print "  sink source pad" and mess up the alignment 
+anyway.
 
- drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+> +			media_localid(gobj),
+>  			pad->entity->name, pad->index);
+>  		break;
+>  	}
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5bd81bd..be5980c 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -31,6 +31,7 @@
- #include <linux/gpio/consumer.h>
- #include <linux/hdmi.h>
- #include <linux/i2c.h>
-+#include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
-+static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
-+{
-+	struct adv76xx_state *state = devid;
-+	bool handled;
-+
-+	adv76xx_isr(&state->sd, 0, &handled);
-+
-+	return handled ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
- static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -2844,8 +2855,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		state->pdata.op_656_range = 1;
- 	}
- 
--	/* Disable the interrupt for now as no DT-based board uses it. */
--	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-+	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
- 
- 	/* Use the default I2C addresses. */
- 	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-@@ -3235,6 +3245,16 @@ static int adv76xx_probe(struct i2c_client *client,
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 			client->addr << 1, client->adapter->name);
- 
-+	if (client->irq) {
-+		err = devm_request_threaded_irq(&client->dev,
-+						client->irq,
-+						NULL, adv76xx_irq_handler,
-+						IRQF_ONESHOT,
-+						dev_name(&client->dev), state);
-+		if (err)
-+			goto err_entity;
-+	}
-+
- 	err = v4l2_async_register_subdev(sd);
- 	if (err)
- 		goto err_entity;
 -- 
-2.6.3
+Regards,
+
+Laurent Pinchart
 
