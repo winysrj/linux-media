@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59101 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170AbbLQCT6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 21:19:58 -0500
-Date: Thu, 17 Dec 2015 00:19:24 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: Media Controller patches
-Message-ID: <20151217001924.12c54a34@recife.lan>
-In-Reply-To: <56720C1A.70103@osg.samsung.com>
-References: <20151210183411.3d15a819@recife.lan>
-	<20151211190522.4e4d62a0@recife.lan>
-	<20151213091250.00df9420@recife.lan>
-	<20151216154337.58f37568@recife.lan>
-	<56720C1A.70103@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56258 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817AbbLFBzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:55:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH v8 35/55] [media] s5k5baf: fix subdev type
+Date: Sun, 06 Dec 2015 03:55:32 +0200
+Message-ID: <2154292.e5cNedqy2f@avalon>
+In-Reply-To: <7ed3721139e459f5dd4cdd05bd1e58f248fc0781.1440902901.git.mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com> <7ed3721139e459f5dd4cdd05bd1e58f248fc0781.1440902901.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Dec 2015 18:12:58 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Mauro,
 
-> On 12/16/2015 10:43 AM, Mauro Carvalho Chehab wrote:
-> > Em Sun, 13 Dec 2015 09:12:50 -0200
-> > Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> > 
+Thank you for the patch.
+
+On Sunday 30 August 2015 00:06:46 Mauro Carvalho Chehab wrote:
+> X-Patchwork-Delegate: m.chehab@samsung.com
+> This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
+> some subdevs with a non-existing type.
 > 
-> > 
-> > As far as I know, all pending items for Kernel 4.5 merge are
-> > complete. I should be moving the remaining patches from my
-> > experimental tree:
-> > 	git://linuxtv.org/mchehab/experimental.git media-controller-rc4
-> > 
-> > to the media-controller topic branch by the end of this week, if
-> > nothing pops up.
+> As this is a sensor driver, the proper type is likely
+> MEDIA_ENT_T_V4L2_SUBDEV_SENSOR.
+
+That's actually not correct. The driver creates two subdevs, one for the image 
+sensor pixel array (and the related readout logic) and one for an ISP. The 
+first subdev already uses the MEDIA_ENT_T_V4L2_SUBDEV_SENSOR type, but the 
+second subdev isn't a sensor pixel array.
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> Hi Mauro,
+> diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+> index d3bff30bcb6f..0513196bd48c 100644
+> --- a/drivers/media/i2c/s5k5baf.c
+> +++ b/drivers/media/i2c/s5k5baf.c
+> @@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf
+> *state,
 > 
-> I don't like the flat graph I am seeing on experimental rc4
-> with all the pending patches for 4.5. I am attaching two
-> media graphs generated on au0828 on rc3 and rc4. Something
-> is off with rc4.  I used the latest mc_nextgen_test tool
-> to generate the graphs.
+>  	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
+>  	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+>  	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
+> 
+>  	if (!ret)
 
-I guess this problem is due to the patch changed the object ID 
-to use a single number range:
-	http://git.linuxtv.org/mchehab/experimental.git/commit/?h=media-controller-rc4&id=9c04bcb45824fd8e5231f6f26269b57830c1f34d
-
-We likely need to change the userspace tool due to that, but I'll
-take a look on it tomorrow.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
