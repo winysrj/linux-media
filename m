@@ -1,59 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56210 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbbLFBBu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:01:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v8 40/55] [media] media.h: don't use legacy entity macros at Kernel
-Date: Sun, 06 Dec 2015 03:02:03 +0200
-Message-ID: <1606474.9FWLZXiWGs@avalon>
-In-Reply-To: <3f2e554613f0b1286bd72dfd08f02ac6b874c95e.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <3f2e554613f0b1286bd72dfd08f02ac6b874c95e.1441540862.git.mchehab@osg.samsung.com>
+Received: from mout0.freenet.de ([195.4.92.90]:56394 "EHLO mout0.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751516AbbLFIZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Dec 2015 03:25:58 -0500
+Received: from [195.4.92.140] (helo=mjail0.freenet.de)
+	by mout0.freenet.de with esmtpa (ID stguenth@freenet.de) (port 25) (Exim 4.85 #1)
+	id 1a5UK0-00040W-B5
+	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:05:28 +0100
+Received: from localhost ([::1]:51105 helo=mjail0.freenet.de)
+	by mjail0.freenet.de with esmtpa (ID stguenth@freenet.de) (Exim 4.85 #1)
+	id 1a5UK0-00031f-6u
+	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:05:28 +0100
+Received: from mx3.freenet.de ([195.4.92.13]:36194)
+	by mjail0.freenet.de with esmtpa (ID stguenth@freenet.de) (Exim 4.85 #1)
+	id 1a5UHp-0006R6-Kb
+	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:03:13 +0100
+Received: from aftr-37-24-144-114.unity-media.net ([37.24.144.114]:13222 helo=[192.168.1.100])
+	by mx3.freenet.de with esmtpsa (ID stguenth@freenet.de) (TLSv1.2:DHE-RSA-AES128-SHA:128) (port 587) (Exim 4.85 #1)
+	id 1a5UHp-0004tJ-As
+	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:03:13 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?Steffen_G=c3=bcnther?= <stguenth@freenet.de>
+Subject: Changes in dw2102.c to support my Tevii S662
+Message-ID: <5663EBBF.6060504@freenet.de>
+Date: Sun, 6 Dec 2015 09:03:11 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/mixed;
+ boundary="------------010307040900070401000905"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a multi-part message in MIME format.
+--------------010307040900070401000905
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thank you for the patch.
+Hi,
 
-On Sunday 06 September 2015 09:03:00 Mauro Carvalho Chehab wrote:
-> Put the legacy MEDIA_ENT_* macros under a #ifndef __KERNEL__,
-> in order to be sure that none of those old symbols are used
-> inside the Kernel.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I made some small changes on top of this patch
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+https://patchwork.linuxtv.org/patch/28925/
 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index f90147cb9b57..a1bd7afba110 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -105,6 +105,7 @@ struct media_device_info {
->  #define MEDIA_ENT_T_DVB_CA		(MEDIA_ENT_T_DVB_BASE + 4)
->  #define MEDIA_ENT_T_DVB_NET_DECAP	(MEDIA_ENT_T_DVB_BASE + 5)
-> 
-> +#ifndef __KERNEL__
->  /* Legacy symbols used to avoid userspace compilation breakages */
->  #define MEDIA_ENT_TYPE_SHIFT		16
->  #define MEDIA_ENT_TYPE_MASK		0x00ff0000
-> @@ -118,6 +119,7 @@ struct media_device_info {
->  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
->  #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
->  #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
-> +#endif
-> 
->  /* Entity types */
+to support my Tevii S662 with module dvb-usb-dw2102.
 
--- 
-Regards,
+Scanning and tuning in works for me.
 
-Laurent Pinchart
+Hope this is usefull!?
 
+Regards
+Steffen
+
+--------------010307040900070401000905
+Content-Type: text/x-patch;
+ name="tevii_s662-dw2102.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="tevii_s662-dw2102.patch"
+
+--- /home/sguenther/Downloads/tv-treiber/drivers/media/usb/dvb-usb/dw2102.c
++++ /home/sguenther/Downloads/media-test-orig/dw2102.c
+@@ -1,6 +1,6 @@
+ /* DVB USB framework compliant Linux driver for the
+  *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
+- *	TeVii S600, S630, S650, S660, S480, S421, S632
++ *	TeVii S600, S630, S650, S660, S480, S421, S632, S482, S662,
+  *	Prof 1100, 7500,
+  *	Geniatech SU3000, T220,
+  *	TechnoTrend S2-4600 Cards
+@@ -1686,6 +1686,7 @@
+ 	GOTVIEW_SAT_HD,
+ 	GENIATECH_T220,
+ 	TECHNOTREND_S2_4600,
++	TEVII_S662,
+ 	TEVII_S482_1,
+ 	TEVII_S482_2,
+ };
+@@ -1713,6 +1714,7 @@
+ 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
+ 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
+ 		USB_PID_TECHNOTREND_CONNECT_S2_4600)},
++	[TEVII_S662] = {USB_DEVICE(0x9022, 0xd662)},
+ 	[TEVII_S482_1] = {USB_DEVICE(0x9022, 0xd483)},
+ 	[TEVII_S482_2] = {USB_DEVICE(0x9022, 0xd484)},
+ 	{ }
+@@ -2232,10 +2234,14 @@
+ 		} },
+ 		}
+ 	},
+-	.num_device_descs = 3,
++	.num_device_descs = 4,
+ 	.devices = {
+ 		{ "TechnoTrend TT-connect S2-4600",
+ 			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
++			{ NULL },
++		},
++		{ "TeVii S662",
++			{ &dw2102_table[TEVII_S662], NULL },
+ 			{ NULL },
+ 		},
+ 		{ "TeVii S482 (tuner 1)",
+@@ -2359,7 +2365,7 @@
+ MODULE_AUTHOR("Igor M. Liplianin (c) liplianin@me.by");
+ MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
+ 			" DVB-C 3101 USB2.0,"
+-			" TeVii S600, S630, S650, S660, S480, S421, S632"
++			" TeVii S600, S630, S650, S660, S480, S421, S632, S482, S662,"
+ 			" Prof 1100, 7500 USB2.0,"
+ 			" Geniatech SU3000, T220,"
+ 			" TechnoTrend S2-4600 devices");
+
+--------------010307040900070401000905--
