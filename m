@@ -1,101 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59338 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751843AbbLRLDt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 06:03:49 -0500
-Date: Fri, 18 Dec 2015 09:03:45 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Mason <slash.tmp@free.fr>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: Automatic device driver back-porting with media_build
-Message-ID: <20151218090345.623cef4c@recife.lan>
-In-Reply-To: <5673E393.8050309@free.fr>
-References: <5672A6F0.6070003@free.fr>
-	<20151217105543.13599560@recife.lan>
-	<5672BE15.9070006@free.fr>
-	<20151217120830.0fc27f01@recife.lan>
-	<5672C713.6090101@free.fr>
-	<20151217125505.0abc4b40@recife.lan>
-	<5672D5A6.8090505@free.fr>
-	<20151217140943.7048811b@recife.lan>
-	<5672EAD6.2000706@free.fr>
-	<5673E393.8050309@free.fr>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:33931 "EHLO
+	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbbLFVCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2015 16:02:44 -0500
+Received: by lffu14 with SMTP id u14so140882168lff.1
+        for <linux-media@vger.kernel.org>; Sun, 06 Dec 2015 13:02:43 -0800 (PST)
+Received: from snorken.kolmodin.net (h212n5.lunet.ias.bredband.telia.com. [90.224.208.212])
+        by smtp.googlemail.com with ESMTPSA id s63sm4308084lfd.31.2015.12.06.13.02.42
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Sun, 06 Dec 2015 13:02:42 -0800 (PST)
+To: linux-media <linux-media@vger.kernel.org>
+From: Alec Leamas <leamas.alec@gmail.com>
+Subject: Patch is accepted - now what?
+Message-ID: <5664A271.1040305@gmail.com>
+Date: Sun, 6 Dec 2015 22:02:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 18 Dec 2015 11:44:35 +0100
-Mason <slash.tmp@free.fr> escreveu:
+Dear list,
 
-> On 17/12/2015 18:03, Mason wrote:
-> 
-> > The media_build process prints:
-> > 
-> > "Preparing to compile for kernel version 3.4.3913"
-> > 
-> > In fact, the custom kernel's Makefile contains:
-> > 
-> > VERSION = 3
-> > PATCHLEVEL = 4
-> > SUBLEVEL = 39
-> > EXTRAVERSION = 13
-> > NAME = Saber-toothed Squirrel
-> > 
-> > Is it possible that the build process gets confused by the EXTRAVERSION field?
-> 
-> Here's the problem:
-> 
-> v4l/Makefile writes to KERNELRELEASE and v4l/.version
-> 
-> 	-e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",' \
-> 	-e '	$$version,$$level,$$sublevel,$$version,$$level,$$sublevel,$$extra);' \
-> 
-> $ cat v4l/.version 
-> VERSION=3
-> PATCHLEVEL:=4
-> SUBLEVEL:=39
-> KERNELRELEASE:=3.4.3913
-> SRCDIR:=/tmp/sandbox/custom-linux-3.4
-> 
-> Then $(MAKE) -C ../linux apply_patches calls
-> patches_for_kernel.pl 3.4.3913
-> 
-> which computes kernel_version
-> = 3 << 16 + 4 << 8 + 3913 = 0x031349
-> 
-> which is incorrectly interpreted as kernel 3.19.73
-> thus the correct patches are not applied.
-> 
-> Trivial patch follows. Will test right away.
-> 
-> Regards.
-> 
-> diff --git a/v4l/Makefile b/v4l/Makefile
-> index 1542092004fa..9147a98639b7 100644
-> --- a/v4l/Makefile
-> +++ b/v4l/Makefile
-> @@ -233,9 +233,9 @@ ifneq ($(DIR),)
->         -e '    elsif (/^EXTRAVERSION\s*=\s*(\S+)\n/){ $$extra=$$1; }' \
->         -e '    elsif (/^KERNELSRC\s*:=\s*(\S.*)\n/ || /^MAKEARGS\s*:=\s*-C\s*(\S.*)\n/)' \
->         -e '        { $$o=$$d; $$d=$$1; goto S; }' \
->         -e '};' \
-> -       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",' \
-> +       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s.%s\n",' \
->         -e '    $$version,$$level,$$sublevel,$$version,$$level,$$sublevel,$$extra);' \
+Some time ago I submitted my first kernel patch. When checking,  I now
+find that my patch is in state 'accepted' [1].
 
-Hmm... that doesn't sound right on upstream Kernels.
+What I don't understand is what this means, exactly. In particular, does
+it mean it eventually will be part of the kernel?
 
-For example, the extra version on the media_build current Kernel is:
+"Confused"
 
-Makefile:EXTRAVERSION = -rc2
+--alec
 
-So, I guess we'll need a different regex, like:
-
-         -e '    elsif (/^EXTRAVERSION\s*=\s*(\d+)\n/){ $$extra=".$$1"; }' \
-         -e '    elsif (/^EXTRAVERSION\s*=\s*(\S+)\n/){ $$extra=$$1; }' \
-
-Regards,
-Mauro
+[1] https://patchwork.linuxtv.org/patch/31865/
