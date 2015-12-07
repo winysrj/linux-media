@@ -1,443 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42744 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404AbbLLNlB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 08:41:01 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 6/6] [media] DocBook: Document MEDIA_IOC_G_TOPOLOGY
-Date: Sat, 12 Dec 2015 11:40:45 -0200
-Message-Id: <2f38a33c131f95ef38aa208d2c7a638a563aac88.1449927561.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
-References: <cover.1449927561.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
-References: <cover.1449927561.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from 216.75.116.100.bus.sta.allophone.biz ([216.75.116.100]:33511
+	"EHLO server1.n0sq.us" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932542AbbLGUMW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 15:12:22 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by server1.n0sq.us (Postfix) with ESMTP id 009BF3164
+	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2015 13:05:49 -0700 (MST)
+Received: from server1.n0sq.us ([127.0.0.1])
+	by localhost (server1.n0sq.us [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id gvJFIgndRpQY for <linux-media@vger.kernel.org>;
+	Mon,  7 Dec 2015 13:05:48 -0700 (MST)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by server1.n0sq.us (Postfix) with ESMTP id D5C6E1808
+	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2015 13:05:48 -0700 (MST)
+To: linux-media@vger.kernel.org
+From: Lee <temp5@n0sq.us>
+Subject: dvbv5 questions
+Message-ID: <5665E69C.70302@n0sq.us>
+Date: Mon, 7 Dec 2015 13:05:48 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add description for this new media controller ioctl.
+I suppose the following are bugs? Ubuntu 14.04.3 64 bit.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- .../DocBook/media/v4l/media-controller.xml         |   1 +
- .../DocBook/media/v4l/media-ioc-g-topology.xml     | 391 +++++++++++++++++++++
- 2 files changed, 392 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+When I run dvbv5-scan, I get a lock but then it times out with a
+Segmentation fault. So far I haven't found a solution for this.
 
-diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
-index 63d48decaa6f..5f2fc07a93d7 100644
---- a/Documentation/DocBook/media/v4l/media-controller.xml
-+++ b/Documentation/DocBook/media/v4l/media-controller.xml
-@@ -98,6 +98,7 @@
-   &sub-media-func-ioctl;
-   <!-- All ioctls go here. -->
-   &sub-media-ioc-device-info;
-+  &sub-media-ioc-g-topology;
-   &sub-media-ioc-enum-entities;
-   &sub-media-ioc-enum-links;
-   &sub-media-ioc-setup-link;
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-new file mode 100644
-index 000000000000..e0d49fa329f0
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-@@ -0,0 +1,391 @@
-+<refentry id="media-g-topology">
-+  <refmeta>
-+    <refentrytitle>ioctl MEDIA_IOC_G_TOPOLOGY</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>MEDIA_IOC_G_TOPOLOGY</refname>
-+    <refpurpose>Enumerate the graph topology and graph element properties</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct media_v2_topology *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='media-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>MEDIA_IOC_G_TOPOLOGY</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+    <para>The typical usage of this ioctl is to call it twice.
-+    On the first call, the structure defined at &media-v2-topology; should
-+    be zeroed. At return, if no errors happen, this ioctl will return the
-+    <constant>topology_version</constant> and the total number of entities,
-+    interfaces, pads and links.</para>
-+    <para>Before the second call, the userspace should allocate arrays to
-+    store the graph elements that are desired, putting the pointers to them
-+    at the ptr_entities, ptr_interfaces, ptr_links and/or ptr_pads, keeping
-+    the other values untouched.</para>
-+    <para>If the <constant>topology_version</constant> remains the same, the
-+    ioctl should fill the desired arrays with the media graph elements.</para>
-+
-+    <table pgwide="1" frame="none" id="media-v2-topology">
-+      <title>struct <structname>media_v2_topology</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>topology_version</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Version of the media graph topology. When the graph is
-+		    created, this field starts with zero. Every time a graph
-+		    element is added or removed, this field is
-+		    incremented.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>num_entities</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Number of entities in the graph</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ptr_entities</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>A pointer to a memory area where the entities array
-+		   will be stored, converted to a 64-bits integer.
-+		   It can be zero. if zero, the ioctl won't store the
-+		   entities. It will just update
-+		   <constant>num_entities</constant></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>num_interfaces</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Number of interfaces in the graph</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ptr_interfaces</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>A pointer to a memory area where the interfaces array
-+		   will be stored, converted to a 64-bits integer.
-+		   It can be zero. if zero, the ioctl won't store the
-+		   interfaces. It will just update
-+		   <constant>num_interfaces</constant></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>num_pads</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Total number of pads in the graph</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ptr_pads</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>A pointer to a memory area where the pads array
-+		   will be stored, converted to a 64-bits integer.
-+		   It can be zero. if zero, the ioctl won't store the
-+		   pads. It will just update
-+		   <constant>num_pads</constant></entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>num_links</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Total number of data and interface links in the graph</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>ptr_links</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>A pointer to a memory area where the links array
-+		   will be stored, converted to a 64-bits integer.
-+		   It can be zero. if zero, the ioctl won't store the
-+		   links. It will just update
-+		   <constant>num_links</constant></entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="media-v2-entity">
-+      <title>struct <structname>media_v2_entity</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Unique ID for the entity.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>char</entry>
-+	    <entry><structfield>name</structfield>[64]</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Entity name as an UTF-8 NULL-terminated string.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>function</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Entity main function, see <xref linkend="media-entity-type" /> for details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[12]</entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set this array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="media-v2-interface">
-+      <title>struct <structname>media_v2_interface</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Unique ID for the interface.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>intf_type</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Interface type, see <xref linkend="media-intf-type" /> for details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Interface flags. Currently unused.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set this array to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>struct media_v2_intf_devnode</entry>
-+	    <entry><structfield>devnode</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Used only for device node interfaces. See <xref linkend="media-v2-intf-devnode" /> for details..</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="media-v2-intf-devnode">
-+      <title>struct <structname>media_v2_interface</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>major</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Device node major number.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>minor</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Device node minor number.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="media-v2-pad">
-+      <title>struct <structname>media_v2_pad</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Unique ID for the pad.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>entity_id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Unique ID for the entity where this pad belongs.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Pad flags, see <xref linkend="media-pad-flag" /> for more details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[9]</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set this array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="media-v2-link">
-+      <title>struct <structname>media_v2_pad</structname></title>
-+      <tgroup cols="5">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Unique ID for the pad.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>source_id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>
-+	       <para>On pad to pad links: unique ID for the source pad.</para>
-+	       <para>On interface to entity links: unique ID for the interface.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>sink_id</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>
-+	       <para>On pad to pad links: unique ID for the sink pad.</para>
-+	       <para>On interface to entity links: unique ID for the entity.</para>
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Link flags, see <xref linkend="media-link-flag" /> for more details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[5]</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry>Reserved for future extensions. Drivers and applications must
-+	    set this array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENOSPC</errorcode></term>
-+	<listitem>
-+	  <para>This is returned when either one or more of the num_entities,
-+	  num_interfaces, num_links or num_pads are non-zero and are smaller
-+	  than the actual number of elements inside the graph. This may happen
-+	  if the <constant>topology_version</constant> changed when compared
-+	  to the last time this ioctl was called. Userspace should usually
-+	  free the area for the pointers, zero the struct elements and call
-+	  this ioctl again.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
--- 
-2.5.0
+user@server2:~$ dvbv5-scan AMC21-125W0.dvbv5scan -l UNIVERSAL -F -o CHANNEL
+Using LNBf UNIVERSAL
+    Europe
+    10800 to 11800 MHz and 11600 to 12700 MHz
+    Dual LO, IF = lowband 9750 MHz, highband 10600 MHz
+ERROR    command MODULATION (4) not found during store
+INFO     Scanning frequency #1 11106000
+Lock   (0x1f) Signal= 70.50% C/N= 100.00% UCB= 65535 postBER= 67108864
+Segmentation fault (core dumped)
 
+Referring to the above output, I don't know what is causing the
+Modulation error. Furthermore, I'm unable to use 8PSK for modulation
+even though the docs on the spec says it's a valid modulation option.
+The following test file was used for the above: (and I had to modify the
+FREQUENCY because dvbv5-scan -l? doesn't give a  LNBF with a 10750 LO freq)
 
+ki7rw@server2:~$ cat AMC21-125W0.dvbv5scan
+[MONTANA_PBS]
+    DELIVERY_SYSTEM = DVBS2
+    FREQUENCY = 11106000
+    POLARIZATION = VERTICAL
+    SYMBOL_RATE = 2398000
+    INNER_FEC = AUTO
+    MODULATION = QPSK
+    INVERSION = OFF
