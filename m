@@ -1,78 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932243AbbLECNJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:09 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 13/32] v4l: vsp1: Extract pipeline initialization code into a function
-Date: Sat,  5 Dec 2015 04:12:47 +0200
-Message-Id: <1449281586-25726-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21732 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755263AbbLGMJn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 07:09:43 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 5/7] media: set proper max seg size for devices on Exynos SoCs
+Date: Mon, 07 Dec 2015 13:09:00 +0100
+Message-id: <1449490142-27502-6-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be reused outside of vsp1_video.c.
+All multimedia devices found on Exynos SoCs support only contiguous
+buffers, so set DMA max segment size to DMA_BIT_MASK(32) to let memory
+allocator to correctly create contiguous memory mappings.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.c  | 10 ++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h  |  1 +
- drivers/media/platform/vsp1/vsp1_video.c |  6 +-----
- 3 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/media/platform/exynos-gsc/gsc-core.c  | 1 +
+ drivers/media/platform/exynos4-is/fimc-core.c | 1 +
+ drivers/media/platform/exynos4-is/fimc-is.c   | 1 +
+ drivers/media/platform/exynos4-is/fimc-lite.c | 1 +
+ drivers/media/platform/s5p-g2d/g2d.c          | 1 +
+ drivers/media/platform/s5p-jpeg/jpeg-core.c   | 1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      | 2 ++
+ drivers/media/platform/s5p-tv/mixer_video.c   | 1 +
+ 8 files changed, 9 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 199d57f1fe06..524420ed6333 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -48,6 +48,16 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- 	pipe->uds = NULL;
- }
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9b9e423e4fc4..4f90be43b5a9 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1140,6 +1140,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 		goto err_m2m;
  
-+void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
-+{
-+	mutex_init(&pipe->lock);
-+	spin_lock_init(&pipe->irqlock);
-+	init_waitqueue_head(&pipe->wq);
-+
-+	INIT_LIST_HEAD(&pipe->entities);
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+}
-+
- void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index f8a099fba973..8553d5a03aa3 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -67,6 +67,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- }
+ 	/* Initialize continious memory allocator */
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(gsc->alloc_ctx)) {
+ 		ret = PTR_ERR(gsc->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index cef2a7f07cdb..368e19b50498 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1019,6 +1019,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	}
  
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-+void vsp1_pipeline_init(struct vsp1_pipeline *pipe);
+ 	/* Initialize contiguous memory allocator */
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 49658ca39e51..123772fa0241 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -841,6 +841,7 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_pm;
  
- void vsp1_pipeline_run(struct vsp1_pipeline *pipe);
- bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index cd4c2481e4ec..b82ff1a0371b 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -1013,11 +1013,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	spin_lock_init(&video->irqlock);
- 	INIT_LIST_HEAD(&video->irqqueue);
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(is->alloc_ctx)) {
+ 		ret = PTR_ERR(is->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 6f76afd909c4..9cfd2221f53d 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1564,6 +1564,7 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 			goto err_sd;
+ 	}
  
--	mutex_init(&video->pipe.lock);
--	spin_lock_init(&video->pipe.irqlock);
--	INIT_LIST_HEAD(&video->pipe.entities);
--	init_waitqueue_head(&video->pipe.wq);
--	video->pipe.state = VSP1_PIPELINE_STOPPED;
-+	vsp1_pipeline_init(&video->pipe);
- 	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index e1936d9d27da..31f6c233b146 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -681,6 +681,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 		goto put_clk_gate;
+ 	}
  
- 	/* Initialize the media entity... */
++	vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(dev->alloc_ctx)) {
+ 		ret = PTR_ERR(dev->alloc_ctx);
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 4a608cbe0fdb..6bd92f014a23 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2839,6 +2839,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 		goto device_register_rollback;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
+ 	jpeg->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(jpeg->alloc_ctx)) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to init memory allocator\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 81ffb67e6d66..8fcecf8a9a17 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1164,11 +1164,13 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
+ 	if (IS_ERR(dev->alloc_ctx[0])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[0]);
+ 		goto err_res;
+ 	}
++	vb2_dma_contig_set_max_seg_size(dev->mem_dev_r, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
+ 	if (IS_ERR(dev->alloc_ctx[1])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[1]);
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index dc1c679e136c..1d9c2d5a10e7 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -80,6 +80,7 @@ int mxr_acquire_video(struct mxr_device *mdev,
+ 		goto fail;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(mdev->dev, DMA_BIT_MASK(32));
+ 	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+ 	if (IS_ERR(mdev->alloc_ctx)) {
+ 		mxr_err(mdev, "could not acquire vb2 allocator\n");
 -- 
-2.4.10
+1.9.2
 
