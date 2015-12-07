@@ -1,58 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:6367 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933277AbbLOKBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 05:01:09 -0500
-Subject: Re: [PATCH] android: fix warning when releasing active sync point
-To: Dmitry Torokhov <dtor@chromium.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-References: <20151215012955.GA28277@dtor-ws>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	=?UTF-8?B?QXJ2ZSBIasO4bm5ldsOl?= =?UTF-8?Q?g?= <arve@android.com>,
-	Riley Andrews <riandrews@android.com>,
-	Andrew Bresticker <abrestic@chromium.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
-From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Message-ID: <566FE4E1.2040005@linux.intel.com>
-Date: Tue, 15 Dec 2015 11:01:05 +0100
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37079 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932076AbbLGSAY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 13:00:24 -0500
+Received: by wmww144 with SMTP id w144so160892925wmw.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2015 10:00:23 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20151215012955.GA28277@dtor-ws>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAHwmhgF-pYouHctHCy-d-uF4mDm-ZRd7kjJbxXRZ_9cKWG98fQ@mail.gmail.com>
+References: <CAHwmhgFyjLOT6Na6oLXQT+FiUjyjrPX_CmKvQVDP-k9kawnMHw@mail.gmail.com>
+	<CALF0-+UtHzo6-vYvUWtvS0hU7jyuPU+Ku4JC85T4gn4AHLgS0w@mail.gmail.com>
+	<CAHwmhgGhdH8_+_5abeJZg=sL2nrr3psqzwHz3xrL_u1aV6mNCg@mail.gmail.com>
+	<CAAEAJfDzpafBTqcTqjvEJWVxOQu7j=zK6m47VhnSVgM4kWhG5Q@mail.gmail.com>
+	<CAHwmhgHsPZTLgChqO05NYv7h-rD_Sex2d+jqsK=PpYJxcHi78g@mail.gmail.com>
+	<CAAEAJfCBBNC_Oj-pzVQWQV-hMFY99s+C6WdY+F+fDjjRBLk+qA@mail.gmail.com>
+	<CAHwmhgEr_4thdArs3pNydpS-R2squ0ZV6g0cGcTg2Gg2OrmBSw@mail.gmail.com>
+	<CAAEAJfCZ38DY8wx+vdqv=wVjDf+C6GD8ggR5cqKB9zVXOPKg_Q@mail.gmail.com>
+	<CAHwmhgF-pYouHctHCy-d-uF4mDm-ZRd7kjJbxXRZ_9cKWG98fQ@mail.gmail.com>
+Date: Mon, 7 Dec 2015 15:00:23 -0300
+Message-ID: <CAAEAJfC2QuW9Dgg1Y50D=gMaE5qufZWhZLr7P2E389rWmTv8hg@mail.gmail.com>
+Subject: Re: Sabrent (stk1160) / Easycap driver problem
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: Philippe Desrochers <desrochers.philippe@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 15-12-15 om 02:29 schreef Dmitry Torokhov:
-> Userspace can close the sync device while there are still active fence
-> points, in which case kernel produces the following warning:
+(shoot, we dropped the ML somewhere along the conversation)
+
+>> On 7 December 2015 at 12:32, Philippe Desrochers
+>> <desrochers.philippe@gmail.com> wrote:
+>> > Hello again,
+>> >
+>> > I open the device and I saw the following chips:
+>> >
+>> > SYNTEK:
+>> > STK1160DLQG
+>> > D7A155G-1513
+>> >
+>> > VIDEO DECODER:
+>> > CJC7113
+>> >
+>> > AUDIO:
+>> > ALC655
+>> > 64231N1 L620D
+>> >
+>> > It seems the video decoder is a clone of the Philips SAA7113.
+>> > Do you know if the CJC7113 is supported by the STK1160 linux driver ?
+>> >
+>>
+>> It will probably work, being a clone of saa7113. But for some reason,
+>> saa7115 is not detecting it. Maybe you can try to debug that and see
+>> what's going on?
+
+
+On 7 December 2015 at 14:45, Philippe Desrochers
+<desrochers.philippe@gmail.com> wrote:
+> Yes, I will try. I'm still not very experienced with linux kernel/driver...
+> I think I can manage that since I have a good background in embedded system
+> (Microcontroller).
 >
-> [   43.853176] ------------[ cut here ]------------
-> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
-> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
-> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
-> [   43.885834] Call trace:
-> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
-> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
-> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
-> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
-> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
-> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
-> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
-> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
-> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
-> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
-> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
-> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
-> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
-> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
+> In just few lines, can you tell me how the STK1160 and SA7115 are related to
+> each other ?
+> Can I see it as 2 independent modules ? (I mean with SA7115 loaded first and
+> then STK1160 loaded after only if the first module is OK ?)
 >
-> Let's fix it by introducing a new optional callback (disable_signaling)
-> to fence operations so that drivers can do proper clean ups when we
-> remove last callback for given fence.
->
-> Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
-> Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
->
-NACK! There's no way to do this race free.
-The driver should hold a refcount until fence is signaled.
+
+Sure. On the hardware side, stk1160 is the USB chipset, while the
+saa7115-compatible IC is the analog video decoder chip. stk1160 and
+saa7115 talk through a I2C bus that's in the capture card.
+
+On the software side, we have a similar model: the stk1160 driver
+deals with the USB data and the saa7115 driver talks to the decoder
+chip (through the I2C bus). Since saa7115 talks through I2C, you'll
+find it under drivers/media/i2c.
+
+stk1160 creates a subdevice that is owned by saa7115 driver. The
+latter knows there's a chip on some i2c address, and then probes for
+the type if chip.
+
+I believe probing is done on saa711x_detect_chip(). To support your
+device, we may have to create a new supported model here:
+
+enum saa711x_model {
+        SAA7111A,
+        SAA7111,
+        SAA7113,
+        GM7113C,
+        SAA7114,
+        SAA7115,
+        SAA7118,
+};
+
+If you grep GM7113C through the sources you'll be able to see how
+differences between models are handled. Maybe your chip is not really
+different from GM7113C or SAA7113 and all we need is to make sure it's
+detected.
+
+Don't hesitate to ask for more help over here.
+-- 
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
