@@ -1,72 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:34711 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754164AbbLTJwc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 04:52:32 -0500
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:34855 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755229AbbLGKW2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 05:22:28 -0500
+Received: by wmuu63 with SMTP id u63so134037172wmu.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2015 02:22:26 -0800 (PST)
+Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
+To: Manu Abraham <abraham.manu@gmail.com>,
+	David Nelson <nelson.dt@gmail.com>
+References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
+ <CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
+ <CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
+ <CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <56655DE1.7000109@gmail.com>
+Date: Mon, 7 Dec 2015 10:22:25 +0000
 MIME-Version: 1.0
-In-Reply-To: <566DAE57.6030000@cogentembedded.com>
-References: <1450020436-809-1-git-send-email-ykaneko0929@gmail.com>
-	<566DAE57.6030000@cogentembedded.com>
-Date: Sun, 20 Dec 2015 18:52:31 +0900
-Message-ID: <CAH1o70+V1yExrxHUvOPnZci0YNif2a2SMRwCZzAfRggGNRFQFQ@mail.gmail.com>
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add R-Car Gen3 support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Manu,
 
-2015-12-14 2:43 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
-> On 12/13/2015 06:27 PM, Yoshihiro Kaneko wrote:
+On 08/10/15 17:28, Manu Abraham wrote:
+> Hi,
 >
->> From: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
->>
->> Add chip identification for R-Car Gen3.
->>
->> Signed-off-by: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->
-> [...]
->>
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
->> b/drivers/media/platform/soc_camera/rcar_vin.c
->> index 5d90f39..29e7ca4 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -143,6 +143,7 @@
->>   #define RCAR_VIN_BT656                        (1 << 3)
->>
->>   enum chip_id {
->> +       RCAR_GEN3,
->>         RCAR_GEN2,
->>         RCAR_H1,
->>         RCAR_M1,
->> @@ -1846,6 +1847,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops
->> = {
->>
->>   #ifdef CONFIG_OF
->>   static const struct of_device_id rcar_vin_of_table[] = {
->> +       { .compatible = "renesas,vin-r8a7795", .data = (void *)RCAR_GEN3
->> },
->
->
->    I don't see where this is checked in the driver. Shouldn't we just use
-> gen2?
+> I just got back at work again. Will set things up this weekend/next week.
 
-I'd like to withdraw this patch now.
-I intend to post the series patch including this patch at another day.
+Have you had a chance to make any more progress on this?
 
->
-> MBR, Sergei
->
+As you're probably aware there are quite a few drivers waiting for 
+saa716x to be integrated into the tree; if you need some help here is 
+the work remaining to be done something that can be picked up by other 
+people?
 
-Thanks,
-kaneko
+Regards,
+
+Jemma.
+
+
+
