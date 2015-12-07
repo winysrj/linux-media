@@ -1,160 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:35601 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932206AbbLNLgY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 06:36:24 -0500
-Subject: Re: [PATCH v2 4/8] dt-bindings: Add a binding for Mediatek Video
- Encoder
-To: tiffany lin <tiffany.lin@mediatek.com>,
-	Rob Herring <robh@kernel.org>
-References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
- <1449827743-22895-5-git-send-email-tiffany.lin@mediatek.com>
- <20151211172919.GA2896@rob-hp-laptop> <1450081618.5745.3.camel@mtksdaap41>
-Cc: daniel.thompson@linaro.org, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:41215 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755633AbbLGPTM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2015 10:19:12 -0500
+Subject: Re: [PATCH 1/5] [media] staging: omap4iss: separate links creation
+ from entities init
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
+ <1441296036-20727-2-git-send-email-javier@osg.samsung.com>
+ <2776235.DqjovJkOTH@avalon>
+Cc: linux-kernel@vger.kernel.org,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <566EA9B1.5000102@gmail.com>
-Date: Mon, 14 Dec 2015 12:36:17 +0100
+	devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <5665A368.4030404@osg.samsung.com>
+Date: Mon, 7 Dec 2015 12:19:04 -0300
 MIME-Version: 1.0
-In-Reply-To: <1450081618.5745.3.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <2776235.DqjovJkOTH@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Laurent,
 
-
-On 14/12/15 09:26, tiffany lin wrote:
-> On Fri, 2015-12-11 at 11:29 -0600, Rob Herring wrote:
->> On Fri, Dec 11, 2015 at 05:55:39PM +0800, Tiffany Lin wrote:
->>> Add a DT binding documentation of Video Encoder for the
->>> MT8173 SoC from Mediatek.
->>>
->>> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
->>
->> A question and minor issue below, otherwise:
->>
->> Acked-by: Rob Herring <robh@kernel.org>
->>
->>> ---
->>>   .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
->>>   1 file changed, 58 insertions(+)
->>>   create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
->>> new file mode 100644
->>> index 0000000..510cd81
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
->>> @@ -0,0 +1,58 @@
->>> +Mediatek Video Codec
->>> +
->>> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
->>> +supports high resolution encoding functionalities.
->>> +
->>> +Required properties:
->>> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
->>> +- reg : Physical base address of the video codec registers and length of
->>> +  memory mapped region.
->>> +- interrupts : interrupt number to the cpu.
->>> +- mediatek,larb : must contain the local arbiters in the current Socs.
-
-This looks strange, shouldn't it be "larb" instead of "mediatek,larb".
-At least the example does not use the mediatek prefix.
-
->>> +- clocks : list of clock specifiers, corresponding to entries in
->>> +  the clock-names property;
->>> +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
->>> +- iommus : list of iommus specifiers should be enabled for hw encode.
->>> +  There are 2 cells needed to enable/disable iommu.
->>> +  The first one is local arbiter index(larbid), and the other is port
->>> +  index(portid) within local arbiter. Specifies the larbid and portid
->>> +  as defined in dt-binding/memory/mt8173-larb-port.h.
->>> +- mediatek,vpu : the node of video processor unit
-
-Same here.
-
-Regards,
-Matthias
-
->>> +
->>> +Example:
->>> +vcodec_enc: vcodec@0x18002000 {
->>> +    compatible = "mediatek,mt8173-vcodec-enc";
->>> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
->>> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
->>> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
->>> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
->>> +    larb = <&larb3>,
->>> +           <&larb5>;
->>> +    iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
->>
->> Is this the same iommu as the VPU? If so, you can't have a mixed number
->> of cells.
-> Yes, its same iommus as the VPU.
-> Now we use two parameters for iommus.
-> We will fix this in next version.
+On 12/06/2015 12:10 AM, Laurent Pinchart wrote:
+> Hi Javier,
+> 
+> Thank you for the patch.
 >
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
->>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
->>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
->>> +    vpu = <&vpu>;
+
+Thanks for your feedback.
+ 
+> On Thursday 03 September 2015 18:00:32 Javier Martinez Canillas wrote:
+>> The omap4iss driver initializes the entities and creates the pads links
+>> before the entities are registered with the media device. This does not
+>> work now that object IDs are used to create links so the media_device
+>> has to be set.
 >>
->> Need to update the example.
-> Sorry, I didn't get it.
-> Do you means update VPU binding document "media/mediatek-vpu.txt"?
->
+>> Split out the pads links creation from the entity initialization so are
+>> made after the entities registration.
 >>
->>> +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
->>> +             <&topckgen CLK_TOP_VENC_LT_SEL>,
->>> +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
->>> +    clock-names = "vencpll",
->>> +                  "venc_lt_sel",
->>> +                  "vcodecpll_370p5_ck";
->>> +  };
->>> --
->>> 1.7.9.5
->>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>> ---
+>>
+>>  drivers/staging/media/omap4iss/iss.c         | 101 +++++++++++++++---------
+>>  drivers/staging/media/omap4iss/iss_csi2.c    |  35 +++++++---
+>>  drivers/staging/media/omap4iss/iss_csi2.h    |   1 +
+>>  drivers/staging/media/omap4iss/iss_ipipeif.c |  29 ++++----
+>>  drivers/staging/media/omap4iss/iss_ipipeif.h |   1 +
+>>  drivers/staging/media/omap4iss/iss_resizer.c |  29 ++++----
+>>  drivers/staging/media/omap4iss/iss_resizer.h |   1 +
+>>  7 files changed, 132 insertions(+), 65 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/omap4iss/iss.c
+>> b/drivers/staging/media/omap4iss/iss.c index 44b88ff3ba83..076ddd412201
+>> 100644
+>> --- a/drivers/staging/media/omap4iss/iss.c
+>> +++ b/drivers/staging/media/omap4iss/iss.c
+>> @@ -1272,6 +1272,68 @@ done:
+>>  	return ret;
+>>  }
+>>
+>> +/*
+>> + * iss_create_pads_links() - Pads links creation for the subdevices
+> 
+> Could you please s/pads_links/links/ and s/pads links/links/ ?
 >
+
+Yes, as mentioned in the other thread, I'll do that for all the
+drivers that only create pad links.
+ 
+> Apart from that,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 >
+
+Thanks!
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
