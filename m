@@ -1,32 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3hn0253.outbound.protection.outlook.com ([157.55.234.253]:9248
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756799AbbLDWBD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 17:01:03 -0500
-Content-Type: text/plain; charset=US-ASCII
+Received: from casper.infradead.org ([85.118.1.10]:56686 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755702AbbLGSEq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 13:04:46 -0500
+Subject: Re: Failed to build on 4.2.6
+To: Steven Rostedt <rostedt@goodmis.org>,
+	stable <stable@vger.kernel.org>
+References: <20151207102519.6c6d850a@gandalf.local.home>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <5665CA36.6090007@infradead.org>
+Date: Mon, 7 Dec 2015 10:04:38 -0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: RE
-To: Recipients@vger.kernel.org
-From: SHELL@vger.kernel.org, FEDERAL@vger.kernel.org,
-	CREDIT@vger.kernel.org, UNION@vger.kernel.org
-Date: Sat, 5 Dec 2015 01:00:34 +0300
-Reply-To: <shell.loan@qq.com>
-Message-ID: <AM2PR09MB009951C1C5882855D5ADB7FCB80C0@AM2PR09MB0099.eurprd09.prod.outlook.com>
+In-Reply-To: <20151207102519.6c6d850a@gandalf.local.home>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Are You In Need Of A Private Or Business Loans from $10,000.00 to $10.000.000.00 At 1% Rate For Various Purposes? If Yes;
-Contact us Via Email: shell.loan@qq.com
+On 12/07/15 07:25, Steven Rostedt wrote:
+> Hi,
+> 
+> The attached config doesn't build on 4.2.6, but changing it to the
+> following:
+> 
+>  VIDEO_V4L2_SUBDEV_API n -> y
+> +V4L2_FLASH_LED_CLASS n
+> 
+> does build.
+> 
+> Sorry, I lost the build error (currently building now with a good
+> config), But it's because in drivers/media/i2c/adv7604.c,
+> v4l2_subdev_get_try_format() is not defined.
+> 
+> -- Steve
+> 
+
+4.2 stable needs this patch:
+
+commit fc88dd16a0e430f57458e6bd9b62a631c6ea53a1
+Author: Hans Verkuil <hverkuil@xs4all.nl>
+Date:   Mon Sep 21 08:42:04 2015 -0300
+
+    [media] cobalt: fix Kconfig dependency
+    
+    The cobalt driver should depend on VIDEO_V4L2_SUBDEV_API.
+
+===
+
+There was also an intervening patch which may cause some editing:
+
+commit 2f8e75d2762496bb2fcea7fa437a3339d2a6d9d4
+Author: Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon Jun 29 10:45:56 2015 -0300
+
+    [media] adv7604/cobalt: Allow compile test if !GPIOLIB
 
 
-Full Name:
-Amount Needed:
-Duration:
-Country:
-Cell No:
-Sex:
 
-Best Regards
+-- 
+~Randy
