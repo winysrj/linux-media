@@ -1,48 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932306AbbLECNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:20 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 29/32] v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
-Date: Sat,  5 Dec 2015 04:13:03 +0200
-Message-Id: <1449281586-25726-30-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21732 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755220AbbLGMJl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 07:09:41 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH 4/7] media: vb2-dma-contig: add helper for setting dma max seg
+ size
+Date: Mon, 07 Dec 2015 13:08:59 +0100
+Message-id: <1449490142-27502-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449490142-27502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Add a helper function for device drivers to set DMA's max_seg_size.
+Setting it to largest possible value lets DMA-mapping API always create
+contiguous mappings in DMA address space. This is essential for all
+devices, which use dma-contig videobuf2 memory allocator and shared
+buffers.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 2969d570f462..5cef619b708d 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -38,13 +38,17 @@ static int vsp1_drm_pipeline_run(struct vsp1_pipeline *pipe)
- 		struct vsp1_entity *entity;
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+Changelog:
+v3:
+- make this code a helper function instead of chaning max_seg_size
+  unconditionally on vb2_dma_contig_init_ctx
+
+v2:
+- set max segment size only if a new dma params structure has been
+  allocated, as suggested by Laurent Pinchart
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+ include/media/videobuf2-dma-contig.h           |  1 +
+ 2 files changed, 16 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index c33127284cfe..628518dc3aad 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -742,6 +742,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ }
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
  
- 		list_for_each_entry(entity, &pipe->entities, list_pipe) {
--			/* Skip unused RPFs. */
-+			/* Disconnect unused RPFs from the pipeline. */
- 			if (entity->type == VSP1_ENTITY_RPF) {
- 				struct vsp1_rwpf *rpf =
- 					to_rwpf(&entity->subdev);
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
++{
++	if (!dev->dma_parms) {
++		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
++					      GFP_KERNEL);
++		if (!dev->dma_parms)
++			return -ENOMEM;
++	}
++	if (dma_get_max_seg_size(dev) < size)
++		return dma_set_max_seg_size(dev, size);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
++
+ MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index c33dfa69d7ab..0e6ba644939e 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
  
--				if (!pipe->inputs[rpf->entity.index])
-+				if (!pipe->inputs[rpf->entity.index]) {
-+					vsp1_write(entity->vsp1,
-+						   entity->route->reg,
-+						   VI6_DPR_NODE_UNUSED);
- 					continue;
-+				}
- 			}
+ void *vb2_dma_contig_init_ctx(struct device *dev);
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
  
- 			vsp1_entity_route_setup(entity);
+ extern const struct vb2_mem_ops vb2_dma_contig_memops;
+ 
 -- 
-2.4.10
+1.9.2
 
