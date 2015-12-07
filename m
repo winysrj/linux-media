@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51745 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149AbbLKNe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 08:34:29 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:41223 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933045AbbLGPW2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2015 10:22:28 -0500
+Subject: Re: [PATCH v8 03/55] [media] omap3isp: get entity ID using
+ media_entity_id()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+ <dc83c572e53b76ac2dffd9607d2df5b7263ed756.1440902901.git.mchehab@osg.samsung.com>
+ <3875250.bDmIUeULzn@avalon>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 06/10] media-entity.h: convert media_entity_cleanup to inline
-Date: Fri, 11 Dec 2015 11:34:11 -0200
-Message-Id: <2909da09783421c06d80064fd828edfde65c1224.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <5665A42E.5000205@osg.samsung.com>
+Date: Mon, 7 Dec 2015 12:22:22 -0300
+MIME-Version: 1.0
+In-Reply-To: <3875250.bDmIUeULzn@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function was used in the past to free the links
-that were allocated by the media controller core.
+Hello Laurent,
 
-However, this is not needed anymore. We should likely
-get rid of the funcion on some function, but, for now,
-let's just convert into an inlined function and let the
-compiler to get rid of it.
+On 12/06/2015 12:16 AM, Laurent Pinchart wrote:
+> Hi Javier,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 30 August 2015 00:06:14 Mauro Carvalho Chehab wrote:
+>> From: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> Assessing media_entity ID should now use media_entity_id() macro to
+> 
+> Did you mean "accessing" ?
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 6 ------
- include/media/media-entity.h | 3 ++-
- 2 files changed, 2 insertions(+), 7 deletions(-)
+Yes I did, sorry for the typo. Maybe Mauro can fix it when applying?
+ 
+>> obtain the entity ID, as a next patch will remove the .id field from
+>> struct media_entity .
+>>
+>> So, get rid of it, otherwise the omap3isp driver will fail to build.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> With the typo fixed,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ef2102ac0c66..849db4f6f1f3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -246,12 +246,6 @@ media_entity_pads_init(struct media_entity *entity, u16 num_pads,
- }
- EXPORT_SYMBOL_GPL(media_entity_pads_init);
- 
--void
--media_entity_cleanup(struct media_entity *entity)
--{
--}
--EXPORT_SYMBOL_GPL(media_entity_cleanup);
--
- /* -----------------------------------------------------------------------------
-  * Graph traversal
-  */
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 031536723d8c..e9bc5857899c 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -345,7 +345,8 @@ void media_gobj_remove(struct media_gobj *gobj);
- 
- int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
- 		      struct media_pad *pads);
--void media_entity_cleanup(struct media_entity *entity);
-+
-+static inline void media_entity_cleanup(struct media_entity *entity) {};
- 
- __must_check int media_create_pad_link(struct media_entity *source,
- 			u16 source_pad, struct media_entity *sink,
+Thanks.
+
+Best regards,
 -- 
-2.5.0
-
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
