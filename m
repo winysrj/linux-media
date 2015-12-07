@@ -1,34 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38994 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752426AbbLRIEi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 03:04:38 -0500
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Preliminary HDCP code available in my tree
-Cc: mkhelik@cisco.com
-Message-ID: <5673BE11.7040702@xs4all.nl>
-Date: Fri, 18 Dec 2015 09:04:33 +0100
+Received: from mail-yk0-f170.google.com ([209.85.160.170]:35161 "EHLO
+	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245AbbLGMG2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 07:06:28 -0500
+Received: by ykba77 with SMTP id a77so191243128ykb.2
+        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2015 04:06:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56655DE1.7000109@gmail.com>
+References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
+	<CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
+	<CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
+	<CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
+	<56655DE1.7000109@gmail.com>
+Date: Mon, 7 Dec 2015 17:36:27 +0530
+Message-ID: <CAHFNz9+P=e+fPouiOHi3DEmVb3eRreVJyQM9E-KeV9uw+KHPnA@mail.gmail.com>
+Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Jemma Denson <jdenson@gmail.com>
+Cc: David Nelson <nelson.dt@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Jemma,
 
-Two years ago Cisco did some work on HDCP support for HDMI receivers and transmitters,
-but for one reason or another that work was never put into actual use. Rather than
-letting that work go unnoticed I decided to put it up in my git tree:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=hdcp
-
-It's missing documentation, it's tested with HDCP 1.4 only (not 2.2), and it needs some
-TLC, but it was working at the time. So this could be a good starting point for someone.
-
-If someone decides to work on this, please contact me first.
+I am having a downtime, the development machine in a recovery
+process. If things go well, expecting the system next week.
 
 Regards,
 
-	Hans
+Manu
+
+
+On Mon, Dec 7, 2015 at 3:52 PM, Jemma Denson <jdenson@gmail.com> wrote:
+> Hi Manu,
+>
+> On 08/10/15 17:28, Manu Abraham wrote:
+>>
+>> Hi,
+>>
+>> I just got back at work again. Will set things up this weekend/next week.
+>
+>
+> Have you had a chance to make any more progress on this?
+>
+> As you're probably aware there are quite a few drivers waiting for saa716x
+> to be integrated into the tree; if you need some help here is the work
+> remaining to be done something that can be picked up by other people?
+>
+> Regards,
+>
+> Jemma.
+>
+>
+>
