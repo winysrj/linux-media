@@ -1,128 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57274 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:41231 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932205AbbLPRnn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:43:43 -0500
-Date: Wed, 16 Dec 2015 15:43:37 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuah.kh@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: Media Controller patches
-Message-ID: <20151216154337.58f37568@recife.lan>
-In-Reply-To: <20151213091250.00df9420@recife.lan>
-References: <20151210183411.3d15a819@recife.lan>
-	<20151211190522.4e4d62a0@recife.lan>
-	<20151213091250.00df9420@recife.lan>
+	id S933644AbbLGPYk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2015 10:24:40 -0500
+Subject: Re: [PATCH v8 02/55] [media] staging: omap4iss: get entity ID using
+ media_entity_id()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+ <95dccc89e638c5cd60a6d13541efd29ca39766fb.1440902901.git.mchehab@osg.samsung.com>
+ <11605234.UyDltQlPdy@avalon>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <5665A4B3.2090809@osg.samsung.com>
+Date: Mon, 7 Dec 2015 12:24:35 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <11605234.UyDltQlPdy@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Dec 2015 09:12:50 -0200
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Hello Laurent,
 
-> Em Fri, 11 Dec 2015 19:05:22 -0200
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On 12/06/2015 12:18 AM, Laurent Pinchart wrote:
+> Hi Javier,
 > 
-> > Em Thu, 10 Dec 2015 18:34:11 -0200
-> > Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> > 
-> > > Hi,
-> > > 
-> > > I've been working during this week to address the issues pointed during
-> > > the Media Controller really long review process. We should avoid taking
-> > > so long to review patches in the future, as it is really painful to
-> > > go back to the already done work 4/5/7 months after the patchsets
-> > > (yes, there are patches here written 7 months ago that were only
-> > > very recently reviewed!). Shame on us.
-> > > 
-> > > Anyway, The reviewed patches are now at the media-controller topic
-> > > branch, at the main tree.
-> > > 
-> > > I took the care of recompiling and automatically doing runtime tests
-> > > with KASAN enabled, patch by patch, in order to be sure that the
-> > > MC is in a sane state. I also ran kmemleak, and was unable to identify
-> > > any troubles associated with the MC next gen rework.
-> > > 
-> > > So, the media-controller topic branch looks sane to me. It should be
-> > > noticed that there are several items on a TODO list to be addressed
-> > > before being able to merge this branch back at the master branch.
-> > > 
-> > > Please notice that patch 22 was removed from this series:
-> > > 	Subject: [media] uapi/media.h: Declare interface types for ALSA
-> > > 
-> > > The idea is that this patch should be part of the patches that Shuah
-> > > will submit and that requires review from the ALSA community before
-> > > being merged.
-> > > 
-> > > Javier and me will start tomorrow on working on the pending items.
-> > > 
-> > > My goal is to have everything needed for Kernel 4.5 merge window
-> > > done up to the next week.
-> > > 
-> > > ---
-> > > 
-> > > The current TODO list, based on the per-patch review is:
-> > 
-> > As far as I checked, all issues at the TODO for Kernel 4.5 were
-> > already addressed, except for one item:
-> > 
-> > - Add documentation for the uAPI.
+> Thank you for the patch.
 > 
-> There are actually 3 other items that were not listed at the TODO:
+> On Sunday 30 August 2015 00:06:13 Mauro Carvalho Chehab wrote:
+>> From: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> Assessing media_entity ID should now use media_entity_id() macro to
 > 
-> - Merge of Sakari patches fixing media graph to work with entities
->   with ID > 64;
+> Did you mean "accessing" ?
+>
 
-Done.
-
+Sigh, yet another typo error that seems to be due copy and paste.
+ 
+>> obtain the entity ID, as a next patch will remove the .id field from
+>> struct media_entity .
+>>
+>> So, get rid of it, otherwise the omap4iss driver will fail to build.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> - Use just one counter for the graph ID range. This patch depends on
->   Sakari series;
-
-Done.
-
+> With the typo fixed,
 > 
-> - Merge of Javier patches that split media devnode register from the
->   media_device internal register. Not actually a requirement for
->   MC next gen, as it fixes an already existing race condition, but it
->   will allow almost for free to have topology_version = 0 as the
->   start version, with seems to be a good thing to drivers where the
->   topology is always static;
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
 
-Done.
+Thanks.
 
-> 
-> I reviewed both Sakari and Javier series this weekend with a few
-> comments.
-> 
-> > 
-> > I'll address this last item tomorrow.
-> 
-> Item addressed. I also sent some patches fixing some kernel-doc left overs.
-> Now, there are only a few set of functions not documented at
-> media-entity.h:
-> 
-> - the ones that will be touched by Sakari patches;
-> - two ancillary functions that will be removed when we unify
->   the object ID numberspace.
-> 
-> I'll review those remaining items after merging Sakari's series.
-
-Done.
-
-As far as I know, all pending items for Kernel 4.5 merge are
-complete. I should be moving the remaining patches from my
-experimental tree:
-	git://linuxtv.org/mchehab/experimental.git media-controller-rc4
-
-to the media-controller topic branch by the end of this week, if
-nothing pops up.
-
-Regards,
-Mauro
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
