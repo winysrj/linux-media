@@ -1,96 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:34410 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbbL2JMH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 04:12:07 -0500
-Received: by mail-ig0-f175.google.com with SMTP id ik10so9659950igb.1
-        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2015 01:12:05 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20151229053235.1d2ccb9c@recife.lan>
-References: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com>
-	<20151228153332.GA6159@kroah.com>
-	<20151229053235.1d2ccb9c@recife.lan>
-Date: Tue, 29 Dec 2015 11:12:05 +0200
-Message-ID: <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
-Subject: Re: On Lindent shortcomings and massive style fixing
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Greg KH <greg@kroah.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org, andrey.od.utkin@gmail.com,
-	Andy Whitcroft <apw@canonical.com>,
-	Joe Perches <joe@perches.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57856 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466AbbLGIpc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 03:45:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+Subject: [PATCH] v4l: Fix dma buf single plane compat handling
+Date: Mon,  7 Dec 2015 10:45:39 +0200
+Message-Id: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 29, 2015 at 9:32 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> IMHO, there are two problems by letting indent breaking long
-> lines:
->
-> 1) indent would break strings on printks. This is something that we don't
-> want to break strings on multiple lines in the Kernel;
+From: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
 
-Yeah, GNU indent does its work badly (although I believe it could be
-taught to respect long literals), this makes me want to have a better
-tool for clean "relayouting" C code.
-I believe that'd require at last a proper syntax parser. With such
-tool, it would be straightforward to rewrite source code automatically
-to please any demanding reviewer of code style, except for issues of
-higher level of thought (like naming or nesting limitations).
+Buffer length is needed for single plane as well, otherwise
+is uninitialized and behaviour is undetermined.
 
-> 2) It doesn't actually solve the problem of having too complex loops,
-> with is why the 80 columns warning is meant to warn. Worse than that,
-> if a piece of code is inside more than 4 or 5 indentation levels, the
-> resulting code of using indent for 80-cols line break is a total crap.
+Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-Then I'd propose to enforce nesting limitation explicitly, because
-Documentation/CodingStyle appreciates low nesting, just doesn't give
-exact numbers.
-It's better this way, because the programmer could pay attention to N
-places of excessive nesting and fix it manually, and then carelessly
-reformat NNN places of "80 chars" issues automatically, comparing to
-reviewing all NNN places, to figure out if there's excessive nesting,
-or not.
-(CCed checkpatch.pl maintainers.)
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8fd84a67478a..b0faa1f7e3a9 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				return -EFAULT;
+ 			break;
+ 		case V4L2_MEMORY_DMABUF:
+-			if (get_user(kp->m.fd, &up->m.fd))
++			if (get_user(kp->m.fd, &up->m.fd) ||
++			    get_user(kp->length, &up->length))
+ 				return -EFAULT;
++
+ 			break;
+ 		}
+ 	}
+@@ -550,7 +552,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				return -EFAULT;
+ 			break;
+ 		case V4L2_MEMORY_DMABUF:
+-			if (put_user(kp->m.fd, &up->m.fd))
++			if (put_user(kp->m.fd, &up->m.fd) ||
++			    put_user(kp->length, &up->length))
+ 				return -EFAULT;
+ 			break;
+ 		}
+-- 
+2.4.10
 
-> That's said, on a quick look at the driver, it seems that the 80-cols
-> violations are mostly (if not all) on the comments, like:
->
->         int i_poc_lsb = (frame_seqno_in_gop << 1); /* why multiplied by two? TODO try without multiplication */
->
-> and
->
-> #define TW5864_UNDEF_REG_0x0224 0x0224  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
-> #define TW5864_UNDEF_REG_0x4014 0x4014  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
-> #define TW5864_UNDEF_REG_0xA800 0xA800  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
->
-> Btw, the content of tw5864-reg-undefined.h is weird... Why not just
-> add the stuff there at tw5864-reg.h and remove the comments for all
-> defines there?
-
-tw5864-reg-undefined.h will be edited for sure (maybe dropped), of
-course it won't stay as it is now.
-It was generated by script during reverse-engineering that bastard
-chip from hell.
-
-> Also, Lindent already did some crappy 80-cols like breaks, like:
->
-> static int pci_i2c_multi_read(struct tw5864_dev *dev, u8 devid, u8 devfn, u8 *buf,
->                        u32 count)
->
-> (count is misaligned with the open parenthesis)
-
-I just added "static " after indenting.
-Actually, Documentation/CodingStyle says nothing about alignment of
-function declaration tail on open parenthesis.
-Also I'd like to mention that I hate such alignment, because it
-requires intermixing of tabs and spaces. I am not aware if this is K&R
-thing or not. If it is, then please don't kill me.
-
-Thanks for kind replies, gentlemen.
