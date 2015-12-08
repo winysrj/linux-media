@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:44744 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbbLJBGu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 20:06:50 -0500
-Subject: Re: Dear TV card experts - I need you help
-To: Mr Andersson <mr.andersson.001@gmail.com>
-References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
- <56619977.8070905@southpole.se>
- <CAAhQ-nDeF28mrCgZfOn+gD1053vubzorjwYmrU-cTbUMmXfWyw@mail.gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <5668D027.401@southpole.se>
-Date: Thu, 10 Dec 2015 02:06:47 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAAhQ-nDeF28mrCgZfOn+gD1053vubzorjwYmrU-cTbUMmXfWyw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mga01.intel.com ([192.55.52.88]:39924 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751267AbbLHPVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 10:21:22 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 1/1] Allow building static binaries
+Date: Tue,  8 Dec 2015 17:18:21 +0200
+Message-Id: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/04/2015 05:35 PM, Mr Andersson wrote:
-> Hi Benjamin,
->
-> Thanks for your answer. Jag uppskattar din hjälp ;)
->
-> So 50 USD per mux. And I could simultaneously record up to  4 channels
-> per mux ? Is that satellite dependant?
->
-> Could you give me an example of high quality/value cards I should look at first?
->
-> Also, what linux software would be best to use together with these
-> cards? I am looking initially at just streaming the content right of,
-> although we might need to hook into the stream and manipulate it.
-> Later, we'd also might be interested in recording the stream as well.
->
-> Thanks!
+	$ LDFLAGS="--static -static" ./configure --enable-static
+	$ LDFLAGS=-static make
 
-Hi, the question you ask needs an answer in the form of basic digital tv 
-tutorial. I suggest you search the web for that info.
+can be used to create static binaries. The issue was that shared libraries
+were attempted to link statically which naturally failed.
 
-Regarding software I suggest you look at the tvheadend project. It has a 
-software model that is easy to understand.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ lib/libv4l1/Makefile.am | 3 +--
+ lib/libv4l2/Makefile.am | 3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-Regarding hardware I would go for quad pcie in a form factor that would 
-fit in rack-mounted servers. You need high density and that is the only 
-way to get that. So I would say skip trying to find something cheap, get 
-something that is reliable and maintainable.
+diff --git a/lib/libv4l1/Makefile.am b/lib/libv4l1/Makefile.am
+index 005ae10..c325390 100644
+--- a/lib/libv4l1/Makefile.am
++++ b/lib/libv4l1/Makefile.am
+@@ -23,7 +23,6 @@ libv4l1_la_LIBADD = ../libv4l2/libv4l2.la
+ v4l1compat_la_SOURCES = v4l1compat.c
+ 
+ v4l1compat_la_LIBADD = libv4l1.la
+-v4l1compat_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+-v4l1compat_la_LIBTOOLFLAGS = --tag=disable-static
++v4l1compat_la_LDFLAGS = -avoid-version -module -export-dynamic
+ 
+ EXTRA_DIST = libv4l1-kernelcode-license.txt
+diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
+index b6f4d3b..878ccd9 100644
+--- a/lib/libv4l2/Makefile.am
++++ b/lib/libv4l2/Makefile.am
+@@ -22,7 +22,6 @@ libv4l2_la_LIBADD = ../libv4lconvert/libv4lconvert.la
+ 
+ v4l2convert_la_SOURCES = v4l2convert.c
+ v4l2convert_la_LIBADD = libv4l2.la
+-v4l2convert_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+-v4l2convert_la_LIBTOOLFLAGS = --tag=disable-static
++v4l2convert_la_LDFLAGS = -avoid-version -module -export-dynamic
+ 
+ EXTRA_DIST = Android.mk v4l2-plugin-android.c
+-- 
+2.1.0.231.g7484e3b
 
-MvH
-Benjamin Larsson
