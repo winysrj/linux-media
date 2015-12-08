@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24664 "EHLO
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19710 "EHLO
 	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965528AbbLPPhk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 10:37:40 -0500
+	with ESMTP id S1756617AbbLHOjX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 09:39:23 -0500
 From: Marek Szyprowski <m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v3 4/7] media: vb2-dma-contig: add helper for setting dma max
- seg size
-Date: Wed, 16 Dec 2015 16:37:26 +0100
-Message-id: <1450280249-24681-5-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
-References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: [PATCH] media: s5p-jpeg: Adjust buffer size for Exynos 4412
+Date: Tue, 08 Dec 2015 15:39:08 +0100
+Message-id: <1449585548-17113-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function for device drivers to set DMA's max_seg_size.
-Setting it to largest possible value lets DMA-mapping API always create
-contiguous mappings in DMA address space. This is essential for all
-devices, which use dma-contig videobuf2 memory allocator and shared
-buffers.
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
+Eliminate iommu fault during encoding by adjusting image size
+used for buffer size computation and ensuring that the buffer is not
+overrun.
+
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 14 ++++++++++++++
- include/media/videobuf2-dma-contig.h           |  1 +
- 2 files changed, 15 insertions(+)
+ drivers/media/platform/s5p-jpeg/jpeg-core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index c33127284cfe..bd893788d1ae 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -742,6 +742,20 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 4a608cb..49556e2 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -1548,8 +1548,10 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	u32 pix_fmt = f->fmt.pix.pixelformat;
+ 	int w = pix->width, h = pix->height, wh_align;
++	int padding = 0;
+ 
+ 	if (pix_fmt == V4L2_PIX_FMT_RGB32 ||
++	    pix_fmt == V4L2_PIX_FMT_RGB565 ||
+ 	    pix_fmt == V4L2_PIX_FMT_NV24 ||
+ 	    pix_fmt == V4L2_PIX_FMT_NV42 ||
+ 	    pix_fmt == V4L2_PIX_FMT_NV12 ||
+@@ -1564,7 +1566,10 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
+ 			       &h, S5P_JPEG_MIN_HEIGHT,
+ 			       S5P_JPEG_MAX_HEIGHT, wh_align);
+ 
+-	return w * h * fmt_depth >> 3;
++	if (ctx->jpeg->variant->version == SJPEG_EXYNOS4)
++		padding = PAGE_SIZE;
++
++	return (w * h * fmt_depth >> 3) + padding;
  }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
  
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
-+{
-+	if (!dev->dma_parms) {
-+		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
-+		if (!dev->dma_parms)
-+			return -ENOMEM;
-+	}
-+	if (dma_get_max_seg_size(dev) < size)
-+		return dma_set_max_seg_size(dev, size);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
-+
- MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index c33dfa69d7ab..0e6ba644939e 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
- 
- void *vb2_dma_contig_init_ctx(struct device *dev);
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
- 
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
- 
+ static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
 -- 
 1.9.2
 
