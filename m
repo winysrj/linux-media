@@ -1,123 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42851 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbbLVEGx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 23:06:53 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4469A1868D8
-	for <linux-media@vger.kernel.org>; Tue, 22 Dec 2015 05:06:47 +0100 (CET)
-Date: Tue, 22 Dec 2015 05:06:47 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20151222040647.4469A1868D8@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:46740 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750921AbbLHRWK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 12:22:10 -0500
+Date: Tue, 8 Dec 2015 15:22:04 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v8 36/55] [media] davinci_vbpe: stop
+ MEDIA_ENT_T_V4L2_SUBDEV abuse
+Message-ID: <20151208152204.67458a4c@recife.lan>
+In-Reply-To: <1764940.OloRuAWqP2@avalon>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<d3cc1b1e74a7a8bd0379afefb4695257f0a0d308.1440902901.git.mchehab@osg.samsung.com>
+	<1764940.OloRuAWqP2@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Sun, 06 Dec 2015 03:52:01 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 30 August 2015 00:06:47 Mauro Carvalho Chehab wrote:
+> > This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV:
+> > 
+> > - it uses a hack to check if the remote entity is a subdev;
+> 
+> Same comment as for "omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse", this isn't 
+> a hack.
+> 
+> > - it still uses the legacy entity subtype check macro, that
+> >   will be removed soon.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> > b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c index
+> > b89a057b8b7e..7fd78329e3e1 100644
+> > --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> > +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+> > @@ -1711,8 +1711,11 @@ ipipe_link_setup(struct media_entity *entity, const
+> > struct media_pad *local, struct vpfe_device *vpfe_dev =
+> > to_vpfe_device(ipipe);
+> >  	u16 ipipeif_sink = vpfe_dev->vpfe_ipipeif.input;
+> > 
+> > -	switch (local->index | media_entity_type(remote->entity)) {
+> > -	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
+> > +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> > +		return -EINVAL;
+> 
+> You can drop the check (even though the implementation in the switch looks 
+> dubious to me, but that's not your fault).
 
-date:		Tue Dec 22 04:00:13 CET 2015
-git branch:	test
-git hash:	0aff8a894a2be4c22e6414db33061153a4b35bc9
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.2.0-164
+I prefer to keep the above check, as it shouldn't hurt. 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+As I said on a previous comment on your reviews, if someone adds later
+some non-V4L2 entities to the media pipeline where the DaVinci media
+driver belongs, it could be a problem without the above check.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> > +	switch (local->index) {
+> > +	case IPIPE_PAD_SINK:
+> >  		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+> >  			ipipe->input = IPIPE_INPUT_NONE;
+> >  			break;
+> > @@ -1725,7 +1728,7 @@ ipipe_link_setup(struct media_entity *entity, const
+> > struct media_pad *local, ipipe->input = IPIPE_INPUT_CCDC;
+> >  		break;
+> > 
+> > -	case IPIPE_PAD_SOURCE | MEDIA_ENT_T_V4L2_SUBDEV:
+> > +	case IPIPE_PAD_SOURCE:
+> >  		/* out to RESIZER */
+> >  		if (flags & MEDIA_LNK_FL_ENABLED)
+> >  			ipipe->output = IPIPE_OUTPUT_RESIZER;
+> > diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > b/drivers/staging/media/davinci_vpfe/vpfe_video.c index
+> > 9eef64e0f0ab..2dbf14b9bb5f 100644
+> > --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > @@ -88,7 +88,7 @@ vpfe_video_remote_subdev(struct vpfe_video_device *video,
+> > u32 *pad) {
+> >  	struct media_pad *remote = media_entity_remote_pad(&video->pad);
+> > 
+> > -	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> >  		return NULL;
+> >  	if (pad)
+> >  		*pad = remote->index;
+> > @@ -243,8 +243,7 @@ static int vpfe_video_validate_pipeline(struct
+> > vpfe_pipeline *pipe)
+> > 
+> >  		/* Retrieve the source format */
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		subdev = media_entity_to_v4l2_subdev(pad->entity);
+> 
