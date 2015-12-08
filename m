@@ -1,38 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60972 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752816AbbLPODg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 09:03:36 -0500
-Date: Wed, 16 Dec 2015 16:03:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org, javier@osg.samsung.com
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
-Message-ID: <20151216140301.GO17128@valkosipuli.retiisi.org.uk>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mga09.intel.com ([134.134.136.24]:63956 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932383AbbLHPMU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 10:12:20 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH RESEND 0/2] Add field support to libv4l2subdev
+Date: Tue,  8 Dec 2015 17:09:21 +0200
+Message-Id: <1449587363-22731-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Laurent,
 
-On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
-> This is the third version of the unrestricted media entity ID range
-> support set. I've taken Mauro's comments into account and fixed a number
-> of bugs as well (omap3isp memory leak and omap4iss stream start).
+Just resending after a rebase, no change in the patches.
 
-Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
-test the OMAP4 ISS with these patches?
+The earlier set is here:
 
-Thanks.
+<URL:http://www.spinics.net/lists/linux-media/msg94605.html>
 
 -- 
 Kind regards,
+Sakari
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
