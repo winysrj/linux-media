@@ -1,141 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41175 "EHLO lists.s-osg.org"
+Received: from ns.mm-sol.com ([37.157.136.199]:52890 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933273AbbLGPE5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2015 10:04:57 -0500
-Subject: Re: [PATCH 4/5] [media] uvcvideo: create pad links after subdev
- registration
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1441296036-20727-1-git-send-email-javier@osg.samsung.com>
- <1441296036-20727-5-git-send-email-javier@osg.samsung.com>
- <55ED9AD1.1090205@osg.samsung.com> <2329250.FAlNbDTqBe@avalon>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Message-ID: <5665A012.90509@osg.samsung.com>
-Date: Mon, 7 Dec 2015 12:04:50 -0300
+	id S1752068AbbLHTbc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 14:31:32 -0500
+Date: Tue, 8 Dec 2015 21:31:26 +0200
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: grosikopulos <grosikopulos@mm-sol.com>
+Cc: "linux-media vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
+Message-ID: <e077579e8b2a9a3bad79ba7ecce765cf@www.mm-sol.com>
+In-Reply-To: <20151208152915.GH17128@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <2329250.FAlNbDTqBe@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
-
-On 12/05/2015 11:44 PM, Laurent Pinchart wrote:
-> Hi Javier,
-> 
-> Thank you for the patch.
->
-
-Thanks for your review.
+Hi Sakari,
  
-> On Monday 07 September 2015 16:10:25 Javier Martinez Canillas wrote:
+> Hi Laurent and Gjorgji,
 > 
-> [snip]
+> On Mon, Dec 07, 2015 at 10:45:39AM +0200, Laurent Pinchart wrote:
+>> From: Gjorgji Rosikopulos grosikopulos@mm-sol.com 
+>> 
+>> Buffer length is needed for single plane as well, otherwise
+>> is uninitialized and behaviour is undetermined.
 > 
->> From 8be356e77eeefdc5c0738dd429205f3398c5b76c Mon Sep 17 00:00:00 2001
->> From: Javier Martinez Canillas <javier@osg.samsung.com>
->> Date: Thu, 3 Sep 2015 13:46:06 +0200
->> Subject: [PATCH v2 4/5] [media] uvcvideo: create pad links after subdev
->>  registration
->>
->> The uvc driver creates the pads links before the media entity is
->> registered with the media device. This doesn't work now that obj
->> IDs are used to create links so the media_device has to be set.
->>
->> Move entities registration logic before pads links creation.
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> How about:
+> 
+> The v4l2_buffer length field must be passed as well from user to kernel and
+> back, otherwise uninitialised values will be used.
+
+Yes that's better :)
+
+> 
+>> 
+>> Signed-off-by: Gjorgji Rosikopulos grosikopulos@mm-sol.com 
+>> Signed-off-by: Laurent Pinchart laurent.pinchart@ideasonboard.com 
+> 
+> Acked-by: Sakari Ailus sakari.ailus@linux.intel.com 
+> 
+> Shouldn't this be submitted to stable as well?
+> 
 >> ---
->>
->> Changes since v1:
->>  - Don't try to register a UVC entity subdev for type UVC_TT_STREAMING.
->>
->>  drivers/media/usb/uvc/uvc_entity.c | 23 +++++++++++++++++++----
->>  1 file changed, 19 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_entity.c
->> b/drivers/media/usb/uvc/uvc_entity.c index 429e428ccd93..7f82b65b238e
->> 100644
->> --- a/drivers/media/usb/uvc/uvc_entity.c
->> +++ b/drivers/media/usb/uvc/uvc_entity.c
->> @@ -26,6 +26,15 @@
->>  static int uvc_mc_register_entity(struct uvc_video_chain *chain,
->>         struct uvc_entity *entity)
->>  {
->> +       if (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
->> +               return 0;
+>> drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
+>> 1 file changed, 5 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c 
+>> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> index 8fd84a67478a..b0faa1f7e3a9 100644
+>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> @@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, 
+>> struct v4l2_buffer32 __user
+>> 				return -EFAULT;
+>> 			break;
+>> 		case V4L2_MEMORY_DMABUF:
+>> -			if (get_user(kp->m.fd, &up->m.fd))
+>> +			if (get_user(kp->m.fd, &up->m.fd) ||
+>> +			 get_user(kp->length, &up->length))
+>> 				return -EFAULT;
 >> +
->> +       return v4l2_device_register_subdev(&chain->dev->vdev,
->> &entity->subdev);
->> +}
->> +
->> +static int uvc_mc_create_pads_links(struct uvc_video_chain *chain,
->> +                                   struct uvc_entity *entity)
->> +{
->>         const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
->>         struct media_entity *sink;
->>         unsigned int i;
->> @@ -62,10 +71,7 @@ static int uvc_mc_register_entity(struct uvc_video_chain
->> *chain, return ret;
->>         }
->>  
->> -       if (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
->> -               return 0;
->> -
->> -       return v4l2_device_register_subdev(&chain->dev->vdev,
->> &entity->subdev);
->> +       return 0;
->>  }
->>  
->>  static struct v4l2_subdev_ops uvc_subdev_ops = {
->> @@ -124,5 +130,14 @@ int uvc_mc_register_entities(struct uvc_video_chain
->> *chain) }
->>         }
->>  
->> +       list_for_each_entry(entity, &chain->entities, chain) {
->> +               ret = uvc_mc_create_pads_links(chain, entity);
+>> 			break;
+>> 		}
+>> 	}
+>> @@ -550,7 +552,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, 
+>> struct v4l2_buffer32 __user
+>> 				return -EFAULT;
+>> 			break;
+>> 		case V4L2_MEMORY_DMABUF:
+>> -			if (put_user(kp->m.fd, &up->m.fd))
+>> +			if (put_user(kp->m.fd, &up->m.fd) ||
+>> +			 put_user(kp->length, &up->length))
+>> 				return -EFAULT;
+>> 			break;
+>> 		}
 > 
-> You can call this uvc_mc_create_links(), there's no other type of links in the 
-> driver.
->
-
-Ok.
- 
->> +               if (ret < 0) {
->> +                       uvc_printk(KERN_INFO, "Failed to create pads links
->> for "
+> -- 
+> Kind regards,
 > 
-> Same here, I'd s/pad links/links/.
->
-
-Ok.
- 
->> +                                  "entity %u\n", entity->id);
->> +                       return ret;
->> +               }
->> +       }
-> 
-> This creates three loops, and I think that's one too much. The reason why init 
-> and register are separate is that the latter creates links, which requires all 
-> entities to be initialized. If you move link create after registration I 
-> believe you can init and register in a single loop (just move the 
-> v4l2_device_register_subdev() call in the appropriate location in 
-> uvc_mc_init_entity()) and then create links in a second loop.
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi XMPP: sailus@retiisi.org.uk 
 > 
 
-You are right, I'll simplify this to only have two loops as suggested.
-
->>         return 0;
->>  }
-> 
-
-Best regards,
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+
+
+
