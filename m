@@ -1,80 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:37764 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754988AbbL3Qq5 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36952 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755811AbbLHDwv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 11:46:57 -0500
-Received: by mail-wm0-f42.google.com with SMTP id f206so84215106wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:57 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 13/16] media: rc: nuvoton-cir: add locking to calls of
- nvt_enable_wake
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <568409F4.2020102@gmail.com>
-Date: Wed, 30 Dec 2015 17:44:36 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 7 Dec 2015 22:52:51 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A2688E0BBD
+	for <linux-media@vger.kernel.org>; Tue,  8 Dec 2015 04:52:45 +0100 (CET)
+Date: Tue, 08 Dec 2015 04:52:45 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151208035245.A2688E0BBD@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add locking to nvt_enable_wake calls.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 252804d..c3294fb 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1173,16 +1173,16 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
- 
- 	nvt_dbg("%s called", __func__);
- 
--	/* zero out misc state tracking */
--	spin_lock_irqsave(&nvt->nvt_lock, flags);
--	nvt->study_state = ST_STUDY_NONE;
--	nvt->wake_state = ST_WAKE_NONE;
--	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
--
- 	spin_lock_irqsave(&nvt->tx.lock, flags);
- 	nvt->tx.tx_state = ST_TX_NONE;
- 	spin_unlock_irqrestore(&nvt->tx.lock, flags);
- 
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
-+	/* zero out misc state tracking */
-+	nvt->study_state = ST_STUDY_NONE;
-+	nvt->wake_state = ST_WAKE_NONE;
-+
- 	/* disable all CIR interrupts */
- 	nvt_cir_reg_write(nvt, 0, CIR_IREN);
- 
-@@ -1192,6 +1192,8 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
- 	/* make sure wake is enabled */
- 	nvt_enable_wake(nvt);
- 
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
- 	return 0;
- }
- 
-@@ -1210,7 +1212,11 @@ static int nvt_resume(struct pnp_dev *pdev)
- static void nvt_shutdown(struct pnp_dev *pdev)
- {
- 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
- 	nvt_enable_wake(nvt);
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- }
- 
- static const struct pnp_device_id nvt_ids[] = {
--- 
-2.6.4
+date:		Tue Dec  8 04:00:16 CET 2015
+git branch:	test
+git hash:	21312f6ddb1710750761c4b140b7367208b4f89e
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
