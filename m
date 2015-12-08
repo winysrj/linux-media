@@ -1,785 +1,537 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51757 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbbLKNe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 08:34:29 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:46598 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965154AbbLHQEA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 11:04:00 -0500
+Date: Tue, 8 Dec 2015 14:03:45 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 07/10] media-device.h: Improve documentation and update it
-Date: Fri, 11 Dec 2015 11:34:12 -0200
-Message-Id: <dc247a6665cf9dad0188f70388d43d077802c590.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH v8 32/55] [media] media: use macros to check for V4L2
+ subdev entities
+Message-ID: <20151208140345.7d48c120@recife.lan>
+In-Reply-To: <3216825.M3fFyKeUjZ@avalon>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<b94146f3b95e9adb08b11fffc896a9e747b2fa9c.1440902901.git.mchehab@osg.samsung.com>
+	<3216825.M3fFyKeUjZ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we moved the content of the media-framework.txt into
-the kerneldoc documentation, move the per-function specific
-documentation to the corresponding functions and clean it up.
+Em Sun, 06 Dec 2015 04:16:15 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-It would be good if we had already the markdown kernel-doc
-patches merged upstream, but, while we doesn't have it,
-let's make it less ugly at device-drivers.xml.
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 30 August 2015 00:06:43 Mauro Carvalho Chehab wrote:
+> > Instead of relying on media subtype, use the new macros to detect
+> > if an entity is a subdev or an A/V DMA entity.
+> > 
+> > Please note that most drivers assume that there's just AV_DMA or
+> > V4L2 subdevs. This is not true anymore, as we've added MC support
+> > for DVB, and there are plans to add support for ALSA and FB/DRM
+> > too.
+> > 
+> > Ok, on the current pipelines supported by those drivers, just V4L
+> > stuff are there, but, assuming that some day a pipeline that also
+> > works with other subsystems will ever added, it is better to add
+> > explicit checks for the AV_DMA stuff.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/platform/exynos4-is/common.c
+> > b/drivers/media/platform/exynos4-is/common.c index
+> > 0eb34ecb8ee4..8c9a29e0e294 100644
+> > --- a/drivers/media/platform/exynos4-is/common.c
+> > +++ b/drivers/media/platform/exynos4-is/common.c
+> > @@ -22,8 +22,7 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct
+> > media_entity *entity) while (pad->flags & MEDIA_PAD_FL_SINK) {
+> >  		/* source pad */
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c
+> > b/drivers/media/platform/exynos4-is/fimc-capture.c index
+> > 0627a93b2f3b..e9810fee4c30 100644
+> > --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> > +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> > @@ -1141,8 +1141,7 @@ static int fimc_pipeline_validate(struct fimc_dev
+> > *fimc) }
+> >  		}
+> > 
+> > -		if (src_pad == NULL ||
+> > -		    media_entity_type(src_pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!src_pad || !is_media_entity_v4l2_subdev(src_pad->entity))
+> >  			break;
+> > 
+> >  		/* Don't call FIMC subdev operation to avoid nested locking */
+> > @@ -1397,7 +1396,7 @@ static int fimc_link_setup(struct media_entity
+> > *entity, struct fimc_vid_cap *vc = &fimc->vid_cap;
+> >  	struct v4l2_subdev *sensor;
+> > 
+> > -	if (media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> >  		return -EINVAL;
+> > 
+> >  	if (WARN_ON(fimc == NULL))
+> > diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > b/drivers/media/platform/exynos4-is/fimc-isp-video.c index
+> > 3d9ccbf5f10f..5fbaf5e39903 100644
+> > --- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > +++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > @@ -467,8 +467,7 @@ static int isp_video_pipeline_validate(struct fimc_isp
+> > *isp)
+> > 
+> >  		/* Retrieve format at the source pad */
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
+> > b/drivers/media/platform/exynos4-is/fimc-lite.c index
+> > b2607da4ad14..c2327147b360 100644
+> > --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> > +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> > @@ -814,8 +814,7 @@ static int fimc_pipeline_validate(struct fimc_lite
+> > *fimc) }
+> >  		/* Retrieve format at the source pad */
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > @@ -988,7 +987,6 @@ static int fimc_lite_link_setup(struct media_entity
+> > *entity, {
+> >  	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> >  	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+> > -	unsigned int remote_ent_type = media_entity_type(remote->entity);
+> >  	int ret = 0;
+> > 
+> >  	if (WARN_ON(fimc == NULL))
+> > @@ -1000,7 +998,7 @@ static int fimc_lite_link_setup(struct media_entity
+> > *entity,
+> > 
+> >  	switch (local->index) {
+> >  	case FLITE_SD_PAD_SINK:
+> > -		if (remote_ent_type != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > +		if (!is_media_entity_v4l2_subdev(remote->entity)) {
+> >  			ret = -EINVAL;
+> >  			break;
+> >  		}
+> > @@ -1018,7 +1016,7 @@ static int fimc_lite_link_setup(struct media_entity
+> > *entity, case FLITE_SD_PAD_SOURCE_DMA:
+> >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > -		else if (remote_ent_type == MEDIA_ENT_T_DEVNODE)
+> > +		else if (is_media_entity_v4l2_io(remote->entity))
+> >  			atomic_set(&fimc->out_path, FIMC_IO_DMA);
+> >  		else
+> >  			ret = -EINVAL;
+> > @@ -1027,7 +1025,7 @@ static int fimc_lite_link_setup(struct media_entity
+> > *entity, case FLITE_SD_PAD_SOURCE_ISP:
+> >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > -		else if (remote_ent_type == MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		else if (is_media_entity_v4l2_subdev(remote->entity))
+> >  			atomic_set(&fimc->out_path, FIMC_IO_ISP);
+> >  		else
+> >  			ret = -EINVAL;
+> > diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+> > b/drivers/media/platform/exynos4-is/media-dev.c index
+> > 92dbade2fffc..4a25df9dd869 100644
+> > --- a/drivers/media/platform/exynos4-is/media-dev.c
+> > +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> > @@ -88,8 +88,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+> > break;
+> >  		}
+> > 
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > 
+> > @@ -1062,7 +1061,7 @@ static int __fimc_md_modify_pipelines(struct
+> > media_entity *entity, bool enable) media_entity_graph_walk_start(&graph,
+> > entity);
+> > 
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if (!is_media_entity_v4l2_io(entity))
+> >  			continue;
+> > 
+> >  		ret  = __fimc_md_modify_pipeline(entity, enable);
+> > @@ -1076,7 +1075,7 @@ static int __fimc_md_modify_pipelines(struct
+> > media_entity *entity, bool enable) media_entity_graph_walk_start(&graph,
+> > entity_err);
+> > 
+> >  	while ((entity_err = media_entity_graph_walk_next(&graph))) {
+> > -		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
+> > +		if (!is_media_entity_v4l2_io(entity_err))
+> >  			continue;
+> > 
+> >  		__fimc_md_modify_pipeline(entity_err, !enable);
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 69e7733d36cd..cb8ac90086c1
+> > 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -691,7 +691,7 @@ static int isp_pipeline_pm_use_count(struct media_entity
+> > *entity) media_entity_graph_walk_start(&graph, entity);
+> > 
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_io(entity))
+> >  			use += entity->use_count;
+> >  	}
+> > 
+> > @@ -714,7 +714,7 @@ static int isp_pipeline_pm_power_one(struct media_entity
+> > *entity, int change) struct v4l2_subdev *subdev;
+> >  	int ret;
+> > 
+> > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > +	subdev = is_media_entity_v4l2_subdev(entity)
+> >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > 
+> >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > @@ -754,7 +754,7 @@ static int isp_pipeline_pm_power(struct media_entity
+> > *entity, int change) media_entity_graph_walk_start(&graph, entity);
+> > 
+> >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_subdev(entity))
+> >  			ret = isp_pipeline_pm_power_one(entity, change);
+> > 
+> >  	if (!ret)
+> > @@ -764,7 +764,7 @@ static int isp_pipeline_pm_power(struct media_entity
+> > *entity, int change)
+> > 
+> >  	while ((first = media_entity_graph_walk_next(&graph))
+> >  	       && first != entity)
+> > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_subdev(first))
+> >  			isp_pipeline_pm_power_one(first, -change);
+> > 
+> >  	return ret;
+> > @@ -897,8 +897,7 @@ static int isp_pipeline_enable(struct isp_pipeline
+> > *pipe, break;
+> > 
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = pad->entity;
+> > @@ -988,8 +987,7 @@ static int isp_pipeline_disable(struct isp_pipeline
+> > *pipe) break;
+> > 
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = pad->entity;
+> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > b/drivers/media/platform/omap3isp/ispvideo.c index
+> > 4c367352b1f7..52843ac2a9ca 100644
+> > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > @@ -210,8 +210,7 @@ isp_video_remote_subdev(struct isp_video *video, u32
+> > *pad)
+> > 
+> >  	remote = media_entity_remote_pad(&video->pad);
+> > 
+> > -	if (remote == NULL ||
+> > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> >  		return NULL;
+> > 
+> >  	if (pad)
+> > @@ -243,7 +242,7 @@ static int isp_video_get_graph_data(struct isp_video
+> > *video, if (entity == &video->video.entity)
+> >  			continue;
+> > 
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if (!is_media_entity_v4l2_io(entity))
+> >  			continue;
+> > 
+> >  		__video = to_isp_video(media_entity_to_video_device(entity));
+> > @@ -917,7 +916,7 @@ static int isp_video_check_external_subdevs(struct
+> > isp_video *video, return -EINVAL;
+> >  	}
+> > 
+> > -	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!is_media_entity_v4l2_subdev(source))
+> >  		return 0;
+> > 
+> >  	pipe->external = media_entity_to_v4l2_subdev(source);
+> > diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
+> > b/drivers/media/platform/s3c-camif/camif-capture.c index
+> > eae667eab1b9..fb5b016cc0a1 100644
+> > --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> > +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> > @@ -837,7 +837,7 @@ static int camif_pipeline_validate(struct camif_dev
+> > *camif)
+> > 
+> >  	/* Retrieve format at the sensor subdev source pad */
+> >  	pad = media_entity_remote_pad(&camif->pads[0]);
+> > -	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  		return -EPIPE;
+> > 
+> >  	src_fmt.pad = pad->index;
+> > diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> > b/drivers/media/platform/vsp1/vsp1_video.c index 1f94c1a54e00..f74158224b93
+> > 100644
+> > --- a/drivers/media/platform/vsp1/vsp1_video.c
+> > +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> > @@ -160,8 +160,7 @@ vsp1_video_remote_subdev(struct media_pad *local, u32
+> > *pad) struct media_pad *remote;
+> > 
+> >  	remote = media_entity_remote_pad(local);
+> > -	if (remote == NULL ||
+> > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> >  		return NULL;
+> > 
+> >  	if (pad)
+> > @@ -326,7 +325,7 @@ static int vsp1_pipeline_validate_branch(struct
+> > vsp1_pipeline *pipe, return -EPIPE;
+> > 
+> >  		/* We've reached a video node, that shouldn't have happened. */
+> > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> >  			return -EPIPE;
+> > 
+> >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > @@ -423,7 +422,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline
+> > *pipe, struct vsp1_rwpf *rwpf;
+> >  		struct vsp1_entity *e;
+> > 
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > +		if (is_media_entity_v4l2_io(entity)) {
+> >  			pipe->num_video++;
+> >  			continue;
+> >  		}
+> > @@ -692,7 +691,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline
+> > *pipe, pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
+> > 
+> >  	while (pad) {
+> > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
+> > b/drivers/media/platform/xilinx/xilinx-dma.c index
+> > 88cd789cdaf7..8e14841bf445 100644
+> > --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> > @@ -49,8 +49,7 @@ xvip_dma_remote_subdev(struct media_pad *local, u32 *pad)
+> >  	struct media_pad *remote;
+> > 
+> >  	remote = media_entity_remote_pad(local);
+> > -	if (remote == NULL ||
+> > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> >  		return NULL;
+> > 
+> >  	if (pad)
+> > @@ -113,8 +112,7 @@ static int xvip_pipeline_start_stop(struct xvip_pipeline
+> > *pipe, bool start) break;
+> > 
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = pad->entity;
+> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> > b/drivers/media/v4l2-core/v4l2-subdev.c index e6e1115d8215..60da43772de9
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > @@ -526,7 +526,7 @@ static int
+> >  v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> >  				     struct v4l2_subdev_format *fmt)
+> >  {
+> > -	if (media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
+> > +	if (is_media_entity_v4l2_subdev(pad->entity)) {
+> >  		struct v4l2_subdev *sd =
+> >  			media_entity_to_v4l2_subdev(pad->entity);
+> > 
+> > diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > b/drivers/staging/media/davinci_vpfe/vpfe_video.c index
+> > 92573fa852a9..16763e0831f2 100644
+> > --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > @@ -148,7 +148,7 @@ static void vpfe_prepare_pipeline(struct
+> > vpfe_video_device *video) while ((entity =
+> > media_entity_graph_walk_next(&graph))) {
+> >  		if (entity == &video->video_dev.entity)
+> >  			continue;
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if ((!is_media_entity_v4l2_io(remote->entity))
+> >  			continue;
+> >  		far_end = to_vpfe_video(media_entity_to_video_device(entity));
+> >  		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > @@ -293,7 +293,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline
+> > *pipe) media_entity_graph_walk_start(&graph, entity);
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > 
+> > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > +		if !is_media_entity_v4l2_subdev(entity))
+> 
+> With these two chunks fixed,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I'm wondering, however, why you replace some occurrences of == 
+> MEDIA_ENT_T_DEVNODE with !is_media_entity_v4l2_subdev and some other with 
+> is_media_entity_v4l2_io.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- include/media/media-device.h | 429 +++++++++++++++++++------------------------
- include/media/media-entity.h | 148 +++++++++++++++
- 2 files changed, 339 insertions(+), 238 deletions(-)
+For devices that don't have non-V4L2 media controller nodes, this would
+work, but if we ever add ALSA, DVB, IIO, etc to the media controller,
+then we may have troubles.
 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 6728528df9e2..7cfcc08a09ea 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -33,23 +33,11 @@
- /**
-  * DOC: Media Controller
-  *
-- * Linux kernel media framework
-- * ============================
-- *
-- * This document describes the Linux kernel media framework, its data structures,
-- * functions and their usage.
-- *
-- *
-- * Introduction
-- * ------------
-- *
-- * The media controller API is documented in DocBook format in
-- * Documentation/DocBook/media/v4l/media-controller.xml. This document will focus
-+ * The media controller userspace API is documented in DocBook format in
-+ * Documentation/DocBook/media/v4l/media-controller.xml. This document focus
-  * on the kernel-side implementation of the media framework.
-  *
-- *
-- * Abstract media device model
-- * ---------------------------
-+ * * Abstract media device model:
-  *
-  * Discovering a device internal topology, and configuring it at runtime, is one
-  * of the goals of the media framework. To achieve this, hardware devices are
-@@ -72,195 +60,104 @@
-  * pad to a sink pad.
-  *
-  *
-- * Media device
-- * ------------
-+ * * Media device:
-  *
-- * A media device is represented by a struct media_device instance, defined in
-+ * A media device is represented by a struct &media_device instance, defined in
-  * include/media/media-device.h. Allocation of the structure is handled by the
-- * media device driver, usually by embedding the media_device instance in a
-+ * media device driver, usually by embedding the &media_device instance in a
-  * larger driver-specific structure.
-  *
-  * Drivers register media device instances by calling
-+ *	__media_device_register() via the macro media_device_register()
-+ * and unregistered by calling
-+ * 	media_device_unregister().
-  *
-- * 	media_device_register(struct media_device *mdev);
-- *
-- * The caller is responsible for initializing the media_device structure before
-- * registration. The following fields must be set:
-- *
-- *  - dev must point to the parent device (usually a pci_dev, usb_interface or
-- *    platform_device instance).
-- *
-- *  - model must be filled with the device model name as a NUL-terminated UTF-8
-- *    string. The device/model revision must not be stored in this field.
-- *
-- * The following fields are optional:
-- *
-- *  - serial is a unique serial number stored as a NUL-terminated ASCII string.
-- *    The field is big enough to store a GUID in text form. If the hardware
-- *    doesn't provide a unique serial number this field must be left empty.
-- *
-- *  - bus_info represents the location of the device in the system as a
-- *    NUL-terminated ASCII string. For PCI/PCIe devices bus_info must be set to
-- *    "PCI:" (or "PCIe:") followed by the value of pci_name(). For USB devices,
-- *    the usb_make_path() function must be used. This field is used by
-- *    applications to distinguish between otherwise identical devices that don't
-- *    provide a serial number.
-- *
-- *  - hw_revision is the hardware device revision in a driver-specific format.
-- *    When possible the revision should be formatted with the KERNEL_VERSION
-- *    macro.
-- *
-- *  - driver_version is formatted with the KERNEL_VERSION macro. The version
-- *    minor must be incremented when new features are added to the userspace API
-- *    without breaking binary compatibility. The version major must be
-- *    incremented when binary compatibility is broken.
-- *
-- * Upon successful registration a character device named media[0-9]+ is created.
-- * The device major and minor numbers are dynamic. The model name is exported as
-- * a sysfs attribute.
-- *
-- * Drivers unregister media device instances by calling
-- *
-- * 	media_device_unregister(struct media_device *mdev);
-- *
-- * Unregistering a media device that hasn't been registered is *NOT* safe.
-- *
-- *
-- * Entities, pads and links
-- * ------------------------
-+ * * Entities, pads and links:
-  *
-  * - Entities
-  *
-- * Entities are represented by a struct media_entity instance, defined in
-+ * Entities are represented by a struct &media_entity instance, defined in
-  * include/media/media-entity.h. The structure is usually embedded into a
-  * higher-level structure, such as a v4l2_subdev or video_device instance,
-  * although drivers can allocate entities directly.
-  *
-  * Drivers initialize entity pads by calling
-- *
-- * 	media_entity_pads_init(struct media_entity *entity, u16 num_pads,
-- * 			  struct media_pad *pads);
-- *
-- * If no pads are needed, drivers could directly fill entity->num_pads
-- * with 0 and entity->pads with NULL or to call the above function that
-- * will do the same.
-- *
-- * The media_entity name, type and flags fields should be initialized before
-- * calling media_device_register_entity(). Entities embedded in higher-level
-- * standard structures can have some of those fields set by the higher-level
-- * framework.
-- *
-- * As the number of pads is known in advance, the pads array is not allocated
-- * dynamically but is managed by the entity driver. Most drivers will embed the
-- * pads array in a driver-specific structure, avoiding dynamic allocation.
-- *
-- * Drivers must set the direction of every pad in the pads array before calling
-- * media_entity_pads_init. The function will initialize the other pads fields.
-- *
-- * Unlike the number of pads, the total number of links isn't always known in
-- * advance by the entity driver. As an initial estimate, media_entity_pads_init
-- * pre-allocates a number of links equal to the number of pads. The links array
-- * will be reallocated if it grows beyond the initial estimate.
-+ *	media_entity_pads_init().
-  *
-  * Drivers register entities with a media device by calling
-+ *	media_device_register_entity()
-+ * and unregistred by calling
-+ *	media_device_unregister_entity().
-  *
-- * 	media_device_register_entity(struct media_device *mdev,
-- * 				     struct media_entity *entity);
-+ * - Interfaces
-  *
-- * Entities are identified by a unique positive integer ID. Drivers can provide an
-- * ID by filling the media_entity id field prior to registration, or request the
-- * media controller framework to assign an ID automatically. Drivers that provide
-- * IDs manually must ensure that all IDs are unique. IDs are not guaranteed to be
-- * contiguous even when they are all assigned automatically by the framework.
-+ * Interfaces are represented by a struct &media_interface instance, defined in
-+ * include/media/media-entity.h. Currently, only one type of interface is
-+ * defined: a device node. Such interfaces are represented by a struct
-+ * &media_intf_devnode.
-  *
-- * Drivers unregister entities by calling
-- *
-- * 	media_device_unregister_entity(struct media_entity *entity);
-- *
-- * Unregistering an entity will not change the IDs of the other entities, and the
-- * ID will never be reused for a newly registered entity.
-- *
-- * When a media device is unregistered, all its entities are unregistered
-- * automatically. No manual entities unregistration is then required.
-- *
-- * Drivers free resources associated with an entity by calling
-- *
-- * 	media_entity_cleanup(struct media_entity *entity);
-- *
-- * This function must be called during the cleanup phase after unregistering the
-- * entity. Note that the media_entity instance itself must be freed explicitly by
-- * the driver if required.
-- *
-- * Entities have flags that describe the entity capabilities and state.
-- *
-- * 	MEDIA_ENT_FL_DEFAULT indicates the default entity for a given type.
-- * 	This can be used to report the default audio and video devices or the
-- * 	default camera sensor.
-- *
-- * Logical entity groups can be defined by setting the group ID of all member
-- * entities to the same non-zero value. An entity group serves no purpose in the
-- * kernel, but is reported to userspace during entities enumeration.
-- *
-- * Media device drivers should define groups if several entities are logically
-- * bound together. Example usages include reporting
-- *
-- * 	- ALSA, VBI and video nodes that carry the same media stream
-- * 	- lens and flash controllers associated with a sensor
-+ * Drivers initialize and create device node interfaces by calling
-+ *	media_devnode_create()
-+ * and remove them by calling:
-+ *	media_devnode_remove().
-  *
-  * - Pads
-  *
-- * Pads are represented by a struct media_pad instance, defined in
-+ * Pads are represented by a struct &media_pad instance, defined in
-  * include/media/media-entity.h. Each entity stores its pads in a pads array
-  * managed by the entity driver. Drivers usually embed the array in a
-  * driver-specific structure.
-  *
-- * Pads are identified by their entity and their 0-based index in the pads array.
-- * Both information are stored in the media_pad structure, making the media_pad
-- * pointer the canonical way to store and pass link references.
-+ * Pads are identified by their entity and their 0-based index in the pads
-+ * array.
-+ * Both information are stored in the &media_pad structure, making the
-+ * &media_pad pointer the canonical way to store and pass link references.
-  *
-  * Pads have flags that describe the pad capabilities and state.
-  *
-- * 	MEDIA_PAD_FL_SINK indicates that the pad supports sinking data.
-- * 	MEDIA_PAD_FL_SOURCE indicates that the pad supports sourcing data.
-+ *	%MEDIA_PAD_FL_SINK indicates that the pad supports sinking data.
-+ *	%MEDIA_PAD_FL_SOURCE indicates that the pad supports sourcing data.
-  *
-- * One and only one of MEDIA_PAD_FL_SINK and MEDIA_PAD_FL_SOURCE must be set for
-- * each pad.
-+ * NOTE: One and only one of %MEDIA_PAD_FL_SINK and %MEDIA_PAD_FL_SOURCE must
-+ * be set for each pad.
-  *
-  * - Links
-  *
-- * Links are represented by a struct media_link instance, defined in
-- * include/media/media-entity.h. Each entity stores all links originating at or
-- * targeting any of its pads in a links array. A given link is thus stored
-- * twice, once in the source entity and once in the target entity. The array is
-- * pre-allocated and grows dynamically as needed.
-+ * Links are represented by a struct &media_link instance, defined in
-+ * include/media/media-entity.h. There are two types of links:
-  *
-- * Drivers create links by calling
-+ * 1. pad to pad links:
-  *
-- * 	media_create_pad_link(struct media_entity *source, u16 source_pad,
-- * 				 struct media_entity *sink,   u16 sink_pad,
-- * 				 u32 flags);
-+ * Associate two entities via their PADs. Each entity has a list that points
-+ * to all links originating at or targeting any of its pads.
-+ * A given link is thus stored twice, once in the source entity and once in
-+ * the target entity.
-  *
-- * An entry in the link array of each entity is allocated and stores pointers
-- * to source and sink pads.
-+ * Drivers create pad to pad links by calling:
-+ * 	media_create_pad_link() and remove with media_entity_remove_links().
-  *
-- * Links have flags that describe the link capabilities and state.
-+ * 2. interface to entity links:
-  *
-- * 	MEDIA_LNK_FL_ENABLED indicates that the link is enabled and can be used
-- * 	to transfer media data. When two or more links target a sink pad, only
-- * 	one of them can be enabled at a time.
-- * 	MEDIA_LNK_FL_IMMUTABLE indicates that the link enabled state can't be
-- * 	modified at runtime. If MEDIA_LNK_FL_IMMUTABLE is set, then
-- * 	MEDIA_LNK_FL_ENABLED must also be set since an immutable link is always
-- * 	enabled.
-+ * Associate one interface to a Link.
-  *
-+ * Drivers create interface to entity links by calling:
-+ *	media_create_intf_link() and remove with media_remove_intf_links().
-  *
-- * Graph traversal
-- * ---------------
-+ * NOTE:
-+ *
-+ * Links can only be created after having both ends already created.
-+ *
-+ * Links have flags that describe the link capabilities and state. The
-+ * valid values are described at media_create_pad_link() and
-+ * media_create_intf_link().
-+ *
-+ * Graph traversal:
-  *
-  * The media framework provides APIs to iterate over entities in a graph.
-  *
-- * To iterate over all entities belonging to a media device, drivers can use the
-- * media_device_for_each_entity macro, defined in include/media/media-device.h.
-+ * To iterate over all entities belonging to a media device, drivers can use
-+ * the media_device_for_each_entity macro, defined in
-+ * include/media/media-device.h.
-  *
-  * 	struct media_entity *entity;
-  *
-@@ -279,126 +176,82 @@
-  * currently defined as 16.
-  *
-  * Drivers initiate a graph traversal by calling
-- *
-- * 	media_entity_graph_walk_start(struct media_entity_graph *graph,
-- * 				      struct media_entity *entity);
-+ * 	media_entity_graph_walk_start()
-  *
-  * The graph structure, provided by the caller, is initialized to start graph
-  * traversal at the given entity.
-  *
-  * Drivers can then retrieve the next entity by calling
-- *
-- * 	media_entity_graph_walk_next(struct media_entity_graph *graph);
-+ * 	media_entity_graph_walk_next()
-  *
-  * When the graph traversal is complete the function will return NULL.
-  *
-- * Graph traversal can be interrupted at any moment. No cleanup function call is
-- * required and the graph structure can be freed normally.
-+ * Graph traversal can be interrupted at any moment. No cleanup function call
-+ * is required and the graph structure can be freed normally.
-  *
-  * Helper functions can be used to find a link between two given pads, or a pad
-  * connected to another pad through an enabled link
-+ * 	media_entity_find_link() and media_entity_remote_pad()
-  *
-- * 	media_entity_find_link(struct media_pad *source,
-- * 			       struct media_pad *sink);
-+ * Use count and power handling:
-  *
-- * 	media_entity_remote_pad(struct media_pad *pad);
-+ * Due to the wide differences between drivers regarding power management
-+ * needs, the media controller does not implement power management. However,
-+ * the &media_entity structure includes a use_count field that media drivers
-+ * can use to track the number of users of every entity for power management
-+ * needs.
-  *
-- * Refer to the kerneldoc documentation for more information.
-+ * The &media_entity.@use_count field is owned by media drivers and must not be
-+ * touched by entity drivers. Access to the field must be protected by the
-+ * &media_device.@graph_mutex lock.
-  *
-- *
-- * Use count and power handling
-- * ----------------------------
-- *
-- * Due to the wide differences between drivers regarding power management needs,
-- * the media controller does not implement power management. However, the
-- * media_entity structure includes a use_count field that media drivers can use to
-- * track the number of users of every entity for power management needs.
-- *
-- * The use_count field is owned by media drivers and must not be touched by entity
-- * drivers. Access to the field must be protected by the media device graph_mutex
-- * lock.
-- *
-- *
-- * Links setup
-- * -----------
-+ * Links setup:
-  *
-  * Link properties can be modified at runtime by calling
-+ * 	media_entity_setup_link()
-  *
-- * 	media_entity_setup_link(struct media_link *link, u32 flags);
-- *
-- * The flags argument contains the requested new link flags.
-- *
-- * The only configurable property is the ENABLED link flag to enable/disable a
-- * link. Links marked with the IMMUTABLE link flag can not be enabled or disabled.
-- *
-- * When a link is enabled or disabled, the media framework calls the
-- * link_setup operation for the two entities at the source and sink of the link,
-- * in that order. If the second link_setup call fails, another link_setup call is
-- * made on the first entity to restore the original link flags.
-- *
-- * Media device drivers can be notified of link setup operations by setting the
-- * media_device::link_notify pointer to a callback function. If provided, the
-- * notification callback will be called before enabling and after disabling
-- * links.
-- *
-- * Entity drivers must implement the link_setup operation if any of their links
-- * is non-immutable. The operation must either configure the hardware or store
-- * the configuration information to be applied later.
-- *
-- * Link configuration must not have any side effect on other links. If an enabled
-- * link at a sink pad prevents another link at the same pad from being enabled,
-- * the link_setup operation must return -EBUSY and can't implicitly disable the
-- * first enabled link.
-- *
-- *
-- * Pipelines and media streams
-- * ---------------------------
-+ * Pipelines and media streams:
-  *
-  * When starting streaming, drivers must notify all entities in the pipeline to
-  * prevent link states from being modified during streaming by calling
-- *
-- * 	media_entity_pipeline_start(struct media_entity *entity,
-- * 				    struct media_pipeline *pipe);
-+ * 	media_entity_pipeline_start().
-  *
-  * The function will mark all entities connected to the given entity through
-  * enabled links, either directly or indirectly, as streaming.
-  *
-- * The media_pipeline instance pointed to by the pipe argument will be stored in
-- * every entity in the pipeline. Drivers should embed the media_pipeline structure
-- * in higher-level pipeline structures and can then access the pipeline through
-- * the media_entity pipe field.
-+ * The &media_pipeline instance pointed to by the pipe argument will be stored
-+ * in every entity in the pipeline. Drivers should embed the &media_pipeline
-+ * structure in higher-level pipeline structures and can then access the
-+ * pipeline through the &media_entity pipe field.
-  *
-- * Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
-- * be identical for all nested calls to the function.
-+ * Calls to media_entity_pipeline_start() can be nested. The pipeline pointer
-+ * must be identical for all nested calls to the function.
-  *
-  * media_entity_pipeline_start() may return an error. In that case, it will
-  * clean up any of the changes it did by itself.
-  *
-  * When stopping the stream, drivers must notify the entities with
-- *
-- * 	media_entity_pipeline_stop(struct media_entity *entity);
-+ * 	media_entity_pipeline_stop().
-  *
-  * If multiple calls to media_entity_pipeline_start() have been made the same
-- * number of media_entity_pipeline_stop() calls are required to stop streaming. The
-- * media_entity pipe field is reset to NULL on the last nested stop call.
-+ * number of media_entity_pipeline_stop() calls are required to stop streaming.
-+ * The &media_entity pipe field is reset to NULL on the last nested stop call.
-  *
-- * Link configuration will fail with -EBUSY by default if either end of the link is
-- * a streaming entity. Links that can be modified while streaming must be marked
-- * with the MEDIA_LNK_FL_DYNAMIC flag.
-+ * Link configuration will fail with -%EBUSY by default if either end of the
-+ * link is a streaming entity. Links that can be modified while streaming must
-+ * be marked with the %MEDIA_LNK_FL_DYNAMIC flag.
-  *
-  * If other operations need to be disallowed on streaming entities (such as
-  * changing entities configuration parameters) drivers can explicitly check the
-  * media_entity stream_count field to find out if an entity is streaming. This
-  * operation must be done with the media_device graph_mutex held.
-  *
-- *
-- * Link validation
-- * ---------------
-+ * Link validation:
-  *
-  * Link validation is performed by media_entity_pipeline_start() for any
-  * entity which has sink pads in the pipeline. The
-- * media_entity::link_validate() callback is used for that purpose. In
-- * link_validate() callback, entity driver should check that the properties of
-+ * &media_entity.@link_validate() callback is used for that purpose. In
-+ * @link_validate() callback, entity driver should check that the properties of
-  * the source pad of the connected entity and its own sink pad match. It is up
-  * to the type of the entity (and in the end, the properties of the hardware)
-  * what matching actually means.
-@@ -484,13 +337,113 @@ struct media_device {
- /* media_devnode to media_device */
- #define to_media_device(node) container_of(node, struct media_device, devnode)
- 
-+/**
-+ * __media_device_register() - Registers a media device element
-+ *
-+ * @mdev:	pointer to struct &media_device
-+ * @owner:	should be filled with %THIS_MODULE
-+ *
-+ * Users, should, instead, call the media_device_register() macro.
-+ *
-+ * The caller is responsible for initializing the media_device structure before
-+ * registration. The following fields must be set:
-+ *
-+ *  - dev must point to the parent device (usually a &pci_dev, &usb_interface or
-+ *    &platform_device instance).
-+ *
-+ *  - model must be filled with the device model name as a NUL-terminated UTF-8
-+ *    string. The device/model revision must not be stored in this field.
-+ *
-+ * The following fields are optional:
-+ *
-+ *  - serial is a unique serial number stored as a NUL-terminated ASCII string.
-+ *    The field is big enough to store a GUID in text form. If the hardware
-+ *    doesn't provide a unique serial number this field must be left empty.
-+ *
-+ *  - bus_info represents the location of the device in the system as a
-+ *    NUL-terminated ASCII string. For PCI/PCIe devices bus_info must be set to
-+ *    "PCI:" (or "PCIe:") followed by the value of pci_name(). For USB devices,
-+ *    the usb_make_path() function must be used. This field is used by
-+ *    applications to distinguish between otherwise identical devices that don't
-+ *    provide a serial number.
-+ *
-+ *  - hw_revision is the hardware device revision in a driver-specific format.
-+ *    When possible the revision should be formatted with the KERNEL_VERSION
-+ *    macro.
-+ *
-+ *  - driver_version is formatted with the KERNEL_VERSION macro. The version
-+ *    minor must be incremented when new features are added to the userspace API
-+ *    without breaking binary compatibility. The version major must be
-+ *    incremented when binary compatibility is broken.
-+ *
-+ * Notes:
-+ *
-+ * Upon successful registration a character device named media[0-9]+ is created.
-+ * The device major and minor numbers are dynamic. The model name is exported as
-+ * a sysfs attribute.
-+ *
-+ * Unregistering a media device that hasn't been registered is *NOT* safe.
-+ */
- int __must_check __media_device_register(struct media_device *mdev,
- 					 struct module *owner);
- #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
-+
-+/**
-+ * __media_device_unregister() - Unegisters a media device element
-+ *
-+ * @mdev:	pointer to struct &media_device
-+ */
- void media_device_unregister(struct media_device *mdev);
- 
-+/**
-+ * media_device_register_entity() - registers a media entity inside a
-+ *	previously registered media device.
-+ *
-+ * @mdev:	pointer to struct &media_device
-+ * @entity:	pointer to struct &media_entity to be registered
-+ *
-+ * Entities are identified by a unique positive integer ID. The media
-+ * controller framework will such ID automatically. IDs are not guaranteed
-+ * to be contiguous, and the ID number can change on newer Kernel versions.
-+ * So, neither the driver nor userspace should hardcode ID numbers to refer
-+ * to the entities, but, instead, use the framework to find the ID, when
-+ * needed.
-+ *
-+ * The media_entity name, type and flags fields should be initialized before
-+ * calling media_device_register_entity(). Entities embedded in higher-level
-+ * standard structures can have some of those fields set by the higher-level
-+ * framework.
-+ *
-+ * If the device has pads, media_entity_pads_init() should be called before
-+ * this function. Otherwise, the &media_entity.@pad and &media_entity.@num_pads
-+ * should be zeroed before calling this function.
-+ *
-+ * Entities have flags that describe the entity capabilities and state:
-+ *
-+ * %MEDIA_ENT_FL_DEFAULT indicates the default entity for a given type.
-+ * 	This can be used to report the default audio and video devices or the
-+ * 	default camera sensor.
-+ */
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity);
-+
-+/*
-+ * media_device_unregister_entity() - unregisters a media entity.
-+ *
-+ * @entity:	pointer to struct &media_entity to be unregistered
-+ *
-+ * All links associated with the entity and all PADs are automatically
-+ * unregistered from the media_device when this function is called.
-+ *
-+ * Unregistering an entity will not change the IDs of the other entities and
-+ * the previoully used ID will never be reused for a newly registered entities.
-+ *
-+ * When a media device is unregistered, all its entities are unregistered
-+ * automatically. No manual entities unregistration is then required.
-+ *
-+ * Note: the media_entity instance itself must be freed explicitly by
-+ * the driver if required.
-+ */
- void media_device_unregister_entity(struct media_entity *entity);
- struct media_device *media_device_get_devres(struct device *dev);
- struct media_device *media_device_find_devres(struct device *dev);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index e9bc5857899c..51a7353effd0 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -343,18 +343,112 @@ void media_gobj_init(struct media_device *mdev,
- 		    struct media_gobj *gobj);
- void media_gobj_remove(struct media_gobj *gobj);
- 
-+/**
-+ * media_entity_pads_init() - Initialize the entity pads
-+ *
-+ * @entity:	entity where the pads belong
-+ * @num_pads:	number of pads to be initialized
-+ * @pads:	pads array
-+ *
-+ * If no pads are needed, drivers could either directly fill
-+ * &media_entity->@num_pads with 0 and &media_entity->@pads with NULL or call
-+ * this function that will do the same.
-+ *
-+ * As the number of pads is known in advance, the pads array is not allocated
-+ * dynamically but is managed by the entity driver. Most drivers will embed the
-+ * pads array in a driver-specific structure, avoiding dynamic allocation.
-+ *
-+ * Drivers must set the direction of every pad in the pads array before calling
-+ * media_entity_pads_init(). The function will initialize the other pads fields.
-+ */
- int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
- 		      struct media_pad *pads);
- 
-+/**
-+ * media_entity_cleanup() - free resources associated with an entity
-+ *
-+ * @entity:	entity where the pads belong
-+ *
-+ * This function must be called during the cleanup phase after unregistering
-+ * the entity (currently, it does nothing).
-+ */
- static inline void media_entity_cleanup(struct media_entity *entity) {};
- 
-+/**
-+ * media_create_pad_link() - creates a link between two entities.
-+ *
-+ * @source:	pointer to &media_entity of the source pad.
-+ * @source_pad:	number of the source pad in the pads array
-+ * @sink:	pointer to &media_entity of the sink pad.
-+ * @sink_pad:	number of the sink pad in the pads array.
-+ * @flags:	Link flags, as defined in include/uapi/linux/media.h.
-+ *
-+ * Valid values for flags:
-+ * A %MEDIA_LNK_FL_ENABLED flag indicates that the link is enabled and can be
-+ *	used to transfer media data. When two or more links target a sink pad,
-+ *	only one of them can be enabled at a time.
-+ *
-+ * A %MEDIA_LNK_FL_IMMUTABLE flag indicates that the link enabled state can't
-+ *	be modified at runtime. If %MEDIA_LNK_FL_IMMUTABLE is set, then
-+ *	%MEDIA_LNK_FL_ENABLED must also be set since an immutable link is
-+ *	always enabled.
-+ *
-+ * NOTE:
-+ *
-+ * Before calling this function, media_entity_pads_init() and
-+ * media_device_register_entity() should be called previously for both ends.
-+ */
- __must_check int media_create_pad_link(struct media_entity *source,
- 			u16 source_pad, struct media_entity *sink,
- 			u16 sink_pad, u32 flags);
- void __media_entity_remove_links(struct media_entity *entity);
-+
-+/**
-+ * media_entity_remove_links() - remove all links associated with an entity
-+ *
-+ * @entity:	pointer to &media_entity
-+ *
-+ * Note: this is called automatically when an entity is unregistered via
-+ * media_device_register_entity().
-+ */
- void media_entity_remove_links(struct media_entity *entity);
- 
- int __media_entity_setup_link(struct media_link *link, u32 flags);
-+
-+/**
-+ * media_entity_setup_link() - changes the link flags properties in runtime
-+ *
-+ * @link:	pointer to &media_link
-+ * @flags:	the requested new link flags
-+ *
-+ * The only configurable property is the %MEDIA_LNK_FL_ENABLED link flag
-+ * flag to enable/disable a link. Links marked with the
-+ * %MEDIA_LNK_FL_IMMUTABLE link flag can not be enabled or disabled.
-+ *
-+ * When a link is enabled or disabled, the media framework calls the
-+ * link_setup operation for the two entities at the source and sink of the
-+ * link, in that order. If the second link_setup call fails, another
-+ * link_setup call is made on the first entity to restore the original link
-+ * flags.
-+ *
-+ * Media device drivers can be notified of link setup operations by setting the
-+ * media_device::link_notify pointer to a callback function. If provided, the
-+ * notification callback will be called before enabling and after disabling
-+ * links.
-+ *
-+ * Entity drivers must implement the link_setup operation if any of their links
-+ * is non-immutable. The operation must either configure the hardware or store
-+ * the configuration information to be applied later.
-+ *
-+ * Link configuration must not have any side effect on other links. If an
-+ * enabled link at a sink pad prevents another link at the same pad from
-+ * being enabled, the link_setup operation must return -EBUSY and can't
-+ * implicitly disable the first enabled link.
-+ *
-+ * NOTE: the valid values of the flags for the link is the same as described
-+ * on media_create_pad_link(), for pad to pad links or the same as described
-+ * on media_create_intf_link(), for interface to entity links.
-+ */
- int media_entity_setup_link(struct media_link *link, u32 flags);
- struct media_link *media_entity_find_link(struct media_pad *source,
- 		struct media_pad *sink);
-@@ -371,18 +465,72 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 					     struct media_pipeline *pipe);
- void media_entity_pipeline_stop(struct media_entity *entity);
- 
-+/**
-+ * media_devnode_create() - creates and initializes a device node interface
-+ *
-+ * @mdev:	pointer to struct &media_device
-+ * @type:	type of the interface, as given by MEDIA_INTF_T_* macros
-+ *		as defined in the uapi/media/media.h header.
-+ * @flags:	Interface flags as defined in uapi/media/media.h.
-+ * @major:	Device node major number.
-+ * @minor:	Device node minor number.
-+ *
-+ * Return: if succeeded, returns a pointer to the newly allocated
-+ *	&media_intf_devnode pointer.
-+ */
- struct media_intf_devnode *
- __must_check media_devnode_create(struct media_device *mdev,
- 				  u32 type, u32 flags,
- 				  u32 major, u32 minor);
-+/**
-+ * media_devnode_remove() - removes a device node interface
-+ *
-+ * @devnode:	pointer to &media_intf_devnode to be freed.
-+ *
-+ * When a device node interface is removed, all links to it are automatically
-+ * removed.
-+ */
- void media_devnode_remove(struct media_intf_devnode *devnode);
- struct media_link *
-+
-+/**
-+ * media_create_intf_link() - creates a link between an entity and an interface
-+ *
-+ * @entity:	pointer to %media_entity
-+ * @intf:	pointer to %media_interface
-+ * @flags:	Link flags, as defined in include/uapi/linux/media.h.
-+ *
-+ *
-+ * Valid values for flags:
-+ * The %MEDIA_LNK_FL_ENABLED flag indicates that the interface is connected to
-+ *	the entity hardware. That's the default value for interfaces. An
-+ *	interface may be disabled if the hardware is busy due to the usage
-+ *	of some other interface that it is currently controlling the hardware.
-+ *	A typical example is an hybrid TV device that handle only one type of
-+ *	stream on a given time. So, when the digital TV is streaming,
-+ *	the V4L2 interfaces won't be enabled, as such device is not able to
-+ *	also stream analog TV or radio.
-+ *
-+ * Note:
-+ *
-+ * Before calling this function, media_devnode_create() should be called for
-+ * the interface and media_device_register_entity() should be called for the
-+ * interface that will be part of the link.
-+ */
- __must_check media_create_intf_link(struct media_entity *entity,
- 				    struct media_interface *intf,
- 				    u32 flags);
- void __media_remove_intf_link(struct media_link *link);
- void media_remove_intf_link(struct media_link *link);
- void __media_remove_intf_links(struct media_interface *intf);
-+/**
-+ * media_remove_intf_links() - remove all links associated with an interface
-+ *
-+ * @intf:	pointer to &media_interface
-+ *
-+ * Note: this is called automatically when an entity is unregistered via
-+ * media_device_register_entity() and by media_devnode_remove().
-+ */
- void media_remove_intf_links(struct media_interface *intf);
- 
- 
--- 
-2.5.0
+That's why I opted to add a macro for checking for the V4L2 subdev.
+This is more future-proof, as other patches may be adding other
+non-V4L2 types of MC entities have the potential of breaking codes like
+the above.
 
-
+> 
+> >  			continue;
+> >  		subdev = media_entity_to_v4l2_subdev(entity);
+> >  		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+> > @@ -334,7 +334,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline
+> > *pipe)
+> > 
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > 
+> > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > +		if (!is_media_entity_v4l2_subdev(entity))
+> >  			continue;
+> >  		subdev = media_entity_to_v4l2_subdev(entity);
+> >  		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
+> > diff --git a/drivers/staging/media/omap4iss/iss.c
+> > b/drivers/staging/media/omap4iss/iss.c index 40591963b42b..44b88ff3ba83
+> > 100644
+> > --- a/drivers/staging/media/omap4iss/iss.c
+> > +++ b/drivers/staging/media/omap4iss/iss.c
+> > @@ -397,7 +397,7 @@ static int iss_pipeline_pm_use_count(struct media_entity
+> > *entity) media_entity_graph_walk_start(&graph, entity);
+> > 
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_io(entity))
+> >  			use += entity->use_count;
+> >  	}
+> > 
+> > @@ -419,7 +419,7 @@ static int iss_pipeline_pm_power_one(struct media_entity
+> > *entity, int change) {
+> >  	struct v4l2_subdev *subdev;
+> > 
+> > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > +	subdev = is_media_entity_v4l2_subdev(entity)
+> >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > 
+> >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > @@ -461,7 +461,7 @@ static int iss_pipeline_pm_power(struct media_entity
+> > *entity, int change) media_entity_graph_walk_start(&graph, entity);
+> > 
+> >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_subdev(entity))
+> >  			ret = iss_pipeline_pm_power_one(entity, change);
+> > 
+> >  	if (!ret)
+> > @@ -471,7 +471,7 @@ static int iss_pipeline_pm_power(struct media_entity
+> > *entity, int change)
+> > 
+> >  	while ((first = media_entity_graph_walk_next(&graph))
+> >  	       && first != entity)
+> > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > +		if (is_media_entity_v4l2_subdev(first))
+> >  			iss_pipeline_pm_power_one(first, -change);
+> > 
+> >  	return ret;
+> > @@ -590,8 +590,7 @@ static int iss_pipeline_disable(struct iss_pipeline
+> > *pipe, break;
+> > 
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = pad->entity;
+> > @@ -658,8 +657,7 @@ static int iss_pipeline_enable(struct iss_pipeline
+> > *pipe, break;
+> > 
+> >  		pad = media_entity_remote_pad(pad);
+> > -		if (pad == NULL ||
+> > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> >  			break;
+> > 
+> >  		entity = pad->entity;
+> > diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> > b/drivers/staging/media/omap4iss/iss_video.c index
+> > 45a3f2d778fc..cbe5783735dc 100644
+> > --- a/drivers/staging/media/omap4iss/iss_video.c
+> > +++ b/drivers/staging/media/omap4iss/iss_video.c
+> > @@ -191,8 +191,7 @@ iss_video_remote_subdev(struct iss_video *video, u32
+> > *pad)
+> > 
+> >  	remote = media_entity_remote_pad(&video->pad);
+> > 
+> > -	if (remote == NULL ||
+> > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> >  		return NULL;
+> > 
+> >  	if (pad)
+> > @@ -217,7 +216,7 @@ iss_video_far_end(struct iss_video *video)
+> >  		if (entity == &video->video.entity)
+> >  			continue;
+> > 
+> > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > +		if (!is_media_entity_v4l2_io(entity))
+> >  			continue;
+> > 
+> >  		far_end = to_iss_video(media_entity_to_video_device(entity));
+> 
