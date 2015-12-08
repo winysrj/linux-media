@@ -1,108 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:37487 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961AbbLMQkf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 11:40:35 -0500
-Received: by wmnn186 with SMTP id n186so91862834wmn.0
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2015 08:40:34 -0800 (PST)
-Received: from pc-olivier (APuteaux-653-1-182-188.w81-249.abo.wanadoo.fr. [81.249.89.188])
-        by smtp.googlemail.com with ESMTPSA id e9sm11167445wjp.18.2015.12.13.08.40.33
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Sun, 13 Dec 2015 08:40:33 -0800 (PST)
-Message-ID: <1450024832.1690.4.camel@gmail.com>
-Subject: af9015 not supported anymore ???
-From: oddebian <oddebian@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sun, 13 Dec 2015 17:40:32 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lists.s-osg.org ([54.187.51.154]:47665 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752068AbbLHTbt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 14:31:49 -0500
+Date: Tue, 8 Dec 2015 17:31:45 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 46/55] [media] media: move mdev list init to gobj
+Message-ID: <20151208173145.01ea3cf6@recife.lan>
+In-Reply-To: <3064066.jNbDTAyJ1A@avalon>
+References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+	<7b800aebe4c9f6549942fd95b40d4263dcffe3bc.1441540862.git.mchehab@osg.samsung.com>
+	<3064066.jNbDTAyJ1A@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Tue, 24 Nov 2015 00:32:49 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-I have investigated a little further and it looks like the af9015 is not
-working correctly with any linux kernels (32 or 64 bits) >= 3, although
-it seems to be recognised (firmware uploaded).
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 06 September 2015 09:03:06 Mauro Carvalho Chehab wrote:
+> > Let's control the topology changes inside the graph_object. So, move the
+> > addition and removal of interfaces/entities from the mdev lists to
+> > media_gobj_init() and media_gobj_remove().
+> > 
+> > The main reason is that mdev should have lists for all object types, as
+> > the new MC api will require to store objects in separate places.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 134fe7510195..ec98595b8a7a 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -415,7 +415,7 @@ void media_device_unregister(struct media_device *mdev)
+> >  	struct media_entity *entity;
+> >  	struct media_entity *next;
+> > 
+> > -	list_for_each_entry_safe(entity, next, &mdev->entities, list)
+> > +	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+> >  		media_device_unregister_entity(entity);
+> > 
+> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> > @@ -449,7 +449,6 @@ int __must_check media_device_register_entity(struct
+> > media_device *mdev, spin_lock(&mdev->lock);
+> >  	/* Initialize media_gobj embedded at the entity */
+> >  	media_gobj_init(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+> > -	list_add_tail(&entity->list, &mdev->entities);
+> > 
+> >  	/* Initialize objects at the pads */
+> >  	for (i = 0; i < entity->num_pads; i++)
+> > @@ -487,7 +486,6 @@ void media_device_unregister_entity(struct media_entity
+> > *entity) for (i = 0; i < entity->num_pads; i++)
+> >  		media_gobj_remove(&entity->pads[i].graph_obj);
+> >  	media_gobj_remove(&entity->graph_obj);
+> > -	list_del(&entity->list);
+> >  	spin_unlock(&mdev->lock);
+> >  	entity->graph_obj.mdev = NULL;
+> >  }
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index 6ed5eef88593..cbb0604e81c1 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -170,6 +170,7 @@ void media_gobj_init(struct media_device *mdev,
+> >  	switch (type) {
+> >  	case MEDIA_GRAPH_ENTITY:
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->entity_id);
+> > +		list_add_tail(&gobj->list, &mdev->entities);
+> >  		break;
+> >  	case MEDIA_GRAPH_PAD:
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->pad_id);
+> > @@ -178,6 +179,7 @@ void media_gobj_init(struct media_device *mdev,
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->link_id);
+> >  		break;
+> >  	case MEDIA_GRAPH_INTF_DEVNODE:
+> > +		list_add_tail(&gobj->list, &mdev->interfaces);
+> >  		gobj->id = media_gobj_gen_id(type, ++mdev->intf_devnode_id);
+> >  		break;
+> >  	}
+> > @@ -193,6 +195,16 @@ void media_gobj_init(struct media_device *mdev,
+> >   */
+> >  void media_gobj_remove(struct media_gobj *gobj)
+> >  {
+> > +	/* Remove the object from mdev list */
+> > +	switch (media_type(gobj)) {
+> > +	case MEDIA_GRAPH_ENTITY:
+> > +	case MEDIA_GRAPH_INTF_DEVNODE:
+> > +		list_del(&gobj->list);
+> > +		break;
+> 
+> Type-specific handling in the graph object code doesn't seem right. I'd keep 
+> the list_del calls in the type-specific remove functions. Same for the 
+> list_add_tail calls above, unless we switch from per-type lists to a single 
+> graph objects list as I mentioned in a reply to another patch (and the more I 
+> think about it the more tempting it gets).
 
-Any idea about how to debug the thing ?
+I commented about that already. IMHO, keeping everything needed to
+unregister a graph object is the way to go, as it saves troubles of
+having type-specific unregister functions for everything, and the
+state of the object removal will be sane after the end of calling
+this function.
 
-OD
+Using a single graph object list decreases the performance, as
+already explained.
 
--------- Message transféré --------
-> De: oddebian <oddebian@gmail.com>
-> À: linux-media@vger.kernel.org
-> Objet: Problem with avermedia Volar Black HD (af9015) : recognised but
-> not scanning
-> Date: Wed, 02 Dec 2015 20:36:28 +0100
-> 
-> Hi,
-> 
-> I have an old avermedia Volar Black HD (af9015) that still works
-> pretty well in windows 8 (it scans the whole dvb-t muxes in less than
-> one minute and the image is perfect even in HD).
-> When I try it on linux, it takes 12 minutes to scan with w_scan, and
-> despite showing lines such as :
-> updating transponder:
->    (QAM_64   f = 4294967 kHz I999B8C999D0T8G32Y0) 0x405A
-> to (QAM_64   f = 4294967 kHz I999B8C999D0T8G8Y0) 0x405A
-> undefined coderate HP
-> in the end, it says :
-> 
-> tune to: QAM_AUTO f = 482000 kHz I999B8C999D999T999G999Y999 
-> (time: 12:13) ----------no signal----------
-> tune to: QAM_AUTO f = 482000 kHz I999B8C999D999T999G999Y999  (no
-> signal)
-> (time: 12:14) ----------no signal----------
-> tune to: QAM_64   f = 4294967 kHz I999B8C999D0T8G8Y0 
-> (time: 12:16) skipped: (freq 4294967286 unsupported by driver)
-> tune to: QAM_AUTO f = 482166 kHz I999B8C999D999T999G999Y999 
-> (time: 12:16) ----------no signal----------
-> tune to: QAM_AUTO f = 482166 kHz I999B8C999D999T999G999Y999  (no
-> signal)
-> (time: 12:17) ----------no signal----------
-> 
-> ERROR: Sorry - i couldn't get any working frequency/transponder
-> Nothing to scan!!
-> 
-> 
-> The problem is the same on my destop pc (debian 8, kernel
-> 3.16.0-4-amd64) and on a Raspberry 1 (Linux osmc 4.2.3-3-osmc, or
-> openelec).
-> I tried also with tvheadend, but scan does not work either.
-> 
-> The firmware is correct and installed in /lib/firmware.
-> Dmesg shows that the usb device is well detected, with no errors :
-> [   13.846959] usb 1-5: dvb_usb_v2: found a 'AverMedia AVerTV Volar
-> Black HD (A850)' in cold state
-> [   13.847467] usb 1-5: firmware: direct-loading firmware
-> dvb-usb-af9015.fw
-> [   13.847474] usb 1-5: dvb_usb_v2: downloading firmware from file
-> 'dvb-usb-af9015.fw'
-> [   13.917176] usb 1-5: dvb_usb_v2: found a 'AverMedia AVerTV Volar
-> Black HD (A850)' in warm state
-> [   14.327175] usb 1-5: dvb_usb_v2: will pass the complete MPEG2
-> transport stream to the software demuxer
-> [   14.335086] usb 1-5: DVB: registering adapter 0 frontend 0 (Afatech
-> AF9013)...
-> [   14.345704] usb 1-5: dvb_usb_v2: 'AverMedia AVerTV Volar Black HD
-> (A850)' successfully initialized and connected
-> [   14.345795] usbcore: registered new interface driver dvb_usb_af9015
-> 
-> And lsusb :
-> Bus 001 Device 003: ID 07ca:850a AVerMedia Technologies, Inc. AverTV
-> Volar Black HD (A850)
-> 
-> I must say it is very frustrating to see a device still supported in
-> windows 8, and working perfectly, but not working anymore in linux
-> despite stated as supported in
-> http://www.linuxtv.org/wiki/index.php/AVerTV_Volar_Black_HD_%28A850%29
-> 
-> Thanks in advance for any idea that could help !
-> OD
-> 
-
-
+Regards,
+Mauro
