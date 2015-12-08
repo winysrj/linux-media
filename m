@@ -1,530 +1,622 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:33237 "EHLO
-	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752124AbbLJCrN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 21:47:13 -0500
-Received: by iouu10 with SMTP id u10so82815998iou.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2015 18:47:13 -0800 (PST)
-Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
-        by smtp.gmail.com with ESMTPSA id k6sm4357021igx.20.2015.12.09.18.47.11
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Wed, 09 Dec 2015 18:47:11 -0800 (PST)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
-Subject: [PATCH] us-ATSC-center-frequencies-8VSB: Added channel numbers in comments to make the file easier to  use by comparing against local channel lists. 
-From: Maury Markowitz <maury.markowitz@gmail.com>
-In-Reply-To: <56687B09.4050004@kapsi.fi>
-Date: Wed, 9 Dec 2015 21:47:10 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:46707 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750841AbbLHRI1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 12:08:27 -0500
+Date: Tue, 8 Dec 2015 15:08:21 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH v8 32/55] [media] media: use macros to check for V4L2
+ subdev entities
+Message-ID: <20151208150821.5a1963f0@recife.lan>
+In-Reply-To: <20151208150551.0f2e5235@recife.lan>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<b94146f3b95e9adb08b11fffc896a9e747b2fa9c.1440902901.git.mchehab@osg.samsung.com>
+	<20151011210752.GK26916@valkosipuli.retiisi.org.uk>
+	<20151011215625.779630d9@recife.lan>
+	<20151012153504.GL26916@valkosipuli.retiisi.org.uk>
+	<20151208135755.3208a80f@recife.lan>
+	<20151208150551.0f2e5235@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
-Message-Id: <3DC79E44-2C1C-40C8-B9AA-D77614D50C3E@gmail.com>
-References: <201512081149525312370@gmail.com> <56687B09.4050004@kapsi.fi>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is my first attempt at a patch, so please be gentle.
+Em Tue, 8 Dec 2015 15:05:51 -0200
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-Signed-off-by: Maury Markowitz <maury.markowitz@gmail.com>
+> Em Tue, 8 Dec 2015 13:57:55 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+> > Em Mon, 12 Oct 2015 18:35:05 +0300
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > 
+> > > Hi Mauro,
+> > > 
+> > > On Sun, Oct 11, 2015 at 09:56:25PM -0300, Mauro Carvalho Chehab wrote:
+> > > > Em Mon, 12 Oct 2015 00:07:52 +0300
+> > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > > > 
+> > > > > Hi Mauro,
+> > > > > 
+> > > > > On Sun, Aug 30, 2015 at 12:06:43AM -0300, Mauro Carvalho Chehab wrote:
+> > > > > > Instead of relying on media subtype, use the new macros to detect
+> > > > > > if an entity is a subdev or an A/V DMA entity.
+> > > > > > 
+> > > > > > Please note that most drivers assume that there's just AV_DMA or
+> > > > > > V4L2 subdevs. This is not true anymore, as we've added MC support
+> > > > > > for DVB, and there are plans to add support for ALSA and FB/DRM
+> > > > > > too.
+> > > > > > 
+> > > > > > Ok, on the current pipelines supported by those drivers, just V4L
+> > > > > > stuff are there, but, assuming that some day a pipeline that also
+> > > > > > works with other subsystems will ever added, it is better to add
+> > > > > > explicit checks for the AV_DMA stuff.
+> > > > > > 
+> > > > > > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > > > > 
+> > > > > > diff --git a/drivers/media/platform/exynos4-is/common.c b/drivers/media/platform/exynos4-is/common.c
+> > > > > > index 0eb34ecb8ee4..8c9a29e0e294 100644
+> > > > > > --- a/drivers/media/platform/exynos4-is/common.c
+> > > > > > +++ b/drivers/media/platform/exynos4-is/common.c
+> > > > > > @@ -22,8 +22,7 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
+> > > > > >  	while (pad->flags & MEDIA_PAD_FL_SINK) {
+> > > > > >  		/* source pad */
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > > > > diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > > > > index 0627a93b2f3b..e9810fee4c30 100644
+> > > > > > --- a/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > > > > +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+> > > > > > @@ -1141,8 +1141,7 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
+> > > > > >  			}
+> > > > > >  		}
+> > > > > >  
+> > > > > > -		if (src_pad == NULL ||
+> > > > > > -		    media_entity_type(src_pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!src_pad || !is_media_entity_v4l2_subdev(src_pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		/* Don't call FIMC subdev operation to avoid nested locking */
+> > > > > > @@ -1397,7 +1396,7 @@ static int fimc_link_setup(struct media_entity *entity,
+> > > > > >  	struct fimc_vid_cap *vc = &fimc->vid_cap;
+> > > > > >  	struct v4l2_subdev *sensor;
+> > > > > >  
+> > > > > > -	if (media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  		return -EINVAL;
+> > > > > >  
+> > > > > >  	if (WARN_ON(fimc == NULL))
+> > > > > > diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > > > > index 3d9ccbf5f10f..5fbaf5e39903 100644
+> > > > > > --- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > > > > +++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+> > > > > > @@ -467,8 +467,7 @@ static int isp_video_pipeline_validate(struct fimc_isp *isp)
+> > > > > >  
+> > > > > >  		/* Retrieve format at the source pad */
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > > > > diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > > > > index b2607da4ad14..c2327147b360 100644
+> > > > > > --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > > > > +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> > > > > > @@ -814,8 +814,7 @@ static int fimc_pipeline_validate(struct fimc_lite *fimc)
+> > > > > >  		}
+> > > > > >  		/* Retrieve format at the source pad */
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > > > > @@ -988,7 +987,6 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > > > > >  {
+> > > > > >  	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> > > > > >  	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+> > > > > > -	unsigned int remote_ent_type = media_entity_type(remote->entity);
+> > > > > >  	int ret = 0;
+> > > > > >  
+> > > > > >  	if (WARN_ON(fimc == NULL))
+> > > > > > @@ -1000,7 +998,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > > > > >  
+> > > > > >  	switch (local->index) {
+> > > > > >  	case FLITE_SD_PAD_SINK:
+> > > > > > -		if (remote_ent_type != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > > > > +		if (!is_media_entity_v4l2_subdev(remote->entity)) {
+> > > > > >  			ret = -EINVAL;
+> > > > > >  			break;
+> > > > > >  		}
+> > > > > > @@ -1018,7 +1016,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > > > > >  	case FLITE_SD_PAD_SOURCE_DMA:
+> > > > > >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> > > > > >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > > > > > -		else if (remote_ent_type == MEDIA_ENT_T_DEVNODE)
+> > > > > > +		else if (is_media_entity_v4l2_io(remote->entity))
+> > > > > >  			atomic_set(&fimc->out_path, FIMC_IO_DMA);
+> > > > > >  		else
+> > > > > >  			ret = -EINVAL;
+> > > > > > @@ -1027,7 +1025,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
+> > > > > >  	case FLITE_SD_PAD_SOURCE_ISP:
+> > > > > >  		if (!(flags & MEDIA_LNK_FL_ENABLED))
+> > > > > >  			atomic_set(&fimc->out_path, FIMC_IO_NONE);
+> > > > > > -		else if (remote_ent_type == MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		else if (is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  			atomic_set(&fimc->out_path, FIMC_IO_ISP);
+> > > > > >  		else
+> > > > > >  			ret = -EINVAL;
+> > > > > > diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> > > > > > index 92dbade2fffc..4a25df9dd869 100644
+> > > > > > --- a/drivers/media/platform/exynos4-is/media-dev.c
+> > > > > > +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> > > > > > @@ -88,8 +88,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+> > > > > >  				break;
+> > > > > >  		}
+> > > > > >  
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  		sd = media_entity_to_v4l2_subdev(pad->entity);
+> > > > > >  
+> > > > > > @@ -1062,7 +1061,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (!is_media_entity_v4l2_io(entity))
+> > > > > >  			continue;
+> > > > > >  
+> > > > > >  		ret  = __fimc_md_modify_pipeline(entity, enable);
+> > > > > > @@ -1076,7 +1075,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity_err);
+> > > > > >  
+> > > > > >  	while ((entity_err = media_entity_graph_walk_next(&graph))) {
+> > > > > > -		if (media_entity_type(entity_err) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (!is_media_entity_v4l2_io(entity_err))
+> > > > > >  			continue;
+> > > > > >  
+> > > > > >  		__fimc_md_modify_pipeline(entity_err, !enable);
+> > > > > > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> > > > > > index 69e7733d36cd..cb8ac90086c1 100644
+> > > > > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > > > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > > > > @@ -691,7 +691,7 @@ static int isp_pipeline_pm_use_count(struct media_entity *entity)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_io(entity))
+> > > > > >  			use += entity->use_count;
+> > > > > >  	}
+> > > > > >  
+> > > > > > @@ -714,7 +714,7 @@ static int isp_pipeline_pm_power_one(struct media_entity *entity, int change)
+> > > > > >  	struct v4l2_subdev *subdev;
+> > > > > >  	int ret;
+> > > > > >  
+> > > > > > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > > > > > +	subdev = is_media_entity_v4l2_subdev(entity)
+> > > > > >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > > > > >  
+> > > > > >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > > > > > @@ -754,7 +754,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  
+> > > > > >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_subdev(entity))
+> > > > > >  			ret = isp_pipeline_pm_power_one(entity, change);
+> > > > > >  
+> > > > > >  	if (!ret)
+> > > > > > @@ -764,7 +764,7 @@ static int isp_pipeline_pm_power(struct media_entity *entity, int change)
+> > > > > >  
+> > > > > >  	while ((first = media_entity_graph_walk_next(&graph))
+> > > > > >  	       && first != entity)
+> > > > > > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_subdev(first))
+> > > > > >  			isp_pipeline_pm_power_one(first, -change);
+> > > > > >  
+> > > > > >  	return ret;
+> > > > > > @@ -897,8 +897,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = pad->entity;
+> > > > > > @@ -988,8 +987,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = pad->entity;
+> > > > > > diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> > > > > > index 4c367352b1f7..52843ac2a9ca 100644
+> > > > > > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > > > > > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > > > > > @@ -210,8 +210,7 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+> > > > > >  
+> > > > > >  	remote = media_entity_remote_pad(&video->pad);
+> > > > > >  
+> > > > > > -	if (remote == NULL ||
+> > > > > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  		return NULL;
+> > > > > >  
+> > > > > >  	if (pad)
+> > > > > > @@ -243,7 +242,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+> > > > > >  		if (entity == &video->video.entity)
+> > > > > >  			continue;
+> > > > > >  
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (!is_media_entity_v4l2_io(entity))
+> > > > > >  			continue;
+> > > > > >  
+> > > > > >  		__video = to_isp_video(media_entity_to_video_device(entity));
+> > > > > > @@ -917,7 +916,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+> > > > > >  		return -EINVAL;
+> > > > > >  	}
+> > > > > >  
+> > > > > > -	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!is_media_entity_v4l2_subdev(source))
+> > > > > >  		return 0;
+> > > > > >  
+> > > > > >  	pipe->external = media_entity_to_v4l2_subdev(source);
+> > > > > > diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+> > > > > > index eae667eab1b9..fb5b016cc0a1 100644
+> > > > > > --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> > > > > > +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> > > > > > @@ -837,7 +837,7 @@ static int camif_pipeline_validate(struct camif_dev *camif)
+> > > > > >  
+> > > > > >  	/* Retrieve format at the sensor subdev source pad */
+> > > > > >  	pad = media_entity_remote_pad(&camif->pads[0]);
+> > > > > > -	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  		return -EPIPE;
+> > > > > >  
+> > > > > >  	src_fmt.pad = pad->index;
+> > > > > > diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> > > > > > index 1f94c1a54e00..f74158224b93 100644
+> > > > > > --- a/drivers/media/platform/vsp1/vsp1_video.c
+> > > > > > +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> > > > > > @@ -160,8 +160,7 @@ vsp1_video_remote_subdev(struct media_pad *local, u32 *pad)
+> > > > > >  	struct media_pad *remote;
+> > > > > >  
+> > > > > >  	remote = media_entity_remote_pad(local);
+> > > > > > -	if (remote == NULL ||
+> > > > > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  		return NULL;
+> > > > > >  
+> > > > > >  	if (pad)
+> > > > > > @@ -326,7 +325,7 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+> > > > > >  			return -EPIPE;
+> > > > > >  
+> > > > > >  		/* We've reached a video node, that shouldn't have happened. */
+> > > > > > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			return -EPIPE;
+> > > > > >  
+> > > > > >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > > > > > @@ -423,7 +422,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+> > > > > >  		struct vsp1_rwpf *rwpf;
+> > > > > >  		struct vsp1_entity *e;
+> > > > > >  
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > > > > +		if (is_media_entity_v4l2_io(entity)) {
+> > > > > >  			pipe->num_video++;
+> > > > > >  			continue;
+> > > > > >  		}
+> > > > > > @@ -692,7 +691,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+> > > > > >  	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
+> > > > > >  
+> > > > > >  	while (pad) {
+> > > > > > -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> > > > > > diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> > > > > > index 88cd789cdaf7..8e14841bf445 100644
+> > > > > > --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> > > > > > +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> > > > > > @@ -49,8 +49,7 @@ xvip_dma_remote_subdev(struct media_pad *local, u32 *pad)
+> > > > > >  	struct media_pad *remote;
+> > > > > >  
+> > > > > >  	remote = media_entity_remote_pad(local);
+> > > > > > -	if (remote == NULL ||
+> > > > > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  		return NULL;
+> > > > > >  
+> > > > > >  	if (pad)
+> > > > > > @@ -113,8 +112,7 @@ static int xvip_pipeline_start_stop(struct xvip_pipeline *pipe, bool start)
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = pad->entity;
+> > > > > > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> > > > > > index e6e1115d8215..60da43772de9 100644
+> > > > > > --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> > > > > > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> > > > > > @@ -526,7 +526,7 @@ static int
+> > > > > >  v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> > > > > >  				     struct v4l2_subdev_format *fmt)
+> > > > > >  {
+> > > > > > -	if (media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
+> > > > > > +	if (is_media_entity_v4l2_subdev(pad->entity)) {
+> > > > > >  		struct v4l2_subdev *sd =
+> > > > > >  			media_entity_to_v4l2_subdev(pad->entity);
+> > > > > >  
+> > > > > > diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > > > > index 92573fa852a9..16763e0831f2 100644
+> > > > > > --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > > > > +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> > > > > > @@ -148,7 +148,7 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > >  		if (entity == &video->video_dev.entity)
+> > > > > >  			continue;
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if ((!is_media_entity_v4l2_io(remote->entity))
+> > > > > >  			continue;
+> > > > > >  		far_end = to_vpfe_video(media_entity_to_video_device(entity));
+> > > > > >  		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > > > > > @@ -293,7 +293,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > >  
+> > > > > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if !is_media_entity_v4l2_subdev(entity))
+> > > > > >  			continue;
+> > > > > >  		subdev = media_entity_to_v4l2_subdev(entity);
+> > > > > >  		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
+> > > > > > @@ -334,7 +334,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+> > > > > >  
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > >  
+> > > > > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (!is_media_entity_v4l2_subdev(entity))
+> > > > > >  			continue;
+> > > > > >  		subdev = media_entity_to_v4l2_subdev(entity);
+> > > > > >  		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
+> > > > > > diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+> > > > > > index 40591963b42b..44b88ff3ba83 100644
+> > > > > > --- a/drivers/staging/media/omap4iss/iss.c
+> > > > > > +++ b/drivers/staging/media/omap4iss/iss.c
+> > > > > > @@ -397,7 +397,7 @@ static int iss_pipeline_pm_use_count(struct media_entity *entity)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  
+> > > > > >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> > > > > > -		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_io(entity))
+> > > > > >  			use += entity->use_count;
+> > > > > >  	}
+> > > > > >  
+> > > > > > @@ -419,7 +419,7 @@ static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
+> > > > > >  {
+> > > > > >  	struct v4l2_subdev *subdev;
+> > > > > >  
+> > > > > > -	subdev = media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV
+> > > > > > +	subdev = is_media_entity_v4l2_subdev(entity)
+> > > > > >  	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+> > > > > >  
+> > > > > >  	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
+> > > > > > @@ -461,7 +461,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
+> > > > > >  	media_entity_graph_walk_start(&graph, entity);
+> > > > > >  
+> > > > > >  	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_subdev(entity))
+> > > > > >  			ret = iss_pipeline_pm_power_one(entity, change);
+> > > > > >  
+> > > > > >  	if (!ret)
+> > > > > > @@ -471,7 +471,7 @@ static int iss_pipeline_pm_power(struct media_entity *entity, int change)
+> > > > > >  
+> > > > > >  	while ((first = media_entity_graph_walk_next(&graph))
+> > > > > >  	       && first != entity)
+> > > > > > -		if (media_entity_type(first) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (is_media_entity_v4l2_subdev(first))
+> > > > > >  			iss_pipeline_pm_power_one(first, -change);
+> > > > > >  
+> > > > > >  	return ret;
+> > > > > > @@ -590,8 +590,7 @@ static int iss_pipeline_disable(struct iss_pipeline *pipe,
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = pad->entity;
+> > > > > > @@ -658,8 +657,7 @@ static int iss_pipeline_enable(struct iss_pipeline *pipe,
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		pad = media_entity_remote_pad(pad);
+> > > > > > -		if (pad == NULL ||
+> > > > > > -		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
+> > > > > >  			break;
+> > > > > >  
+> > > > > >  		entity = pad->entity;
+> > > > > > diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+> > > > > > index 45a3f2d778fc..cbe5783735dc 100644
+> > > > > > --- a/drivers/staging/media/omap4iss/iss_video.c
+> > > > > > +++ b/drivers/staging/media/omap4iss/iss_video.c
+> > > > > > @@ -191,8 +191,7 @@ iss_video_remote_subdev(struct iss_video *video, u32 *pad)
+> > > > > >  
+> > > > > >  	remote = media_entity_remote_pad(&video->pad);
+> > > > > >  
+> > > > > > -	if (remote == NULL ||
+> > > > > > -	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> > > > > > +	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
+> > > > > >  		return NULL;
+> > > > > >  
+> > > > > >  	if (pad)
+> > > > > > @@ -217,7 +216,7 @@ iss_video_far_end(struct iss_video *video)
+> > > > > >  		if (entity == &video->video.entity)
+> > > > > >  			continue;
+> > > > > >  
+> > > > > > -		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+> > > > > > +		if (!is_media_entity_v4l2_io(entity))
+> > > > > >  			continue;
+> > > > > >  
+> > > > > >  		far_end = to_iss_video(media_entity_to_video_device(entity));
+> > > > > 
+> > > > > I finally got around to test these patches eventually, and after some
+> > > > > debugging found this one. I think it's a good idea to have macros to
+> > > > > determine whether an entity exposes a V4L2 sub-device interface but it
+> > > > > should be more robust than is_media_entity_v4l2_subdev() right now is.
+> > > > 
+> > > > Hmm... Not sure what you're meaning... the V4L2 sub-device interface is
+> > > > actually a separate graph object (interfaces). Those macros work at the
+> > > > entities, not at the interface objects.
+> > > 
+> > > is_media_entity_v4l2_subdev() will produce wrong results for a large part of
+> > > V4L2 sub-devices with these patches applied.
+> > > 
+> > > I checked again the original implementation, and it seems to be based only
+> > > on the type as well, albeit that's a range, not a set of different
+> > > functions.
+> > > 
+> > > I suppose this will change at some point in the future: the interface indeed
+> > > should not be determined by the function of the entity. At least it needs to
+> > > be fixed now until the rework. I'll submit a patch for that.
+> > 
+> > I'm folding this small fixup to this patch. It should fix the issues with
+> > the unknown subdev types.
+> > 
+> > This is fixed on some latter patches in this series, adding 
+> > MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN, but let's avoid breaking bisectability
+> > here.
+> > 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 337d7b3e047f..b4a17a1bce58 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -241,6 +241,7 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+> >  		return false;
+> >  
+> >  	switch (entity->type) {
+> > +	case MEDIA_ENT_T_V4L2_SUBDEV_BASE:
+> >  	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
+> >  	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
+> >  	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
+> 
+> Actually, due to some comments for the patch:
+> 	s5c73m3: fix subdev type
+> 
+> And a few others, I'm actually adding MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN
+> definition on this patchset.
+> 
+> The new version of this patch is:
 
----
- atsc/us-ATSC-center-frequencies-8VSB | 78 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+Sorry, wrong version. The right one is:
 
-diff --git a/atsc/us-ATSC-center-frequencies-8VSB b/atsc/us-ATSC-center-frequencies-8VSB
-index e744878..abb05fb 100644
---- a/atsc/us-ATSC-center-frequencies-8VSB
-+++ b/atsc/us-ATSC-center-frequencies-8VSB
-@@ -1,410 +1,488 @@
- # US ATSC center frequencies, use if in doubt
+
+>From 5b7692b1bed4edf4a19b94d1883c21eb98754214 Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date: Fri, 21 Aug 2015 12:17:40 -0300
+Subject: [PATCH] [media] media: add macros to check if subdev or V4L2 DMA
+
+As we'll be removing entity subtypes from the Kernel, we need
+to provide a way for drivers and core to check if a given
+entity is represented by a V4L2 subdev or if it is an V4L2
+I/O entity (typically with DMA).
+
+Drivers that create entities that don't belong to any defined subdev
+category should use MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN.
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index ca35e07d9348..2596878f4b9f 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -220,6 +220,40 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+ 	return id;
+ }
  
-+# VHF low-band, channels 2 to 6, no longer used for television broadcasting
++static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
++{
++	if (!entity)
++		return false;
 +
-+#channel 2
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 57028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 3
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 63028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 4
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 69028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 5
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 79028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 6
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 85028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+# VHF high-band, channels 7 to 13, not common but a few digital stations on it
++	switch (entity->type) {
++	case MEDIA_ENT_T_V4L2_VIDEO:
++	case MEDIA_ENT_T_V4L2_VBI:
++	case MEDIA_ENT_T_V4L2_SWRADIO:
++		return true;
++	default:
++		return false;
++	}
++}
 +
-+#channel 7
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 177028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 8
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 183028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 9
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 189028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 10
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 195028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 11
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 201028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 12
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 207028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 13
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 213028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+# UHF, channels 14 to 51, most existing stations, almost all digital
++static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
++{
++	if (!entity)
++		return false;
 +
-+#channel 14
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 473028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 15
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 479028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 16
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 485028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 17
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 491028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 18
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 497028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 19
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 503028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 20
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 509028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 21
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 515028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 22
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 521028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 23
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 527028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 24
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 533028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 25
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 539028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 26
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 545028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 27
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 551028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 28
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 557028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 29
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 563028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 30
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 569028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 31
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 575028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 32
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 581028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 33
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 587028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 34
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 593028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 35
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 599028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 36
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 605028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 37, not used in USA and Canada due to interference with radio astronomy bands
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 611028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 38
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 617028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 39
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 623028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 40
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 629028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 41
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 635028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 42
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 641028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 43
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 647028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 44
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 653028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 45
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 659028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 46
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 665028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 47
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 671028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 48
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 677028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 49
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 683028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 50
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 689028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 51, no longer used to clear interference with cell bands
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 695028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+# the following frequencies were formerly part of the UHF band before the digital transition
-+# but were sold off to cell carriers and are no longer used for television
++	switch (entity->type) {
++	case MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN:
++	case MEDIA_ENT_T_V4L2_SUBDEV_SENSOR:
++	case MEDIA_ENT_T_V4L2_SUBDEV_FLASH:
++	case MEDIA_ENT_T_V4L2_SUBDEV_LENS:
++	case MEDIA_ENT_T_V4L2_SUBDEV_DECODER:
++	case MEDIA_ENT_T_V4L2_SUBDEV_TUNER:
++		return true;
 +
-+#channel 52
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 701028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
++	default:
++		return false;
++	}
++}
++
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+ #define MEDIA_ENTITY_ENUM_MAX_ID	64
  
-+#channel 53
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 707028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 8e9896820bee..c9314645d933 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -75,6 +75,9 @@ struct media_device_info {
+ #define MEDIA_ENT_T_V4L2_SWRADIO	(MEDIA_ENT_T_V4L2_BASE + 6)
  
-+#channel 54
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 713028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 55
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 719028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 56
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 725028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 57
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 731028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 58
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 737028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 59
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 743028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 60
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 749028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 61
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 755028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 62
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 761028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 63
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 767028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 64
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 773028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 65
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 779028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 66
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 785028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 67
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 791028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 68
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 797028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+#channel 69
- [CHANNEL]
- 	DELIVERY_SYSTEM = ATSC
- 	FREQUENCY = 803028615
- 	MODULATION = VSB/8
- 	INVERSION = AUTO
- 
-+# UHF formerly had changes 70 through 83 as well
--- 
-2.5.4 (Apple Git-61)
+ /* V4L2 Sub-device entities */
++
++#define MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_T_V4L2_SUBDEV_BASE
++
+ #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 1)
+ #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 2)
+ #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV_BASE + 3)
+
 
 
