@@ -1,55 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37475 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755148AbbLBMaw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Dec 2015 07:30:52 -0500
-Subject: Re: [RFC PATCH 04/11] v4l2-ctrls: add config store support
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
- <1411310909-32825-5-git-send-email-hverkuil@xs4all.nl>
- <20141114154433.GF8907@valkosipuli.retiisi.org.uk>
- <5469B5EF.6070408@xs4all.nl>
- <CAFqH_52f6Nh7LsjpkWavFXUAMDMqHX3E4DFYzMGonHDzucsasA@mail.gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <565EE51C.2010509@xs4all.nl>
-Date: Wed, 2 Dec 2015 13:33:32 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:46714 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbbLHRLM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 12:11:12 -0500
+Date: Tue, 8 Dec 2015 15:11:07 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH v8 34/55] [media] s5c73m3: fix subdev type
+Message-ID: <20151208151107.0f535637@recife.lan>
+In-Reply-To: <5606270.B3tOjzmPeC@avalon>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<9f8845993df848df703f3ab177745ea54c30e828.1440902901.git.mchehab@osg.samsung.com>
+	<5606270.B3tOjzmPeC@avalon>
 MIME-Version: 1.0
-In-Reply-To: <CAFqH_52f6Nh7LsjpkWavFXUAMDMqHX3E4DFYzMGonHDzucsasA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/02/15 13:03, Enric Balletbo Serra wrote:
-> Dear Hans,
+Em Sun, 06 Dec 2015 03:57:56 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+> Hi Mauro,
 > 
-> We've a driver that uses your confstore stuff and we'd like to push
-> upstream. I'm wondering if there is any plan to upstream the confstore
-> patches or if this was abandoned for some reason. Thanks
+> Thank you for the patch.
+> 
+> On Sunday 30 August 2015 00:06:45 Mauro Carvalho Chehab wrote:
+> > This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
+> > some subdevs with a non-existing type.
+> > 
+> > As this is a sensor driver, the proper type is likely
+> > MEDIA_ENT_T_CAM_SENSOR.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> > b/drivers/media/i2c/s5c73m3/s5c73m3-core.c index c81bfbfea32f..abae37321c0c
+> > 100644
+> > --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> > +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+> > @@ -1688,7 +1688,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+> > 
+> >  	state->sensor_pads[S5C73M3_JPEG_PAD].flags = MEDIA_PAD_FL_SOURCE;
+> >  	state->sensor_pads[S5C73M3_ISP_PAD].flags = MEDIA_PAD_FL_SOURCE;
+> > -	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+> > +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> 
+> As explained in my review of "s5k5baf: fix subdev type", this is correct...
+> 
+> >  	ret = media_entity_init(&sd->entity, S5C73M3_NUM_PADS,
+> >  							state->sensor_pads);
+> > @@ -1704,7 +1704,7 @@ static int s5c73m3_probe(struct i2c_client *client,
+> >  	state->oif_pads[OIF_ISP_PAD].flags = MEDIA_PAD_FL_SINK;
+> >  	state->oif_pads[OIF_JPEG_PAD].flags = MEDIA_PAD_FL_SINK;
+> >  	state->oif_pads[OIF_SOURCE_PAD].flags = MEDIA_PAD_FL_SOURCE;
+> > -	oif_sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+> > +	oif_sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+> 
+> ... but this isn't.
 
-Ouch, that's really old code you're using.
+Ok. Replacing this hunk by:
 
-The latest version is here:
+-	oif_sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++	oif_sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN;
 
-http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests
 
-But that too won't be the final version.
-
-There is still work going on in this area (specifically by Laurent Pinchart)
-since we really need this functionality. But we need to make sure that the
-API is good enough to handle complex hardware before it can be upstreamed.
-
-I suspect that once Laurent has it working for his non-trivial use-case we
-can start looking at upstreaming it.
-
-I recommend rebasing to at least the version in my git tree as that will
-be much closer to the final version. I'll try to rebase that branch to
-the latest kernel, but that's a bit difficult and takes more time than I
-have at the moment.
-
-Regards,
-
-	Hans
+> 
+> >  	ret = media_entity_init(&oif_sd->entity, OIF_NUM_PADS,
+> >  							state->oif_pads);
+> 
