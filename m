@@ -1,60 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56001 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730AbbLKTdd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 14:33:33 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:46727 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822AbbLHRRV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 12:17:21 -0500
+Date: Tue, 8 Dec 2015 15:17:17 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 1/2] media-device.h: Let clearer that entity function must be initialized
-Date: Fri, 11 Dec 2015 17:33:17 -0200
-Message-Id: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH v8 35/55] [media] s5k5baf: fix subdev type
+Message-ID: <20151208151717.73cf79e2@recife.lan>
+In-Reply-To: <2154292.e5cNedqy2f@avalon>
+References: <cover.1440902901.git.mchehab@osg.samsung.com>
+	<7ed3721139e459f5dd4cdd05bd1e58f248fc0781.1440902901.git.mchehab@osg.samsung.com>
+	<2154292.e5cNedqy2f@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve the documentation to let it clear that the entity function
-must be initialized.
+Em Sun, 06 Dec 2015 03:55:32 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Sunday 30 August 2015 00:06:46 Mauro Carvalho Chehab wrote:
+> > X-Patchwork-Delegate: m.chehab@samsung.com
+> > This sensor driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, creating
+> > some subdevs with a non-existing type.
+> > 
+> > As this is a sensor driver, the proper type is likely
+> > MEDIA_ENT_T_V4L2_SUBDEV_SENSOR.
+> 
+> That's actually not correct. The driver creates two subdevs, one for the image 
+> sensor pixel array (and the related readout logic) and one for an ISP. The 
+> first subdev already uses the MEDIA_ENT_T_V4L2_SUBDEV_SENSOR type, but the 
+> second subdev isn't a sensor pixel array.
+
+OK.
+
+Patch replaced by the one below.
+
+Thanks,
+Mauro
+
+>From b1acc860aa845e9ea84fa597d540ad34047fe0cc Mon Sep 17 00:00:00 2001
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date: Thu, 7 May 2015 22:12:35 -0300
+Subject: [media] s5k5baf: fix subdev type
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+    Mauro Carvalho Chehab <mchehab@infradead.org>
+
+The driver creates two subdevs, one for the image sensor pixel array
+(and the related readout logic) and one for an ISP.
+
+The first subdev already uses the MEDIA_ENT_T_V4L2_SUBDEV_SENSOR type,
+but the second subdev isn't a sensor pixel array.
+
+So, rename the second subdev as MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN.
+
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- include/media/media-device.h | 4 ++++
- include/uapi/linux/media.h   | 2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/i2c/s5k5baf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 7cfcc08a09ea..3448ad6320c4 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -423,6 +423,10 @@ void media_device_unregister(struct media_device *mdev);
-  * %MEDIA_ENT_FL_DEFAULT indicates the default entity for a given type.
-  * 	This can be used to report the default audio and video devices or the
-  * 	default camera sensor.
-+ *
-+ * NOTE: Drivers should set the entity function before calling this function.
-+ * Please notice that the values %MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN and
-+ * %MEDIA_ENT_F_UNKNOWN should not be used by the drivers.
-  */
- int __must_check media_device_register_entity(struct media_device *mdev,
- 					      struct media_entity *entity);
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index ff6a8010c520..8d8e1a3e6e1a 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -92,7 +92,7 @@ struct media_device_info {
-  *
-  * Subdevs are initialized with MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN,
-  * in order to preserve backward compatibility.
-- * Drivers should change to the proper subdev type before
-+ * Drivers must change to the proper subdev type before
-  * registering the entity.
-  */
+diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
+index d3bff30bcb6f..0513196bd48c 100644
+--- a/drivers/media/i2c/s5k5baf.c
++++ b/drivers/media/i2c/s5k5baf.c
+@@ -1919,7 +1919,7 @@ static int s5k5baf_configure_subdevs(struct s5k5baf *state,
  
+ 	state->pads[PAD_CIS].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN;
+ 	ret = media_entity_init(&sd->entity, NUM_ISP_PADS, state->pads);
+ 
+ 	if (!ret)
 -- 
 2.5.0
+
 
 
