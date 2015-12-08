@@ -1,88 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54170 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154AbbLXKyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2015 05:54:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: karthik poduval <karthik.poduval@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>
-Subject: Re: per-frame camera metadata (again)
-Date: Thu, 24 Dec 2015 12:54:51 +0200
-Message-ID: <3419549.kxZAihUTho@avalon>
-In-Reply-To: <CAFP0Ok9t53p6zAJBBu=ov7O8nfrwvn=RxJUCkOPgFmJ3xuzbEQ@mail.gmail.com>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange> <Pine.LNX.4.64.1512221122420.31855@axis700.grange> <CAFP0Ok9t53p6zAJBBu=ov7O8nfrwvn=RxJUCkOPgFmJ3xuzbEQ@mail.gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:46446 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756813AbbLHOgw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2015 09:36:52 -0500
+Date: Tue, 8 Dec 2015 12:36:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v8 14/55] [media] media: add functions to allow creating
+ interfaces
+Message-ID: <20151208123648.5a2a69fb@recife.lan>
+In-Reply-To: <55F2CFC5.7010805@xs4all.nl>
+References: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
+	<ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
+	<55F2CFC5.7010805@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Karthik,
+Em Fri, 11 Sep 2015 14:57:41 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Tuesday 22 December 2015 05:30:52 karthik poduval wrote:
-> I have been wanting to share these thoughts for the group but was
-> waiting for the right time which I think is now since Guennadi brought
-> up this discussion.
+> On 09/06/2015 02:02 PM, Mauro Carvalho Chehab wrote:
+> > Interfaces are different than entities: they represent a
+> > Kernel<->userspace interaction, while entities represent a
+> > piece of hardware/firmware/software that executes a function.
+> > 
+> > Let's distinguish them by creating a separate structure to
+> > store the interfaces.
+> > 
+> > Later patches should change the existing drivers and logic
+> > to split the current interface embedded inside the entity
+> > structure (device nodes) into a separate object of the graph.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
-> For the Amazon Fire phone 4 corner camera, here is how we passed
-> metadata from driver to application (which was a CV client requiring
-> per frame metadata).
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> We took an unused field in struct v4l2_buffer (__u32 reserved in this
-> case) and used it to pass in a pointer to a user space metadata object
-> (i.e. struct app_metadata) to the driver via the VIDIOC_DQBUF ioctl
-> call.
+> But see a small note below:
 > 
-> struct v4l2_buffer for reference.
-> http://lxr.free-electrons.com/source/include/uapi/linux/videodev2.h#L836
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index a23c93369a04..dc679dfe8ade 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -44,11 +44,41 @@ static inline const char *gobj_type(enum media_gobj_type type)
+> >  		return "pad";
+> >  	case MEDIA_GRAPH_LINK:
+> >  		return "link";
+> > +	case MEDIA_GRAPH_INTF_DEVNODE:
+> > +		return "intf-devnode";
+> >  	default:
+> >  		return "unknown";
+> >  	}
+> >  }
+> >  
+> > +static inline const char *intf_type(struct media_interface *intf)
+> > +{
+> > +	switch (intf->type) {
+> > +	case MEDIA_INTF_T_DVB_FE:
+> > +		return "frontend";
+> > +	case MEDIA_INTF_T_DVB_DEMUX:
+> > +		return "demux";
+> > +	case MEDIA_INTF_T_DVB_DVR:
+> > +		return "DVR";
+> > +	case MEDIA_INTF_T_DVB_CA:
+> > +		return  "CA";
 > 
-> The driver copied its local copy of the metadata object to the
-> userspace metadata object using the copy_to_user primitive offered by
-> the kernel.
+> Would lower case be better? "dvr" and "ca"? Although for some reason I feel that "CA"
+> is fine too. Not sure why :-)
 > 
-> Here is how we handled the metadata in the driver code.
-> https://github.com/Fire-Phone/android_kernel_amazon_kodiak/blob/master/drive
-> rs/media/platform/msm/camera_v2/camera/camera.c#L235
-> 
-> This was done before HAL V3 was available. With HAL V3, the metadata
-> object can be the HAL v3 metadata buffer. Non Android devices can use
-> custom metadata format (like the one we used).
-> 
-> With this approach, the metadata always accompanies the frame data as
-> it's available along with the frame buffer inside struct v4l2_buffer
-> from the VIDIOC_DQBUF ioctl call.
-> 
-> If the community likes this idea, the v4l2_buffer can now be
-> officially modified to contain a pointer to user space metadata object
-> v4l2_buffer.metadata and then metadata format and size can be agreed
-> upon between application and driver.
-> Thoughts ?
+> What is the name of the associated device node? Upper or lower case? I feel that the
+> name here should match the name of the device node.
 
-I see several issues with that approach. The first one is that the meta-data 
-buffer is only passed at DQBUF time. Drivers thus need to copy data using the 
-CPU instead of capturing meta-data directly to the buffer through DMA. If the 
-meta-data size is small the performance impact can be negligible, but that 
-might not be true in the general case.
+Not sure if I answered that before. I opted to use upper case for DVR and 
+CA because both are initials:
+	DVR - Digital Video Record
+	CA - Conditional Access
 
-A second issue is that the approach isn't generic enough in my opinion. If we 
-want to attach additional data buffers to a v4l2_buffer I agree with Sakari 
-that we should design a multi-part buffer API in order to not limit the 
-implementation to meta-data, but support other kind of information such as 
-statistics for instance.
+and initials are in upper case, in English.
 
-Finally, it might be beneficial in some use cases to pass meta-data to 
-userspace before the end of the frame (assuming meta-data is available earlier 
-of course). That's certainly true for statistics, use cases for meta-data are 
-less clear to me though.
+The devnode names are whatever the udev rules tell ;) The Kernel actually 
+asks to create DVB class devices for the first DVR and CA, located on the first
+DVB adapter as:
+	/dev/dvb/adapter0/dvr0
+	/dev/dvb/adapter0/ca0
 
--- 
+I don't mind changing those to lowercase to match the devnames on some
+future patch, if it is a consensus that making those names matching the
+device node is a requirement, but, in this case, maybe we should rename the
+dvb stuff to:
+	dvb/adapter/foo, in order to better reflect how they'll appear
+at devfs.
+
+Please also notice that:
+
++	case MEDIA_INTF_T_DVB_NET:
++		return "dvbnet";
+
+
+This is also not the device node. The device node there is actually:
+	/dev/dvb/adapter0/net0
+
+So, IMHO, it is fine the way it is, as we don't want big names here
+on those printks.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
