@@ -1,87 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:59991 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964798AbbLOKQ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 05:16:56 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NZE00IQZ9W5PJ60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 Dec 2015 10:16:54 +0000 (GMT)
-Subject: Re: [RFC PATCH] vb2: Stop allocating 'alloc_ctx',
- just set the device instead
-To: Hans Verkuil <hansverk@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <566ED3D4.9050803@xs4all.nl> <28435978.1Ghf2YSlFk@avalon>
- <566FE4E7.5060001@samsung.com> <566FE816.8070704@cisco.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <566FE894.5030600@samsung.com>
-Date: Tue, 15 Dec 2015 11:16:52 +0100
-MIME-version: 1.0
-In-reply-to: <566FE816.8070704@cisco.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:8358 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750937AbbLIH0a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 02:26:30 -0500
+From: "Wu, Xia" <xia.wu@intel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"horms+renesas@verge.net.au" <horms+renesas@verge.net.au>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] media: videobuf2-core: Fix one __qbuf_dmabuf() error path
+Date: Wed, 9 Dec 2015 07:26:26 +0000
+Message-ID: <05B4341E5F09BF4E97AEC15A9DBEC11A1193CA21@shsmsx102.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add dma_buf_put() to decrease refcount of the dmabuf in error path if DMABUF size is smaller than the requirement.
 
-On 2015-12-15 11:14, Hans Verkuil wrote:
-> On 12/15/15 11:01, Marek Szyprowski wrote:
->> On 2015-12-14 16:40, Laurent Pinchart wrote:
->>> On Monday 14 December 2015 15:36:04 Hans Verkuil wrote:
->>>> (Before I post this as the 'final' patch and CC all the driver developers
->>>> that are affected, I'd like to do an RFC post first. I always hated the
->>>> alloc context for obfuscating what is really going on, but let's see what
->>>> others think).
->>>>
->>>>
->>>> Instead of allocating a struct that contains just a single device pointer,
->>>> just pass that device pointer around. This avoids having to check for
->>>> memory allocation errors and is much easier to understand since it makes
->>>> explicit what was hidden in an opaque handle before.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> As most devices use the same allocation context for all planes, wouldn't it
->>> make sense to just store the struct device pointer in the queue structure ?
->>> The oddball driver that requires different allocation contexts (I'm thinking
->>> about s5p-mfc here, there might be a couple more) would have to set the
->>> allocation contexts properly in the queue_setup handler, but for all other
->>> devices you could just remove that code completely.
->> This seams a reasonable approach. vb2 was written with special (or strange ;)
->> requirements in mind to align it with Exynos HW. However after some time it
->> turned out that most device drivers are simple and don't need fancy handling
->> of allocator context, so this definitely can be simplified. It also turned out
->> also that there is no real 'context' for vb2 memory allocators, although some
->> out-of-tree code (used in Android kernels) use some more advanced structures
->> there. Maybe it will be enough to let drivers to change defaults in queue_setup
->> and ensure that there is a 'void *alloc_ctx_priv' placeholder for allocator
->> specific data.
->>
->> There is one more advantage of moving struct device * to vb2_queue. One can
->> then change all debugs to use dev_info/err/dbg infrastructure, so the logs will
->> be significantly easier to read, especially when more than one media device is
->> used.
-> I hadn't thought of that. That's nice indeed. However, it would require that
-> vb2-vmalloc drivers also set the device pointer.
+Signed-off-by: wu xia <xia.wu@intel.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-They have some kind of virtual struct device (or fake platform device) 
-registered
-somewhere anyway, so this should not be a problem. In case of usb 
-devices, they can
-use struct device from that usb device. In both cases this will make the 
-logs much
-easier to read.
-
-> I think I'll work on this a bit more, clearly it is the right direction to go.
-
-Thanks!
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 33bdd81..1f232e7 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1084,6 +1084,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+ 		if (planes[plane].length < q->plane_sizes[plane]) {
+ 			dprintk(1, "invalid dmabuf length for plane %d\n",
+ 				plane);
++			dma_buf_put(dbuf);
+ 			ret = -EINVAL;
+ 			goto err;
+ 		}
+--
+1.7.9.5
