@@ -1,85 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:34978 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753349AbbLKQEd (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33060 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751422AbbLIDml (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 11:04:33 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH] adv7604: add direct interrupt handling
-Date: Fri, 11 Dec 2015 17:04:28 +0100
-Message-Id: <1449849868-14786-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Tue, 8 Dec 2015 22:42:41 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 82C62E0BC8
+	for <linux-media@vger.kernel.org>; Wed,  9 Dec 2015 04:42:36 +0100 (CET)
+Date: Wed, 09 Dec 2015 04:42:36 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151209034236.82C62E0BC8@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When probed from device tree, the i2c client driver can handle the
-interrupt on its own.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index c2df7e8..129009f 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -31,6 +31,7 @@
- #include <linux/gpio/consumer.h>
- #include <linux/hdmi.h>
- #include <linux/i2c.h>
-+#include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 	return 0;
- }
- 
-+static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
-+{
-+	struct adv76xx_state *state = devid;
-+	bool handled;
-+
-+	adv76xx_isr(&state->sd, 0, &handled);
-+
-+	return handled ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
- static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- {
- 	struct adv76xx_state *state = to_state(sd);
-@@ -2833,8 +2844,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		state->pdata.op_656_range = 1;
- 	}
- 
--	/* Disable the interrupt for now as no DT-based board uses it. */
--	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-+	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
- 
- 	/* Use the default I2C addresses. */
- 	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-@@ -3224,6 +3234,16 @@ static int adv76xx_probe(struct i2c_client *client,
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 			client->addr << 1, client->adapter->name);
- 
-+	if (client->irq) {
-+		err = devm_request_threaded_irq(&client->dev,
-+						client->irq,
-+						NULL, adv76xx_irq_handler,
-+						IRQF_TRIGGER_LOW|IRQF_ONESHOT,
-+						dev_name(&client->dev), state);
-+		if (err)
-+			goto err_entity;
-+	}
-+
- 	err = v4l2_async_register_subdev(sd);
- 	if (err)
- 		goto err_entity;
--- 
-2.6.3
+date:		Wed Dec  9 04:00:23 CET 2015
+git branch:	test
+git hash:	991ce92f8de24cde063d531246602b6e14d3fef2
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
