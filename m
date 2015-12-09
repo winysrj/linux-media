@@ -1,172 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932245AbbLECNK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:10 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 15/32] v4l: vsp1: Extract link creation to separate function
-Date: Sat,  5 Dec 2015 04:12:49 +0200
-Message-Id: <1449281586-25726-16-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63168 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438AbbLIN6i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 08:58:38 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>
+Subject: [PATCH v2 3/7] of: reserved_mem: add support for named reserved mem
+ nodes
+Date: Wed, 09 Dec 2015 14:58:18 +0100
+Message-id: <1449669502-24601-4-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Link creation will be handled differently for the DU pipeline.
+This patch allows device drivers to initialize more than one reserved
+memory region assigned to given device. When driver needs to use more
+than one reserved memory region, it should allocate child devices and
+initialize regions by index or name for each of its child devices.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c | 114 ++++++++++++++++++---------------
- 1 file changed, 64 insertions(+), 50 deletions(-)
+ drivers/of/of_reserved_mem.c    | 104 ++++++++++++++++++++++++++++++++--------
+ include/linux/of_reserved_mem.h |  31 ++++++++++--
+ 2 files changed, 112 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 91ecf75119ba..d1e42260a871 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -67,7 +67,7 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
-  */
+diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
+index be77e75..a583480 100644
+--- a/drivers/of/of_reserved_mem.c
++++ b/drivers/of/of_reserved_mem.c
+@@ -21,6 +21,7 @@
+ #include <linux/sizes.h>
+ #include <linux/of_reserved_mem.h>
+ #include <linux/sort.h>
++#include <linux/slab.h>
  
- /*
-- * vsp1_create_links - Create links from all sources to the given sink
-+ * vsp1_create_sink_links - Create links from all sources to the given sink
-  *
-  * This function creates media links from all valid sources to the given sink
-  * pad. Links that would be invalid according to the VSP1 hardware capabilities
-@@ -76,7 +76,8 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
-  * - from a UDS to a UDS (UDS entities can't be chained)
-  * - from an entity to itself (no loops are allowed)
-  */
--static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
-+static int vsp1_create_sink_links(struct vsp1_device *vsp1,
-+				  struct vsp1_entity *sink)
- {
- 	struct media_entity *entity = &sink->subdev.entity;
- 	struct vsp1_entity *source;
-@@ -116,6 +117,64 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
- 	return 0;
+ #define MAX_RESERVED_REGIONS	16
+ static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
+@@ -281,53 +282,116 @@ static inline struct reserved_mem *__find_rmem(struct device_node *node)
+ 	return NULL;
  }
  
-+static int vsp1_create_links(struct vsp1_device *vsp1)
++struct rmem_assigned_device {
++	struct device *dev;
++	struct reserved_mem *rmem;
++	struct list_head list;
++};
++
++static LIST_HEAD(of_rmem_assigned_device_list);
++static DEFINE_MUTEX(of_rmem_assigned_device_mutex);
++
+ /**
+  * of_reserved_mem_device_init() - assign reserved memory region to given device
++ * @dev:	Pointer to the device to configure
++ * @np:		Pointer to the device_node with 'reserved-memory' property
++ * @idx:	Index of selected region
++ *
++ * This function assigns respective DMA-mapping operations based on reserved
++ * memory region specified by 'memory-region' property in @np node to the @dev
++ * device. When driver needs to use more than one reserved memory region, it
++ * should allocate child devices and initialize regions by name for each of
++ * child device.
+  *
+- * This function assign memory region pointed by "memory-region" device tree
+- * property to the given device.
++ * Returns error code or zero on success.
+  */
+-int of_reserved_mem_device_init(struct device *dev)
++int of_reserved_mem_init(struct device *dev, struct device_node *np, int idx)
+ {
++	struct rmem_assigned_device *rd;
++	struct device_node *target;
+ 	struct reserved_mem *rmem;
+-	struct device_node *np;
+ 	int ret;
+ 
+-	np = of_parse_phandle(dev->of_node, "memory-region", 0);
+-	if (!np)
+-		return -ENODEV;
++	if (!np || !dev)
++		return -EINVAL;
++
++	target = of_parse_phandle(np, "memory-region", idx);
++	if (!target)
++		return -EINVAL;
+ 
+-	rmem = __find_rmem(np);
+-	of_node_put(np);
++	rmem = __find_rmem(target);
++	of_node_put(target);
+ 
+ 	if (!rmem || !rmem->ops || !rmem->ops->device_init)
+ 		return -EINVAL;
+ 
++	rd = kmalloc(sizeof(struct rmem_assigned_device), GFP_KERNEL);
++	if (!rd)
++		return -ENOMEM;
++
+ 	ret = rmem->ops->device_init(rmem, dev);
+-	if (ret == 0)
++	if (ret == 0) {
++		rd->dev = dev;
++		rd->rmem = rmem;
++
++		mutex_lock(&of_rmem_assigned_device_mutex);
++		list_add(&rd->list, &of_rmem_assigned_device_list);
++		mutex_unlock(&of_rmem_assigned_device_mutex);
++
+ 		dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
++	} else {
++		kfree(rd);
++	}
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(of_reserved_mem_device_init);
++EXPORT_SYMBOL_GPL(of_reserved_mem_init);
++
++/**
++ * of_reserved_mem_device_init() - assign reserved memory region to given device
++ * @dev:	Pointer to the device to configure
++ * @np:		Pointer to the device_node with 'reserved-memory' property
++ * @name:	Name of the selected region
++ *
++ * This function assigns respective DMA-mapping operations based on reserved
++ * memory region specified by 'memory-region' property in @np node, named @name
++ * to the @dev device.
++ *
++ * Returns error code or zero on success.
++ */
++int of_reserved_mem_init_by_name(struct device *dev, struct device_node *np,
++					   const char *name)
 +{
-+	struct vsp1_entity *entity;
-+	unsigned int i;
-+	int ret;
++	int idx = of_property_match_string(np, "memory-region-names", name);
 +
-+	list_for_each_entry(entity, &vsp1->entities, list_dev) {
-+		if (entity->type == VSP1_ENTITY_LIF ||
-+		    entity->type == VSP1_ENTITY_RPF)
-+			continue;
++	if (idx < 0)
++		return -EINVAL;
++	return of_reserved_mem_init(dev, np, idx);
++}
++EXPORT_SYMBOL_GPL(of_reserved_mem_init_by_name);
+ 
+ /**
+  * of_reserved_mem_device_release() - release reserved memory device structures
++ * @dev:	Pointer to the device to deconfigure
+  *
+  * This function releases structures allocated for memory region handling for
+  * the given device.
+  */
+ void of_reserved_mem_device_release(struct device *dev)
+ {
+-	struct reserved_mem *rmem;
+-	struct device_node *np;
+-
+-	np = of_parse_phandle(dev->of_node, "memory-region", 0);
+-	if (!np)
+-		return;
+-
+-	rmem = __find_rmem(np);
+-	of_node_put(np);
++	struct rmem_assigned_device *rd;
++	struct reserved_mem *rmem = NULL;
 +
-+		ret = vsp1_create_sink_links(vsp1, entity);
-+		if (ret < 0)
-+			return ret;
++	mutex_lock(&of_rmem_assigned_device_mutex);
++	list_for_each_entry(rd, &of_rmem_assigned_device_list, list) {
++		if (rd->dev == dev) {
++			rmem = rd->rmem;
++			list_del(&rd->list);
++			kfree(rd);
++			break;
++		}
 +	}
++	mutex_unlock(&of_rmem_assigned_device_mutex);
+ 
+ 	if (!rmem || !rmem->ops || !rmem->ops->device_release)
+ 		return;
+diff --git a/include/linux/of_reserved_mem.h b/include/linux/of_reserved_mem.h
+index ad2f670..0b928ad 100644
+--- a/include/linux/of_reserved_mem.h
++++ b/include/linux/of_reserved_mem.h
+@@ -1,7 +1,8 @@
+ #ifndef __OF_RESERVED_MEM_H
+ #define __OF_RESERVED_MEM_H
+ 
+-struct device;
++#include <linux/device.h>
 +
-+	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
-+		struct vsp1_rwpf *rpf = vsp1->rpf[i];
+ struct of_phandle_args;
+ struct reserved_mem_ops;
+ 
+@@ -28,14 +29,23 @@ typedef int (*reservedmem_of_init_fn)(struct reserved_mem *rmem);
+ 	_OF_DECLARE(reservedmem, name, compat, init, reservedmem_of_init_fn)
+ 
+ #ifdef CONFIG_OF_RESERVED_MEM
+-int of_reserved_mem_device_init(struct device *dev);
 +
-+		ret = media_entity_create_link(&rpf->video->video.entity, 0,
-+					       &rpf->entity.subdev.entity,
-+					       RWPF_PAD_SINK,
-+					       MEDIA_LNK_FL_ENABLED |
-+					       MEDIA_LNK_FL_IMMUTABLE);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		/* Connect the video device to the WPF. All connections are
-+		 * immutable except for the WPF0 source link if a LIF is
-+		 * present.
-+		 */
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		unsigned int flags = MEDIA_LNK_FL_ENABLED;
-+
-+		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || i != 0)
-+			flags |= MEDIA_LNK_FL_IMMUTABLE;
-+
-+		ret = media_entity_create_link(&wpf->entity.subdev.entity,
-+					       RWPF_PAD_SOURCE,
-+					       &wpf->video->video.entity,
-+					       0, flags);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	if (vsp1->pdata.features & VSP1_HAS_LIF) {
-+		ret = media_entity_create_link(
-+			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
-+			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
++int of_reserved_mem_init(struct device *dev, struct device_node *np, int idx);
++int of_reserved_mem_init_by_name(struct device *dev, struct device_node *np,
++				const char *name);
+ void of_reserved_mem_device_release(struct device *dev);
+ 
+ void fdt_init_reserved_mem(void);
+ void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
+ 			       phys_addr_t base, phys_addr_t size);
+ #else
+-static inline int of_reserved_mem_device_init(struct device *dev)
++static inline int of_reserved_mem_init(struct device *dev,
++				struct device_node *np, int idx)
++{
++	return -ENOSYS;
++}
++static inline int of_reserved_mem_init_by_name(struct device *dev,
++				struct device_node *np, const char *name)
+ {
+ 	return -ENOSYS;
+ }
+@@ -46,4 +56,19 @@ static inline void fdt_reserved_mem_save_node(unsigned long node,
+ 		const char *uname, phys_addr_t base, phys_addr_t size) { }
+ #endif
+ 
++/**
++ * of_reserved_mem_device_init() - assign reserved memory region to given device
++ * @dev:	Pointer to the device to configure
++ *
++ * This function assigns respective DMA-mapping operations based on the first
++ * reserved memory region specified by 'memory-region' property in device tree
++ * node of the given device.
++ *
++ * Returns error code or zero on success.
++ */
++static inline int of_reserved_mem_device_init(struct device *dev)
++{
++	return of_reserved_mem_init(dev, dev->of_node, 0);
 +}
 +
- static void vsp1_destroy_entities(struct vsp1_device *vsp1)
- {
- 	struct vsp1_entity *entity, *_entity;
-@@ -276,54 +335,9 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	/* Create links. */
--	list_for_each_entry(entity, &vsp1->entities, list_dev) {
--		if (entity->type == VSP1_ENTITY_LIF ||
--		    entity->type == VSP1_ENTITY_RPF)
--			continue;
--
--		ret = vsp1_create_links(vsp1, entity);
--		if (ret < 0)
--			goto done;
--	}
--
--	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
--		struct vsp1_rwpf *rpf = vsp1->rpf[i];
--
--		ret = media_entity_create_link(&rpf->video->video.entity, 0,
--					       &rpf->entity.subdev.entity,
--					       RWPF_PAD_SINK,
--					       MEDIA_LNK_FL_ENABLED |
--					       MEDIA_LNK_FL_IMMUTABLE);
--		if (ret < 0)
--			goto done;
--	}
--
--	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		/* Connect the video device to the WPF. All connections are
--		 * immutable except for the WPF0 source link if a LIF is
--		 * present.
--		 */
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		unsigned int flags = MEDIA_LNK_FL_ENABLED;
--
--		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || i != 0)
--			flags |= MEDIA_LNK_FL_IMMUTABLE;
--
--		ret = media_entity_create_link(&wpf->entity.subdev.entity,
--					       RWPF_PAD_SOURCE,
--					       &wpf->video->video.entity,
--					       0, flags);
--		if (ret < 0)
--			goto done;
--	}
--
--	if (vsp1->pdata.features & VSP1_HAS_LIF) {
--		ret = media_entity_create_link(
--			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
--			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
--		if (ret < 0)
--			return ret;
--	}
-+	ret = vsp1_create_links(vsp1);
-+	if (ret < 0)
-+		goto done;
- 
- 	/* Register all subdevs. */
- 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
+ #endif /* __OF_RESERVED_MEM_H */
 -- 
-2.4.10
+1.9.2
 
