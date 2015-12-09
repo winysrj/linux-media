@@ -1,149 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933227AbbLQIkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:51 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 12/48] v4l: vsp1: Remove unneeded entity streaming flag
-Date: Thu, 17 Dec 2015 10:39:50 +0200
-Message-Id: <1450341626-6695-13-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:58303 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754883AbbLIOAa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 09:00:30 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 4/4] media: exynos4-is: remove non-device-tree init code
+Date: Wed, 09 Dec 2015 15:00:16 +0100
+Message-id: <1449669616-24802-4-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The flag is set but never read, remove it.
+Exynos and Samsung S5Pxxxx platforms has been fully converted to device
+tree, so old platform device based init data can be now removed.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c    |  2 --
- drivers/media/platform/vsp1/vsp1_entity.c | 23 -----------------------
- drivers/media/platform/vsp1/vsp1_entity.h |  6 ------
- drivers/media/platform/vsp1/vsp1_rpf.c    |  2 --
- drivers/media/platform/vsp1/vsp1_sru.c    |  2 --
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 --
- 6 files changed, 37 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-core.c | 50 ---------------------------
+ 1 file changed, 50 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 27a9043b11e2..74cc4903e858 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -67,8 +67,6 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	unsigned int flags;
- 	unsigned int i;
- 
--	vsp1_entity_set_streaming(&bru->entity, enable);
--
- 	if (!enable)
- 		return 0;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index a366cb64ae9d..69e11586087c 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -33,27 +33,6 @@ void vsp1_mod_write(struct vsp1_entity *e, u32 reg, u32 data)
- 		vsp1_write(e->vsp1, reg, data);
- }
- 
--bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
--{
--	unsigned long flags;
--	bool streaming;
--
--	spin_lock_irqsave(&entity->lock, flags);
--	streaming = entity->streaming;
--	spin_unlock_irqrestore(&entity->lock, flags);
--
--	return streaming;
--}
--
--void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&entity->lock, flags);
--	entity->streaming = streaming;
--	spin_unlock_irqrestore(&entity->lock, flags);
--}
--
- void vsp1_entity_route_setup(struct vsp1_entity *source)
- {
- 	struct vsp1_entity *sink;
-@@ -198,8 +177,6 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 	if (i == ARRAY_SIZE(vsp1_routes))
- 		return -EINVAL;
- 
--	spin_lock_init(&entity->lock);
--
- 	entity->vsp1 = vsp1;
- 	entity->source_pad = num_pads - 1;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index c0d6db82ebfb..203872164f8e 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -73,9 +73,6 @@ struct vsp1_entity {
- 
- 	struct v4l2_subdev subdev;
- 	struct v4l2_mbus_framefmt *formats;
--
--	spinlock_t lock;		/* Protects the streaming field */
--	bool streaming;
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index 368e19b..a470fe5 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1155,26 +1155,6 @@ static const struct fimc_pix_limit s5p_pix_limit[4] = {
+ 	},
  };
  
- static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-@@ -100,9 +97,6 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg);
- 
--bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
--void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
+-static const struct fimc_variant fimc0_variant_s5p = {
+-	.has_inp_rot	 = 1,
+-	.has_out_rot	 = 1,
+-	.has_cam_if	 = 1,
+-	.min_inp_pixsize = 16,
+-	.min_out_pixsize = 16,
+-	.hor_offs_align	 = 8,
+-	.min_vsize_align = 16,
+-	.pix_limit	 = &s5p_pix_limit[0],
+-};
 -
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
- void vsp1_mod_write(struct vsp1_entity *e, u32 reg, u32 data);
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 62d898c0ad65..ffe097b27a77 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -46,8 +46,6 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	u32 pstride;
- 	u32 infmt;
- 
--	vsp1_entity_set_streaming(&rpf->entity, enable);
+-static const struct fimc_variant fimc2_variant_s5p = {
+-	.has_cam_if	 = 1,
+-	.min_inp_pixsize = 16,
+-	.min_out_pixsize = 16,
+-	.hor_offs_align	 = 8,
+-	.min_vsize_align = 16,
+-	.pix_limit	 = &s5p_pix_limit[1],
+-};
 -
- 	if (!enable)
- 		return 0;
+ static const struct fimc_variant fimc0_variant_s5pv210 = {
+ 	.has_inp_rot	 = 1,
+ 	.has_out_rot	 = 1,
+@@ -1207,18 +1187,6 @@ static const struct fimc_variant fimc2_variant_s5pv210 = {
+ 	.pix_limit	 = &s5p_pix_limit[2],
+ };
  
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 810c6b376e14..371b20ec5d1b 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -114,8 +114,6 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *output;
- 	u32 ctrl0;
- 
--	vsp1_entity_set_streaming(&sru->entity, enable);
+-/* S5PC100 */
+-static const struct fimc_drvdata fimc_drvdata_s5p = {
+-	.variant = {
+-		[0] = &fimc0_variant_s5p,
+-		[1] = &fimc0_variant_s5p,
+-		[2] = &fimc2_variant_s5p,
+-	},
+-	.num_entities	= 3,
+-	.lclk_frequency = 133000000UL,
+-	.out_buf_count	= 4,
+-};
 -
- 	if (!enable)
- 		return 0;
+ /* S5PV210, S5PC110 */
+ static const struct fimc_drvdata fimc_drvdata_s5pv210 = {
+ 	.variant = {
+@@ -1252,23 +1220,6 @@ static const struct fimc_drvdata fimc_drvdata_exynos4x12 = {
+ 	.out_buf_count	= 32,
+ };
  
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 28654cffeeca..1013190e440b 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -47,8 +47,6 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
- 
--	vsp1_entity_set_streaming(&wpf->entity, enable);
+-static const struct platform_device_id fimc_driver_ids[] = {
+-	{
+-		.name		= "s5p-fimc",
+-		.driver_data	= (unsigned long)&fimc_drvdata_s5p,
+-	}, {
+-		.name		= "s5pv210-fimc",
+-		.driver_data	= (unsigned long)&fimc_drvdata_s5pv210,
+-	}, {
+-		.name		= "exynos4-fimc",
+-		.driver_data	= (unsigned long)&fimc_drvdata_exynos4210,
+-	}, {
+-		.name		= "exynos4x12-fimc",
+-		.driver_data	= (unsigned long)&fimc_drvdata_exynos4x12,
+-	},
+-	{ },
+-};
 -
- 	if (!enable) {
- 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
- 		vsp1_write(vsp1, wpf->entity.index * VI6_WPF_OFFSET +
+ static const struct of_device_id fimc_of_match[] = {
+ 	{
+ 		.compatible = "samsung,s5pv210-fimc",
+@@ -1291,7 +1242,6 @@ static const struct dev_pm_ops fimc_pm_ops = {
+ static struct platform_driver fimc_driver = {
+ 	.probe		= fimc_probe,
+ 	.remove		= fimc_remove,
+-	.id_table	= fimc_driver_ids,
+ 	.driver = {
+ 		.of_match_table = fimc_of_match,
+ 		.name		= FIMC_DRIVER_NAME,
 -- 
-2.4.10
+1.9.2
 
