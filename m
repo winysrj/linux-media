@@ -1,544 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58660 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751176AbbLJKFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 05:05:32 -0500
-Date: Thu, 10 Dec 2015 08:05:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Maury Markowitz <maury.markowitz@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] us-ATSC-center-frequencies-8VSB: Added channel numbers
- in comments to make the file easier to  use by comparing against local
- channel lists.
-Message-ID: <20151210080528.6bc3fb84@recife.lan>
-In-Reply-To: <3DC79E44-2C1C-40C8-B9AA-D77614D50C3E@gmail.com>
-References: <201512081149525312370@gmail.com>
-	<56687B09.4050004@kapsi.fi>
-	<3DC79E44-2C1C-40C8-B9AA-D77614D50C3E@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:31678 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbbLILhN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 06:37:13 -0500
+Message-ID: <1449661025.1693.2.camel@free.fr>
+Subject: [Fwd: Problem with avermedia Volar Black HD (af9015) : recognised
+ but not scanning]
+From: Olivier Devaux <o.devaux@free.fr>
+To: linux-media@vger.kernel.org
+Date: Wed, 09 Dec 2015 12:37:05 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Dec 2015 21:47:10 -0500
-Maury Markowitz <maury.markowitz@gmail.com> escreveu:
+Hello,
 
-> This is my first attempt at a patch, so please be gentle.
+Any ideas on my problem ? Am I on the right mailing-list ?
+
+Any help would be appreciated !
+
+Thanks,
+OD
+
+-------- Message transféré --------
+> De: oddebian <oddebian@gmail.com>
+> À: linux-media@vger.kernel.org
+> Objet: Problem with avermedia Volar Black HD (af9015) : recognised but
+> not scanning
+> Date: Thu, 03 Dec 2015 19:23:28 +0100
 > 
-> Signed-off-by: Maury Markowitz <maury.markowitz@gmail.com>
+> Hi,
 > 
-> ---
->  atsc/us-ATSC-center-frequencies-8VSB | 78 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 78 insertions(+)
+> I have an old avermedia Volar Black HD (af9015) that still works pretty
+> well in windows 8 (it scans the whole dvb-t muxes in less than one
+> minute and the image is perfect even in HD).
+> When I try it on linux, it takes 12 minutes to scan with w_scan, and
+> despite showing lines such as :
+> updating transponder:
+>    (QAM_64   f = 4294967 kHz I999B8C999D0T8G32Y0) 0x405A
+> to (QAM_64   f = 4294967 kHz I999B8C999D0T8G8Y0) 0x405A
+> undefined coderate HP
+> in the end, it says :
 > 
-> diff --git a/atsc/us-ATSC-center-frequencies-8VSB b/atsc/us-ATSC-center-frequencies-8VSB
-> index e744878..abb05fb 100644
-> --- a/atsc/us-ATSC-center-frequencies-8VSB
-> +++ b/atsc/us-ATSC-center-frequencies-8VSB
-> @@ -1,410 +1,488 @@
->  # US ATSC center frequencies, use if in doubt
->  
-> +# VHF low-band, channels 2 to 6, no longer used for television broadcasting
-> +
-> +#channel 2
->  [CHANNEL]
+> tune to: QAM_AUTO f = 482000 kHz I999B8C999D999T999G999Y999 
+> (time: 12:13) ----------no signal----------
+> tune to: QAM_AUTO f = 482000 kHz I999B8C999D999T999G999Y999  (no signal)
+> (time: 12:14) ----------no signal----------
+> tune to: QAM_64   f = 4294967 kHz I999B8C999D0T8G8Y0 
+> (time: 12:16) skipped: (freq 4294967286 unsupported by driver)
+> tune to: QAM_AUTO f = 482166 kHz I999B8C999D999T999G999Y999 
+> (time: 12:16) ----------no signal----------
+> tune to: QAM_AUTO f = 482166 kHz I999B8C999D999T999G999Y999  (no signal)
+> (time: 12:17) ----------no signal----------
+> 
+> ERROR: Sorry - i couldn't get any working frequency/transponder
+> Nothing to scan!!
+> 
+> 
+> The problem is the same on my destop pc (debian 8, kernel
+> 3.16.0-4-amd64) and on a Raspberry 1 (Linux osmc 4.2.3-3-osmc, or
+> openelec).
+> I tried also with tvheadend, but scan does not work either.
+> 
+> The firmware is correct and installed in /lib/firmware.
+> Dmesg shows that the usb device is well detected, with no errors :
+> [   13.846959] usb 1-5: dvb_usb_v2: found a 'AverMedia AVerTV Volar
+> Black HD (A850)' in cold state
+> [   13.847467] usb 1-5: firmware: direct-loading firmware
+> dvb-usb-af9015.fw
+> [   13.847474] usb 1-5: dvb_usb_v2: downloading firmware from file
+> 'dvb-usb-af9015.fw'
+> [   13.917176] usb 1-5: dvb_usb_v2: found a 'AverMedia AVerTV Volar
+> Black HD (A850)' in warm state
+> [   14.327175] usb 1-5: dvb_usb_v2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [   14.335086] usb 1-5: DVB: registering adapter 0 frontend 0 (Afatech
+> AF9013)...
+> [   14.345704] usb 1-5: dvb_usb_v2: 'AverMedia AVerTV Volar Black HD
+> (A850)' successfully initialized and connected
+> [   14.345795] usbcore: registered new interface driver dvb_usb_af9015
+> 
+> And lsusb :
+> Bus 001 Device 003: ID 07ca:850a AVerMedia Technologies, Inc. AverTV
+> Volar Black HD (A850)
+> 
+> I must say it is very frustrating to see a device still supported in
+> windows 8, and working perfectly, but not working anymore in linux
+> despite stated as supported in
+> http://www.linuxtv.org/wiki/index.php/AVerTV_Volar_Black_HD_%28A850%29
+> 
+> Thanks in advance for any idea that could help !
+> OD
+> 
 
-You could, instead, put the channel number inside the [], like:
 
-[CHANNEL 2]
-
-I actually think that this makes the file better readable. Take a look
-at this file, for example:
-	isdb-t/br-Brazil
-
-(that's basically the basic channeling used on NTSC, except that ISDB-T
- main carrier is not at the center of the channel, so the frequencies
- there have a shift when compared with the analog TV frequencies).
-
-There, I opted to put a notes about the unused frequencies at the
-header. This very same file is also used on other Countries in
-South and Central America.
-
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 57028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 3
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 63028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 4
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 69028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 5
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 79028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 6
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 85028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +# VHF high-band, channels 7 to 13, not common but a few digital stations on it
-> +
-> +#channel 7
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 177028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 8
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 183028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 9
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 189028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 10
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 195028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 11
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 201028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 12
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 207028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 13
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 213028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +# UHF, channels 14 to 51, most existing stations, almost all digital
-> +
-> +#channel 14
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 473028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 15
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 479028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 16
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 485028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 17
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 491028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 18
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 497028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 19
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 503028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 20
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 509028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 21
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 515028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 22
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 521028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 23
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 527028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 24
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 533028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 25
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 539028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 26
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 545028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 27
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 551028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 28
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 557028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 29
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 563028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 30
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 569028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 31
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 575028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 32
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 581028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 33
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 587028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 34
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 593028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 35
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 599028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 36
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 605028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 37, not used in USA and Canada due to interference with radio astronomy bands
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 611028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 38
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 617028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 39
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 623028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 40
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 629028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 41
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 635028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 42
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 641028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 43
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 647028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 44
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 653028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 45
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 659028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 46
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 665028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 47
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 671028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 48
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 677028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 49
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 683028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 50
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 689028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 51, no longer used to clear interference with cell bands
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 695028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +# the following frequencies were formerly part of the UHF band before the digital transition
-> +# but were sold off to cell carriers and are no longer used for television
-> +
-> +#channel 52
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 701028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 53
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 707028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 54
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 713028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 55
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 719028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 56
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 725028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 57
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 731028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 58
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 737028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 59
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 743028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 60
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 749028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 61
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 755028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 62
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 761028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 63
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 767028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 64
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 773028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 65
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 779028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 66
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 785028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 67
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 791028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 68
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 797028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +#channel 69
->  [CHANNEL]
->  	DELIVERY_SYSTEM = ATSC
->  	FREQUENCY = 803028615
->  	MODULATION = VSB/8
->  	INVERSION = AUTO
->  
-> +# UHF formerly had changes 70 through 83 as well
