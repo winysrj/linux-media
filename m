@@ -1,36 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:33931 "EHLO
-	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384AbbLFVCo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2015 16:02:44 -0500
-Received: by lffu14 with SMTP id u14so140882168lff.1
-        for <linux-media@vger.kernel.org>; Sun, 06 Dec 2015 13:02:43 -0800 (PST)
-Received: from snorken.kolmodin.net (h212n5.lunet.ias.bredband.telia.com. [90.224.208.212])
-        by smtp.googlemail.com with ESMTPSA id s63sm4308084lfd.31.2015.12.06.13.02.42
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Sun, 06 Dec 2015 13:02:42 -0800 (PST)
-To: linux-media <linux-media@vger.kernel.org>
-From: Alec Leamas <leamas.alec@gmail.com>
-Subject: Patch is accepted - now what?
-Message-ID: <5664A271.1040305@gmail.com>
-Date: Sun, 6 Dec 2015 22:02:41 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:49643 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752281AbbLIKv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2015 05:51:59 -0500
+References: <20151207102519.6c6d850a@gandalf.local.home> <20151207153119.GA31513@kroah.com>
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>,
+	stable <stable@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: Failed to build on 4.2.6
+In-reply-to: <20151207153119.GA31513@kroah.com>
+Date: Wed, 09 Dec 2015 10:51:55 +0000
+Message-ID: <87io47rj1w.fsf@osg.samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear list,
 
-Some time ago I submitted my first kernel patch. When checking,  I now
-find that my patch is in state 'accepted' [1].
+Greg Kroah-Hartman writes:
 
-What I don't understand is what this means, exactly. In particular, does
-it mean it eventually will be part of the kernel?
+> On Mon, Dec 07, 2015 at 10:25:19AM -0500, Steven Rostedt wrote:
+>> Hi,
+>>
+>> The attached config doesn't build on 4.2.6, but changing it to the
+>> following:
+>>
+>>  VIDEO_V4L2_SUBDEV_API n -> y
+>> +V4L2_FLASH_LED_CLASS n
+>>
+>> does build.
+>
+> Did this work on older kernels (4.2.5?  .4?  older?)
+>
+> thanks,
+>
+> greg k-h
 
-"Confused"
+Hi all,
 
---alec
+The problem was:
 
-[1] https://patchwork.linuxtv.org/patch/31865/
+drivers/media/i2c/adv7604.c: In function ‘adv76xx_get_format’:
+drivers/media/i2c/adv7604.c:1861:3: error: implicit declaration of function ‘v4l2_subdev_get_try_format’ [-Werror=implicit-function-declaration]
+   fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+
+As Randy mentioned, this if fixed by commit
+fc88dd16a0e430f57458e6bd9b62a631c6ea53a1
+
+I backported it locally to test this and build worked fine.
+
+Luis
