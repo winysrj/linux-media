@@ -1,581 +1,665 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933247AbbLQIkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:55 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 16/48] v4l: vsp1: Use display lists with the userspace API
-Date: Thu, 17 Dec 2015 10:39:54 +0200
-Message-Id: <1450341626-6695-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:59811 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753186AbbLIN6i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 08:58:38 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH v2 1/7] ARM: Exynos: convert MFC device to generic reserved
+ memory bindings
+Date: Wed, 09 Dec 2015 14:58:16 +0100
+Message-id: <1449669502-24601-2-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't restrict display list usage to the DRM pipeline, use them
-unconditionally. This prepares the driver to support the request API.
+This patch replaces custom properties for definining reserved memory
+regions with generic reserved memory bindings. All custom code for
+handling MFC-specific reserved memory can be now removed from Exynos-DT
+generic board code.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c     |  11 +--
- drivers/media/platform/vsp1/vsp1_drm.c    |  23 ++---
- drivers/media/platform/vsp1/vsp1_entity.c |   5 +-
- drivers/media/platform/vsp1/vsp1_pipe.c   |  33 +------
- drivers/media/platform/vsp1/vsp1_rpf.c    |   9 +-
- drivers/media/platform/vsp1/vsp1_rwpf.c   |  26 ------
- drivers/media/platform/vsp1/vsp1_rwpf.h   |  18 ++--
- drivers/media/platform/vsp1/vsp1_video.c  | 145 +++++++++++++++++++++---------
- drivers/media/platform/vsp1/vsp1_wpf.c    |  18 ++--
- 9 files changed, 142 insertions(+), 146 deletions(-)
+ .../devicetree/bindings/media/s5p-mfc.txt          | 16 ++--
+ arch/arm/boot/dts/exynos4210-origen.dts            | 22 ++++-
+ arch/arm/boot/dts/exynos4210-smdkv310.dts          | 22 ++++-
+ arch/arm/boot/dts/exynos4412-origen.dts            | 22 ++++-
+ arch/arm/boot/dts/exynos4412-smdk4412.dts          | 22 ++++-
+ arch/arm/boot/dts/exynos5250-arndale.dts           | 22 ++++-
+ arch/arm/boot/dts/exynos5250-smdk5250.dts          | 22 ++++-
+ arch/arm/boot/dts/exynos5250-spring.dts            | 22 ++++-
+ arch/arm/boot/dts/exynos5420-arndale-octa.dts      | 22 ++++-
+ arch/arm/boot/dts/exynos5420-smdk5420.dts          | 22 ++++-
+ arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi | 22 ++++-
+ arch/arm/mach-exynos/Makefile                      |  2 -
+ arch/arm/mach-exynos/exynos.c                      | 19 -----
+ arch/arm/mach-exynos/mfc.h                         | 16 ----
+ arch/arm/mach-exynos/s5p-dev-mfc.c                 | 94 ----------------------
+ 15 files changed, 208 insertions(+), 159 deletions(-)
+ delete mode 100644 arch/arm/mach-exynos/mfc.h
+ delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 5cdd515470ac..43597b38a433 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -311,14 +311,15 @@ done:
- /* Hardware Setup */
- void vsp1_dlm_setup(struct vsp1_device *vsp1)
- {
--	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT);
-+	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
-+		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
-+		 | VI6_DL_CTRL_DLE;
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 2d5787e..4603673 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -21,16 +21,16 @@ Required properties:
+   - clock-names : from common clock binding: must contain "mfc",
+ 		  corresponding to entry in the clocks property.
  
--	/* The DRM pipeline operates with header-less display lists in
--	 * Continuous Frame Mode.
-+	/* The DRM pipeline operates with display lists in Continuous Frame
-+	 * Mode, all other pipelines use manual start.
- 	 */
- 	if (vsp1->drm)
--		ctrl |= VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
--		     |  VI6_DL_CTRL_DLE | VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
-+		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
+-  - samsung,mfc-r : Base address of the first memory bank used by MFC
+-		    for DMA contiguous memory allocation and its size.
+-
+-  - samsung,mfc-l : Base address of the second memory bank used by MFC
+-		    for DMA contiguous memory allocation and its size.
+-
+ Optional properties:
+   - power-domains : power-domain property defined with a phandle
+ 			   to respective power domain.
  
- 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
- 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 52b50d0e54e3..90157ac9b0b1 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -36,11 +36,6 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
- 	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
- }
++  - memory-region : from reserved memory binding: phandles to two reserved
++	memory regions: accessed by "left" and "right" mfc memory bus
++	interfaces, used when no SYSMMU support is available
++  - memory-region-names : from reserved memory binding: must be "left"
++	and "right"
++
+ Example:
+ SoC specific DT entry:
  
--void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
+@@ -46,6 +46,6 @@ mfc: codec@13400000 {
+ Board specific DT entry:
+ 
+ codec@13400000 {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
+index b8f8669..5a5ec93 100644
+--- a/arch/arm/boot/dts/exynos4210-origen.dts
++++ b/arch/arm/boot/dts/exynos4210-origen.dts
+@@ -30,6 +30,24 @@
+ 		       0x70000000 0x10000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs ="root=/dev/ram0 rw ramdisk=8192 initrd=0x41000000,8M console=ttySAC2,115200 init=/linuxrc";
+ 		stdout-path = &serial_2;
+@@ -292,8 +310,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/exynos4210-smdkv310.dts b/arch/arm/boot/dts/exynos4210-smdkv310.dts
+index bc1448b..0d204b7 100644
+--- a/arch/arm/boot/dts/exynos4210-smdkv310.dts
++++ b/arch/arm/boot/dts/exynos4210-smdkv310.dts
+@@ -26,6 +26,24 @@
+ 		reg = <0x40000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "root=/dev/ram0 rw ramdisk=8192 initrd=0x41000000,8M console=ttySAC1,115200 init=/linuxrc";
+ 		stdout-path = &serial_1;
+@@ -137,8 +155,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/exynos4412-origen.dts b/arch/arm/boot/dts/exynos4412-origen.dts
+index c8d86af..fbeff41 100644
+--- a/arch/arm/boot/dts/exynos4412-origen.dts
++++ b/arch/arm/boot/dts/exynos4412-origen.dts
+@@ -25,6 +25,24 @@
+ 		reg = <0x40000000 0x40000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs ="console=ttySAC2,115200";
+ 		stdout-path = &serial_2;
+@@ -470,8 +488,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/exynos4412-smdk4412.dts b/arch/arm/boot/dts/exynos4412-smdk4412.dts
+index c2421df..22fb698 100644
+--- a/arch/arm/boot/dts/exynos4412-smdk4412.dts
++++ b/arch/arm/boot/dts/exynos4412-smdk4412.dts
+@@ -23,6 +23,24 @@
+ 		reg = <0x40000000 0x40000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs ="root=/dev/ram0 rw ramdisk=8192 initrd=0x41000000,8M console=ttySAC1,115200 init=/linuxrc";
+ 		stdout-path = &serial_1;
+@@ -116,8 +134,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/arm/boot/dts/exynos5250-arndale.dts b/arch/arm/boot/dts/exynos5250-arndale.dts
+index c000532..30ada98 100644
+--- a/arch/arm/boot/dts/exynos5250-arndale.dts
++++ b/arch/arm/boot/dts/exynos5250-arndale.dts
+@@ -23,6 +23,24 @@
+ 		reg = <0x40000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "console=ttySAC2,115200";
+ 	};
+@@ -518,8 +536,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+index 0f5dcd4..88fe16d 100644
+--- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
++++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+@@ -25,6 +25,24 @@
+ 		reg = <0x40000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "root=/dev/ram0 rw ramdisk=8192 initrd=0x41000000,8M console=ttySAC2,115200 init=/linuxrc";
+ 	};
+@@ -346,8 +364,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/boot/dts/exynos5250-spring.dts b/arch/arm/boot/dts/exynos5250-spring.dts
+index c1edd6d..607d133 100644
+--- a/arch/arm/boot/dts/exynos5250-spring.dts
++++ b/arch/arm/boot/dts/exynos5250-spring.dts
+@@ -23,6 +23,24 @@
+ 		reg = <0x40000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "console=tty1";
+ 		stdout-path = "serial3:115200n8";
+@@ -427,8 +445,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/boot/dts/exynos5420-arndale-octa.dts b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
+index 4ecef69..cdaf49a 100644
+--- a/arch/arm/boot/dts/exynos5420-arndale-octa.dts
++++ b/arch/arm/boot/dts/exynos5420-arndale-octa.dts
+@@ -24,6 +24,24 @@
+ 		reg = <0x20000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "console=ttySAC3,115200";
+ 	};
+@@ -345,8 +363,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/boot/dts/exynos5420-smdk5420.dts b/arch/arm/boot/dts/exynos5420-smdk5420.dts
+index ac35aef..159e6d9 100644
+--- a/arch/arm/boot/dts/exynos5420-smdk5420.dts
++++ b/arch/arm/boot/dts/exynos5420-smdk5420.dts
+@@ -21,6 +21,24 @@
+ 		reg = <0x20000000 0x80000000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		bootargs = "console=ttySAC2,115200 init=/linuxrc";
+ 	};
+@@ -355,8 +373,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
+index 1af5bdc..46455ed 100644
+--- a/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
++++ b/arch/arm/boot/dts/exynos5422-odroidxu3-common.dtsi
+@@ -23,6 +23,24 @@
+ 		reg = <0x40000000 0x7EA00000>;
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		mfc_left: region@51000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x51000000 0x800000>;
++		};
++
++		mfc_right: region@43000000 {
++			compatible = "shared-dma-pool";
++			no-map;
++			reg = <0x43000000 0x800000>;
++		};
++	};
++
+ 	chosen {
+ 		linux,stdout-path = &serial_2;
+ 	};
+@@ -324,8 +342,8 @@
+ };
+ 
+ &mfc {
+-	samsung,mfc-r = <0x43000000 0x800000>;
+-	samsung,mfc-l = <0x51000000 0x800000>;
++	memory-region = <&mfc_left>, <&mfc_right>;
++	memory-region-names = "left", "right";
+ };
+ 
+ &mmc_0 {
+diff --git a/arch/arm/mach-exynos/Makefile b/arch/arm/mach-exynos/Makefile
+index 2f30676..bcefb54 100644
+--- a/arch/arm/mach-exynos/Makefile
++++ b/arch/arm/mach-exynos/Makefile
+@@ -23,5 +23,3 @@ AFLAGS_sleep.o			:=-Wa,-march=armv7-a$(plus_sec)
+ 
+ obj-$(CONFIG_EXYNOS5420_MCPM)	+= mcpm-exynos.o
+ CFLAGS_mcpm-exynos.o		+= -march=armv7-a
+-
+-obj-$(CONFIG_S5P_DEV_MFC)	+= s5p-dev-mfc.o
+diff --git a/arch/arm/mach-exynos/exynos.c b/arch/arm/mach-exynos/exynos.c
+index 1c47aee..662f329e 100644
+--- a/arch/arm/mach-exynos/exynos.c
++++ b/arch/arm/mach-exynos/exynos.c
+@@ -30,7 +30,6 @@
+ #include <mach/map.h>
+ 
+ #include "common.h"
+-#include "mfc.h"
+ #include "regs-pmu.h"
+ 
+ void __iomem *pmu_base_addr;
+@@ -290,23 +289,6 @@ static char const *const exynos_dt_compat[] __initconst = {
+ 	NULL
+ };
+ 
+-static void __init exynos_reserve(void)
 -{
--	vsp1_dlm_irq_frame_end(pipe->output->dlm);
+-#ifdef CONFIG_S5P_DEV_MFC
+-	int i;
+-	char *mfc_mem[] = {
+-		"samsung,mfc-v5",
+-		"samsung,mfc-v6",
+-		"samsung,mfc-v7",
+-		"samsung,mfc-v8",
+-	};
+-
+-	for (i = 0; i < ARRAY_SIZE(mfc_mem); i++)
+-		if (of_scan_flat_dt(s5p_fdt_alloc_mfc_mem, mfc_mem[i]))
+-			break;
+-#endif
 -}
 -
- /* -----------------------------------------------------------------------------
-  * DU Driver API
-  */
-@@ -280,7 +275,6 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 	const struct vsp1_format_info *fmtinfo;
- 	struct v4l2_subdev_selection sel;
- 	struct v4l2_subdev_format format;
--	struct vsp1_rwpf_memory memory;
- 	struct vsp1_rwpf *rpf;
- 	unsigned long flags;
- 	int ret;
-@@ -420,15 +414,12 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
- 	rpf->location.left = dst->left;
- 	rpf->location.top = dst->top;
- 
--	/* Set the memory buffer address but don't apply the values to the
-+	/* Cache the memory buffer address but don't apply the values to the
- 	 * hardware as the crop offsets haven't been computed yet.
- 	 */
--	memory.num_planes = fmtinfo->planes;
--	memory.addr[0] = mem[0];
--	memory.addr[1] = mem[1];
--	memory.addr[2] = 0;
--
--	vsp1_rwpf_set_memory(rpf, &memory, false);
-+	rpf->mem.addr[0] = mem[0];
-+	rpf->mem.addr[1] = mem[1];
-+	rpf->mem.addr[2] = 0;
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
-@@ -482,14 +473,17 @@ void vsp1_du_atomic_flush(struct device *dev)
- 				entity->subdev.name);
- 			return;
- 		}
-+
-+		if (entity->type == VSP1_ENTITY_RPF)
-+			vsp1_rwpf_set_memory(to_rwpf(&entity->subdev));
- 	}
- 
- 	vsp1_dl_list_commit(pipe->dl);
- 	pipe->dl = NULL;
- 
-+	/* Start or stop the pipeline if needed. */
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
--	/* Start or stop the pipeline if needed. */
- 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
- 		vsp1_write(vsp1, VI6_DISP_IRQ_STA, 0);
- 		vsp1_write(vsp1, VI6_DISP_IRQ_ENB, VI6_DISP_IRQ_ENB_DSTE);
-@@ -569,7 +563,6 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- 	pipe = &vsp1->drm->pipe;
- 
- 	vsp1_pipeline_init(pipe);
--	pipe->frame_end = vsp1_drm_frame_end;
- 
- 	/* The DRM pipeline is static, add entities manually. */
- 	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 69e11586087c..dfa0735e36f4 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -27,10 +27,7 @@ void vsp1_mod_write(struct vsp1_entity *e, u32 reg, u32 data)
+ static void __init exynos_dt_fixup(void)
  {
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&e->subdev.entity);
- 
--	if (pipe->dl)
--		vsp1_dl_list_write(pipe->dl, reg, data);
--	else
--		vsp1_write(e->vsp1, reg, data);
-+	vsp1_dl_list_write(pipe->dl, reg, data);
- }
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source)
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 9549aacab3cf..dd0921b31e98 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -252,42 +252,13 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
- 
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
--	enum vsp1_pipeline_state state;
--	unsigned long flags;
--
- 	if (pipe == NULL)
- 		return;
- 
--	/* Signal frame end to the pipeline handler. */
-+	vsp1_dlm_irq_frame_end(pipe->output->dlm);
-+
- 	if (pipe->frame_end)
- 		pipe->frame_end(pipe);
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
--	state = pipe->state;
--
--	/* When using display lists in continuous frame mode the pipeline is
--	 * automatically restarted by the hardware.
--	 */
--	if (pipe->lif)
--		goto done;
--
--	pipe->state = VSP1_PIPELINE_STOPPED;
--
--	/* If a stop has been requested, mark the pipeline as stopped and
--	 * return.
--	 */
--	if (state == VSP1_PIPELINE_STOPPING) {
--		wake_up(&pipe->wq);
--		goto done;
--	}
--
--	/* Restart the pipeline if ready. */
--	if (vsp1_pipeline_ready(pipe))
--		vsp1_pipeline_run(pipe);
--
--done:
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
- /*
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index ffe097b27a77..09919db7e0ea 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -78,9 +78,6 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_PSTRIDE, pstride);
- 
--	/* Now that the offsets have been computed program the DMA addresses. */
--	rpf->ops->set_memory(rpf);
--
- 	/* Format */
- 	infmt = VI6_RPF_INFMT_CIPM
- 	      | (fmtinfo->hwfmt << VI6_RPF_INFMT_RDFMT_SHIFT);
-@@ -150,11 +147,11 @@ static struct v4l2_subdev_ops rpf_ops = {
- static void rpf_set_memory(struct vsp1_rwpf *rpf)
- {
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
--		       rpf->buf_addr[0] + rpf->offsets[0]);
-+		       rpf->mem.addr[0] + rpf->offsets[0]);
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
--		       rpf->buf_addr[1] + rpf->offsets[1]);
-+		       rpf->mem.addr[1] + rpf->offsets[1]);
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
--		       rpf->buf_addr[2] + rpf->offsets[1]);
-+		       rpf->mem.addr[2] + rpf->offsets[1]);
- }
- 
- static const struct vsp1_rwpf_operations rpf_vdev_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index 0924079b920c..38893ab06cd9 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -269,29 +269,3 @@ int vsp1_rwpf_init_ctrls(struct vsp1_rwpf *rwpf)
- 
- 	return rwpf->ctrls.error;
- }
--
--/* -----------------------------------------------------------------------------
-- * Buffers
-- */
--
--/**
-- * vsp1_rwpf_set_memory - Configure DMA addresses for a [RW]PF
-- * @rwpf: the [RW]PF instance
-- * @mem: DMA memory addresses
-- * @apply: whether to apply the configuration to the hardware
+ 	/*
+@@ -328,6 +310,5 @@ DT_MACHINE_START(EXYNOS_DT, "SAMSUNG EXYNOS (Flattened Device Tree)")
+ 	.init_machine	= exynos_dt_machine_init,
+ 	.init_late	= exynos_init_late,
+ 	.dt_compat	= exynos_dt_compat,
+-	.reserve	= exynos_reserve,
+ 	.dt_fixup	= exynos_dt_fixup,
+ MACHINE_END
+diff --git a/arch/arm/mach-exynos/mfc.h b/arch/arm/mach-exynos/mfc.h
+deleted file mode 100644
+index dec93cd..0000000
+--- a/arch/arm/mach-exynos/mfc.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/*
+- * Copyright (C) 2013 Samsung Electronics Co.Ltd
 - *
-- * This function stores the DMA addresses for all planes in the rwpf instance
-- * and optionally applies the configuration to hardware registers if the apply
-- * argument is set to true.
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
 - */
--void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf, struct vsp1_rwpf_memory *mem,
--			  bool apply)
+-
+-#ifndef __MACH_EXYNOS_MFC_H
+-#define __MACH_EXYNOS_MFC_H __FILE__
+-
+-int __init s5p_fdt_alloc_mfc_mem(unsigned long node, const char *uname,
+-				int depth, void *data);
+-
+-#endif /* __MACH_EXYNOS_MFC_H */
+diff --git a/arch/arm/mach-exynos/s5p-dev-mfc.c b/arch/arm/mach-exynos/s5p-dev-mfc.c
+deleted file mode 100644
+index 0b04b6b..0000000
+--- a/arch/arm/mach-exynos/s5p-dev-mfc.c
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/*
+- * Copyright (C) 2010-2011 Samsung Electronics Co.Ltd
+- *
+- * Base S5P MFC resource and device definitions
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/interrupt.h>
+-#include <linux/platform_device.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/memblock.h>
+-#include <linux/ioport.h>
+-#include <linux/of_fdt.h>
+-#include <linux/of.h>
+-
+-static struct platform_device s5p_device_mfc_l;
+-static struct platform_device s5p_device_mfc_r;
+-
+-struct s5p_mfc_dt_meminfo {
+-	unsigned long	loff;
+-	unsigned long	lsize;
+-	unsigned long	roff;
+-	unsigned long	rsize;
+-	char		*compatible;
+-};
+-
+-struct s5p_mfc_reserved_mem {
+-	phys_addr_t	base;
+-	unsigned long	size;
+-	struct device	*dev;
+-};
+-
+-static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
+-
+-
+-static void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
+-				phys_addr_t lbase, unsigned int lsize)
 -{
--	unsigned int i;
+-	int i;
 -
--	for (i = 0; i < 3; ++i)
--		rwpf->buf_addr[i] = mem->addr[i];
+-	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
+-	s5p_mfc_mem[0].base = rbase;
+-	s5p_mfc_mem[0].size = rsize;
 -
--	if (apply)
--		rwpf->ops->set_memory(rwpf);
--}
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 57f15d45f8bb..2bbcc331959b 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -29,15 +29,13 @@ struct vsp1_rwpf;
- struct vsp1_video;
- 
- struct vsp1_rwpf_memory {
--	unsigned int num_planes;
- 	dma_addr_t addr[3];
--	unsigned int length[3];
- };
- 
- /**
-  * struct vsp1_rwpf_operations - RPF and WPF operations
-  * @set_memory: Setup memory buffer access. This operation applies the settings
-- *		stored in the rwpf buf_addr field to the hardware.
-+ *		stored in the rwpf mem field to the hardware.
-  */
- struct vsp1_rwpf_operations {
- 	void (*set_memory)(struct vsp1_rwpf *rwpf);
-@@ -65,7 +63,7 @@ struct vsp1_rwpf {
- 	unsigned int alpha;
- 
- 	unsigned int offsets[2];
--	dma_addr_t buf_addr[3];
-+	struct vsp1_rwpf_memory mem;
- 
- 	struct vsp1_dl_manager *dlm;
- };
-@@ -99,7 +97,15 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 			    struct v4l2_subdev_pad_config *cfg,
- 			    struct v4l2_subdev_selection *sel);
- 
--void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf, struct vsp1_rwpf_memory *mem,
--			  bool apply);
-+/**
-+ * vsp1_rwpf_set_memory - Configure DMA addresses for a [RW]PF
-+ * @rwpf: the [RW]PF instance
-+ *
-+ * This function applies the cached memory buffer address to the hardware.
-+ */
-+static inline void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf)
-+{
-+	rwpf->ops->set_memory(rwpf);
-+}
- 
- #endif /* __VSP1_RWPF_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index facadc9f86cb..50fc91a2f509 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -29,6 +29,7 @@
- 
- #include "vsp1.h"
- #include "vsp1_bru.h"
-+#include "vsp1_dl.h"
- #include "vsp1_entity.h"
- #include "vsp1_pipe.h"
- #include "vsp1_rwpf.h"
-@@ -430,7 +431,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 	v4l2_get_timestamp(&done->buf.timestamp);
- 	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
- 		vb2_set_plane_payload(&done->buf.vb2_buf, i,
--				      done->mem.length[i]);
-+				      vb2_plane_size(&done->buf.vb2_buf, i));
- 	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
- 
- 	return next;
-@@ -449,15 +450,41 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
--	vsp1_rwpf_set_memory(video->rwpf, &buf->mem, true);
-+	video->rwpf->mem = buf->mem;
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- 
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
-+static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	unsigned int i;
-+
-+	if (!pipe->dl)
-+		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+
-+	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-+		struct vsp1_rwpf *rwpf = pipe->inputs[i];
-+
-+		if (rwpf)
-+			vsp1_rwpf_set_memory(rwpf);
-+	}
-+
-+	if (!pipe->lif)
-+		vsp1_rwpf_set_memory(pipe->output);
-+
-+	vsp1_dl_list_commit(pipe->dl);
-+	pipe->dl = NULL;
-+
-+	vsp1_pipeline_run(pipe);
-+}
-+
- static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	enum vsp1_pipeline_state state;
-+	unsigned long flags;
- 	unsigned int i;
- 
- 	/* Complete buffers on all video nodes. */
-@@ -468,8 +495,22 @@ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 		vsp1_video_frame_end(pipe, pipe->inputs[i]);
- 	}
- 
--	if (!pipe->lif)
--		vsp1_video_frame_end(pipe, pipe->output);
-+	vsp1_video_frame_end(pipe, pipe->output);
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	state = pipe->state;
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+
-+	/* If a stop has been requested, mark the pipeline as stopped and
-+	 * return. Otherwise restart the pipeline if ready.
-+	 */
-+	if (state == VSP1_PIPELINE_STOPPING)
-+		wake_up(&pipe->wq);
-+	else if (vsp1_pipeline_ready(pipe))
-+		vsp1_video_pipeline_run(pipe);
-+
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -520,20 +561,15 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- 	if (vb->num_planes < format->num_planes)
- 		return -EINVAL;
- 
--	buf->mem.num_planes = vb->num_planes;
+-	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
+-	s5p_mfc_mem[1].base = lbase;
+-	s5p_mfc_mem[1].size = lsize;
 -
- 	for (i = 0; i < vb->num_planes; ++i) {
- 		buf->mem.addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
--		buf->mem.length[i] = vb2_plane_size(vb, i);
- 
--		if (buf->mem.length[i] < format->plane_fmt[i].sizeimage)
-+		if (vb2_plane_size(vb, i) < format->plane_fmt[i].sizeimage)
- 			return -EINVAL;
- 	}
- 
--	for ( ; i < 3; ++i) {
-+	for ( ; i < 3; ++i)
- 		buf->mem.addr[i] = 0;
--		buf->mem.length[i] = 0;
+-	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
+-		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
+-		if (memblock_remove(area->base, area->size)) {
+-			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
+-			       area->size, (unsigned long) area->base);
+-			area->base = 0;
+-		}
 -	}
- 
- 	return 0;
- }
-@@ -557,54 +593,74 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
--	vsp1_rwpf_set_memory(video->rwpf, &buf->mem, true);
-+	video->rwpf->mem = buf->mem;
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- 
- 	if (vb2_is_streaming(&video->queue) &&
- 	    vsp1_pipeline_ready(pipe))
--		vsp1_pipeline_run(pipe);
-+		vsp1_video_pipeline_run(pipe);
- 
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
-+static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+	int ret;
-+
-+	/* Prepare the display list. */
-+	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!pipe->dl)
-+		return -ENOMEM;
-+
-+	if (pipe->uds) {
-+		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
-+
-+		/* If a BRU is present in the pipeline before the UDS, the alpha
-+		 * component doesn't need to be scaled as the BRU output alpha
-+		 * value is fixed to 255. Otherwise we need to scale the alpha
-+		 * component only when available at the input RPF.
-+		 */
-+		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
-+			uds->scale_alpha = false;
-+		} else {
-+			struct vsp1_rwpf *rpf =
-+				to_rwpf(&pipe->uds_input->subdev);
-+
-+			uds->scale_alpha = rpf->fmtinfo->alpha;
-+		}
-+	}
-+
-+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+		vsp1_entity_route_setup(entity);
-+
-+		ret = v4l2_subdev_call(&entity->subdev, video, s_stream, 1);
-+		if (ret < 0)
-+			goto error;
-+	}
-+
-+	return 0;
-+
-+error:
-+	vsp1_dl_list_put(pipe->dl);
-+	pipe->dl = NULL;
-+
-+	return ret;
-+}
-+
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
--	struct vsp1_entity *entity;
- 	unsigned long flags;
- 	int ret;
- 
- 	mutex_lock(&pipe->lock);
- 	if (pipe->stream_count == pipe->num_inputs) {
--		if (pipe->uds) {
--			struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+-}
 -
--			/* If a BRU is present in the pipeline before the UDS,
--			 * the alpha component doesn't need to be scaled as the
--			 * BRU output alpha value is fixed to 255. Otherwise we
--			 * need to scale the alpha component only when available
--			 * at the input RPF.
--			 */
--			if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
--				uds->scale_alpha = false;
--			} else {
--				struct vsp1_rwpf *rpf =
--					to_rwpf(&pipe->uds_input->subdev);
+-int __init s5p_fdt_alloc_mfc_mem(unsigned long node, const char *uname,
+-				int depth, void *data)
+-{
+-	const __be32 *prop;
+-	int len;
+-	struct s5p_mfc_dt_meminfo mfc_mem;
 -
--				uds->scale_alpha = rpf->fmtinfo->alpha;
--			}
--		}
+-	if (!data)
+-		return 0;
 -
--		list_for_each_entry(entity, &pipe->entities, list_pipe) {
--			vsp1_entity_route_setup(entity);
+-	if (!of_flat_dt_is_compatible(node, data))
+-		return 0;
 -
--			ret = v4l2_subdev_call(&entity->subdev, video,
--					       s_stream, 1);
--			if (ret < 0) {
--				mutex_unlock(&pipe->lock);
--				return ret;
--			}
-+		ret = vsp1_video_setup_pipeline(pipe);
-+		if (ret < 0) {
-+			mutex_unlock(&pipe->lock);
-+			return ret;
- 		}
- 	}
- 
-@@ -613,7 +669,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 	if (vsp1_pipeline_ready(pipe))
--		vsp1_pipeline_run(pipe);
-+		vsp1_video_pipeline_run(pipe);
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- 
- 	return 0;
-@@ -633,6 +689,9 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
-+
-+		vsp1_dl_list_put(pipe->dl);
-+		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d1fad9effb9b..d889997b7948 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -157,9 +157,9 @@ static struct v4l2_subdev_ops wpf_ops = {
- 
- static void wpf_set_memory(struct vsp1_rwpf *wpf)
- {
--	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, wpf->buf_addr[0]);
--	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, wpf->buf_addr[1]);
--	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, wpf->buf_addr[2]);
-+	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, wpf->mem.addr[0]);
-+	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, wpf->mem.addr[1]);
-+	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, wpf->mem.addr[2]);
- }
- 
- static const struct vsp1_rwpf_operations wpf_vdev_ops = {
-@@ -200,13 +200,11 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
--	/* Initialize the display list manager if the WPF is used for display */
--	if ((vsp1->info->features & VSP1_HAS_LIF) && index == 0) {
--		wpf->dlm = vsp1_dlm_create(vsp1, index, 4);
--		if (!wpf->dlm) {
--			ret = -ENOMEM;
--			goto error;
--		}
-+	/* Initialize the display list manager. */
-+	wpf->dlm = vsp1_dlm_create(vsp1, index, 4);
-+	if (!wpf->dlm) {
-+		ret = -ENOMEM;
-+		goto error;
- 	}
- 
- 	/* Initialize the V4L2 subdev. */
+-	prop = of_get_flat_dt_prop(node, "samsung,mfc-l", &len);
+-	if (!prop || (len != 2 * sizeof(unsigned long)))
+-		return 0;
+-
+-	mfc_mem.loff = be32_to_cpu(prop[0]);
+-	mfc_mem.lsize = be32_to_cpu(prop[1]);
+-
+-	prop = of_get_flat_dt_prop(node, "samsung,mfc-r", &len);
+-	if (!prop || (len != 2 * sizeof(unsigned long)))
+-		return 0;
+-
+-	mfc_mem.roff = be32_to_cpu(prop[0]);
+-	mfc_mem.rsize = be32_to_cpu(prop[1]);
+-
+-	s5p_mfc_reserve_mem(mfc_mem.roff, mfc_mem.rsize,
+-			mfc_mem.loff, mfc_mem.lsize);
+-
+-	return 1;
+-}
 -- 
-2.4.10
+1.9.2
 
