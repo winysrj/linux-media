@@ -1,135 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29109 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933247AbbLHPRg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:17:36 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 2/3] libv4l2subdev: Add a function to list library supported pixel codes
-Date: Tue,  8 Dec 2015 17:15:15 +0200
-Message-Id: <1449587716-22954-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63277 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754449AbbLIOA3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 09:00:29 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 3/4] media: s5p-mfc: remove non-device-tree init code
+Date: Wed, 09 Dec 2015 15:00:15 +0100
+Message-id: <1449669616-24802-3-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
+References: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also mark which format definitions are compat definitions for the
-pre-existing codes. This way we don't end up listing the same formats
-twice.
+Exynos and Samsung S5Pxxxx platforms has been fully converted to device
+tree, so old platform device based init data can be now removed.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- utils/media-ctl/libv4l2subdev.c | 69 +++++++++++++++++++++++------------------
- utils/media-ctl/v4l2subdev.h    | 11 +++++++
- 2 files changed, 50 insertions(+), 30 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 37 +++++---------------------------
+ 1 file changed, 5 insertions(+), 32 deletions(-)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 5bcfe34..2cd8fd4 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -718,38 +718,39 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p)
- static struct {
- 	const char *name;
- 	enum v4l2_mbus_pixelcode code;
-+	bool compat;
- } mbus_formats[] = {
- #include "media-bus-formats.h"
--	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
--	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
--	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
--	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
--	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
--	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
--	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
--	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
--	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
--	{ "VUY24", MEDIA_BUS_FMT_VUY8_1X24 },
--	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8 },
--	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8 },
--	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8 },
--	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8 },
--	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10 },
--	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10 },
--	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10 },
--	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10 },
--	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8 },
--	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8 },
--	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8 },
--	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8 },
--	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12 },
--	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12 },
--	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12 },
--	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12 },
--	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32 },
--	{ "RBG24", MEDIA_BUS_FMT_RBG888_1X24 },
--	{ "RGB32", MEDIA_BUS_FMT_RGB888_1X32_PADHI },
--	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32 },
-+	{ "Y8", MEDIA_BUS_FMT_Y8_1X8, true },
-+	{ "Y10", MEDIA_BUS_FMT_Y10_1X10, true },
-+	{ "Y12", MEDIA_BUS_FMT_Y12_1X12, true },
-+	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16, true },
-+	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8, true },
-+	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8, true },
-+	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16, true },
-+	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8, true },
-+	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8, true },
-+	{ "VUY24", MEDIA_BUS_FMT_VUY8_1X24, true },
-+	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8, true },
-+	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8, true },
-+	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8, true },
-+	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8, true },
-+	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10, true },
-+	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10, true },
-+	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10, true },
-+	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10, true },
-+	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8, true },
-+	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8, true },
-+	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8, true },
-+	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8, true },
-+	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12, true },
-+	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12, true },
-+	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12, true },
-+	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12, true },
-+	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32, true },
-+	{ "RBG24", MEDIA_BUS_FMT_RBG888_1X24, true },
-+	{ "RGB32", MEDIA_BUS_FMT_RGB888_1X32_PADHI, true },
-+	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32, true },
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index bae7c0f..5d0a75e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1489,27 +1489,6 @@ static struct s5p_mfc_variant mfc_drvdata_v8 = {
+ 	.fw_name[0]     = "s5p-mfc-v8.fw",
  };
  
- const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
-@@ -823,3 +824,11 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+-static const struct platform_device_id mfc_driver_ids[] = {
+-	{
+-		.name = "s5p-mfc",
+-		.driver_data = (unsigned long)&mfc_drvdata_v5,
+-	}, {
+-		.name = "s5p-mfc-v5",
+-		.driver_data = (unsigned long)&mfc_drvdata_v5,
+-	}, {
+-		.name = "s5p-mfc-v6",
+-		.driver_data = (unsigned long)&mfc_drvdata_v6,
+-	}, {
+-		.name = "s5p-mfc-v7",
+-		.driver_data = (unsigned long)&mfc_drvdata_v7,
+-	}, {
+-		.name = "s5p-mfc-v8",
+-		.driver_data = (unsigned long)&mfc_drvdata_v8,
+-	},
+-	{},
+-};
+-MODULE_DEVICE_TABLE(platform, mfc_driver_ids);
+-
+ static const struct of_device_id exynos_mfc_match[] = {
+ 	{
+ 		.compatible = "samsung,mfc-v5",
+@@ -1531,24 +1510,18 @@ MODULE_DEVICE_TABLE(of, exynos_mfc_match);
+ static void *mfc_get_drv_data(struct platform_device *pdev)
+ {
+ 	struct s5p_mfc_variant *driver_data = NULL;
++	const struct of_device_id *match;
++
++	match = of_match_node(exynos_mfc_match, pdev->dev.of_node);
++	if (match)
++		driver_data = (struct s5p_mfc_variant *)match->data;
  
- 	return fields[i].field;
+-	if (pdev->dev.of_node) {
+-		const struct of_device_id *match;
+-		match = of_match_node(exynos_mfc_match,
+-				pdev->dev.of_node);
+-		if (match)
+-			driver_data = (struct s5p_mfc_variant *)match->data;
+-	} else {
+-		driver_data = (struct s5p_mfc_variant *)
+-			platform_get_device_id(pdev)->driver_data;
+-	}
+ 	return driver_data;
  }
-+
-+enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i)
-+{
-+	if (i >= ARRAY_SIZE(mbus_formats) || mbus_formats[i].compat)
-+		return (enum v4l2_mbus_pixelcode)-1;
-+
-+	return mbus_formats[i].code;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 104e420..ef8ef95 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -279,4 +279,15 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
- enum v4l2_field v4l2_subdev_string_to_field(const char *string,
- 					    unsigned int length);
  
-+/**
-+ * @brief Enumerate library supported media bus pixel codes.
-+ * @param i - index starting from zero
-+ *
-+ * Enumerate pixel codes supported by libv4l2subdev starting from
-+ * index 0.
-+ *
-+ * @return media bus pixelcode on success, -1 on failure.
-+ */
-+enum v4l2_mbus_pixelcode v4l2_subdev_pixelcode_list(unsigned int i);
-+
- #endif
+ static struct platform_driver s5p_mfc_driver = {
+ 	.probe		= s5p_mfc_probe,
+ 	.remove		= s5p_mfc_remove,
+-	.id_table	= mfc_driver_ids,
+ 	.driver	= {
+ 		.name	= S5P_MFC_NAME,
+ 		.pm	= &s5p_mfc_pm_ops,
 -- 
-2.1.0.231.g7484e3b
+1.9.2
 
