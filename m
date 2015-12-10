@@ -1,102 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55018 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932236AbbLECNH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:07 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:4189 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383AbbLJOAk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 09:00:40 -0500
+From: matrandg@cisco.com
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 10/32] v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
-Date: Sat,  5 Dec 2015 04:12:44 +0200
-Message-Id: <1449281586-25726-11-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Subject: [PATCH] tc358743: Print timings only when debug level is set
+Date: Thu, 10 Dec 2015 15:00:31 +0100
+Message-Id: <1449756031-456-1-git-send-email-matrandg@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make the pipeline structure and operations usable without video
-devices the frame end processing must be decoupled from struct
-vsp1_video. Implement this by calling the video frame end function
-indirectly through a function pointer in struct vsp1_pipeline.
+From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 25 +++++++++++++++++--------
- drivers/media/platform/vsp1/vsp1_video.h |  2 ++
- 2 files changed, 19 insertions(+), 8 deletions(-)
+ drivers/media/i2c/tc358743.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index e9c5682b0d74..8f9807e6a606 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -618,8 +618,9 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- }
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index cc38896..e9129d1 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -857,15 +857,16 @@ static void tc358743_format_change(struct v4l2_subdev *sd)
+ 	if (tc358743_get_detected_timings(sd, &timings)) {
+ 		enable_stream(sd, false);
  
- static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
--				 struct vsp1_video *video)
-+				 struct vsp1_rwpf *rwpf)
- {
-+	struct vsp1_video *video = rwpf->video;
- 	struct vsp1_vb2_buffer *buf;
- 	unsigned long flags;
+-		v4l2_dbg(1, debug, sd, "%s: Format changed. No signal\n",
++		v4l2_dbg(1, debug, sd, "%s: No signal\n",
+ 				__func__);
+ 	} else {
+ 		if (!v4l2_match_dv_timings(&state->timings, &timings, 0, false))
+ 			enable_stream(sd, false);
  
-@@ -635,21 +636,28 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
+-		v4l2_print_dv_timings(sd->name,
+-				"tc358743_format_change: Format changed. New format: ",
+-				&timings, false);
++		if (debug)
++			v4l2_print_dv_timings(sd->name,
++					"tc358743_format_change: New format: ",
++					&timings, false);
+ 	}
  
-+static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	unsigned int i;
-+
-+	/* Complete buffers on all video nodes. */
-+	for (i = 0; i < pipe->num_inputs; ++i)
-+		vsp1_video_frame_end(pipe, pipe->inputs[i]);
-+
-+	if (!pipe->lif)
-+		vsp1_video_frame_end(pipe, pipe->output);
-+}
-+
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
- 	enum vsp1_pipeline_state state;
- 	unsigned long flags;
--	unsigned int i;
- 
- 	if (pipe == NULL)
- 		return;
- 
--	/* Complete buffers on all video nodes. */
--	for (i = 0; i < pipe->num_inputs; ++i)
--		vsp1_video_frame_end(pipe, pipe->inputs[i]->video);
--
--	if (!pipe->lif)
--		vsp1_video_frame_end(pipe, pipe->output->video);
-+	/* Signal frame end to the pipeline handler. */
-+	pipe->frame_end(pipe);
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
-@@ -1227,6 +1235,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	INIT_LIST_HEAD(&video->pipe.entities);
- 	init_waitqueue_head(&video->pipe.wq);
- 	video->pipe.state = VSP1_PIPELINE_STOPPED;
-+	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
- 
- 	/* Initialize the media entity... */
- 	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index e9d0e1ab9162..b79fdaa7ebdc 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -70,6 +70,8 @@ struct vsp1_pipeline {
- 	enum vsp1_pipeline_state state;
- 	wait_queue_head_t wq;
- 
-+	void (*frame_end)(struct vsp1_pipeline *pipe);
-+
- 	struct mutex lock;
- 	unsigned int use_count;
- 	unsigned int stream_count;
+ 	if (sd->devnode)
 -- 
-2.4.10
+2.5.0
 
