@@ -1,297 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40132 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbbLNPoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 10:44:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	sakari.ailus@maxwell.research.nokia.com,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Subject: Re: vsp1 BUG_ON() and crash (Re: [PATCH v9 03/12] media: Entities, pads and links)
-Date: Mon, 14 Dec 2015 17:44:38 +0200
-Message-ID: <1790544.iFZb6bsyOS@avalon>
-In-Reply-To: <CAMuHMdXqNvTLtYQGogJQMwAtw2q_Ox4UTs_HZM1ODYpTR679hA@mail.gmail.com>
-References: <CAMuHMdXqNvTLtYQGogJQMwAtw2q_Ox4UTs_HZM1ODYpTR679hA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-io0-f173.google.com ([209.85.223.173]:36144 "EHLO
+	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753433AbbLJDEn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 22:04:43 -0500
+Received: by iofh3 with SMTP id h3so81718500iof.3
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2015 19:04:43 -0800 (PST)
+Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
+        by smtp.gmail.com with ESMTPSA id v85sm4429645ioi.20.2015.12.09.19.04.41
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Wed, 09 Dec 2015 19:04:41 -0800 (PST)
+From: Maury Markowitz <maury.markowitz@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: [PATCH] ca-ON-Toronto: adding scan file for Toronto, Canada
+Message-Id: <7963B923-0B4C-4FA6-847D-0D9C521C7DA0@gmail.com>
+Date: Wed, 9 Dec 2015 22:04:41 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+My second patch, you can be slightly less gentle now :-)
 
-On Monday 14 December 2015 14:59:38 Geert Uytterhoeven wrote:
-> On Mon, Feb 14, 2011 at 1:20 PM, Laurent Pinchart
-> 
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > +media_entity_create_link(struct media_entity *source, u16 source_pad,
-> > +                        struct media_entity *sink, u16 sink_pad, u32
-> > flags) +{
-> > +       struct media_link *link;
-> > +       struct media_link *backlink;
-> > +
-> > +       BUG_ON(source == NULL || sink == NULL);
-> > +       BUG_ON(source_pad >= source->num_pads);
-> > +       BUG_ON(sink_pad >= sink->num_pads);
-> 
-> This triggers on r8a7791/koelsch:
-> 
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 bru was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 hsi was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 hst was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 lut was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 rpf.0 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 rpf.1 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 rpf.2 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 rpf.3 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 rpf.4 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 sru was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 uds.0 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 uds.1 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 uds.2 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 wpf.0 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 wpf.1 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 wpf.2 was
-> not initialized!
->     vsp1 fe928000.vsp1: Entity type for entity fe928000.vsp1 wpf.3 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 bru was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 hsi was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 hst was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 lif was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 lut was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 rpf.0 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 rpf.1 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 rpf.2 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 rpf.3 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 uds.0 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 wpf.0 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 wpf.1 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 wpf.2 was
-> not initialized!
->     vsp1 fe930000.vsp1: Entity type for entity fe930000.vsp1 wpf.3 was
-> not initialized!
->     ------------[ cut here ]------------
->     kernel BUG at drivers/media/media-entity.c:521!
->     Internal error: Oops - BUG: 0 [#1] SMP ARM
->     CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 4.4.0-rc5-03225-g596de581263544d2 #400
->     Hardware name: Generic R8A7791 (Flattened Device Tree)
->     task: ee84fb40 ti: ee850000 task.ti: ee850000
->     PC is at media_create_pad_link+0x50/0x13c
->     LR is at vsp1_wpf_create_links+0x4c/0x54
->     pc : [<c034fd90>]    lr : [<c03761cc>]    psr: 60000013
->     sp : ee851d50  ip : ee851d80  fp : ee851d7c
->     r10: 00000001  r9 : ee9e9600  r8 : 00000000
->     r7 : ee111c80  r6 : 00000000  r5 : ee114a40  r4 : ee114b18
->     r3 : 00000000  r2 : ee114b18  r1 : 00000001  r0 : ee114a40
->     Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
->     Control: 10c5307d  Table: 4000406a  DAC: 00000051
->     Process swapper/0 (pid: 1, stack limit = 0xee850210)
->     Stack: (0xee851d50 to 0xee852000)
->     1d40:                                     00000000 ee111c10
-> ee114a10 ee111c90
->     1d60: ee111c80 ee9e9610 ee9e9600 ee111c98 ee851d94 ee851d80
-> c03761cc c034fd4c
->     1d80: 00000001 ee111c98 ee851de4 ee851d98 c03730c0 c037618c
-> 00000000 ee9eac00
->     1da0: ee111c10 ee851db0 00000000 ee114840 ee114c40 00000000
-> c071b678 00000000
->     1dc0: ee9e9610 c06d3414 c071b678 c06d3414 00000000 00000000
-> ee851e04 ee851de8
->     1de0: c028f2b0 c0372bbc c028f258 ee9e9610 c071b668 00000000
-> ee851e2c ee851e08
->     1e00: c028dd4c c028f264 ee9e9610 ee9e9644 c06d3414 c06cb3a8
-> c069e010 c06e2000
->     1e20: ee851e4c ee851e30 c028df04 c028dc1c 00000001 00000000
-> c06d3414 c028de94
->     1e40: ee851e74 ee851e50 c028c47c c028dea0 ee884f5c ee9e7bb4
-> ee884f70 c06d3414
->     1e60: 00000000 eeaeb980 ee851e84 ee851e78 c028e138 c028c414
-> ee851eac ee851e88
->     1e80: c028cc18 c028e124 c0646a6b ee851e98 c06d3414 c0681dc8
-> 00000000 c069e010
->     1ea0: ee851ec4 ee851eb0 c028e848 c028cb50 ee0bd380 c0681dc8
-> ee851ed4 ee851ec8
->     1ec0: c028fcbc c028e7b0 ee851ee4 ee851ed8 c0681de0 c028fc90
-> ee851f5c ee851ee8
->     1ee0: c0664df8 c0681dd4 ee851f0c ee851ef8 c0664604 c01c94bc
-> efffcc00 efffcc10
->     1f00: ee851f5c ee851f10 c003f90c c06645f4 00000000 c0661740
-> c0661740 00000006
->     1f20: 00000006 000000b6 c0660908 efffcc38 ee851f5c 00000006
-> 00000006 000000b6
->     1f40: c069e83c c06aad08 c06e2000 c06e2000 ee851f94 ee851f60
-> c0664fd4 c0664cfc
->     1f60: 00000006 00000006 00000000 c06645e8 00000000 c04e752c
-> 00000000 00000000
->     1f80: 00000000 00000000 ee851fac ee851f98 c04e753c c0664eb8
-> ee850000 00000000
->     1fa0: 00000000 ee851fb0 c000fe98 c04e7538 00000000 00000000
-> 00000000 00000000
->     1fc0: 00000000 00000000 00000000 00000000 00000000 00000000
-> 00000000 00000000
->     1fe0: 00000000 00000000 00000000 00000000 00000013 00000000
-> 00000000 00000000
->     Backtrace:
->     [<c034fd40>] (media_create_pad_link) from [<c03761cc>]
-> (vsp1_wpf_create_links+0x4c/0x54)
->      r10:ee111c98 r9:ee9e9600 r8:ee9e9610 r7:ee111c80 r6:ee111c90
-> r5:ee114a10 r4:ee111c10 r3:00000000
->     [<c0376180>] (vsp1_wpf_create_links) from [<c03730c0>]
-> (vsp1_probe+0x510/0x700)
->     [<c0372bb0>] (vsp1_probe) from [<c028f2b0>]
-> (platform_drv_probe+0x58/0xa8) r10:00000000 r9:00000000 r8:c06d3414
-> r7:c071b678 r6:c06d3414 r5:ee9e9610 r4:00000000
-> 
-> While bisecting, I arrived at a NULL pointer dereference:
-> 
->         Unable to handle kernel NULL pointer dereference at virtual
-> address 00000250
->         pgd = c0004000
->         [00000250] *pgd=00000000
->         Internal error: Oops: 5 [#1] SMP ARM
->         CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-> 4.4.0-rc2-00170-gf9836d92a3c8c143 #417
->         ata1: SATA link down (SStatus 0 SControl 300)
->         Hardware name: Generic R8A7791 (Flattened Device Tree)
->         task: ee84fb40 ti: ee850000 task.ti: ee850000
->         PC is at media_gobj_init+0x20/0x68
->         LR is at media_entity_create_link+0xe4/0x108
->         pc : [<c0342428>]    lr : [<c0342a80>]    psr: 60000013
->         sp : ee851d10  ip : ee851d20  fp : ee851d1c
->         r10: 00000000  r9 : ee103890  r8 : 00000000
->         r7 : ee159920  r6 : ee103740  r5 : ee103840  r4 : ee159840
->         r3 : 00000003  r2 : ee103840  r1 : 00000002  r0 : 00000000
->         Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
->         Control: 10c5307d  Table: 4000406a  DAC: 00000051
->         Process swapper/0 (pid: 1, stack limit = 0xee850210)
->         Stack: (0xee851d10 to 0xee852000)
->         1d00:                                     ee851d4c ee851d20
-> c0342a80 c0342414
->         1d20: 00000000 ee159810 00000000 ee159840 ee159910 00000000
-> ee9e6800 ee102898
->         1d40: ee851d94 ee851d50 c036506c c03429a8 00000003 00000000
-> 000000ff 00000000
->         1d60: 00000001 00000000 000000ff 00000000 c0366740 ee102810
-> ee102890 00000000
->         1d80: ee102858 ee9e6810 ee851de4 ee851d98 c0362a44 c0364ef4
-> 00000080 ee9e8f00
->         1da0: ee102810 ee851db0 c012bcac ee9e6810 ee9e6810 c06b1f88
-> c06e76b4 00000000
->         1dc0: ee9e6810 c06b1f88 c06e76b4 00000000 c06b1f88 00000000
-> ee851e04 ee851de8
->         1de0: c0285b14 c0362694 c0285abc ee9e6810 00000000 c06e76a8
-> ee851e2c ee851e08
->         1e00: c028457c c0285ac8 ee9e6810 ee9e6844 c06b1f88 c06aab38
-> c067d010 c06c1000
->         1e20: ee851e4c ee851e30 c0284770 c028446c 00000001 00000000
-> c06b1f88 c0284700
->         1e40: ee851e74 ee851e50 c0282d78 c028470c ee884f5c ee9e4cb4
-> ee884f70 c06b1f88
->         1e60: 00000000 ee9c4700 ee851e84 ee851e78 c028499c c0282d10
-> ee851eac ee851e88
->         1e80: c0283514 c0284988 c0627e00 ee851e98 c06b1f88 c06618a8
-> 00000000 c067d010
->         1ea0: ee851ec4 ee851eb0 c02850ac c028344c eea9a200 c06618a8
-> ee851ed4 ee851ec8
->         1ec0: c02864e0 c0285014 ee851ee4 ee851ed8 c06618c0 c02864b4
-> ee851f5c ee851ee8
->         1ee0: c0644df8 c06618b4 ee851f0c ee851ef8 c0644604 c01c91bc
-> efffcc00 efffcc10
->         1f00: ee851f5c ee851f10 c003f908 c06445f4 00000000 c0641c1c
-> c0641c1c 00000006
->         1f20: 00000006 000000b1 c0640e48 efffcc38 ee851f5c 00000006
-> 00000006 000000b1
->         1f40: c067d83c c0689c84 c06c1000 c06c1000 ee851f94 ee851f60
-> c0644fd4 c0644cfc
->         1f60: 00000006 00000006 00000000 c06445e8 00000000 c04d00ac
-> 00000000 00000000
->         1f80: 00000000 00000000 ee851fac ee851f98 c04d00bc c0644eb8
-> ee850000 00000000
->         1fa0: 00000000 ee851fb0 c000fe98 c04d00b8 00000000 00000000
-> 00000000 00000000
->         1fc0: 00000000 00000000 00000000 00000000 00000000 00000000
-> 00000000 00000000
->         1fe0: 00000000 00000000 00000000 00000000 00000013 00000000
-> 00000000 00000000
->         Backtrace:
->         [<c0342408>] (media_gobj_init) from [<c0342a80>]
-> (media_entity_create_link+0xe4/0x108)
->         [<c034299c>] (media_entity_create_link) from [<c036506c>]
-> (vsp1_rpf_create+0x184/0x1c8)
->          r10:ee102898 r9:ee9e6800 r8:00000000 r7:ee159910 r6:ee159840
-> r5:00000000
->          r4:ee159810 r3:00000000
->         [<c0364ee8>] (vsp1_rpf_create) from [<c0362a44>]
-> (vsp1_probe+0x3bc/0x6c0)
->          r8:ee9e6810 r7:ee102858 r6:00000000 r5:ee102890 r4:ee102810
->         [<c0362688>] (vsp1_probe) from [<c0285b14>]
-> (platform_drv_probe+0x58/0xa8)
->          r10:00000000 r9:c06b1f88 r8:00000000 r7:c06e76b4 r6:c06b1f88
-> r5:ee9e6810
->          r4:00000000
-> 
-> The NULL pointer dereference was introduced by:
-> 
->         commit f9836d92a3c8c143c6f5fe89c558c37767628fa6
->         Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->         Date:   Fri Aug 14 12:54:36 2015 -0300
-> 
->             [media] media: use media_gobj inside links
+This is a scan listing for the Toronto area, along with some of the harder to get signals. I was unsure how to enter the NTSC (analog) signals so I commented them out.
 
-I assume that's caused by the linux-media next branch containing the media-
-controller branch. The latter is a work in progress branch and is not ready 
-for mainline.
+---
+ atsc/ca-ON-Toronto | 200 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 200 insertions(+)
+ create mode 100644 atsc/ca-ON-Toronto
 
-> and triggers until the following commit, after which the BUG_ON() takes
-> over:
-> 
->         commit eb9e998983338811c3328294ed2f093367161df1
->         Author: Javier Martinez Canillas <javier@osg.samsung.com>
->         Date:   Thu Sep 3 12:19:25 2015 -0300
-> 
->             [media] v4l: vsp1: separate links creation from entities init
-
-Mauro, this is another proof that rebasing the branch is required. The fixes 
-need to be squashed into the commits that introduce them. And, of course, the 
-bug that occurs here should be fixed.
-
+diff --git a/atsc/ca-ON-Toronto b/atsc/ca-ON-Toronto
+new file mode 100644
+index 0000000..3923f64
+--- /dev/null
++++ b/atsc/ca-ON-Toronto
+@@ -0,0 +1,200 @@
++#------------------------------------------------------------------------------
++# location			   : Toronto, ON, Canada
++# provider			   : OTA
++# date (yyyy-mm-dd)    : 2015-12-09
++# provided by (opt)    : maury.markowitz@gmail.com
++#------------------------------------------------------------------------------
++#
++# The following list are the main channels available in Toronto, including
++# both local channels as well as those from the US in the Buffalo area.
++# More distant stations like Rochester and Syracuse are listed below
++#
++#------------------------------------------------------------------------------
++# CFTO, Toronto CTV, physical channel 9, virtual channel 9, 17.4 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 189028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WUTV, Buffalo FOX, physical channel 14, virtual channel 29, 1000 kW, 981' tower, 43.025612 -78.928373
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 473028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CHCH, Hamilton independent, physical channel 15, virtual channel 11, 132 kW, unknown tower, 43.207500 -79.774167
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 479028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CICA, Toronto TVO, physical channel 19, virtual channel 19, 106.5 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 503028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CBLT, Toronto CBC, physical channel 20, virtual channel 5, 38 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 509028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CBLFT, Toronto CBC French, physical channel 25, virtual channel 25, 2.5 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 539028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WNLO, Buffalo CW, physical channel 32, virtual channel 23, 1000 kW, 994' tower, 43.030057 -78.920594
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 581028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WGRZ, Buffalo NBC, physical channel 33, virtual channel 2, 480 kW, 968' tower, 42.718671 -78.562801
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 587028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CHCJ, Hamilton CTV Two, physical channel 35, virtual channel 35, 390 kW, unknown tower, 43.231667 -79.859167
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 599028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CITS, Hamilton CTS, physical channel 36, virtual channel 36, 5 kW, unknown tower, 43.207500 -79.774167
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 605028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WKBW, Buffalo ABC, physical channel 38, virtual channel 7, 358 kW, 1420' tower, 42.637505 -78.619719
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 611028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WIVB, Buffalo CBS, physical channel 39, virtual channel 4, 790 kW, 1368' tower, 42.659227 -78.625581
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 623028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CJMT, Toronto Omni, physical channel 40, virtual channel 40, 19.5 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 629028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CIII, Toronto Global, physical channel 41, virtual channel 41, 38 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 635028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WNED, Buffalo PBS, physical channel 43, virtual channel 17, 473 kW, 1110' tower, 43.207500 -79.774167
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 647028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CITY, Toronto independent, physical channel 44, virtual channel 57, 21 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 653028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CFMT, Toronto Omni 2, physical channel 47, virtual channel 47, 22.2 kW, 1611' CN tower, 43.642500 -79.387222
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 671028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WNYO, Buffalo MyN, physical channel 49, virtual channel 49, 198 kW, 946' tower, 42.782838 -78.457521
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 683028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++#------------------------------------------------------------------------------
++#
++# The following stations are much more difficult to receive from the Toronto
++# area, either weaker transmitters, being at odd angles, or are further from
++# the Toronto area
++#
++#------------------------------------------------------------------------------
++
++# WBBZ, Buffalo MeTV, physical channel 7, virtual channel 67, 26.9 kW, unknown tower, 42.567839 -78.723083
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 177028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CKVR, Barrie A, physical channel 10, virtual channel 10, 11 kW, 1611' CN tower, 44.351389 -79.698333
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 195028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CHEX, Peterborough CBC, physical channel 12, virtual channel 12, 20 kW, unknown tower, 44.328056 -78.299444
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 207028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WPXJ, Batavia ION, physical channel 23, virtual channel 51, 455 kW, unknown tower, 42.895061 -78.015288
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 527028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# WYNB, Buffalo independent, physical channel 26, virtual channel 26, 243 kW, unknown tower, 42.393392 -79.228653
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 545028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++# CKVP, St. Catherine's TVO, physical channel 42, virtual channel 42, 11 kW, 496' tower, 43.051667 -79.300833
++[CHANNEL]
++	DELIVERY_SYSTEM = ATSC
++	FREQUENCY = 641028615
++	MODULATION = VSB/8
++	INVERSION = AUTO
++
++#------------------------------------------------------------------------------
++#
++# The following stations are NTSC analog
++#
++#------------------------------------------------------------------------------
++
++# CHEX, Courtice CBC, physical channel 22, virtual channel 22, 6 kW, unknown tower, 43.954167 -78.806389
++#[CHANNEL]
++#	DELIVERY_SYSTEM = ATSC
++#	FREQUENCY = 521028615
++#	MODULATION = VSB/8
++#	INVERSION = AUTO
 -- 
-Regards,
+2.5.4 (Apple Git-61)
 
-Laurent Pinchart
 
