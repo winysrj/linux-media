@@ -1,83 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:28071 "EHLO
-	relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751538AbbLKIna (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 03:43:30 -0500
-Message-ID: <566A8CAF.9080200@rvc.renesas.com>
-Date: Fri, 11 Dec 2015 15:43:27 +0700
-From: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59568 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752999AbbLJSYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 13:24:42 -0500
+Date: Thu, 10 Dec 2015 16:24:37 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: Re: [PATCH 02/18] [media] au0828: add support for the connectors
+Message-ID: <20151210162437.51e716cf@recife.lan>
+In-Reply-To: <55F2EBD2.2010603@xs4all.nl>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+	<03ff3c6c6ee5ddc03ddbfd3f0da5bb4a4f13c8a6.1441559233.git.mchehab@osg.samsung.com>
+	<55F2EBD2.2010603@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>,
-	Toru Oishi <toru.oishi.zj@rvc.renesas.com>
-Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdW13=rftd1HOWBGcjH8aYCjyGZ0u60TkVeTif7+HFuwsQ@mail.gmail.com> <3938053.0568U3PJkY@avalon>
-In-Reply-To: <3938053.0568U3PJkY@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Fri, 11 Sep 2015 16:57:22 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 12/6/2015 5:54 AM, Laurent Pinchart wrote:
-> Hi Geert,
->
-> On Saturday 05 December 2015 11:57:49 Geert Uytterhoeven wrote:
->> On Sat, Dec 5, 2015 at 3:12 AM, Laurent Pinchart wrote:
->>> This patch set adds support for the Renesas R-Car Gen3 SoC family to the
->>> VSP1 driver. The large number of patches is caused by a change in the
->>> display controller architecture that makes usage of the VSP mandatory as
->>> the display controller has lost the ability to read data from memory.
->>>
->>> Patch 01/32 to 27/32 prepare for the implementation of an API exported to
->>> the DRM driver in patch 28/32. Patches 31/32 enables support for the
->>> R-Car Gen3 family, and patch 32/32 finally enhances perfomances by
->>> implementing support for display lists.
->>>
->>> The major change compared to v1 is the usage of the IP version register
->>> instead of DT properties to configure device parameters such as the number
->>> of BRU inputs or the availability of the BRU.
->>
->> Thanks for your series!
->>
->> As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112 is
->> getting old, and has lots of conflicts with recent -next, do you plan to
->> publish this in a branch, and a separate branch for integration, to ease
->> integration in renesas-drivers?
->>
->> Alternatively, I can just import the series you posted, but having the
->> broken-out integration part would be nice.
->
-> The issue I'm facing is that there's more than just two series. Beside the
-> base VSP patches from this series, I have a series of DRM patches that depend
-> on this one, a series of V4L2 core patches, another series of VSP patches that
-> I still need to finish and a bunch of integration patches. As some of these
-> have dependencies on H3 CCF support that hasn't landed in Simon's tree yet, I
-> have merged your topic/cpg-mssr-v6 and topic/r8a7795-drivers-sh-v1 branches
-> into my tree for development.
->
-> I could keep all series in separate branches and merge the two topic branches
-> last, but that's not very handy during development when I have to continuously
-> rebase my patches. Is there a way I could handle this that would make your
-> life easier while not making mine more difficult ?
->
-> In the meantime I've pushed vsp1-kms-20151206 to
-> git://linuxtv.org/pinchartl/media.git.
+> On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
+> > Depending on the input, an au0828 may have a different
+> > number of connectors. add entities to represent them.
+> 
+> Hmm, this patch uses the new connector defines that are only added in patch 6!
+> So this doesn't compile.
 
-I failed to confirm DU (VGA port) with above branch.
+It is compiling fine here, perhaps due to some patch reorder during one
+of the hundreds of rebase that this long patch series the needed
+patch was moved already.
 
-To make DU (VGA port) work,
-it seems I need to merge more branches like topic/cpg-mssr-v6
-and topic/r8a7795-drivers-sh-v1 branches from renesas-drivers repo, is 
-it correct ?
+> 
+> Is there a reason why the connector support is needed now? I would prefer to have
+> this in a separate follow-up patch series.
 
-Thanks.
+Better to add those connectors earlier than later, as we need to
+double check that the ALSA patches that Shuah did will work fine
+also for the Composite/S-Video cases.
 
--- 
-Best regards,
-KHIEM Nguyen
+Regards,
+Mauro
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> > index f54c7d10f350..fe9a60484343 100644
+> > --- a/drivers/media/usb/au0828/au0828-core.c
+> > +++ b/drivers/media/usb/au0828/au0828-core.c
+> > @@ -153,11 +153,26 @@ static void au0828_usb_release(struct au0828_dev *dev)
+> >  }
+> >  
+> >  #ifdef CONFIG_VIDEO_AU0828_V4L2
+> > +
+> > +static void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
+> > +{
+> > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > +	int i;
+> > +
+> > +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+> > +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+> > +			return;
+> > +		media_device_unregister_entity(&dev->input_ent[i]);
+> > +	}
+> > +#endif
+> > +}
+> > +
+> >  static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
+> >  {
+> >  	struct au0828_dev *dev =
+> >  		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
+> >  
+> > +	au0828_usb_v4l2_media_release(dev);
+> >  	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
+> >  	v4l2_device_unregister(&dev->v4l2_dev);
+> >  	au0828_usb_release(dev);
+> > diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> > index 4511e2893282..806b8d320bae 100644
+> > --- a/drivers/media/usb/au0828/au0828-video.c
+> > +++ b/drivers/media/usb/au0828/au0828-video.c
+> > @@ -1793,6 +1793,69 @@ static int au0828_vb2_setup(struct au0828_dev *dev)
+> >  	return 0;
+> >  }
+> >  
+> > +static void au0828_analog_create_entities(struct au0828_dev *dev)
+> > +{
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +	static const char *inames[] = {
+> > +		[AU0828_VMUX_COMPOSITE] = "Composite",
+> > +		[AU0828_VMUX_SVIDEO] = "S-Video",
+> > +		[AU0828_VMUX_CABLE] = "Cable TV",
+> > +		[AU0828_VMUX_TELEVISION] = "Television",
+> > +		[AU0828_VMUX_DVB] = "DVB",
+> > +		[AU0828_VMUX_DEBUG] = "tv debug"
+> > +	};
+> > +	int ret, i;
+> > +
+> > +	/* Initialize Video and VBI pads */
+> > +	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
+> > +	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
+> > +	if (ret < 0)
+> > +		pr_err("failed to initialize video media entity!\n");
+> > +
+> > +	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
+> > +	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
+> > +	if (ret < 0)
+> > +		pr_err("failed to initialize vbi media entity!\n");
+> > +
+> > +	/* Create entities for each input connector */
+> > +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+> > +		struct media_entity *ent = &dev->input_ent[i];
+> > +
+> > +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+> > +			break;
+> > +
+> > +		ent->name = inames[AUVI_INPUT(i).type];
+> > +		ent->flags = MEDIA_ENT_FL_CONNECTOR;
+> > +		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
+> > +
+> > +		switch(AUVI_INPUT(i).type) {
+> > +		case AU0828_VMUX_COMPOSITE:
+> > +			ent->type = MEDIA_ENT_T_CONN_COMPOSITE;
+> > +			break;
+> > +		case AU0828_VMUX_SVIDEO:
+> > +			ent->type = MEDIA_ENT_T_CONN_SVIDEO;
+> > +			break;
+> > +		case AU0828_VMUX_CABLE:
+> > +		case AU0828_VMUX_TELEVISION:
+> > +		case AU0828_VMUX_DVB:
+> > +			ent->type = MEDIA_ENT_T_CONN_RF;
+> > +			break;
+> > +		default: /* AU0828_VMUX_DEBUG */
+> > +			ent->type = MEDIA_ENT_T_CONN_TEST;
+> > +			break;
+> > +		}
+> > +
+> > +		ret = media_entity_init(ent, 1, &dev->input_pad[i]);
+> > +		if (ret < 0)
+> > +			pr_err("failed to initialize input pad[%d]!\n", i);
+> > +
+> > +		ret = media_device_register_entity(dev->media_dev, ent);
+> > +		if (ret < 0)
+> > +			pr_err("failed to register input entity %d!\n", i);
+> > +	}
+> > +#endif
+> > +}
+> > +
+> >  /**************************************************************************/
+> >  
+> >  int au0828_analog_register(struct au0828_dev *dev,
+> > @@ -1881,17 +1944,8 @@ int au0828_analog_register(struct au0828_dev *dev,
+> >  	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
+> >  	strcpy(dev->vbi_dev.name, "au0828a vbi");
+> >  
+> > -#if defined(CONFIG_MEDIA_CONTROLLER)
+> > -	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
+> > -	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
+> > -	if (ret < 0)
+> > -		pr_err("failed to initialize video media entity!\n");
+> > -
+> > -	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
+> > -	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
+> > -	if (ret < 0)
+> > -		pr_err("failed to initialize vbi media entity!\n");
+> > -#endif
+> > +	/* Init entities at the Media Controller */
+> > +	au0828_analog_create_entities(dev);
+> >  
+> >  	/* initialize videobuf2 stuff */
+> >  	retval = au0828_vb2_setup(dev);
+> > diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+> > index d3644b3fe6fa..b7940c54d006 100644
+> > --- a/drivers/media/usb/au0828/au0828.h
+> > +++ b/drivers/media/usb/au0828/au0828.h
+> > @@ -93,7 +93,6 @@ struct au0828_board {
+> >  	unsigned char has_ir_i2c:1;
+> >  	unsigned char has_analog:1;
+> >  	struct au0828_input input[AU0828_MAX_INPUT];
+> > -
+> >  };
+> >  
+> >  struct au0828_dvb {
+> > @@ -281,6 +280,8 @@ struct au0828_dev {
+> >  	struct media_device *media_dev;
+> >  	struct media_pad video_pad, vbi_pad;
+> >  	struct media_entity *decoder;
+> > +	struct media_entity input_ent[AU0828_MAX_INPUT];
+> > +	struct media_pad input_pad[AU0828_MAX_INPUT];
+> >  #endif
+> >  };
+> >  
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
