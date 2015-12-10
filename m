@@ -1,265 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39293 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:58811 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032AbbLLP3F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:29:05 -0500
-Date: Sat, 12 Dec 2015 13:29:00 -0200
+	id S1751106AbbLJLhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 06:37:38 -0500
+Date: Thu, 10 Dec 2015 09:37:32 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 15/22] v4l: omap3isp: Use media entity enumeration
- API
-Message-ID: <20151212132900.74c1327a@recife.lan>
-In-Reply-To: <1448824823-10372-16-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-16-git-send-email-sakari.ailus@iki.fi>
+Subject: Re: [PATCH 05/18] [media] media-controller: enable all interface
+ links at init
+Message-ID: <20151210093732.650344b5@recife.lan>
+In-Reply-To: <29585066.DcXagjeG5R@avalon>
+References: <cover.1441559233.git.mchehab@osg.samsung.com>
+	<2ddddaaaecbdbf624441793ca4c57e81530eaf05.1441559233.git.mchehab@osg.samsung.com>
+	<29585066.DcXagjeG5R@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 29 Nov 2015 21:20:16 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Em Mon, 23 Nov 2015 21:46:53 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
--ENODESCRIPTION!
-
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Hi Mauro,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/platform/omap3isp/isp.c      | 21 +++++++++++++--------
->  drivers/media/platform/omap3isp/isp.h      |  5 +++--
->  drivers/media/platform/omap3isp/ispccdc.c  |  2 +-
->  drivers/media/platform/omap3isp/ispvideo.c | 20 ++++++++++++++------
->  drivers/media/platform/omap3isp/ispvideo.h |  4 ++--
->  5 files changed, 33 insertions(+), 19 deletions(-)
+> Thank you for the patch.
 > 
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 4a01a36..61c128e 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -896,7 +896,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
->  	 * starting entities if the pipeline won't start anyway (those entities
->  	 * would then likely fail to stop, making the problem worse).
->  	 */
-> -	if (pipe->entities & isp->crashed)
-> +	if (media_entity_enum_intersects(&pipe->entities, &isp->crashed))
->  		return -EIO;
->  
->  	spin_lock_irqsave(&pipe->lock, flags);
-> @@ -989,7 +989,6 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
->  	struct v4l2_subdev *subdev;
->  	int failure = 0;
->  	int ret;
-> -	u32 id;
->  
->  	/*
->  	 * We need to stop all the modules after CCDC first or they'll
-> @@ -1041,10 +1040,9 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
->  		if (ret) {
->  			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
->  			isp->stop_failure = true;
-> -			if (subdev == &isp->isp_prev.subdev) {
-> -				id = media_entity_id(&subdev->entity);
-> -				isp->crashed |= 1U << id;
-> -			}
-> +			if (subdev == &isp->isp_prev.subdev)
-> +				media_entity_enum_set(&isp->crashed,
-> +						      &subdev->entity);
->  			failure = -ETIMEDOUT;
->  		}
->  	}
-> @@ -1250,7 +1248,7 @@ static int isp_reset(struct isp_device *isp)
->  	}
->  
->  	isp->stop_failure = false;
-> -	isp->crashed = 0;
-> +	media_entity_enum_zero(&isp->crashed);
->  	return 0;
->  }
->  
-> @@ -1661,7 +1659,8 @@ static void __omap3isp_put(struct isp_device *isp, bool save_ctx)
->  		/* Reset the ISP if an entity has failed to stop. This is the
->  		 * only way to recover from such conditions.
->  		 */
-> -		if (isp->crashed || isp->stop_failure)
-> +		if (!media_entity_enum_empty(&isp->crashed) ||
-> +		    isp->stop_failure)
->  			isp_reset(isp);
->  		isp_disable_clocks(isp);
->  	}
-> @@ -2201,6 +2200,8 @@ static int isp_remove(struct platform_device *pdev)
->  	isp_detach_iommu(isp);
->  	__omap3isp_put(isp, false);
->  
-> +	media_entity_enum_cleanup(&isp->crashed);
-> +
->  	return 0;
->  }
->  
-> @@ -2348,6 +2349,10 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
->  	struct isp_bus_cfg *bus;
->  	int ret;
->  
-> +	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-> +	if (ret)
-> +		return ret;
-> +
->  	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
->  		/* Only try to link entities whose interface was set on bound */
->  		if (sd->host_priv) {
-> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-> index b6f81f2..6a1288d 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -17,6 +17,7 @@
->  #ifndef OMAP3_ISP_CORE_H
->  #define OMAP3_ISP_CORE_H
->  
-> +#include <media/media-entity.h>
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <linux/clk-provider.h>
-> @@ -152,7 +153,7 @@ struct isp_xclk {
->   * @stat_lock: Spinlock for handling statistics
->   * @isp_mutex: Mutex for serializing requests to ISP.
->   * @stop_failure: Indicates that an entity failed to stop.
-> - * @crashed: Bitmask of crashed entities (indexed by entity ID)
-> + * @crashed: Crashed entities
->   * @has_context: Context has been saved at least once and can be restored.
->   * @ref_count: Reference count for handling multiple ISP requests.
->   * @cam_ick: Pointer to camera interface clock structure.
-> @@ -195,7 +196,7 @@ struct isp_device {
->  	spinlock_t stat_lock;	/* common lock for statistic drivers */
->  	struct mutex isp_mutex;	/* For handling ref_count field */
->  	bool stop_failure;
-> -	u32 crashed;
-> +	struct media_entity_enum crashed;
->  	int has_context;
->  	int ref_count;
->  	unsigned int autoidle;
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-> index f0e530c..80cf550 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -1608,7 +1608,7 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
->  	/* Wait for the CCDC to become idle. */
->  	if (ccdc_sbl_wait_idle(ccdc, 1000)) {
->  		dev_info(isp->dev, "CCDC won't become idle!\n");
-> -		isp->crashed |= 1U << media_entity_id(&ccdc->subdev.entity);
-> +		media_entity_enum_set(&isp->crashed, &ccdc->subdev.entity);
->  		omap3isp_pipeline_cancel_stream(pipe);
->  		return 0;
->  	}
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index e68ec2f..9358740 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -241,7 +241,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
->  		struct isp_video *__video;
->  
-> -		pipe->entities |= 1 << media_entity_id(entity);
-> +		media_entity_enum_set(&pipe->entities, entity);
->  
->  		if (far_end != NULL)
->  			continue;
-> @@ -899,7 +899,6 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->  	struct v4l2_ext_control ctrl;
->  	unsigned int i;
->  	int ret;
-> -	u32 id;
->  
->  	/* Memory-to-memory pipelines have no external subdev. */
->  	if (pipe->input != NULL)
-> @@ -907,7 +906,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->  
->  	for (i = 0; i < ARRAY_SIZE(ents); i++) {
->  		/* Is the entity part of the pipeline? */
-> -		if (!(pipe->entities & (1 << media_entity_id(ents[i]))))
-> +		if (!media_entity_enum_test(&pipe->entities, ents[i]))
->  			continue;
->  
->  		/* ISP entities have always sink pad == 0. Find source. */
-> @@ -959,8 +958,8 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
->  
->  	pipe->external_rate = ctrl.value64;
->  
-> -	id = media_entity_id(&isp->isp_ccdc.subdev.entity);
-> -	if (pipe->entities & (1 << id)) {
-> +	if (media_entity_enum_test(&pipe->entities,
-> +				   &isp->isp_ccdc.subdev.entity)) {
->  		unsigned int rate = UINT_MAX;
->  		/*
->  		 * Check that maximum allowed CCDC pixel rate isn't
-> @@ -1026,7 +1025,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	pipe = video->video.entity.pipe
->  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
->  
-> -	pipe->entities = 0;
-> +	ret = media_entity_enum_init(&pipe->entities, &video->isp->media_dev);
-> +	if (ret)
-> +		goto err_enum_init;
->  
->  	/* TODO: Implement PM QoS */
->  	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-> @@ -1100,6 +1101,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	}
->  
->  	mutex_unlock(&video->stream_lock);
-> +
->  	return 0;
->  
->  err_set_stream:
-> @@ -1120,7 +1122,11 @@ err_pipeline_start:
->  	INIT_LIST_HEAD(&video->dmaqueue);
->  	video->queue = NULL;
->  
-> +	media_entity_enum_cleanup(&pipe->entities);
-> +
-> +err_enum_init:
->  	mutex_unlock(&video->stream_lock);
-> +
->  	return ret;
->  }
->  
-> @@ -1172,6 +1178,8 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
->  	/* TODO: Implement PM QoS */
->  	media_entity_pipeline_stop(&video->video.entity);
->  
-> +	media_entity_enum_cleanup(&pipe->entities);
-> +
->  done:
->  	mutex_unlock(&video->stream_lock);
->  	return 0;
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-> index 6c498ea..9f08492 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.h
-> +++ b/drivers/media/platform/omap3isp/ispvideo.h
-> @@ -80,7 +80,7 @@ enum isp_pipeline_state {
->   * struct isp_pipeline - An ISP hardware pipeline
->   * @field: The field being processed by the pipeline
->   * @error: A hardware error occurred during capture
-> - * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
-> + * @entities: Entities in the pipeline
->   */
->  struct isp_pipeline {
->  	struct media_pipeline pipe;
-> @@ -89,7 +89,7 @@ struct isp_pipeline {
->  	enum isp_pipeline_stream_state stream_state;
->  	struct isp_video *input;
->  	struct isp_video *output;
-> -	u32 entities;
-> +	struct media_entity_enum entities;
+> On Sunday 06 September 2015 14:30:48 Mauro Carvalho Chehab wrote:
+> > Interface links are normally enabled, meaning that the interfaces are
+> > bound to the entities. So, any ioctl send to the interface are reflected
+> 
+> s/send/sent/
+> 
+> > at the entities managed by the interface.
+> > 
+> > However, when a device is usage, other interfaces for the same hardware
+> 
+> s/usage/in use/
+> 
+> > could be decoupled from the entities linked to them, because the
+> > hardware may have some parts busy.
+> > 
+> > That's for example, what happens when an hybrid TV device is in usage.
+> 
+> s/usage/use/
+> 
+> > If it is streaming analog TV or capturing signals from S-Video/Composite
+> > connectors, typically the digital part of the hardware can't be used and
+> > vice-versa.
+> > 
+> > This is generally due to some internal hardware or firmware limitation,
+> > that it is not easily mapped via data pipelines.
+> > 
+> > What the Kernel drivers do internally is that they decouple the hardware
+> > from the interface. So, all changes, if allowed, are done only at some
+> > interface cache, but not physically changed at the hardware.
+> > 
+> > The usage is similar to the usage of the MEDIA_LNK_FL_ENABLED on data
+> > links. So, let's use the same flag to indicate if ether the interface
+> 
+> s/ether/either/
+> 
+> > to entity link is bound/enabled or not.
+> 
+> I believe we'll need to experiment with the interface links to see what's 
+> really needed there. As a general rule I'd like to avoid exposing too much 
+> information to userspace without a clear indication that the information is 
+> actually needed, as it's always easier to expose additional information later 
+> than to remove information already exposed.
+> 
+> For this reason I'd like to see as a first step how we would do in userspace 
+> without making those links dynamic. If we then realize that we're lacking 
+> information we'll decide on the best course of action and on exactly what to 
+> expose and how to expose it, using concrete userspace use cases.
 
-Please don't use "entities" for a media_entity_enum type.
-Call it as ent_enum or something else that let the type
-clearer.
+As discussed during MC workshop, the need of marking an interface link as
+active or not is because, on complex devices like hybrid TV ones, typically
+either the analog side of the digital side of the device is disabled.
 
+So, for example, if an hybrid device is working in digital mode, any
+change done via the V4L2 interfaces should not be applied to the hardware.
+The interface should either cache such changes to be applied the next
+time the device would switch to analog mode or return EBUSY.
 
->  	unsigned long l3_ick;
->  	unsigned int max_rate;
->  	enum v4l2_field field;
+In other words, the link between the interface and the hardware entities
+are disabled.
+
+This is needed internally at the MC representation of the hardware
+(and one of the main reasons why we need MC on hybrid devices).
+
+Applications also need such information, as, except for a couple
+applications:
+	- xawtv4, (with is not a popular one)
+	- mythTV
+All other open source applications I'm aware of are either digital only
+or analog only and some radio applications even run as applets.
+
+So, the user may have more than one application running at the same time,
+being one active and the other would need to report that it cannot be
+activated because the device is busy.
+
+So, this change is actually needed.
+
+Anyway, I'm splitting this patch in two parts: one for DVB and another
+one for V4L, as I'm reordering some patches on the final rebase due
+to some troubles detected with KASAN and DEBUG_KMEMLEAK, and splitting
+it avoids merge conflicts.
+
+> 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/dvb-core/dvbdev.c
+> > b/drivers/media/dvb-core/dvbdev.c index a8e7e2398f7a..5c4fb41060b4 100644
+> > --- a/drivers/media/dvb-core/dvbdev.c
+> > +++ b/drivers/media/dvb-core/dvbdev.c
+> > @@ -396,7 +396,8 @@ static void dvb_register_media_device(struct dvb_device
+> > *dvbdev, if (!dvbdev->entity || !dvbdev->intf_devnode)
+> >  		return;
+> > 
+> > -	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
+> > +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
+> > +			       MEDIA_LNK_FL_ENABLED);
+> > 
+> >  #endif
+> >  }
+> > @@ -583,20 +584,24 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
+> >  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca 
+> */
+> > media_device_for_each_intf(intf, mdev) {
+> >  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
+> > -			media_create_intf_link(ca, intf, 0);
+> > +			media_create_intf_link(ca, intf, MEDIA_LNK_FL_ENABLED);
+> > 
+> >  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
+> > -			media_create_intf_link(tuner, intf, 0);
+> > +			media_create_intf_link(tuner, intf,
+> > +					       MEDIA_LNK_FL_ENABLED);
+> > 
+> >  		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
+> > -			media_create_intf_link(demux, intf, 0);
+> > +			media_create_intf_link(demux, intf,
+> > +					       MEDIA_LNK_FL_ENABLED);
+> > 
+> >  		media_device_for_each_entity(entity, mdev) {
+> >  			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
+> >  				if (!strcmp(entity->name, DVR_TSOUT))
+> > -					media_create_intf_link(entity, intf, 0);
+> > +					media_create_intf_link(entity, intf,
+> > +							       MEDIA_LNK_FL_ENABLED);
+> >  				if (!strcmp(entity->name, DEMUX_TSOUT))
+> > -					media_create_intf_link(entity, intf, 0);
+> > +					media_create_intf_link(entity, intf,
+> > +							       MEDIA_LNK_FL_ENABLED);
+> >  				break;
+> >  			}
+> >  		}
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> > b/drivers/media/v4l2-core/v4l2-dev.c index 07123dd569c4..8429da66754a
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -788,7 +788,8 @@ static int video_register_media_controller(struct
+> > video_device *vdev, int type) struct media_link *link;
+> > 
+> >  		link = media_create_intf_link(&vdev->entity,
+> > -					      &vdev->intf_devnode->intf, 0);
+> > +					      &vdev->intf_devnode->intf,
+> > +					      MEDIA_LNK_FL_ENABLED);
+> >  		if (!link) {
+> >  			media_devnode_remove(vdev->intf_devnode);
+> >  			media_device_unregister_entity(&vdev->entity);
+> > diff --git a/drivers/media/v4l2-core/v4l2-device.c
+> > b/drivers/media/v4l2-core/v4l2-device.c index e788a085ba96..bb58d90fde5e
+> > 100644
+> > --- a/drivers/media/v4l2-core/v4l2-device.c
+> > +++ b/drivers/media/v4l2-core/v4l2-device.c
+> > @@ -256,7 +256,7 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device
+> > *v4l2_dev)
+> > 
+> >  			link = media_create_intf_link(&sd->entity,
+> >  						      &vdev->intf_devnode->intf,
+> > -						      0);
+> > +						      MEDIA_LNK_FL_ENABLED);
+> >  			if (!link)
+> >  				goto clean_up;
+> >  		}
+> 
