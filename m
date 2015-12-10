@@ -1,320 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933390AbbLQIlL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34729 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751341AbbLJNV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:11 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 31/48] v4l: subdev: Support the request API in format and selection operations
-Date: Thu, 17 Dec 2015 10:40:09 +0200
-Message-Id: <1450341626-6695-32-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 10 Dec 2015 08:21:28 -0500
+Date: Thu, 10 Dec 2015 15:21:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: [v4l-utils PATCH 1/1] Allow building static binaries
+Message-ID: <20151210132124.GK17128@valkosipuli.retiisi.org.uk>
+References: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Store the formats and selection rectangles in per-entity request data.
-This minimizes changes to drivers by reusing the v4l2_subdev_pad_config
-infrastructure.
+Hi Gregor,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 225 +++++++++++++++++++++++++---------
- include/media/v4l2-subdev.h           |  11 ++
- 2 files changed, 181 insertions(+), 55 deletions(-)
+I discussed with Hans and he thought you'd be the best person to take a look
+at this.
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index c9f507afe5ec..cea6a549ee1c 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -128,39 +128,184 @@ static int subdev_close(struct file *file)
- }
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--static int check_format(struct v4l2_subdev *sd,
--			struct v4l2_subdev_format *format)
-+static void subdev_request_data_release(struct media_entity_request_data *data)
- {
--	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--		return -EINVAL;
-+	struct v4l2_subdev_request_data *sddata =
-+		to_v4l2_subdev_request_data(data);
- 
--	if (format->pad >= sd->entity.num_pads)
--		return -EINVAL;
-+	kfree(sddata->pad);
-+	kfree(sddata);
-+}
- 
--	return 0;
-+static struct v4l2_subdev_pad_config *
-+subdev_request_pad_config(struct v4l2_subdev *sd,
-+			  struct media_device_request *req)
-+{
-+	struct media_entity_request_data *data;
-+	struct v4l2_subdev_request_data *sddata;
-+
-+	data = media_device_request_get_entity_data(req, &sd->entity);
-+	if (data) {
-+		sddata = to_v4l2_subdev_request_data(data);
-+		return sddata->pad;
-+	}
-+
-+	sddata = kzalloc(sizeof(*sddata), GFP_KERNEL);
-+	if (!sddata)
-+		return ERR_PTR(-ENOMEM);
-+
-+	sddata->data.release = subdev_request_data_release;
-+
-+	sddata->pad = v4l2_subdev_alloc_pad_config(sd);
-+	if (sddata->pad == NULL) {
-+		kfree(sddata);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	media_device_request_set_entity_data(req, &sd->entity, &sddata->data);
-+
-+	return sddata->pad;
- }
- 
--static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
-+static int subdev_prepare_pad_config(struct v4l2_subdev *sd,
-+				     struct v4l2_subdev_fh *fh,
-+				     enum v4l2_subdev_format_whence which,
-+				     unsigned int pad, unsigned int req_id,
-+				     struct media_device_request **_req,
-+				     struct v4l2_subdev_pad_config **_cfg)
- {
--	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+
-+	if (pad >= sd->entity.num_pads)
- 		return -EINVAL;
- 
--	if (crop->pad >= sd->entity.num_pads)
-+
-+	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+		*_req = NULL;
-+		*_cfg = NULL;
-+		return 0;
-+	}
-+
-+	if (which == V4L2_SUBDEV_FORMAT_TRY) {
-+		*_req = NULL;
-+		*_cfg = fh->pad;
-+		return 0;
-+	}
-+
-+	if (which != V4L2_SUBDEV_FORMAT_REQUEST)
- 		return -EINVAL;
- 
-+	if (!sd->v4l2_dev->mdev)
-+		return -EINVAL;
-+
-+	req = media_device_request_find(sd->v4l2_dev->mdev, req_id);
-+	if (!req)
-+		return -EINVAL;
-+
-+	cfg = subdev_request_pad_config(sd, req);
-+	if (IS_ERR(cfg)) {
-+		media_device_request_put(req);
-+		return PTR_ERR(cfg);
-+	}
-+
-+	*_req = req;
-+	*_cfg = cfg;
-+
- 	return 0;
- }
- 
--static int check_selection(struct v4l2_subdev *sd,
--			   struct v4l2_subdev_selection *sel)
-+static int subdev_get_format(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_format *format)
- {
--	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
-+					format->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, get_fmt, cfg, format);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_set_format(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
-+					format->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, set_fmt, cfg, format);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_get_selection(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh,
-+				struct v4l2_subdev_selection *sel)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
-+					sel->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, get_selection, cfg, sel);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_set_selection(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh,
-+				struct v4l2_subdev_selection *sel)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
-+					sel->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, set_selection, cfg, sel);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
-+{
-+	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return -EINVAL;
- 
--	if (sel->pad >= sd->entity.num_pads)
-+	if (crop->pad >= sd->entity.num_pads)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -256,25 +401,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	}
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	case VIDIOC_SUBDEV_G_FMT: {
--		struct v4l2_subdev_format *format = arg;
-+	case VIDIOC_SUBDEV_G_FMT:
-+		return subdev_get_format(sd, subdev_fh, arg);
- 
--		rval = check_format(sd, format);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
--	}
--
--	case VIDIOC_SUBDEV_S_FMT: {
--		struct v4l2_subdev_format *format = arg;
--
--		rval = check_format(sd, format);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
--	}
-+	case VIDIOC_SUBDEV_S_FMT:
-+		return subdev_set_format(sd, subdev_fh, arg);
- 
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-@@ -379,27 +510,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 					fie);
- 	}
- 
--	case VIDIOC_SUBDEV_G_SELECTION: {
--		struct v4l2_subdev_selection *sel = arg;
--
--		rval = check_selection(sd, sel);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(
--			sd, pad, get_selection, subdev_fh->pad, sel);
--	}
--
--	case VIDIOC_SUBDEV_S_SELECTION: {
--		struct v4l2_subdev_selection *sel = arg;
--
--		rval = check_selection(sd, sel);
--		if (rval)
--			return rval;
-+	case VIDIOC_SUBDEV_G_SELECTION:
-+		return subdev_get_selection(sd, subdev_fh, arg);
- 
--		return v4l2_subdev_call(
--			sd, pad, set_selection, subdev_fh->pad, sel);
--	}
-+	case VIDIOC_SUBDEV_S_SELECTION:
-+		return subdev_set_selection(sd, subdev_fh, arg);
- 
- 	case VIDIOC_G_EDID: {
- 		struct v4l2_subdev_edid *edid = arg;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index c97935455669..c3437776cb5f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -808,6 +808,17 @@ static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cf
- {
- 	kfree(cfg);
- }
-+
-+struct v4l2_subdev_request_data {
-+	struct media_entity_request_data data;
-+	struct v4l2_subdev_pad_config *pad;
-+};
-+
-+static inline struct v4l2_subdev_request_data *
-+to_v4l2_subdev_request_data(struct media_entity_request_data *data)
-+{
-+	return container_of(data, struct v4l2_subdev_request_data, data);
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd,
+The case is that I'd like to build static binaries and that doesn't seem to
+work with what's in Makefile.am for libv4l1 and libv4l2 at the moment.
+
+Thanks.
+
+On Tue, Dec 08, 2015 at 05:18:21PM +0200, Sakari Ailus wrote:
+> 	$ LDFLAGS="--static -static" ./configure --enable-static
+> 	$ LDFLAGS=-static make
+> 
+> can be used to create static binaries. The issue was that shared libraries
+> were attempted to link statically which naturally failed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  lib/libv4l1/Makefile.am | 3 +--
+>  lib/libv4l2/Makefile.am | 3 +--
+>  2 files changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/lib/libv4l1/Makefile.am b/lib/libv4l1/Makefile.am
+> index 005ae10..c325390 100644
+> --- a/lib/libv4l1/Makefile.am
+> +++ b/lib/libv4l1/Makefile.am
+> @@ -23,7 +23,6 @@ libv4l1_la_LIBADD = ../libv4l2/libv4l2.la
+>  v4l1compat_la_SOURCES = v4l1compat.c
+>  
+>  v4l1compat_la_LIBADD = libv4l1.la
+> -v4l1compat_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+> -v4l1compat_la_LIBTOOLFLAGS = --tag=disable-static
+> +v4l1compat_la_LDFLAGS = -avoid-version -module -export-dynamic
+>  
+>  EXTRA_DIST = libv4l1-kernelcode-license.txt
+> diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
+> index b6f4d3b..878ccd9 100644
+> --- a/lib/libv4l2/Makefile.am
+> +++ b/lib/libv4l2/Makefile.am
+> @@ -22,7 +22,6 @@ libv4l2_la_LIBADD = ../libv4lconvert/libv4lconvert.la
+>  
+>  v4l2convert_la_SOURCES = v4l2convert.c
+>  v4l2convert_la_LIBADD = libv4l2.la
+> -v4l2convert_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
+> -v4l2convert_la_LIBTOOLFLAGS = --tag=disable-static
+> +v4l2convert_la_LDFLAGS = -avoid-version -module -export-dynamic
+>  
+>  EXTRA_DIST = Android.mk v4l2-plugin-android.c
+> -- 
+> 2.1.0.231.g7484e3b
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-2.4.10
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
