@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54220 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbbLXLrw (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:58659 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751054AbbLJKF1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2015 06:47:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH v2 2/2] media: adv7604: update timings on change of input signal
-Date: Thu, 24 Dec 2015 13:47:47 +0200
-Message-ID: <1491106.CZOxgP2rDa@avalon>
-In-Reply-To: <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Thu, 10 Dec 2015 05:05:27 -0500
+Date: Thu, 10 Dec 2015 07:57:33 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Maury Markowitz <maury.markowitz@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: dtv-scan-table has two ATSC files?
+Message-ID: <20151210075733.4abdcd16@recife.lan>
+In-Reply-To: <BF55C1DA-2E39-4ACA-92C0-4E512E10196F@gmail.com>
+References: <201512081149525312370@gmail.com>
+	<56687B09.4050004@kapsi.fi>
+	<BF55C1DA-2E39-4ACA-92C0-4E512E10196F@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Em Wed, 9 Dec 2015 20:04:57 -0500
+Maury Markowitz <maury.markowitz@gmail.com> escreveu:
 
-(With a question for Hans below)
-
-Thank you for the patch.
-
-On Tuesday 22 December 2015 15:22:02 Ulrich Hecht wrote:
-> Without this, .get_selection will always return the boot-time state.
+> I’m making some updates to the ATSC dtv-scan-tables. Two questions:
 > 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 8ad5c28..dcd659b 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1945,6 +1945,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32
-> status, bool *handled) u8 fmt_change_digital;
->  	u8 fmt_change;
->  	u8 tx_5v;
-> +	int ret;
-> 
->  	if (irq_reg_0x43)
->  		io_write(sd, 0x44, irq_reg_0x43);
-> @@ -1968,6 +1969,14 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32
-> status, bool *handled)
-> 
->  		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
-> 
-> +		/* update timings */
-> +		ret = adv76xx_query_dv_timings(sd, &state->timings);
+> 1)
+> Why do we have "us-ATSC-center-frequencies-8VSB” *and* "us-NTSC-center-frequencies-8VSB”? They appear to be identical. The later could, theoretically, list NTSC encoded channels instead of 8VSB, but doesn’t actually do that. Suggest removing it?
 
-I'm not too familiar with the DV timings API, but I'm not sure this is 
-correct. This would result in g_dv_timings returning the detected timings, 
-while we have the dedicated query_dv_timings operation for that. Hans, could 
-you comment on this ? How do query_dv_timings and g_dv_timings interact ? The 
-API documentation isn't very clear about that.
+Hmm... maybe we could, instead, keep one of them as a "complete" ATSC 
+possible channel list, and the other ones with the unregulated channels
+stripped.
 
-> +		if (ret == -ENOLINK) {
-> +			/* no signal, fall back to default timings */
-> +			state->timings = (struct v4l2_dv_timings)
-> +				V4L2_DV_BT_CEA_640X480P59_94;
-> +		}
-> +
->  		if (handled)
->  			*handled = true;
->  	}
+> 
+> 2)
+> A number of the channel listings in those files have not been used for television use for several years now. Specifically channels 2 to 6 and everything from 51 and up were long ago sold off to cell phone use.
+> 
+> Additionally, channel 37 was *never* used, at least in the US and Canada, because it interfered with radio astronomy (IIRC it was sitting on one of the Lyman lines).
 
--- 
+For terrestrial TV, those are unused, but perhaps the ATSC/NTSC
+channeling might still be used by some cable operator.
+
+Also, those channeling files work on other Countries outside America,
+like South Korea.
+
+> 
+> Since scanning through all of these channels will no longer work, perhaps it would be time to remove them? It reduces the total scan list from 80 channels to only 45, and would greatly improve scan times.--
+
+I rename one of the files to "us-ATSC-T-center-frequencies-8VSB" with just
+the channels that are actually regulated for terrestrial (air) broadcast,
+and keep the other file renamed to let is be clearer. Something like:
+"us-ATSC-C-center-frequencies-8VSB" or even keeping it named as 
+"us-NTSC-center-frequencies-8VSB".
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
