@@ -1,169 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933291AbbLQIlC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:02 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 22/48] media: Add per-file-handle data support
-Date: Thu, 17 Dec 2015 10:40:00 +0200
-Message-Id: <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59036 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752631AbbLJOk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 09:40:59 -0500
+Date: Thu, 10 Dec 2015 12:40:54 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] [media] staging/davinci_vfpe: allow modular build
+Message-ID: <20151210124054.3c527f11@recife.lan>
+In-Reply-To: <2029571.PWO4DcqdUl@wuerfel>
+References: <2029571.PWO4DcqdUl@wuerfel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media devnode core associates devnodes with files by storing the
-devnode pointer in the file structure private_data field. In order to
-allow tracking of per-file-handle data introduce a new media devnode
-file handle structure that stores the devnode pointer, and store a
-pointer to that structure in the file private_data field.
+Em Thu, 10 Dec 2015 15:29:38 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Users of the media devnode code (the only existing user being
-media_device) are responsible for managing their own subclass of the
-media_devnode_fh structure.
+> It has never been possible to actually build this driver as
+> a loadable module, only built-in because the Makefile attempts
+> to build each file into its own module and fails:
+> 
+> ERROR: "mbus_to_pix" [drivers/staging/media/davinci_vpfe/vpfe_video.ko] undefined!
+> ERROR: "vpfe_resizer_register_entities" [drivers/staging/media/davinci_vpfe/vpfe_mc_capture.ko] undefined!
+> ERROR: "rsz_enable" [drivers/staging/media/davinci_vpfe/dm365_resizer.ko] undefined!
+> ERROR: "config_ipipe_hw" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
+> ERROR: "ipipe_set_lutdpc_regs" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
+> 
+> It took a long time to catch this bug with randconfig builds
+> because at least 14 other Kconfig symbols have to be enabled in
+> order to configure this one.
+> 
+> The solution is really easy: this patch changes the Makefile to
+> link all files into one module.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
+> index c64515c644cd..3019c9ecd548 100644
+> --- a/drivers/staging/media/davinci_vpfe/Makefile
+> +++ b/drivers/staging/media/davinci_vpfe/Makefile
+> @@ -1,3 +1,5 @@
+> -obj-$(CONFIG_VIDEO_DM365_VPFE) += \
+> +obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
+> +
+> +davinci-vfpe-objs := \
+>  	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
+>  	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/media-device.c  | 22 ++++++++++++++++++++++
- drivers/media/media-devnode.c | 19 +++++++++----------
- include/media/media-devnode.h | 18 +++++++++++++++++-
- 3 files changed, 48 insertions(+), 11 deletions(-)
+That seems a bad signal to me... I guess either this driver was never
+actually tested or it was tested only if compiled as built-in...
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7b39440192d6..285f7d79d848 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -24,23 +24,45 @@
- #include <linux/export.h>
- #include <linux/ioctl.h>
- #include <linux/media.h>
-+#include <linux/slab.h>
- #include <linux/types.h>
- 
- #include <media/media-device.h>
- #include <media/media-devnode.h>
- #include <media/media-entity.h>
- 
-+struct media_device_fh {
-+	struct media_devnode_fh fh;
-+};
-+
-+static inline struct media_device_fh *media_device_fh(struct file *filp)
-+{
-+	return container_of(filp->private_data, struct media_device_fh, fh);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Userspace API
-  */
- 
- static int media_device_open(struct file *filp)
- {
-+	struct media_device_fh *fh;
-+
-+	fh = kzalloc(sizeof(*media_device_fh), GFP_KERNEL);
-+	if (!fh)
-+		return -ENOMEM;
-+
-+	filp->private_data = &fh->fh;
-+
- 	return 0;
- }
- 
- static int media_device_close(struct file *filp)
- {
-+	struct media_device_fh *fh = media_device_fh(filp);
-+
-+	kfree(fh);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index ebf9626e5ae5..67bac29838d3 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -154,6 +154,7 @@ static long media_compat_ioctl(struct file *filp, unsigned int cmd,
- /* Override for the open function */
- static int media_open(struct inode *inode, struct file *filp)
- {
-+	struct media_devnode_fh *fh;
- 	struct media_devnode *mdev;
- 	int ret;
- 
-@@ -175,16 +176,15 @@ static int media_open(struct inode *inode, struct file *filp)
- 	get_device(&mdev->dev);
- 	mutex_unlock(&media_devnode_lock);
- 
--	filp->private_data = mdev;
--
--	if (mdev->fops->open) {
--		ret = mdev->fops->open(filp);
--		if (ret) {
--			put_device(&mdev->dev);
--			return ret;
--		}
-+	ret = mdev->fops->open(filp);
-+	if (ret) {
-+		put_device(&mdev->dev);
-+		return ret;
- 	}
- 
-+	fh = filp->private_data;
-+	fh->devnode = mdev;
-+
- 	return 0;
- }
- 
-@@ -193,8 +193,7 @@ static int media_release(struct inode *inode, struct file *filp)
- {
- 	struct media_devnode *mdev = media_devnode_data(filp);
- 
--	if (mdev->fops->release)
--		mdev->fops->release(filp);
-+	mdev->fops->release(filp);
- 
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index 17ddae32060d..ce81047cb4fc 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -52,6 +52,20 @@ struct media_file_operations {
- };
- 
- /**
-+ * struct media_devnode_fh - Media device node file handle
-+ * @devnode:	pointer to the media device node
-+ *
-+ * This structure serves as a base for per-file-handle data storage. Media
-+ * device node users embed media_devnode_fh in their custom file handle data
-+ * structures and store the media_devnode_fh in the file private_data in order
-+ * to let the media device node core locate the media_devnode corresponding to a
-+ * file handle.
-+ */
-+struct media_devnode_fh {
-+	struct media_devnode *devnode;
-+};
-+
-+/**
-  * struct media_devnode - Media device node
-  * @fops:	pointer to struct media_file_operations with media device ops
-  * @dev:	struct device pointer for the media controller device
-@@ -92,7 +106,9 @@ void media_devnode_unregister(struct media_devnode *mdev);
- 
- static inline struct media_devnode *media_devnode_data(struct file *filp)
- {
--	return filp->private_data;
-+	struct media_devnode_fh *fh = filp->private_data;
-+
-+	return fh->devnode;
- }
- 
- static inline int media_devnode_is_registered(struct media_devnode *mdev)
--- 
-2.4.10
-
+Regards,
+Mauro
