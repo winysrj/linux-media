@@ -1,52 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43211 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965086AbbLOKJG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 05:09:06 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] [media] media-entity: use mutes for link setup
-Date: Tue, 15 Dec 2015 08:08:38 -0200
-Message-Id: <0a8b9468b9da5f5d4177446696a91ce4099354d0.1450174116.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from bear.ext.ti.com ([192.94.94.41]:46731 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751855AbbLJOpA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 09:45:00 -0500
+Subject: Re: [PATCH] [media] staging/davinci_vfpe: allow modular build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>
+References: <2029571.PWO4DcqdUl@wuerfel> <20151210124054.3c527f11@recife.lan>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Sekhar Nori <nsekhar@ti.com>
+Message-ID: <56698FC9.5080209@ti.com>
+Date: Thu, 10 Dec 2015 20:14:25 +0530
+MIME-Version: 1.0
+In-Reply-To: <20151210124054.3c527f11@recife.lan>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset f8fd4c61b5ae ("[media] media-entity: protect object
-creation/removal using spin lock") changed the object creation/removal
-protection to spin lock, as this is what's used on media-device,
-keeping the mutex reserved for graph traversal routines. However, it
-also changed the link setup, by mistake.
+On Thursday 10 December 2015 08:10 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 10 Dec 2015 15:29:38 +0100
+> Arnd Bergmann <arnd@arndb.de> escreveu:
+> 
+>> It has never been possible to actually build this driver as
+>> a loadable module, only built-in because the Makefile attempts
+>> to build each file into its own module and fails:
+>>
+>> ERROR: "mbus_to_pix" [drivers/staging/media/davinci_vpfe/vpfe_video.ko] undefined!
+>> ERROR: "vpfe_resizer_register_entities" [drivers/staging/media/davinci_vpfe/vpfe_mc_capture.ko] undefined!
+>> ERROR: "rsz_enable" [drivers/staging/media/davinci_vpfe/dm365_resizer.ko] undefined!
+>> ERROR: "config_ipipe_hw" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
+>> ERROR: "ipipe_set_lutdpc_regs" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
+>>
+>> It took a long time to catch this bug with randconfig builds
+>> because at least 14 other Kconfig symbols have to be enabled in
+>> order to configure this one.
+>>
+>> The solution is really easy: this patch changes the Makefile to
+>> link all files into one module.
+>>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>
+>> diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
+>> index c64515c644cd..3019c9ecd548 100644
+>> --- a/drivers/staging/media/davinci_vpfe/Makefile
+>> +++ b/drivers/staging/media/davinci_vpfe/Makefile
+>> @@ -1,3 +1,5 @@
+>> -obj-$(CONFIG_VIDEO_DM365_VPFE) += \
+>> +obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
+>> +
+>> +davinci-vfpe-objs := \
+>>  	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
+>>  	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
+>>
+> 
+> That seems a bad signal to me... I guess either this driver was never
+> actually tested or it was tested only if compiled as built-in...
 
-This could cause troubles, as the link setup can affect the graph
-traversal, and this is likely the reason for a mutex there.
+Most likely the later is true.
 
-So, revert media_entity_setup_link() to use mutex.
++ Prabhakar to see if he remembers.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5d871b243e87..29810f9b86ce 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -662,9 +662,9 @@ int media_entity_setup_link(struct media_link *link, u32 flags)
- {
- 	int ret;
- 
--	spin_lock(&link->source->entity->graph_obj.mdev->lock);
-+	mutex_lock(&link->graph_obj.mdev->graph_mutex);
- 	ret = __media_entity_setup_link(link, flags);
--	spin_unlock(&link->source->entity->graph_obj.mdev->lock);
-+	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
- 
- 	return ret;
- }
--- 
-2.5.0
-
+Thanks,
+Sekhar
