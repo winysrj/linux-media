@@ -1,151 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60433 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:58739 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752514AbbL1PhV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 10:37:21 -0500
-Subject: Re: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	id S1752166AbbLJKuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 05:50:15 -0500
+Date: Thu, 10 Dec 2015 08:50:09 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
 	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5681572F.601@osg.samsung.com>
-Date: Mon, 28 Dec 2015 08:37:19 -0700
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Tommi Franttila <tommi.franttila@intel.com>
+Subject: Re: [PATCH] [media] v4l2-core: create MC interfaces for devnodes
+Message-ID: <20151210085009.47756e5a@recife.lan>
+In-Reply-To: <6acbad49047e51a12d6186a6cb563d5d058e5104.1449743222.git.mchehab@osg.samsung.com>
+References: <6acbad49047e51a12d6186a6cb563d5d058e5104.1449743222.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/28/2015 07:03 AM, Mauro Carvalho Chehab wrote:
-> There are a few discussions left with regards to this ioctl:
+Em Thu, 10 Dec 2015 08:32:21 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+
+> V4L2 device (and subdevice) nodes should create an interface, if the
+> Media Controller support is enabled.
 > 
-> 1) the name of the new structs will contain _v2_ on it?
-> 2) what's the best alternative to avoid compat32 issues?
+> Please notice that radio devices should not create an entity, as radio
+> input/output is either via wires or via ALSA.
 > 
-> Due to that, let's postpone the addition of this new ioctl to
-> the next Kernel version, to give people more time to discuss it.
-
-I thought we discussed this in our irc meeting and
-arrived at a good solution for compat32 issue
-
-My recommendation is getting this ioctl into 4.5 with
-a warning that it could change. The reason for that is
-that this ioctl helps with testing the media controller
-v2 api. Without this API, we won't see much testing from
-userspace in 4.5
-
-Maybe I am missing something, but I do think the benefits
-of having this iooctl, I hope outweighs the negatives of
-exposing this ioctl to use-space if it includes a warning.
-
-thanks,
--- Shuah
+> PS.: Before this patch, au0828 should remove the media_device earlier.
+> However, after the core changes, this should be postponed, otherwise
+> an OOPS occurs. So, fold the au0828 changes on this patch.
 > 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > ---
 > 
-> Resending the patch, as the first one were sent to the wrong ML. Also, add the
-> relevant parties to the Cc of thiis patch.
+> PS.: I'm adding this patch just after "media-device: remove interfaces and interface links".
 > 
->  Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
->  drivers/media/media-device.c                             | 5 ++++-
->  include/uapi/linux/media.h                               | 6 +++++-
->  3 files changed, 12 insertions(+), 2 deletions(-)
+> It prevents some troubles with DEBUG_KMEMLEAK and KASAN, with makes
+> them to hang the Kernel during physical device removal (or device driver
+> removal). Without this, we get this error:
 > 
-> diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-> index e0d49fa329f0..63152ab9efba 100644
-> --- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-> +++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-> @@ -48,6 +48,9 @@
->  
->    <refsect1>
->      <title>Description</title>
-> +
-> +    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
-> +
->      <para>The typical usage of this ioctl is to call it twice.
->      On the first call, the structure defined at &media-v2-topology; should
->      be zeroed. At return, if no errors happen, this ioctl will return the
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 4d1c13de494b..900124c04e9a 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
->  	return ret;
->  }
->  
-> +#if 0 /* Let's postpone it to Kernel 4.6 */
->  static long __media_device_get_topology(struct media_device *mdev,
->  				      struct media_v2_topology *topo)
->  {
-> @@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
->  
->  	return 0;
->  }
-> +#endif
->  
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  			       unsigned long arg)
-> @@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->  		mutex_unlock(&dev->graph_mutex);
->  		break;
->  
-> +#if 0 /* Let's postpone it to Kernel 4.6 */
->  	case MEDIA_IOC_G_TOPOLOGY:
->  		mutex_lock(&dev->graph_mutex);
->  		ret = media_device_get_topology(dev,
->  				(struct media_v2_topology __user *)arg);
->  		mutex_unlock(&dev->graph_mutex);
->  		break;
-> -
-> +#endif
->  	default:
->  		ret = -ENOIOCTLCMD;
->  	}
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 5dbb208e5451..1e3c8cb43bd7 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -286,7 +286,7 @@ struct media_links_enum {
->   *	  later, before the adding this API upstream.
->   */
->  
-> -
-> +#if 0 /* Let's postpone it to Kernel 4.6 */
->  struct media_v2_entity {
->  	__u32 id;
->  	char name[64];		/* FIXME: move to a property? (RFC says so) */
-> @@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
->  {
->  	return (void __user *)(uintptr_t)arg;
->  }
-> +#endif
->  
->  /* ioctls */
->  
-> @@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
->  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
->  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
->  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-> +
-> +#if 0 /* Let's postpone it to Kernel 4.6 */
->  #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
-> +#endif
->  
->  #endif /* __LINUX_MEDIA_H */
-> 
+> 	kasan: GPF could be caused by NULL-ptr deref or user memory accessgeneral protection fault: 0000 [#1] SMP KASAN
 
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Sorry, I ended by sending the wrong patch. Please ignore this e-mail.
+
+Regards,
+Mauro
