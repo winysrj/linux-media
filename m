@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39924 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751267AbbLHPVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:21:22 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 1/1] Allow building static binaries
-Date: Tue,  8 Dec 2015 17:18:21 +0200
-Message-Id: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:37465 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511AbbLJRhr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 12:37:47 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>
+Subject: [PATCH] [media] au0828: postpone call to au0828_unregister_media_device()
+Date: Thu, 10 Dec 2015 15:37:35 -0200
+Message-Id: <7fd2ea99f6035067fbebbfbfd55db002ece483c8.1449769050.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	$ LDFLAGS="--static -static" ./configure --enable-static
-	$ LDFLAGS=-static make
+The DVB core needs to unregister the media device. So, we
+can't call au0828_unregister_media_device() before calling
+au0828_dvb_unregister(), otherwise the DVB MC free code
+(that will be implemented on the next patch) will fail.
 
-can be used to create static binaries. The issue was that shared libraries
-were attempted to link statically which naturally failed.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- lib/libv4l1/Makefile.am | 3 +--
- lib/libv4l2/Makefile.am | 3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libv4l1/Makefile.am b/lib/libv4l1/Makefile.am
-index 005ae10..c325390 100644
---- a/lib/libv4l1/Makefile.am
-+++ b/lib/libv4l1/Makefile.am
-@@ -23,7 +23,6 @@ libv4l1_la_LIBADD = ../libv4l2/libv4l2.la
- v4l1compat_la_SOURCES = v4l1compat.c
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index ee20f4354ba2..e7ebb5e638be 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -178,8 +178,6 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	*/
+ 	dev->dev_state = DEV_DISCONNECTED;
  
- v4l1compat_la_LIBADD = libv4l1.la
--v4l1compat_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
--v4l1compat_la_LIBTOOLFLAGS = --tag=disable-static
-+v4l1compat_la_LDFLAGS = -avoid-version -module -export-dynamic
- 
- EXTRA_DIST = libv4l1-kernelcode-license.txt
-diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
-index b6f4d3b..878ccd9 100644
---- a/lib/libv4l2/Makefile.am
-+++ b/lib/libv4l2/Makefile.am
-@@ -22,7 +22,6 @@ libv4l2_la_LIBADD = ../libv4lconvert/libv4lconvert.la
- 
- v4l2convert_la_SOURCES = v4l2convert.c
- v4l2convert_la_LIBADD = libv4l2.la
--v4l2convert_la_LDFLAGS = -avoid-version -module -shared -export-dynamic
--v4l2convert_la_LIBTOOLFLAGS = --tag=disable-static
-+v4l2convert_la_LDFLAGS = -avoid-version -module -export-dynamic
- 
- EXTRA_DIST = Android.mk v4l2-plugin-android.c
+-	au0828_unregister_media_device(dev);
+-
+ 	au0828_rc_unregister(dev);
+ 	/* Digital TV */
+ 	au0828_dvb_unregister(dev);
+@@ -193,6 +191,10 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 		au0828_analog_unregister(dev);
+ 		v4l2_device_disconnect(&dev->v4l2_dev);
+ 		v4l2_device_put(&dev->v4l2_dev);
++		/*
++		 * No need to call au0828_usb_release() if V4L2 is enabled,
++		 * as this is already called via au0828_usb_v4l2_release()
++		 */
+ 		return;
+ 	}
+ #endif
 -- 
-2.1.0.231.g7484e3b
+2.5.0
 
