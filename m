@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:36117 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751489AbbLEAAi (ORCPT
+Received: from mail-io0-f176.google.com ([209.85.223.176]:34594 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbbLJMWl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2015 19:00:38 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH MC Next Gen] sound/usb: Fix out of bounds access in media_entity_init()
-Date: Fri,  4 Dec 2015 17:00:29 -0700
-Message-Id: <1449273629-4991-1-git-send-email-shuahkh@osg.samsung.com>
+	Thu, 10 Dec 2015 07:22:41 -0500
+Received: by ioir85 with SMTP id r85so90179267ioi.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2015 04:22:41 -0800 (PST)
+Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
+        by smtp.gmail.com with ESMTPSA id k83sm4994887iod.1.2015.12.10.04.22.39
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Thu, 10 Dec 2015 04:22:39 -0800 (PST)
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+Subject: Re: dtv-scan-table has two ATSC files?
+From: Maury Markowitz <maury.markowitz@gmail.com>
+In-Reply-To: <20151210075733.4abdcd16@recife.lan>
+Date: Thu, 10 Dec 2015 07:22:39 -0500
+Content-Transfer-Encoding: 8BIT
+Message-Id: <434613F7-C1A1-4609-9553-136D7A903C36@gmail.com>
+References: <201512081149525312370@gmail.com> <56687B09.4050004@kapsi.fi> <BF55C1DA-2E39-4ACA-92C0-4E512E10196F@gmail.com> <20151210075733.4abdcd16@recife.lan>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the out of bounds access in media_entity_init() found
-by KASan. This is a result of media_mixer_init() failing
-to allocate memory for all 3 of its pads before calling
-media_entity_init(). Fix it to allocate memory for the
-right struct media_mixer_ctl instead of struct media_ctl.
+> On Dec 10, 2015, at 4:57 AM, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> 
+> Hmm... maybe we could, instead, keep one of them as a "complete" ATSC 
+> possible channel list, and the other ones with the unregulated channels
+> stripped.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
+OK I will upload a new patch “turning off” the unused channels. They will just be commented out.
 
-This patch fixes the mixer patch below:
-https://patchwork.linuxtv.org/patch/31827/
+> For terrestrial TV, those are unused, but perhaps the ATSC/NTSC
+> channeling might still be used by some cable operator.
 
- sound/usb/media.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+But that’s why there’s the us-Cable-XXX files? Isn’t this case is already handled?
 
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index bebe27b..0cb44b9 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -233,8 +233,8 @@ int media_mixer_init(struct snd_usb_audio *chip)
- 		if (mixer->media_mixer_ctl)
- 			continue;
- 
--		/* allocate media_ctl */
--		mctl = kzalloc(sizeof(struct media_ctl), GFP_KERNEL);
-+		/* allocate media_mixer_ctl */
-+		mctl = kzalloc(sizeof(struct media_mixer_ctl), GFP_KERNEL);
- 		if (!mctl)
- 			return -ENOMEM;
- 
-@@ -244,6 +244,7 @@ int media_mixer_init(struct snd_usb_audio *chip)
- 		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
- 		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
- 		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
-+
- 		media_entity_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
- 				  mctl->media_pad);
- 		ret =  media_device_register_entity(mctl->media_dev,
--- 
-2.5.0
+> Also, those channeling files work on other Countries outside America,
+> like South Korea.
+
+I will make a kr-ATSC-center-frequencies-8VSB for this. And Mexico too.
+
+And I volunteer for any other lingering documentation that needs doing.
+
+> "us-ATSC-C-center-frequencies-8VSB" or even keeping it named as 
+> "us-NTSC-center-frequencies-8VSB”.
+
+This I can accept, but then one question: what is the right DELIVERY_SYSTEM = ? It would not be ATSC, is NTSC a proper value here?
 
