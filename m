@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59758 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042AbbLUNqg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 08:46:36 -0500
-Subject: Re: [PATCH 4/5] [media] au0828-core: fix compilation when
- !CONFIG_MEDIA_CONTROLLER
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
- <a1532b4df91d3444bb8f5a8925b0d5f2c0606fbd.1450285867.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <567802B5.9090607@osg.samsung.com>
-Date: Mon, 21 Dec 2015 10:46:29 -0300
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:26430 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752548AbbLKIu2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 03:50:28 -0500
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Ran Shalit <ranshalit@gmail.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 11 Dec 2015 09:50:16 +0100
+Subject: Re: v4l2 kernel module debugging methods
+Message-ID: <566A8E48.7080603@st.com>
+References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
+ <1449361427.31991.17.camel@collabora.com>
+ <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
+In-Reply-To: <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <a1532b4df91d3444bb8f5a8925b0d5f2c0606fbd.1450285867.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
-
-On 12/16/2015 02:11 PM, Mauro Carvalho Chehab wrote:
-> commit 1590ad7b52714 ("[media] media-device: split media initialization
-> and registration") moved the media controller register to a
-> separate function. That caused the following compilation issue,
-> if !CONFIG_MEDIA_CONTROLLER:
-> 
-> vim +445 drivers/media/usb/au0828/au0828-core.c
-> 
->    439		if (retval) {
->    440			pr_err("%s() au0282_dev_register failed to create graph\n",
->    441			       __func__);
->    442			goto done;
->    443		}
->    444
->  > 445		retval = media_device_register(dev->media_dev);
->    446
->    447	done:
->    448		if (retval < 0)
-> 
-> Reported-by: kbuild test robot <fengguang.wu@intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Looks good to me, sorry for forgetting to test with !CONFIG_MEDIA_CONTROLLER
-and missing this...
-
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+SGkgUmFuLA0KDQpPbiAxMi8xMC8yMDE1IDEwOjQ2IFBNLCBSYW4gU2hhbGl0IHdyb3RlOg0KPiBP
+biBTdW4sIERlYyA2LCAyMDE1IGF0IDI6MjMgQU0sIE5pY29sYXMgRHVmcmVzbmUNCj4gPG5pY29s
+YXMuZHVmcmVzbmVAY29sbGFib3JhLmNvbT4gd3JvdGU6DQo+PiBMZSBkaW1hbmNoZSAwNiBkw6lj
+ZW1icmUgMjAxNSDDoCAwMDowMCArMDIwMCwgUmFuIFNoYWxpdCBhIMOpY3JpdCA6DQo+Pj4gSGVs
+bG8sDQo+Pj4NCj4+PiBJIHdvdWxkIGxpa2UgdG8gYXNrIGEgZ2VuZXJhbCBxdWVzdGlvbiByZWdh
+cmRpbmcgbWV0aG9kcyB0byBkZWJ1ZyBhDQo+Pj4gdjRsMiBkZXZpY2UgZHJpdmVyLg0KPj4+IFNp
+bmNlIEkgYXNzdW1lIHRoYXQgdGhlIGtlcm5lbCBkcml2ZXIgd2lsbCBwcm9iYWJseSB3b24ndCB3
+b3JrIGluDQo+Pj4gZmlyc3QgdHJ5IGFmdGVyIGNvZGluZyBldmVyeXRoaW5nIGluc2lkZSB0aGUg
+ZGV2aWNlIGRyaXZlci4uLg0KPj4+DQo+Pj4gMS4gRG8geW91IHRoaW5rIHFlbXUva2dkYiBkZWJ1
+Z2dlciBpcyBhIGdvb2QgbWV0aG9kIGZvciB0aGUgZGV2aWNlDQo+Pj4gZHJpdmVyIGRlYnVnZ2lu
+ZyAsIG9yIGlzIGl0IHBsYWluIHByaW50aW5nID8NCj4+Pg0KPj4+IDIuIElzIHRoZXJlIGEgc2lt
+cGxlIHdheSB0byBkaXNwbGF5IHRoZSBpbWFnZSBvZiBhIFlVVi1saWtlIGJ1ZmZlciBpbg0KPj4+
+IG1lbW9yeSA/DQo+Pg0KPj4gTW9zdCBMaW51eCBkaXN0cmlidXRpb24gc2hpcHMgR1N0cmVhbWVy
+LiBZb3UgY2FuIHdpdGggR1N0cmVhbWVyIHJlYWQNCj4+IGFuZCBkaXNwbGF5IGEgcmF3IFlVViBp
+bWFnZXMgKHlvdSBuZWVkIHRvIGtub3cgdGhlIHNwZWNpZmljIGZvcm1hdCkNCj4+IHVzaW5nIHZp
+ZGVvcGFyc2UgZWxlbWVudC4NCj4+DQo+PiAgICBnc3QtbGF1bmNoLTEuMCBmaWxlc3JjIGxvY2F0
+aW9uPW15Lnl1diAhIHZpZGVvcGFyc2UgZm9ybWF0PXl1eTIgd2lkdGg9MzIwIGhlaWdodD0yNDAg
+ISBpbWFnZWZyZWV6ZSAhIHZpZGVvY29udmVydCAhIGF1dG92aWRlb3NpbmsNCj4+DQo+PiBZb3Ug
+Y291bGQgYWxzbyBlbmNvZGUgYW5kIHN0b3JlIHRvIHZhcmlvdXMgZm9ybWF0cywgcmVwbGFjaW5n
+IHRoZQ0KPj4gaW1hZ2VmcmVlemUgLi4uIHNlY3Rpb24gd2l0aCBhbiBlbmNvZGVyIGFuZCBhIGZp
+bGVzaW5rLiBOb3RlIHRoYXQNCj4+IHZpZGVvcGFyc2UgdW5mb3J0dW5hdGx5IGRvZXMgbm90IGFs
+bG93IHBhc3Npbmcgc3RyaWRlcyBhcnJheSBvcg0KPj4gb2Zmc2V0cy4gU28gaXQgd2lsbCB3b3Jr
+IG9ubHkgaWYgeW91IHNldCB0aGUgd2lkdGgvaGVpZ2h0IHRvIHBhZGRlZA0KPj4gd2lkdGgvaGVp
+Z2h0Lg0KPj4NCj4+IHJlZ2FyZHMsDQo+PiBOaWNvbGFzDQo+DQo+IEhpIE5pY29sYXMsDQo+DQo+
+IFRoYW5rIHlvdSBmb3IgdGhlIGNvbW1lbnQuDQo+IEFzIHNvbWVvbmUgZXhwcmVpbmNlZCB3aXRo
+IHY0bDIgZGV2aWNlIGRyaXZlciwgZG8geW91IHJlY29tbWVuZWQgdXNpbmcNCj4gZGVidWdnaW5n
+IHRlY2huaXF1ZSBzdWNoIGFzIHFlbXUgKG9yIGtnZGIpIG9yIGRvIHlvdSByYXRoZXIgdXNlIHBs
+YWluDQo+IHByaW50aW5nID8NCj4NCj4gVGhhbmsgeW91IHZlcnkgbXVjaCwNCj4gUmFuDQoNCg0K
+WW91IGNhbiBnZXQgc2V2ZXJhbCBsZXZlbCBvZiBsb2dzLg0KRmlyc3QsIHlvdSBjYW4gZW5hYmxl
+IHY0bDIgY29yZSBkZWJ1ZyBsb2dzLiBFeGFtcGxlOg0KICBlY2hvIDMgPiAvc3lzL2NsYXNzL3Zp
+ZGVvNGxpbnV4L3ZpZGVvMC9kZWJ1Zw0KTW9yZSBkZXRhaWxzOiANCmh0dHBzOi8vd3d3Lmtlcm5l
+bC5vcmcvZG9jL0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvdjRsMi1mcmFtZXdvcmsudHh0DQoN
+CklmIHRoZSB0ZXN0ZWQgZHJpdmVyIHVzZXMgdGhlIHY0bDJfbWVtMm1lbSBmcmFtZXdvcmsgeW91
+IGNhbiBnZXQgTTJNIA0KbG9ncyB3aXRoOg0KICBlY2hvIFkgPiAvc3lzL21vZHVsZS92NGwyX21l
+bTJtZW0vcGFyYW1ldGVycy9kZWJ1Zw0KDQpHZXQgYWxzbyBpbnRlcm5hbCB2YjIgbG9ncyB3aXRo
+Og0KICBlY2hvIDMgPiAvc3lzL21vZHVsZS92aWRlb2J1ZjJfY29yZS9wYXJhbWV0ZXJzL2RlYnVn
+DQoNCkFuZCBvcHRpb25hbGx5IG1vcmUgbG9ncyB1c2luZyB0aGUgZHluYW1pYyBkZWJ1ZyBmZWF0
+dXJlOiANCihodHRwczovL3d3dy5rZXJuZWwub3JnL2RvYy9Eb2N1bWVudGF0aW9uL2R5bmFtaWMt
+ZGVidWctaG93dG8udHh0KS4gRXhhbXBsZToNCiAgZWNobyAibW9kdWxlIG15X2RyaXZlciArcCIg
+PiAvc3lzL2tlcm5lbC9kZWJ1Zy9keW5hbWljX2RlYnVnL2NvbnRyb2wNCg0KRmFiaWVu
