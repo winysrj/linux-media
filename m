@@ -1,91 +1,767 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63277 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449AbbLIOA3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 09:00:29 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 3/4] media: s5p-mfc: remove non-device-tree init code
-Date: Wed, 09 Dec 2015 15:00:15 +0100
-Message-id: <1449669616-24802-3-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
-References: <1449669616-24802-1-git-send-email-m.szyprowski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:38062 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754981AbbLKW53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 17:57:29 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v5 2/3] [media] media-device: split media initialization and registration
+Date: Fri, 11 Dec 2015 19:57:08 -0300
+Message-Id: <1449874629-8973-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
+References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos and Samsung S5Pxxxx platforms has been fully converted to device
-tree, so old platform device based init data can be now removed.
+The media device node is registered and so made visible to user-space
+before entities are registered and links created which means that the
+media graph obtained by user-space could be only partially enumerated
+if that happens too early before all the graph has been created.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+To avoid this race condition, split the media init and registration
+in separate functions and only register the media device node when
+all the pending subdevices have been registered, either explicitly
+by the driver or asynchronously using v4l2_async_register_subdev().
+
+The media_device_register() had a check for drivers not filling dev
+and model fields but all drivers in mainline set them and not doing
+it will be a driver bug so change the function return to void and
+add a BUG_ON() for dev being NULL instead.
+
+Also, add a media_device_cleanup() function that will destroy the
+graph_mutex that is initialized in media_device_init().
+
+Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 37 +++++---------------------------
- 1 file changed, 5 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index bae7c0f..5d0a75e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1489,27 +1489,6 @@ static struct s5p_mfc_variant mfc_drvdata_v8 = {
- 	.fw_name[0]     = "s5p-mfc-v8.fw",
- };
- 
--static const struct platform_device_id mfc_driver_ids[] = {
--	{
--		.name = "s5p-mfc",
--		.driver_data = (unsigned long)&mfc_drvdata_v5,
--	}, {
--		.name = "s5p-mfc-v5",
--		.driver_data = (unsigned long)&mfc_drvdata_v5,
--	}, {
--		.name = "s5p-mfc-v6",
--		.driver_data = (unsigned long)&mfc_drvdata_v6,
--	}, {
--		.name = "s5p-mfc-v7",
--		.driver_data = (unsigned long)&mfc_drvdata_v7,
--	}, {
--		.name = "s5p-mfc-v8",
--		.driver_data = (unsigned long)&mfc_drvdata_v8,
--	},
--	{},
--};
--MODULE_DEVICE_TABLE(platform, mfc_driver_ids);
--
- static const struct of_device_id exynos_mfc_match[] = {
- 	{
- 		.compatible = "samsung,mfc-v5",
-@@ -1531,24 +1510,18 @@ MODULE_DEVICE_TABLE(of, exynos_mfc_match);
- static void *mfc_get_drv_data(struct platform_device *pdev)
- {
- 	struct s5p_mfc_variant *driver_data = NULL;
-+	const struct of_device_id *match;
-+
-+	match = of_match_node(exynos_mfc_match, pdev->dev.of_node);
-+	if (match)
-+		driver_data = (struct s5p_mfc_variant *)match->data;
- 
--	if (pdev->dev.of_node) {
--		const struct of_device_id *match;
--		match = of_match_node(exynos_mfc_match,
--				pdev->dev.of_node);
--		if (match)
--			driver_data = (struct s5p_mfc_variant *)match->data;
--	} else {
--		driver_data = (struct s5p_mfc_variant *)
--			platform_get_device_id(pdev)->driver_data;
--	}
- 	return driver_data;
+Changes in v5:
+- Add kernel-doc for media_device_init() and media_device_register().
+
+Changes in v4:
+- Remove the model check from BUG_ON() since shold not be fatal.
+  Suggested by Sakari Ailus.
+
+Changes in v3:
+- Replace the WARN_ON() in media_device_init() for a BUG_ON().
+  Suggested by Sakari Ailus.
+
+Changes in v2:
+- Reword the documentation for media_device_unregister(). Suggested by Sakari.
+- Added Sakari's Acked-by tag for patch #1.
+- Change media_device_init() to return void instead of an error.
+  Suggested by Sakari Ailus.
+- Remove the error messages when media_device_register() fails.
+  Suggested by Sakari Ailus.
+- Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
+
+ drivers/media/common/siano/smsdvb-main.c      |  1 +
+ drivers/media/media-device.c                  | 36 ++++++++++++++++++++++-----
+ drivers/media/platform/exynos4-is/media-dev.c | 15 ++++++-----
+ drivers/media/platform/omap3isp/isp.c         | 14 +++++------
+ drivers/media/platform/s3c-camif/camif-core.c | 15 +++++++----
+ drivers/media/platform/vsp1/vsp1_drv.c        | 12 ++++-----
+ drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++------
+ drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++++----------
+ drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 +++++++++++-----------
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 +++++++++--------
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++++--------
+ drivers/media/usb/siano/smsusb.c              |  5 ++--
+ drivers/media/usb/uvc/uvc_driver.c            | 10 +++++---
+ include/media/media-device.h                  | 26 +++++++++++++++++++
+ 14 files changed, 155 insertions(+), 95 deletions(-)
+
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index ab345490a43a..8a1ea2192439 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -617,6 +617,7 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
+ 	if (!coredev->media_dev)
+ 		return;
+ 	media_device_unregister(coredev->media_dev);
++	media_device_cleanup(coredev->media_dev);
+ 	kfree(coredev->media_dev);
+ 	coredev->media_dev = NULL;
+ #endif
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 11c1c7383361..5d5c8a57e7ba 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -529,7 +529,7 @@ static void media_device_release(struct media_devnode *mdev)
  }
  
- static struct platform_driver s5p_mfc_driver = {
- 	.probe		= s5p_mfc_probe,
- 	.remove		= s5p_mfc_remove,
--	.id_table	= mfc_driver_ids,
- 	.driver	= {
- 		.name	= S5P_MFC_NAME,
- 		.pm	= &s5p_mfc_pm_ops,
+ /**
+- * media_device_register - register a media device
++ * media_device_init() - initialize a media device
+  * @mdev:	The media device
+  *
+  * The caller is responsible for initializing the media device before
+@@ -538,13 +538,10 @@ static void media_device_release(struct media_devnode *mdev)
+  * - dev must point to the parent device
+  * - model must be filled with the device model name
+  */
+-int __must_check __media_device_register(struct media_device *mdev,
+-					 struct module *owner)
++void media_device_init(struct media_device *mdev)
+ {
+-	int ret;
+ 
+-	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+-		return -EINVAL;
++	BUG_ON(mdev->dev == NULL);
+ 
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+@@ -553,6 +550,33 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 
++	dev_dbg(mdev->dev, "Media device initialized\n");
++}
++EXPORT_SYMBOL_GPL(media_device_init);
++
++/**
++ * media_device_cleanup() - Cleanup a media device
++ * @mdev:	The media device
++ *
++ */
++void media_device_cleanup(struct media_device *mdev)
++{
++	mutex_destroy(&mdev->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_device_cleanup);
++
++/**
++ * __media_device_register() - register a media device
++ * @mdev:	The media device
++ * @owner:	The module owner
++ *
++ * returns zero on success or a negative error code.
++ */
++int __must_check __media_device_register(struct media_device *mdev,
++					 struct module *owner)
++{
++	int ret;
++
+ 	/* Register the device node. */
+ 	mdev->devnode.fops = &media_device_fops;
+ 	mdev->devnode.parent = mdev->dev;
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index a61ecedc1201..27663dd45294 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1313,7 +1313,10 @@ static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+ 	ret = v4l2_device_register_subdev_nodes(&fmd->v4l2_dev);
+ unlock:
+ 	mutex_unlock(&fmd->media_dev.graph_mutex);
+-	return ret;
++	if (ret < 0)
++		return ret;
++
++	return media_device_register(&fmd->media_dev);
+ }
+ 
+ static int fimc_md_probe(struct platform_device *pdev)
+@@ -1350,11 +1353,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
+-	ret = media_device_register(&fmd->media_dev);
+-	if (ret < 0) {
+-		v4l2_err(v4l2_dev, "Failed to register media device: %d\n", ret);
+-		goto err_v4l2_dev;
+-	}
++	media_device_init(&fmd->media_dev);
+ 
+ 	ret = fimc_md_get_clocks(fmd);
+ 	if (ret)
+@@ -1424,8 +1423,7 @@ err_clk:
+ err_m_ent:
+ 	fimc_md_unregister_entities(fmd);
+ err_md:
+-	media_device_unregister(&fmd->media_dev);
+-err_v4l2_dev:
++	media_device_cleanup(&fmd->media_dev);
+ 	v4l2_device_unregister(&fmd->v4l2_dev);
+ 	return ret;
+ }
+@@ -1445,6 +1443,7 @@ static int fimc_md_remove(struct platform_device *pdev)
+ 	fimc_md_unregister_entities(fmd);
+ 	fimc_md_pipelines_free(fmd);
+ 	media_device_unregister(&fmd->media_dev);
++	media_device_cleanup(&fmd->media_dev);
+ 	fimc_md_put_clocks(fmd);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index a4820bc07ec8..1f52d261c9c8 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1793,6 +1793,7 @@ static void isp_unregister_entities(struct isp_device *isp)
+ 
+ 	v4l2_device_unregister(&isp->v4l2_dev);
+ 	media_device_unregister(&isp->media_dev);
++	media_device_cleanup(&isp->media_dev);
+ }
+ 
+ static int isp_link_entity(
+@@ -1875,12 +1876,7 @@ static int isp_register_entities(struct isp_device *isp)
+ 		sizeof(isp->media_dev.model));
+ 	isp->media_dev.hw_revision = isp->revision;
+ 	isp->media_dev.link_notify = isp_pipeline_link_notify;
+-	ret = media_device_register(&isp->media_dev);
+-	if (ret < 0) {
+-		dev_err(isp->dev, "%s: Media device registration failed (%d)\n",
+-			__func__, ret);
+-		return ret;
+-	}
++	media_device_init(&isp->media_dev);
+ 
+ 	isp->v4l2_dev.mdev = &isp->media_dev;
+ 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
+@@ -2365,7 +2361,11 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 		}
+ 	}
+ 
+-	return v4l2_device_register_subdev_nodes(v4l2_dev);
++	ret = v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
++	if (ret < 0)
++		return ret;
++
++	return media_device_register(&isp->media_dev);
+ }
+ 
+ /*
+diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
+index 8649d4c0e90d..ea02b7ef2119 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.c
++++ b/drivers/media/platform/s3c-camif/camif-core.c
+@@ -305,7 +305,7 @@ static void camif_unregister_media_entities(struct camif_dev *camif)
+ /*
+  * Media device
+  */
+-static int camif_media_dev_register(struct camif_dev *camif)
++static int camif_media_dev_init(struct camif_dev *camif)
+ {
+ 	struct media_device *md = &camif->media_dev;
+ 	struct v4l2_device *v4l2_dev = &camif->v4l2_dev;
+@@ -328,9 +328,7 @@ static int camif_media_dev_register(struct camif_dev *camif)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = media_device_register(md);
+-	if (ret < 0)
+-		v4l2_device_unregister(v4l2_dev);
++	media_device_init(md);
+ 
+ 	return ret;
+ }
+@@ -483,7 +481,7 @@ static int s3c_camif_probe(struct platform_device *pdev)
+ 		goto err_alloc;
+ 	}
+ 
+-	ret = camif_media_dev_register(camif);
++	ret = camif_media_dev_init(camif);
+ 	if (ret < 0)
+ 		goto err_mdev;
+ 
+@@ -510,6 +508,11 @@ static int s3c_camif_probe(struct platform_device *pdev)
+ 		goto err_unlock;
+ 
+ 	mutex_unlock(&camif->media_dev.graph_mutex);
++
++	ret = media_device_register(&camif->media_dev);
++	if (ret < 0)
++		goto err_sens;
++
+ 	pm_runtime_put(dev);
+ 	return 0;
+ 
+@@ -518,6 +521,7 @@ err_unlock:
+ err_sens:
+ 	v4l2_device_unregister(&camif->v4l2_dev);
+ 	media_device_unregister(&camif->media_dev);
++	media_device_cleanup(&camif->media_dev);
+ 	camif_unregister_media_entities(camif);
+ err_mdev:
+ 	vb2_dma_contig_cleanup_ctx(camif->alloc_ctx);
+@@ -539,6 +543,7 @@ static int s3c_camif_remove(struct platform_device *pdev)
+ 	struct s3c_camif_plat_data *pdata = &camif->pdata;
+ 
+ 	media_device_unregister(&camif->media_dev);
++	media_device_cleanup(&camif->media_dev);
+ 	camif_unregister_media_entities(camif);
+ 	v4l2_device_unregister(&camif->v4l2_dev);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 0b251147bfff..42dff9d020af 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -127,6 +127,7 @@ static void vsp1_destroy_entities(struct vsp1_device *vsp1)
+ 
+ 	v4l2_device_unregister(&vsp1->v4l2_dev);
+ 	media_device_unregister(&vsp1->media_dev);
++	media_device_cleanup(&vsp1->media_dev);
+ }
+ 
+ static int vsp1_create_entities(struct vsp1_device *vsp1)
+@@ -141,12 +142,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	strlcpy(mdev->model, "VSP1", sizeof(mdev->model));
+ 	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
+ 		 dev_name(mdev->dev));
+-	ret = media_device_register(mdev);
+-	if (ret < 0) {
+-		dev_err(vsp1->dev, "media device registration failed (%d)\n",
+-			ret);
+-		return ret;
+-	}
++	media_device_init(mdev);
+ 
+ 	vdev->mdev = mdev;
+ 	ret = v4l2_device_register(vsp1->dev, vdev);
+@@ -284,6 +280,10 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
++	if (ret < 0)
++		goto done;
++
++	ret = media_device_register(mdev);
+ 
+ done:
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+index 2352f7e5a6a3..e795a4501e8b 100644
+--- a/drivers/media/platform/xilinx/xilinx-vipp.c
++++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+@@ -311,7 +311,7 @@ static int xvip_graph_notify_complete(struct v4l2_async_notifier *notifier)
+ 	if (ret < 0)
+ 		dev_err(xdev->dev, "failed to register subdev nodes\n");
+ 
+-	return ret;
++	return media_device_register(&xdev->media_dev);
+ }
+ 
+ static int xvip_graph_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -573,6 +573,7 @@ static void xvip_composite_v4l2_cleanup(struct xvip_composite_device *xdev)
+ {
+ 	v4l2_device_unregister(&xdev->v4l2_dev);
+ 	media_device_unregister(&xdev->media_dev);
++	media_device_cleanup(&xdev->media_dev);
+ }
+ 
+ static int xvip_composite_v4l2_init(struct xvip_composite_device *xdev)
+@@ -584,19 +585,14 @@ static int xvip_composite_v4l2_init(struct xvip_composite_device *xdev)
+ 		sizeof(xdev->media_dev.model));
+ 	xdev->media_dev.hw_revision = 0;
+ 
+-	ret = media_device_register(&xdev->media_dev);
+-	if (ret < 0) {
+-		dev_err(xdev->dev, "media device registration failed (%d)\n",
+-			ret);
+-		return ret;
+-	}
++	media_device_init(&xdev->media_dev);
+ 
+ 	xdev->v4l2_dev.mdev = &xdev->media_dev;
+ 	ret = v4l2_device_register(xdev->dev, &xdev->v4l2_dev);
+ 	if (ret < 0) {
+ 		dev_err(xdev->dev, "V4L2 device registration failed (%d)\n",
+ 			ret);
+-		media_device_unregister(&xdev->media_dev);
++		media_device_cleanup(&xdev->media_dev);
+ 		return ret;
+ 	}
+ 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 1b207fa16a55..e7aab47ae4f5 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -136,6 +136,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	if (dev->media_dev) {
+ 		media_device_unregister(dev->media_dev);
++		media_device_cleanup(dev->media_dev);
+ 		kfree(dev->media_dev);
+ 		dev->media_dev = NULL;
+ 	}
+@@ -216,12 +217,11 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	au0828_usb_release(dev);
+ }
+ 
+-static void au0828_media_device_register(struct au0828_dev *dev,
+-					  struct usb_device *udev)
++static void au0828_media_device_init(struct au0828_dev *dev,
++				     struct usb_device *udev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
+-	int ret;
+ 
+ 	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+ 	if (!mdev)
+@@ -239,14 +239,7 @@ static void au0828_media_device_register(struct au0828_dev *dev,
+ 	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	mdev->driver_version = LINUX_VERSION_CODE;
+ 
+-	ret = media_device_register(mdev);
+-	if (ret) {
+-		pr_err(
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
+-	}
++	media_device_init(mdev);
+ 
+ 	dev->media_dev = mdev;
+ #endif
+@@ -374,8 +367,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	dev->boardnr = id->driver_info;
+ 	dev->board = au0828_boards[dev->boardnr];
+ 
+-	/* Register the media controller */
+-	au0828_media_device_register(dev, usbdev);
++	/* Initialize the media controller */
++	au0828_media_device_init(dev, usbdev);
+ 
+ #ifdef CONFIG_VIDEO_AU0828_V4L2
+ 	dev->v4l2_dev.release = au0828_usb_v4l2_release;
+@@ -446,9 +439,15 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() au0282_dev_register failed to create graph\n",
+ 		       __func__);
+-		au0828_usb_disconnect(interface);
++		goto done;
+ 	}
+ 
++	retval = media_device_register(dev->media_dev);
++
++done:
++	if (retval < 0)
++		au0828_usb_disconnect(interface);
++
+ 	return retval;
+ }
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 0e1efc59ff58..2e997f09a4cd 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1172,6 +1172,7 @@ static void cx231xx_unregister_media_device(struct cx231xx *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	if (dev->media_dev) {
+ 		media_device_unregister(dev->media_dev);
++		media_device_cleanup(dev->media_dev);
+ 		kfree(dev->media_dev);
+ 		dev->media_dev = NULL;
+ 	}
+@@ -1205,12 +1206,11 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	clear_bit(dev->devno, &cx231xx_devused);
+ }
+ 
+-static void cx231xx_media_device_register(struct cx231xx *dev,
+-					  struct usb_device *udev)
++static void cx231xx_media_device_init(struct cx231xx *dev,
++				      struct usb_device *udev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
+-	int ret;
+ 
+ 	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+ 	if (!mdev)
+@@ -1224,14 +1224,7 @@ static void cx231xx_media_device_register(struct cx231xx *dev,
+ 	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	mdev->driver_version = LINUX_VERSION_CODE;
+ 
+-	ret = media_device_register(mdev);
+-	if (ret) {
+-		dev_err(dev->dev,
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
+-	}
++	media_device_init(mdev);
+ 
+ 	dev->media_dev = mdev;
+ #endif
+@@ -1669,8 +1662,8 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* save our data pointer in this interface device */
+ 	usb_set_intfdata(interface, dev);
+ 
+-	/* Register the media controller */
+-	cx231xx_media_device_register(dev, udev);
++	/* Initialize the media controller */
++	cx231xx_media_device_init(dev, udev);
+ 
+ 	/* Create v4l2 device */
+ #ifdef CONFIG_MEDIA_CONTROLLER
+@@ -1742,11 +1735,16 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	request_modules(dev);
+ 
+ 	retval = cx231xx_create_media_graph(dev);
+-	if (retval < 0) {
+-		cx231xx_release_resources(dev);
+-	}
++	if (retval < 0)
++		goto done;
++
++	retval = media_device_register(dev->media_dev);
+ 
++done:
++	if (retval < 0)
++		cx231xx_release_resources(dev);
+ 	return retval;
++
+ err_video_alt:
+ 	/* cx231xx_uninit_dev: */
+ 	cx231xx_close_extension(dev);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 6d3f61f6dc77..a0413dcc3361 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -400,7 +400,7 @@ skip_feed_stop:
+ 	return ret;
+ }
+ 
+-static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
++static void dvb_usbv2_media_device_init(struct dvb_usb_adapter *adap)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	struct media_device *mdev;
+@@ -420,14 +420,7 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
+ 	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	mdev->driver_version = LINUX_VERSION_CODE;
+ 
+-	ret = media_device_register(mdev);
+-	if (ret) {
+-		dev_err(&d->udev->dev,
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
+-	}
++	media_device_init(mdev);
+ 
+ 	dvb_register_media_controller(&adap->dvb_adap, mdev);
+ 
+@@ -436,6 +429,13 @@ static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
+ #endif
+ }
+ 
++static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	media_device_register(adap->dvb_adap.mdev);
++#endif
++}
++
+ static void dvb_usbv2_media_device_unregister(struct dvb_usb_adapter *adap)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+@@ -444,6 +444,7 @@ static void dvb_usbv2_media_device_unregister(struct dvb_usb_adapter *adap)
+ 		return;
+ 
+ 	media_device_unregister(adap->dvb_adap.mdev);
++	media_device_cleanup(adap->dvb_adap.mdev);
+ 	kfree(adap->dvb_adap.mdev);
+ 	adap->dvb_adap.mdev = NULL;
+ 
+@@ -467,7 +468,7 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+ 
+ 	adap->dvb_adap.priv = adap;
+ 
+-	dvb_usbv2_media_device_register(adap);
++	dvb_usbv2_media_device_init(adap);
+ 
+ 	if (d->props->read_mac_address) {
+ 		ret = d->props->read_mac_address(adap,
+@@ -702,6 +703,8 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 	if (ret < 0)
+ 		goto err_dvb_unregister_frontend;
+ 
++	dvb_usbv2_media_device_register(&adap->dvb_adap);
++
+ 	return 0;
+ 
+ err_dvb_unregister_frontend:
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+index b51dbdf03f42..4086d9626664 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -95,7 +95,7 @@ static int dvb_usb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
+ 	return dvb_usb_ctrl_feed(dvbdmxfeed, 0);
+ }
+ 
+-static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
++static void dvb_usb_media_device_init(struct dvb_usb_adapter *adap)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+ 	struct media_device *mdev;
+@@ -115,20 +115,21 @@ static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
+ 	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	mdev->driver_version = LINUX_VERSION_CODE;
+ 
+-	ret = media_device_register(mdev);
+-	if (ret) {
+-		dev_err(&d->udev->dev,
+-			"Couldn't create a media device. Error: %d\n",
+-			ret);
+-		kfree(mdev);
+-		return;
+-	}
++	media_device_init(mdev);
++
+ 	dvb_register_media_controller(&adap->dvb_adap, mdev);
+ 
+ 	dev_info(&d->udev->dev, "media controller created\n");
+ #endif
+ }
+ 
++static void dvb_usb_media_device_register(struct dvb_usb_adapter *adap)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	media_device_register(adap->dvb_adap.mdev);
++#endif
++}
++
+ static void dvb_usb_media_device_unregister(struct dvb_usb_adapter *adap)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+@@ -136,6 +137,7 @@ static void dvb_usb_media_device_unregister(struct dvb_usb_adapter *adap)
+ 		return;
+ 
+ 	media_device_unregister(adap->dvb_adap.mdev);
++	media_device_cleanup(adap->dvb_adap.mdev);
+ 	kfree(adap->dvb_adap.mdev);
+ 	adap->dvb_adap.mdev = NULL;
+ #endif
+@@ -154,7 +156,7 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+ 	}
+ 	adap->dvb_adap.priv = adap;
+ 
+-	dvb_usb_media_device_register(adap);
++	dvb_usb_media_device_init(adap);
+ 
+ 	if (adap->dev->props.read_mac_address) {
+ 		if (adap->dev->props.read_mac_address(adap->dev, adap->dvb_adap.proposed_mac) == 0)
+@@ -323,6 +325,8 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 
+ 	ret = dvb_create_media_graph(&adap->dvb_adap);
+ 
++	dvb_usb_media_device_register(adap);
++
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index c945e4c2fbd4..8abbd3cc8eba 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -361,10 +361,11 @@ static void *siano_media_device_register(struct smsusb_device_t *dev,
+ 	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	mdev->driver_version = LINUX_VERSION_CODE;
+ 
++	media_device_init(mdev);
++
+ 	ret = media_device_register(mdev);
+ 	if (ret) {
+-		pr_err("Couldn't create a media device. Error: %d\n",
+-			ret);
++		media_device_cleanup(mdev);
+ 		kfree(mdev);
+ 		return NULL;
+ 	}
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 922665b59d38..f3ee4c248b2f 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1676,6 +1676,7 @@ static void uvc_delete(struct uvc_device *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	if (media_devnode_is_registered(&dev->mdev.devnode))
+ 		media_device_unregister(&dev->mdev);
++	media_device_cleanup(&dev->mdev);
+ #endif
+ 
+ 	list_for_each_safe(p, n, &dev->chains) {
+@@ -1926,7 +1927,7 @@ static int uvc_probe(struct usb_interface *intf,
+ 			"linux-uvc-devel mailing list.\n");
+ 	}
+ 
+-	/* Register the media and V4L2 devices. */
++	/* Initialize the media device and register the V4L2 device. */
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	dev->mdev.dev = &intf->dev;
+ 	strlcpy(dev->mdev.model, dev->name, sizeof(dev->mdev.model));
+@@ -1936,8 +1937,7 @@ static int uvc_probe(struct usb_interface *intf,
+ 	strcpy(dev->mdev.bus_info, udev->devpath);
+ 	dev->mdev.hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 	dev->mdev.driver_version = LINUX_VERSION_CODE;
+-	if (media_device_register(&dev->mdev) < 0)
+-		goto error;
++	media_device_init(&dev->mdev);
+ 
+ 	dev->vdev.mdev = &dev->mdev;
+ #endif
+@@ -1956,6 +1956,10 @@ static int uvc_probe(struct usb_interface *intf,
+ 	if (uvc_register_chains(dev) < 0)
+ 		goto error;
+ 
++	/* Register the media device node */
++	if (media_device_register(&dev->mdev) < 0)
++		goto error;
++
+ 	/* Save our data pointer in the interface data. */
+ 	usb_set_intfdata(intf, dev);
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index b0594be5d631..afdc35fbf69a 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -338,6 +338,32 @@ struct media_device {
+ #define to_media_device(node) container_of(node, struct media_device, devnode)
+ 
+ /**
++ * media_device_init() - Initializes a media device element
++ *
++ * @mdev:	pointer to struct &media_device
++ *
++ * This function initializes the media device prior to its registration.
++ * The media device initialization and registration is split in two functions
++ * to avoid race conditions and make the media device available to user-space
++ * before the media graph has been completed.
++ *
++ * So drivers need to first initialize the media device, register any entity
++ * within the media device, create pad to pad links and then finally register
++ * the media device by calling media_device_register() as a final step. 
++ */
++void media_device_init(struct media_device *mdev);
++
++/**
++ * media_device_cleanup() - Cleanups a media device element
++ *
++ * @mdev:	pointer to struct &media_device
++ *
++ * This function that will destroy the graph_mutex that is
++ * initialized in media_device_init().
++ */
++void media_device_cleanup(struct media_device *mdev);
++
++/**
+  * __media_device_register() - Registers a media device element
+  *
+  * @mdev:	pointer to struct &media_device
 -- 
-1.9.2
+2.4.3
 
