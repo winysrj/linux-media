@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:37519 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749AbbL3MY1 (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:34805 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751698AbbLKQFD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 07:24:27 -0500
-Received: by mail-wm0-f51.google.com with SMTP id f206so75936471wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 04:24:26 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] media: rc: core: simplify DEFINE_IR_RAW_EVENT
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <5683CCEF.5030306@gmail.com>
-Date: Wed, 30 Dec 2015 13:24:15 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 11 Dec 2015 11:05:03 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH 3/3] media: adv7604: update timings on change of input signal
+Date: Fri, 11 Dec 2015 17:04:53 +0100
+Message-Id: <1449849893-14865-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DEFINE_IR_RAW_EVENT can be simplified and doesn't provide much benefit
-as all elements are initialized to 0. But keep it as it is used in a
-lot of places.
-duration is the first element of the embedded union and therefore
-used for the initialization even if not explicitely mentioned.
+Without this, g_crop will always return the boot-time state.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- include/media/rc-core.h | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/media/i2c/adv7604.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f649470..91c6633 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -226,13 +226,7 @@ struct ir_raw_event {
- 	unsigned                carrier_report:1;
- };
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 1bfa9f3..d7d0bb7 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1975,6 +1975,15 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
  
--#define DEFINE_IR_RAW_EVENT(event) \
--	struct ir_raw_event event = { \
--		{ .duration = 0 } , \
--		.pulse = 0, \
--		.reset = 0, \
--		.timeout = 0, \
--		.carrier_report = 0 }
-+#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
+ 		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
  
- static inline void init_ir_raw_event(struct ir_raw_event *ev)
- {
-@@ -254,8 +248,7 @@ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
--	DEFINE_IR_RAW_EVENT(ev);
--	ev.reset = true;
-+	struct ir_raw_event ev = { .reset = true };
- 
- 	ir_raw_event_store(dev, &ev);
- 	ir_raw_event_handle(dev);
++		/* update timings */
++		if (adv76xx_query_dv_timings(sd, &state->timings)
++		    == -ENOLINK) {
++			/* no signal, fall back to default timings */
++			const struct v4l2_dv_timings cea640x480 =
++				V4L2_DV_BT_CEA_640X480P59_94;
++			state->timings = cea640x480;
++		}
++
+ 		if (handled)
+ 			*handled = true;
+ 	}
 -- 
-2.6.4
+2.6.3
 
