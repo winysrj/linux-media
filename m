@@ -1,92 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46783 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572AbbLHRrT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 12:47:19 -0500
-Date: Tue, 8 Dec 2015 15:47:14 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v8 37/55] [media] omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV
- abuse
-Message-ID: <20151208154714.3397c35a@recife.lan>
-In-Reply-To: <1463986.OOuIkiWRAs@avalon>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
-	<ac6f2a7a8afe83affe3b688e8b8f509987a13c96.1440902901.git.mchehab@osg.samsung.com>
-	<1463986.OOuIkiWRAs@avalon>
+Received: from relmlor3.renesas.com ([210.160.252.173]:28071 "EHLO
+	relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751538AbbLKIna (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 03:43:30 -0500
+Message-ID: <566A8CAF.9080200@rvc.renesas.com>
+Date: Fri, 11 Dec 2015 15:43:27 +0700
+From: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>,
+	Toru Oishi <toru.oishi.zj@rvc.renesas.com>
+Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdW13=rftd1HOWBGcjH8aYCjyGZ0u60TkVeTif7+HFuwsQ@mail.gmail.com> <3938053.0568U3PJkY@avalon>
+In-Reply-To: <3938053.0568U3PJkY@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Dec 2015 03:46:28 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Laurent,
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 30 August 2015 00:06:48 Mauro Carvalho Chehab wrote:
-> > This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, as it uses a
-> > hack to check if the remote entity is a subdev. Get rid of it.
-> 
-> While I agree with the idea of the patch I don't think this is a hack, it was 
-> a totally valid implementation with the existing API.
-> 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
-> > b/drivers/staging/media/omap4iss/iss_ipipe.c index
-> > e1a7b7ba7362..eb91ec48a21e 100644
-> > --- a/drivers/staging/media/omap4iss/iss_ipipe.c
-> > +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-> > @@ -447,8 +447,11 @@ static int ipipe_link_setup(struct media_entity
-> > *entity, struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
-> >  	struct iss_device *iss = to_iss_device(ipipe);
-> > 
-> > -	switch (local->index | media_entity_type(remote->entity)) {
-> > -	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
-> > +	if (!is_media_entity_v4l2_subdev(remote->entity))
-> > +		return -EINVAL;
-> > +
-> 
-> Furthermore the ipipe entity is never connected to anything else than a 
-> subdev, so you can remove this check completely.
-> 
-> I'd rewrite the subject line as "omap4iss: ipipe: Don't check entity type 
-> needlessly during link setup" and update the commit message accordingly.
+On 12/6/2015 5:54 AM, Laurent Pinchart wrote:
+> Hi Geert,
+>
+> On Saturday 05 December 2015 11:57:49 Geert Uytterhoeven wrote:
+>> On Sat, Dec 5, 2015 at 3:12 AM, Laurent Pinchart wrote:
+>>> This patch set adds support for the Renesas R-Car Gen3 SoC family to the
+>>> VSP1 driver. The large number of patches is caused by a change in the
+>>> display controller architecture that makes usage of the VSP mandatory as
+>>> the display controller has lost the ability to read data from memory.
+>>>
+>>> Patch 01/32 to 27/32 prepare for the implementation of an API exported to
+>>> the DRM driver in patch 28/32. Patches 31/32 enables support for the
+>>> R-Car Gen3 family, and patch 32/32 finally enhances perfomances by
+>>> implementing support for display lists.
+>>>
+>>> The major change compared to v1 is the usage of the IP version register
+>>> instead of DT properties to configure device parameters such as the number
+>>> of BRU inputs or the availability of the BRU.
+>>
+>> Thanks for your series!
+>>
+>> As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112 is
+>> getting old, and has lots of conflicts with recent -next, do you plan to
+>> publish this in a branch, and a separate branch for integration, to ease
+>> integration in renesas-drivers?
+>>
+>> Alternatively, I can just import the series you posted, but having the
+>> broken-out integration part would be nice.
+>
+> The issue I'm facing is that there's more than just two series. Beside the
+> base VSP patches from this series, I have a series of DRM patches that depend
+> on this one, a series of V4L2 core patches, another series of VSP patches that
+> I still need to finish and a bunch of integration patches. As some of these
+> have dependencies on H3 CCF support that hasn't landed in Simon's tree yet, I
+> have merged your topic/cpg-mssr-v6 and topic/r8a7795-drivers-sh-v1 branches
+> into my tree for development.
+>
+> I could keep all series in separate branches and merge the two topic branches
+> last, but that's not very handy during development when I have to continuously
+> rebase my patches. Is there a way I could handle this that would make your
+> life easier while not making mine more difficult ?
+>
+> In the meantime I've pushed vsp1-kms-20151206 to
+> git://linuxtv.org/pinchartl/media.git.
 
+I failed to confirm DU (VGA port) with above branch.
 
-The same rationale as patch 36/55: if one would later add some other
-subsystem to the pipeline, the check will be needed. So, better to have
-the check here.
+To make DU (VGA port) work,
+it seems I need to merge more branches like topic/cpg-mssr-v6
+and topic/r8a7795-drivers-sh-v1 branches from renesas-drivers repo, is 
+it correct ?
 
-I'm changing the description of this patch to:
+Thanks.
 
-[media] omap4iss: change the logic that checks if an entity is a subdev
-
-As we're getting rid of an specific number range for the V4L2 subdev,
-we need to replace the check for MEDIA_ENT_T_V4L2_SUBDEV by a macro.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-> 
-> > +	switch (local->index) {
-> > +	case IPIPE_PAD_SINK:
-> >  		/* Read from IPIPEIF. */
-> >  		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-> >  			ipipe->input = IPIPE_INPUT_NONE;
-> > @@ -463,7 +466,7 @@ static int ipipe_link_setup(struct media_entity *entity,
-> > 
-> >  		break;
-> > 
-> > -	case IPIPE_PAD_SOURCE_VP | MEDIA_ENT_T_V4L2_SUBDEV:
-> > +	case IPIPE_PAD_SOURCE_VP:
-> >  		/* Send to RESIZER */
-> >  		if (flags & MEDIA_LNK_FL_ENABLED) {
-> >  			if (ipipe->output & ~IPIPE_OUTPUT_VP)
-> 
+-- 
+Best regards,
+KHIEM Nguyen
