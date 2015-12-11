@@ -1,183 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932202AbbLECND (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:03 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 04/32] v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
-Date: Sat,  5 Dec 2015 04:12:38 +0200
-Message-Id: <1449281586-25726-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:43568 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751399AbbLKOE6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 09:04:58 -0500
+Message-id: <566AD804.5040403@samsung.com>
+Date: Fri, 11 Dec 2015 15:04:52 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Harry Wei <harryxiyou@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Mats Randgaard <matrandg@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?EUC-KR?Q?S=C3=B6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Rafael =?EUC-KR?Q?Louren=C3=A7o_de?= Lima Chehab
+	<chehabrafael@gmail.com>, Arnd Bergmann <arnd@arndb.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Bryan Wu <cooloney@gmail.com>,
+	Shraddha Barke <shraddha.6596@gmail.com>,
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Junsu Shin <jjunes0@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	Navya Sri Nizamkari <navyasri.tech@gmail.com>,
+	Nicholas Mc Guire <der.herr@hofr.at>,
+	Inki Dae <inki.dae@samsung.com>, linux-doc@vger.kernel.org,
+	linux-kernel@zh-kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH 03/10] media framework: rename pads init function to
+ media_entity_pads_init()
+References: <cover.1449840443.git.mchehab@osg.samsung.com>
+ <063476f381aebf981106b7d134348a0a9acc67cc.1449840443.git.mchehab@osg.samsung.com>
+In-reply-to: <063476f381aebf981106b7d134348a0a9acc67cc.1449840443.git.mchehab@osg.samsung.com>
+Content-type: text/plain; charset=true; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The structure represent a vsp1 videobuf2 buffer, name it accordingly.
+On 12/11/2015 02:34 PM, Mauro Carvalho Chehab wrote:
+> With the MC next gen rework, what's left for media_entity_init()
+> is to just initialize the PADs. However, certain devices, like
+> a FLASH led/light doesn't have any input or output PAD.
+>
+> So, there's no reason why calling media_entity_init() would be
+> mandatory. Also, despite its name, what this function actually
+> does is to initialize the PADs data. So, rename it to
+> media_entity_pads_init() in order to reflect that.
+>
+> The media entity actual init happens during entity register,
+> at media_device_register_entity(). We should move init of
+> num_links and num_backlinks to it.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+[...]
+> diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> index 5c686a24712b..13d5a36bc5d8 100644
+> --- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> +++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
+> @@ -651,7 +651,7 @@ struct v4l2_flash *v4l2_flash_init(
+>   	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>   	strlcpy(sd->name, config->dev_name, sizeof(sd->name));
+>
+> -	ret = media_entity_init(&sd->entity, 0, NULL);
+> +	ret = media_entity_pads_init(&sd->entity, 0, NULL);
+>   	if (ret < 0)
+>   		return ERR_PTR(ret);
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_rpf.c   |  2 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h  |  4 ++--
- drivers/media/platform/vsp1/vsp1_video.c | 20 ++++++++++----------
- drivers/media/platform/vsp1/vsp1_video.h |  8 ++++----
- drivers/media/platform/vsp1/vsp1_wpf.c   |  2 +-
- 5 files changed, 18 insertions(+), 18 deletions(-)
+For this part:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index ee0a1472a13c..1f91fc4c4857 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -186,7 +186,7 @@ static struct v4l2_subdev_ops rpf_ops = {
-  * Video Device Operations
-  */
- 
--static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_video_buffer *buf)
-+static void rpf_buf_queue(struct vsp1_rwpf *rpf, struct vsp1_vb2_buffer *buf)
- {
- 	unsigned int i;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 3cc80be03524..aa22cc062ff3 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -25,10 +25,10 @@
- #define RWPF_PAD_SOURCE				1
- 
- struct vsp1_rwpf;
--struct vsp1_video_buffer;
-+struct vsp1_vb2_buffer;
- 
- struct vsp1_rwpf_operations {
--	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_video_buffer *buf);
-+	void (*queue)(struct vsp1_rwpf *rwpf, struct vsp1_vb2_buffer *buf);
- };
- 
- struct vsp1_rwpf {
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 932225ec45f6..e96160d90b35 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -577,12 +577,12 @@ static bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
-  *
-  * Return the next queued buffer or NULL if the queue is empty.
-  */
--static struct vsp1_video_buffer *
-+static struct vsp1_vb2_buffer *
- vsp1_video_complete_buffer(struct vsp1_video *video)
- {
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
--	struct vsp1_video_buffer *next = NULL;
--	struct vsp1_video_buffer *done;
-+	struct vsp1_vb2_buffer *next = NULL;
-+	struct vsp1_vb2_buffer *done;
- 	unsigned long flags;
- 	unsigned int i;
- 
-@@ -594,7 +594,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 	}
- 
- 	done = list_first_entry(&video->irqqueue,
--				struct vsp1_video_buffer, queue);
-+				struct vsp1_vb2_buffer, queue);
- 
- 	/* In DU output mode reuse the buffer if the list is singular. */
- 	if (pipe->lif && list_is_singular(&video->irqqueue)) {
-@@ -606,7 +606,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 
- 	if (!list_empty(&video->irqqueue))
- 		next = list_first_entry(&video->irqqueue,
--					struct vsp1_video_buffer, queue);
-+					struct vsp1_vb2_buffer, queue);
- 
- 	spin_unlock_irqrestore(&video->irqlock, flags);
- 
-@@ -622,7 +622,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 				 struct vsp1_video *video)
- {
--	struct vsp1_video_buffer *buf;
-+	struct vsp1_vb2_buffer *buf;
- 	unsigned long flags;
- 
- 	buf = vsp1_video_complete_buffer(video);
-@@ -823,7 +823,7 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
--	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vbuf);
-+	struct vsp1_vb2_buffer *buf = to_vsp1_vb2_buffer(vbuf);
- 	const struct v4l2_pix_format_mplane *format = &video->rwpf->format;
- 	unsigned int i;
- 
-@@ -846,7 +846,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
--	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vbuf);
-+	struct vsp1_vb2_buffer *buf = to_vsp1_vb2_buffer(vbuf);
- 	unsigned long flags;
- 	bool empty;
- 
-@@ -938,7 +938,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
- 	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
--	struct vsp1_video_buffer *buffer;
-+	struct vsp1_vb2_buffer *buffer;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -1263,7 +1263,7 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_rwpf *rwpf)
- 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	video->queue.lock = &video->lock;
- 	video->queue.drv_priv = video;
--	video->queue.buf_struct_size = sizeof(struct vsp1_video_buffer);
-+	video->queue.buf_struct_size = sizeof(struct vsp1_vb2_buffer);
- 	video->queue.ops = &vsp1_video_queue_qops;
- 	video->queue.mem_ops = &vb2_dma_contig_memops;
- 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 72be847f2df9..c7e143125ef7 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -94,7 +94,7 @@ static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
- 		return NULL;
- }
- 
--struct vsp1_video_buffer {
-+struct vsp1_vb2_buffer {
- 	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
- 
-@@ -102,10 +102,10 @@ struct vsp1_video_buffer {
- 	unsigned int length[3];
- };
- 
--static inline struct vsp1_video_buffer *
--to_vsp1_video_buffer(struct vb2_v4l2_buffer *vbuf)
-+static inline struct vsp1_vb2_buffer *
-+to_vsp1_vb2_buffer(struct vb2_v4l2_buffer *vbuf)
- {
--	return container_of(vbuf, struct vsp1_video_buffer, buf);
-+	return container_of(vbuf, struct vsp1_vb2_buffer, buf);
- }
- 
- struct vsp1_video {
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index b25c5e6976ef..e41d8bcd9d97 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -195,7 +195,7 @@ static struct v4l2_subdev_ops wpf_ops = {
-  * Video Device Operations
-  */
- 
--static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_video_buffer *buf)
-+static void wpf_buf_queue(struct vsp1_rwpf *wpf, struct vsp1_vb2_buffer *buf)
- {
- 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
- 	if (buf->buf.vb2_buf.num_planes > 1)
+Acked-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+
 -- 
-2.4.10
-
+Best Regards,
+Jacek Anaszewski
