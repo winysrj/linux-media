@@ -1,56 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:34525 "EHLO
-	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbbLMRn5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 12:43:57 -0500
-Received: by lfcy184 with SMTP id y184so33552321lfc.1
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2015 09:43:55 -0800 (PST)
-Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add R-Car Gen3 support
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1450020436-809-1-git-send-email-ykaneko0929@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <566DAE57.6030000@cogentembedded.com>
-Date: Sun, 13 Dec 2015 20:43:51 +0300
-MIME-Version: 1.0
-In-Reply-To: <1450020436-809-1-git-send-email-ykaneko0929@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:37529 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755508AbbLKRQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 12:16:59 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 02/10] [media] omap3isp: remove pads prefix from isp_create_pads_links()
+Date: Fri, 11 Dec 2015 14:16:28 -0300
+Message-Id: <1449854196-13296-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/13/2015 06:27 PM, Yoshihiro Kaneko wrote:
+The function that creates the links between ISP internal and external
+entities is called isp_create_pads_links() but the "pads" prefix is
+redundant since the driver doesn't handle any other kind of link so
+it can just be removed.
 
-> From: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
->
-> Add chip identification for R-Car Gen3.
->
-> Signed-off-by: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-[...]
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index 5d90f39..29e7ca4 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -143,6 +143,7 @@
->   #define RCAR_VIN_BT656			(1 << 3)
->
->   enum chip_id {
-> +	RCAR_GEN3,
->   	RCAR_GEN2,
->   	RCAR_H1,
->   	RCAR_M1,
-> @@ -1846,6 +1847,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
->
->   #ifdef CONFIG_OF
->   static const struct of_device_id rcar_vin_of_table[] = {
-> +	{ .compatible = "renesas,vin-r8a7795", .data = (void *)RCAR_GEN3 },
+While being there, fix the function's kernel-doc since is not using
+a proper format.
 
-    I don't see where this is checked in the driver. Shouldn't we just use gen2?
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-MBR, Sergei
+---
+
+This patch addresses 2 remaining issues Laurent pointed in patch [0]:
+
+1- Rename isp_create_pads_links() to isp_create_links().
+2- Fix kernel-doc for the same function.
+
+[0]: https://patchwork.linuxtv.org/patch/31147/
+
+ drivers/media/platform/omap3isp/isp.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 40aee11805c7..fb17746e4209 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -1932,11 +1932,15 @@ done:
+ }
+ 
+ /*
+- * isp_create_pads_links - Pads links creation for the subdevices
++ * isp_create_links() - Create links for internal and external ISP entities
+  * @isp : Pointer to ISP device
+- * return negative error code or zero on success
++ *
++ * This function creates all links between ISP internal and external entities.
++ *
++ * Return: A negative error code on failure or zero on success. Possible error
++ * codes are those returned by media_create_pad_link().
+  */
+-static int isp_create_pads_links(struct isp_device *isp)
++static int isp_create_links(struct isp_device *isp)
+ {
+ 	int ret;
+ 
+@@ -2527,7 +2531,7 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_modules;
+ 
+-	ret = isp_create_pads_links(isp);
++	ret = isp_create_links(isp);
+ 	if (ret < 0)
+ 		goto error_register_entities;
+ 
+-- 
+2.4.3
 
