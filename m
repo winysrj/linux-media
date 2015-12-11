@@ -1,123 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55453 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754629AbbLPEAo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 23:00:44 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6002618696C
-	for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 05:00:39 +0100 (CET)
-Date: Wed, 16 Dec 2015 05:00:39 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20151216040039.6002618696C@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:38057 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754889AbbLKW5Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 17:57:25 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v5 1/3] [media] media-device: check before unregister if mdev was registered
+Date: Fri, 11 Dec 2015 19:57:07 -0300
+Message-Id: <1449874629-8973-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
+References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Most media functions that unregister, check if the corresponding register
+function succeed before. So these functions can safely be called even if a
+registration was never made or the component as already been unregistered.
 
-Results of the daily build of media_tree:
+Add the same check to media_device_unregister() function for consistency.
 
-date:		Wed Dec 16 04:00:15 CET 2015
-git branch:	test
-git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+This will also allow to split the media_device_register() function in an
+initialization and registration functions without the need to change the
+generic cleanup functions and error code paths for all the media drivers.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Detailed results are available here:
+---
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Changes in v5: None
+Changes in v4: None
+Changes in v3: None
+Changes in v2:
+- Reword the documentation for media_device_unregister(). Suggested by Sakari.
+- Added Sakari's Acked-by tag for patch #1.
 
-Full logs are available here:
+ drivers/media/media-device.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c12481c753a0..11c1c7383361 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -577,6 +577,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+  * media_device_unregister - unregister a media device
+  * @mdev:	The media device
+  *
++ * It is safe to call this function on an unregistered
++ * (but initialised) media device.
+  */
+ void media_device_unregister(struct media_device *mdev)
+ {
+@@ -584,6 +586,10 @@ void media_device_unregister(struct media_device *mdev)
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
+ 
++	/* Check if mdev was ever registered at all */
++	if (!media_devnode_is_registered(&mdev->devnode))
++		return;
++
+ 	/* Remove all entities from the media device */
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		media_device_unregister_entity(entity);
+-- 
+2.4.3
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
