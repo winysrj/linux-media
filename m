@@ -1,220 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414AbbLQIky (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:38663 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754651AbbLKJ4F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:54 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 15/48] v4l: vsp1: Add header display list support
-Date: Thu, 17 Dec 2015 10:39:53 +0200
-Message-Id: <1450341626-6695-16-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 11 Dec 2015 04:56:05 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Catalin Marinas <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Benoit Parrot <bparrot@ti.com>
+CC: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Subject: [PATCH v2 5/8] arm64: dts: mediatek: Add Video Encoder for MT8173
+Date: Fri, 11 Dec 2015 17:55:40 +0800
+Message-ID: <1449827743-22895-6-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Display lists can operate in header or headerless mode. The headerless
-mode is only available on WPF0, to be used with the display engine. All
-other WPF instances can only use display lists in header mode.
+Add video encoder node for MT8173
 
-Implement support for header mode to prepare for display list usage on
-WPFs other than 0.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c  | 73 +++++++++++++++++++++++++++++++---
- drivers/media/platform/vsp1/vsp1_dl.h  |  1 +
- drivers/media/platform/vsp1/vsp1_wpf.c |  2 +-
- 3 files changed, 70 insertions(+), 6 deletions(-)
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   47 ++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 32661daac7b0..5cdd515470ac 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -28,9 +28,23 @@
-  * - DL swap
-  */
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index b8c8ff0..a6b0fcf 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -545,6 +545,53 @@
+ 			#clock-cells = <1>;
+ 		};
  
-+#define VSP1_DL_HEADER_SIZE		76
- #define VSP1_DL_BODY_SIZE		(2 * 4 * 256)
- #define VSP1_DL_NUM_LISTS		3
- 
-+#define VSP1_DLH_INT_ENABLE		(1 << 1)
-+#define VSP1_DLH_AUTO_START		(1 << 0)
++		larb3: larb@18001000 {
++			compatible = "mediatek,mt8173-smi-larb";
++			reg = <0 0x18001000 0 0x1000>;
++			mediatek,smi = <&smi_common>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_VENC>;
++			clocks = <&vencsys CLK_VENC_CKE1>,
++				 <&vencsys CLK_VENC_CKE0>;
++			clock-names = "apb", "smi";
++		};
 +
-+struct vsp1_dl_header {
-+	u32 num_lists;
-+	struct {
-+		u32 num_bytes;
-+		u32 addr;
-+	} lists[8];
-+	u32 next_header;
-+	u32 flags;
-+} __attribute__((__packed__));
++		vcodec_enc: vcodec@18002000 {
++			compatible = "mediatek,mt8173-vcodec-enc";
++			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
++			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
++			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
++				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
++			larb = <&larb3>,
++			       <&larb5>;
++			iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
++				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
++				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
++			vpu = <&vpu>;
++			clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
++				 <&topckgen CLK_TOP_VENC_LT_SEL>,
++				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
++			clock-names = "vencpll",
++				      "venc_lt_sel",
++				      "vcodecpll_370p5_ck";
++		};
 +
- struct vsp1_dl_entry {
- 	u32 addr;
- 	u32 data;
-@@ -41,6 +55,7 @@ struct vsp1_dl_list {
- 
- 	struct vsp1_dl_manager *dlm;
- 
-+	struct vsp1_dl_header *header;
- 	struct vsp1_dl_entry *body;
- 	dma_addr_t dma;
- 	size_t size;
-@@ -48,8 +63,15 @@ struct vsp1_dl_list {
- 	int reg_count;
- };
- 
-+enum vsp1_dl_mode {
-+	VSP1_DL_MODE_HEADER,
-+	VSP1_DL_MODE_HEADERLESS,
-+};
-+
- /**
-  * struct vsp1_dl_manager - Display List manager
-+ * @index: index of the related WPF
-+ * @mode: display list operation mode (header or headerless)
-  * @vsp1: the VSP1 device
-  * @lock: protects the active, queued and pending lists
-  * @free: array of all free display lists
-@@ -58,6 +80,8 @@ struct vsp1_dl_list {
-  * @pending: list waiting to be queued to the hardware
-  */
- struct vsp1_dl_manager {
-+	unsigned int index;
-+	enum vsp1_dl_mode mode;
- 	struct vsp1_device *vsp1;
- 
- 	spinlock_t lock;
-@@ -74,27 +98,43 @@ struct vsp1_dl_manager {
- static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- {
- 	struct vsp1_dl_list *dl;
-+	size_t header_size;
-+
-+	/* The body needs to be aligned on a 8 bytes boundary, pad the header
-+	 * size to allow allocating both in a single operation.
-+	 */
-+	header_size = dlm->mode == VSP1_DL_MODE_HEADER
-+		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
-+		    : 0;
- 
- 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
- 	if (!dl)
- 		return NULL;
- 
- 	dl->dlm = dlm;
--	dl->size = VSP1_DL_BODY_SIZE;
-+	dl->size = header_size + VSP1_DL_BODY_SIZE;
- 
--	dl->body = dma_alloc_writecombine(dlm->vsp1->dev, dl->size, &dl->dma,
--					  GFP_KERNEL);
--	if (!dl->body) {
-+	dl->header = dma_alloc_writecombine(dlm->vsp1->dev, dl->size, &dl->dma,
-+					    GFP_KERNEL);
-+	if (!dl->header) {
- 		kfree(dl);
- 		return NULL;
- 	}
- 
-+	if (dlm->mode == VSP1_DL_MODE_HEADER) {
-+		memset(dl->header, 0, sizeof(*dl->header));
-+		dl->header->lists[0].addr = dl->dma + header_size;
-+		dl->header->flags = VSP1_DLH_INT_ENABLE;
-+	}
-+
-+	dl->body = ((void *)dl->header) + header_size;
-+
- 	return dl;
- }
- 
- static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
- {
--	dma_free_writecombine(dl->dlm->vsp1->dev, dl->size, dl->body, dl->dma);
-+	dma_free_writecombine(dl->dlm->vsp1->dev, dl->size, dl->header, dl->dma);
- 	kfree(dl);
- }
- 
-@@ -160,6 +200,18 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 
- 	spin_lock_irqsave(&dlm->lock, flags);
- 
-+	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
-+		/* Program the hardware with the display list body address and
-+		 * size. In header mode the caller guarantees that the hardware
-+		 * is idle at this point.
-+		 */
-+		dl->header->lists[0].num_bytes = dl->reg_count * 8;
-+		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
-+
-+		dlm->active = dl;
-+		goto done;
-+	}
-+
- 	/* Once the UPD bit has been set the hardware can start processing the
- 	 * display list at any time and we can't touch the address and size
- 	 * registers. In that case mark the update as pending, it will be
-@@ -215,6 +267,13 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 	vsp1_dl_list_put(dlm->active);
- 	dlm->active = NULL;
- 
-+	/* Header mode is used for mem-to-mem pipelines only. We don't need to
-+	 * perform any operation as there can't be any new display list queued
-+	 * in that case.
-+	 */
-+	if (dlm->mode == VSP1_DL_MODE_HEADER)
-+		goto done;
-+
- 	/* The UPD bit set indicates that the commit operation raced with the
- 	 * interrupt and occurred after the frame end event and UPD clear but
- 	 * before interrupt processing. The hardware hasn't taken the update
-@@ -277,6 +336,7 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- }
- 
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int index,
- 					unsigned int prealloc)
- {
- 	struct vsp1_dl_manager *dlm;
-@@ -286,6 +346,9 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 	if (!dlm)
- 		return NULL;
- 
-+	dlm->index = index;
-+	dlm->mode = index == 0 && !vsp1->info->uapi
-+		  ? VSP1_DL_MODE_HEADERLESS : VSP1_DL_MODE_HEADER;
- 	dlm->vsp1 = vsp1;
- 
- 	spin_lock_init(&dlm->lock);
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 46f7ae337374..571ed6d8e7c2 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -22,6 +22,7 @@ struct vsp1_dl_manager;
- void vsp1_dlm_setup(struct vsp1_device *vsp1);
- 
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int index,
- 					unsigned int prealloc);
- void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 1013190e440b..d1fad9effb9b 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -202,7 +202,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 
- 	/* Initialize the display list manager if the WPF is used for display */
- 	if ((vsp1->info->features & VSP1_HAS_LIF) && index == 0) {
--		wpf->dlm = vsp1_dlm_create(vsp1, 4);
-+		wpf->dlm = vsp1_dlm_create(vsp1, index, 4);
- 		if (!wpf->dlm) {
- 			ret = -ENOMEM;
- 			goto error;
+ 		vencltsys: clock-controller@19000000 {
+ 			compatible = "mediatek,mt8173-vencltsys", "syscon";
+ 			reg = <0 0x19000000 0 0x1000>;
 -- 
-2.4.10
+1.7.9.5
 
