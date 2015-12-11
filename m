@@ -1,54 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933316AbbLQIlG (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:35494 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533AbbLKQE5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:06 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 26/48] videodev2.h: Add request field to v4l2_pix_format_mplane
-Date: Thu, 17 Dec 2015 10:40:04 +0200
-Message-Id: <1450341626-6695-27-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 11 Dec 2015 11:04:57 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH 0/3] adv7604: .g_crop and .cropcap support
+Date: Fri, 11 Dec 2015 17:04:50 +0100
+Message-Id: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let userspace specify a request ID when getting or setting formats. The
-support is limited to the multi-planar API at the moment, extending it
-to the single-planar API is possible if needed.
+Hi!
 
->From a userspace point of view the API change is also minimized and
-doesn't require any new ioctl.
+The rcar_vin driver relies on these methods.  The third patch makes sure
+that they return up-to-date data if the input signal has changed since
+initialization.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/uapi/linux/videodev2.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+CU
+Uli
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5af1d2d87558..5b2a8bc80eb2 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1973,6 +1973,7 @@ struct v4l2_plane_pix_format {
-  * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-  * @quantization:	enum v4l2_quantization, colorspace quantization
-  * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
-+ * @request:		request ID
-  */
- struct v4l2_pix_format_mplane {
- 	__u32				width;
-@@ -1987,7 +1988,8 @@ struct v4l2_pix_format_mplane {
- 	__u8				ycbcr_enc;
- 	__u8				quantization;
- 	__u8				xfer_func;
--	__u8				reserved[7];
-+	__u8				reserved[3];
-+	__u32				request;
- } __attribute__ ((packed));
- 
- /**
+
+Ulrich Hecht (3):
+  media: adv7604: implement g_crop
+  media: adv7604: implement cropcap
+  media: adv7604: update timings on change of input signal
+
+ drivers/media/i2c/adv7604.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
 -- 
-2.4.10
+2.6.3
 
