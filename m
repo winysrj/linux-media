@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:34855 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755229AbbLGKW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 05:22:28 -0500
-Received: by wmuu63 with SMTP id u63so134037172wmu.0
-        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2015 02:22:26 -0800 (PST)
-Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
-To: Manu Abraham <abraham.manu@gmail.com>,
-	David Nelson <nelson.dt@gmail.com>
-References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
- <CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
- <CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
- <CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Jemma Denson <jdenson@gmail.com>
-Message-ID: <56655DE1.7000109@gmail.com>
-Date: Mon, 7 Dec 2015 10:22:25 +0000
-MIME-Version: 1.0
-In-Reply-To: <CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:43328 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbbLKAWd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2015 19:22:33 -0500
+Message-ID: <1449793346.2521.11.camel@collabora.com>
+Subject: Re: v4l2 kernel module debugging methods
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Thu, 10 Dec 2015 19:22:26 -0500
+In-Reply-To: <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
+References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
+	 <1449361427.31991.17.camel@collabora.com>
+	 <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-3wybsOvsQOrOlHRatSAy"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manu,
 
-On 08/10/15 17:28, Manu Abraham wrote:
-> Hi,
->
-> I just got back at work again. Will set things up this weekend/next week.
+--=-3wybsOvsQOrOlHRatSAy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Have you had a chance to make any more progress on this?
+Le jeudi 10 d=C3=A9cembre 2015 =C3=A0 23:46 +0200, Ran Shalit a =C3=A9crit=
+=C2=A0:
+> Thank you for the comment.
+> As someone expreinced with v4l2 device driver, do you recommened
+> using
+> debugging technique such as qemu (or kgdb) or do you rather use plain
+> printing ?
 
-As you're probably aware there are quite a few drivers waiting for 
-saa716x to be integrated into the tree; if you need some help here is 
-the work remaining to be done something that can be picked up by other 
-people?
+I never used that, printing I used. You should also run v4l2-
+compliance. It's a test suite, part of v4l-utils.
 
-Regards,
+Nicolas
+--=-3wybsOvsQOrOlHRatSAy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Jemma.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iEYEABECAAYFAlZqF0IACgkQcVMCLawGqByBNgCfdfPUh3INT8angllZanCcVfh9
+lVcAnjaQsSDSAuDJqAkCN5Icqkbb54uE
+=hTk2
+-----END PGP SIGNATURE-----
 
+--=-3wybsOvsQOrOlHRatSAy--
 
