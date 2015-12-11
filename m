@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:36833 "EHLO
-	mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429AbbLJVq3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 16:46:29 -0500
-Received: by iofh3 with SMTP id h3so107611772iof.3
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2015 13:46:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1449361427.31991.17.camel@collabora.com>
-References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
-	<1449361427.31991.17.camel@collabora.com>
-Date: Thu, 10 Dec 2015 23:46:28 +0200
-Message-ID: <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
-Subject: Re: v4l2 kernel module debugging methods
-From: Ran Shalit <ranshalit@gmail.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lists.s-osg.org ([54.187.51.154]:37555 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755312AbbLKRRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 12:17:15 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 07/10] [media] v4l: vsp1: use else if instead of continue when creating links
+Date: Fri, 11 Dec 2015 14:16:33 -0300
+Message-Id: <1449854196-13296-8-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 6, 2015 at 2:23 AM, Nicolas Dufresne
-<nicolas.dufresne@collabora.com> wrote:
-> Le dimanche 06 décembre 2015 à 00:00 +0200, Ran Shalit a écrit :
->> Hello,
->>
->> I would like to ask a general question regarding methods to debug a
->> v4l2 device driver.
->> Since I assume that the kernel driver will probably won't work in
->> first try after coding everything inside the device driver...
->>
->> 1. Do you think qemu/kgdb debugger is a good method for the device
->> driver debugging , or is it plain printing ?
->>
->> 2. Is there a simple way to display the image of a YUV-like buffer in
->> memory ?
->
-> Most Linux distribution ships GStreamer. You can with GStreamer read
-> and display a raw YUV images (you need to know the specific format)
-> using videoparse element.
->
->   gst-launch-1.0 filesrc location=my.yuv ! videoparse format=yuy2 width=320 height=240 ! imagefreeze ! videoconvert ! autovideosink
->
-> You could also encode and store to various formats, replacing the
-> imagefreeze ... section with an encoder and a filesink. Note that
-> videoparse unfortunatly does not allow passing strides array or
-> offsets. So it will work only if you set the width/height to padded
-> width/height.
->
-> regards,
-> Nicolas
+The for loop in the vsp1_create_entities() function that create the links,
+checks the entity type and call the proper link creation function but then
+it uses continue to force the next iteration of the loop to take place and
+skipping code in between that creates links for different entities types.
 
-Hi Nicolas,
+It is more readable and easier to understand if the if else constructs is
+used instead of the continue statement.
 
-Thank you for the comment.
-As someone expreinced with v4l2 device driver, do you recommened using
-debugging technique such as qemu (or kgdb) or do you rather use plain
-printing ?
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Thank you very much,
-Ran
+
+This patch addresses an issue pointed out by Laurent in patch [0]:
+
+- Use if else instead of continue.
+
+[0]: http://www.spinics.net/lists/linux-media/msg95316.html
+END
+
+---
+
+ drivers/media/platform/vsp1/vsp1_drv.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 4209d8615f72..0b251147bfff 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -264,19 +264,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 			ret = vsp1_wpf_create_links(vsp1, entity);
+ 			if (ret < 0)
+ 				goto done;
+-			continue;
+-		}
+-
+-		if (entity->type == VSP1_ENTITY_RPF) {
++		} else if (entity->type == VSP1_ENTITY_RPF) {
+ 			ret = vsp1_rpf_create_links(vsp1, entity);
+ 			if (ret < 0)
+ 				goto done;
+-			continue;
++		} else {
++			ret = vsp1_create_links(vsp1, entity);
++			if (ret < 0)
++				goto done;
+ 		}
+-
+-		ret = vsp1_create_links(vsp1, entity);
+-		if (ret < 0)
+-			goto done;
+ 	}
+ 
+ 	if (vsp1->pdata.features & VSP1_HAS_LIF) {
+-- 
+2.4.3
+
