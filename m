@@ -1,279 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:17324 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933822AbbLPPhl (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:56001 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730AbbLKTdd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 10:37:41 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>
-Subject: [PATCH v3 3/7] of: reserved_mem: add support for named reserved mem
- nodes
-Date: Wed, 16 Dec 2015 16:37:25 +0100
-Message-id: <1450280249-24681-4-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
-References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+	Fri, 11 Dec 2015 14:33:33 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 1/2] media-device.h: Let clearer that entity function must be initialized
+Date: Fri, 11 Dec 2015 17:33:17 -0200
+Message-Id: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch allows device drivers to initialize more than one reserved
-memory region assigned to given device. When driver needs to use more
-than one reserved memory region, it should allocate child devices and
-initialize regions by index or name for each of its child devices.
+Improve the documentation to let it clear that the entity function
+must be initialized.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- .../bindings/reserved-memory/reserved-memory.txt   |   2 +
- .../devicetree/bindings/resource-names.txt         |   1 +
- drivers/of/of_reserved_mem.c                       | 104 +++++++++++++++++----
- include/linux/of_reserved_mem.h                    |  31 +++++-
- 4 files changed, 115 insertions(+), 23 deletions(-)
+ include/media/media-device.h | 4 ++++
+ include/uapi/linux/media.h   | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-index 3da0ebdba8d9..43a14957fd64 100644
---- a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-+++ b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-@@ -74,6 +74,8 @@ Regions in the /reserved-memory node may be referenced by other device
- nodes by adding a memory-region property to the device node.
- 
- memory-region (optional) - phandle, specifier pairs to children of /reserved-memory
-+memory-region-names (optional) - supplemental names property, provide array of
-+				 names to identify memory regions
- 
- Example
- -------
-diff --git a/Documentation/devicetree/bindings/resource-names.txt b/Documentation/devicetree/bindings/resource-names.txt
-index e280fef6f265..51823e99b983 100644
---- a/Documentation/devicetree/bindings/resource-names.txt
-+++ b/Documentation/devicetree/bindings/resource-names.txt
-@@ -12,6 +12,7 @@ Resource Property	Supplemental Names Property
- reg			reg-names
- clocks			clock-names
- interrupts		interrupt-names
-+memory-region		memory-region-names
- 
- Usage:
- 
-diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
-index 1a3556a9e9ea..c58b362aaa63 100644
---- a/drivers/of/of_reserved_mem.c
-+++ b/drivers/of/of_reserved_mem.c
-@@ -21,6 +21,7 @@
- #include <linux/sizes.h>
- #include <linux/of_reserved_mem.h>
- #include <linux/sort.h>
-+#include <linux/slab.h>
- 
- #define MAX_RESERVED_REGIONS	16
- static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
-@@ -287,53 +288,116 @@ static inline struct reserved_mem *__find_rmem(struct device_node *node)
- 	return NULL;
- }
- 
-+struct rmem_assigned_device {
-+	struct device *dev;
-+	struct reserved_mem *rmem;
-+	struct list_head list;
-+};
-+
-+static LIST_HEAD(of_rmem_assigned_device_list);
-+static DEFINE_MUTEX(of_rmem_assigned_device_mutex);
-+
- /**
-  * of_reserved_mem_device_init() - assign reserved memory region to given device
-+ * @dev:	Pointer to the device to configure
-+ * @np:		Pointer to the device_node with 'reserved-memory' property
-+ * @idx:	Index of selected region
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 7cfcc08a09ea..3448ad6320c4 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -423,6 +423,10 @@ void media_device_unregister(struct media_device *mdev);
+  * %MEDIA_ENT_FL_DEFAULT indicates the default entity for a given type.
+  * 	This can be used to report the default audio and video devices or the
+  * 	default camera sensor.
 + *
-+ * This function assigns respective DMA-mapping operations based on reserved
-+ * memory region specified by 'memory-region' property in @np node to the @dev
-+ * device. When driver needs to use more than one reserved memory region, it
-+ * should allocate child devices and initialize regions by name for each of
-+ * child device.
-  *
-- * This function assign memory region pointed by "memory-region" device tree
-- * property to the given device.
-+ * Returns error code or zero on success.
++ * NOTE: Drivers should set the entity function before calling this function.
++ * Please notice that the values %MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN and
++ * %MEDIA_ENT_F_UNKNOWN should not be used by the drivers.
   */
--int of_reserved_mem_device_init(struct device *dev)
-+int of_reserved_mem_init(struct device *dev, struct device_node *np, int idx)
- {
-+	struct rmem_assigned_device *rd;
-+	struct device_node *target;
- 	struct reserved_mem *rmem;
--	struct device_node *np;
- 	int ret;
- 
--	np = of_parse_phandle(dev->of_node, "memory-region", 0);
--	if (!np)
--		return -ENODEV;
-+	if (!np || !dev)
-+		return -EINVAL;
-+
-+	target = of_parse_phandle(np, "memory-region", idx);
-+	if (!target)
-+		return -EINVAL;
- 
--	rmem = __find_rmem(np);
--	of_node_put(np);
-+	rmem = __find_rmem(target);
-+	of_node_put(target);
- 
- 	if (!rmem || !rmem->ops || !rmem->ops->device_init)
- 		return -EINVAL;
- 
-+	rd = kmalloc(sizeof(struct rmem_assigned_device), GFP_KERNEL);
-+	if (!rd)
-+		return -ENOMEM;
-+
- 	ret = rmem->ops->device_init(rmem, dev);
--	if (ret == 0)
-+	if (ret == 0) {
-+		rd->dev = dev;
-+		rd->rmem = rmem;
-+
-+		mutex_lock(&of_rmem_assigned_device_mutex);
-+		list_add(&rd->list, &of_rmem_assigned_device_list);
-+		mutex_unlock(&of_rmem_assigned_device_mutex);
-+
- 		dev_info(dev, "assigned reserved memory node %s\n", rmem->name);
-+	} else {
-+		kfree(rd);
-+	}
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(of_reserved_mem_device_init);
-+EXPORT_SYMBOL_GPL(of_reserved_mem_init);
-+
-+/**
-+ * of_reserved_mem_device_init() - assign reserved memory region to given device
-+ * @dev:	Pointer to the device to configure
-+ * @np:		Pointer to the device_node with 'reserved-memory' property
-+ * @name:	Name of the selected region
-+ *
-+ * This function assigns respective DMA-mapping operations based on reserved
-+ * memory region specified by 'memory-region' property in @np node, named @name
-+ * to the @dev device.
-+ *
-+ * Returns error code or zero on success.
-+ */
-+int of_reserved_mem_init_by_name(struct device *dev, struct device_node *np,
-+					   const char *name)
-+{
-+	int idx = of_property_match_string(np, "memory-region-names", name);
-+
-+	if (idx < 0)
-+		return -EINVAL;
-+	return of_reserved_mem_init(dev, np, idx);
-+}
-+EXPORT_SYMBOL_GPL(of_reserved_mem_init_by_name);
- 
- /**
-  * of_reserved_mem_device_release() - release reserved memory device structures
-+ * @dev:	Pointer to the device to deconfigure
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity);
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ff6a8010c520..8d8e1a3e6e1a 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -92,7 +92,7 @@ struct media_device_info {
   *
-  * This function releases structures allocated for memory region handling for
-  * the given device.
+  * Subdevs are initialized with MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN,
+  * in order to preserve backward compatibility.
+- * Drivers should change to the proper subdev type before
++ * Drivers must change to the proper subdev type before
+  * registering the entity.
   */
- void of_reserved_mem_device_release(struct device *dev)
- {
--	struct reserved_mem *rmem;
--	struct device_node *np;
--
--	np = of_parse_phandle(dev->of_node, "memory-region", 0);
--	if (!np)
--		return;
--
--	rmem = __find_rmem(np);
--	of_node_put(np);
-+	struct rmem_assigned_device *rd;
-+	struct reserved_mem *rmem = NULL;
-+
-+	mutex_lock(&of_rmem_assigned_device_mutex);
-+	list_for_each_entry(rd, &of_rmem_assigned_device_list, list) {
-+		if (rd->dev == dev) {
-+			rmem = rd->rmem;
-+			list_del(&rd->list);
-+			kfree(rd);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&of_rmem_assigned_device_mutex);
  
- 	if (!rmem || !rmem->ops || !rmem->ops->device_release)
- 		return;
-diff --git a/include/linux/of_reserved_mem.h b/include/linux/of_reserved_mem.h
-index ad2f67054372..0b928ad1ed93 100644
---- a/include/linux/of_reserved_mem.h
-+++ b/include/linux/of_reserved_mem.h
-@@ -1,7 +1,8 @@
- #ifndef __OF_RESERVED_MEM_H
- #define __OF_RESERVED_MEM_H
- 
--struct device;
-+#include <linux/device.h>
-+
- struct of_phandle_args;
- struct reserved_mem_ops;
- 
-@@ -28,14 +29,23 @@ typedef int (*reservedmem_of_init_fn)(struct reserved_mem *rmem);
- 	_OF_DECLARE(reservedmem, name, compat, init, reservedmem_of_init_fn)
- 
- #ifdef CONFIG_OF_RESERVED_MEM
--int of_reserved_mem_device_init(struct device *dev);
-+
-+int of_reserved_mem_init(struct device *dev, struct device_node *np, int idx);
-+int of_reserved_mem_init_by_name(struct device *dev, struct device_node *np,
-+				const char *name);
- void of_reserved_mem_device_release(struct device *dev);
- 
- void fdt_init_reserved_mem(void);
- void fdt_reserved_mem_save_node(unsigned long node, const char *uname,
- 			       phys_addr_t base, phys_addr_t size);
- #else
--static inline int of_reserved_mem_device_init(struct device *dev)
-+static inline int of_reserved_mem_init(struct device *dev,
-+				struct device_node *np, int idx)
-+{
-+	return -ENOSYS;
-+}
-+static inline int of_reserved_mem_init_by_name(struct device *dev,
-+				struct device_node *np, const char *name)
- {
- 	return -ENOSYS;
- }
-@@ -46,4 +56,19 @@ static inline void fdt_reserved_mem_save_node(unsigned long node,
- 		const char *uname, phys_addr_t base, phys_addr_t size) { }
- #endif
- 
-+/**
-+ * of_reserved_mem_device_init() - assign reserved memory region to given device
-+ * @dev:	Pointer to the device to configure
-+ *
-+ * This function assigns respective DMA-mapping operations based on the first
-+ * reserved memory region specified by 'memory-region' property in device tree
-+ * node of the given device.
-+ *
-+ * Returns error code or zero on success.
-+ */
-+static inline int of_reserved_mem_device_init(struct device *dev)
-+{
-+	return of_reserved_mem_init(dev, dev->of_node, 0);
-+}
-+
- #endif /* __OF_RESERVED_MEM_H */
 -- 
-1.9.2
+2.5.0
+
 
