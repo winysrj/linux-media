@@ -1,125 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37550 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754214AbbLKRRM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 12:17:12 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
+Received: from bombadil.infradead.org ([198.137.202.9]:51756 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752698AbbLKNe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 08:34:29 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 06/10] [media] v4l: vsp1: remove pads prefix from *_create_pads_links()
-Date: Fri, 11 Dec 2015 14:16:32 -0300
-Message-Id: <1449854196-13296-7-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
-References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 09/10] media-entity: get rid of forward __media_entity_remove_link() declaration
+Date: Fri, 11 Dec 2015 11:34:14 -0200
+Message-Id: <71b0cac4a89540f4f17b89a33624c9acdbd02631.1449840443.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
+References: <cover.1449840443.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
+References: <cover.1449840443.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions that create entities links are called *_create_pads_links()
-but the "pads" prefix is redundant since the driver doesn't handle any
-other kind of link so it can be removed.
+Move this function to happen earlier, in order to avoid
+a uneeded forward declaration.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-
-This patch addresses an issue Laurent pointed in patch [0]:
-
-- Could you please s/pads_links/links/ and s/pads links/links/
-
-[0]: http://www.spinics.net/lists/linux-media/msg95316.html
-END
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
+ drivers/media/media-entity.c | 67 +++++++++++++++++++++-----------------------
+ 1 file changed, 32 insertions(+), 35 deletions(-)
 
- drivers/media/platform/vsp1/vsp1_drv.c  | 4 ++--
- drivers/media/platform/vsp1/vsp1_rpf.c  | 4 ++--
- drivers/media/platform/vsp1/vsp1_rwpf.h | 4 ++--
- drivers/media/platform/vsp1/vsp1_wpf.c  | 4 ++--
- 4 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 8f995d267646..4209d8615f72 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -261,14 +261,14 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	/* Create links. */
- 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
- 		if (entity->type == VSP1_ENTITY_LIF) {
--			ret = vsp1_wpf_create_pads_links(vsp1, entity);
-+			ret = vsp1_wpf_create_links(vsp1, entity);
- 			if (ret < 0)
- 				goto done;
- 			continue;
- 		}
- 
- 		if (entity->type == VSP1_ENTITY_RPF) {
--			ret = vsp1_rpf_create_pads_links(vsp1, entity);
-+			ret = vsp1_rpf_create_links(vsp1, entity);
- 			if (ret < 0)
- 				goto done;
- 			continue;
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 847fb6d01a5a..924538223d3e 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -285,13 +285,13 @@ error:
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 5a5432524c10..452af1d5a20d 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -588,7 +588,38 @@ static struct media_link *media_add_link(struct list_head *head)
  }
  
- /*
-- * vsp1_rpf_create_pads_links_create_pads_links() - RPF pads links creation
-+ * vsp1_rpf_create_links() - RPF pads links creation
-  * @vsp1: Pointer to VSP1 device
-  * @entity: Pointer to VSP1 entity
-  *
-  * return negative error code or zero on success
-  */
--int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
-+int vsp1_rpf_create_links(struct vsp1_device *vsp1,
- 			       struct vsp1_entity *entity)
- {
- 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 6638b3587369..731d36e5258d 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -50,9 +50,9 @@ static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
- struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index);
- struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
+ static void __media_entity_remove_link(struct media_entity *entity,
+-				       struct media_link *link);
++				       struct media_link *link)
++{
++	struct media_link *rlink, *tmp;
++	struct media_entity *remote;
++	unsigned int r = 0;
++
++	if (link->source->entity == entity)
++		remote = link->sink->entity;
++	else
++		remote = link->source->entity;
++
++	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
++		if (rlink != link->reverse) {
++			r++;
++			continue;
++		}
++
++		if (link->source->entity == entity)
++			remote->num_backlinks--;
++
++		/* Remove the remote link */
++		list_del(&rlink->list);
++		media_gobj_remove(&rlink->graph_obj);
++		kfree(rlink);
++
++		if (--remote->num_links == 0)
++			break;
++	}
++	list_del(&link->list);
++	media_gobj_remove(&link->graph_obj);
++	kfree(link);
++}
  
--int vsp1_rpf_create_pads_links(struct vsp1_device *vsp1,
-+int vsp1_rpf_create_links(struct vsp1_device *vsp1,
- 			       struct vsp1_entity *entity);
--int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
-+int vsp1_wpf_create_links(struct vsp1_device *vsp1,
- 			       struct vsp1_entity *entity);
- 
- int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 969278bc1d41..cbf514a6582d 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -285,13 +285,13 @@ error:
+ int
+ media_create_pad_link(struct media_entity *source, u16 source_pad,
+@@ -642,40 +673,6 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
  }
+ EXPORT_SYMBOL_GPL(media_create_pad_link);
  
- /*
-- * vsp1_wpf_create_pads_links_create_pads_links() - RPF pads links creation
-+ * vsp1_wpf_create_links() - RPF pads links creation
-  * @vsp1: Pointer to VSP1 device
-  * @entity: Pointer to VSP1 entity
-  *
-  * return negative error code or zero on success
-  */
--int vsp1_wpf_create_pads_links(struct vsp1_device *vsp1,
-+int vsp1_wpf_create_links(struct vsp1_device *vsp1,
- 			       struct vsp1_entity *entity)
+-static void __media_entity_remove_link(struct media_entity *entity,
+-				       struct media_link *link)
+-{
+-	struct media_link *rlink, *tmp;
+-	struct media_entity *remote;
+-	unsigned int r = 0;
+-
+-	if (link->source->entity == entity)
+-		remote = link->sink->entity;
+-	else
+-		remote = link->source->entity;
+-
+-	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
+-		if (rlink != link->reverse) {
+-			r++;
+-			continue;
+-		}
+-
+-		if (link->source->entity == entity)
+-			remote->num_backlinks--;
+-
+-		/* Remove the remote link */
+-		list_del(&rlink->list);
+-		media_gobj_remove(&rlink->graph_obj);
+-		kfree(rlink);
+-
+-		if (--remote->num_links == 0)
+-			break;
+-	}
+-	list_del(&link->list);
+-	media_gobj_remove(&link->graph_obj);
+-	kfree(link);
+-}
+-
+ void __media_entity_remove_links(struct media_entity *entity)
  {
- 	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
+ 	struct media_link *link, *tmp;
 -- 
-2.4.3
+2.5.0
+
 
