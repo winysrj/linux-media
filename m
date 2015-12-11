@@ -1,346 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194AbbLQIko (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:56002 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867AbbLKTdd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:44 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 05/48] v4l: vsp1: Store the display list manager in the WPF
-Date: Thu, 17 Dec 2015 10:39:43 +0200
-Message-Id: <1450341626-6695-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 11 Dec 2015 14:33:33 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH 2/2] media-device: Use u64 ints for pointers
+Date: Fri, 11 Dec 2015 17:33:18 -0200
+Message-Id: <ff80c1c4d1a1f83f0c0069e28f58b4c66350b7e6.1449862315.git.mchehab@osg.samsung.com>
+In-Reply-To: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
+References: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
+In-Reply-To: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
+References: <9f249ef05975239a207a626a611778e955fff1c7.1449862315.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each WPF can process display lists independently, move the manager to
-the WPF to reflect that and prepare for display list support for non-DRM
-pipelines.
+By using u64 integers and pointers, we can get rid of compat32
+logic. So, let's do it!
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c     | 37 ++++++++++++++++++++++++++-----
- drivers/media/platform/vsp1/vsp1_dl.h     | 26 ++++------------------
- drivers/media/platform/vsp1/vsp1_drm.c    | 19 +++++++---------
- drivers/media/platform/vsp1/vsp1_drm.h    |  9 +-------
- drivers/media/platform/vsp1/vsp1_entity.c |  2 ++
- drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
- drivers/media/platform/vsp1/vsp1_rwpf.h   |  3 +++
- drivers/media/platform/vsp1/vsp1_wpf.c    | 18 +++++++++++++++
- 8 files changed, 70 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 5f49f52e22f2..32661daac7b0 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -48,6 +48,25 @@ struct vsp1_dl_list {
- 	int reg_count;
- };
- 
-+/**
-+ * struct vsp1_dl_manager - Display List manager
-+ * @vsp1: the VSP1 device
-+ * @lock: protects the active, queued and pending lists
-+ * @free: array of all free display lists
-+ * @active: list currently being processed (loaded) by hardware
-+ * @queued: list queued to the hardware (written to the DL registers)
-+ * @pending: list waiting to be queued to the hardware
-+ */
-+struct vsp1_dl_manager {
-+	struct vsp1_device *vsp1;
-+
-+	spinlock_t lock;
-+	struct list_head free;
-+	struct vsp1_dl_list *active;
-+	struct vsp1_dl_list *queued;
-+	struct vsp1_dl_list *pending;
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Display List Transaction Management
-  */
-@@ -257,11 +276,16 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- 	dlm->pending = NULL;
- }
- 
--int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
--		  unsigned int prealloc)
-+struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int prealloc)
- {
-+	struct vsp1_dl_manager *dlm;
+This patch is the result of the today's meeting at IRC. In order to test it, a
+new version of the mc_nextgen_test is needed. It can be found at:
+	http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/commit/?h=mc-next-gen-v2
+
+ drivers/media/media-device.c | 77 +++++++++++++++++++++++---------------------
+ include/uapi/linux/media.h   | 32 +++++++++---------
+ 2 files changed, 58 insertions(+), 51 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index f09f3a6f9c50..6406914a9bf5 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -240,10 +240,10 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 	struct media_interface *intf;
+ 	struct media_pad *pad;
+ 	struct media_link *link;
+-	struct media_v2_entity uentity;
+-	struct media_v2_interface uintf;
+-	struct media_v2_pad upad;
+-	struct media_v2_link ulink;
++	struct media_v2_entity kentity, *uentity;
++	struct media_v2_interface kintf, *uintf;
++	struct media_v2_pad kpad, *upad;
++	struct media_v2_link klink, *ulink;
  	unsigned int i;
+ 	int ret = 0;
  
-+	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
-+	if (!dlm)
-+		return NULL;
-+
- 	dlm->vsp1 = vsp1;
+@@ -251,10 +251,10 @@ static long __media_device_get_topology(struct media_device *mdev,
  
- 	spin_lock_init(&dlm->lock);
-@@ -272,18 +296,21 @@ int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
+ 	/* Get entities and number of entities */
+ 	i = 0;
++	uentity = media_get_uptr(topo->ptr_entities);
+ 	media_device_for_each_entity(entity, mdev) {
+ 		i++;
+-
+-		if (ret || !topo->entities)
++		if (ret || !uentity)
+ 			continue;
  
- 		dl = vsp1_dl_list_alloc(dlm);
- 		if (!dl)
--			return -ENOMEM;
-+			return NULL;
+ 		if (i > topo->num_entities) {
+@@ -263,23 +263,24 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 		}
  
- 		list_add_tail(&dl->list, &dlm->free);
+ 		/* Copy fields to userspace struct if not error */
+-		memset(&uentity, 0, sizeof(uentity));
+-		uentity.id = entity->graph_obj.id;
+-		uentity.function = entity->function;
+-		strncpy(uentity.name, entity->name,
+-			sizeof(uentity.name));
++		memset(&kentity, 0, sizeof(kentity));
++		kentity.id = entity->graph_obj.id;
++		kentity.function = entity->function;
++		strncpy(kentity.name, entity->name,
++			sizeof(kentity.name));
+ 
+-		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
++		if (copy_to_user(uentity, &kentity, sizeof(kentity)))
+ 			ret = -EFAULT;
++		uentity++;
  	}
+ 	topo->num_entities = i;
  
--	return 0;
-+	return dlm;
- }
- 
--void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm)
-+void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
- {
- 	struct vsp1_dl_list *dl, *next;
- 
-+	if (!dlm)
-+		return;
-+
- 	list_for_each_entry_safe(dl, next, &dlm->free, list) {
- 		list_del(&dl->list);
- 		vsp1_dl_list_free(dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index caa6a85f6825..46f7ae337374 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -17,31 +17,13 @@
- 
- struct vsp1_device;
- struct vsp1_dl_list;
+ 	/* Get interfaces and number of interfaces */
+ 	i = 0;
++	uintf = media_get_uptr(topo->ptr_interfaces);
+ 	media_device_for_each_intf(intf, mdev) {
+ 		i++;
 -
--/**
-- * struct vsp1_dl_manager - Display List manager
-- * @vsp1: the VSP1 device
-- * @lock: protects the active, queued and pending lists
-- * @free: array of all free display lists
-- * @active: list currently being processed (loaded) by hardware
-- * @queued: list queued to the hardware (written to the DL registers)
-- * @pending: list waiting to be queued to the hardware
-- */
--struct vsp1_dl_manager {
--	struct vsp1_device *vsp1;
+-		if (ret || !topo->interfaces)
++		if (ret || !uintf)
+ 			continue;
+ 
+ 		if (i > topo->num_interfaces) {
+@@ -287,33 +288,34 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 			continue;
+ 		}
+ 
+-		memset(&uintf, 0, sizeof(uintf));
++		memset(&kintf, 0, sizeof(kintf));
+ 
+ 		/* Copy intf fields to userspace struct */
+-		uintf.id = intf->graph_obj.id;
+-		uintf.intf_type = intf->type;
+-		uintf.flags = intf->flags;
++		kintf.id = intf->graph_obj.id;
++		kintf.intf_type = intf->type;
++		kintf.flags = intf->flags;
+ 
+ 		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
+ 			struct media_intf_devnode *devnode;
+ 
+ 			devnode = intf_to_devnode(intf);
+ 
+-			uintf.devnode.major = devnode->major;
+-			uintf.devnode.minor = devnode->minor;
++			kintf.devnode.major = devnode->major;
++			kintf.devnode.minor = devnode->minor;
+ 		}
+ 
+-		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
++		if (copy_to_user(uintf, &kintf, sizeof(kintf)))
+ 			ret = -EFAULT;
++		uintf++;
+ 	}
+ 	topo->num_interfaces = i;
+ 
+ 	/* Get pads and number of pads */
+ 	i = 0;
++	upad = media_get_uptr(topo->ptr_pads);
+ 	media_device_for_each_pad(pad, mdev) {
+ 		i++;
 -
--	spinlock_t lock;
--	struct list_head free;
--	struct vsp1_dl_list *active;
--	struct vsp1_dl_list *queued;
--	struct vsp1_dl_list *pending;
--};
-+struct vsp1_dl_manager;
+-		if (ret || !topo->pads)
++		if (ret || !upad)
+ 			continue;
  
- void vsp1_dlm_setup(struct vsp1_device *vsp1);
+ 		if (i > topo->num_pads) {
+@@ -321,27 +323,29 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 			continue;
+ 		}
  
--int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
--		  unsigned int prealloc);
--void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm);
-+struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int prealloc);
-+void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index bc275bb38352..b3df694569e7 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -31,11 +31,14 @@
-  * Interrupt Handling
-  */
+-		memset(&upad, 0, sizeof(upad));
++		memset(&kpad, 0, sizeof(kpad));
  
--void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
-+void vsp1_drm_display_start(struct vsp1_device *vsp1)
- {
--	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
-+}
+ 		/* Copy pad fields to userspace struct */
+-		upad.id = pad->graph_obj.id;
+-		upad.entity_id = pad->entity->graph_obj.id;
+-		upad.flags = pad->flags;
++		kpad.id = pad->graph_obj.id;
++		kpad.entity_id = pad->entity->graph_obj.id;
++		kpad.flags = pad->flags;
  
--	vsp1_dlm_irq_frame_end(&vsp1->drm->dlm);
-+void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	vsp1_dlm_irq_frame_end(pipe->output->dlm);
- }
+-		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
++		if (copy_to_user(upad, &kpad, sizeof(kpad)))
+ 			ret = -EFAULT;
++		upad++;
+ 	}
+ 	topo->num_pads = i;
  
- /* -----------------------------------------------------------------------------
-@@ -101,7 +104,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 	/* Get links and number of links */
+ 	i = 0;
++	ulink = media_get_uptr(topo->ptr_links);
+ 	media_device_for_each_link(link, mdev) {
+ 		if (link->is_backlink)
+ 			continue;
  
- 		pipe->num_inputs = 0;
+ 		i++;
  
--		vsp1_dlm_reset(&vsp1->drm->dlm);
-+		vsp1_dlm_reset(pipe->output->dlm);
- 		vsp1_device_put(vsp1);
+-		if (ret || !topo->links)
++		if (ret || !ulink)
+ 			continue;
  
- 		dev_dbg(vsp1->dev, "%s: pipeline disabled\n", __func__);
-@@ -228,7 +231,7 @@ void vsp1_du_atomic_begin(struct device *dev)
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 		if (i > topo->num_links) {
+@@ -349,19 +353,20 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 			continue;
+ 		}
  
- 	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(&vsp1->drm->dlm);
-+	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
+-		memset(&ulink, 0, sizeof(ulink));
++		memset(&klink, 0, sizeof(klink));
  
-@@ -555,16 +558,11 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- {
- 	struct vsp1_pipeline *pipe;
- 	unsigned int i;
--	int ret;
+ 		/* Copy link fields to userspace struct */
+-		ulink.id = link->graph_obj.id;
+-		ulink.source_id = link->gobj0->id;
+-		ulink.sink_id = link->gobj1->id;
+-		ulink.flags = link->flags;
++		klink.id = link->graph_obj.id;
++		klink.source_id = link->gobj0->id;
++		klink.sink_id = link->gobj1->id;
++		klink.flags = link->flags;
  
- 	vsp1->drm = devm_kzalloc(vsp1->dev, sizeof(*vsp1->drm), GFP_KERNEL);
- 	if (!vsp1->drm)
- 		return -ENOMEM;
+ 		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
+-			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
++			klink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
  
--	ret = vsp1_dlm_init(vsp1, &vsp1->drm->dlm, 4);
--	if (ret < 0)
--		return ret;
--
- 	pipe = &vsp1->drm->pipe;
+-		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
++		if (copy_to_user(ulink, &klink, sizeof(klink)))
+ 			ret = -EFAULT;
++		ulink++;
+ 	}
+ 	topo->num_links = i;
  
- 	vsp1_pipeline_init(pipe);
-@@ -590,5 +588,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 8d8e1a3e6e1a..86f9753e5c03 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -23,6 +23,9 @@
+ #ifndef __LINUX_MEDIA_H
+ #define __LINUX_MEDIA_H
  
- void vsp1_drm_cleanup(struct vsp1_device *vsp1)
- {
--	vsp1_dlm_cleanup(&vsp1->drm->dlm);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index 5ef32cff9601..1acf6048841b 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -13,7 +13,6 @@
- #ifndef __VSP1_DRM_H__
- #define __VSP1_DRM_H__
- 
--#include "vsp1_dl.h"
- #include "vsp1_pipe.h"
- 
- /**
-@@ -21,22 +20,16 @@
-  * @pipe: the VSP1 pipeline used for display
-  * @num_inputs: number of active pipeline inputs at the beginning of an update
-  * @update: the pipeline configuration has been updated
-- * @dlm: display list manager used for DRM operation
-  */
- struct vsp1_drm {
- 	struct vsp1_pipeline pipe;
- 	unsigned int num_inputs;
- 	bool update;
--	struct vsp1_dl_manager dlm;
++#ifndef __KERNEL__
++#include <stdint.h>
++#endif
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
+ #include <linux/version.h>
+@@ -320,27 +323,26 @@ struct media_v2_link {
  };
  
- int vsp1_drm_init(struct vsp1_device *vsp1);
- void vsp1_drm_cleanup(struct vsp1_device *vsp1);
- int vsp1_drm_create_links(struct vsp1_device *vsp1);
+ struct media_v2_topology {
+-	__u32 topology_version;
++	__u64 topology_version;
+ 
+-	__u32 num_entities;
+-	struct media_v2_entity *entities;
++	__u64 num_entities;
++	__u64 ptr_entities;
+ 
+-	__u32 num_interfaces;
+-	struct media_v2_interface *interfaces;
++	__u64 num_interfaces;
++	__u64 ptr_interfaces;
+ 
+-	__u32 num_pads;
+-	struct media_v2_pad *pads;
++	__u64 num_pads;
++	__u64 ptr_pads;
+ 
+-	__u32 num_links;
+-	struct media_v2_link *links;
 -
--static inline void vsp1_drm_display_start(struct vsp1_device *vsp1)
--{
--	vsp1_dlm_irq_display_start(&vsp1->drm->dlm);
--}
-+void vsp1_drm_display_start(struct vsp1_device *vsp1);
- 
- #endif /* __VSP1_DRM_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 0d1163eb3362..c005d374c254 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -244,6 +244,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 
- void vsp1_entity_destroy(struct vsp1_entity *entity)
- {
-+	if (entity->destroy)
-+		entity->destroy(entity);
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 311d5b64c9a5..259880e524fe 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -56,6 +56,8 @@ struct vsp1_route {
- struct vsp1_entity {
- 	struct vsp1_device *vsp1;
- 
-+	void (*destroy)(struct vsp1_entity *);
-+
- 	enum vsp1_entity_type type;
- 	unsigned int index;
- 	const struct vsp1_route *route;
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 8e8235682ada..d04df39b2737 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -24,6 +24,7 @@
- #define RWPF_PAD_SOURCE				1
- 
- struct v4l2_ctrl;
-+struct vsp1_dl_manager;
- struct vsp1_rwpf;
- struct vsp1_video;
- 
-@@ -60,6 +61,8 @@ struct vsp1_rwpf {
- 
- 	unsigned int offsets[2];
- 	dma_addr_t buf_addr[3];
-+
-+	struct vsp1_dl_manager *dlm;
+-	struct {
+-		__u32 reserved_num;
+-		void *reserved_ptr;
+-	} reserved_types[16];
+-	__u32 reserved[8];
++	__u64 num_links;
++	__u64 ptr_links;
  };
  
- static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index c78d4af50fcf..6afc9c8d9adc 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -16,6 +16,7 @@
- #include <media/v4l2-subdev.h>
- 
- #include "vsp1.h"
-+#include "vsp1_dl.h"
- #include "vsp1_rwpf.h"
- #include "vsp1_video.h"
- 
-@@ -218,6 +219,13 @@ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
-  * Initialization and Cleanup
-  */
- 
-+static void vsp1_wpf_destroy(struct vsp1_entity *entity)
++static inline void __user *media_get_uptr(__u64 arg)
 +{
-+	struct vsp1_rwpf *wpf = container_of(entity, struct vsp1_rwpf, entity);
-+
-+	vsp1_dlm_destroy(wpf->dlm);
++	return (void __user *)(uintptr_t)arg;
 +}
 +
- struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- {
- 	struct v4l2_subdev *subdev;
-@@ -233,6 +241,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	wpf->max_width = WPF_MAX_WIDTH;
- 	wpf->max_height = WPF_MAX_HEIGHT;
+ /* ioctls */
  
-+	wpf->entity.destroy = vsp1_wpf_destroy;
- 	wpf->entity.type = VSP1_ENTITY_WPF;
- 	wpf->entity.index = index;
- 
-@@ -240,6 +249,15 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/* Initialize the display list manager if the WPF is used for display */
-+	if ((vsp1->info->features & VSP1_HAS_LIF) && index == 0) {
-+		wpf->dlm = vsp1_dlm_create(vsp1, 4);
-+		if (!wpf->dlm) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+	}
-+
- 	/* Initialize the V4L2 subdev. */
- 	subdev = &wpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &wpf_ops);
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
 -- 
-2.4.10
+2.5.0
+
 
