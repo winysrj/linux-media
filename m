@@ -1,55 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59915 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37560 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753822AbbLVMks (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2015 07:40:48 -0500
-Subject: Re: next-20151222 - compile failure in
- drivers/media/usb/uvc/uvc_driver.c
-To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <75073.1450779516@turing-police.cc.vt.edu>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+	id S1754214AbbLKRRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 12:17:18 -0500
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <567944CB.4070505@osg.samsung.com>
-Date: Tue, 22 Dec 2015 09:40:43 -0300
-MIME-Version: 1.0
-In-Reply-To: <75073.1450779516@turing-police.cc.vt.edu>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 08/10] [media] uvcvideo: remove pads prefix from uvc_mc_create_pads_links()
+Date: Fri, 11 Dec 2015 14:16:34 -0300
+Message-Id: <1449854196-13296-9-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Valdis,
+The function uvc_mc_create_pads_links() creates entities links but the
+"pads" prefix is redundant since the driver doesn't handle any other
+kind of link, so it can be removed.
 
-On 12/22/2015 07:18 AM, Valdis Kletnieks wrote:
-> next-20151222 fails to build for me:
-> 
->   CC      drivers/media/usb/uvc/uvc_driver.o
-> drivers/media/usb/uvc/uvc_driver.c: In function 'uvc_probe':
-> drivers/media/usb/uvc/uvc_driver.c:1941:32: error: 'struct uvc_device' has no member named 'mdev'
->   if (media_device_register(&dev->mdev) < 0)
->                                 ^
-> scripts/Makefile.build:258: recipe for target 'drivers/media/usb/uvc/uvc_driver.o' failed
-> 
-> 'git blame' points at that line being added in:
-> 
-> commit 1590ad7b52714fddc958189103c95541b49b1dae
-> Author: Javier Martinez Canillas <javier@osg.samsung.com>
-> Date:   Fri Dec 11 20:57:08 2015 -0200
-> 
->     [media] media-device: split media initialization and registration
-> 
-> Not sure what went wrong here.
->
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-It was my forgetting to test with !CONFIG_MEDIA_CONTROLLER...
+---
 
-Anyways, I've already posted a fix for this:
+This patch addresses an issue Laurent pointed in patch [0]:
 
-https://lkml.org/lkml/2015/12/21/224
+- You can call this uvc_mc_create_links(), there's no other type of links.
 
-Best regards,
+[0]: https://lkml.org/lkml/2015/12/5/253
+
+ drivers/media/usb/uvc/uvc_entity.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_entity.c b/drivers/media/usb/uvc/uvc_entity.c
+index 38e893a1408b..33119dcb7cec 100644
+--- a/drivers/media/usb/uvc/uvc_entity.c
++++ b/drivers/media/usb/uvc/uvc_entity.c
+@@ -32,7 +32,7 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
+ 	return v4l2_device_register_subdev(&chain->dev->vdev, &entity->subdev);
+ }
+ 
+-static int uvc_mc_create_pads_links(struct uvc_video_chain *chain,
++static int uvc_mc_create_links(struct uvc_video_chain *chain,
+ 				    struct uvc_entity *entity)
+ {
+ 	const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
+@@ -131,9 +131,9 @@ int uvc_mc_register_entities(struct uvc_video_chain *chain)
+ 	}
+ 
+ 	list_for_each_entry(entity, &chain->entities, chain) {
+-		ret = uvc_mc_create_pads_links(chain, entity);
++		ret = uvc_mc_create_links(chain, entity);
+ 		if (ret < 0) {
+-			uvc_printk(KERN_INFO, "Failed to create pads links for "
++			uvc_printk(KERN_INFO, "Failed to create links for "
+ 				   "entity %u\n", entity->id);
+ 			return ret;
+ 		}
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.3
+
