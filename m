@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55871 "EHLO mail.kernel.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37570 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750803AbbL3XZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 18:25:27 -0500
-MIME-Version: 1.0
-In-Reply-To: <1450280249-24681-4-git-send-email-m.szyprowski@samsung.com>
-References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com> <1450280249-24681-4-git-send-email-m.szyprowski@samsung.com>
-From: Rob Herring <robh+dt@kernel.org>
-Date: Wed, 30 Dec 2015 17:25:04 -0600
-Message-ID: <CAL_JsqKmY3DOZ6xNcQ7mSrkuLzdxaGtAPRCjkanH-G58=iOtmw@mail.gmail.com>
-Subject: Re: [PATCH v3 3/7] of: reserved_mem: add support for named reserved
- mem nodes
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
+	id S1755650AbbLKRRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 12:17:25 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 10/10] [media] media-entity: remove unneded enclosing parenthesis
+Date: Fri, 11 Dec 2015 14:16:36 -0300
+Message-Id: <1449854196-13296-11-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 16, 2015 at 9:37 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> This patch allows device drivers to initialize more than one reserved
-> memory region assigned to given device. When driver needs to use more
-> than one reserved memory region, it should allocate child devices and
-> initialize regions by index or name for each of its child devices.
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  .../bindings/reserved-memory/reserved-memory.txt   |   2 +
->  .../devicetree/bindings/resource-names.txt         |   1 +
->  drivers/of/of_reserved_mem.c                       | 104 +++++++++++++++++----
->  include/linux/of_reserved_mem.h                    |  31 +++++-
->  4 files changed, 115 insertions(+), 23 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-> index 3da0ebdba8d9..43a14957fd64 100644
-> --- a/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-> +++ b/Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
-> @@ -74,6 +74,8 @@ Regions in the /reserved-memory node may be referenced by other device
->  nodes by adding a memory-region property to the device node.
->
->  memory-region (optional) - phandle, specifier pairs to children of /reserved-memory
-> +memory-region-names (optional) - supplemental names property, provide array of
-> +                                names to identify memory regions
->
->  Example
->  -------
-> diff --git a/Documentation/devicetree/bindings/resource-names.txt b/Documentation/devicetree/bindings/resource-names.txt
-> index e280fef6f265..51823e99b983 100644
-> --- a/Documentation/devicetree/bindings/resource-names.txt
-> +++ b/Documentation/devicetree/bindings/resource-names.txt
-> @@ -12,6 +12,7 @@ Resource Property     Supplemental Names Property
->  reg                    reg-names
->  clocks                 clock-names
->  interrupts             interrupt-names
-> +memory-region          memory-region-names
+Commit 86ee417578a2 ("[media] media: convert links from array to list")
+had many changes that were automated using coccinelle but the semantic
+patch was not smart enough to rely on operators precedence and avoid
+using unnecessary enclosing parenthesis.
 
-The other cases of *-names should correspond to actual h/w names for a
-h/w block. memory-regions are not really h/w. So I'd prefer to not add
-memory-region-names. If you want a name for the region, put it in the
-region node. The name for each client node is not going to be
-different.
+This patch removes them since are not needed.
 
-Rob
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+This patch addresses an issue Laurent pointed in patch [0]:
+
+- No need for parentheses
+
+[0]: [media-workshop] [PATCH v8.4 24/83] [media] media: convert links
+from array to list
+
+(unfortunately I didn't find a public archive for the media-workshop ML).
+
+ drivers/media/media-entity.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index ada2b44ea4e1..181ca0de6e52 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -225,7 +225,7 @@ static void stack_push(struct media_entity_graph *graph,
+ 		return;
+ 	}
+ 	graph->top++;
+-	graph->stack[graph->top].link = (&entity->links)->next;
++	graph->stack[graph->top].link = entity->links.next;
+ 	graph->stack[graph->top].entity = entity;
+ }
+ 
+@@ -268,7 +268,7 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 	 * top of the stack until no more entities on the level can be
+ 	 * found.
+ 	 */
+-	while (link_top(graph) != &(stack_top(graph)->links)) {
++	while (link_top(graph) != &stack_top(graph)->links) {
+ 		struct media_entity *entity = stack_top(graph);
+ 		struct media_link *link;
+ 		struct media_entity *next;
+-- 
+2.4.3
+
