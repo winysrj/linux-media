@@ -1,89 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45336 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273AbbLUCwy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 21:52:54 -0500
-Subject: Re: [PATCH 2/3] mn88472: add work around for failing firmware loading
-To: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
- <1448763016-10527-2-git-send-email-benjamin@southpole.se>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <56776983.8060905@iki.fi>
-Date: Mon, 21 Dec 2015 04:52:51 +0200
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:36583 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923AbbLKSPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 13:15:23 -0500
+Received: by lfed137 with SMTP id d137so33322542lfe.3
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2015 10:15:21 -0800 (PST)
+Subject: Re: [PATCH 3/3] media: adv7604: update timings on change of input
+ signal
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1449849893-14865-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <566B12B6.6020408@cogentembedded.com>
+Date: Fri, 11 Dec 2015 21:15:18 +0300
 MIME-Version: 1.0
-In-Reply-To: <1448763016-10527-2-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <1449849893-14865-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-I am not sure if problem is I2C adapter/bus or that demodulator I2C 
-slave. If it is demod, then that workaround is correct place, but if it 
-is not, then that is wrong and I2C adapter repeating logic should be used.
+Hello.
 
-I did some testing again... Loading mn88472 firmware 1000 times, it failed:
-61 times RC polling disabled
-68 times RC polling enabled
-83 times RC polling enabled, but repeated failed message due to that patch
+On 12/11/2015 07:04 PM, Ulrich Hecht wrote:
 
-I don't want apply that patch until I find some time myself to examine 
-that problem - or someone else does some study to point out whats wrong. 
-There is many things to test in order to get better understanding.
-
-regards
-Antti
-
-On 11/29/2015 04:10 AM, Benjamin Larsson wrote:
-> Sometimes the firmware fails to load because of an i2c error.
-> Work around that by adding retry logic. This kind of logic
-> also exist in the binary driver and failures have been observed
-> there also. Thus this seems to be a property of the hardware
-> and a fix like this is needed.
+> Without this, g_crop will always return the boot-time state.
 >
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 > ---
->   drivers/staging/media/mn88472/mn88472.c | 15 ++++++++++++++-
->   1 file changed, 14 insertions(+), 1 deletion(-)
+>   drivers/media/i2c/adv7604.c | 9 +++++++++
+>   1 file changed, 9 insertions(+)
 >
-> diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
-> index cf2e96b..80c5807 100644
-> --- a/drivers/staging/media/mn88472/mn88472.c
-> +++ b/drivers/staging/media/mn88472/mn88472.c
-> @@ -282,7 +282,7 @@ static int mn88472_init(struct dvb_frontend *fe)
->   	int ret, len, remaining;
->   	const struct firmware *fw = NULL;
->   	u8 *fw_file = MN88472_FIRMWARE;
-> -	unsigned int tmp;
-> +	unsigned int tmp, retry_cnt;
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 1bfa9f3..d7d0bb7 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1975,6 +1975,15 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
 >
->   	dev_dbg(&client->dev, "\n");
+>   		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
 >
-> @@ -330,9 +330,22 @@ static int mn88472_init(struct dvb_frontend *fe)
->   		if (len > (dev->i2c_wr_max - 1))
->   			len = dev->i2c_wr_max - 1;
->
-> +		/* I2C transfers during firmware load might fail sometimes,
-> +		 * just retry in that case. 4 consecutive failures have
-> +		 * been observed thus a retry limit of 20 is used.
-> +		 */
-> +		retry_cnt = 20;
-> +retry:
->   		ret = regmap_bulk_write(dev->regmap[0], 0xf6,
->   				&fw->data[fw->size - remaining], len);
->   		if (ret) {
-> +			if (retry_cnt) {
-> +				dev_dbg(&client->dev,
-> +				"i2c error, retry %d triggered\n", retry_cnt);
-> +				retry_cnt--;
-> +				usleep_range(200, 10000);
-> +				goto retry;
-> +			}
->   			dev_err(&client->dev,
->   					"firmware download failed=%d\n", ret);
->   			goto firmware_release;
->
+> +		/* update timings */
+> +		if (adv76xx_query_dv_timings(sd, &state->timings)
+> +		    == -ENOLINK) {
 
--- 
-http://palosaari.fi/
+    Please don't put the binary operators on the continuation line, leave them 
+at the end of he broken up line.
+
+[...]
+
+MBR, Sergei
+
