@@ -1,111 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46446 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756813AbbLHOgw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 09:36:52 -0500
-Date: Tue, 8 Dec 2015 12:36:48 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 14/55] [media] media: add functions to allow creating
- interfaces
-Message-ID: <20151208123648.5a2a69fb@recife.lan>
-In-Reply-To: <55F2CFC5.7010805@xs4all.nl>
-References: <510dc75bdef5462b55215ba8aed120b1b7c4997d.1440902901.git.mchehab@osg.samsung.com>
-	<ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<55F2CFC5.7010805@xs4all.nl>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34082 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751369AbbLKQZr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 11:25:47 -0500
+Subject: Re: [PATCH 0/3] adv7604: .g_crop and .cropcap support
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <566AF904.9050102@xs4all.nl>
+Date: Fri, 11 Dec 2015 17:25:40 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2015 14:57:41 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Ulrich,
 
-> On 09/06/2015 02:02 PM, Mauro Carvalho Chehab wrote:
-> > Interfaces are different than entities: they represent a
-> > Kernel<->userspace interaction, while entities represent a
-> > piece of hardware/firmware/software that executes a function.
-> > 
-> > Let's distinguish them by creating a separate structure to
-> > store the interfaces.
-> > 
-> > Later patches should change the existing drivers and logic
-> > to split the current interface embedded inside the entity
-> > structure (device nodes) into a separate object of the graph.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 12/11/2015 05:04 PM, Ulrich Hecht wrote:
+> Hi!
 > 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> The rcar_vin driver relies on these methods.  The third patch makes sure
+> that they return up-to-date data if the input signal has changed since
+> initialization.
 > 
-> But see a small note below:
+> CU
+> Uli
 > 
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index a23c93369a04..dc679dfe8ade 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -44,11 +44,41 @@ static inline const char *gobj_type(enum media_gobj_type type)
-> >  		return "pad";
-> >  	case MEDIA_GRAPH_LINK:
-> >  		return "link";
-> > +	case MEDIA_GRAPH_INTF_DEVNODE:
-> > +		return "intf-devnode";
-> >  	default:
-> >  		return "unknown";
-> >  	}
-> >  }
-> >  
-> > +static inline const char *intf_type(struct media_interface *intf)
-> > +{
-> > +	switch (intf->type) {
-> > +	case MEDIA_INTF_T_DVB_FE:
-> > +		return "frontend";
-> > +	case MEDIA_INTF_T_DVB_DEMUX:
-> > +		return "demux";
-> > +	case MEDIA_INTF_T_DVB_DVR:
-> > +		return "DVR";
-> > +	case MEDIA_INTF_T_DVB_CA:
-> > +		return  "CA";
 > 
-> Would lower case be better? "dvr" and "ca"? Although for some reason I feel that "CA"
-> is fine too. Not sure why :-)
-> 
-> What is the name of the associated device node? Upper or lower case? I feel that the
-> name here should match the name of the device node.
+> Ulrich Hecht (3):
+>   media: adv7604: implement g_crop
+>   media: adv7604: implement cropcap
 
-Not sure if I answered that before. I opted to use upper case for DVR and 
-CA because both are initials:
-	DVR - Digital Video Record
-	CA - Conditional Access
+I'm not keen on these changes. The reason is that these ops are deprecated and
+soc-camera is - almost - the last user. The g/s_selection ops should be used instead.
 
-and initials are in upper case, in English.
+Now, I have a patch that changes soc-camera to g/s_selection. The reason it was never
+applied is that I had a hard time finding hardware to test it with.
 
-The devnode names are whatever the udev rules tell ;) The Kernel actually 
-asks to create DVB class devices for the first DVR and CA, located on the first
-DVB adapter as:
-	/dev/dvb/adapter0/dvr0
-	/dev/dvb/adapter0/ca0
+Since you clearly have that hardware I think I'll rebase my (by now rather old) patch
+and post it again. If you can switch the adv7604 patch to g/s_selection and everything
+works with my patch, then I think I should just make a pull request for it.
 
-I don't mind changing those to lowercase to match the devnames on some
-future patch, if it is a consensus that making those names matching the
-device node is a requirement, but, in this case, maybe we should rename the
-dvb stuff to:
-	dvb/adapter/foo, in order to better reflect how they'll appear
-at devfs.
+I hope to be able to do this on Monday.
 
-Please also notice that:
-
-+	case MEDIA_INTF_T_DVB_NET:
-+		return "dvbnet";
-
-
-This is also not the device node. The device node there is actually:
-	/dev/dvb/adapter0/net0
-
-So, IMHO, it is fine the way it is, as we don't want big names here
-on those printks.
+If switching soc-camera over to g/s_selection isn't possible, then at the very least
+your adv7604 changes should provide the g/s_selection implementation. I don't want
+to have to convert this driver later to g/s_selection.
 
 Regards,
-Mauro
+
+	Hans
+
+>   media: adv7604: update timings on change of input signal
+> 
+>  drivers/media/i2c/adv7604.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
+> 
+
