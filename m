@@ -1,62 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59036 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37565 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752631AbbLJOk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 09:40:59 -0500
-Date: Thu, 10 Dec 2015 12:40:54 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] [media] staging/davinci_vfpe: allow modular build
-Message-ID: <20151210124054.3c527f11@recife.lan>
-In-Reply-To: <2029571.PWO4DcqdUl@wuerfel>
-References: <2029571.PWO4DcqdUl@wuerfel>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1755635AbbLKRRV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2015 12:17:21 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 09/10] [media] uvcvideo: register entity subdev on init
+Date: Fri, 11 Dec 2015 14:16:35 -0300
+Message-Id: <1449854196-13296-10-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Dec 2015 15:29:38 +0100
-Arnd Bergmann <arnd@arndb.de> escreveu:
+The uvc_mc_register_entities() function iterated over the entities three
+times to initialize the entities, register the subdev for the ones whose
+type was UVC_TT_STREAMING and to create the entities links.
 
-> It has never been possible to actually build this driver as
-> a loadable module, only built-in because the Makefile attempts
-> to build each file into its own module and fails:
-> 
-> ERROR: "mbus_to_pix" [drivers/staging/media/davinci_vpfe/vpfe_video.ko] undefined!
-> ERROR: "vpfe_resizer_register_entities" [drivers/staging/media/davinci_vpfe/vpfe_mc_capture.ko] undefined!
-> ERROR: "rsz_enable" [drivers/staging/media/davinci_vpfe/dm365_resizer.ko] undefined!
-> ERROR: "config_ipipe_hw" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
-> ERROR: "ipipe_set_lutdpc_regs" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
-> 
-> It took a long time to catch this bug with randconfig builds
-> because at least 14 other Kconfig symbols have to be enabled in
-> order to configure this one.
-> 
-> The solution is really easy: this patch changes the Makefile to
-> link all files into one module.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
-> index c64515c644cd..3019c9ecd548 100644
-> --- a/drivers/staging/media/davinci_vpfe/Makefile
-> +++ b/drivers/staging/media/davinci_vpfe/Makefile
-> @@ -1,3 +1,5 @@
-> -obj-$(CONFIG_VIDEO_DM365_VPFE) += \
-> +obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
-> +
-> +davinci-vfpe-objs := \
->  	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
->  	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
-> 
+But this can be simplied by merging the init and registration logic in a
+single loop.
 
-That seems a bad signal to me... I guess either this driver was never
-actually tested or it was tested only if compiled as built-in...
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Regards,
-Mauro
+---
+
+This patch addresses an issue Laurent pointed in patch [0]:
+
+- Move the  v4l2_device_register_subdev() call to uvc_mc_init_entity().
+
+[0]: https://lkml.org/lkml/2015/12/5/253
+
+ drivers/media/usb/uvc/uvc_entity.c | 33 +++++++++------------------------
+ 1 file changed, 9 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/usb/uvc/uvc_entity.c b/drivers/media/usb/uvc/uvc_entity.c
+index 33119dcb7cec..ac386bb547e6 100644
+--- a/drivers/media/usb/uvc/uvc_entity.c
++++ b/drivers/media/usb/uvc/uvc_entity.c
+@@ -19,19 +19,6 @@
+ 
+ #include "uvcvideo.h"
+ 
+-/* ------------------------------------------------------------------------
+- * Video subdevices registration and unregistration
+- */
+-
+-static int uvc_mc_register_entity(struct uvc_video_chain *chain,
+-	struct uvc_entity *entity)
+-{
+-	if (UVC_ENTITY_TYPE(entity) == UVC_TT_STREAMING)
+-		return 0;
+-
+-	return v4l2_device_register_subdev(&chain->dev->vdev, &entity->subdev);
+-}
+-
+ static int uvc_mc_create_links(struct uvc_video_chain *chain,
+ 				    struct uvc_entity *entity)
+ {
+@@ -85,7 +72,8 @@ void uvc_mc_cleanup_entity(struct uvc_entity *entity)
+ 		media_entity_cleanup(&entity->vdev->entity);
+ }
+ 
+-static int uvc_mc_init_entity(struct uvc_entity *entity)
++static int uvc_mc_init_entity(struct uvc_video_chain *chain,
++			      struct uvc_entity *entity)
+ {
+ 	int ret;
+ 
+@@ -96,6 +84,12 @@ static int uvc_mc_init_entity(struct uvc_entity *entity)
+ 
+ 		ret = media_entity_pads_init(&entity->subdev.entity,
+ 					entity->num_pads, entity->pads);
++
++		if (ret < 0)
++			return ret;
++
++		ret = v4l2_device_register_subdev(&chain->dev->vdev,
++						  &entity->subdev);
+ 	} else if (entity->vdev != NULL) {
+ 		ret = media_entity_pads_init(&entity->vdev->entity,
+ 					entity->num_pads, entity->pads);
+@@ -113,7 +107,7 @@ int uvc_mc_register_entities(struct uvc_video_chain *chain)
+ 	int ret;
+ 
+ 	list_for_each_entry(entity, &chain->entities, chain) {
+-		ret = uvc_mc_init_entity(entity);
++		ret = uvc_mc_init_entity(chain, entity);
+ 		if (ret < 0) {
+ 			uvc_printk(KERN_INFO, "Failed to initialize entity for "
+ 				   "entity %u\n", entity->id);
+@@ -122,15 +116,6 @@ int uvc_mc_register_entities(struct uvc_video_chain *chain)
+ 	}
+ 
+ 	list_for_each_entry(entity, &chain->entities, chain) {
+-		ret = uvc_mc_register_entity(chain, entity);
+-		if (ret < 0) {
+-			uvc_printk(KERN_INFO, "Failed to register entity for "
+-				   "entity %u\n", entity->id);
+-			return ret;
+-		}
+-	}
+-
+-	list_for_each_entry(entity, &chain->entities, chain) {
+ 		ret = uvc_mc_create_links(chain, entity);
+ 		if (ret < 0) {
+ 			uvc_printk(KERN_INFO, "Failed to create links for "
+-- 
+2.4.3
+
