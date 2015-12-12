@@ -1,40 +1,443 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f45.google.com ([209.85.192.45]:34501 "EHLO
-	mail-qg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019AbbLCO3E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 09:29:04 -0500
-Received: by qgeb1 with SMTP id b1so61978087qge.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 06:29:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
-References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
-Date: Thu, 3 Dec 2015 09:29:02 -0500
-Message-ID: <CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
-Subject: Re: Dear TV card experts - I need you help
-From: Steven Toth <stoth@kernellabs.com>
-To: Mr Andersson <mr.andersson.001@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from bombadil.infradead.org ([198.137.202.9]:42744 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751404AbbLLNlB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 08:41:01 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 6/6] [media] DocBook: Document MEDIA_IOC_G_TOPOLOGY
+Date: Sat, 12 Dec 2015 11:40:45 -0200
+Message-Id: <2f38a33c131f95ef38aa208d2c7a638a563aac88.1449927561.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
+References: <cover.1449927561.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
+References: <cover.1449927561.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Please don't reply privately, keep all correspondence to this mailing list.)
+Add description for this new media controller ioctl.
 
-> Let me start of by presenting myself. I am a Computer Engineer and a
-> business man, looking to launch a service where TV channels from
-> primarily satellites will be made available to the public.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ .../DocBook/media/v4l/media-controller.xml         |   1 +
+ .../DocBook/media/v4l/media-ioc-g-topology.xml     | 391 +++++++++++++++++++++
+ 2 files changed, 392 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
 
-You and 2 million other entrepreneurs, past, present and future.
-
-In most western countries, It's illegal to randomly redistribute
-television content unless you have specific paid-for negotiated rights
-with the content providers and the broadcasters. You should start by
-studying the law and contacting the content owners, negotiating
-contracts and seeking permission.
-
-Solve the legal contract / redistribution first, then the technology
-to make it happen is easily available.
-
+diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
+index 63d48decaa6f..5f2fc07a93d7 100644
+--- a/Documentation/DocBook/media/v4l/media-controller.xml
++++ b/Documentation/DocBook/media/v4l/media-controller.xml
+@@ -98,6 +98,7 @@
+   &sub-media-func-ioctl;
+   <!-- All ioctls go here. -->
+   &sub-media-ioc-device-info;
++  &sub-media-ioc-g-topology;
+   &sub-media-ioc-enum-entities;
+   &sub-media-ioc-enum-links;
+   &sub-media-ioc-setup-link;
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+new file mode 100644
+index 000000000000..e0d49fa329f0
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+@@ -0,0 +1,391 @@
++<refentry id="media-g-topology">
++  <refmeta>
++    <refentrytitle>ioctl MEDIA_IOC_G_TOPOLOGY</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>MEDIA_IOC_G_TOPOLOGY</refname>
++    <refpurpose>Enumerate the graph topology and graph element properties</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct media_v2_topology *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>File descriptor returned by
++	  <link linkend='media-func-open'><function>open()</function></link>.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>MEDIA_IOC_G_TOPOLOGY</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++    <para>The typical usage of this ioctl is to call it twice.
++    On the first call, the structure defined at &media-v2-topology; should
++    be zeroed. At return, if no errors happen, this ioctl will return the
++    <constant>topology_version</constant> and the total number of entities,
++    interfaces, pads and links.</para>
++    <para>Before the second call, the userspace should allocate arrays to
++    store the graph elements that are desired, putting the pointers to them
++    at the ptr_entities, ptr_interfaces, ptr_links and/or ptr_pads, keeping
++    the other values untouched.</para>
++    <para>If the <constant>topology_version</constant> remains the same, the
++    ioctl should fill the desired arrays with the media graph elements.</para>
++
++    <table pgwide="1" frame="none" id="media-v2-topology">
++      <title>struct <structname>media_v2_topology</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>topology_version</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Version of the media graph topology. When the graph is
++		    created, this field starts with zero. Every time a graph
++		    element is added or removed, this field is
++		    incremented.</entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>num_entities</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Number of entities in the graph</entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>ptr_entities</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>A pointer to a memory area where the entities array
++		   will be stored, converted to a 64-bits integer.
++		   It can be zero. if zero, the ioctl won't store the
++		   entities. It will just update
++		   <constant>num_entities</constant></entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>num_interfaces</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Number of interfaces in the graph</entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>ptr_interfaces</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>A pointer to a memory area where the interfaces array
++		   will be stored, converted to a 64-bits integer.
++		   It can be zero. if zero, the ioctl won't store the
++		   interfaces. It will just update
++		   <constant>num_interfaces</constant></entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>num_pads</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Total number of pads in the graph</entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>ptr_pads</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>A pointer to a memory area where the pads array
++		   will be stored, converted to a 64-bits integer.
++		   It can be zero. if zero, the ioctl won't store the
++		   pads. It will just update
++		   <constant>num_pads</constant></entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>num_links</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Total number of data and interface links in the graph</entry>
++	  </row>
++	  <row>
++	    <entry>__u64</entry>
++	    <entry><structfield>ptr_links</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>A pointer to a memory area where the links array
++		   will be stored, converted to a 64-bits integer.
++		   It can be zero. if zero, the ioctl won't store the
++		   links. It will just update
++		   <constant>num_links</constant></entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-v2-entity">
++      <title>struct <structname>media_v2_entity</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Unique ID for the entity.</entry>
++	  </row>
++	  <row>
++	    <entry>char</entry>
++	    <entry><structfield>name</structfield>[64]</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Entity name as an UTF-8 NULL-terminated string.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>function</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Entity main function, see <xref linkend="media-entity-type" /> for details.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[12]</entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set this array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-v2-interface">
++      <title>struct <structname>media_v2_interface</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Unique ID for the interface.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>intf_type</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Interface type, see <xref linkend="media-intf-type" /> for details.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Interface flags. Currently unused.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set this array to zero.</entry>
++	  </row>
++	  <row>
++	    <entry>struct media_v2_intf_devnode</entry>
++	    <entry><structfield>devnode</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Used only for device node interfaces. See <xref linkend="media-v2-intf-devnode" /> for details..</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-v2-intf-devnode">
++      <title>struct <structname>media_v2_interface</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>major</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Device node major number.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>minor</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Device node minor number.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-v2-pad">
++      <title>struct <structname>media_v2_pad</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Unique ID for the pad.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>entity_id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Unique ID for the entity where this pad belongs.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Pad flags, see <xref linkend="media-pad-flag" /> for more details.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[9]</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set this array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-v2-link">
++      <title>struct <structname>media_v2_pad</structname></title>
++      <tgroup cols="5">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Unique ID for the pad.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>source_id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>
++	       <para>On pad to pad links: unique ID for the source pad.</para>
++	       <para>On interface to entity links: unique ID for the interface.</para>
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>sink_id</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>
++	       <para>On pad to pad links: unique ID for the sink pad.</para>
++	       <para>On interface to entity links: unique ID for the entity.</para>
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Link flags, see <xref linkend="media-link-flag" /> for more details.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[5]</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set this array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENOSPC</errorcode></term>
++	<listitem>
++	  <para>This is returned when either one or more of the num_entities,
++	  num_interfaces, num_links or num_pads are non-zero and are smaller
++	  than the actual number of elements inside the graph. This may happen
++	  if the <constant>topology_version</constant> changed when compared
++	  to the last time this ioctl was called. Userspace should usually
++	  free the area for the pointers, zero the struct elements and call
++	  this ioctl again.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+2.5.0
+
+
