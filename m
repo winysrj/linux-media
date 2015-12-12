@@ -1,96 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38050 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:39261 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753422AbbLKW5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 17:57:22 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v5 0/3] [media] Fix race between graph enumeration and entities registration
-Date: Fri, 11 Dec 2015 19:57:06 -0300
-Message-Id: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
+	id S1751032AbbLLPWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 10:22:20 -0500
+Date: Sat, 12 Dec 2015 13:22:15 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: Re: [PATCH v2 11/22] v4l: xilinx: Use the new
+ media_entity_graph_walk_start() interface
+Message-ID: <20151212132215.6a11d723@recife.lan>
+In-Reply-To: <1448824823-10372-12-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	<1448824823-10372-12-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Sun, 29 Nov 2015 21:20:12 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-This series fixes the issue of media device nodes being registered before
-all the media entities and pads links are created so if user-space tries
-to enumerate the graph too early, it may get a partial graph enumeration
-since everything may not been registered yet.
+description is missing. Patch looks ok, except for that.
 
-The solution (suggested by Sakari Ailus) is to separate the media device
-registration from the initialization so drivers can first initialize the
-media device, create the graph and then finally register the media device
-node once is finished.
-
-This is the fifth version of the series and is a rebase on top of latest
-MC next gen and the only important change is the addition of patch 3/3.
-
-Patch #1 adds a check to the media_device_unregister() function to know if
-the media device has been registed yet so calling it will be safe and the
-cleanup functions of the drivers won't need to be changed in case register
-failed.
-
-Patch #2 does the init and registration split, changing all the drivers to
-make the change atomic and also adds a cleanup function for media devices.
-
-Patch #3 sets a topology version 0 at media device registration to allow
-user-space to know that the graph is "static" (i.e: no graph updates after
-the media device was registered).
-
-Best regards,
-Javier
-
-Changes in v5:
-- Add kernel-doc for media_device_init() and media_device_register().
-
-Changes in v4:
-- Remove the model check from BUG_ON() since shold not be fatal.
-  Suggested by Sakari Ailus.
-
-Changes in v3:
-- Replace the WARN_ON() in media_device_init() for a BUG_ON().
-  Suggested by Sakari Ailus.
-
-Changes in v2:
-- Reword the documentation for media_device_unregister(). Suggested by Sakari.
-- Added Sakari's Acked-by tag for patch #1.
-- Reword the documentation for media_device_unregister(). Suggested by Sakari.
-- Added Sakari's Acked-by tag for patch #1.
-- Change media_device_init() to return void instead of an error.
-  Suggested by Sakari Ailus.
-- Remove the error messages when media_device_register() fails.
-  Suggested by Sakari Ailus.
-- Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
-
-Javier Martinez Canillas (3):
-  [media] media-device: check before unregister if mdev was registered
-  [media] media-device: split media initialization and registration
-  [media] media-device: set topology version 0 at media registration
-
- drivers/media/common/siano/smsdvb-main.c      |  1 +
- drivers/media/media-device.c                  | 46 +++++++++++++++++++++++----
- drivers/media/platform/exynos4-is/media-dev.c | 15 ++++-----
- drivers/media/platform/omap3isp/isp.c         | 14 ++++----
- drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++---
- drivers/media/platform/vsp1/vsp1_drv.c        | 12 +++----
- drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++----
- drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++--------
- drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 ++++++++---------
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 ++++++++------
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++------
- drivers/media/usb/siano/smsusb.c              |  5 +--
- drivers/media/usb/uvc/uvc_driver.c            | 10 ++++--
- include/media/media-device.h                  | 26 +++++++++++++++
- 14 files changed, 165 insertions(+), 95 deletions(-)
-
--- 
-2.4.3
-
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
+> ---
+>  drivers/media/platform/xilinx/xilinx-dma.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+> index bc244a0..0a19824 100644
+> --- a/drivers/media/platform/xilinx/xilinx-dma.c
+> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
+> @@ -182,10 +182,17 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+>  	struct media_device *mdev = entity->graph_obj.mdev;
+>  	unsigned int num_inputs = 0;
+>  	unsigned int num_outputs = 0;
+> +	int ret;
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+>  
+>  	/* Walk the graph to locate the video nodes. */
+> +	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
+> +	if (ret) {
+> +		mutex_unlock(&mdev->graph_mutex);
+> +		return ret;
+> +	}
+> +
+>  	media_entity_graph_walk_start(&graph, entity);
+>  
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> @@ -206,6 +213,8 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+>  
+>  	mutex_unlock(&mdev->graph_mutex);
+>  
+> +	media_entity_graph_walk_cleanup(&graph);
+> +
+>  	/* We need exactly one output and zero or one input. */
+>  	if (num_outputs != 1 || num_inputs > 1)
+>  		return -EPIPE;
