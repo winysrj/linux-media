@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40129 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbbLNPkd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 10:40:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC PATCH] vb2: Stop allocating 'alloc_ctx', just set the device instead
-Date: Mon, 14 Dec 2015 17:40:43 +0200
-Message-ID: <28435978.1Ghf2YSlFk@avalon>
-In-Reply-To: <566ED3D4.9050803@xs4all.nl>
-References: <566ED3D4.9050803@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:39230 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbbLLPPs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 10:15:48 -0500
+Date: Sat, 12 Dec 2015 13:15:42 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: Re: [PATCH v2 05/22] media: Add KernelDoc documentation for struct
+ media_entity_graph
+Message-ID: <20151212131542.7d09890e@recife.lan>
+In-Reply-To: <1448824823-10372-6-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	<1448824823-10372-6-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sun, 29 Nov 2015 21:20:06 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On Monday 14 December 2015 15:36:04 Hans Verkuil wrote:
-> (Before I post this as the 'final' patch and CC all the driver developers
-> that are affected, I'd like to do an RFC post first. I always hated the
-> alloc context for obfuscating what is really going on, but let's see what
-> others think).
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/media/media-entity.h | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> 
-> Instead of allocating a struct that contains just a single device pointer,
-> just pass that device pointer around. This avoids having to check for
-> memory allocation errors and is much easier to understand since it makes
-> explicit what was hidden in an opaque handle before.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 2601bb0..8fd888f 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -95,6 +95,14 @@ struct media_entity_enum {
+>  	int idx_max;
+>  };
+>  
+> +/*
+> + * struct media_entity_graph - Media graph traversal state
+> + *
+> + * @stack.entity:	Media entity in the stack
+> + * @stack.link:		Link through which the entity was reached
+> + * @entities:		Visited entities
 
-As most devices use the same allocation context for all planes, wouldn't it 
-make sense to just store the struct device pointer in the queue structure ? 
-The oddball driver that requires different allocation contexts (I'm thinking 
-about s5p-mfc here, there might be a couple more) would have to set the 
-allocation contexts properly in the queue_setup handler, but for all other 
-devices you could just remove that code completely.
+The above is ok, but I guess you could get something better at the
+documentation, for example using, instead:
+	@stack.@entity
 
--- 
-Regards,
+This requires some testing with ./scripts/kernel-doc, though.
 
-Laurent Pinchart
-
+> + * @top:		The top of the stack
+> + */
+>  struct media_entity_graph {
+>  	struct {
+>  		struct media_entity *entity;
