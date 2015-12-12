@@ -1,75 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45369 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbbLURDz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 12:03:55 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:39301 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751032AbbLLPcC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 10:32:02 -0500
+Date: Sat, 12 Dec 2015 13:31:57 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH] [media] ir-lirc-codec.c: don't leak lirc->drv-rbuf
-Date: Mon, 21 Dec 2015 15:03:28 -0200
-Message-Id: <c77adf214ba619ad959f37fa429aa3f1045fe0cf.1450717405.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v2 16/22] v4l: vsp1: Use media entity enumeration API
+Message-ID: <20151212133157.0f4b4a7a@recife.lan>
+In-Reply-To: <1448824823-10372-17-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	<1448824823-10372-17-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by kmemleak:
+Em Sun, 29 Nov 2015 21:20:17 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-	unreferenced object 0xffff8802adae0ba0 (size 192):
-	  comm "modprobe", pid 3024, jiffies 4296503588 (age 324.368s)
-	  hex dump (first 32 bytes):
-	    00 00 00 00 ad 4e ad de ff ff ff ff 00 00 00 00  .....N..........
-	    ff ff ff ff ff ff ff ff c0 48 25 a0 ff ff ff ff  .........H%.....
-	  backtrace:
-	    [<ffffffff82278c8e>] kmemleak_alloc+0x4e/0xb0
-	    [<ffffffff8153c08c>] kmem_cache_alloc_trace+0x1ec/0x280
-	    [<ffffffffa0250f0d>] ir_lirc_register+0x8d/0x7a0 [ir_lirc_codec]
-	    [<ffffffffa07372b8>] ir_raw_event_register+0x318/0x4b0 [rc_core]
-	    [<ffffffffa07351ed>] rc_register_device+0xf2d/0x1450 [rc_core]
-	    [<ffffffffa13c5451>] au0828_rc_register+0x7d1/0xa10 [au0828]
-	    [<ffffffffa13b0dc2>] au0828_usb_probe+0x6c2/0xcf0 [au0828]
-	    [<ffffffff81d7619d>] usb_probe_interface+0x45d/0x940
-	    [<ffffffff81ca7004>] driver_probe_device+0x454/0xd90
-	    [<ffffffff81ca7a61>] __driver_attach+0x121/0x160
-	    [<ffffffff81ca141f>] bus_for_each_dev+0x11f/0x1a0
-	    [<ffffffff81ca5d4d>] driver_attach+0x3d/0x50
-	    [<ffffffff81ca5039>] bus_add_driver+0x4c9/0x770
-	    [<ffffffff81ca944c>] driver_register+0x18c/0x3b0
-	    [<ffffffff81d71e58>] usb_register_driver+0x1f8/0x440
-	    [<ffffffffa13680b7>] 0xffffffffa13680b7
+> From: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++++++++++----------
+>  1 file changed, 31 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index ce10d86..b3fd2be 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -311,24 +311,35 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  					 struct vsp1_rwpf *output)
+>  {
+>  	struct vsp1_entity *entity;
+> -	unsigned int entities = 0;
+> +	struct media_entity_enum entities;
 
-	0xf3d is in ir_lirc_register (drivers/media/rc/ir-lirc-codec.c:348).
-	343		drv = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
-	344		if (!drv)
-	345			return rc;
-	346
-	347		rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
-	348		if (!rbuf)
-	349			goto rbuf_alloc_failed;
-	350
-	351		rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
-	352		if (rc)
+Again, entities is a bad name ;) we're reserving this name to
+mean media_v2_entity. Using it with some other type makes
+thinks confusing.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/rc/ir-lirc-codec.c | 1 +
- 1 file changed, 1 insertion(+)
+>  	struct media_pad *pad;
+> +	int rval;
+>  	bool bru_found = false;
+>  
+>  	input->location.left = 0;
+>  	input->location.top = 0;
+>  
+> +	rval = media_entity_enum_init(
+> +		&entities, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index a32659fcd266..5effc65d2947 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -415,6 +415,7 @@ static int ir_lirc_unregister(struct rc_dev *dev)
- 
- 	lirc_unregister_driver(lirc->drv->minor);
- 	lirc_buffer_free(lirc->drv->rbuf);
-+	kfree(lirc->drv->rbuf);
- 	kfree(lirc->drv);
- 
- 	return 0;
--- 
-2.5.0
+Just put it on a single line. This kind of line breakage doesn't look nice ;)
 
+> +	if (rval)
+> +		return rval;
+> +
+>  	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
+>  
+>  	while (1) {
+> -		if (pad == NULL)
+> -			return -EPIPE;
+> +		if (pad == NULL) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+>  		/* We've reached a video node, that shouldn't have happened. */
+> -		if (!is_media_entity_v4l2_subdev(pad->entity))
+> -			return -EPIPE;
+> +		if (!is_media_entity_v4l2_subdev(pad->entity)) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+> -		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
+> +		entity = to_vsp1_entity(
+> +			media_entity_to_v4l2_subdev(pad->entity));
+>  
+>  		/* A BRU is present in the pipeline, store the compose rectangle
+>  		 * location in the input RPF for use when configuring the RPF.
+> @@ -351,15 +362,18 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  			break;
+>  
+>  		/* Ensure the branch has no loop. */
+> -		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
+> -			return -EPIPE;
+> -
+> -		entities |= 1 << media_entity_id(&entity->subdev.entity);
+> +		if (media_entity_enum_test_and_set(&entities,
+> +						   &entity->subdev.entity)) {
+> +			rval = -EPIPE;
+> +			goto out;
+> +		}
+>  
+>  		/* UDS can't be chained. */
+>  		if (entity->type == VSP1_ENTITY_UDS) {
+> -			if (pipe->uds)
+> -				return -EPIPE;
+> +			if (pipe->uds) {
+> +				rval = -EPIPE;
+> +				goto out;
+> +			}
+>  
+>  			pipe->uds = entity;
+>  			pipe->uds_input = bru_found ? pipe->bru
+> @@ -377,9 +391,12 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+>  
+>  	/* The last entity must be the output WPF. */
+>  	if (entity != &output->entity)
+> -		return -EPIPE;
+> +		rval = -EPIPE;
+>  
+> -	return 0;
+> +out:
+> +	media_entity_enum_cleanup(&entities);
+> +
+> +	return rval;
+>  }
+>  
+>  static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
