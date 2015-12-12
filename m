@@ -1,86 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54214 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751789AbbLXLml (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:32911 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751576AbbLLQ5M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2015 06:42:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH v2 1/2] media: adv7604: implement get_selection
-Date: Thu, 24 Dec 2015 13:42:40 +0200
-Message-ID: <2927121.d0aWWCy6Wl@avalon>
-In-Reply-To: <1450794122-31293-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1450794122-31293-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 12 Dec 2015 11:57:12 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E1443E100E
+	for <linux-media@vger.kernel.org>; Sat, 12 Dec 2015 17:57:05 +0100 (CET)
+Date: Sat, 12 Dec 2015 17:57:05 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151212165705.E1443E100E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Tuesday 22 December 2015 15:22:01 Ulrich Hecht wrote:
-> The rcar_vin driver relies on this.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index be5980c..8ad5c28 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1885,6 +1885,26 @@ static int adv76xx_get_format(struct v4l2_subdev *sd,
-> return 0;
->  }
-> 
-> +static int adv76xx_get_selection(struct v4l2_subdev *sd,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_selection *sel)
-> +{
-> +	struct adv76xx_state *state = to_state(sd);
-> +
-> +	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		return -EINVAL;
-> +	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
-> +	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
-> +		return -EINVAL;
-> +
-> +	sel->r.left	= 0;
-> +	sel->r.top	= 0;
-> +	sel->r.width	= state->timings.bt.width;
-> +	sel->r.height	= state->timings.bt.height;
+date:		Sat Dec 12 16:56:47 CET 2015
+git branch:	test
+git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
-This probably requires locking, but as the driver lacks locking support 
-completely I can't blame you.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Detailed results are available here:
 
-> +	return 0;
-> +}
-> +
->  static int adv76xx_set_format(struct v4l2_subdev *sd,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_format *format)
-> @@ -2415,6 +2435,7 @@ static const struct v4l2_subdev_video_ops
-> adv76xx_video_ops = {
-> 
->  static const struct v4l2_subdev_pad_ops adv76xx_pad_ops = {
->  	.enum_mbus_code = adv76xx_enum_mbus_code,
-> +	.get_selection = adv76xx_get_selection,
->  	.get_fmt = adv76xx_get_format,
->  	.set_fmt = adv76xx_set_format,
->  	.get_edid = adv76xx_get_edid,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-Regards,
+Full logs are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
