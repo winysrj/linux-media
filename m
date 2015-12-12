@@ -1,63 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39195 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346AbbLITDk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2015 14:03:40 -0500
-Reply-To: timo.helkio@kapsi.fi
-Subject: Re: DVBSky T980C ci not working with kernel 4.x
-References: <201512081149525312370@gmail.com>
-To: Nibble Max <nibble.max@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: =?UTF-8?Q?Timo_Helki=c3=b6?= <timo.helkio@kapsi.fi>
-Message-ID: <56687B09.4050004@kapsi.fi>
-Date: Wed, 9 Dec 2015 21:03:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <201512081149525312370@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:42735 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998AbbLLNlB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 08:41:01 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/6] [media] DocBook: MC: add the concept of interfaces
+Date: Sat, 12 Dec 2015 11:40:41 -0200
+Message-Id: <1208c8c461211bd6888441ed5e85331679bfb2f5.1449927561.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
+References: <cover.1449927561.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1449927561.git.mchehab@osg.samsung.com>
+References: <cover.1449927561.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08.12.2015 05:49, Nibble Max wrote:
->
-> Does this card work with the media code from dvbsky.net from kernel 4.x?
->
-> On 2015-12-06 19:10:41, Timo_Helkiö <timo.helkio@kapsi.fi> wrote:
->>
->> Hi
->>
->>
->> Common interface in Dvbsky T980C is not working with Ubuntu 15.10 kernel
->> 4.2.0 and vanilla kernel 4.6 and latest dvb-drivers from Linux-media
->> git. With Ubuntu 15.04 and kernel 3.19 it is working. I have tryid to
->> find differences in drivers, but my knolege of c it is not possible.
->> Erros message is "invalid PC-card".
->>
->> I have also Tevii S470 with same PCIe bridge Conexant cx23885.
->>
->> How to debug this? I can do minor changes to drivers for testing it.
->>
->>    Timo Helkiö
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Best Regards,
-> Max
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
->
+The Media Controller next generation patches added a new graph
+element type: interfaces. It also allows links between interfaces
+and entities. Update the docbook to reflect that.
 
-Yes, with drivers from dvbsky.net CI is working, but other card 
-TechnoTrend TT-connect CT2-4650 CI stoped working totaly. It has same 
-chips as Dvbsky T980C:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ .../DocBook/media/v4l/media-controller.xml         | 40 ++++++++++++++--------
+ 1 file changed, 26 insertions(+), 14 deletions(-)
 
-Demodulator: Silicon Labs Si2168-A20
-Tuner: Silicon Labs Si2158-A20
-CI chip: CIMaX SP2HF
+diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
+index 873ac3a621f0..def4a27aadef 100644
+--- a/Documentation/DocBook/media/v4l/media-controller.xml
++++ b/Documentation/DocBook/media/v4l/media-controller.xml
+@@ -58,20 +58,32 @@
+     <title>Media device model</title>
+     <para>Discovering a device internal topology, and configuring it at runtime,
+     is one of the goals of the media controller API. To achieve this, hardware
+-    devices are modelled as an oriented graph of building blocks called entities
+-    connected through pads.</para>
+-    <para>An entity is a basic media hardware or software building block. It can
+-    correspond to a large variety of logical blocks such as physical hardware
+-    devices (CMOS sensor for instance), logical hardware devices (a building
+-    block in a System-on-Chip image processing pipeline), DMA channels or
+-    physical connectors.</para>
+-    <para>A pad is a connection endpoint through which an entity can interact
+-    with other entities. Data (not restricted to video) produced by an entity
+-    flows from the entity's output to one or more entity inputs. Pads should not
+-    be confused with physical pins at chip boundaries.</para>
+-    <para>A link is a point-to-point oriented connection between two pads,
+-    either on the same entity or on different entities. Data flows from a source
+-    pad to a sink pad.</para>
++    devices and Linux Kernel interfaces are modelled as graph objects on
++    an oriented graph. The object types that constitute the graph are:</para>
++    <itemizedlist>
++    <listitem><para>An <emphasis role="bold">entity</emphasis>
++    is a basic media hardware or software building block. It can correspond to
++    a large variety of logical blocks such as physical hardware devices
++    (CMOS sensor for instance), logical hardware devices (a building block in
++    a System-on-Chip image processing pipeline), DMA channels or physical
++    connectors.</para></listitem>
++    <listitem><para>An <emphasis role="bold">interface</emphasis>
++    is a graph representation of a Linux Kernel userspace API interface,
++    like a device node or a sysfs file that controls one or more entities
++    in the graph.</para></listitem>
++    <listitem><para>A <emphasis role="bold">pad</emphasis>
++    is a data connection endpoint through which an entity can interact with
++    other entities. Data (not restricted to video) produced by an entity
++    flows from the entity's output to one or more entity inputs. Pads should
++    not be confused with physical pins at chip boundaries.</para></listitem>
++    <listitem><para>A <emphasis role="bold">data link</emphasis>
++    is a point-to-point oriented connection between two pads, either on the
++    same entity or on different entities. Data flows from a source pad to a
++    sink pad.</para></listitem>
++    <listitem><para>An <emphasis role="bold">interface link</emphasis>
++    is a point-to-point bidirectional control connection between a Linux
++    Kernel interface and an entity.m</para></listitem>
++    </itemizedlist>
+   </section>
+ </chapter>
+ 
+-- 
+2.5.0
 
-Dvbsky-based driver uses precompiled sit2_op.o insteadt of s12168 module.
 
-Who could merge these?
-
-    Timo Helkiö
