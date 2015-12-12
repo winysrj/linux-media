@@ -1,220 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47646 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:39282 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752224AbbLHTXp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 14:23:45 -0500
-Date: Tue, 8 Dec 2015 17:23:40 -0200
+	id S1751032AbbLLP1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 10:27:01 -0500
+Date: Sat, 12 Dec 2015 13:26:56 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-api@vger.kernel.org
-Subject: Re: [PATCH v8 44/55] [media] uapi/media.h: Add MEDIA_IOC_G_TOPOLOGY
- ioctl
-Message-ID: <20151208172340.43a76779@recife.lan>
-In-Reply-To: <1647957.hsKJGfKUVG@avalon>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<297afcfe4c9c5ebc074f92d1badd34b94e8b28f9.1441540862.git.mchehab@osg.samsung.com>
-	<1647957.hsKJGfKUVG@avalon>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: Re: [PATCH v2 14/22] media: Keep using the same graph walk object
+ for a given pipeline
+Message-ID: <20151212132656.6a28f757@recife.lan>
+In-Reply-To: <1448824823-10372-15-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	<1448824823-10372-15-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Dec 2015 02:47:39 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Em Sun, 29 Nov 2015 21:20:15 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-> Hi Mauro,
+> Initialise a given graph walk object once, and then keep using it whilst
+> the same pipeline is running. Once the pipeline is stopped, release the
+> graph walk object.
 > 
-> Thank you for the patch.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 17 +++++++++++------
+>  include/media/media-entity.h |  4 +++-
+>  2 files changed, 14 insertions(+), 7 deletions(-)
 > 
-> On Sunday 06 September 2015 09:03:04 Mauro Carvalho Chehab wrote:
-> > Add a new ioctl that will report the entire topology on
-> > one go.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 7320cdc45833..2d5ad40254b7 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -181,6 +181,8 @@ struct media_interface {
-> >   */
-> >  struct media_intf_devnode {
-> >  	struct media_interface		intf;
-> > +
-> > +	/* Should match the fields at media_v2_intf_devnode */
-> >  	u32				major;
-> >  	u32				minor;
-> >  };
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index a1bd7afba110..b17f6763aff4 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -206,6 +206,10 @@ struct media_pad_desc {
-> >  #define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
-> >  #define MEDIA_LNK_FL_DYNAMIC		(1 << 2)
-> > 
-> > +#define MEDIA_LNK_FL_LINK_TYPE		(0xf << 28)
-> > +#  define MEDIA_LNK_FL_DATA_LINK	(0 << 28)
-> > +#  define MEDIA_LNK_FL_INTERFACE_LINK	(1 << 28)
-> > +
-> >  struct media_link_desc {
-> >  	struct media_pad_desc source;
-> >  	struct media_pad_desc sink;
-> > @@ -249,11 +253,93 @@ struct media_links_enum {
-> >  #define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-> >  #define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-> > 
-> > -/* TBD: declare the structs needed for the new G_TOPOLOGY ioctl */
-> > +/*
-> > + * MC next gen API definitions
-> > + *
-> > + * NOTE: The declarations below are close to the MC RFC for the Media
-> > + *	 Controller, the next generation. Yet, there are a few adjustments
-> > + *	 to do, as we want to be able to have a functional API before
-> > + *	 the MC properties change. Those will be properly marked below.
-> > + *	 Please also notice that I removed "num_pads", "num_links",
-> > + *	 from the proposal, as a proper userspace application will likely
-> > + *	 use lists for pads/links, just as we intend to do in Kernelspace.
-> > + *	 The API definition should be freed from fields that are bound to
-> > + *	 some specific data structure.
-> > + *
-> > + * FIXME: Currently, I opted to name the new types as "media_v2", as this
-> > + *	  won't cause any conflict with the Kernelspace namespace, nor with
-> > + *	  the previous kAPI media_*_desc namespace. This can be changed
-> > + *	  later, before the adding this API upstream.
-> 
-> Yes, that's a good idea. Or at least we need to remove this comment if we 
-> decide to keep the v2 names :-)
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 7429c03..137aa09d 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+>  
+> -	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+> -	if (ret) {
+> -		mutex_unlock(&mdev->graph_mutex);
+> -		return ret;
+> +	if (!pipe->streaming_count++) {
+> +		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+> +		if (ret)
+> +			goto error_graph_walk_start;
+>  	}
+>  
+>  	media_entity_graph_walk_start(&pipe->graph, entity);
+> @@ -592,7 +592,9 @@ error:
+>  			break;
+>  	}
+>  
+> -	media_entity_graph_walk_cleanup(graph);
+> +error_graph_walk_start:
+> +	if (!--pipe->streaming_count)
+> +		media_entity_graph_walk_cleanup(graph);
+>  
+>  	mutex_unlock(&mdev->graph_mutex);
+>  
+> @@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>  {
+>  	struct media_device *mdev = entity->graph_obj.mdev;
+>  	struct media_entity_graph *graph = &entity->pipe->graph;
+> +	struct media_pipeline *pipe = entity->pipe;
+>  
+>  	mutex_lock(&mdev->graph_mutex);
+>  
+> +	BUG_ON(!pipe->streaming_count);
 
-True ;)
+Cant it be replaced by a WARN_ON()?
 
-> 
-> > + */
-> > +
-> > +
-> > +struct media_v2_entity {
-> > +	__u32 id;
-> > +	char name[64];		/* FIXME: move to a property? (RFC says so) */
-> 
-> I agree with Sakari that we can keep the name here even if we also expose it 
-> as a property. However, there's one issue we need to address : we need to 
-> clearly define what the name field should contain and how it should be 
-> constructed, otherwise we'll end up with the exact same mess as today, and I 
-> don't want that. We can discuss it in this mail thread or as replies to a 
-> future documentation patch.
-
-
-Well, let's discuss it then. What's your proposal?
-
-I guess there are actually some different goals that we want to archive
-with "name":
-
-1) an ideally short name used when displaying an entity on some graph. 
-It would be good if such "short name" would be unique, but it won't
-hurt much if such name is not unique;
-
-2) an unique ID identifier that will likely take the position of an
-entity inside the machine bus, like PCI ID, USB ID, I2C bus + I2C addr...
-
-I guess such UID would be better addressed via properties, as it
-would likely be constructed in userspace via a different set of
-properties, depending on the device and/or bus type.
-
-> 
-> > +	__u16 reserved[14];
-> 
-> Sakari and Hans have already commented on using __u32 instead of __u16 for 
-> reserved fields, as well as on the number of reserved fields. I agree with 
-> them but have nothing to add.
-
-Ok. I'll change this on a later patch.
-
-> 
-> > +};
-> > +
-> > +/* Should match the specific fields at media_intf_devnode */
-> > +struct media_v2_intf_devnode {
-> > +	__u32 major;
-> > +	__u32 minor;
-> > +};
-> > +
-> > +struct media_v2_interface {
-> > +	__u32 id;
-> > +	__u32 intf_type;
-> > +	__u32 flags;
-> > +	__u32 reserved[9];
-> > +
-> > +	union {
-> > +		struct media_v2_intf_devnode devnode;
-> > +		__u32 raw[16];
-> > +	};
-> > +};
-> > +
-> > +struct media_v2_pad {
-> > +	__u32 id;
-> > +	__u32 entity_id;
-> > +	__u32 flags;
-> > +	__u16 reserved[9];
-> > +};
-> > +
-> > +struct media_v2_link {
-> > +    __u32 id;
-> > +    __u32 source_id;
-> > +    __u32 sink_id;
-> > +    __u32 flags;
-> > +    __u32 reserved[5];
-> > +};
-> > +
-> > +struct media_v2_topology {
-> > +	__u32 topology_version;
-> > +
-> > +	__u32 num_entities;
-> > +	struct media_v2_entity *entities;
-> 
-> The kernel seems to be moving to using __u64 instead of pointers in userspace-
-> facing structures to avoid compat32 code.
-
-We had such discussion at the MC summit. I don't object to change to
-__u64, but we need to reach a consensus ;)
-
-> 
-> > +
-> > +	__u32 num_interfaces;
-> > +	struct media_v2_interface *interfaces;
-> > +
-> > +	__u32 num_pads;
-> > +	struct media_v2_pad *pads;
-> > +
-> > +	__u32 num_links;
-> > +	struct media_v2_link *links;
-> > +
-> > +	struct {
-> > +		__u32 reserved_num;
-> > +		void *reserved_ptr;
-> > +	} reserved_types[16];
-> > +	__u32 reserved[8];
-> 
-> I'd just create __u32 reserved fields without any reserved_types, we can 
-> always use the reserved fields to add new types later.
-
-It used to be __u32... Hans requested to change it to an struct.
-
-Btw, I also prefer to use __u32 here ;)
-
-> 
-> > +};
-> > +
-> > +/* ioctls */
-> > 
-> >  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct 
-> media_device_info)
-> >  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct 
-> media_entity_desc)
-> > #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
-> > #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-> > +#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
-> > 
-> >  #endif /* __LINUX_MEDIA_H */
-> 
+>  	media_entity_graph_walk_start(graph, entity);
+>  
+>  	while ((entity = media_entity_graph_walk_next(graph))) {
+> @@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>  			entity->pipe = NULL;
+>  	}
+>  
+> -	media_entity_graph_walk_cleanup(graph);
+> +	if (!--pipe->streaming_count)
+> +		media_entity_graph_walk_cleanup(graph);
+>  
+>  	mutex_unlock(&mdev->graph_mutex);
+>  }
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 8122736..85c2656 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -116,9 +116,11 @@ struct media_entity_graph {
+>  /*
+>   * struct media_pipeline - Media pipeline related information
+>   *
+> - * @graph:	Media graph walk during pipeline start / stop
+> + * @streaming_count:	Streaming start count - streaming stop count
+> + * @graph:		Media graph walk during pipeline start / stop
+>   */
+>  struct media_pipeline {
+> +	int streaming_count;
+>  	struct media_entity_graph graph;
+>  };
+>  
