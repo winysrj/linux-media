@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36494 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125AbbLUNyx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 08:54:53 -0500
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Grygorii Strashko <grygorii.strashko@ti.com>,
-	Benoit Parrot <bparrot@ti.com>
-Subject: [PATCH] media: i2c: ov2659: speedup probe if no device connected
-Date: Mon, 21 Dec 2015 15:54:46 +0200
-Message-ID: <1450706086-6801-1-git-send-email-grygorii.strashko@ti.com>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:21354 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751287AbbLLJCj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 04:02:39 -0500
+Subject: Re: Problems with TV card "TeVii S472"
+To: Hendrik Oenings <debian@oenings.de>, linux-media@vger.kernel.org
+References: <1449844281.21939.5.camel@oenings.de>
+From: Chris Moore <moore@free.fr>
+Message-ID: <566BE2A9.3070901@free.fr>
+Date: Sat, 12 Dec 2015 10:02:33 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1449844281.21939.5.camel@oenings.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov2659 driver performs device detection and initialization in the
-following way:
- - send reset command REG_SOFTWARE_RESET
- - load array of predefined register's setting (~150 values)
- - read device version REG_SC_CHIP_ID_H/REG_SC_CHIP_ID_L
- - check version and exit if invalid.
+Hi,
 
-As result, for not connected device there will be >~150 i2c transactions
-executed before device version checking and exit (there are no
-failures detected because ov2659 declared as I2C_CLIENT_SCCB and NACKs
-are ignored in this case).
+Le 11/12/2015 15:31, Hendrik Oenings a écrit :
+> Hi all,
+>
+> I've got a DVB-S2 PCI-Express tv card ("Tevii S472", http://tevii.com/P
+> roducts_S472_1.asp) with Debian testing, but I'm not able to get it
+> work.
+> On TeVii's webpage there is a linux driver availible (http://tevii.com/
+> Support.asp), but if I try to compile the driver, it says that my
+> kernel version isn't supported (current debian testing installed).
+>
 
-Let's fix that by checking the chip version first and start
-initialization only if it's supported.
+I had a similar problem a few months ago with a TeVii S660.
+I am running (K)Ubuntu 15.10 (Wily Werewolf).
+It didn't work correctly with the Ubuntu driver even after installing 
+the firmware.
 
-Cc: Benoit Parrot <bparrot@ti.com>
-Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
----
- drivers/media/i2c/ov2659.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+Compiling the driver from TeVii's site also said my kernel was not 
+supported.
+I guess it doesn't support 4.x kernels.
 
-diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-index 49109f4..9b7b78c 100644
---- a/drivers/media/i2c/ov2659.c
-+++ b/drivers/media/i2c/ov2659.c
-@@ -1321,10 +1321,6 @@ static int ov2659_detect(struct v4l2_subdev *sd)
- 	}
- 	usleep_range(1000, 2000);
- 
--	ret = ov2659_init(sd, 0);
--	if (ret < 0)
--		return ret;
--
- 	/* Check sensor revision */
- 	ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
- 	if (!ret)
-@@ -1338,8 +1334,10 @@ static int ov2659_detect(struct v4l2_subdev *sd)
- 			dev_err(&client->dev,
- 				"Sensor detection failed (%04X, %d)\n",
- 				id, ret);
--		else
-+		else {
- 			dev_info(&client->dev, "Found OV%04X sensor\n", id);
-+			ret = ov2659_init(sd, 0);
-+		}
- 	}
- 
- 	return ret;
--- 
-2.6.4
+I wanted a quick solution to watch the Rugby World Cup while my wife was 
+watching another program.
+As it worked on Windows I didn't try to fix it at the time but I could 
+have a go.
+
+Cheers,
+Chris
+
 
