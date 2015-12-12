@@ -1,165 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49616 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145AbbLUDl1 (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:39107 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289AbbLLNug convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 22:41:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sat, 12 Dec 2015 08:50:36 -0500
+Date: Sat, 12 Dec 2015 11:50:25 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>
-Subject: Re: per-frame camera metadata (again)
-Date: Mon, 21 Dec 2015 05:41:22 +0200
-Message-ID: <4607936.L97stxNvbj@avalon>
-In-Reply-To: <Pine.LNX.4.64.1512161108540.24913@axis700.grange>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange> <567136C6.8090009@xs4all.nl> <Pine.LNX.4.64.1512161108540.24913@axis700.grange>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v5 0/3] [media] Fix race between graph enumeration and
+ entities registration
+Message-ID: <20151212115025.06e54516@recife.lan>
+In-Reply-To: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
+References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Em Fri, 11 Dec 2015 19:57:06 -0300
+Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
 
-On Wednesday 16 December 2015 12:25:24 Guennadi Liakhovetski wrote:
-> On Wed, 16 Dec 2015, Hans Verkuil wrote:
-> > On 12/16/15 10:37, Guennadi Liakhovetski wrote:
-> > > Hi all,
-> > > 
-> > > A project, I am currently working on, requires acquiringing per-frame
-> > > metadata from the camera and passing it to user-space. This is not the
-> > > first time this comes up and I know such discussions have been held
-> > > before. A typical user is Android (also my case), where you have to
-> > > provide parameter values, that have been used to capture a specific
-> > > frame, to the user. I know Hans is working to handle one side of this
-> > > process - sending per-request controls,
-> > 
-> > Actually, the request framework can do both sides of the equation: giving
-> > back meta data in read-only controls that are per-frame. While ideally the
-> > driver would extract the information from the binary blob and put it in
-> > nice controls, it is also possible to make a control that just contains
-> > the binary blob itself. Whether that's a good approach depends on many
-> > factors and that's another topic.
+> Hello,
 > 
-> Yes, sorry, didn't mention this possibility. On the one hand I agree, that
-> this would look nice and consistent - you send a bunch of controls down
-> and you get them back in exactly the same way, nicely taken apart. OTOH
-> there are some issues with that:
+> This series fixes the issue of media device nodes being registered before
+> all the media entities and pads links are created so if user-space tries
+> to enumerate the graph too early, it may get a partial graph enumeration
+> since everything may not been registered yet.
 > 
-> 1. Metadata values can indeed come from the camera in a buffer, that's
-> DMAed to a buffer by the bridge - we have such examples. In our use-cases
-> those buffers are separate from main data, so, that the driver could
-> allocate them itself, but can there be cases, in which those buffers have
-> to be supplied by the user?
-
-The only case I can think of where the user would benefit from supplying the 
-buffer is sharing meta data with other processes and/or devices *if* the 
-amount of meta data is so large that a memcpy would negatively affect 
-performances. And I can't think of such a case at the moment :-)
-
-> 2. Size - not sure how large those control buffers can become, in
-> use-cases, that I'm aware of we transfer up to 20 single-value parameters
-> per frame.
-
-I have to deal with a system that can transfer up to ~200 parameters per frame 
-(at least in theory).
-
-> 3. With control values delivered per DMA, it's the bridge driver, that
-> gets the data, but it's the sensor subdevice driver, that knows what that
-> buffer contains. So, to deliver those parameters to the user, the sensor
-> driver control processing routines will have to get access to that
-> metadata buffer. This isn't supported so far even with the proposed
-> request API?
-
-Correct. My current implementation (see git://linuxtv.org/pinchartl/media.git 
-drm/du/vsp1-kms/request) doesn't deal with controls yet as the first use case 
-I focused on for the request API primarily requires setting formats (and 
-links, which are my next target).
-
-My other use case (Android camera HAL v3 for Project Ara) mainly deals with 
-controls and meta-data, but I'll then likely pass the meta-data blob to 
-userspace as-is, as its format isn't always known to the driver. I'm also 
-concerned about efficiency but haven't had time to perform measurements yet.
-
-> > > but I'm not aware whether he or anyone else is actively working on this
-> > > already or is planning to do so in the near future? I also know, that
-> > > several proprietary solutions have been developed and are in use in
-> > > various projects.
-> > > 
-> > > I think a general agreement has been, that such data has to be passed
-> > > via a buffer queue. But there are a few possibilities there too. Below
-> > > are some:
-> > > 
-> > > 1. Multiplanar. A separate plane is dedicated to metadata. Pros: (a)
-> > > metadata is already associated to specific frames, which they correspond
-> > > to. Cons: (a) a correct implementation would specify image plane fourcc
-> > > separately from any metadata plane format description, but we currently
-> > > don't support per-plane format specification.
-> > 
-> > This only makes sense if the data actually comes in via DMA and if it is
-> > large enough to make it worth the effort of implementing this. As you say,
-> > it will require figuring out how to do per-frame fourcc.
-> > 
-> > It also only makes sense if the metadata comes in at the same time as the
-> > frame.
-> > 
-> > > 2. Separate buffer queues. Pros: (a) no need to extend multiplanar
-> > > buffer implementation. Cons: (a) more difficult synchronisation with
-> > > image frames, (b) still need to work out a way to specify the metadata
-> > > version.
-> > > 
-> > > Any further options? Of the above my choice would go with (1) but with a
-> > > dedicated metadata plane in struct vb2_buffer.
-> > 
-> > 3. Use the request framework and return the metadata as control(s). Since
-> > controls can be associated with events when they change you can subscribe
-> > to such events. Note: currently I haven't implemented such events for
-> > request controls since I am not certainly how it would be used, but this
-> > would be a good test case.
-> > 
-> > Pros: (a) no need to extend multiplanar buffer implementation, (b) syncing
-> > up with the image frames should be easy (both use the same request ID),
-> > (c) a lot of freedom on how to export the metadata. Cons: (a) request
-> > framework is still work in progress (currently worked on by Laurent), (b)
-> > probably too slow for really large amounts of metadata, you'll need
-> > proper DMA handling for that in which case I would go for 2.
-
-(a) will eventually be solved, (b) needs measurements before discussing it 
-further.
-
-> For (2) (separate buffer queue) would we have to extend VIDIOC_DQBUF to
-> select a specific buffer queue?
-
-Wouldn't it use a separate video device node ?
-
-> > > In either of the above options we also need a way to tell the user what
-> > > is in the metadata buffer, its format. We could create new FOURCC codes
-> > > for them, perhaps as V4L2_META_FMT_... or the user space could identify
-> > > the metadata format based on the camera model and an opaque type
-> > > (metadata version code) value. Since metadata formats seem to be
-> > > extremely camera-specific, I'd go with the latter option.
-> > > 
-> > > Comments extremely welcome.
-> > 
-> > What I like about the request framework is that the driver can pick apart
-> > the metadata and turn it into well-defined controls. So the knowledge how
-> > to do that is in the place where it belongs. In cases where the meta data
-> > is simple too large for that to be feasible, then I don't have much of an
-> > opinion. Camera + version could be enough. Although the same can just as
-> > easily be encoded as a fourcc (V4L2_META_FMT_OVXXXX_V1, _V2, etc). A
-> > fourcc is more consistent with the current API.
+> The solution (suggested by Sakari Ailus) is to separate the media device
+> registration from the initialization so drivers can first initialize the
+> media device, create the graph and then finally register the media device
+> node once is finished.
 > 
-> Right, our use-cases so far don't send a lot of data as per-frame
-> metadata, no idea what others do.
+> This is the fifth version of the series and is a rebase on top of latest
+> MC next gen and the only important change is the addition of patch 3/3.
+> 
+> Patch #1 adds a check to the media_device_unregister() function to know if
+> the media device has been registed yet so calling it will be safe and the
+> cleanup functions of the drivers won't need to be changed in case register
+> failed.
+> 
+> Patch #2 does the init and registration split, changing all the drivers to
+> make the change atomic and also adds a cleanup function for media devices.
+> 
+> Patch #3 sets a topology version 0 at media device registration to allow
+> user-space to know that the graph is "static" (i.e: no graph updates after
+> the media device was registered).
 
-What kind of hardware do you deal with that sends meta-data ? And over what 
-kind of channel does it send it ?
+Got some troubles when compiling those patches:
 
--- 
-Regards,
+drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_init’:
+drivers/media/usb/dvb-usb/dvb-usb-dvb.c:104:6: warning: unused variable ‘ret’ [-Wunused-variable]
+  int ret;
+      ^
+drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_register’:
+drivers/media/usb/dvb-usb/dvb-usb-dvb.c:129:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
+  media_device_register(adap->dvb_adap.mdev);
+  ^
 
-Laurent Pinchart
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_init’:
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:409:6: warning: unused variable ‘ret’ [-Wunused-variable]
+  int ret;
+      ^
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_adapter_frontend_init’:
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:706:34: warning: passing argument 1 of ‘dvb_usbv2_media_device_register’ from incompatible pointer type [-Wincompatible-pointer-types]
+  dvb_usbv2_media_device_register(&adap->dvb_adap);
+                                  ^
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:432:13: note: expected ‘struct dvb_usb_adapter *’ but argument is of type ‘struct dvb_adapter *’
+ static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
+             ^
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_register’:
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:435:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
+  media_device_register(adap->dvb_adap.mdev);
 
+
+> 
+> Best regards,
+> Javier
+> 
+> Changes in v5:
+> - Add kernel-doc for media_device_init() and media_device_register().
+> 
+> Changes in v4:
+> - Remove the model check from BUG_ON() since shold not be fatal.
+>   Suggested by Sakari Ailus.
+> 
+> Changes in v3:
+> - Replace the WARN_ON() in media_device_init() for a BUG_ON().
+>   Suggested by Sakari Ailus.
+> 
+> Changes in v2:
+> - Reword the documentation for media_device_unregister(). Suggested by Sakari.
+> - Added Sakari's Acked-by tag for patch #1.
+> - Reword the documentation for media_device_unregister(). Suggested by Sakari.
+> - Added Sakari's Acked-by tag for patch #1.
+> - Change media_device_init() to return void instead of an error.
+>   Suggested by Sakari Ailus.
+> - Remove the error messages when media_device_register() fails.
+>   Suggested by Sakari Ailus.
+> - Fix typos in commit message of patch #2. Suggested by Sakari Ailus.
+> 
+> Javier Martinez Canillas (3):
+>   [media] media-device: check before unregister if mdev was registered
+>   [media] media-device: split media initialization and registration
+>   [media] media-device: set topology version 0 at media registration
+> 
+>  drivers/media/common/siano/smsdvb-main.c      |  1 +
+>  drivers/media/media-device.c                  | 46 +++++++++++++++++++++++----
+>  drivers/media/platform/exynos4-is/media-dev.c | 15 ++++-----
+>  drivers/media/platform/omap3isp/isp.c         | 14 ++++----
+>  drivers/media/platform/s3c-camif/camif-core.c | 15 ++++++---
+>  drivers/media/platform/vsp1/vsp1_drv.c        | 12 +++----
+>  drivers/media/platform/xilinx/xilinx-vipp.c   | 12 +++----
+>  drivers/media/usb/au0828/au0828-core.c        | 27 ++++++++--------
+>  drivers/media/usb/cx231xx/cx231xx-cards.c     | 30 ++++++++---------
+>  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 23 ++++++++------
+>  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 24 ++++++++------
+>  drivers/media/usb/siano/smsusb.c              |  5 +--
+>  drivers/media/usb/uvc/uvc_driver.c            | 10 ++++--
+>  include/media/media-device.h                  | 26 +++++++++++++++
+>  14 files changed, 165 insertions(+), 95 deletions(-)
+> 
