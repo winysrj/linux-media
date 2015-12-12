@@ -1,68 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37560 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:39241 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754214AbbLKRRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 12:17:18 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 08/10] [media] uvcvideo: remove pads prefix from uvc_mc_create_pads_links()
-Date: Fri, 11 Dec 2015 14:16:34 -0300
-Message-Id: <1449854196-13296-9-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
-References: <1449854196-13296-1-git-send-email-javier@osg.samsung.com>
+	id S1751032AbbLLPTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 10:19:14 -0500
+Date: Sat, 12 Dec 2015 13:19:10 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: Re: [PATCH v2 07/22] media: Amend media graph walk API by init and
+ cleanup functions
+Message-ID: <20151212131910.03c667ee@recife.lan>
+In-Reply-To: <1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
+References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
+	<1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function uvc_mc_create_pads_links() creates entities links but the
-"pads" prefix is redundant since the driver doesn't handle any other
-kind of link, so it can be removed.
+Em Sun, 29 Nov 2015 21:20:08 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Add media_entity_graph_walk_init() and media_entity_graph_walk_cleanup()
+> functions in order to dynamically allocate memory for the graph. This is
+> not done in media_entity_graph_walk_start() as there are situations where
+> e.g. correct error handling, that itself may not fail, requires successful
+> graph walk.
 
----
+looks ok to me.
 
-This patch addresses an issue Laurent pointed in patch [0]:
-
-- You can call this uvc_mc_create_links(), there's no other type of links.
-
-[0]: https://lkml.org/lkml/2015/12/5/253
-
- drivers/media/usb/uvc/uvc_entity.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_entity.c b/drivers/media/usb/uvc/uvc_entity.c
-index 38e893a1408b..33119dcb7cec 100644
---- a/drivers/media/usb/uvc/uvc_entity.c
-+++ b/drivers/media/usb/uvc/uvc_entity.c
-@@ -32,7 +32,7 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
- 	return v4l2_device_register_subdev(&chain->dev->vdev, &entity->subdev);
- }
- 
--static int uvc_mc_create_pads_links(struct uvc_video_chain *chain,
-+static int uvc_mc_create_links(struct uvc_video_chain *chain,
- 				    struct uvc_entity *entity)
- {
- 	const u32 flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
-@@ -131,9 +131,9 @@ int uvc_mc_register_entities(struct uvc_video_chain *chain)
- 	}
- 
- 	list_for_each_entry(entity, &chain->entities, chain) {
--		ret = uvc_mc_create_pads_links(chain, entity);
-+		ret = uvc_mc_create_links(chain, entity);
- 		if (ret < 0) {
--			uvc_printk(KERN_INFO, "Failed to create pads links for "
-+			uvc_printk(KERN_INFO, "Failed to create links for "
- 				   "entity %u\n", entity->id);
- 			return ret;
- 		}
--- 
-2.4.3
-
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 39 ++++++++++++++++++++++++++++++++++-----
+>  include/media/media-entity.h |  5 ++++-
+>  2 files changed, 38 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 667ab32..bf3c31f 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -353,14 +353,44 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+>  #define stack_top(en)	((en)->stack[(en)->top].entity)
+>  
+>  /**
+> + * media_entity_graph_walk_init - Allocate resources for graph walk
+> + * @graph: Media graph structure that will be used to walk the graph
+> + * @mdev: Media device
+> + *
+> + * Reserve resources for graph walk in media device's current
+> + * state. The memory must be released using
+> + * media_entity_graph_walk_free().
+> + *
+> + * Returns error on failure, zero on success.
+> + */
+> +__must_check int media_entity_graph_walk_init(
+> +	struct media_entity_graph *graph, struct media_device *mdev)
+> +{
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
+> +
+> +/**
+> + * media_entity_graph_walk_cleanup - Release resources related to graph walking
+> + * @graph: Media graph structure that was used to walk the graph
+> + */
+> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
+> +{
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
+> +
+> +/**
+>   * media_entity_graph_walk_start - Start walking the media graph at a given entity
+>   * @graph: Media graph structure that will be used to walk the graph
+>   * @entity: Starting entity
+>   *
+> - * This function initializes the graph traversal structure to walk the entities
+> - * graph starting at the given entity. The traversal structure must not be
+> - * modified by the caller during graph traversal. When done the structure can
+> - * safely be freed.
+> + * Before using this function, media_entity_graph_walk_init() must be
+> + * used to allocate resources used for walking the graph. This
+> + * function initializes the graph traversal structure to walk the
+> + * entities graph starting at the given entity. The traversal
+> + * structure must not be modified by the caller during graph
+> + * traversal. After the graph walk, the resources must be released
+> + * using media_entity_graph_walk_cleanup().
+>   */
+>  void media_entity_graph_walk_start(struct media_entity_graph *graph,
+>  				   struct media_entity *entity)
+> @@ -377,7 +407,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+>  
+> -
+>  /**
+>   * media_entity_graph_walk_next - Get the next entity in the graph
+>   * @graph: Media graph structure
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 4b5ca39..f0652e2 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -506,8 +506,11 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+>  struct media_entity *media_entity_get(struct media_entity *entity);
+>  void media_entity_put(struct media_entity *entity);
+>  
+> +__must_check int media_entity_graph_walk_init(
+> +	struct media_entity_graph *graph, struct media_device *mdev);
+> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+>  void media_entity_graph_walk_start(struct media_entity_graph *graph,
+> -		struct media_entity *entity);
+> +				   struct media_entity *entity);
+>  struct media_entity *
+>  media_entity_graph_walk_next(struct media_entity_graph *graph);
+>  __must_check int media_entity_pipeline_start(struct media_entity *entity,
