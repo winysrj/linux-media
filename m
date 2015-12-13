@@ -1,115 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:33372 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbbLZWgb (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:34525 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925AbbLMRn5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Dec 2015 17:36:31 -0500
-Received: by mail-lb0-f178.google.com with SMTP id sv6so71854900lbb.0
-        for <linux-media@vger.kernel.org>; Sat, 26 Dec 2015 14:36:31 -0800 (PST)
-Subject: Re: [PATCH v2] coccinelle: api: check for propagation of error from
- platform_get_irq
-To: Julia Lawall <julia.lawall@lip6.fr>
-References: <1451157891-24881-1-git-send-email-Julia.Lawall@lip6.fr>
- <567EF188.7020203@cogentembedded.com>
- <alpine.DEB.2.02.1512262107340.2070@localhost6.localdomain6>
- <alpine.DEB.2.02.1512262123500.2070@localhost6.localdomain6>
- <567EF895.6080702@cogentembedded.com>
- <alpine.DEB.2.02.1512262156580.2070@localhost6.localdomain6>
- <567F141C.8010000@cogentembedded.com>
- <alpine.DEB.2.02.1512262330430.2070@localhost6.localdomain6>
-Cc: Gilles Muller <Gilles.Muller@lip6.fr>,
-	Nicolas Palix <nicolas.palix@imag.fr>,
-	Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-spi@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	kernel-janitors@vger.kernel.org
+	Sun, 13 Dec 2015 12:43:57 -0500
+Received: by lfcy184 with SMTP id y184so33552321lfc.1
+        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2015 09:43:55 -0800 (PST)
+Subject: Re: [PATCH] media: soc_camera: rcar_vin: Add R-Car Gen3 support
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1450020436-809-1-git-send-email-ykaneko0929@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
 From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <567F166B.7030208@cogentembedded.com>
-Date: Sun, 27 Dec 2015 01:36:27 +0300
+Message-ID: <566DAE57.6030000@cogentembedded.com>
+Date: Sun, 13 Dec 2015 20:43:51 +0300
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.02.1512262330430.2070@localhost6.localdomain6>
+In-Reply-To: <1450020436-809-1-git-send-email-ykaneko0929@gmail.com>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/27/2015 01:32 AM, Julia Lawall wrote:
+On 12/13/2015 06:27 PM, Yoshihiro Kaneko wrote:
 
->>> The error return value of platform_get_irq seems to often get dropped.
->>>
->>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>>
->>> ---
->>>
->>> v2: Check for the direct return case also.  Added some mailing lists of
->>> common offenders.
->>>
->>> diff --git a/scripts/coccinelle/api/platform_get_irq_return.cocci
->>> b/scripts/coccinelle/api/platform_get_irq_return.cocci
->>> new file mode 100644
->>> index 0000000..44680d0
->>> --- /dev/null
->>> +++ b/scripts/coccinelle/api/platform_get_irq_return.cocci
->>> @@ -0,0 +1,58 @@
->>> +/// Propagate the return value of platform_get_irq.
->>> +//# Sometimes the return value of platform_get_irq is tested using <= 0,
->>> but 0
->>> +//# might not be an appropriate return value in an error case.
->>> +///
->>> +// Confidence: Moderate
->>> +// Copyright: (C) 2015 Julia Lawall, Inria. GPLv2.
->>> +// URL: http://coccinelle.lip6.fr/
->>> +// Options: --no-includes --include-headers
->>> +
->>> +virtual context
->>> +virtual org
->>> +virtual report
->>> +
->>> +//
->>> ----------------------------------------------------------------------------
->>> +
->>> +@r depends on context || org || report@
->>> +constant C;
->>> +statement S;
->>> +expression e, ret;
->>> +position j0, j1;
->>> +@@
->>> +
->>> +* e@j0 = platform_get_irq(...);
->>> +(
->>> +if@j1 (...) {
->>> +  ...
->>> +  return -C;
->>> +} else S
->>> +|
->>> +if@j1 (...) {
->>> +  ...
->>> +  ret = -C;
->>> +  ...
->>> +  return ret;
->>> +} else S
->>
->>     Well, this seems to also cover the (e <= 0) checks which do make same sense
->> in the light of Linus considering IRQ0 invalid. So I'd be more specific about
->> the checks here -- 0 should indeed be overridden with something if it's
->> considered invalid.
+> From: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
 >
-> That's what the limitations section says (lines with #).  This doesn't
+> Add chip identification for R-Car Gen3.
+>
+> Signed-off-by: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+[...]
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index 5d90f39..29e7ca4 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -143,6 +143,7 @@
+>   #define RCAR_VIN_BT656			(1 << 3)
+>
+>   enum chip_id {
+> +	RCAR_GEN3,
+>   	RCAR_GEN2,
+>   	RCAR_H1,
+>   	RCAR_M1,
+> @@ -1846,6 +1847,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+>
+>   #ifdef CONFIG_OF
+>   static const struct of_device_id rcar_vin_of_table[] = {
+> +	{ .compatible = "renesas,vin-r8a7795", .data = (void *)RCAR_GEN3 },
 
-    Ah, failed to notice those, only saw after replying.
-
-> make any changes, it only makes warnings, which should include the
-> limitations information, so perhaps people can consider what it is that
-> they really intend to do.
- >
-> If you think this is not a good idea, then I can make the test more
-> specific.
-
-    Well, looking again, the patch should be good. I just thought its goal was 
-to fix the code as well...
-
-> julia
+    I don't see where this is checked in the driver. Shouldn't we just use gen2?
 
 MBR, Sergei
 
