@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:50230 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750807AbbL0RdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 12:33:22 -0500
-Subject: [PATCH] [media] si2165: Refactoring for si2165_writereg_mask8()
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <568020CC.1060004@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 18:33:00 +0100
-MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34487 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751324AbbLMD46 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2015 22:56:58 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DBC7BE100E
+	for <linux-media@vger.kernel.org>; Sun, 13 Dec 2015 04:56:52 +0100 (CET)
+Date: Sun, 13 Dec 2015 04:56:52 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20151213035652.DBC7BE100E@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 18:23:57 +0100
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This issue was detected by using the Coccinelle software.
+Results of the daily build of media_tree:
 
-1. Let us return directly if a call of the si2165_readreg8()
-   function failed.
+date:		Sun Dec 13 04:00:20 CET 2015
+git branch:	test
+git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
-2. Reduce the scope for the local variables "ret" and "tmp" to one branch
-   of an if statement.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-3. Delete the jump label "err" then.
+Detailed results are available here:
 
-4. Return the value from a call of the si2165_writereg8() function
-   without using an extra assignment for the variable "ret" at the end.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/dvb-frontends/si2165.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+Full logs are available here:
 
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 2b93241..e8518ae 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -225,22 +225,18 @@ static int si2165_writereg32(struct si2165_state *state, const u16 reg, u32 val)
- static int si2165_writereg_mask8(struct si2165_state *state, const u16 reg,
- 				 u8 val, u8 mask)
- {
--	int ret;
--	u8 tmp;
--
- 	if (mask != 0xff) {
--		ret = si2165_readreg8(state, reg, &tmp);
-+		u8 tmp;
-+		int ret = si2165_readreg8(state, reg, &tmp);
-+
- 		if (ret < 0)
--			goto err;
-+			return ret;
- 
- 		val &= mask;
- 		tmp &= ~mask;
- 		val |= tmp;
- 	}
--
--	ret = si2165_writereg8(state, reg, val);
--err:
--	return ret;
-+	return si2165_writereg8(state, reg, val);
- }
- 
- #define REG16(reg, val) { (reg), (val) & 0xff }, { (reg)+1, (val)>>8 & 0xff }
--- 
-2.6.3
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
