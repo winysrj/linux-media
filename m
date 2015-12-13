@@ -1,93 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:38122 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbbL3Qqt (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39171 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbbLNBhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 11:46:49 -0500
-Received: by mail-wm0-f53.google.com with SMTP id b14so55521201wmb.1
-        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:49 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 07/16] media: rc: nuvoton-cir: fix setting ioport base address
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <5684095D.8030001@gmail.com>
-Date: Wed, 30 Dec 2015 17:42:05 +0100
+	Sun, 13 Dec 2015 20:37:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@gmail.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+Subject: Re: [PATCH 0/3] adv7604: .g_crop and .cropcap support
+Date: Sun, 13 Dec 2015 20:10:19 +0200
+Message-ID: <11156352.tBa7SdgW3Q@avalon>
+In-Reply-To: <566AF904.9050102@xs4all.nl>
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com> <566AF904.9050102@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At least on Zotac CI321 ACPI provides an ioport range for the wake up part
-but accessing these ioports has no effect.
-Instead the ioport base address is set to another value already
-(0xa20 in my case) and accessing this ioport range works.
+Hi Hans,
 
-Therefore set a new ioport base address only if the current ioport base
-address is 0 (register reset default).
+On Friday 11 December 2015 17:25:40 Hans Verkuil wrote:
+> On 12/11/2015 05:04 PM, Ulrich Hecht wrote:
+> > Hi!
+> > 
+> > The rcar_vin driver relies on these methods.  The third patch makes sure
+> > that they return up-to-date data if the input signal has changed since
+> > initialization.
+> > 
+> > CU
+> > Uli
+> > 
+> > Ulrich Hecht (3):
+> >   media: adv7604: implement g_crop
+> >   media: adv7604: implement cropcap
+> 
+> I'm not keen on these changes. The reason is that these ops are deprecated
+> and soc-camera is - almost - the last user. The g/s_selection ops should be
+> used instead.
+> 
+> Now, I have a patch that changes soc-camera to g/s_selection. The reason it
+> was never applied is that I had a hard time finding hardware to test it
+> with.
+> 
+> Since you clearly have that hardware I think I'll rebase my (by now rather
+> old) patch and post it again. If you can switch the adv7604 patch to
+> g/s_selection and everything works with my patch, then I think I should
+> just make a pull request for it.
+> 
+> I hope to be able to do this on Monday.
+> 
+> If switching soc-camera over to g/s_selection isn't possible, then at the
+> very least your adv7604 changes should provide the g/s_selection
+> implementation. I don't want to have to convert this driver later to
+> g/s_selection.
 
-The need to use the existing base address instead of trying to set
-an own one doesn't seem to be limited to this specific device as other
-drivers like hwmon/nct6775 do it the same way.
+I understand your concern and i agree with you. Our plan is to move the rcar-
+vin driver away from soc-camera. Unfortunately that will take some time, and 
+being able to use the adv7604 driver with rcar-vin would be very handy for 
+testing on some of our boards.
 
-This change was successfully tested on the mentioned device.
-And the change should be generic enough to not break the driver for
-other chips (however due to lack of appropriate hardware I wasn't
-able to test this).
+Let's see how g/s_selection support in soc-camera works out and then decide on 
+what to do.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+> >   media: adv7604: update timings on change of input signal
+> >  
+> >  drivers/media/i2c/adv7604.c | 38 ++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 38 insertions(+)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index f624851..342e21d 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -161,6 +161,22 @@ static u8 nvt_cir_wake_reg_read(struct nvt_dev *nvt, u8 offset)
- 	return val;
- }
- 
-+/* don't override io address if one is set already */
-+static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
-+{
-+	unsigned long old_addr;
-+
-+	old_addr = nvt_cr_read(nvt, CR_CIR_BASE_ADDR_HI) << 8;
-+	old_addr |= nvt_cr_read(nvt, CR_CIR_BASE_ADDR_LO);
-+
-+	if (old_addr)
-+		*ioaddr = old_addr;
-+	else {
-+		nvt_cr_write(nvt, *ioaddr >> 8, CR_CIR_BASE_ADDR_HI);
-+		nvt_cr_write(nvt, *ioaddr & 0xff, CR_CIR_BASE_ADDR_LO);
-+	}
-+}
-+
- /* dump current cir register contents */
- static void cir_dump_regs(struct nvt_dev *nvt)
- {
-@@ -333,8 +349,7 @@ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
- 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
- 	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
- 
--	nvt_cr_write(nvt, nvt->cir_addr >> 8, CR_CIR_BASE_ADDR_HI);
--	nvt_cr_write(nvt, nvt->cir_addr & 0xff, CR_CIR_BASE_ADDR_LO);
-+	nvt_set_ioaddr(nvt, &nvt->cir_addr);
- 
- 	nvt_cr_write(nvt, nvt->cir_irq, CR_CIR_IRQ_RSRC);
- 
-@@ -358,8 +373,7 @@ static void nvt_cir_wake_ldev_init(struct nvt_dev *nvt)
- 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
- 	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
- 
--	nvt_cr_write(nvt, nvt->cir_wake_addr >> 8, CR_CIR_BASE_ADDR_HI);
--	nvt_cr_write(nvt, nvt->cir_wake_addr & 0xff, CR_CIR_BASE_ADDR_LO);
-+	nvt_set_ioaddr(nvt, &nvt->cir_wake_addr);
- 
- 	nvt_cr_write(nvt, nvt->cir_wake_irq, CR_CIR_IRQ_RSRC);
- 
 -- 
-2.6.4
+Regards,
 
+Laurent Pinchart
 
