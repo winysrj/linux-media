@@ -1,65 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:33316 "EHLO
-	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121AbbLRRhw (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39167 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752312AbbLNBhF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 12:37:52 -0500
+	Sun, 13 Dec 2015 20:37:05 -0500
+From: Laurent Pinchart <pinchart_laurent@projectara.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@gmail.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+Subject: Re: [PATCH 1/3] media: adv7604: implement g_crop
+Date: Sun, 13 Dec 2015 20:18:31 +0200
+Message-ID: <3290325.ZSnHk6CZGE@avalon>
+In-Reply-To: <1449849893-14865-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1449849893-14865-2-git-send-email-ulrich.hecht+renesas@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <3030478.j1ZKoooRrc@avalon>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1450341626-6695-27-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<5673EB82.2060903@xs4all.nl>
-	<3030478.j1ZKoooRrc@avalon>
-Date: Fri, 18 Dec 2015 18:37:51 +0100
-Message-ID: <CAMuHMdU5ZRZyNwkKissXckvAWaD4osDYhCM7STw3L0wL_xgQnQ@mail.gmail.com>
-Subject: Re: [PATCH/RFC 26/48] videodev2.h: Add request field to v4l2_pix_format_mplane
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Ulrich,
 
-On Fri, Dec 18, 2015 at 6:16 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->> > @@ -1987,7 +1988,8 @@ struct v4l2_pix_format_mplane {
->> >
->> >     __u8                            ycbcr_enc;
->> >     __u8                            quantization;
->> >     __u8                            xfer_func;
->> >
->> > -   __u8                            reserved[7];
->> > +   __u8                            reserved[3];
->> > +   __u32                           request;
->>
->> I think I mentioned this before: I feel uncomfortable using 4 bytes of the
->> reserved fields when the request ID is limited to 16 bits anyway.
->
-> I'm still unsure whether request IDs should be 16 or 32 bits long. If we go
-> for 16 bits then I'll of course make this field a __u16.
->
->> I would prefer a __u16 here. Also put the request field *before* the
->> reserved array, not after.
->
-> The reserved array isn't aligned to a 32 bit (or even 16 bit) boundary. I can
-> put the request field before it, with a 8 bit hole before the field.
+Thank you for the patch.
 
-There's no alignment at all due to:
+On Friday 11 December 2015 17:04:51 Ulrich Hecht wrote:
+> The rcar_vin driver relies on this.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7604.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 129009f..d30e7cc 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1885,6 +1885,17 @@ static int adv76xx_get_format(struct v4l2_subdev *sd,
+> return 0;
+>  }
+> 
+> +static int adv76xx_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+> +{
+> +	struct adv76xx_state *state = to_state(sd);
+> +
+> +	a->c.height = state->timings.bt.height;
+> +	a->c.width  = state->timings.bt.width;
 
->> >  } __attribute__ ((packed));
+Shouldn't you set a->c.top and a->c.left to 0 ? There's no guarantee that the 
+caller will always zero the structure before calling you.
 
-Gr{oetje,eeting}s,
+> +	a->type	    = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-                        Geert
+The type field is an input parameter, you should just return -EINVAL if the 
+value is not V4L2_BUF_TYPE_VIDEO_CAPTURE.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> +
+> +	return 0;
+> +}
+> +
+>  static int adv76xx_set_format(struct v4l2_subdev *sd,
+>  			      struct v4l2_subdev_pad_config *cfg,
+>  			      struct v4l2_subdev_format *format)
+> @@ -2407,6 +2418,7 @@ static const struct v4l2_subdev_core_ops
+> adv76xx_core_ops = {
+> 
+>  static const struct v4l2_subdev_video_ops adv76xx_video_ops = {
+>  	.s_routing = adv76xx_s_routing,
+> +	.g_crop = adv76xx_g_crop,
+>  	.g_input_status = adv76xx_g_input_status,
+>  	.s_dv_timings = adv76xx_s_dv_timings,
+>  	.g_dv_timings = adv76xx_g_dv_timings,
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+Regards,
+
+Laurent Pinchart
+
