@@ -1,118 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51756 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698AbbLKNe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 08:34:29 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:40766 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751759AbbLMLM4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2015 06:12:56 -0500
+Date: Sun, 13 Dec 2015 09:12:50 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 09/10] media-entity: get rid of forward __media_entity_remove_link() declaration
-Date: Fri, 11 Dec 2015 11:34:14 -0200
-Message-Id: <71b0cac4a89540f4f17b89a33624c9acdbd02631.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Shuah Khan <shuah.kh@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: Media Controller patches
+Message-ID: <20151213091250.00df9420@recife.lan>
+In-Reply-To: <20151211190522.4e4d62a0@recife.lan>
+References: <20151210183411.3d15a819@recife.lan>
+	<20151211190522.4e4d62a0@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move this function to happen earlier, in order to avoid
-a uneeded forward declaration.
+Em Fri, 11 Dec 2015 19:05:22 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 67 +++++++++++++++++++++-----------------------
- 1 file changed, 32 insertions(+), 35 deletions(-)
+> Em Thu, 10 Dec 2015 18:34:11 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+> > Hi,
+> > 
+> > I've been working during this week to address the issues pointed during
+> > the Media Controller really long review process. We should avoid taking
+> > so long to review patches in the future, as it is really painful to
+> > go back to the already done work 4/5/7 months after the patchsets
+> > (yes, there are patches here written 7 months ago that were only
+> > very recently reviewed!). Shame on us.
+> > 
+> > Anyway, The reviewed patches are now at the media-controller topic
+> > branch, at the main tree.
+> > 
+> > I took the care of recompiling and automatically doing runtime tests
+> > with KASAN enabled, patch by patch, in order to be sure that the
+> > MC is in a sane state. I also ran kmemleak, and was unable to identify
+> > any troubles associated with the MC next gen rework.
+> > 
+> > So, the media-controller topic branch looks sane to me. It should be
+> > noticed that there are several items on a TODO list to be addressed
+> > before being able to merge this branch back at the master branch.
+> > 
+> > Please notice that patch 22 was removed from this series:
+> > 	Subject: [media] uapi/media.h: Declare interface types for ALSA
+> > 
+> > The idea is that this patch should be part of the patches that Shuah
+> > will submit and that requires review from the ALSA community before
+> > being merged.
+> > 
+> > Javier and me will start tomorrow on working on the pending items.
+> > 
+> > My goal is to have everything needed for Kernel 4.5 merge window
+> > done up to the next week.
+> > 
+> > ---
+> > 
+> > The current TODO list, based on the per-patch review is:
+> 
+> As far as I checked, all issues at the TODO for Kernel 4.5 were
+> already addressed, except for one item:
+> 
+> - Add documentation for the uAPI.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5a5432524c10..452af1d5a20d 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -588,7 +588,38 @@ static struct media_link *media_add_link(struct list_head *head)
- }
- 
- static void __media_entity_remove_link(struct media_entity *entity,
--				       struct media_link *link);
-+				       struct media_link *link)
-+{
-+	struct media_link *rlink, *tmp;
-+	struct media_entity *remote;
-+	unsigned int r = 0;
-+
-+	if (link->source->entity == entity)
-+		remote = link->sink->entity;
-+	else
-+		remote = link->source->entity;
-+
-+	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
-+		if (rlink != link->reverse) {
-+			r++;
-+			continue;
-+		}
-+
-+		if (link->source->entity == entity)
-+			remote->num_backlinks--;
-+
-+		/* Remove the remote link */
-+		list_del(&rlink->list);
-+		media_gobj_remove(&rlink->graph_obj);
-+		kfree(rlink);
-+
-+		if (--remote->num_links == 0)
-+			break;
-+	}
-+	list_del(&link->list);
-+	media_gobj_remove(&link->graph_obj);
-+	kfree(link);
-+}
- 
- int
- media_create_pad_link(struct media_entity *source, u16 source_pad,
-@@ -642,40 +673,6 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
- }
- EXPORT_SYMBOL_GPL(media_create_pad_link);
- 
--static void __media_entity_remove_link(struct media_entity *entity,
--				       struct media_link *link)
--{
--	struct media_link *rlink, *tmp;
--	struct media_entity *remote;
--	unsigned int r = 0;
--
--	if (link->source->entity == entity)
--		remote = link->sink->entity;
--	else
--		remote = link->source->entity;
--
--	list_for_each_entry_safe(rlink, tmp, &remote->links, list) {
--		if (rlink != link->reverse) {
--			r++;
--			continue;
--		}
--
--		if (link->source->entity == entity)
--			remote->num_backlinks--;
--
--		/* Remove the remote link */
--		list_del(&rlink->list);
--		media_gobj_remove(&rlink->graph_obj);
--		kfree(rlink);
--
--		if (--remote->num_links == 0)
--			break;
--	}
--	list_del(&link->list);
--	media_gobj_remove(&link->graph_obj);
--	kfree(link);
--}
--
- void __media_entity_remove_links(struct media_entity *entity)
- {
- 	struct media_link *link, *tmp;
--- 
-2.5.0
+There are actually 3 other items that were not listed at the TODO:
 
+- Merge of Sakari patches fixing media graph to work with entities
+  with ID > 64;
 
+- Use just one counter for the graph ID range. This patch depends on
+  Sakari series;
+
+- Merge of Javier patches that split media devnode register from the
+  media_device internal register. Not actually a requirement for
+  MC next gen, as it fixes an already existing race condition, but it
+  will allow almost for free to have topology_version = 0 as the
+  start version, with seems to be a good thing to drivers where the
+  topology is always static;
+
+I reviewed both Sakari and Javier series this weekend with a few
+comments.
+
+> 
+> I'll address this last item tomorrow.
+
+Item addressed. I also sent some patches fixing some kernel-doc left overs.
+Now, there are only a few set of functions not documented at
+media-entity.h:
+
+- the ones that will be touched by Sakari patches;
+- two ancillary functions that will be removed when we unify
+  the object ID numberspace.
+
+I'll review those remaining items after merging Sakari's series.
+
+> 
+> The patches that addressed the TODO list were sent already to the ML,
+> on a few independent patch series.
+> 
+> They're all (including the Javier ones) applied on my experimental
+> tree at branch media-controller-rc3:
+> 	git://linuxtv.org/mchehab/experimental.git media-controller-rc3
+> 
+> The userspace testing tool was also modified for the MC next gen,
+> at the branch mc-next-gen-v2:
+> 	git://linuxtv.org/mchehab/experimental-v4l-utils.git mc-next-gen-v2
+> 
+> 
+> 
+> Please let me know if something else got missed ASAP, as I'll be 
+> addressing any missing stuff during this weekend.
+> 
+> My goal is to merge those patches at the main development branch
+> this Monday.
+> 
+> NOTE:
+> ====
+> 
+> The TODO list are hosted at: https://etherpad.fr
+> 
+> 	The original one is on the above site, at: /p/mc-v2-todo
+> 	And we added a new version on the same site, at: /p/mc-v2-todo-v2
+> 
+> Things that got postponed to other Kernel versions:
+> ===================================================
+> 
+> 1) Sakari: Rethink about media-entity.h name;
+> 2) Laurent: do a non-hacking version of the pad/subdev switch logic (waiting for Laurent's comment on this one);
+> 3) Should address on a later series the changes to remove MEDIA_ENT_T_SUBDEV_UNKNOWN;
+> 4) Laurent: All exported API functions need kerneldoc. (most are. There are a few less used that needs documentation, like the __foo functions);
+
+This will actually be addressed after applying Sakari's patch series.
+
+> 5) Laurent: remove major/minor fields from entities
+> 
+> 6) Remove unused fields from media_entity (major, minor, num_links, num_backlinks, num_pads)
+> 7) dynamic entity/interface/link creation and removal;
+> 8) SETUP_LINK_V2 with dynamic support;
+> 9) dynamic pad creation and removal (needed?);
+> 10) multiple function per entity support;
+> 11) indirect interface links support;
+> 12) MC properties API.
+> 
+> Userspace TODO:
+> ==============
+> 
+> 1) Create a library with v2 API;
+> 2) Use the v2 API library on qv4l2/libdvbv5/xawtv/libv4l;
+> 
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
