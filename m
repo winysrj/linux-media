@@ -1,39 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:35494 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbbLKQE5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39068 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791AbbLNBgL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 11:04:57 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH 0/3] adv7604: .g_crop and .cropcap support
-Date: Fri, 11 Dec 2015 17:04:50 +0100
-Message-Id: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Sun, 13 Dec 2015 20:36:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
+Date: Sun, 13 Dec 2015 22:40:23 +0200
+Message-ID: <1530239.WI7pDY4BZt@avalon>
+In-Reply-To: <20151209110740.GI17128@valkosipuli.retiisi.org.uk>
+References: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com> <1496823.l1L2kFkYyq@avalon> <20151209110740.GI17128@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Sakari,
 
-The rcar_vin driver relies on these methods.  The third patch makes sure
-that they return up-to-date data if the input signal has changed since
-initialization.
+On Wednesday 09 December 2015 13:07:40 Sakari Ailus wrote:
+> On Wed, Dec 09, 2015 at 01:11:12AM +0200, Laurent Pinchart wrote:
+> > On Tuesday 08 December 2015 17:29:16 Sakari Ailus wrote:
+> > > On Mon, Dec 07, 2015 at 10:45:39AM +0200, Laurent Pinchart wrote:
+> > > > From: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+> > > > 
+> > > > Buffer length is needed for single plane as well, otherwise
+> > > > is uninitialized and behaviour is undetermined.
+> > > 
+> > > How about:
+> > > 
+> > > The v4l2_buffer length field must be passed as well from user to kernel
+> > > and back, otherwise uninitialised values will be used.
+> > > 
+> > > > Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
+> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > 
+> > > Shouldn't this be submitted to stable as well?
+> > 
+> > I'll CC stable.
+> > 
+> > > > ---
+> > > > 
+> > > >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
+> > > >  1 file changed, 5 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
+> > > > 8fd84a67478a..b0faa1f7e3a9 100644
+> > > > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > > > @@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer
+> > > > *kp, struct v4l2_buffer32 __user
+> > > >  				return -EFAULT;
+> > > >  			break;
+> > > >  		
+> > > >  		case V4L2_MEMORY_DMABUF:
+> > > > -			if (get_user(kp->m.fd, &up->m.fd))
+> > > > +			if (get_user(kp->m.fd, &up->m.fd) ||
+> > > > +			    get_user(kp->length, &up->length))
+> > > >  				return -EFAULT;
+> > > > +
+> 
+> Without the extra newline, please?
 
-CU
-Uli
-
-
-Ulrich Hecht (3):
-  media: adv7604: implement g_crop
-  media: adv7604: implement cropcap
-  media: adv7604: update timings on change of input signal
-
- drivers/media/i2c/adv7604.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+Sure, I'll fix that in the pull request.
 
 -- 
-2.6.3
+Regards,
+
+Laurent Pinchart
 
