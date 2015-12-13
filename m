@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33060 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751422AbbLIDml (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39159 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbbLNBhB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 22:42:41 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 82C62E0BC8
-	for <linux-media@vger.kernel.org>; Wed,  9 Dec 2015 04:42:36 +0100 (CET)
-Date: Wed, 09 Dec 2015 04:42:36 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151209034236.82C62E0BC8@tschai.lan>
+	Sun, 13 Dec 2015 20:37:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@gmail.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+Subject: Re: [PATCH 3/3] media: adv7604: update timings on change of input signal
+Date: Sun, 13 Dec 2015 20:30:33 +0200
+Message-ID: <3320423.YrUk0MXGBk@avalon>
+In-Reply-To: <1449849893-14865-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1449849893-14865-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Ulrich,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Wed Dec  9 04:00:23 CET 2015
-git branch:	test
-git hash:	991ce92f8de24cde063d531246602b6e14d3fef2
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+On Friday 11 December 2015 17:04:53 Ulrich Hecht wrote:
+> Without this, g_crop will always return the boot-time state.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7604.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 1bfa9f3..d7d0bb7 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1975,6 +1975,15 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32
+> status, bool *handled)
+> 
+>  		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+> 
+> +		/* update timings */
+> +		if (adv76xx_query_dv_timings(sd, &state->timings)
+> +		    == -ENOLINK) {
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-smatch: ERRORS
+Nitpicking, I would write this as
 
-Detailed results are available here:
+		ret = adv76xx_query_dv_timings(sd, &state->timings);
+		if (ret == -ENOLINK) {
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+to make it more explicit that the function has side effects. Functions called 
+inside an if () statement are often assumed (at least by me) to perform checks 
+only and not modify their parameters.
 
-Full logs are available here:
+> +			/* no signal, fall back to default timings */
+> +			const struct v4l2_dv_timings cea640x480 =
+> +				V4L2_DV_BT_CEA_640X480P59_94;
+> +			state->timings = cea640x480;
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+You can write this as
 
-The Media Infrastructure API from this daily build is here:
+			state->timings = (struct v4l2_dv_timings)
+				V4L2_DV_BT_CEA_640X480P59_94;
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+without using a local variable.
+
+(And now that I mention that I wonder whether the definition of 
+V4L2_DV_BT_CEA_640X480P59_94 should be updated to include the (struct 
+v4l2_dv_timings))
+
+> +		}
+> +
+>  		if (handled)
+>  			*handled = true;
+>  	}
+
+-- 
+Regards,
+
+Laurent Pinchart
+
