@@ -1,92 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:5268 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131AbbL1MVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 07:21:11 -0500
-Subject: Re: Automatic device driver back-porting with media_build
-To: linux-media <linux-media@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:38527 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbbLMLB7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2015 06:01:59 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <56811270.7070907@free.fr>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <5681292F.3010204@free.fr>
-Date: Mon, 28 Dec 2015 13:21:03 +0100
-MIME-Version: 1.0
-In-Reply-To: <56811270.7070907@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/4] [media] media-entity.h: Document some ancillary functions
+Date: Sun, 13 Dec 2015 09:01:40 -0200
+Message-Id: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28/12/2015 11:44, Mason wrote:
+Add a basic documentation for most ancillary functions.
 
-> Hello Mauro,
-> 
-> Haven't heard back from you in a while. Maybe someone else can point
-> out what I'm doing wrong?
-> 
-> On 17/12/2015 13:55, Mauro Carvalho Chehab wrote:
-> 
->> Mason wrote:
->>
->>> I have a TechnoTrend TT-TVStick CT2-4400v2 USB tuner, as described here:
->>> http://linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400
->>>
->>> According to the article, the device is supported since kernel 3.19
->>> and indeed, if I use a 4.1 kernel, I can pick CONFIG_DVB_USB_DVBSKY
->>> and everything seems to work.
->>>
->>> Unfortunately (for me), I've been asked to make this driver work on
->>> an ancient 3.4 kernel.
->>
->> The goal is to allow compilation since 2.6.32, but please notice that
->> not all drivers will go that far. Basically, when the backport seems too
->> complex, we just remove the driver from the list of drivers that are
->> compiled for a given legacy version.
->>
->> See the file v4l/versions.txt to double-check if the drivers you need
->> have such restrictions. I suspect that, in the specific case of
->> DVB_USB_DVBSKY, it should compile.
-> 
-> Whatever options I pick for my 3.4 config, CONFIG_DVB_USB_DVBSKY remains
-> unset in v4l/.config
-> 
-> $ grep -r DVB_USB_DVBSKY media_build/v4l/
-> media_build/v4l/Kconfig:config DVB_USB_DVBSKY
-> media_build/v4l/Kconfig.kern: [snip config USB]
-> media_build/v4l/Kconfig.kern: [snip config I2C]
-> media_build/v4l/.myconfig:CONFIG_DVB_USB_DVBSKY                        := n
-> media_build/v4l/Makefile.media:obj-$(CONFIG_DVB_USB_DVBSKY) += dvb-usb-dvbsky.o
-> media_build/v4l/.config:# CONFIG_DVB_USB_DVBSKY is not set
-> 
-> I suppose some prerequisite is missing?
-> Does anything obvious come to mind?
-> 
-> I've resorted to interrupting the build and changing v4l/.config to
-> CONFIG_DVB_USB_DVBSKY=m (and the module is correctly built) but this
-> feels like an unnecessary hack.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ include/media/media-entity.h | 58 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 57 insertions(+), 1 deletion(-)
 
-/tmp/sandbox/media_build$ make allmodconfig
-
-didn't add anything on top of what the vanilla 'make' did.
-
-$ make menuconfig
-make -C /tmp/sandbox/media_build/v4l menuconfig
-make[1]: Entering directory `/tmp/sandbox/media_build/v4l'
-/tmp/buildroot-2014.05-13/output/build/linux-custom/scripts/kconfig/mconf ./Kconfig
-./Kconfig:519: syntax error
-./Kconfig:518: unknown option "Say"
-./Kconfig:519: unknown option "To"
-./Kconfig:520: unknown option "called"
-./Kconfig:523: syntax error
-./Kconfig:522:warning: multi-line strings not supported
-./Kconfig:522: unknown option "If"
-make[1]: *** [menuconfig] Error 1
-make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
-make: *** [menuconfig] Error 2
-
-I'll keep poking random knobs.
-
-Regards.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index d073b205e6a6..81aca1f5a09a 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -238,11 +238,21 @@ struct media_intf_devnode {
+ 	u32				minor;
+ };
+ 
++/**
++ * media_entity_id() - return the media entity graph object id
++ *
++ * @entity:	pointer to entity
++ */
+ static inline u32 media_entity_id(struct media_entity *entity)
+ {
+ 	return entity->graph_obj.id;
+ }
+ 
++/**
++ * media_type() - return the media object type
++ *
++ * @gobj:	pointer to the media graph object
++ */
+ static inline enum media_gobj_type media_type(struct media_gobj *gobj)
+ {
+ 	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
+@@ -263,6 +273,15 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
+ 	return id;
+ }
+ 
++/**
++ * is_media_entity_v4l2_io() - identify if the entity main function
++ *			       is a V4L2 I/O
++ *
++ * @entity:	pointer to entity
++ *
++ * Return: true if the entity main function is one of the V4L2 I/O types
++ *	(video, VBI or SDR radio); false otherwise.
++ */
+ static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+ {
+ 	if (!entity)
+@@ -278,6 +297,16 @@ static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+ 	}
+ }
+ 
++/**
++ * is_media_entity_v4l2_subdev - return true if the entity main function is
++ *				 associated with the V4L2 API subdev usage
++ *
++ * @entity:	pointer to entity
++ *
++ * This is an ancillary function used by subdev-based V4L2 drivers.
++ * It checks if the entity function is one of functions used by a V4L2 subdev,
++ * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
++ */
+ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+ {
+ 	if (!entity)
+@@ -652,16 +681,43 @@ struct media_link *
+ __must_check media_create_intf_link(struct media_entity *entity,
+ 				    struct media_interface *intf,
+ 				    u32 flags);
++/**
++ * __media_remove_intf_link() - remove a single interface link
++ *
++ * @link:	pointer to &media_link.
++ *
++ * Note: this is an unlocked version of media_remove_intf_link()
++ */
+ void __media_remove_intf_link(struct media_link *link);
++
++/**
++ * media_remove_intf_link() - remove a single interface link
++ *
++ * @link:	pointer to &media_link.
++ *
++ * Note: prefer to use this one, instead of __media_remove_intf_link()
++ */
+ void media_remove_intf_link(struct media_link *link);
++
++/**
++ * __media_remove_intf_links() - remove all links associated with an interface
++ *
++ * @intf:	pointer to &media_interface
++ *
++ * Note: this is an unlocked version of media_remove_intf_links().
++ */
+ void __media_remove_intf_links(struct media_interface *intf);
+ /**
+  * media_remove_intf_links() - remove all links associated with an interface
+  *
+  * @intf:	pointer to &media_interface
+  *
+- * Note: this is called automatically when an entity is unregistered via
++ * Notes:
++ *
++ * this is called automatically when an entity is unregistered via
+  * media_device_register_entity() and by media_devnode_remove().
++ *
++ * Prefer to use this one, instead of __media_remove_intf_links().
+  */
+ void media_remove_intf_links(struct media_interface *intf);
+ 
+-- 
+2.5.0
 
