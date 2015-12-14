@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:40576 "EHLO mga02.intel.com"
+Received: from mout.gmx.net ([212.227.15.18]:57732 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752319AbbLNHQf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 02:16:35 -0500
-From: Tuukka Toivonen <tuukka.toivonen@intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH] Return proper error code if STREAMON fails
-Date: Mon, 14 Dec 2015 09:16:30 +0200
-Message-ID: <181264909.M62ZDuucnX@ttoivone-desk1>
-In-Reply-To: <2149558.6ozUHQXHtS@avalon>
-References: <207011196.fyjkdD1C8L@ttoivone-desk1> <2149558.6ozUHQXHtS@avalon>
+	id S1752660AbbLNJ6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 04:58:33 -0500
+Date: Mon, 14 Dec 2015 10:58:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] mt9t001: fix clean up in case of power-on failures
+Message-ID: <Pine.LNX.4.64.1512141049310.11891@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+If the driver fails to reset the camera or to set up control handlers, it
+has to power the camera back off.
 
-Thanks for your feedback.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/mt9t001.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-On Saturday, December 12, 2015 17:40:07 Laurent Pinchart wrote:
-> I wonder if there's really a point calling video_free_buffers() in the
-> error case. The function will return an error causing the caller to
-> close the device, which will free the buffers. There are other
-> locations in yavta after buffers are allocated where the buffers are not
-> freed in the error path. What would you think of just replacing the
-> goto done statements by a return ret ?
-
-I'm fine with that change. It will also simplify the patch.
-I'll submit a new version of the patch.
-
-- Tuukka
+diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+index 8ae99f7..f262cf2 100644
+--- a/drivers/media/i2c/mt9t001.c
++++ b/drivers/media/i2c/mt9t001.c
+@@ -233,10 +233,21 @@ static int __mt9t001_set_power(struct mt9t001 *mt9t001, bool on)
+ 	ret = mt9t001_reset(mt9t001);
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "Failed to reset the camera\n");
+-		return ret;
++		goto e_power;
+ 	}
+ 
+-	return v4l2_ctrl_handler_setup(&mt9t001->ctrls);
++	ret = v4l2_ctrl_handler_setup(&mt9t001->ctrls);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to set up control handlers\n");
++		goto e_power;
++	}
++
++	return 0;
++
++e_power:
++	mt9t001_power_off(mt9t001);
++
++	return ret;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+1.9.3
 
