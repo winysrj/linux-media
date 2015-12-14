@@ -1,42 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52718 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbbLRAEh (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40148 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752156AbbLNPuh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 19:04:37 -0500
-Subject: Re: VIVID bug in BGRA and ARGB
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-References: <1450393444.28544.3.camel@collabora.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56734D8F.2030209@xs4all.nl>
-Date: Fri, 18 Dec 2015 01:04:31 +0100
+	Mon, 14 Dec 2015 10:50:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: Re: [PATCH v2 4/7] media: vb2-dma-contig: add helper for setting dma max seg size
+Date: Mon, 14 Dec 2015 17:50:50 +0200
+Message-ID: <1604824.dB2dzDMl5I@avalon>
+In-Reply-To: <566E89D6.40603@samsung.com>
+References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com> <3238962.HlGfVT9mcy@avalon> <566E89D6.40603@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1450393444.28544.3.camel@collabora.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Marek,
 
-
-On 12/18/2015 12:04 AM, Nicolas Dufresne wrote:
-> Hi Hans,
+On Monday 14 December 2015 10:20:22 Marek Szyprowski wrote:
+> On 2015-12-13 20:57, Laurent Pinchart wrote:
+> > On Wednesday 09 December 2015 14:58:19 Marek Szyprowski wrote:
+> >> Add a helper function for device drivers to set DMA's max_seg_size.
+> >> Setting it to largest possible value lets DMA-mapping API always create
+> >> contiguous mappings in DMA address space. This is essential for all
+> >> devices, which use dma-contig videobuf2 memory allocator and shared
+> >> buffers.
+> >> 
+> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >> ---
+> >> 
+> >>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+> >>   include/media/videobuf2-dma-contig.h           |  1 +
+> >>   2 files changed, 16 insertions(+)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index c331272..628518d
+> >> 100644
+> >> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> @@ -742,6 +742,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+> >> 
+> >>   }
+> >>   EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+> >> 
+> >> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
+> >> size)
+> >> +{
+> >> +	if (!dev->dma_parms) {
+> > 
+> > When can this function be called with dev->dma_parms not NULL ?
 > 
-> while testing over color formats VIVID produce, I found that BGRA and
-> ARGB the alpha component is always 0, which leads to black frames when
-> composed (when the background is black of course). Is that a bug, or
-> intended ?
+> When one loads a module with multimedia driver (which calls this
+> function), then unloads and loads it again. It is rather safe to have this
+> check.
 
-Depends who you ask, I guess.
+Don't you have a much bigger problem in that case ? When you unload the module 
+the device will be unbound from the driver, causing the memory allocated by 
+devm_kzalloc to be freed. dev->dma_parms will then point to freed memory, 
+which will get reused by all subsequent calls to dma_get_max_seg_size(), 
+dma_get_max_seg_size() & co (including the ones in this function).
 
-Anyway, the alpha value can be set through a user control (Alpha Component),
-which is indeed by default 0. I wonder if I should set it to 0x7f by default.
+> >> +		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
+> >> +					      GFP_KERNEL);
+> >> +		if (!dev->dma_parms)
+> >> +			return -ENOMEM;
+> >> +	}
+> >> +	if (dma_get_max_seg_size(dev) < size)
+> >> +		return dma_set_max_seg_size(dev, size);
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
+> >> +
+> >>   MODULE_DESCRIPTION("DMA-contig memory handling routines for
+> >>   videobuf2");
+> >>   MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+> >>   MODULE_LICENSE("GPL");
+> >> diff --git a/include/media/videobuf2-dma-contig.h
+> >> b/include/media/videobuf2-dma-contig.h index c33dfa6..0e6ba64 100644
+> >> --- a/include/media/videobuf2-dma-contig.h
+> >> +++ b/include/media/videobuf2-dma-contig.h
+> >> @@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb,
+> >> unsigned int plane_no)
+> >>  void *vb2_dma_contig_init_ctx(struct device *dev);
+> >>  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
+> >> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
+> >> size);
+> >>  extern const struct vb2_mem_ops vb2_dma_contig_memops;
 
-This still maps to 0 for 1-5-5-5 ARGB formats, though.
-
-Suggestions are welcome.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
