@@ -1,98 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47784 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752494AbbLHUXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 15:23:54 -0500
-Date: Tue, 8 Dec 2015 18:23:50 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 50/55] [media] media-entity: unregister entity links
-Message-ID: <20151208182350.15f3a0b4@recife.lan>
-In-Reply-To: <2087950.8UOe3P6UsK@avalon>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<43cafe9354b359f2827ff37d574681b94fe1e2cb.1441540862.git.mchehab@osg.samsung.com>
-	<2087950.8UOe3P6UsK@avalon>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47187 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932148AbbLNKRG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 05:17:06 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5056FE291F
+	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2015 11:17:00 +0100 (CET)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] saa7134: add DMABUF support
+Message-ID: <566E971C.9050909@xs4all.nl>
+Date: Mon, 14 Dec 2015 11:17:00 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 23:27:40 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Since saa7134 is now using vb2, there is no reason why we can't support
+dmabuf for this driver.
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 06 September 2015 09:03:10 Mauro Carvalho Chehab wrote:
-> > Add functions to explicitly unregister all entity links.
-> > This function is called automatically when an entity
-> > link is destroyed.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index 064515f2ba9b..a37ccd2edfd5 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -903,6 +903,7 @@ EXPORT_SYMBOL_GPL(media_devnode_create);
-> > 
-> >  void media_devnode_remove(struct media_intf_devnode *devnode)
-> >  {
-> > +	media_remove_intf_links(&devnode->intf);
-> >  	media_gobj_remove(&devnode->intf.graph_obj);
-> >  	kfree(devnode);
-> >  }
-> > @@ -944,3 +945,25 @@ void media_remove_intf_link(struct media_link *link)
-> >  	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
-> >  }
-> >  EXPORT_SYMBOL_GPL(media_remove_intf_link);
-> > +
-> > +void __media_remove_intf_links(struct media_interface *intf)
-> > +{
-> > +	struct media_link *link, *tmp;
-> > +
-> > +	list_for_each_entry_safe(link, tmp, &intf->links, list)
-> > +		__media_remove_intf_link(link);
-> > +
-> > +}
-> > +EXPORT_SYMBOL_GPL(__media_remove_intf_links);
-> 
-> The only place where this function is used is in media_remove_intf_links() 
-> below. How about inlining it for now ?
-> 
-> > +void media_remove_intf_links(struct media_interface *intf)
-> > +{
-> > +	/* Do nothing if the intf is not registered. */
-> > +	if (intf->graph_obj.mdev == NULL)
-> > +		return;
-> > +
-> > +	mutex_lock(&intf->graph_obj.mdev->graph_mutex);
-> > +	__media_remove_intf_links(intf);
-> > +	mutex_unlock(&intf->graph_obj.mdev->graph_mutex);
-> > +}
-> > +EXPORT_SYMBOL_GPL(media_remove_intf_links);
-> 
-> As this function is exported it should be documented with kerneldoc.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-empress.c | 3 ++-
+ drivers/media/pci/saa7134/saa7134-video.c   | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-Will do both on a followup patch.
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 56b932c..ca417a4 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -189,6 +189,7 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
+ 	.vidioc_querybuf		= vb2_ioctl_querybuf,
+ 	.vidioc_qbuf			= vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
+ 	.vidioc_streamon		= vb2_ioctl_streamon,
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
+ 	.vidioc_g_frequency		= saa7134_g_frequency,
+@@ -286,7 +287,7 @@ static int empress_init(struct saa7134_dev *dev)
+ 	 * transfers that do not start at the beginning of a page. A USERPTR
+ 	 * can start anywhere in a page, so USERPTR support is a no-go.
+ 	 */
+-	q->io_modes = VB2_MMAP | VB2_READ;
++	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
+ 	q->drv_priv = &dev->ts_q;
+ 	q->ops = &saa7134_empress_qops;
+ 	q->gfp_flags = GFP_DMA32;
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 4d3a7fb..179df19 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1906,6 +1906,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_querybuf		= vb2_ioctl_querybuf,
+ 	.vidioc_qbuf			= vb2_ioctl_qbuf,
+ 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
+ 	.vidioc_s_std			= saa7134_s_std,
+ 	.vidioc_g_std			= saa7134_g_std,
+ 	.vidioc_querystd		= saa7134_querystd,
+@@ -2089,7 +2090,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 	 * USERPTR support is a no-go unless the application knows about these
+ 	 * limitations and has special support for this.
+ 	 */
+-	q->io_modes = VB2_MMAP | VB2_READ;
++	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
+ 	if (saa7134_userptr)
+ 		q->io_modes |= VB2_USERPTR;
+ 	q->drv_priv = &dev->video_q;
+-- 
+2.6.4
 
-> 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index bc7eb6240795..ca4a4f23362f 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -318,6 +318,9 @@ struct media_link *media_create_intf_link(struct
-> > media_entity *entity, struct media_interface *intf,
-> >  					    u32 flags);
-> >  void media_remove_intf_link(struct media_link *link);
-> > +void __media_remove_intf_links(struct media_interface *intf);
-> > +void media_remove_intf_links(struct media_interface *intf);
-> > +
-> > 
-> >  #define media_entity_call(entity, operation, args...)			\
-> >  	(((entity)->ops && (entity)->ops->operation) ?			\
-> 
