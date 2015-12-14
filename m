@@ -1,53 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:32833 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbbL3Qqq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40478 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166AbbLNTh0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 11:46:46 -0500
-Received: by mail-wm0-f49.google.com with SMTP id f206so71488769wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:45 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 03/16] media: rc: nuvoton-cir: simplify nvt_cir_tx_inactive
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <568408CD.7070009@gmail.com>
-Date: Wed, 30 Dec 2015 17:39:41 +0100
+	Mon, 14 Dec 2015 14:37:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/3] [media] mt9v032: Do not unset master_mode
+Date: Mon, 14 Dec 2015 21:37:37 +0200
+Message-ID: <1690276.noBynuSFrz@avalon>
+In-Reply-To: <1450104113-6392-2-git-send-email-mpa@pengutronix.de>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de> <1450104113-6392-2-git-send-email-mpa@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify nvt_cir_tx_inactive.
+Hi Markus,
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 2539d4f..f661eff 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -742,16 +742,13 @@ static void nvt_cir_log_irqs(u8 status, u8 iren)
- static bool nvt_cir_tx_inactive(struct nvt_dev *nvt)
- {
- 	unsigned long flags;
--	bool tx_inactive;
- 	u8 tx_state;
- 
- 	spin_lock_irqsave(&nvt->tx.lock, flags);
- 	tx_state = nvt->tx.tx_state;
- 	spin_unlock_irqrestore(&nvt->tx.lock, flags);
- 
--	tx_inactive = (tx_state == ST_TX_NONE);
--
--	return tx_inactive;
-+	return tx_state == ST_TX_NONE;
- }
- 
- /* interrupt service routine for incoming and outgoing CIR data */
+On Monday 14 December 2015 15:41:52 Markus Pargmann wrote:
+> The power_on function of the driver resets the chip and sets the
+> CHIP_CONTROL register to 0. This switches the operating mode to slave.
+> The s_stream function sets the correct mode. But this caused problems on
+> a board where the camera chip is operated as master. The camera started
+> after a random amount of time streaming an image, I observed between 10
+> and 300 seconds.
+> 
+> The STRFM_OUT and STLN_OUT pins are not connected on this board which
+> may cause some issues in slave mode. I could not find any documentation
+> about this.
+> 
+> Keeping the chip in master mode after the reset helped to fix this
+> issue for me.
+> 
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  drivers/media/i2c/mt9v032.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index c1bc564a0979..cc16acf001de 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -349,7 +349,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	if (ret < 0)
+>  		return ret;
+> 
+> -	return regmap_write(map, MT9V032_CHIP_CONTROL, 0);
+> +	return regmap_write(map, MT9V032_CHIP_CONTROL,
+> +			    MT9V032_CHIP_CONTROL_MASTER_MODE);
+>  }
+> 
+>  static void mt9v032_power_off(struct mt9v032 *mt9v032)
+> @@ -421,8 +422,7 @@ __mt9v032_get_pad_crop(struct mt9v032 *mt9v032, struct
+> v4l2_subdev_pad_config *c
+> 
+>  static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
+>  {
+> -	const u16 mode = MT9V032_CHIP_CONTROL_MASTER_MODE
+> -		       | MT9V032_CHIP_CONTROL_DOUT_ENABLE
+> +	const u16 mode = MT9V032_CHIP_CONTROL_DOUT_ENABLE
+> 
+>  		       | MT9V032_CHIP_CONTROL_SEQUENTIAL;
+> 
+>  	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+>  	struct v4l2_rect *crop = &mt9v032->crop;
+
 -- 
-2.6.4
+Regards,
 
+Laurent Pinchart
 
