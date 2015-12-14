@@ -1,108 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:36969 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753125AbbL2KTf (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:53096 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752660AbbLNI1D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 05:19:35 -0500
-Date: Tue, 29 Dec 2015 11:19:26 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg KH <greg@kroah.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org, andrey.od.utkin@gmail.com,
-	Andy Whitcroft <apw@canonical.com>,
-	Joe Perches <joe@perches.com>
-Subject: Re: On Lindent shortcomings and massive style fixing
-In-Reply-To: <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
-Message-ID: <alpine.DEB.2.10.1512291116420.2504@hadrien>
-References: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com> <20151228153332.GA6159@kroah.com> <20151229053235.1d2ccb9c@recife.lan> <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
+	Mon, 14 Dec 2015 03:27:03 -0500
+Message-ID: <1450081618.5745.3.camel@mtksdaap41>
+Subject: Re: [PATCH v2 4/8] dt-bindings: Add a binding for Mediatek Video
+ Encoder
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Rob Herring <robh@kernel.org>
+CC: <daniel.thompson@linaro.org>, Pawel Moll <pawel.moll@arm.com>,
+	"Mark Rutland" <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"Catalin Marinas" <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	"Benoit Parrot" <bparrot@ti.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Date: Mon, 14 Dec 2015 16:26:58 +0800
+In-Reply-To: <20151211172919.GA2896@rob-hp-laptop>
+References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1449827743-22895-5-git-send-email-tiffany.lin@mediatek.com>
+	 <20151211172919.GA2896@rob-hp-laptop>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 2015-12-11 at 11:29 -0600, Rob Herring wrote:
+> On Fri, Dec 11, 2015 at 05:55:39PM +0800, Tiffany Lin wrote:
+> > Add a DT binding documentation of Video Encoder for the
+> > MT8173 SoC from Mediatek.
+> > 
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> 
+> A question and minor issue below, otherwise:
+> 
+> Acked-by: Rob Herring <robh@kernel.org>
+> 
+> > ---
+> >  .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
+> >  1 file changed, 58 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> > new file mode 100644
+> > index 0000000..510cd81
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> > @@ -0,0 +1,58 @@
+> > +Mediatek Video Codec
+> > +
+> > +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
+> > +supports high resolution encoding functionalities.
+> > +
+> > +Required properties:
+> > +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
+> > +- reg : Physical base address of the video codec registers and length of
+> > +  memory mapped region.
+> > +- interrupts : interrupt number to the cpu.
+> > +- mediatek,larb : must contain the local arbiters in the current Socs.
+> > +- clocks : list of clock specifiers, corresponding to entries in
+> > +  the clock-names property;
+> > +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
+> > +- iommus : list of iommus specifiers should be enabled for hw encode.
+> > +  There are 2 cells needed to enable/disable iommu.
+> > +  The first one is local arbiter index(larbid), and the other is port
+> > +  index(portid) within local arbiter. Specifies the larbid and portid
+> > +  as defined in dt-binding/memory/mt8173-larb-port.h.
+> > +- mediatek,vpu : the node of video processor unit
+> > +
+> > +Example:
+> > +vcodec_enc: vcodec@0x18002000 {
+> > +    compatible = "mediatek,mt8173-vcodec-enc";
+> > +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
+> > +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
+> > +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
+> > +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
+> > +    larb = <&larb3>,
+> > +           <&larb5>;
+> > +    iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
+> 
+> Is this the same iommu as the VPU? If so, you can't have a mixed number 
+> of cells.
+Yes, its same iommus as the VPU.
+Now we use two parameters for iommus.
+We will fix this in next version.
+
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
+> > +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
+> > +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
+> > +    vpu = <&vpu>;
+> 
+> Need to update the example.
+Sorry, I didn't get it.
+Do you means update VPU binding document "media/mediatek-vpu.txt"?
+
+> 
+> > +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
+> > +             <&topckgen CLK_TOP_VENC_LT_SEL>,
+> > +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
+> > +    clock-names = "vencpll",
+> > +                  "venc_lt_sel",
+> > +                  "vcodecpll_370p5_ck";
+> > +  };
+> > -- 
+> > 1.7.9.5
+> > 
 
 
-On Tue, 29 Dec 2015, Andrey Utkin wrote:
-
-> On Tue, Dec 29, 2015 at 9:32 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > IMHO, there are two problems by letting indent breaking long
-> > lines:
-> >
-> > 1) indent would break strings on printks. This is something that we don't
-> > want to break strings on multiple lines in the Kernel;
->
-> Yeah, GNU indent does its work badly (although I believe it could be
-> taught to respect long literals), this makes me want to have a better
-> tool for clean "relayouting" C code.
-> I believe that'd require at last a proper syntax parser. With such
-> tool, it would be straightforward to rewrite source code automatically
-> to please any demanding reviewer of code style, except for issues of
-> higher level of thought (like naming or nesting limitations).
->
-> > 2) It doesn't actually solve the problem of having too complex loops,
-> > with is why the 80 columns warning is meant to warn. Worse than that,
-> > if a piece of code is inside more than 4 or 5 indentation levels, the
-> > resulting code of using indent for 80-cols line break is a total crap.
->
-> Then I'd propose to enforce nesting limitation explicitly, because
-> Documentation/CodingStyle appreciates low nesting, just doesn't give
-> exact numbers.
-> It's better this way, because the programmer could pay attention to N
-> places of excessive nesting and fix it manually, and then carelessly
-> reformat NNN places of "80 chars" issues automatically, comparing to
-> reviewing all NNN places, to figure out if there's excessive nesting,
-> or not.
-> (CCed checkpatch.pl maintainers.)
-
-Personally, I prefer to see only 80 characters per line, as long as it
-doesn't require contorting the code in some other way.  So perhaps not
-everyone would agree that the issue is only the amount of nesting.
-
-julia
-
-> > That's said, on a quick look at the driver, it seems that the 80-cols
-> > violations are mostly (if not all) on the comments, like:
-> >
-> >         int i_poc_lsb = (frame_seqno_in_gop << 1); /* why multiplied by two? TODO try without multiplication */
-> >
-> > and
-> >
-> > #define TW5864_UNDEF_REG_0x0224 0x0224  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
-> > #define TW5864_UNDEF_REG_0x4014 0x4014  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
-> > #define TW5864_UNDEF_REG_0xA800 0xA800  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
-> >
-> > Btw, the content of tw5864-reg-undefined.h is weird... Why not just
-> > add the stuff there at tw5864-reg.h and remove the comments for all
-> > defines there?
->
-> tw5864-reg-undefined.h will be edited for sure (maybe dropped), of
-> course it won't stay as it is now.
-> It was generated by script during reverse-engineering that bastard
-> chip from hell.
->
-> > Also, Lindent already did some crappy 80-cols like breaks, like:
-> >
-> > static int pci_i2c_multi_read(struct tw5864_dev *dev, u8 devid, u8 devfn, u8 *buf,
-> >                        u32 count)
-> >
-> > (count is misaligned with the open parenthesis)
->
-> I just added "static " after indenting.
-> Actually, Documentation/CodingStyle says nothing about alignment of
-> function declaration tail on open parenthesis.
-> Also I'd like to mention that I hate such alignment, because it
-> requires intermixing of tabs and spaces. I am not aware if this is K&R
-> thing or not. If it is, then please don't kill me.
->
-> Thanks for kind replies, gentlemen.
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
