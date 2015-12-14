@@ -1,38 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:34773 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811AbbLHDsl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2015 22:48:41 -0500
-Received: by ioir85 with SMTP id r85so12227285ioi.1
-        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2015 19:48:40 -0800 (PST)
-Date: Tue, 8 Dec 2015 11:49:55 +0800
-From: "=?utf-8?B?TmliYmxlIE1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?dGltby5oZWxraW8=?=" <timo.helkio@kapsi.fi>
-Cc: "=?utf-8?B?TGludXggTWVkaWEgTWFpbGluZyBMaXN0?="
-	<linux-media@vger.kernel.org>
-Subject: =?utf-8?B?UmU6IERWQlNreSBUOTgwQyBjaSBub3Qgd29ya2luZyB3aXRoIGtlcm5lbCA0Lng=?=
-Message-ID: <201512081149525312370@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40603 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932119AbbLNUkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 15:40:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mt9t001: fix clean up in case of power-on failures
+Date: Mon, 14 Dec 2015 22:41:05 +0200
+Message-ID: <2084612.aRddVu4fsx@avalon>
+In-Reply-To: <Pine.LNX.4.64.1512141049310.11891@axis700.grange>
+References: <Pine.LNX.4.64.1512141049310.11891@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQpEb2VzIHRoaXMgY2FyZCB3b3JrIHdpdGggdGhlIG1lZGlhIGNvZGUgZnJvbSBkdmJza3kubmV0
-IGZyb20ga2VybmVsIDQueD8NCg0KT24gMjAxNS0xMi0wNiAxOToxMDo0MSwgVGltb19IZWxracO2
-IDx0aW1vLmhlbGtpb0BrYXBzaS5maT4gd3JvdGU6DQo+DQo+SGkNCj4NCj4NCj5Db21tb24gaW50
-ZXJmYWNlIGluIER2YnNreSBUOTgwQyBpcyBub3Qgd29ya2luZyB3aXRoIFVidW50dSAxNS4xMCBr
-ZXJuZWwgDQo+NC4yLjAgYW5kIHZhbmlsbGEga2VybmVsIDQuNiBhbmQgbGF0ZXN0IGR2Yi1kcml2
-ZXJzIGZyb20gTGludXgtbWVkaWEgDQo+Z2l0LiBXaXRoIFVidW50dSAxNS4wNCBhbmQga2VybmVs
-IDMuMTkgaXQgaXMgd29ya2luZy4gSSBoYXZlIHRyeWlkIHRvIA0KPmZpbmQgZGlmZmVyZW5jZXMg
-aW4gZHJpdmVycywgYnV0IG15IGtub2xlZ2Ugb2YgYyBpdCBpcyBub3QgcG9zc2libGUuIA0KPkVy
-cm9zIG1lc3NhZ2UgaXMgImludmFsaWQgUEMtY2FyZCIuDQo+DQo+SSBoYXZlIGFsc28gVGV2aWkg
-UzQ3MCB3aXRoIHNhbWUgUENJZSBicmlkZ2UgQ29uZXhhbnQgY3gyMzg4NS4NCj4NCj5Ib3cgdG8g
-ZGVidWcgdGhpcz8gSSBjYW4gZG8gbWlub3IgY2hhbmdlcyB0byBkcml2ZXJzIGZvciB0ZXN0aW5n
-IGl0Lg0KPg0KPiAgIFRpbW8gSGVsa2nDtg0KPi0tDQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
-IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbg0KPnRoZSBi
-b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+TW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
-DQoNCkJlc3QgUmVnYXJkcywNCk1heA0K
+Hi Guennadi,
+
+Thank you for the patch.
+
+On Monday 14 December 2015 10:58:29 Guennadi Liakhovetski wrote:
+> If the driver fails to reset the camera or to set up control handlers, it
+> has to power the camera back off.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree.
+
+> ---
+>  drivers/media/i2c/mt9t001.c | 15 +++++++++++++--
+>  1 file changed, 13 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+> index 8ae99f7..f262cf2 100644
+> --- a/drivers/media/i2c/mt9t001.c
+> +++ b/drivers/media/i2c/mt9t001.c
+> @@ -233,10 +233,21 @@ static int __mt9t001_set_power(struct mt9t001
+> *mt9t001, bool on) ret = mt9t001_reset(mt9t001);
+>  	if (ret < 0) {
+>  		dev_err(&client->dev, "Failed to reset the camera\n");
+> -		return ret;
+> +		goto e_power;
+>  	}
+> 
+> -	return v4l2_ctrl_handler_setup(&mt9t001->ctrls);
+> +	ret = v4l2_ctrl_handler_setup(&mt9t001->ctrls);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "Failed to set up control handlers\n");
+> +		goto e_power;
+> +	}
+> +
+> +	return 0;
+> +
+> +e_power:
+> +	mt9t001_power_off(mt9t001);
+> +
+> +	return ret;
+>  }
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> --
+
+-- 
+Regards,
+
+Laurent Pinchart
 
