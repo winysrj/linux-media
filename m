@@ -1,25 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.microamerica.com.pe ([200.37.170.69]:46533 "EHLO
-	mail.microamerica.com.pe" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbbLQIfV convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37728 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932162AbbLNKdH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:35:21 -0500
-Content-Type: text/plain; charset=US-ASCII
+	Mon, 14 Dec 2015 05:33:07 -0500
+Subject: Re: [PATCH 0/3] adv7604: .g_crop and .cropcap support
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <566AF904.9050102@xs4all.nl>
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <566E9ADC.1030608@xs4all.nl>
+Date: Mon, 14 Dec 2015 11:33:00 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Review & Reply
-To: Recipients <f.digeronimo@federconsumatori.abruzzo.it>
-From: Michael@mail.microamerica.com.pe,
-	"J.Tynan <f.digeronimo"@federconsumatori.abruzzo.it
-Date: Thu, 17 Dec 2015 07:55:35 +0700
-Reply-To: michaeljtynan8@gmail.com
-Message-Id: <20151217005626.8CD1589D5DDB@mail.microamerica.com.pe>
+In-Reply-To: <566AF904.9050102@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
-My name is Mr.Michael J. Tynan, I am a banker with Bank Of America. It is true that we have not meet each other in person, but I strongly believe in trust and friendship in every business. I have a Lebanese deceased customer's abandoned fund, which I am his personal financial adviser before his accidental death, that being the main reason why I alone working in the bank here, know much about the existence of this fund and the secrets surrounding this money. But before I disclose the full details to you, I will like to know your interest and willingness to assist me. You can call me as soon you receive my message, so that i will send to you full details about the transaction.
-My best regards,
-Mr.Michael J. Tynan
-MOBILE: +1 347 269 3740
+On 12/11/2015 05:25 PM, Hans Verkuil wrote:
+> Hi Ulrich,
+> 
+> On 12/11/2015 05:04 PM, Ulrich Hecht wrote:
+>> Hi!
+>>
+>> The rcar_vin driver relies on these methods.  The third patch makes sure
+>> that they return up-to-date data if the input signal has changed since
+>> initialization.
+>>
+>> CU
+>> Uli
+>>
+>>
+>> Ulrich Hecht (3):
+>>   media: adv7604: implement g_crop
+>>   media: adv7604: implement cropcap
+> 
+> I'm not keen on these changes. The reason is that these ops are deprecated and
+> soc-camera is - almost - the last user. The g/s_selection ops should be used instead.
+> 
+> Now, I have a patch that changes soc-camera to g/s_selection. The reason it was never
+> applied is that I had a hard time finding hardware to test it with.
+> 
+> Since you clearly have that hardware I think I'll rebase my (by now rather old) patch
+> and post it again. If you can switch the adv7604 patch to g/s_selection and everything
+> works with my patch, then I think I should just make a pull request for it.
+> 
+> I hope to be able to do this on Monday.
+
+OK, my http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=rmcrop branch now has a
+rebased patch to remove g/s_crop. Only compile-tested. It's just the one patch that you
+need.
+
+Regards,
+
+	Hans
+
+> If switching soc-camera over to g/s_selection isn't possible, then at the very least
+> your adv7604 changes should provide the g/s_selection implementation. I don't want
+> to have to convert this driver later to g/s_selection.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>   media: adv7604: update timings on change of input signal
+>>
+>>  drivers/media/i2c/adv7604.c | 38 ++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 38 insertions(+)
+>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
