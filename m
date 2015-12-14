@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44148 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751068AbbLTCDy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2015 21:03:54 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] rtl2832: print reg number on error case
-Date: Sun, 20 Dec 2015 04:03:35 +0200
-Message-Id: <1450577015-29465-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1450577015-29465-1-git-send-email-crope@iki.fi>
-References: <1450577015-29465-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53403 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751979AbbLNOmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 09:42:09 -0500
+From: Markus Pargmann <mpa@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+	Markus Pargmann <mpa@pengutronix.de>
+Subject: [PATCH v2 2/3] [media] mt9v032: Do not unset master_mode
+Date: Mon, 14 Dec 2015 15:41:52 +0100
+Message-Id: <1450104113-6392-2-git-send-email-mpa@pengutronix.de>
+In-Reply-To: <1450104113-6392-1-git-send-email-mpa@pengutronix.de>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is hard to debug possible I2C failures without knowing the
-possible register itself. Add register number to error printing.
+The power_on function of the driver resets the chip and sets the
+CHIP_CONTROL register to 0. This switches the operating mode to slave.
+The s_stream function sets the correct mode. But this caused problems on
+a board where the camera chip is operated as master. The camera started
+after a random amount of time streaming an image, I observed between 10
+and 300 seconds.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+The STRFM_OUT and STLN_OUT pins are not connected on this board which
+may cause some issues in slave mode. I could not find any documentation
+about this.
+
+Keeping the chip in master mode after the reset helped to fix this
+issue for me.
+
+Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
 ---
- drivers/media/dvb-frontends/rtl2832.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/i2c/mt9v032.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 78b87b2..60250cc 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -976,7 +976,8 @@ static int rtl2832_regmap_read(void *context, const void *reg_buf,
- 
- 	ret = __i2c_transfer(client->adapter, msg, 2);
- 	if (ret != 2) {
--		dev_warn(&client->dev, "i2c reg read failed %d\n", ret);
-+		dev_warn(&client->dev, "i2c reg read failed %d reg %02x\n",
-+			 ret, *(u8 *)reg_buf);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index c1bc564a0979..cc16acf001de 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -349,7 +349,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+ 	if (ret < 0)
  		return ret;
-@@ -999,7 +1000,8 @@ static int rtl2832_regmap_write(void *context, const void *data, size_t count)
  
- 	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1) {
--		dev_warn(&client->dev, "i2c reg write failed %d\n", ret);
-+		dev_warn(&client->dev, "i2c reg write failed %d reg %02x\n",
-+			 ret, *(u8 *)data);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
- 		return ret;
-@@ -1028,7 +1030,8 @@ static int rtl2832_regmap_gather_write(void *context, const void *reg,
+-	return regmap_write(map, MT9V032_CHIP_CONTROL, 0);
++	return regmap_write(map, MT9V032_CHIP_CONTROL,
++			    MT9V032_CHIP_CONTROL_MASTER_MODE);
+ }
  
- 	ret = __i2c_transfer(client->adapter, msg, 1);
- 	if (ret != 1) {
--		dev_warn(&client->dev, "i2c reg write failed %d\n", ret);
-+		dev_warn(&client->dev, "i2c reg write failed %d reg %02x\n",
-+			 ret, *(u8 const *)reg);
- 		if (ret >= 0)
- 			ret = -EREMOTEIO;
- 		return ret;
+ static void mt9v032_power_off(struct mt9v032 *mt9v032)
+@@ -421,8 +422,7 @@ __mt9v032_get_pad_crop(struct mt9v032 *mt9v032, struct v4l2_subdev_pad_config *c
+ 
+ static int mt9v032_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
+-	const u16 mode = MT9V032_CHIP_CONTROL_MASTER_MODE
+-		       | MT9V032_CHIP_CONTROL_DOUT_ENABLE
++	const u16 mode = MT9V032_CHIP_CONTROL_DOUT_ENABLE
+ 		       | MT9V032_CHIP_CONTROL_SEQUENTIAL;
+ 	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+ 	struct v4l2_rect *crop = &mt9v032->crop;
 -- 
-http://palosaari.fi/
+2.6.2
 
