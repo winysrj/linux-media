@@ -1,97 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59778 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751071AbbLUOhp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 09:37:45 -0500
-Subject: Re: [PATCH 2/2] [media] media-device: split media initialization and
- registration
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
- <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
- <55F1BA5C.50508@linux.intel.com> <20151215091342.2f825d91@recife.lan>
-Cc: linux-kernel@vger.kernel.org,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Antti Palosaari <crope@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56780EAE.7090909@osg.samsung.com>
-Date: Mon, 21 Dec 2015 11:37:34 -0300
-MIME-Version: 1.0
-In-Reply-To: <20151215091342.2f825d91@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:36600 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751838AbbLNEAq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2015 23:00:46 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 83D81E291F
+	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2015 05:00:40 +0100 (CET)
+Date: Mon, 14 Dec 2015 05:00:40 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20151214040040.83D81E291F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 12/15/2015 08:13 AM, Mauro Carvalho Chehab wrote:
+Results of the daily build of media_tree:
 
-[snip]
+date:		Mon Dec 14 04:00:22 CET 2015
+git branch:	test
+git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
->>>  
->>>  /**
->>> - * media_device_register - register a media device
->>> + * media_device_init() - initialize a media device
->>>   * @mdev:	The media device
->>>   *
->>>   * The caller is responsible for initializing the media device before
->>> @@ -534,12 +534,11 @@ static void media_device_release(struct media_devnode *mdev)
->>>   *
->>>   * - dev must point to the parent device
->>>   * - model must be filled with the device model name
->>> + *
->>> + * returns zero on success or a negative error code.
->>>   */
->>> -int __must_check __media_device_register(struct media_device *mdev,
->>> -					 struct module *owner)
->>> +int __must_check media_device_init(struct media_device *mdev)
->>
->> I think I suggested making media_device_init() return void as the only
->> remaining source of errors would be driver bugs.
->>
->> I'd simply replace the WARN_ON() below with BUG().
-> 
-> That sounds like bad idea to me, and it is against the current
-> Kernel policy of using BUG() only when there's no other way, e. g. on
-> event so severe that the Kernel has no other thing to do except to
-> stop running.
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-I agree with you, that was exactly my point and what I told Sakari [0] but
-he had a strong opinion about it and I didn't mind too much so I decided at
-the end to just change it to a BUG_ON() so I could get his ack for this set.
- 
-> For sure, this is not the case here. Also, all drivers have already
-> a logic that checks if the device init happened. So, they should already
-> be doing the right thing.
->
-> Regards,
-> Mauro
+Detailed results are available here:
 
-[0]: https://lkml.org/lkml/2015/9/10/483
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
