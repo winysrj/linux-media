@@ -1,49 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41330 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934221AbbLPRLh (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40346 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753714AbbLNSkn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:11:37 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/5] [media] DocBook: document media_entity_graph_walk_cleanup()
-Date: Wed, 16 Dec 2015 15:11:12 -0200
-Message-Id: <737a622a2544f271310ba05b5c30e50c0f5966f9.1450285867.git.mchehab@osg.samsung.com>
-In-Reply-To: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-References: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-In-Reply-To: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-References: <6c927d1218bd10ccb3a0e8d727e153f0b5798603.1450285867.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 14 Dec 2015 13:40:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tuukka Toivonen <tuukka.toivonen@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH v2] Return proper error code if STREAMON fails
+Date: Mon, 14 Dec 2015 20:40:55 +0200
+Message-ID: <2309522.HN147kSG6f@avalon>
+In-Reply-To: <1737708.1znbc4YfP6@ttoivone-desk1>
+References: <207011196.fyjkdD1C8L@ttoivone-desk1> <181264909.M62ZDuucnX@ttoivone-desk1> <1737708.1znbc4YfP6@ttoivone-desk1>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function was added recently, but weren't documented.
-Add documentation for it.
+Hi Tuukka,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- include/media/media-entity.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Monday 14 December 2015 09:49:57 Tuukka Toivonen wrote:
+> Return the error code if video_enable() and VIDIOC_STREAMON
+> fails.
+> 
+> Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index c4aaeb85229c..f90ff56888d4 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -705,6 +705,12 @@ struct media_entity *media_entity_get(struct media_entity *entity);
- 
- __must_check int media_entity_graph_walk_init(
- 	struct media_entity_graph *graph, struct media_device *mdev);
-+
-+/**
-+ * media_entity_graph_walk_cleanup - Release resources used by graph walk.
-+ *
-+ * @graph: Media graph structure that will be used to walk the graph
-+ */
- void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
- 
- /**
+Applied to my tree and pushed, thank you for the patch.
+
+> ---
+>  yavta.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index b627725..3d80d3c 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -1708,7 +1708,9 @@ static int video_do_capture(struct device *dev,
+> unsigned int nframes, }
+> 
+>  	/* Stop streaming. */
+> -	video_enable(dev, 0);
+> +	ret = video_enable(dev, 0);
+> +	if (ret < 0)
+> +		return ret;
+> 
+>  	if (nframes == 0) {
+>  		printf("No frames captured.\n");
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
