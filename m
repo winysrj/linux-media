@@ -1,231 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40456 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414AbbLQIk5 (ORCPT
+	with ESMTP id S932088AbbLNT0O convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:57 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 18/48] v4l: vsp1: Consolidate entity ops in a struct vsp1_entity_operations
-Date: Thu, 17 Dec 2015 10:39:56 +0200
-Message-Id: <1450341626-6695-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 14 Dec 2015 14:26:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] [media] mt9v032: Add reset and standby gpios
+Date: Mon, 14 Dec 2015 21:26:25 +0200
+Message-ID: <1538607.GEJzzOouog@avalon>
+In-Reply-To: <1450104113-6392-1-git-send-email-mpa@pengutronix.de>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Entities have two operations, a destroy operation stored directly in
-vsp1_entity and a set_memory operation stored in a vsp1_rwpf_operations
-structure. Move the two to a more generic vsp1_entity_operations
-structure that will serve to implement additional operations.
+Hi Markus,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.c |  4 ++--
- drivers/media/platform/vsp1/vsp1_entity.h | 14 +++++++++++++-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 11 ++++++-----
- drivers/media/platform/vsp1/vsp1_rwpf.h   | 18 ++++++------------
- drivers/media/platform/vsp1/vsp1_wpf.c    | 27 ++++++++++++++-------------
- 5 files changed, 41 insertions(+), 33 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 602e2a7a155e..caf8e413adeb 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -222,8 +222,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 
- void vsp1_entity_destroy(struct vsp1_entity *entity)
- {
--	if (entity->destroy)
--		entity->destroy(entity);
-+	if (entity->ops && entity->ops->destroy)
-+		entity->ops->destroy(entity);
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index d76090059ced..0fdda82a8d9a 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -53,10 +53,22 @@ struct vsp1_route {
- 	unsigned int inputs[VSP1_ENTITY_MAX_INPUTS];
- };
- 
-+/**
-+ * struct vsp1_entity_operations - Entity operations
-+ * @destroy:	Destroy the entity.
-+ * @set_memory:	Setup memory buffer access. This operation applies the settings
-+ *		stored in the rwpf mem field to the hardware. Valid for RPF and
-+ *		WPF only.
-+ */
-+struct vsp1_entity_operations {
-+	void (*destroy)(struct vsp1_entity *);
-+	void (*set_memory)(struct vsp1_entity *);
-+};
-+
- struct vsp1_entity {
- 	struct vsp1_device *vsp1;
- 
--	void (*destroy)(struct vsp1_entity *);
-+	const struct vsp1_entity_operations *ops;
- 
- 	enum vsp1_entity_type type;
- 	unsigned int index;
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 8d9e511fd61a..a68f26db9b3f 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -141,11 +141,13 @@ static struct v4l2_subdev_ops rpf_ops = {
- };
- 
- /* -----------------------------------------------------------------------------
-- * Video Device Operations
-+ * VSP1 Entity Operations
-  */
- 
--static void rpf_set_memory(struct vsp1_rwpf *rpf)
-+static void rpf_set_memory(struct vsp1_entity *entity)
- {
-+	struct vsp1_rwpf *rpf = entity_to_rwpf(entity);
-+
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
- 		       rpf->mem.addr[0] + rpf->offsets[0]);
- 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
-@@ -154,7 +156,7 @@ static void rpf_set_memory(struct vsp1_rwpf *rpf)
- 		       rpf->mem.addr[2] + rpf->offsets[1]);
- }
- 
--static const struct vsp1_rwpf_operations rpf_vdev_ops = {
-+static const struct vsp1_entity_operations rpf_entity_ops = {
- 	.set_memory = rpf_set_memory,
- };
- 
-@@ -172,11 +174,10 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (rpf == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	rpf->ops = &rpf_vdev_ops;
--
- 	rpf->max_width = RPF_MAX_WIDTH;
- 	rpf->max_height = RPF_MAX_HEIGHT;
- 
-+	rpf->entity.ops = &rpf_entity_ops;
- 	rpf->entity.type = VSP1_ENTITY_RPF;
- 	rpf->entity.index = index;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 2bbcc331959b..e8ca9b6ee689 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -32,23 +32,12 @@ struct vsp1_rwpf_memory {
- 	dma_addr_t addr[3];
- };
- 
--/**
-- * struct vsp1_rwpf_operations - RPF and WPF operations
-- * @set_memory: Setup memory buffer access. This operation applies the settings
-- *		stored in the rwpf mem field to the hardware.
-- */
--struct vsp1_rwpf_operations {
--	void (*set_memory)(struct vsp1_rwpf *rwpf);
--};
--
- struct vsp1_rwpf {
- 	struct vsp1_entity entity;
- 	struct v4l2_ctrl_handler ctrls;
- 
- 	struct vsp1_video *video;
- 
--	const struct vsp1_rwpf_operations *ops;
--
- 	unsigned int max_width;
- 	unsigned int max_height;
- 
-@@ -73,6 +62,11 @@ static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
- 	return container_of(subdev, struct vsp1_rwpf, entity.subdev);
- }
- 
-+static inline struct vsp1_rwpf *entity_to_rwpf(struct vsp1_entity *entity)
-+{
-+	return container_of(entity, struct vsp1_rwpf, entity);
-+}
-+
- struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index);
- struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
- 
-@@ -105,7 +99,7 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
-  */
- static inline void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf)
- {
--	rwpf->ops->set_memory(rwpf);
-+	rwpf->entity.ops->set_memory(&rwpf->entity);
- }
- 
- #endif /* __VSP1_RWPF_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index b81595eb51dc..84772fa258a5 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -152,17 +152,27 @@ static struct v4l2_subdev_ops wpf_ops = {
- };
- 
- /* -----------------------------------------------------------------------------
-- * Video Device Operations
-+ * VSP1 Entity Operations
-  */
- 
--static void wpf_set_memory(struct vsp1_rwpf *wpf)
-+static void vsp1_wpf_destroy(struct vsp1_entity *entity)
- {
-+	struct vsp1_rwpf *wpf = entity_to_rwpf(entity);
-+
-+	vsp1_dlm_destroy(wpf->dlm);
-+}
-+
-+static void wpf_set_memory(struct vsp1_entity *entity)
-+{
-+	struct vsp1_rwpf *wpf = entity_to_rwpf(entity);
-+
- 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, wpf->mem.addr[0]);
- 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, wpf->mem.addr[1]);
- 	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, wpf->mem.addr[2]);
- }
- 
--static const struct vsp1_rwpf_operations wpf_vdev_ops = {
-+static const struct vsp1_entity_operations wpf_entity_ops = {
-+	.destroy = vsp1_wpf_destroy,
- 	.set_memory = wpf_set_memory,
- };
- 
-@@ -170,13 +180,6 @@ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
-  * Initialization and Cleanup
-  */
- 
--static void vsp1_wpf_destroy(struct vsp1_entity *entity)
--{
--	struct vsp1_rwpf *wpf = container_of(entity, struct vsp1_rwpf, entity);
--
--	vsp1_dlm_destroy(wpf->dlm);
--}
--
- struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- {
- 	struct vsp1_rwpf *wpf;
-@@ -187,12 +190,10 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (wpf == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	wpf->ops = &wpf_vdev_ops;
--
- 	wpf->max_width = WPF_MAX_WIDTH;
- 	wpf->max_height = WPF_MAX_HEIGHT;
- 
--	wpf->entity.destroy = vsp1_wpf_destroy;
-+	wpf->entity.ops = &wpf_entity_ops;
- 	wpf->entity.type = VSP1_ENTITY_WPF;
- 	wpf->entity.index = index;
- 
+On Monday 14 December 2015 15:41:51 Markus Pargmann wrote:
+> Add optional reset and standby gpios. The reset gpio is used to reset
+> the chip in power_on().
+> 
+> The standby gpio is not used currently. It is just unset, so the chip is
+> not in standby.
+> 
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Acked-by: Rob Herring <robh@kernel.org>
+> ---
+>  .../devicetree/bindings/media/i2c/mt9v032.txt      |  2 ++
+>  drivers/media/i2c/mt9v032.c                        | 28 +++++++++++++++++++
+>  2 files changed, 30 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt index
+> 202565313e82..100f0ae43269 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/mt9v032.txt
+> @@ -20,6 +20,8 @@ Optional Properties:
+> 
+>  - link-frequencies: List of allowed link frequencies in Hz. Each frequency
+> is expressed as a 64-bit big-endian integer.
+> +- reset-gpios: GPIO handle which is connected to the reset pin of the chip.
+> +- standby-gpios: GPIO handle which is connected to the standby pin of the
+> chip.
+> 
+>  For further reading on port node refer to
+>  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index a68ce94ee097..c1bc564a0979 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -14,6 +14,7 @@
+> 
+>  #include <linux/clk.h>
+>  #include <linux/delay.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/i2c.h>
+>  #include <linux/log2.h>
+>  #include <linux/mutex.h>
+> @@ -251,6 +252,8 @@ struct mt9v032 {
+> 
+>  	struct regmap *regmap;
+>  	struct clk *clk;
+> +	struct gpio_desc *reset_gpio;
+> +	struct gpio_desc *standby_gpio;
+> 
+>  	struct mt9v032_platform_data *pdata;
+>  	const struct mt9v032_model_info *model;
+> @@ -312,16 +315,31 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+>  	struct regmap *map = mt9v032->regmap;
+>  	int ret;
+> 
+> +	if (mt9v032->reset_gpio)
+> +		gpiod_set_value_cansleep(mt9v032->reset_gpio, 1);
+> +
+
+gpiod_set_value_cansleep() already checks whether the gpiod is NULL, you don't 
+need to duplicate the check here.
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+No need to resubmit I'll fix this when applying.
+
+>  	ret = clk_set_rate(mt9v032->clk, mt9v032->sysclk);
+>  	if (ret < 0)
+>  		return ret;
+> 
+> +	/* System clock has to be enabled before releasing the reset */
+>  	ret = clk_prepare_enable(mt9v032->clk);
+>  	if (ret)
+>  		return ret;
+> 
+>  	udelay(1);
+> 
+> +	if (mt9v032->reset_gpio) {
+> +		gpiod_set_value_cansleep(mt9v032->reset_gpio, 0);
+> +
+> +		/* After releasing reset we need to wait 10 clock cycles
+> +		 * before accessing the sensor over I2C. As the minimum SYSCLK
+> +		 * frequency is 13MHz, waiting 1µs will be enough in the worst
+> +		 * case.
+> +		 */
+> +		udelay(1);
+> +	}
+> +
+>  	/* Reset the chip and stop data read out */
+>  	ret = regmap_write(map, MT9V032_RESET, 1);
+>  	if (ret < 0)
+> @@ -954,6 +972,16 @@ static int mt9v032_probe(struct i2c_client *client,
+>  	if (IS_ERR(mt9v032->clk))
+>  		return PTR_ERR(mt9v032->clk);
+> 
+> +	mt9v032->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
+> +						      GPIOD_OUT_HIGH);
+> +	if (IS_ERR(mt9v032->reset_gpio))
+> +		return PTR_ERR(mt9v032->reset_gpio);
+> +
+> +	mt9v032->standby_gpio = devm_gpiod_get_optional(&client->dev, "standby",
+> +							GPIOD_OUT_LOW);
+> +	if (IS_ERR(mt9v032->standby_gpio))
+> +		return PTR_ERR(mt9v032->standby_gpio);
+> +
+>  	mutex_init(&mt9v032->power_lock);
+>  	mt9v032->pdata = pdata;
+>  	mt9v032->model = (const void *)did->driver_data;
+
 -- 
-2.4.10
+Regards,
+
+Laurent Pinchart
 
