@@ -1,426 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:50875 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750777AbbL1OjJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 09:39:09 -0500
-Subject: [PATCH 1/2] [media] m88rs6000t: Better exception handling in five
- functions
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5680FDB3.7060305@users.sourceforge.net>
- <alpine.DEB.2.10.1512281019050.2702@hadrien>
- <56810F56.4080306@users.sourceforge.net>
- <alpine.DEB.2.10.1512281134590.2702@hadrien>
- <568148FD.7080209@users.sourceforge.net>
-Cc: Julia Lawall <julia.lawall@lip6.fr>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <5681497E.7030702@users.sourceforge.net>
-Date: Mon, 28 Dec 2015 15:38:54 +0100
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:34573 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbbLNPl1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 10:41:27 -0500
 MIME-Version: 1.0
-In-Reply-To: <568148FD.7080209@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <566EBDD7.7010006@xs4all.nl>
+References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	<566AF904.9050102@xs4all.nl>
+	<566E9ADC.1030608@xs4all.nl>
+	<CAO3366zrZsrsZWt1aC94+qDBUKkD4r_x1W2O59jZJHWCCbF1Uw@mail.gmail.com>
+	<566EBDD7.7010006@xs4all.nl>
+Date: Mon, 14 Dec 2015 16:41:25 +0100
+Message-ID: <CAO3366xbDR22UqNHYq=JQb5DVh3YiyvhxFfOLjzDem4hyjYd3g@mail.gmail.com>
+Subject: Re: [PATCH 0/3] adv7604: .g_crop and .cropcap support
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent <laurent.pinchart@ideasonboard.com>,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, William Towle <william.towle@codethink.co.uk>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 28 Dec 2015 15:10:30 +0100
+On Mon, Dec 14, 2015 at 2:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 12/14/2015 01:55 PM, Ulrich Hecht wrote:
+>> On Mon, Dec 14, 2015 at 11:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> OK, my http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=rmcrop branch now has a
+>>> rebased patch to remove g/s_crop. Only compile-tested. It's just the one patch that you
+>>> need.
+>>
+>> Thank you, that works perfectly with rcar_vin and adv7604; I'll send a
+>> revised series.
+>
+> Just making sure: you have actually tested cropping with my patch?
 
-This issue was detected by using the Coccinelle software.
+OK, I'll revise my statement: The "get" part works perfectly. :)
 
-Move the jump label directly before the desired log statement
-so that the variable "ret" will not be checked once more
-after a function call.
-Use the identifier "report_failure" instead of "err".
+>
+> It would also be interesting to see if you can run v4l2-compliance for rcar. See what it says.
 
-Suggested-by: Julia Lawall <julia.lawall@lip6.fr>
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/tuners/m88rs6000t.c | 154 +++++++++++++++++++-------------------
- 1 file changed, 78 insertions(+), 76 deletions(-)
+Driver Info:
+       Driver name   : e6ef0000.video
+       Card type     : R_Car_VIN
+       Bus info      : platform:rcar_vin0
+       Driver version: 4.4.0
+       Capabilities  : 0x84200001
+               Video Capture
+               Streaming
+               Extended Pix Format
+               Device Capabilities
+       Device Caps   : 0x04200001
+               Video Capture
+               Streaming
+               Extended Pix Format
 
-diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
-index 504bfbc..7e59a9f 100644
---- a/drivers/media/tuners/m88rs6000t.c
-+++ b/drivers/media/tuners/m88rs6000t.c
-@@ -44,7 +44,7 @@ static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
- 	/* select demod main mclk */
- 	ret = regmap_read(dev->regmap, 0x15, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg15 = utmp;
- 	if (c->symbol_rate > 45010000) {
- 		reg11 = 0x0E;
-@@ -106,7 +106,7 @@ static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
- 
- 	ret = regmap_read(dev->regmap, 0x1D, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg1D = utmp;
- 	reg1D &= ~0x03;
- 	reg1D |= N - 1;
-@@ -116,42 +116,42 @@ static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
- 	/* program and recalibrate demod PLL */
- 	ret = regmap_write(dev->regmap, 0x05, 0x40);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x11, 0x08);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x15, reg15);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x16, reg16);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x1D, reg1D);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x1E, reg1E);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x1F, reg1F);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x17, 0xc1);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x17, 0x81);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(5000, 50000);
- 	ret = regmap_write(dev->regmap, 0x05, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x11, reg11);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(5000, 50000);
--err:
--	if (ret)
--		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-+	return 0;
-+report_failure:
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -169,13 +169,13 @@ static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
- 
- 	ret = regmap_write(dev->regmap, 0x36, (refDiv - 8));
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x31, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x2c, 0x02);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 
- 	if (tuner_freq_MHz >= 1550) {
- 		ucLoDiv1 = 2;
-@@ -227,105 +227,105 @@ static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
- 	reg27 = (((ulNDiv1 >> 8) & 0x0F) + ucLomod1) & 0x7F;
- 	ret = regmap_write(dev->regmap, 0x27, reg27);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x28, (u8)(ulNDiv1 & 0xFF));
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg29 = (((ulNDiv2 >> 8) & 0x0F) + ucLomod2) & 0x7f;
- 	ret = regmap_write(dev->regmap, 0x29, reg29);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x2a, (u8)(ulNDiv2 & 0xFF));
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x2F, 0xf5);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x30, 0x05);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x1f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x3f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x20);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x3e, 0x11);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x2f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x3f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x10);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(2000, 50000);
- 
- 	ret = regmap_read(dev->regmap, 0x42, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg42 = utmp;
- 
- 	ret = regmap_write(dev->regmap, 0x3e, 0x10);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x2f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x08, 0x3f);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x10);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x09, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(2000, 50000);
- 
- 	ret = regmap_read(dev->regmap, 0x42, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg42buf = utmp;
- 	if (reg42buf < reg42) {
- 		ret = regmap_write(dev->regmap, 0x3e, 0x11);
- 		if (ret)
--			goto err;
-+			goto report_failure;
- 	}
- 	usleep_range(5000, 50000);
- 
- 	ret = regmap_read(dev->regmap, 0x2d, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x2d, utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_read(dev->regmap, 0x2e, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x2e, utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 
- 	ret = regmap_read(dev->regmap, 0x27, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	reg27 = utmp & 0x70;
- 	ret = regmap_read(dev->regmap, 0x83, &utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	if (reg27 == (utmp & 0x70)) {
- 		ucLoDiv	= ucLoDiv1;
- 		ulNDiv = ulNDiv1;
-@@ -340,7 +340,7 @@ static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
- 		refDiv = 18;
- 		ret = regmap_write(dev->regmap, 0x36, (refDiv - 8));
- 		if (ret)
--			goto err;
-+			goto report_failure;
- 		ulNDiv = ((tuner_freq_MHz * ucLoDiv * 1000) * refDiv
- 				/ fcry_KHz - 1024) / 2;
- 	}
-@@ -349,16 +349,16 @@ static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
- 			+ ((ulNDiv >> 8) & 0x0F)) & 0xFF;
- 	ret = regmap_write(dev->regmap, 0x27, reg27);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x28, (u8)(ulNDiv & 0xFF));
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x29, 0x80);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x31, 0x03);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 
- 	if (ucLoDiv == 3)
- 		utmp = 0xCE;
-@@ -366,15 +366,15 @@ static int m88rs6000t_set_pll_freq(struct m88rs6000t_dev *dev,
- 		utmp = 0x8A;
- 	ret = regmap_write(dev->regmap, 0x3b, utmp);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 
- 	dev->frequency_khz = fcry_KHz * (ulNDiv * 2 + 1024) / refDiv / ucLoDiv;
- 
- 	dev_dbg(&dev->client->dev,
- 		"actual tune frequency=%d\n", dev->frequency_khz);
--err:
--	if (ret)
--		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-+	return 0;
-+report_failure:
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -413,21 +413,23 @@ static int m88rs6000t_set_params(struct dvb_frontend *fe)
- 	freq_MHz = (realFreq + 500) / 1000;
- 	ret = m88rs6000t_set_pll_freq(dev, freq_MHz);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = m88rs6000t_set_bb(dev, c->symbol_rate / 1000, lpf_offset_KHz);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x00, 0x01);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	ret = regmap_write(dev->regmap, 0x00, 0x00);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	/* set demod mlck */
- 	ret = m88rs6000t_set_demod_mclk(fe);
--err:
- 	if (ret)
--		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-+		goto report_failure;
-+	return 0;
-+report_failure:
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -440,16 +442,16 @@ static int m88rs6000t_init(struct dvb_frontend *fe)
- 
- 	ret = regmap_update_bits(dev->regmap, 0x11, 0x08, 0x08);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(5000, 50000);
- 	ret = regmap_update_bits(dev->regmap, 0x10, 0x01, 0x01);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	usleep_range(10000, 50000);
- 	ret = regmap_write(dev->regmap, 0x07, 0x7d);
--err:
--	if (ret)
--		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-+	return 0;
-+report_failure:
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
-@@ -510,27 +512,27 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
- 
- 	ret = regmap_read(dev->regmap, 0x5A, &val);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	RF_GC = val & 0x0f;
- 
- 	ret = regmap_read(dev->regmap, 0x5F, &val);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	IF_GC = val & 0x0f;
- 
- 	ret = regmap_read(dev->regmap, 0x3F, &val);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	TIA_GC = (val >> 4) & 0x07;
- 
- 	ret = regmap_read(dev->regmap, 0x77, &val);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	BB_GC = (val >> 4) & 0x0f;
- 
- 	ret = regmap_read(dev->regmap, 0x76, &val);
- 	if (ret)
--		goto err;
-+		goto report_failure;
- 	PGA2_GC = val & 0x3f;
- 	PGA2_cri = PGA2_GC >> 2;
- 	PGA2_crf = PGA2_GC & 0x03;
-@@ -562,9 +564,9 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
- 	/* scale value to 0x0000-0xffff */
- 	gain = clamp_val(gain, 1000U, 10500U);
- 	*strength = (10500 - gain) * 0xffff / (10500 - 1000);
--err:
--	if (ret)
--		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
-+	return 0;
-+report_failure:
-+	dev_dbg(&dev->client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
--- 
-2.6.3
+Compliance test for device /dev/video0 (not using libv4l2):
 
+Required ioctls:
+       test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+       test second video open: OK
+       test VIDIOC_QUERYCAP: OK
+               fail: v4l2-compliance.cpp(585): prio != match
+       test VIDIOC_G/S_PRIORITY: FAIL
+
+Debug ioctls:
+       test VIDIOC_DBG_G/S_REGISTER: OK
+       test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+       test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+       test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+       test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+       test VIDIOC_ENUMAUDIO: OK (Not Supported)
+       test VIDIOC_G/S/ENUMINPUT: OK
+       test VIDIOC_G/S_AUDIO: OK (Not Supported)
+       Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+       test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+       test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+       test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+       test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+       test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+       Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+       test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+       test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+       test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+       test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+       Control ioctls:
+               test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+               test VIDIOC_QUERYCTRL: OK
+               test VIDIOC_G/S_CTRL: OK
+               test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+               fail: v4l2-test-controls.cpp(782): subscribe event for
+control 'User Co
+ntrols' failed
+               test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+               test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+               Standard Controls: 5 Private Controls: 0
+
+       Format ioctls:
+               fail: v4l2-test-formats.cpp(268): duplicate format 34424752
+               test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
+               test VIDIOC_G/S_PARM: OK (Not Supported)
+               test VIDIOC_G_FBUF: OK (Not Supported)
+               test VIDIOC_G_FMT: OK
+               test VIDIOC_TRY_FMT: OK
+               warn: v4l2-test-formats.cpp(827): Could not set fmt2
+               test VIDIOC_S_FMT: OK
+               test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+               test Cropping: OK
+               test Composing: OK
+               test Scaling: OK (Not Supported)
+
+       Codec ioctls:
+               test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+               test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+               test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+       Buffer ioctls:
+               test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+               test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 42, Succeeded: 39, Failed: 3, Warnings: 1
+
+CU
+Uli
