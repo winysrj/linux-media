@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36419 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:44497 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750845AbbLTDP4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2015 22:15:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl2832: do not filter out slave TS null packets
-Date: Sun, 20 Dec 2015 05:15:45 +0200
-Message-Id: <1450581345-8187-1-git-send-email-crope@iki.fi>
+	id S1751317AbbLNUA5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2015 15:00:57 -0500
+Date: Mon, 14 Dec 2015 18:00:52 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media] media-entity: protect object creation/removal using
+ spin lock
+Message-ID: <20151214180052.4262a0a8@recife.lan>
+In-Reply-To: <20151214195053.GA15098@mwanda>
+References: <20151214195053.GA15098@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not remove slave TS NULL padding PID (0x1fff) by default as
-there is no real need. After that whole TS is passed to kernel sw
-PID filter.
+Em Mon, 14 Dec 2015 22:50:53 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c | 12 ------------
- 1 file changed, 12 deletions(-)
+> Hello Mauro Carvalho Chehab,
+> 
+> The patch f8fd4c61b5ae: "[media] media-entity: protect object
+> creation/removal using spin lock" from Dec 9, 2015, leads to the
+> following static checker warning:
+> 
+> 	drivers/media/media-entity.c:781 media_remove_intf_link()
+> 	error: dereferencing freed memory 'link'
+> 
+> drivers/media/media-entity.c
+>    777  void media_remove_intf_link(struct media_link *link)
+>    778  {
+>    779          spin_lock(&link->graph_obj.mdev->lock);
+>    780          __media_remove_intf_link(link);
+>    781          spin_unlock(&link->graph_obj.mdev->lock);
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 60250cc..10f2119 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -1100,18 +1100,6 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2832_bulk_write(client, 0x022, "\x01", 1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_bulk_write(client, 0x026, "\x1f", 1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_bulk_write(client, 0x027, "\xff", 1);
--	if (ret)
--		goto err;
--
- 	ret = rtl2832_bulk_write(client, 0x192, "\x7f\xf7\xff", 3);
- 	if (ret)
- 		goto err;
--- 
-http://palosaari.fi/
+Thanks for pointing it!
 
+> 
+> Do we need this unlock any more? 
+
+Yes.
+
+> Haven't we freed the lock on the previous line?
+
+No. The lock is at the media_device struct, with is not freed here.
+
+What we actually need is to cache mdev:
+
+	struct media_device *mdev = link->graph_obj.mdev;
+
+	spin_lock(&mdev->lock)
+	__media_remove_intf_link(link);
+	spin_unlock(&mdev->lock)
+
+
+Probably the same thing is needed on other similar logic.
+
+I guess gcc optimizer actually does the right thing, but we should
+fix it to remove the static analyzer warnings.
+
+Regards,
+Mauro
+
+> 
+>    782  }
+> 
+> regards,
+> dan carpenter
