@@ -1,111 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60598 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754564AbbLPNet (ORCPT
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:35897 "EHLO
+	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932232AbbLOTAS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:49 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 07/23] media: Amend media graph walk API by init and cleanup functions
-Date: Wed, 16 Dec 2015 15:32:22 +0200
-Message-Id: <1450272758-29446-8-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 15 Dec 2015 14:00:18 -0500
+Date: Tue, 15 Dec 2015 17:00:08 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Dmitry Torokhov <dtor@chromium.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Andrew Bresticker <abrestic@chromium.org>,
+	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	Riley Andrews <riandrews@android.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+Message-ID: <20151215190008.GE883@joana>
+References: <20151215012955.GA28277@dtor-ws>
+ <20151215092601.GI3189@phenom.ffwll.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151215092601.GI3189@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add media_entity_graph_walk_init() and media_entity_graph_walk_cleanup()
-functions in order to dynamically allocate memory for the graph. This is
-not done in media_entity_graph_walk_start() as there are situations where
-e.g. correct error handling, that itself may not fail, requires successful
-graph walk.
+2015-12-15 Daniel Vetter <daniel@ffwll.ch>:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 39 ++++++++++++++++++++++++++++++++++-----
- include/media/media-entity.h |  5 ++++-
- 2 files changed, 38 insertions(+), 6 deletions(-)
+> On Mon, Dec 14, 2015 at 05:29:55PM -0800, Dmitry Torokhov wrote:
+> > Userspace can close the sync device while there are still active fence
+> > points, in which case kernel produces the following warning:
+> > 
+> > [   43.853176] ------------[ cut here ]------------
+> > [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
+> > [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
+> > [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
+> > [   43.885834] Call trace:
+> > [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
+> > [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
+> > [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
+> > [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
+> > [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
+> > [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
+> > [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
+> > [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
+> > [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
+> > [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
+> > [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
+> > [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
+> > [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
+> > [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
+> > 
+> > Let's fix it by introducing a new optional callback (disable_signaling)
+> > to fence operations so that drivers can do proper clean ups when we
+> > remove last callback for given fence.
+> > 
+> > Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
+> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
+> > ---
+> >  drivers/dma-buf/fence.c        | 6 +++++-
+> >  drivers/staging/android/sync.c | 8 ++++++++
+> >  include/linux/fence.h          | 2 ++
+> >  3 files changed, 15 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
+> > index 7b05dbe..0ed73ad 100644
+> > --- a/drivers/dma-buf/fence.c
+> > +++ b/drivers/dma-buf/fence.c
+> > @@ -304,8 +304,12 @@ fence_remove_callback(struct fence *fence, struct fence_cb *cb)
+> >  	spin_lock_irqsave(fence->lock, flags);
+> >  
+> >  	ret = !list_empty(&cb->node);
+> > -	if (ret)
+> > +	if (ret) {
+> >  		list_del_init(&cb->node);
+> > +		if (list_empty(&fence->cb_list))
+> > +			if (fence->ops->disable_signaling)
+> > +				fence->ops->disable_signaling(fence);
+> 
+> What exactly is the bug here? A fence with no callbacks registered any
+> more shouldn't have any problem. Why exactly does this blow up?
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 786a01f..d63204e 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -353,14 +353,44 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- #define stack_top(en)	((en)->stack[(en)->top].entity)
- 
- /**
-+ * media_entity_graph_walk_init - Allocate resources for graph walk
-+ * @graph: Media graph structure that will be used to walk the graph
-+ * @mdev: Media device
-+ *
-+ * Reserve resources for graph walk in media device's current
-+ * state. The memory must be released using
-+ * media_entity_graph_walk_free().
-+ *
-+ * Returns error on failure, zero on success.
-+ */
-+__must_check int media_entity_graph_walk_init(
-+	struct media_entity_graph *graph, struct media_device *mdev)
-+{
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
-+
-+/**
-+ * media_entity_graph_walk_cleanup - Release resources related to graph walking
-+ * @graph: Media graph structure that was used to walk the graph
-+ */
-+void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
-+{
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
-+
-+/**
-  * media_entity_graph_walk_start - Start walking the media graph at a given entity
-  * @graph: Media graph structure that will be used to walk the graph
-  * @entity: Starting entity
-  *
-- * This function initializes the graph traversal structure to walk the entities
-- * graph starting at the given entity. The traversal structure must not be
-- * modified by the caller during graph traversal. When done the structure can
-- * safely be freed.
-+ * Before using this function, media_entity_graph_walk_init() must be
-+ * used to allocate resources used for walking the graph. This
-+ * function initializes the graph traversal structure to walk the
-+ * entities graph starting at the given entity. The traversal
-+ * structure must not be modified by the caller during graph
-+ * traversal. After the graph walk, the resources must be released
-+ * using media_entity_graph_walk_cleanup().
-  */
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 				   struct media_entity *entity)
-@@ -377,7 +407,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
- 
--
- /**
-  * media_entity_graph_walk_next - Get the next entity in the graph
-  * @graph: Media graph structure
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 9315158..eaddcba 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -511,8 +511,11 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
- struct media_entity *media_entity_get(struct media_entity *entity);
- void media_entity_put(struct media_entity *entity);
- 
-+__must_check int media_entity_graph_walk_init(
-+	struct media_entity_graph *graph, struct media_device *mdev);
-+void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
--		struct media_entity *entity);
-+				   struct media_entity *entity);
- struct media_entity *
- media_entity_graph_walk_next(struct media_entity_graph *graph);
- __must_check int media_entity_pipeline_start(struct media_entity *entity,
--- 
-2.1.4
+The WARN_ON is probably this one:
+https://android.googlesource.com/kernel/common/+/android-3.18/drivers/staging/android/sync.c#433
 
+I've been wondering in the last few days if this warning is really
+necessary. If the user is closing a sync_timeline that has unsignalled
+fences it should probably be aware of that already. Then I think it is
+okay to remove the the sync_pt from the active_list at the release-time.
+In fact I've already prepared a patch doing that. Thoughts?  
+
+	Gustavo
