@@ -1,210 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59568 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752999AbbLJSYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 13:24:42 -0500
-Date: Thu, 10 Dec 2015 16:24:37 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>, Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: Re: [PATCH 02/18] [media] au0828: add support for the connectors
-Message-ID: <20151210162437.51e716cf@recife.lan>
-In-Reply-To: <55F2EBD2.2010603@xs4all.nl>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-	<03ff3c6c6ee5ddc03ddbfd3f0da5bb4a4f13c8a6.1441559233.git.mchehab@osg.samsung.com>
-	<55F2EBD2.2010603@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailgw01.mediatek.com ([210.61.82.183]:39757 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932170AbbLOI0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 03:26:54 -0500
+Message-ID: <1450168009.31617.4.camel@mtksdaap41>
+Subject: Re: [PATCH v2 4/8] dt-bindings: Add a binding for Mediatek Video
+ Encoder
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Matthias Brugger <matthias.bgg@gmail.com>
+CC: Rob Herring <robh@kernel.org>, <daniel.thompson@linaro.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	"Catalin Marinas" <catalin.marinas@arm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Darren Etheridge <detheridge@ti.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	"Benoit Parrot" <bparrot@ti.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	James Liao <jamesjj.liao@mediatek.com>,
+	Hongzhou Yang <hongzhou.yang@mediatek.com>,
+	Daniel Hsiao <daniel.hsiao@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Date: Tue, 15 Dec 2015 16:26:49 +0800
+In-Reply-To: <566EA9B1.5000102@gmail.com>
+References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1449827743-22895-5-git-send-email-tiffany.lin@mediatek.com>
+	 <20151211172919.GA2896@rob-hp-laptop> <1450081618.5745.3.camel@mtksdaap41>
+	 <566EA9B1.5000102@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2015 16:57:22 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Matthias,
 
-> On 09/06/2015 07:30 PM, Mauro Carvalho Chehab wrote:
-> > Depending on the input, an au0828 may have a different
-> > number of connectors. add entities to represent them.
+
+On Mon, 2015-12-14 at 12:36 +0100, Matthias Brugger wrote:
 > 
-> Hmm, this patch uses the new connector defines that are only added in patch 6!
-> So this doesn't compile.
-
-It is compiling fine here, perhaps due to some patch reorder during one
-of the hundreds of rebase that this long patch series the needed
-patch was moved already.
-
+> On 14/12/15 09:26, tiffany lin wrote:
+> > On Fri, 2015-12-11 at 11:29 -0600, Rob Herring wrote:
+> >> On Fri, Dec 11, 2015 at 05:55:39PM +0800, Tiffany Lin wrote:
+> >>> Add a DT binding documentation of Video Encoder for the
+> >>> MT8173 SoC from Mediatek.
+> >>>
+> >>> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> >>
+> >> A question and minor issue below, otherwise:
+> >>
+> >> Acked-by: Rob Herring <robh@kernel.org>
+> >>
+> >>> ---
+> >>>   .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
+> >>>   1 file changed, 58 insertions(+)
+> >>>   create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >>>
+> >>> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >>> new file mode 100644
+> >>> index 0000000..510cd81
+> >>> --- /dev/null
+> >>> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >>> @@ -0,0 +1,58 @@
+> >>> +Mediatek Video Codec
+> >>> +
+> >>> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
+> >>> +supports high resolution encoding functionalities.
+> >>> +
+> >>> +Required properties:
+> >>> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
+> >>> +- reg : Physical base address of the video codec registers and length of
+> >>> +  memory mapped region.
+> >>> +- interrupts : interrupt number to the cpu.
+> >>> +- mediatek,larb : must contain the local arbiters in the current Socs.
 > 
-> Is there a reason why the connector support is needed now? I would prefer to have
-> this in a separate follow-up patch series.
+> This looks strange, shouldn't it be "larb" instead of "mediatek,larb".
+> At least the example does not use the mediatek prefix.
+> 
+We plan to change larb and vpu to mediate,larb and mediatek,vpu.
+We will fix this unmatch issue in next version.
 
-Better to add those connectors earlier than later, as we need to
-double check that the ALSA patches that Shuah did will work fine
-also for the Composite/S-Video cases.
+best regards,
+Tiffany
 
-Regards,
-Mauro
+> >>> +- clocks : list of clock specifiers, corresponding to entries in
+> >>> +  the clock-names property;
+> >>> +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
+> >>> +- iommus : list of iommus specifiers should be enabled for hw encode.
+> >>> +  There are 2 cells needed to enable/disable iommu.
+> >>> +  The first one is local arbiter index(larbid), and the other is port
+> >>> +  index(portid) within local arbiter. Specifies the larbid and portid
+> >>> +  as defined in dt-binding/memory/mt8173-larb-port.h.
+> >>> +- mediatek,vpu : the node of video processor unit
+> 
+> Same here.
 > 
 > Regards,
+> Matthias
 > 
-> 	Hans
-> 
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> > index f54c7d10f350..fe9a60484343 100644
-> > --- a/drivers/media/usb/au0828/au0828-core.c
-> > +++ b/drivers/media/usb/au0828/au0828-core.c
-> > @@ -153,11 +153,26 @@ static void au0828_usb_release(struct au0828_dev *dev)
-> >  }
-> >  
-> >  #ifdef CONFIG_VIDEO_AU0828_V4L2
-> > +
-> > +static void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
-> > +{
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > +	int i;
-> > +
-> > +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> > +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
-> > +			return;
-> > +		media_device_unregister_entity(&dev->input_ent[i]);
-> > +	}
-> > +#endif
-> > +}
-> > +
-> >  static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
-> >  {
-> >  	struct au0828_dev *dev =
-> >  		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
-> >  
-> > +	au0828_usb_v4l2_media_release(dev);
-> >  	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
-> >  	v4l2_device_unregister(&dev->v4l2_dev);
-> >  	au0828_usb_release(dev);
-> > diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> > index 4511e2893282..806b8d320bae 100644
-> > --- a/drivers/media/usb/au0828/au0828-video.c
-> > +++ b/drivers/media/usb/au0828/au0828-video.c
-> > @@ -1793,6 +1793,69 @@ static int au0828_vb2_setup(struct au0828_dev *dev)
-> >  	return 0;
-> >  }
-> >  
-> > +static void au0828_analog_create_entities(struct au0828_dev *dev)
-> > +{
-> > +#if defined(CONFIG_MEDIA_CONTROLLER)
-> > +	static const char *inames[] = {
-> > +		[AU0828_VMUX_COMPOSITE] = "Composite",
-> > +		[AU0828_VMUX_SVIDEO] = "S-Video",
-> > +		[AU0828_VMUX_CABLE] = "Cable TV",
-> > +		[AU0828_VMUX_TELEVISION] = "Television",
-> > +		[AU0828_VMUX_DVB] = "DVB",
-> > +		[AU0828_VMUX_DEBUG] = "tv debug"
-> > +	};
-> > +	int ret, i;
-> > +
-> > +	/* Initialize Video and VBI pads */
-> > +	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-> > +	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
-> > +	if (ret < 0)
-> > +		pr_err("failed to initialize video media entity!\n");
-> > +
-> > +	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-> > +	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
-> > +	if (ret < 0)
-> > +		pr_err("failed to initialize vbi media entity!\n");
-> > +
-> > +	/* Create entities for each input connector */
-> > +	for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> > +		struct media_entity *ent = &dev->input_ent[i];
-> > +
-> > +		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
-> > +			break;
-> > +
-> > +		ent->name = inames[AUVI_INPUT(i).type];
-> > +		ent->flags = MEDIA_ENT_FL_CONNECTOR;
-> > +		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-> > +
-> > +		switch(AUVI_INPUT(i).type) {
-> > +		case AU0828_VMUX_COMPOSITE:
-> > +			ent->type = MEDIA_ENT_T_CONN_COMPOSITE;
-> > +			break;
-> > +		case AU0828_VMUX_SVIDEO:
-> > +			ent->type = MEDIA_ENT_T_CONN_SVIDEO;
-> > +			break;
-> > +		case AU0828_VMUX_CABLE:
-> > +		case AU0828_VMUX_TELEVISION:
-> > +		case AU0828_VMUX_DVB:
-> > +			ent->type = MEDIA_ENT_T_CONN_RF;
-> > +			break;
-> > +		default: /* AU0828_VMUX_DEBUG */
-> > +			ent->type = MEDIA_ENT_T_CONN_TEST;
-> > +			break;
-> > +		}
-> > +
-> > +		ret = media_entity_init(ent, 1, &dev->input_pad[i]);
-> > +		if (ret < 0)
-> > +			pr_err("failed to initialize input pad[%d]!\n", i);
-> > +
-> > +		ret = media_device_register_entity(dev->media_dev, ent);
-> > +		if (ret < 0)
-> > +			pr_err("failed to register input entity %d!\n", i);
-> > +	}
-> > +#endif
-> > +}
-> > +
-> >  /**************************************************************************/
-> >  
-> >  int au0828_analog_register(struct au0828_dev *dev,
-> > @@ -1881,17 +1944,8 @@ int au0828_analog_register(struct au0828_dev *dev,
-> >  	dev->vbi_dev.queue->lock = &dev->vb_vbi_queue_lock;
-> >  	strcpy(dev->vbi_dev.name, "au0828a vbi");
-> >  
-> > -#if defined(CONFIG_MEDIA_CONTROLLER)
-> > -	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-> > -	ret = media_entity_init(&dev->vdev.entity, 1, &dev->video_pad);
-> > -	if (ret < 0)
-> > -		pr_err("failed to initialize video media entity!\n");
-> > -
-> > -	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-> > -	ret = media_entity_init(&dev->vbi_dev.entity, 1, &dev->vbi_pad);
-> > -	if (ret < 0)
-> > -		pr_err("failed to initialize vbi media entity!\n");
-> > -#endif
-> > +	/* Init entities at the Media Controller */
-> > +	au0828_analog_create_entities(dev);
-> >  
-> >  	/* initialize videobuf2 stuff */
-> >  	retval = au0828_vb2_setup(dev);
-> > diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> > index d3644b3fe6fa..b7940c54d006 100644
-> > --- a/drivers/media/usb/au0828/au0828.h
-> > +++ b/drivers/media/usb/au0828/au0828.h
-> > @@ -93,7 +93,6 @@ struct au0828_board {
-> >  	unsigned char has_ir_i2c:1;
-> >  	unsigned char has_analog:1;
-> >  	struct au0828_input input[AU0828_MAX_INPUT];
-> > -
-> >  };
-> >  
-> >  struct au0828_dvb {
-> > @@ -281,6 +280,8 @@ struct au0828_dev {
-> >  	struct media_device *media_dev;
-> >  	struct media_pad video_pad, vbi_pad;
-> >  	struct media_entity *decoder;
-> > +	struct media_entity input_ent[AU0828_MAX_INPUT];
-> > +	struct media_pad input_pad[AU0828_MAX_INPUT];
-> >  #endif
-> >  };
-> >  
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>> +
+> >>> +Example:
+> >>> +vcodec_enc: vcodec@0x18002000 {
+> >>> +    compatible = "mediatek,mt8173-vcodec-enc";
+> >>> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
+> >>> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
+> >>> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
+> >>> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
+> >>> +    larb = <&larb3>,
+> >>> +           <&larb5>;
+> >>> +    iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
+> >>
+> >> Is this the same iommu as the VPU? If so, you can't have a mixed number
+> >> of cells.
+> > Yes, its same iommus as the VPU.
+> > Now we use two parameters for iommus.
+> > We will fix this in next version.
+> >
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
+> >>> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
+> >>> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
+> >>> +    vpu = <&vpu>;
+> >>
+> >> Need to update the example.
+> > Sorry, I didn't get it.
+> > Do you means update VPU binding document "media/mediatek-vpu.txt"?
+> >
+> >>
+> >>> +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
+> >>> +             <&topckgen CLK_TOP_VENC_LT_SEL>,
+> >>> +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
+> >>> +    clock-names = "vencpll",
+> >>> +                  "venc_lt_sel",
+> >>> +                  "vcodecpll_370p5_ck";
+> >>> +  };
+> >>> --
+> >>> 1.7.9.5
+> >>>
+> >
+> >
+
+
