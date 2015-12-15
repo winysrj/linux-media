@@ -1,105 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49351 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933166AbbLPRie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 12:38:34 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:52257 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753895AbbLOPww (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 10:52:52 -0500
+Date: Tue, 15 Dec 2015 13:52:45 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] media-entity: don't sleep at media_device_register_entity()
-Date: Wed, 16 Dec 2015 15:38:14 -0200
-Message-Id: <0d0999f2b491441af60a795f8809e3a72dd99dda.1450287492.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [Patch v5 1/2] media: v4l: ti-vpe: Add CAL v4l2 camera capture
+ driver
+Message-ID: <20151215135245.4d78f8a8@recife.lan>
+In-Reply-To: <20151211221633.GF1517@ti.com>
+References: <1447879632-22635-1-git-send-email-bparrot@ti.com>
+	<1447879632-22635-2-git-send-email-bparrot@ti.com>
+	<20151203111922.7b9bb226@recife.lan>
+	<20151211221633.GF1517@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_device_register_entity() is protected by a spin_lock.
+Em Fri, 11 Dec 2015 16:16:33 -0600
+Benoit Parrot <bparrot@ti.com> escreveu:
 
-Calling ida_pre_get() with GFP_KERNEL may put it to sleep,
-with is a bad idea and causes this warning:
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote on Thu [2015-Dec-03 11:19:22 -0200]:
+> > Em Wed, 18 Nov 2015 14:47:11 -0600
+> > Benoit Parrot <bparrot@ti.com> escreveu:
+> > 
+> > > The Camera Adaptation Layer (CAL) is a block which consists of a dual
+> > > port CSI2/MIPI camera capture engine.
+> > > Port #0 can handle CSI2 camera connected to up to 4 data lanes.
+> > > Port #1 can handle CSI2 camera connected to up to 2 data lanes.
+> > > The driver implements the required API/ioctls to be V4L2 compliant.
+> > > Driver supports the following:
+> > >     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
+> > >     - Asynchronous sensor sub device registration
+> > 
+> > Please see the comments I did for the git pull request. Additionally,
+> > see below.
+> 
+> Yes I'll take care of the comments about the MAINTAINERS mods and patch order.
+> 
+> However I do have a few question on your comments, see below.
 
-[ 8812.397195] BUG: sleeping function called from invalid context at mm/slub.c:1287
-[ 8812.397203] in_atomic(): 1, irqs_disabled(): 0, pid: 15179, name: modprobe
-[ 8812.397207] INFO: lockdep is turned off.
-[ 8812.397213] CPU: 2 PID: 15179 Comm: modprobe Tainted: G    B           4.4.0-rc2+ #41
-[ 8812.397218] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-[ 8812.397222]  0000000000000000 ffff880314c77268 ffffffff818f8ba7 ffff8803b17dde00
-[ 8812.397232]  ffff880314c77290 ffffffff811c2ee5 ffff8803b17dde00 ffffffff8284dbc9
-[ 8812.397241]  0000000000000507 ffff880314c772d0 ffffffff811c30d5 0000000041b58ab3
-[ 8812.397250] Call Trace:
-[ 8812.397258]  [<ffffffff818f8ba7>] dump_stack+0x4b/0x64
-[ 8812.397265]  [<ffffffff811c2ee5>] ___might_sleep+0x245/0x3a0
-[ 8812.397270]  [<ffffffff811c30d5>] __might_sleep+0x95/0x1a0
-[ 8812.397276]  [<ffffffff818fd083>] ? ida_pre_get+0x113/0x250
-[ 8812.397282]  [<ffffffff8153bb77>] kmem_cache_alloc+0x197/0x250
-[ 8812.397288]  [<ffffffff818fd083>] ida_pre_get+0x113/0x250
-[ 8812.397293]  [<ffffffff818fd265>] ida_simple_get+0xa5/0x170
-[ 8812.397298]  [<ffffffff818fd1c0>] ? ida_pre_get+0x250/0x250
-[ 8812.397306]  [<ffffffffa07382d1>] media_device_register_entity+0x171/0x420 [media]
-[ 8812.397318]  [<ffffffffa129e76f>] v4l2_device_register_subdev+0x34f/0x640 [videodev]
-[ 8812.397324]  [<ffffffffa0768dea>] v4l2_i2c_new_subdev_board+0x12a/0x250 [v4l2_common]
-[ 8812.397330]  [<ffffffffa0768fe7>] v4l2_i2c_new_subdev+0xd7/0x110 [v4l2_common]
-[ 8812.397337]  [<ffffffffa0768f10>] ? v4l2_i2c_new_subdev_board+0x250/0x250 [v4l2_common]
-[ 8812.397347]  [<ffffffffa13d2f76>] au0828_card_analog_fe_setup+0x2e6/0x3f0 [au0828]
-[ 8812.397352]  [<ffffffff814450cc>] ? power_down+0xc4/0xc4
-[ 8812.397361]  [<ffffffffa13d2c90>] ? au0828_tuner_callback+0x160/0x160 [au0828]
-[ 8812.397370]  [<ffffffffa13d319f>] au0828_card_setup+0x11f/0x340 [au0828]
-[ 8812.397378]  [<ffffffffa13d3080>] ? au0828_card_analog_fe_setup+0x3f0/0x3f0 [au0828]
-[ 8812.397384]  [<ffffffff812a575b>] ? msleep+0x7b/0xc0
-[ 8812.397393]  [<ffffffffa13d0d79>] au0828_usb_probe+0x679/0xcf0 [au0828]
-[ 8812.397399]  [<ffffffff81d7619d>] usb_probe_interface+0x45d/0x940
-[ 8812.397406]  [<ffffffff81ca7004>] driver_probe_device+0x454/0xd90
-[ 8812.397411]  [<ffffffff81ca7940>] ? driver_probe_device+0xd90/0xd90
-[ 8812.397417]  [<ffffffff81ca7940>] ? driver_probe_device+0xd90/0xd90
-[ 8812.397422]  [<ffffffff81ca7a61>] __driver_attach+0x121/0x160
-[ 8812.397427]  [<ffffffff81ca141f>] bus_for_each_dev+0x11f/0x1a0
-[ 8812.397433]  [<ffffffff81ca1300>] ? subsys_dev_iter_exit+0x10/0x10
-[ 8812.397439]  [<ffffffff822917d7>] ? _raw_spin_unlock+0x27/0x40
-[ 8812.397445]  [<ffffffff81ca5d4d>] driver_attach+0x3d/0x50
-[ 8812.397450]  [<ffffffff81ca5039>] bus_add_driver+0x4c9/0x770
-[ 8812.397456]  [<ffffffff81ca944c>] driver_register+0x18c/0x3b0
-[ 8812.397462]  [<ffffffff8124c952>] ? __raw_spin_lock_init+0x32/0x100
-[ 8812.397468]  [<ffffffff81d71e58>] usb_register_driver+0x1f8/0x440
-[ 8812.397473]  [<ffffffffa0208000>] ? 0xffffffffa0208000
-[ 8812.397481]  [<ffffffffa02080b7>] au0828_init+0xb7/0x1000 [au0828]
-[ 8812.397486]  [<ffffffff810021b1>] do_one_initcall+0x141/0x300
-[ 8812.397492]  [<ffffffff81002070>] ? try_to_run_init_process+0x40/0x40
-[ 8812.397497]  [<ffffffff8123bbf6>] ? trace_hardirqs_on_caller+0x16/0x590
-[ 8812.397502]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
-[ 8812.397507]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
-[ 8812.397512]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
-[ 8812.397517]  [<ffffffff815407f7>] ? __asan_register_globals+0x87/0xa0
-[ 8812.397524]  [<ffffffff814454e5>] do_init_module+0x1d0/0x5a4
-[ 8812.397530]  [<ffffffff812ed7e8>] load_module+0x6648/0x9d70
-[ 8812.397535]  [<ffffffff812e4b70>] ? symbol_put_addr+0x50/0x50
-[ 8812.397546]  [<ffffffff812e71a0>] ? module_frob_arch_sections+0x20/0x20
-[ 8812.397552]  [<ffffffff8158e950>] ? open_exec+0x50/0x50
-[ 8812.397559]  [<ffffffff811648db>] ? ns_capable+0x5b/0xd0
-[ 8812.397565]  [<ffffffff812f1208>] SyS_finit_module+0x108/0x130
-[ 8812.397571]  [<ffffffff812f1100>] ? SyS_init_module+0x1f0/0x1f0
-[ 8812.397576]  [<ffffffff81004044>] ? lockdep_sys_exit_thunk+0x12/0x14
-[ 8812.397582]  [<ffffffff82292236>] entry_SYSCALL_64_fastpath+0x16/0x7a
+(removed the code that was already agreed or that Hans commented)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-device.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > +/* register field read/write helpers */
+> > > +static inline int get_field(u32 value, u32 mask, int shift)
+> > > +{
+> > > +	return (value & (mask << shift)) >> shift;
+> > > +}
+> > 
+> > Please use the macros defined at bitmap.h instead of writing your own
+> > version of it.
+> 
+> Not exactly sure what you meant here. 
+> 
+> Did you mean bitops.h instead as in change read_field() and write_field()
+> to use __ffs or something like that?
+> 
+> If that is the case then I would have to change all of the bit mask and shift
+> macros in cal_regs.h before I do that I want to make sure we are on the same
+> page.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 3e0227555196..0ae58a17364b 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -554,7 +554,7 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 	spin_lock(&mdev->lock);
- 
- 	entity->internal_idx = ida_simple_get(&mdev->entity_internal_idx, 1, 0,
--					      GFP_KERNEL);
-+					      GFP_ATOMIC);
- 	if (entity->internal_idx < 0) {
- 		spin_unlock(&mdev->lock);
- 		return entity->internal_idx;
--- 
-2.5.0
+Yes, i mean include/linux/bitops.h.
 
+There are several things that you dould use to simplify it using some
+definitions there (and not only __ffs).
+
+See those macros, for example:
+
+#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+
+/*
+ * Create a contiguous bitmask starting at bit position @l and ending at
+ * position @h. For example
+ * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+ */
+#define GENMASK(h, l) \
+	(((~0UL) << (l)) & (~0UL >> (BITS_PER_LONG - 1 - (h))))
+
+#define GENMASK_ULL(h, l) \
+	(((~0ULL) << (l)) & (~0ULL >> (BITS_PER_LONG_LONG - 1 - (h))))
+
+Regards,
+Mauro
