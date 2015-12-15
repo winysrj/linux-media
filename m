@@ -1,110 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60597 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754518AbbLPNet (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:43211 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965086AbbLOKJG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:49 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 06/23] media: Move media graph state for streamon/off to the pipeline
-Date: Wed, 16 Dec 2015 15:32:21 +0200
-Message-Id: <1450272758-29446-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 15 Dec 2015 05:09:06 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/2] [media] media-entity: use mutes for link setup
+Date: Tue, 15 Dec 2015 08:08:38 -0200
+Message-Id: <0a8b9468b9da5f5d4177446696a91ce4099354d0.1450174116.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct media_entity_graph was allocated in the stack, limiting the
-number of entities that could be reasonably allocated. Instead, move the
-struct to struct media_pipeline which is typically allocated using
-kmalloc() instead.
+Changeset f8fd4c61b5ae ("[media] media-entity: protect object
+creation/removal using spin lock") changed the object creation/removal
+protection to spin lock, as this is what's used on media-device,
+keeping the mutex reserved for graph traversal routines. However, it
+also changed the link setup, by mistake.
 
-The intent is to keep the enumeration around for later use for the
-duration of the streaming. As streaming is eventually stopped, an
-unfortunate memory allocation failure would prevent stopping the
-streaming. As no memory will need to be allocated, the problem is avoided
-altogether.
+This could cause troubles, as the link setup can affect the graph
+traversal, and this is likely the reason for a mutex there.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+So, revert media_entity_setup_link() to use mutex.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/media-entity.c | 16 ++++++++--------
- include/media/media-entity.h |  6 ++++++
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ drivers/media/media-entity.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 67eebcb..786a01f 100644
+index 5d871b243e87..29810f9b86ce 100644
 --- a/drivers/media/media-entity.c
 +++ b/drivers/media/media-entity.c
-@@ -456,16 +456,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 					     struct media_pipeline *pipe)
+@@ -662,9 +662,9 @@ int media_entity_setup_link(struct media_link *link, u32 flags)
  {
- 	struct media_device *mdev = entity->graph_obj.mdev;
--	struct media_entity_graph graph;
-+	struct media_entity_graph *graph = &pipe->graph;
- 	struct media_entity *entity_err = entity;
- 	struct media_link *link;
  	int ret;
  
- 	mutex_lock(&mdev->graph_mutex);
+-	spin_lock(&link->source->entity->graph_obj.mdev->lock);
++	mutex_lock(&link->graph_obj.mdev->graph_mutex);
+ 	ret = __media_entity_setup_link(link, flags);
+-	spin_unlock(&link->source->entity->graph_obj.mdev->lock);
++	mutex_unlock(&link->graph_obj.mdev->graph_mutex);
  
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(graph))) {
- 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
- 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
- 
-@@ -546,9 +546,9 @@ error:
- 	 * Link validation on graph failed. We revert what we did and
- 	 * return the error.
- 	 */
--	media_entity_graph_walk_start(&graph, entity_err);
-+	media_entity_graph_walk_start(graph, entity_err);
- 
--	while ((entity_err = media_entity_graph_walk_next(&graph))) {
-+	while ((entity_err = media_entity_graph_walk_next(graph))) {
- 		entity_err->stream_count--;
- 		if (entity_err->stream_count == 0)
- 			entity_err->pipe = NULL;
-@@ -582,13 +582,13 @@ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
- void media_entity_pipeline_stop(struct media_entity *entity)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
--	struct media_entity_graph graph;
-+	struct media_entity_graph *graph = &entity->pipe->graph;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(graph))) {
- 		entity->stream_count--;
- 		if (entity->stream_count == 0)
- 			entity->pipe = NULL;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 3068c30..9315158 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -116,7 +116,13 @@ struct media_entity_graph {
- 	int top;
- };
- 
-+/*
-+ * struct media_pipeline - Media pipeline related information
-+ *
-+ * @graph:	Media graph walk during pipeline start / stop
-+ */
- struct media_pipeline {
-+	struct media_entity_graph graph;
- };
- 
- /**
+ 	return ret;
+ }
 -- 
-2.1.4
+2.5.0
 
