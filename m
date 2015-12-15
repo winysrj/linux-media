@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39238 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032AbbLLPSo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:18:44 -0500
-Date: Sat, 12 Dec 2015 13:18:39 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: Re: [PATCH v2 08/22] media: Use the new
- media_entity_graph_walk_start()
-Message-ID: <20151212131839.52b6994f@recife.lan>
-In-Reply-To: <1448824823-10372-9-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-9-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:35101 "EHLO
+	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965211AbbLORVT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 12:21:19 -0500
+Received: by mail-io0-f178.google.com with SMTP id q126so26849546iof.2
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:21:18 -0800 (PST)
+Received: from mail-io0-f170.google.com (mail-io0-f170.google.com. [209.85.223.170])
+        by smtp.gmail.com with ESMTPSA id wa7sm1371004igb.2.2015.12.15.09.21.16
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Tue, 15 Dec 2015 09:21:16 -0800 (PST)
+Received: by mail-io0-f170.google.com with SMTP id q126so26848184iof.2
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:21:16 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56701A99.3000404@imgtec.com>
+References: <20151215012955.GA28277@dtor-ws>
+	<20151215133020.GD883@joana>
+	<56701A99.3000404@imgtec.com>
+Date: Tue, 15 Dec 2015 09:21:15 -0800
+Message-ID: <CAE_wzQ_KsfDqFt7pxXjA_STcd76C6KxhWMB5ZGo+6v_TeBmcUQ@mail.gmail.com>
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+From: Dmitry Torokhov <dtor@chromium.org>
+To: Frank Binns <frank.binns@imgtec.com>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+	Dmitry Torokhov <dtor@chromium.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Andrew Bresticker <abrestic@chromium.org>,
+	=?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+	dri-devel@lists.freedesktop.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Riley Andrews <riandrews@android.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 29 Nov 2015 21:20:09 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On Tue, Dec 15, 2015 at 5:50 AM, Frank Binns <frank.binns@imgtec.com> wrote:
+> Is this not the issue fixed by 8e43c9c75?
 
-Please add a description here.
+No because if we start teardown without waiting for the fence to be
+signaled it will still be on the active_list.
 
-The patch itself looks ok.
+Thanks.
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bf3c31f..4161dc7 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -492,7 +492,13 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  
->  	mutex_lock(&mdev->graph_mutex);
->  
-> -	media_entity_graph_walk_start(graph, entity);
-> +	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-> +	if (ret) {
-> +		mutex_unlock(&mdev->graph_mutex);
-> +		return ret;
-> +	}
-> +
-> +	media_entity_graph_walk_start(&pipe->graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
->  		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
-> @@ -590,6 +596,8 @@ error:
->  			break;
->  	}
->  
-> +	media_entity_graph_walk_cleanup(graph);
-> +
->  	mutex_unlock(&mdev->graph_mutex);
->  
->  	return ret;
-> @@ -623,6 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  			entity->pipe = NULL;
->  	}
->  
-> +	media_entity_graph_walk_cleanup(graph);
-> +
->  	mutex_unlock(&mdev->graph_mutex);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_pipeline_stop);
+-- 
+Dmitry
