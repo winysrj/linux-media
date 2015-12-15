@@ -1,118 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58637 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965176AbbLHPS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:18:26 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 3/3] media-ctl: List supported media bus formats
-Date: Tue,  8 Dec 2015 17:15:16 +0200
-Message-Id: <1449587716-22954-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:53518 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753261AbbLOIkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 03:40:51 -0500
+Subject: Re: [PATCH v2 4/7] media: vb2-dma-contig: add helper for setting dma
+ max seg size
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
+ <3238962.HlGfVT9mcy@avalon> <566E89D6.40603@samsung.com>
+ <1604824.dB2dzDMl5I@avalon>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <566FD20F.9080605@samsung.com>
+Date: Tue, 15 Dec 2015 09:40:47 +0100
+MIME-version: 1.0
+In-reply-to: <1604824.dB2dzDMl5I@avalon>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new topic option for -h to allow listing supported media bus codes
-in conversion functions. This is useful in figuring out which media bus
-codes are actually supported by the library. The numeric values of the
-codes are listed as well.
+Hi Laurent,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 38 insertions(+), 4 deletions(-)
+On 2015-12-14 16:50, Laurent Pinchart wrote:
+> Hi Marek,
+>
+> On Monday 14 December 2015 10:20:22 Marek Szyprowski wrote:
+>> On 2015-12-13 20:57, Laurent Pinchart wrote:
+>>> On Wednesday 09 December 2015 14:58:19 Marek Szyprowski wrote:
+>>>> Add a helper function for device drivers to set DMA's max_seg_size.
+>>>> Setting it to largest possible value lets DMA-mapping API always create
+>>>> contiguous mappings in DMA address space. This is essential for all
+>>>> devices, which use dma-contig videobuf2 memory allocator and shared
+>>>> buffers.
+>>>>
+>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>> ---
+>>>>
+>>>>    drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+>>>>    include/media/videobuf2-dma-contig.h           |  1 +
+>>>>    2 files changed, 16 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index c331272..628518d
+>>>> 100644
+>>>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> @@ -742,6 +742,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+>>>>
+>>>>    }
+>>>>    EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+>>>>
+>>>> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
+>>>> size)
+>>>> +{
+>>>> +	if (!dev->dma_parms) {
+>>> When can this function be called with dev->dma_parms not NULL ?
+>> When one loads a module with multimedia driver (which calls this
+>> function), then unloads and loads it again. It is rather safe to have this
+>> check.
+> Don't you have a much bigger problem in that case ? When you unload the module
+> the device will be unbound from the driver, causing the memory allocated by
+> devm_kzalloc to be freed. dev->dma_parms will then point to freed memory,
+> which will get reused by all subsequent calls to dma_get_max_seg_size(),
+> dma_get_max_seg_size() & co (including the ones in this function).
 
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 0afc9c2..5902aed 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -22,7 +22,9 @@
- #include <getopt.h>
- #include <stdio.h>
- #include <stdlib.h>
-+#include <string.h>
- #include <unistd.h>
-+#include <v4l2subdev.h>
- 
- #include <linux/videodev2.h>
- 
-@@ -45,7 +47,8 @@ static void usage(const char *argv0)
- 	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
- 	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
- 	printf("    --set-dv pad	Configure DV timings on a given pad\n");
--	printf("-h, --help		Show verbose help and exit\n");
-+	printf("-h, --help[=topic]	Show verbose help and exit\n");
-+	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
- 	printf("-i, --interactive	Modify links interactively\n");
- 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
- 	printf("-p, --print-topology	Print the device topology\n");
-@@ -100,7 +103,7 @@ static struct option opts[] = {
- 	{"get-format", 1, 0, OPT_GET_FORMAT},
- 	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
- 	{"set-dv", 1, 0, OPT_SET_DV},
--	{"help", 0, 0, 'h'},
-+	{"help", 2, 0, 'h'},
- 	{"interactive", 0, 0, 'i'},
- 	{"links", 1, 0, 'l'},
- 	{"print-dot", 0, 0, OPT_PRINT_DOT},
-@@ -110,6 +113,27 @@ static struct option opts[] = {
- 	{ },
- };
- 
-+void list_mbus_formats(void)
-+{
-+	unsigned int i;
-+
-+	printf("Supported media bus pixel codes\n");
-+
-+	for (i = 0; ; i++) {
-+		unsigned int code = v4l2_subdev_pixelcode_list(i);
-+		const char *str = v4l2_subdev_pixelcode_to_string(code);
-+		int spaces = 30 - (int)strlen(str);
-+
-+		if (code == -1)
-+			break;
-+
-+		if (spaces < 0)
-+			spaces = 0;
-+
-+		printf("\t%s %*c (0x%8.8x)\n", str, spaces, ' ', code);
-+	}
-+}
-+
- int parse_cmdline(int argc, char **argv)
- {
- 	int opt;
-@@ -120,7 +144,8 @@ int parse_cmdline(int argc, char **argv)
- 	}
- 
- 	/* parse options */
--	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:", opts, NULL)) != -1) {
-+	while ((opt = getopt_long(argc, argv, "d:e:f:h::il:prvV:",
-+				  opts, NULL)) != -1) {
- 		switch (opt) {
- 		case 'd':
- 			media_opts.devname = optarg;
-@@ -142,7 +167,16 @@ int parse_cmdline(int argc, char **argv)
- 			break;
- 
- 		case 'h':
--			usage(argv[0]);
-+			if (optarg) {
-+				if (!strcmp(optarg, "mbus-fmt"))
-+					list_mbus_formats();
-+				else
-+					fprintf(stderr,
-+						"Unknown topic \"%s\"\n",
-+						optarg);
-+			} else {
-+				usage(argv[0]);
-+			}
- 			exit(0);
- 
- 		case 'i':
+You are right. I've thought that devm resources are freed on device 
+release not
+driver remove. Then probably the safest fix is to change devm_kzalloc 
+back to
+kzalloc.
+
+>>>> +		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
+>>>> +					      GFP_KERNEL);
+>>>> +		if (!dev->dma_parms)
+>>>> +			return -ENOMEM;
+>>>> +	}
+>>>> +	if (dma_get_max_seg_size(dev) < size)
+>>>> +		return dma_set_max_seg_size(dev, size);
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
+>>>> +
+>>>>    MODULE_DESCRIPTION("DMA-contig memory handling routines for
+>>>>    videobuf2");
+>>>>    MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+>>>>    MODULE_LICENSE("GPL");
+>>>> diff --git a/include/media/videobuf2-dma-contig.h
+>>>> b/include/media/videobuf2-dma-contig.h index c33dfa6..0e6ba64 100644
+>>>> --- a/include/media/videobuf2-dma-contig.h
+>>>> +++ b/include/media/videobuf2-dma-contig.h
+>>>> @@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb,
+>>>> unsigned int plane_no)
+>>>>   void *vb2_dma_contig_init_ctx(struct device *dev);
+>>>>   void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
+>>>> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
+>>>> size);
+>>>>   extern const struct vb2_mem_ops vb2_dma_contig_memops;
+
+Best regards
 -- 
-2.1.0.231.g7484e3b
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
