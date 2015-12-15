@@ -1,64 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59417 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbbL2ObO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 09:31:14 -0500
-Received: from avalon.localnet (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 098B720114
-	for <linux-media@vger.kernel.org>; Tue, 29 Dec 2015 15:30:49 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.5] omap3isp fixes
-Date: Tue, 29 Dec 2015 16:31:14 +0200
-Message-ID: <1720972.142MhTlgVQ@avalon>
+Received: from lists.s-osg.org ([54.187.51.154]:51910 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964902AbbLOLOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 06:14:02 -0500
+Date: Tue, 15 Dec 2015 09:13:42 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>
+Subject: Re: [PATCH 2/2] [media] media-device: split media initialization
+ and registration
+Message-ID: <20151215091342.2f825d91@recife.lan>
+In-Reply-To: <55F1BA5C.50508@linux.intel.com>
+References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
+	<1441890195-11650-3-git-send-email-javier@osg.samsung.com>
+	<55F1BA5C.50508@linux.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Thu, 10 Sep 2015 20:14:04 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-The following changes since commit 768acf46e1320d6c41ed1b7c4952bab41c1cde79:
+> Hi Javier,
+> 
+> Thanks for the set! A few comments below.
+> 
+> Javier Martinez Canillas wrote:
+> > The media device node is registered and so made visible to user-space
+> > before entities are registered and links created which means that the
+> > media graph obtained by user-space could be only partially enumerated
+> > if that happens too early before all the graph has been created.
+> > 
+> > To avoid this race condition, split the media init and registration
+> > in separate functions and only register the media device node when
+> > all the pending subdevices have been registered, either explicitly
+> > by the driver or asynchronously using v4l2_async_register_subdev().
+> > 
+> > Also, add a media_entity_cleanup() function that will destroy the
+> > graph_mutex that is initialized in media_entity_init().
+> > 
+> > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > 
+> > ---
+> > 
+> >  drivers/media/common/siano/smsdvb-main.c      |  1 +
+> >  drivers/media/media-device.c                  | 38 +++++++++++++++++++++++----
+> >  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++---
+> >  drivers/media/platform/omap3isp/isp.c         | 11 +++++---
+> >  drivers/media/platform/s3c-camif/camif-core.c | 13 ++++++---
+> >  drivers/media/platform/vsp1/vsp1_drv.c        | 19 ++++++++++----
+> >  drivers/media/platform/xilinx/xilinx-vipp.c   | 11 +++++---
+> >  drivers/media/usb/au0828/au0828-core.c        | 26 +++++++++++++-----
+> >  drivers/media/usb/cx231xx/cx231xx-cards.c     | 22 +++++++++++-----
+> >  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 11 +++++---
+> >  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 13 ++++++---
+> >  drivers/media/usb/siano/smsusb.c              | 14 ++++++++--
+> >  drivers/media/usb/uvc/uvc_driver.c            |  9 +++++--
+> >  include/media/media-device.h                  |  2 ++
+> >  14 files changed, 156 insertions(+), 46 deletions(-)
+> > 
+> > diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+> > index ab345490a43a..8a1ea2192439 100644
+> > --- a/drivers/media/common/siano/smsdvb-main.c
+> > +++ b/drivers/media/common/siano/smsdvb-main.c
+> > @@ -617,6 +617,7 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
+> >  	if (!coredev->media_dev)
+> >  		return;
+> >  	media_device_unregister(coredev->media_dev);
+> > +	media_device_cleanup(coredev->media_dev);
+> >  	kfree(coredev->media_dev);
+> >  	coredev->media_dev = NULL;
+> >  #endif
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 745defb34b33..a8beb0b445a6 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -526,7 +526,7 @@ static void media_device_release(struct media_devnode *mdev)
+> >  }
+> >  
+> >  /**
+> > - * media_device_register - register a media device
+> > + * media_device_init() - initialize a media device
+> >   * @mdev:	The media device
+> >   *
+> >   * The caller is responsible for initializing the media device before
+> > @@ -534,12 +534,11 @@ static void media_device_release(struct media_devnode *mdev)
+> >   *
+> >   * - dev must point to the parent device
+> >   * - model must be filled with the device model name
+> > + *
+> > + * returns zero on success or a negative error code.
+> >   */
+> > -int __must_check __media_device_register(struct media_device *mdev,
+> > -					 struct module *owner)
+> > +int __must_check media_device_init(struct media_device *mdev)
+> 
+> I think I suggested making media_device_init() return void as the only
+> remaining source of errors would be driver bugs.
+> 
+> I'd simply replace the WARN_ON() below with BUG().
 
-  [media] rc: sunxi-cir: Initialize the spinlock properly (2015-12-23 15:51:40 -0200)
+That sounds like bad idea to me, and it is against the current
+Kernel policy of using BUG() only when there's no other way, e. g. on
+event so severe that the Kernel has no other thing to do except to
+stop running.
 
-are available in the git repository at:
+For sure, this is not the case here. Also, all drivers have already
+a logic that checks if the device init happened. So, they should already
+be doing the right thing.
 
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
-
-for you to fetch changes up to d86cdf3233d06fa037672f09c23ab38f8715c902:
-
-  v4l: omap3isp: Fix data lane shift configuration (2015-12-29 16:28:32 +0200)
-
-----------------------------------------------------------------
-Andrzej Hajda (1):
-      v4l: omap3isp: Fix handling platform_get_irq result
-
-Javier Martinez Canillas (1):
-      v4l: omap3isp: Fix module autoloading
-
-Lad, Prabhakar (1):
-      v4l: omap3isp: use vb2_buffer_state enum for vb2 buffer state
-
-Laurent Pinchart (1):
-      v4l: omap3isp: Fix data lane shift configuration
-
-Sakari Ailus (3):
-      v4l: omap3isp: Move starting the sensor from streamon IOCTL handler to VB2 QOP
-      v4l: omap3isp: Return buffers back to videobuf2 if pipeline streamon fails
-      v4l: omap3isp: preview: Mark output buffer done first
-
- drivers/media/platform/omap3isp/isp.c        |   8 ++-
- drivers/media/platform/omap3isp/ispccdc.c    |   2 +-
- drivers/media/platform/omap3isp/isppreview.c |  14 ++---
- drivers/media/platform/omap3isp/ispvideo.c   | 103 +++++++++++++++++++++++------------
- drivers/media/platform/omap3isp/omap3isp.h   |   8 +--
- 5 files changed, 84 insertions(+), 51 deletions(-)
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
