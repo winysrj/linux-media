@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:33306 "EHLO
-	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753294AbbLCUFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 15:05:53 -0500
-Received: by qkas77 with SMTP id s77so35259707qka.0
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 12:05:53 -0800 (PST)
+Received: from aserp1040.oracle.com ([141.146.126.69]:17259 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964841AbbLOLE3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 06:04:29 -0500
+Date: Tue, 15 Dec 2015 14:04:14 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Tommi Franttila <tommi.franttila@intel.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] v4l2-device: fix a missing error code
+Message-ID: <20151215110307.GB9594@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
-References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
-	<CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
-	<CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
-Date: Thu, 3 Dec 2015 15:05:52 -0500
-Message-ID: <CALzAhNXoBRLFyFjmKzKmTiWJuq4jdV8zmhO4iVPSZqLL7f4DVA@mail.gmail.com>
-Subject: Re: Dear TV card experts - I need you help
-From: Steven Toth <stoth@kernellabs.com>
-To: Mr Andersson <mr.andersson.001@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> But the legal parts are of no concern to us, and we are already aware
-> of potential legal complexities, especially in western countries, but
-> fortunately there are many other countries outside of the western
-> hemisphere. There is also plenty of internet based providers that
-> already offers this, albeit with a less than ideal quality of service.
-> So consider that a non issue for now.
+We need to set "err = -ENOMEM" here.
 
-You might, I don't. Good luck!
+Fixes: 38b11f19667a ('[media] v4l2-core: create MC interfaces for devnodes')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 85f724b..85b1e98 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -266,8 +266,10 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 			link = media_create_intf_link(&sd->entity,
+ 						      &vdev->intf_devnode->intf,
+ 						      MEDIA_LNK_FL_ENABLED);
+-			if (!link)
++			if (!link) {
++				err = -ENOMEM;
+ 				goto clean_up;
++			}
+ 		}
+ #endif
+ 		sd->devnode = vdev;
