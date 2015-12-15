@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54444 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752117AbbLVLn6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2015 06:43:58 -0500
-Subject: Re: [PATCH] [media] rc: sunxi-cir: Initialize the spinlock properly
-To: Chen-Yu Tsai <wens@csie.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-References: <1450758455-22945-1-git-send-email-wens@csie.org>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <5679377B.3030004@redhat.com>
-Date: Tue, 22 Dec 2015 12:43:55 +0100
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:35101 "EHLO
+	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933190AbbLONa1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 08:30:27 -0500
+Date: Tue, 15 Dec 2015 11:30:20 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Dmitry Torokhov <dtor@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Andrew Bresticker <abrestic@chromium.org>,
+	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	Riley Andrews <riandrews@android.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+Message-ID: <20151215133020.GD883@joana>
+References: <20151215012955.GA28277@dtor-ws>
 MIME-Version: 1.0
-In-Reply-To: <1450758455-22945-1-git-send-email-wens@csie.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151215012955.GA28277@dtor-ws>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2015-12-14 Dmitry Torokhov <dtor@chromium.org>:
 
-On 22-12-15 05:27, Chen-Yu Tsai wrote:
-> The driver allocates the spinlock but fails to initialize it correctly.
-> The kernel reports a BUG indicating bad spinlock magic when spinlock
-> debugging is enabled.
->
-> Call spin_lock_init() on it to initialize it correctly.
->
-> Fixes: b4e3e59fb59c ("[media] rc: add sunxi-ir driver")
-> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
+> Userspace can close the sync device while there are still active fence
+> points, in which case kernel produces the following warning:
+> 
+> [   43.853176] ------------[ cut here ]------------
+> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
+> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
+> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
+> [   43.885834] Call trace:
+> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
+> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
+> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
+> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
+> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
+> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
+> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
+> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
+> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
+> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
+> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
+> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
+> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
+> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
 
-Good catch:
+This crash report seems to be for a 3.18 kernel. Can you reproduce it
+on upstream kernel as well?
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
-> ---
->   drivers/media/rc/sunxi-cir.c | 2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-> index 7830aef3db45..40f77685cc4a 100644
-> --- a/drivers/media/rc/sunxi-cir.c
-> +++ b/drivers/media/rc/sunxi-cir.c
-> @@ -153,6 +153,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->   	if (!ir)
->   		return -ENOMEM;
->
-> +	spin_lock_init(&ir->ir_lock);
-> +
->   	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
->   		ir->fifo_size = 64;
->   	else
->
+	Gustavo
