@@ -1,181 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:25610 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934045AbbLPPhm (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:62317 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964850AbbLOKBQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 10:37:42 -0500
+	Tue, 15 Dec 2015 05:01:16 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NZE005C9961N860@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 15 Dec 2015 10:01:13 +0000 (GMT)
+Subject: Re: [RFC PATCH] vb2: Stop allocating 'alloc_ctx',
+ just set the device instead
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <566ED3D4.9050803@xs4all.nl> <28435978.1Ghf2YSlFk@avalon>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
 From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v3 7/7] media: s5p-mfc: add iommu support
-Date: Wed, 16 Dec 2015 16:37:29 +0100
-Message-id: <1450280249-24681-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
-References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+Message-id: <566FE4E7.5060001@samsung.com>
+Date: Tue, 15 Dec 2015 11:01:11 +0100
+MIME-version: 1.0
+In-reply-to: <28435978.1Ghf2YSlFk@avalon>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for IOMMU to s5p-mfc device driver. MFC firmware
-is limited and it cannot use the default configuration. If IOMMU is
-available, the patch disables the default DMA address space
-configuration and creates a new address space of size limited to 256M
-and base address set to 0x20000000.
+Hello,
 
-For now the same address space is shared by both 'left' and 'right'
-memory channels, because the DMA/IOMMU frameworks do not support
-configuring them separately. This is not optimal, but besides limiting
-total address space available has no other drawbacks (MFC firmware
-supports 256M of address space per each channel).
+On 2015-12-14 16:40, Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Monday 14 December 2015 15:36:04 Hans Verkuil wrote:
+>> (Before I post this as the 'final' patch and CC all the driver developers
+>> that are affected, I'd like to do an RFC post first. I always hated the
+>> alloc context for obfuscating what is really going on, but let's see what
+>> others think).
+>>
+>>
+>> Instead of allocating a struct that contains just a single device pointer,
+>> just pass that device pointer around. This avoids having to check for
+>> memory allocation errors and is much easier to understand since it makes
+>> explicit what was hidden in an opaque handle before.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> As most devices use the same allocation context for all planes, wouldn't it
+> make sense to just store the struct device pointer in the queue structure ?
+> The oddball driver that requires different allocation contexts (I'm thinking
+> about s5p-mfc here, there might be a couple more) would have to set the
+> allocation contexts properly in the queue_setup handler, but for all other
+> devices you could just remove that code completely.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c       | 24 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 79 ++++++++++++++++++++++++++
- 2 files changed, 103 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+This seams a reasonable approach. vb2 was written with special (or 
+strange ;)
+requirements in mind to align it with Exynos HW. However after some time it
+turned out that most device drivers are simple and don't need fancy handling
+of allocator context, so this definitely can be simplified. It also 
+turned out
+also that there is no real 'context' for vb2 memory allocators, although 
+some
+out-of-tree code (used in Android kernels) use some more advanced structures
+there. Maybe it will be enough to let drivers to change defaults in 
+queue_setup
+and ensure that there is a 'void *alloc_ctx_priv' placeholder for allocator
+specific data.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 306344994c8e..bae7c0f7bfd4 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -30,6 +30,7 @@
- #include "s5p_mfc_dec.h"
- #include "s5p_mfc_enc.h"
- #include "s5p_mfc_intr.h"
-+#include "s5p_mfc_iommu.h"
- #include "s5p_mfc_opr.h"
- #include "s5p_mfc_cmd.h"
- #include "s5p_mfc_pm.h"
-@@ -1061,6 +1062,22 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	/*
-+	 * When IOMMU is available, we cannot use the default configuration,
-+	 * because of MFC firmware requirements: address space limited to
-+	 * 256M and non-zero default start address.
-+	 * This is still simplified, not optimal configuration, but for now
-+	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-+	 * separately.
-+	 */
-+	if (exynos_is_iommu_available(dev)) {
-+		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-+						 S5P_MFC_IOMMU_DMA_SIZE);
-+		if (ret == 0)
-+			mfc_dev->mem_dev_l = mfc_dev->mem_dev_r = dev;
-+		return ret;
-+	}
-+
-+	/*
- 	 * Create and initialize virtual devices for accessing
- 	 * reserved memory regions.
- 	 */
-@@ -1078,6 +1095,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 
- static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+
-+	if (exynos_is_iommu_available(dev)) {
-+		exynos_unconfigure_iommu(dev);
-+		return;
-+	}
-+
- 	device_unregister(mfc_dev->mem_dev_l);
- 	device_unregister(mfc_dev->mem_dev_r);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-new file mode 100644
-index 000000000000..5d1d1c2922e8
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (C) 2015 Samsung Electronics Co.Ltd
-+ * Authors: Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
-+ */
-+
-+#ifndef S5P_MFC_IOMMU_H_
-+#define S5P_MFC_IOMMU_H_
-+
-+#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
-+#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
-+
-+#ifdef CONFIG_EXYNOS_IOMMU
-+
-+#include <asm/dma-iommu.h>
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return dev->archdata.iommu != NULL;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev)
-+{
-+	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
-+
-+	arm_iommu_detach_device(dev);
-+	arm_iommu_release_mapping(mapping);
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	struct dma_iommu_mapping *mapping = NULL;
-+	int ret;
-+
-+	/* Disable the default mapping created by device core */
-+	if (to_dma_iommu_mapping(dev))
-+		exynos_unconfigure_iommu(dev);
-+
-+	mapping = arm_iommu_create_mapping(dev->bus, base, size);
-+	if (IS_ERR(mapping)) {
-+		pr_warn("Failed to create IOMMU mapping for device %s\n",
-+			dev_name(dev));
-+		return PTR_ERR(mapping);
-+	}
-+
-+	ret = arm_iommu_attach_device(dev, mapping);
-+	if (ret) {
-+		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
-+				dev_name(dev));
-+		arm_iommu_release_mapping(mapping);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev) { }
-+
-+#endif
-+
-+#endif /* S5P_MFC_IOMMU_H_ */
+There is one more advantage of moving struct device * to vb2_queue. One can
+then change all debugs to use dev_info/err/dbg infrastructure, so the 
+logs will
+be significantly easier to read, especially when more than one media 
+device is
+used.
+
+Best regards
 -- 
-1.9.2
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
