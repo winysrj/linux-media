@@ -1,101 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10273 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbbLNJU1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 04:20:27 -0500
-Subject: Re: [PATCH v2 4/7] media: vb2-dma-contig: add helper for setting dma
- max seg size
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
- <1449669502-24601-5-git-send-email-m.szyprowski@samsung.com>
- <3238962.HlGfVT9mcy@avalon>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <566E89D6.40603@samsung.com>
-Date: Mon, 14 Dec 2015 10:20:22 +0100
-MIME-version: 1.0
-In-reply-to: <3238962.HlGfVT9mcy@avalon>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mga14.intel.com ([192.55.52.115]:6367 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933277AbbLOKBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 05:01:09 -0500
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+To: Dmitry Torokhov <dtor@chromium.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <20151215012955.GA28277@dtor-ws>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	=?UTF-8?B?QXJ2ZSBIasO4bm5ldsOl?= =?UTF-8?Q?g?= <arve@android.com>,
+	Riley Andrews <riandrews@android.com>,
+	Andrew Bresticker <abrestic@chromium.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org
+From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Message-ID: <566FE4E1.2040005@linux.intel.com>
+Date: Tue, 15 Dec 2015 11:01:05 +0100
+MIME-Version: 1.0
+In-Reply-To: <20151215012955.GA28277@dtor-ws>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On 2015-12-13 20:57, Laurent Pinchart wrote:
-> Hi Marek,
+Op 15-12-15 om 02:29 schreef Dmitry Torokhov:
+> Userspace can close the sync device while there are still active fence
+> points, in which case kernel produces the following warning:
 >
-> Thank you for the patch.
+> [   43.853176] ------------[ cut here ]------------
+> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
+> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
+> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
+> [   43.885834] Call trace:
+> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
+> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
+> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
+> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
+> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
+> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
+> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
+> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
+> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
+> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
+> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
+> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
+> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
+> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
 >
-> On Wednesday 09 December 2015 14:58:19 Marek Szyprowski wrote:
->> Add a helper function for device drivers to set DMA's max_seg_size.
->> Setting it to largest possible value lets DMA-mapping API always create
->> contiguous mappings in DMA address space. This is essential for all
->> devices, which use dma-contig videobuf2 memory allocator and shared
->> buffers.
->>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
->>   include/media/videobuf2-dma-contig.h           |  1 +
->>   2 files changed, 16 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index c331272..628518d
->> 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -742,6 +742,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
->>
->> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
->> +{
->> +	if (!dev->dma_parms) {
-> When can this function be called with dev->dma_parms not NULL ?
-
-When one loads a module with multimedia driver (which calls this 
-function), then
-unloads and loads it again. It is rather safe to have this check.
-
->> +		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
->> +					      GFP_KERNEL);
->> +		if (!dev->dma_parms)
->> +			return -ENOMEM;
->> +	}
->> +	if (dma_get_max_seg_size(dev) < size)
->> +		return dma_set_max_seg_size(dev, size);
->> +
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
->> +
->>   MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
->>   MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
->>   MODULE_LICENSE("GPL");
->> diff --git a/include/media/videobuf2-dma-contig.h
->> b/include/media/videobuf2-dma-contig.h index c33dfa6..0e6ba64 100644
->> --- a/include/media/videobuf2-dma-contig.h
->> +++ b/include/media/videobuf2-dma-contig.h
->> @@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb,
->> unsigned int plane_no)
->>
->>   void *vb2_dma_contig_init_ctx(struct device *dev);
->>   void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
->> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
->>
->>   extern const struct vb2_mem_ops vb2_dma_contig_memops;
-
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+> Let's fix it by introducing a new optional callback (disable_signaling)
+> to fence operations so that drivers can do proper clean ups when we
+> remove last callback for given fence.
+>
+> Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
+> Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
+>
+NACK! There's no way to do this race free.
+The driver should hold a refcount until fence is signaled.
