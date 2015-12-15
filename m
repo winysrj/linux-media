@@ -1,34 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:60320 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867AbbLLVMW (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:40580 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964903AbbLOLA7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 16:12:22 -0500
-Subject: Re: AF9035 with no tuner?
-To: Jiri Slaby <jirislaby@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-References: <566C8CC1.3040906@gmail.com>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <566C8DB2.7080303@southpole.se>
-Date: Sat, 12 Dec 2015 22:12:18 +0100
+	Tue, 15 Dec 2015 06:00:59 -0500
+Date: Tue, 15 Dec 2015 14:00:40 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] media-device: copy_to/from_user() returns positive
+Message-ID: <20151215110040.GA9594@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <566C8CC1.3040906@gmail.com>
-Content-Type: text/plain; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2015 10:08 PM, Jiri Slaby wrote:
-> Hello,
->
-> I have a USB device which digitizes composite video into a MPEG-2 stream
-> (I think). It is an AF9035 device according to windows. But it has no
-> tuner. Is there a way to make it working on linux or am I out of luck?
->
+The copy_to/from_user() functions return the number of bytes *not*
+copied.  They don't return error codes.
 
-Open the device and take pictures of the pcb and the chips. After that 
-it might be possible to identify what kind of device it is.
+Fixes: 4f6b3f363475 ('media] media-device: add support for MEDIA_IOC_G_TOPOLOGY ioctl')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-MvH
-Benjamin Larsson
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c12481c..96ed207 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -376,18 +376,17 @@ static long media_device_get_topology(struct media_device *mdev,
+ 	struct media_v2_topology ktopo;
+ 	int ret;
+ 
+-	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
+-
+-	if (ret < 0)
+-		return ret;
++	if (copy_from_user(&ktopo, utopo, sizeof(ktopo)))
++		return -EFAULT;
+ 
+ 	ret = __media_device_get_topology(mdev, &ktopo);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
++	if (copy_to_user(utopo, &ktopo, sizeof(*utopo)))
++		return -EFAULT;
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
