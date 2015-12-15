@@ -1,138 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51910 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964902AbbLOLOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 06:14:02 -0500
-Date: Tue, 15 Dec 2015 09:13:42 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:40431 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964841AbbLOKnd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2015 05:43:33 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	linux-arm-kernel@lists.infradead.org,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Antti Palosaari <crope@iki.fi>,
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Shuah Khan <shuahkh@osg.samsung.com>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>
-Subject: Re: [PATCH 2/2] [media] media-device: split media initialization
- and registration
-Message-ID: <20151215091342.2f825d91@recife.lan>
-In-Reply-To: <55F1BA5C.50508@linux.intel.com>
-References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
-	<1441890195-11650-3-git-send-email-javier@osg.samsung.com>
-	<55F1BA5C.50508@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 1/2] [media] media-device: move media entity register/unregister functions
+Date: Tue, 15 Dec 2015 08:43:11 -0200
+Message-Id: <2875b74a677adc2cd9fc11ba054654caf01e4a18.1450176187.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Sep 2015 20:14:04 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+media entity register and unregister functions are called by media
+device register/unregister. Move them to occur earlier, as we'll need
+an unlocked version of media_device_entity_unregister() and we don't
+want to add a function prototype without needing it.
 
-> Hi Javier,
-> 
-> Thanks for the set! A few comments below.
-> 
-> Javier Martinez Canillas wrote:
-> > The media device node is registered and so made visible to user-space
-> > before entities are registered and links created which means that the
-> > media graph obtained by user-space could be only partially enumerated
-> > if that happens too early before all the graph has been created.
-> > 
-> > To avoid this race condition, split the media init and registration
-> > in separate functions and only register the media device node when
-> > all the pending subdevices have been registered, either explicitly
-> > by the driver or asynchronously using v4l2_async_register_subdev().
-> > 
-> > Also, add a media_entity_cleanup() function that will destroy the
-> > graph_mutex that is initialized in media_entity_init().
-> > 
-> > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> > 
-> > ---
-> > 
-> >  drivers/media/common/siano/smsdvb-main.c      |  1 +
-> >  drivers/media/media-device.c                  | 38 +++++++++++++++++++++++----
-> >  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++---
-> >  drivers/media/platform/omap3isp/isp.c         | 11 +++++---
-> >  drivers/media/platform/s3c-camif/camif-core.c | 13 ++++++---
-> >  drivers/media/platform/vsp1/vsp1_drv.c        | 19 ++++++++++----
-> >  drivers/media/platform/xilinx/xilinx-vipp.c   | 11 +++++---
-> >  drivers/media/usb/au0828/au0828-core.c        | 26 +++++++++++++-----
-> >  drivers/media/usb/cx231xx/cx231xx-cards.c     | 22 +++++++++++-----
-> >  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 11 +++++---
-> >  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 13 ++++++---
-> >  drivers/media/usb/siano/smsusb.c              | 14 ++++++++--
-> >  drivers/media/usb/uvc/uvc_driver.c            |  9 +++++--
-> >  include/media/media-device.h                  |  2 ++
-> >  14 files changed, 156 insertions(+), 46 deletions(-)
-> > 
-> > diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-> > index ab345490a43a..8a1ea2192439 100644
-> > --- a/drivers/media/common/siano/smsdvb-main.c
-> > +++ b/drivers/media/common/siano/smsdvb-main.c
-> > @@ -617,6 +617,7 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
-> >  	if (!coredev->media_dev)
-> >  		return;
-> >  	media_device_unregister(coredev->media_dev);
-> > +	media_device_cleanup(coredev->media_dev);
-> >  	kfree(coredev->media_dev);
-> >  	coredev->media_dev = NULL;
-> >  #endif
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 745defb34b33..a8beb0b445a6 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -526,7 +526,7 @@ static void media_device_release(struct media_devnode *mdev)
-> >  }
-> >  
-> >  /**
-> > - * media_device_register - register a media device
-> > + * media_device_init() - initialize a media device
-> >   * @mdev:	The media device
-> >   *
-> >   * The caller is responsible for initializing the media device before
-> > @@ -534,12 +534,11 @@ static void media_device_release(struct media_devnode *mdev)
-> >   *
-> >   * - dev must point to the parent device
-> >   * - model must be filled with the device model name
-> > + *
-> > + * returns zero on success or a negative error code.
-> >   */
-> > -int __must_check __media_device_register(struct media_device *mdev,
-> > -					 struct module *owner)
-> > +int __must_check media_device_init(struct media_device *mdev)
-> 
-> I think I suggested making media_device_init() return void as the only
-> remaining source of errors would be driver bugs.
-> 
-> I'd simply replace the WARN_ON() below with BUG().
+No functional changes.
 
-That sounds like bad idea to me, and it is against the current
-Kernel policy of using BUG() only when there's no other way, e. g. on
-event so severe that the Kernel has no other thing to do except to
-stop running.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c | 160 +++++++++++++++++++++----------------------
+ 1 file changed, 80 insertions(+), 80 deletions(-)
 
-For sure, this is not the case here. Also, all drivers have already
-a logic that checks if the device init happened. So, they should already
-be doing the right thing.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index da4126863ecc..1222fa642ad8 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -529,6 +529,86 @@ static void media_device_release(struct media_devnode *mdev)
+ }
+ 
+ /**
++ * media_device_register_entity - Register an entity with a media device
++ * @mdev:	The media device
++ * @entity:	The entity
++ */
++int __must_check media_device_register_entity(struct media_device *mdev,
++					      struct media_entity *entity)
++{
++	unsigned int i;
++
++	if (entity->function == MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN ||
++	    entity->function == MEDIA_ENT_F_UNKNOWN)
++		dev_warn(mdev->dev,
++			 "Entity type for entity %s was not initialized!\n",
++			 entity->name);
++
++	/* Warn if we apparently re-register an entity */
++	WARN_ON(entity->graph_obj.mdev != NULL);
++	entity->graph_obj.mdev = mdev;
++	INIT_LIST_HEAD(&entity->links);
++	entity->num_links = 0;
++	entity->num_backlinks = 0;
++
++	spin_lock(&mdev->lock);
++	/* Initialize media_gobj embedded at the entity */
++	media_gobj_create(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
++
++	/* Initialize objects at the pads */
++	for (i = 0; i < entity->num_pads; i++)
++		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
++			       &entity->pads[i].graph_obj);
++
++	spin_unlock(&mdev->lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity);
++
++/**
++ * media_device_unregister_entity - Unregister an entity
++ * @entity:	The entity
++ *
++ * If the entity has never been registered this function will return
++ * immediately.
++ */
++void media_device_unregister_entity(struct media_entity *entity)
++{
++	struct media_device *mdev = entity->graph_obj.mdev;
++	struct media_link *link, *tmp;
++	struct media_interface *intf;
++	unsigned int i;
++
++	if (mdev == NULL)
++		return;
++
++	spin_lock(&mdev->lock);
++
++	/* Remove all interface links pointing to this entity */
++	list_for_each_entry(intf, &mdev->interfaces, graph_obj.list) {
++		list_for_each_entry_safe(link, tmp, &intf->links, list) {
++			if (link->entity == entity)
++				__media_remove_intf_link(link);
++		}
++	}
++
++	/* Remove all data links that belong to this entity */
++	__media_entity_remove_links(entity);
++
++	/* Remove all pads that belong to this entity */
++	for (i = 0; i < entity->num_pads; i++)
++		media_gobj_destroy(&entity->pads[i].graph_obj);
++
++	/* Remove the entity */
++	media_gobj_destroy(&entity->graph_obj);
++
++	spin_unlock(&mdev->lock);
++	entity->graph_obj.mdev = NULL;
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity);
++
++/**
+  * media_device_register - register a media device
+  * @mdev:	The media device
+  *
+@@ -611,86 +691,6 @@ void media_device_unregister(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+-/**
+- * media_device_register_entity - Register an entity with a media device
+- * @mdev:	The media device
+- * @entity:	The entity
+- */
+-int __must_check media_device_register_entity(struct media_device *mdev,
+-					      struct media_entity *entity)
+-{
+-	unsigned int i;
+-
+-	if (entity->function == MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN ||
+-	    entity->function == MEDIA_ENT_F_UNKNOWN)
+-		dev_warn(mdev->dev,
+-			 "Entity type for entity %s was not initialized!\n",
+-			 entity->name);
+-
+-	/* Warn if we apparently re-register an entity */
+-	WARN_ON(entity->graph_obj.mdev != NULL);
+-	entity->graph_obj.mdev = mdev;
+-	INIT_LIST_HEAD(&entity->links);
+-	entity->num_links = 0;
+-	entity->num_backlinks = 0;
+-
+-	spin_lock(&mdev->lock);
+-	/* Initialize media_gobj embedded at the entity */
+-	media_gobj_create(mdev, MEDIA_GRAPH_ENTITY, &entity->graph_obj);
+-
+-	/* Initialize objects at the pads */
+-	for (i = 0; i < entity->num_pads; i++)
+-		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+-			       &entity->pads[i].graph_obj);
+-
+-	spin_unlock(&mdev->lock);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(media_device_register_entity);
+-
+-/**
+- * media_device_unregister_entity - Unregister an entity
+- * @entity:	The entity
+- *
+- * If the entity has never been registered this function will return
+- * immediately.
+- */
+-void media_device_unregister_entity(struct media_entity *entity)
+-{
+-	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_link *link, *tmp;
+-	struct media_interface *intf;
+-	unsigned int i;
+-
+-	if (mdev == NULL)
+-		return;
+-
+-	spin_lock(&mdev->lock);
+-
+-	/* Remove all interface links pointing to this entity */
+-	list_for_each_entry(intf, &mdev->interfaces, graph_obj.list) {
+-		list_for_each_entry_safe(link, tmp, &intf->links, list) {
+-			if (link->entity == entity)
+-				__media_remove_intf_link(link);
+-		}
+-	}
+-
+-	/* Remove all data links that belong to this entity */
+-	__media_entity_remove_links(entity);
+-
+-	/* Remove all pads that belong to this entity */
+-	for (i = 0; i < entity->num_pads; i++)
+-		media_gobj_destroy(&entity->pads[i].graph_obj);
+-
+-	/* Remove the entity */
+-	media_gobj_destroy(&entity->graph_obj);
+-
+-	spin_unlock(&mdev->lock);
+-	entity->graph_obj.mdev = NULL;
+-}
+-EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+-
+ static void media_device_release_devres(struct device *dev, void *res)
+ {
+ }
+-- 
+2.5.0
 
-Regards,
-Mauro
