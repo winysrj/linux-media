@@ -1,50 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47793 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751915AbbLXMyM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60580 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754462AbbLPNes (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2015 07:54:12 -0500
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Thu, 24 Dec 2015 13:54:11 +0100
-From: hverkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	linux-media-owner@vger.kernel.org
-Subject: Re: per-frame camera metadata (again)
-In-Reply-To: <4268557.IA99RCLRfS@avalon>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
- <20165691.OGa4CkqcQt@avalon> <7eb32a870441220fc4f6738d03a96a36@xs4all.nl>
- <4268557.IA99RCLRfS@avalon>
-Message-ID: <86a64428cff3a4056742bb169de13e70@xs4all.nl>
+	Wed, 16 Dec 2015 08:34:48 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v3 04/23] media: Move struct media_entity_graph definition up
+Date: Wed, 16 Dec 2015 15:32:19 +0200
+Message-Id: <1450272758-29446-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-12-24 12:29, Laurent Pinchart wrote:
->> Control classes are not deprecated, only the use of the control_class
->> field in struct v4l2_ext_controls to limit the controls in the list to 
->> a
->> single control class is deprecated. That old limitation was from pre-
->> control-framework times to simplify driver design. With the creation 
->> of the
->> control framework that limitation is no longer needed.
-> 
-> Doesn't that effectively deprecated control classes ? We can certainly 
-> group
-> controls in categories for documentation purposes, but the control 
-> class as an
-> API concept is quite useless nowadays.
+It will be needed in struct media_pipeline shortly.
 
-No it's not. It is meant to be used by GUIs to group controls into tab 
-pages or
-something similar. See qv4l2 or v4l2-ctl. It's very useful.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/media-entity.h | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-Regards,
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 70803f7..4f789a4 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -97,6 +97,16 @@ struct media_entity_enum {
+ 	int idx_max;
+ };
+ 
++struct media_entity_graph {
++	struct {
++		struct media_entity *entity;
++		struct list_head *link;
++	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++
++	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
++	int top;
++};
++
+ struct media_pipeline {
+ };
+ 
+@@ -441,16 +451,6 @@ static inline bool media_entity_enum_intersects(
+ 				 min(ent_enum1->idx_max, ent_enum2->idx_max));
+ }
+ 
+-struct media_entity_graph {
+-	struct {
+-		struct media_entity *entity;
+-		struct list_head *link;
+-	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+-
+-	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
+-	int top;
+-};
+-
+ #define gobj_to_entity(gobj) \
+ 		container_of(gobj, struct media_entity, graph_obj)
+ 
+-- 
+2.1.4
 
-     Hans
