@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:37016 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932582AbbLRO3e (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:35993 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333AbbLPUVU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 09:29:34 -0500
-Received: by mail-wm0-f50.google.com with SMTP id p187so66900171wmp.0
-        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 06:29:33 -0800 (PST)
-From: Jemma Denson <jdenson@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: [v4l-utils PATCH-v2 3/4] dvbv5-zap.c: fix wrong signal
-Date: Fri, 18 Dec 2015 14:28:25 +0000
-Message-Id: <1450448906-17000-4-git-send-email-jdenson@gmail.com>
-In-Reply-To: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
-References: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
+	Wed, 16 Dec 2015 15:21:20 -0500
+Received: by mail-lf0-f47.google.com with SMTP id z124so32863556lfa.3
+        for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 12:21:19 -0800 (PST)
+Subject: Re: [v4l-utils PATCH 1/1] Allow building static binaries
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20151210132124.GK17128@valkosipuli.retiisi.org.uk>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+From: Gregor Jasny <gjasny@googlemail.com>
+Message-ID: <5671C7BC.9090002@googlemail.com>
+Date: Wed, 16 Dec 2015 21:21:16 +0100
+MIME-Version: 1.0
+In-Reply-To: <20151210132124.GK17128@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signal here should be SIGALRM and not SIGINT in order to call do_timeout().
+Hello,
 
-Signed-off-by: Jemma Denson <jdenson@gmail.com>
----
- utils/dvb/dvbv5-zap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 10/12/15 14:21, Sakari Ailus wrote:
+> I discussed with Hans and he thought you'd be the best person to take a look
+> at this.
+> 
+> The case is that I'd like to build static binaries and that doesn't seem to
+> work with what's in Makefile.am for libv4l1 and libv4l2 at the moment.
 
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index 2d19d45..2d71307 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -871,7 +871,7 @@ int main(int argc, char **argv)
- 		signal(SIGTERM, do_timeout);
- 		signal(SIGINT, do_timeout);
- 		if (args.timeout > 0) {
--			signal(SIGINT, do_timeout);
-+			signal(SIGALRM, do_timeout);
- 			alarm(args.timeout);
- 		}
- 
--- 
-2.1.0
+Sorry for the late reply. Didi not notice this email earlier. Your patch
+does not do what you'd like to achieve. Both v4l1compat and v4l2convert
+are libraries which only purpose is to get preloaded by the loader. So
+build them statically does not make sense. Instead they should not be
+built at all. To achieve this the WITH_V4L_WRAPPERS variable should
+evaluate to false. This is triggered by
+
+AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_libv4l != xno -a
+x$enable_shared != xno])
+
+So changing
+
+LDFLAGS="--static -static" ./configure --enable-static
+
+to
+
+LDFLAGS="--static -static" ./configure --enable-static --disabled-shared
+
+should do the trick. Does this help?
+
+Thanks,
+Gregor
+
 
