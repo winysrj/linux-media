@@ -1,146 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:54125 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751695AbbL0Umv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 15:42:51 -0500
-From: Soeren Moch <smoch@web.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Soeren Moch <smoch@web.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: dvb_ringbuffer: Add memory barriers
-Date: Sun, 27 Dec 2015 21:41:56 +0100
-Message-Id: <1451248920-4935-1-git-send-email-smoch@web.de>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:35345 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965528AbbLPPhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 10:37:43 -0500
+Received: by mail-wm0-f44.google.com with SMTP id l126so44037566wml.0
+        for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 07:37:43 -0800 (PST)
+Date: Wed, 16 Dec 2015 16:37:41 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dmitry Torokhov <dtor@chromium.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Andrew Bresticker <abrestic@chromium.org>,
+	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+	dri-devel@lists.freedesktop.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Riley Andrews <riandrews@android.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+Message-ID: <20151216153740.GS30437@phenom.ffwll.local>
+References: <20151215012955.GA28277@dtor-ws>
+ <20151215133020.GD883@joana>
+ <CAE_wzQ_4ygv3h0tvScLihR+j9xg=OL1kS2qxE-KNH2DOxRNgUw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAE_wzQ_4ygv3h0tvScLihR+j9xg=OL1kS2qxE-KNH2DOxRNgUw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement memory barriers according to Documentation/circular-buffers.txt:
-- use smp_store_release() to update ringbuffer read/write pointers
-- use smp_load_acquire() to load write pointer on reader side
-- use ACCESS_ONCE() to load read pointer on writer side
+On Tue, Dec 15, 2015 at 09:22:56AM -0800, Dmitry Torokhov wrote:
+> On Tue, Dec 15, 2015 at 5:30 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
+> > 2015-12-14 Dmitry Torokhov <dtor@chromium.org>:
+> >
+> >> Userspace can close the sync device while there are still active fence
+> >> points, in which case kernel produces the following warning:
+> >>
+> >> [   43.853176] ------------[ cut here ]------------
+> >> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
+> >> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
+> >> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
+> >> [   43.885834] Call trace:
+> >> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
+> >> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
+> >> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
+> >> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
+> >> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
+> >> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
+> >> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
+> >> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
+> >> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
+> >> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
+> >> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
+> >> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
+> >> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
+> >> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
+> >
+> > This crash report seems to be for a 3.18 kernel. Can you reproduce it
+> > on upstream kernel as well?
+> 
+> Unfortunately this board does not run upsrteam just yet, but looking
+> at the sync driver and fence code we are pretty much in sync with
+> upstream.
 
-This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
-quad core system with different types (PCI, USB) of DVB tuners.
-
-Signed-off-by: Soeren Moch <smoch@web.de>
-Cc: stable@vger.kernel.org # 3.14+
----
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-Since smp_store_release() and smp_load_acquire() were introduced in linux-3.14,
-a 3.14+ stable tag was added. Is it desired to apply a similar patch to older
-stable kernels?
----
- drivers/media/dvb-core/dvb_ringbuffer.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_ringbuffer.c b/drivers/media/dvb-core/dvb_ringbuffer.c
-index 1100e98..58b5968 100644
---- a/drivers/media/dvb-core/dvb_ringbuffer.c
-+++ b/drivers/media/dvb-core/dvb_ringbuffer.c
-@@ -55,7 +55,7 @@ void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len)
- 
- int dvb_ringbuffer_empty(struct dvb_ringbuffer *rbuf)
- {
--	return (rbuf->pread==rbuf->pwrite);
-+	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
- }
- 
- 
-@@ -64,7 +64,7 @@ ssize_t dvb_ringbuffer_free(struct dvb_ringbuffer *rbuf)
- {
- 	ssize_t free;
- 
--	free = rbuf->pread - rbuf->pwrite;
-+	free = ACCESS_ONCE(rbuf->pread) - rbuf->pwrite;
- 	if (free <= 0)
- 		free += rbuf->size;
- 	return free-1;
-@@ -76,7 +76,7 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
- {
- 	ssize_t avail;
- 
--	avail = rbuf->pwrite - rbuf->pread;
-+	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
- 	if (avail < 0)
- 		avail += rbuf->size;
- 	return avail;
-@@ -86,14 +86,15 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
- 
- void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf)
- {
--	rbuf->pread = rbuf->pwrite;
-+	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
- 	rbuf->error = 0;
- }
- EXPORT_SYMBOL(dvb_ringbuffer_flush);
- 
- void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
- {
--	rbuf->pread = rbuf->pwrite = 0;
-+	smp_store_release(&rbuf->pread, 0);
-+	smp_store_release(&rbuf->pwrite, 0);
- 	rbuf->error = 0;
- }
- 
-@@ -119,12 +120,12 @@ ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf, u8 __user *buf, si
- 			return -EFAULT;
- 		buf += split;
- 		todo -= split;
--		rbuf->pread = 0;
-+		smp_store_release(&rbuf->pread, 0);
- 	}
- 	if (copy_to_user(buf, rbuf->data+rbuf->pread, todo))
- 		return -EFAULT;
- 
--	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
- 
- 	return len;
- }
-@@ -139,11 +140,11 @@ void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf, u8 *buf, size_t len)
- 		memcpy(buf, rbuf->data+rbuf->pread, split);
- 		buf += split;
- 		todo -= split;
--		rbuf->pread = 0;
-+		smp_store_release(&rbuf->pread, 0);
- 	}
- 	memcpy(buf, rbuf->data+rbuf->pread, todo);
- 
--	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
- }
- 
- 
-@@ -158,10 +159,10 @@ ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf, size_t
- 		memcpy(rbuf->data+rbuf->pwrite, buf, split);
- 		buf += split;
- 		todo -= split;
--		rbuf->pwrite = 0;
-+		smp_store_release(&rbuf->pwrite, 0);
- 	}
- 	memcpy(rbuf->data+rbuf->pwrite, buf, todo);
--	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
- 
- 	return len;
- }
-@@ -181,12 +182,12 @@ ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
- 			return len - todo;
- 		buf += split;
- 		todo -= split;
--		rbuf->pwrite = 0;
-+		smp_store_release(&rbuf->pwrite, 0);
- 	}
- 	status = copy_from_user(rbuf->data+rbuf->pwrite, buf, todo);
- 	if (status)
- 		return len - todo;
--	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
- 
- 	return len;
- }
+Just to check: Is that with a proper hw driver, or using SW_SYNC? The
+later will get removed in upstream since it's a debug/validation only
+interface. Well, removed for drivers and production systems, the
+kselftests will use it.
+-Daniel
 -- 
-1.9.1
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
