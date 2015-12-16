@@ -1,165 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60601 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932907AbbLPNew (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43178 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932824AbbLPKhg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v3 20/23] staging: v4l: davinci_vpbe: Use the new media graph walk interface
-Date: Wed, 16 Dec 2015 15:32:35 +0200
-Message-Id: <1450272758-29446-21-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 16 Dec 2015 05:37:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
+Date: Wed, 16 Dec 2015 12:37:33 +0200
+Message-ID: <1476580.3KzNLJVXIA@avalon>
+In-Reply-To: <CAMuHMdXpJP9GFCsOVz2224BS5-XFTMrQwoDnzBbcuo+iv4R=Gw@mail.gmail.com>
+References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <3938053.0568U3PJkY@avalon> <CAMuHMdXpJP9GFCsOVz2224BS5-XFTMrQwoDnzBbcuo+iv4R=Gw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media graph walk requires initialisation and cleanup soon. Update the
-users to perform the soon necessary API calls.
+Hi Geert,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>
----
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 37 ++++++++++++++++++-------
- drivers/staging/media/davinci_vpfe/vpfe_video.h |  1 +
- 2 files changed, 28 insertions(+), 10 deletions(-)
+On Wednesday 16 December 2015 09:39:29 Geert Uytterhoeven wrote:
+> On Sat, Dec 5, 2015 at 11:54 PM, Laurent Pinchart wrote:
+> > On Saturday 05 December 2015 11:57:49 Geert Uytterhoeven wrote:
+> >> As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112
+> >> is getting old, and has lots of conflicts with recent -next, do you plan
+> >> to publish this in a branch, and a separate branch for integration, to
+> >> ease integration in renesas-drivers?
+> >> 
+> >> Alternatively, I can just import the series you posted, but having the
+> >> broken-out integration part would be nice.
+> > 
+> > The issue I'm facing is that there's more than just two series. Beside the
+> > base VSP patches from this series, I have a series of DRM patches that
+> > depend on this one, a series of V4L2 core patches, another series of VSP
+> > patches that I still need to finish and a bunch of integration patches.
+> > As some of these have dependencies on H3 CCF support that hasn't landed
+> > in Simon's tree yet, I have merged your topic/cpg-mssr-v6 and
+> > topic/r8a7795-drivers-sh-v1 branches into my tree for development.
+> > 
+> > I could keep all series in separate branches and merge the two topic
+> > branches last, but that's not very handy during development when I have
+> > to continuously rebase my patches. Is there a way I could handle this
+> > that would make your life easier while not making mine more difficult ?
+> 
+> I feel your pain...
+> 
+> For development, committing to a single branch and rebasing interactively is
+> also my workflow. But after a few 100 commits, rebasing takes a long time.
+> And you can't publish that tree.
+> 
+> I started moving "finished" stuff to separate topic branches (this is the
+> stuff published/imported into renesas-drivers topic branches, or kept in
+> private branches for the parts I don't want to publish it yet), and merging
+> them early on.
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 2dbf14b..1bacd19 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -127,13 +127,14 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
- }
- 
- /* make a note of pipeline details */
--static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
-+static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
- {
-+	struct media_entity_graph graph;
- 	struct media_entity *entity = &video->video_dev.entity;
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct vpfe_pipeline *pipe = &video->pipe;
- 	struct vpfe_video_device *far_end = NULL;
--	struct media_entity_graph graph;
-+	int ret;
- 
- 	pipe->input_num = 0;
- 	pipe->output_num = 0;
-@@ -144,6 +145,11 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 		pipe->outputs[pipe->output_num++] = video;
- 
- 	mutex_lock(&mdev->graph_mutex);
-+	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
-+	if (ret) {
-+		mutex_unlock(&video->lock);
-+		return -ENOMEM;
-+	}
- 	media_entity_graph_walk_start(&graph, entity);
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
-@@ -156,7 +162,10 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 		else
- 			pipe->outputs[pipe->output_num++] = far_end;
- 	}
-+	media_entity_graph_walk_cleanup(&graph);
- 	mutex_unlock(&mdev->graph_mutex);
-+
-+	return 0;
- }
- 
- /* update pipe state selected by user */
-@@ -165,7 +174,9 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
- 	struct vpfe_pipeline *pipe = &video->pipe;
- 	int ret;
- 
--	vpfe_prepare_pipeline(video);
-+	ret = vpfe_prepare_pipeline(video);
-+	if (ret)
-+		return ret;
- 
- 	/* Find out if there is any input video
- 	  if yes, it is single shot.
-@@ -276,11 +287,10 @@ static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
-  */
- static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- {
--	struct media_entity_graph graph;
- 	struct media_entity *entity;
- 	struct v4l2_subdev *subdev;
- 	struct media_device *mdev;
--	int ret = 0;
-+	int ret;
- 
- 	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
- 		entity = vpfe_get_input_entity(pipe->outputs[0]);
-@@ -289,8 +299,12 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 
- 	mdev = entity->graph_obj.mdev;
- 	mutex_lock(&mdev->graph_mutex);
--	media_entity_graph_walk_start(&graph, entity);
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	ret = media_entity_graph_walk_init(&pipe->graph,
-+					   entity->graph_obj.mdev);
-+	if (ret)
-+		goto out;
-+	media_entity_graph_walk_start(&pipe->graph, entity);
-+	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
- 
- 		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
-@@ -299,6 +313,9 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
- 		if (ret < 0 && ret != -ENOIOCTLCMD)
- 			break;
- 	}
-+out:
-+	if (ret)
-+		media_entity_graph_walk_cleanup(&pipe->graph);
- 	mutex_unlock(&mdev->graph_mutex);
- 	return ret;
- }
-@@ -316,7 +333,6 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
-  */
- static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- {
--	struct media_entity_graph graph;
- 	struct media_entity *entity;
- 	struct v4l2_subdev *subdev;
- 	struct media_device *mdev;
-@@ -329,9 +345,9 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 
- 	mdev = entity->graph_obj.mdev;
- 	mutex_lock(&mdev->graph_mutex);
--	media_entity_graph_walk_start(&graph, entity);
-+	media_entity_graph_walk_start(&pipe->graph, entity);
- 
--	while ((entity = media_entity_graph_walk_next(&graph))) {
-+	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
- 
- 		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
-@@ -342,6 +358,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
- 	}
- 	mutex_unlock(&mdev->graph_mutex);
- 
-+	media_entity_graph_walk_cleanup(&pipe->graph);
- 	return ret ? -ETIMEDOUT : 0;
- }
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index 1b1b6c4..81f7698 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -51,6 +51,7 @@ enum vpfe_video_state {
- struct vpfe_pipeline {
- 	/* media pipeline */
- 	struct media_pipeline		*pipe;
-+	struct media_entity_graph	graph;
- 	/* state of the pipeline, continuous,
- 	 * single-shot or stopped
- 	 */
+The issue here is that there is only a single batch of patches I consider as 
+finished, and those are already present in a branch based directly on top of 
+linuxtv/master that I then merge into my working branches. On a side note I've 
+now sent a pull request for that.
+
+The rest is not considered finished yet, I've modified the oldest branches no 
+later than today. The code is stabilizing though, and I expect to send a pull 
+request for a first batch of DU patches after the v4.5 merge window closes.
+
+> Actual development is still done on top with frequent rebasing.
+> 
+> The problem starts when updating that. Instead of a simple rebase -i, it now
+> involves:
+>   - Duplicating the old topic branch, version number increased,
+>   - Interactively rebasing the new topic branch, including/squashing commits
+> from recent development,
+>   - Merging in the new topic branch "early on", and rebasing all other
+> private development on top of that.
+> For "big" changes that's OK. For adding a bunch of Acked-by's it's a lot of
+> work.
+> 
+> > In the meantime I've pushed vsp1-kms-20151206 to
+> > git://linuxtv.org/pinchartl/media.git.
+> 
+> Hadn't thanked you yet for that: Thanks!
+
+You're welcome, and there's now vsp1-kms-20151216 :-)
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
