@@ -1,181 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56208 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42942 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752954AbbLFBAp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:00:45 -0500
+	with ESMTP id S932567AbbLPHsD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 02:48:03 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v8 41/55] [media] DocBook: update descriptions for the media controller entities
-Date: Sun, 06 Dec 2015 03:00:57 +0200
-Message-ID: <2014911.aPaHEit1JK@avalon>
-In-Reply-To: <55F2D37A.2060503@xs4all.nl>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <00369c40b69f5ce1473d98398e32a7842cf28366.1441540862.git.mchehab@osg.samsung.com> <55F2D37A.2060503@xs4all.nl>
+To: Markus Pargmann <mpa@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] [media] mt9v032: Add V4L2 controls for AEC and AGC
+Date: Wed, 16 Dec 2015 09:47:58 +0200
+Message-ID: <290053152.GcUooHzFZY@avalon>
+In-Reply-To: <1450104113-6392-3-git-send-email-mpa@pengutronix.de>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de> <1450104113-6392-3-git-send-email-mpa@pengutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Markus,
 
-On Friday 11 September 2015 15:13:30 Hans Verkuil wrote:
-> On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> > Cleanup the media controller entities description:
-> > - remove MEDIA_ENT_T_DEVNODE and MEDIA_ENT_T_V4L2_SUBDEV entity
-> >   types, as they don't mean anything;
-> > - add MEDIA_ENT_T_UNKNOWN with a proper description;
-> > - remove ALSA and FB entity types. Those should not be used, as
-> >   the types are deprecated. We'll soon be adidng ALSA, but with
-> >   a different entity namespace;
-> > - improve the description of some entities.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> > b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml index
-> > 32a783635649..bc101516e372 100644
-> > --- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> > +++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-> > @@ -179,70 +179,65 @@
-> >          <colspec colname="c2"/>
-> >  	<tbody valign="top">
-> >  	  <row>
-> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE</constant></entry>
-> > -	    <entry>Unknown device node</entry>
-> > +	    <entry><constant>MEDIA_ENT_T_UNKNOWN</constant> and
-> > <constant>MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN</constant></entry> +	   
-> > <entry>Unknown entity. That generally indicates that
-> > +	    a driver didn't initialize properly the entity, with is a Kernel
-> > bug</entry>> 
-> >  	  </row>
+Thank you for the patch.
+
+On Monday 14 December 2015 15:41:53 Markus Pargmann wrote:
+> This patch adds V4L2 controls for Auto Exposure Control and Auto Gain
+> Control settings. These settings include low pass filter, update
+> frequency of these settings and the update interval for those units.
 > 
-> I'm wondering: if userspace should never see an unknown entity, wouldn't it
-> be better to move these UNKNOWN defines out of the public header to a kernel
-> header and drop this from the documentation?
+> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
 
-And shouldn't the bug be caught in kernelspace before it reaches the user ?
+Please see below for a few comments. If you agree about them there's no need 
+to resubmit, I'll fix the patch when applying.
 
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_V4L2_VIDEO</constant></entry>
-> > -	    <entry>V4L video, radio or vbi device node</entry>
-> > +	    <entry>V4L video streaming input or output entity</entry>
-> >  	  </row>
-> > -	  <row>
-> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_FB</constant></entry>
-> > -	    <entry>Frame buffer device node</entry>
-> > +	    <entry><constant>MEDIA_ENT_T_V4L2_VBI</constant></entry>
-> > +	    <entry>V4L VBI streaming input or output entity</entry>
-> >  	  </row>
-> > -	  <row>
-> > -	    <entry><constant>MEDIA_ENT_T_DEVNODE_ALSA</constant></entry>
-> > -	    <entry>ALSA card</entry>
-> > +	    <entry><constant>MEDIA_ENT_T_V4L2_SWRADIO</constant></entry>
-> > +	    <entry>V4L Sofware Digital Radio (SDR) streaming input or output
-> > entity</entry>
->
-> s/Sofware/Software/
+> ---
+>  drivers/media/i2c/mt9v032.c | 153 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 152 insertions(+), 1 deletion(-)
 > 
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_DVB_DEMOD</constant></entry>
-> > -	    <entry>DVB frontend devnode</entry>
-> > +	    <entry>DVB demodulator entity</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_DVB_DEMUX</constant></entry>
-> > -	    <entry>DVB demux devnode</entry>
-> > +	    <entry>DVB demux entity. Could be implemented on hardware or in
-> > Kernelspace</entry>
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index cc16acf001de..6cbc3b87eda9 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
 
-s/Could be/Can be/
+[snip]
 
-> s/on/in/
+>  enum mt9v032_model {
+> @@ -162,6 +169,8 @@ struct mt9v032_model_data {
+>  	unsigned int min_shutter;
+>  	unsigned int max_shutter;
+>  	unsigned int pclk_reg;
+> +	unsigned int aec_max_shutter_reg;
+> +	const struct v4l2_ctrl_config * const aec_max_shutter_v4l2_ctrl;
+>  };
 > 
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_DVB_TSOUT</constant></entry>
-> > -	    <entry>DVB DVR devnode</entry>
-> > +	    <entry>DVB Transport Stream output entity</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_DVB_CA</constant></entry>
-> > -	    <entry>DVB CAM devnode</entry>
-> > +	    <entry>DVB Conditional Access module (CAM) entity</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    
-<entry><constant>MEDIA_ENT_T_DVB_DEMOD_NET_DECAP</constant></entry>
-> > -	    <entry>DVB network devnode</entry>
-> > -	  </row>
-> > -	  <row>
-> > -	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV</constant></entry>
-> > -	    <entry>Unknown V4L sub-device</entry>
-> > +	    <entry>DVB network ULE/MLE desencapsulation entity. Could be
-> > implemented on hardware or in Kernelspace</entry>
-
-s/Could be/Can be/
-
-> s/on/in/
+>  struct mt9v032_model_info {
+> @@ -175,6 +184,9 @@ static const struct mt9v032_model_version
+> mt9v032_versions[] = { { MT9V034_CHIP_ID_REV1, "MT9V024/MT9V034 rev1" },
+>  };
 > 
-> Hmm, is desencapsulation correct? Could it be 'de-encapsulation' instead? It
-> looks weird.
->
-> >  	  </row>
-> >  	  <row>
-> >  	    
-<entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_SENSOR</constant></entry>
-> > -	    <entry>Video sensor</entry>
-> > +	    <entry>Camera video sensor entity</entry>
+> +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_width;
+> +static const struct v4l2_ctrl_config mt9v034_aec_max_shutter_width;
 
-s/video sensor/image sensor/
+We can avoid forward declarations by moving the mt9v032_model_data array 
+further down in the driver.
 
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_FLASH</constant></entry>
-> > -	    <entry>Flash controller</entry>
-> > +	    <entry>Flash controller entity</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_LENS</constant></entry>
-> > -	    <entry>Lens controller</entry>
-> > +	    <entry>Lens controller entity</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    
-<entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_DECODER</constant></entry>
-> > -	    <entry>Video decoder, the basic function of the video decoder is 
-to
-> > -	    accept analogue video from a wide variety of sources such as
-> > +	    <entry>Analog video decoder, the basic function of the video 
-decoder
-> > +	    is to accept analogue video from a wide variety of sources such 
-as
-> >  	    broadcast, DVD players, cameras and video cassette recorders, in
-> > -	    either NTSC, PAL or HD format and still occasionally SECAM, 
-separate
-> > -	    it into its component parts, luminance and chrominance, and 
-output
-> > +	    either NTSC, PAL, SECAM or HD format, separating the stream
-> > +	    into its component parts, luminance and chrominance, and output
-> >  	    it in some digital video standard, with appropriate embedded 
-timing
-> >  	    signals.</entry>
+>  static const struct mt9v032_model_data mt9v032_model_data[] = {
+>  	{
+>  		/* MT9V022, MT9V032 revisions 1/2/3 */
 
-Does timing signals refer to synchronization signals ? They don't have to be 
-embedded, do they ?
+[snip]
 
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>MEDIA_ENT_T_V4L2_SUBDEV_TUNER</constant></entry>
-> > -	    <entry>TV and/or radio tuner</entry>
-> > +	    <entry>Digital TV, analog TV, radio and/or software radio
-> > tuner</entry>> 
-> >  	  </row>
-> >  	</tbody>
-> >        </tgroup>
+> @@ 647,6 +663,33 @@ static int mt9v032_set_selection(struct v4l2_subdev
+> *subdev, */
+> 
+>  #define V4L2_CID_TEST_PATTERN_COLOR	(V4L2_CID_USER_BASE | 0x1001)
+> +/*
+> + * Value between 1 and 64 to set the desired bin. This is effectively a
+> measure + * of how bright the image is supposed to be. Both AGC and AEC try
+> to reach + * this.
+> + */
+> +#define V4L2_CID_AEGC_DESIRED_BIN		(V4L2_CID_USER_BASE | 0x1002)
+> +/*
+> + * LPF is the low pass filter capability of the chip. Both AEC and AGC have
+> + * this setting. This limits the speed in which AGC/AEC adjust their
+> settings.
+> + * Possible values are 0-2. 0 means no LPF. For 1 and 2 this equation is
+> used:
+> + * 	if |(Calculated new exp - current exp)| > (current exp / 4)
+> + * 		next exp = Calculated new exp
+> + * 	else
+> + * 		next exp = Current exp + ((Calculated new exp - current exp) / 
+2^LPF)
+
+Over 80 columns, you can fix it by just reducing the indentation by one tab.
+
+> + */
+> +#define V4L2_CID_AEC_LPF		(V4L2_CID_USER_BASE | 0x1003)
+> +#define V4L2_CID_AGC_LPF		(V4L2_CID_USER_BASE | 0x1004)
+> +/*
+> + * Value between 0 and 15. This is the number of frames being skipped
+> before
+> + * updating the auto exposure/gain.
+> + */
+> +#define V4L2_CID_AEC_UPDATE_INTERVAL	(V4L2_CID_USER_BASE | 0x1005)
+> +#define V4L2_CID_AGC_UPDATE_INTERVAL	(V4L2_CID_USER_BASE | 0x1006)
+> +/*
+> + * Maximum shutter width used for AEC.
+> + */
+> +#define V4L2_CID_AEC_MAX_SHUTTER_WIDTH	(V4L2_CID_USER_BASE | 0x1007)
+
+[snip]
+
+> @@ -745,6 +810,84 @@ static const struct v4l2_ctrl_config
+> mt9v032_test_pattern_color = { .flags		= 0,
+>  };
+> 
+> +static const struct v4l2_ctrl_config mt9v032_aegc_controls[] = {
+> +	{
+> +		.ops		= &mt9v032_ctrl_ops,
+> +		.id		= V4L2_CID_AEGC_DESIRED_BIN,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "aec_agc_desired_bin",
+
+I forgot to reply to your e-mail asking what proper controls names would be, 
+sorry.
+
+V4L2 control names contain spaces and use uppercase as needed. This one could 
+be "AEC/AGC Desired Bin" for instance.
+
+> +		.min		= 1,
+> +		.max		= 64,
+> +		.step		= 1,
+> +		.def		= 58,
+> +		.flags		= 0,
+> +	}, {
+> +		.ops		= &mt9v032_ctrl_ops,
+> +		.id		= V4L2_CID_AEC_LPF,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "aec_lpf",
+> +		.min		= 0,
+> +		.max		= 2,
+> +		.step		= 1,
+> +		.def		= 0,
+> +		.flags		= 0,
+> +	}, {
+> +		.ops		= &mt9v032_ctrl_ops,
+> +		.id		= V4L2_CID_AGC_LPF,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "agc_lpf",
+> +		.min		= 0,
+> +		.max		= 2,
+> +		.step		= 1,
+> +		.def		= 2,
+> +		.flags		= 0,
+> +	}, {
+> +		.ops		= &mt9v032_ctrl_ops,
+> +		.id		= V4L2_CID_AEC_UPDATE_INTERVAL,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "aec_update_interval",
+> +		.min		= 0,
+> +		.max		= 16,
+> +		.step		= 1,
+> +		.def		= 2,
+> +		.flags		= 0,
+> +	}, {
+> +		.ops		= &mt9v032_ctrl_ops,
+> +		.id		= V4L2_CID_AGC_UPDATE_INTERVAL,
+> +		.type		= V4L2_CTRL_TYPE_INTEGER,
+> +		.name		= "agc_update_interval",
+> +		.min		= 0,
+> +		.max		= 16,
+> +		.step		= 1,
+> +		.def		= 2,
+> +		.flags		= 0,
+> +	}
+> +};
+> +
+> +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_width = {
+> +	.ops		= &mt9v032_ctrl_ops,
+> +	.id		= V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> +	.type		= V4L2_CTRL_TYPE_INTEGER,
+> +	.name		= "aec_max_shutter_width",
+> +	.min		= 1,
+> +	.max		= MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
+
+According the the MT9V032 datasheet I have, the maximum value is 2047 while 
+MT9V032_TOTAL_SHUTTER_WIDTH_MAX is defined as 32767. Do you have any 
+information that would hint for an error in the datasheet ?
+
+> +	.step		= 1,
+> +	.def		= MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> +	.flags		= 0,
+> +};
+> +
+> +static const struct v4l2_ctrl_config mt9v034_aec_max_shutter_width = {
+> +	.ops		= &mt9v032_ctrl_ops,
+> +	.id		= V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> +	.type		= V4L2_CTRL_TYPE_INTEGER,
+> +	.name		= "aec_max_shutter_width",
+> +	.min		= 1,
+> +	.max		= MT9V034_TOTAL_SHUTTER_WIDTH_MAX,
+> +	.step		= 1,
+> +	.def		= MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> +	.flags		= 0,
+> +};
+
+[snip]
 
 -- 
 Regards,
