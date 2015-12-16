@@ -1,67 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52488 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754793AbbL3Nti (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24664 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934036AbbLPPhl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 08:49:38 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/6]  Some improvements for DVB media graph
-Date: Wed, 30 Dec 2015 11:48:50 -0200
-Message-Id: <cover.1451482760.git.mchehab@osg.samsung.com>
+	Wed, 16 Dec 2015 10:37:41 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH v3 5/7] media: set proper max seg size for devices on Exynos
+ SoCs
+Date: Wed, 16 Dec 2015 16:37:27 +0100
+Message-id: <1450280249-24681-6-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is the result of some additional tests with the media controller and
-several different  pure digital TV devices, using the dvb-usb, dvb-usb-v2 core and 
-the siano driver.
+All multimedia devices found on Exynos SoCs support only contiguous
+buffers, so set DMA max segment size to DMA_BIT_MASK(32) to let memory
+allocator to correctly create contiguous memory mappings.
 
-It addresses some minor issues, and improves the graph representation of
-those devices. In particular, the DVB USB v2 mxl111sf driver supports one
-device that has:
-- one tuner, provided by the MXL chipset;
-- three demodulators (one for ATSC, one for ClearQAM and one for DVB-T), each
-  one using a different chip and different driver (lg2161, lgdt3305 and an internal
-  DVB-T demodulator inside the MXL chipset);
-- one demod, provided by the MXL chipset.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c  | 1 +
+ drivers/media/platform/exynos4-is/fimc-core.c | 1 +
+ drivers/media/platform/exynos4-is/fimc-is.c   | 1 +
+ drivers/media/platform/exynos4-is/fimc-lite.c | 1 +
+ drivers/media/platform/s5p-g2d/g2d.c          | 1 +
+ drivers/media/platform/s5p-jpeg/jpeg-core.c   | 1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c      | 2 ++
+ drivers/media/platform/s5p-tv/mixer_video.c   | 1 +
+ 8 files changed, 9 insertions(+)
 
-The graph for such design is at:
-	https://mchehab.fedorapeople.org/mc-next-gen/mxl111sf.png
-with is generated, after this changeset, using mc-nextgen-test tool, available
-at:
-	https://git.linuxtv.org/mchehab/experimental-v4l-utils.git/log/?h=mc-next-gen-v2
-
-The .dot file produced by the tool is at:
-	https://mchehab.fedorapeople.org/mc-next-gen/mxl111sf.dot
-
-Before this patch series, the RF connector and tuner were not shown.
-Also, the graph were missing the connections for the frontends 0 and 1.
-
-Mauro Carvalho Chehab (6):
-  [media] dvbdev: remove two dead functions if
-    !CONFIG_MEDIA_CONTROLLER_DVB
-  [media] dvbdev: Add RF connector if needed
-  [media] dvb-usb-v2: postpone removal of media_device
-  [media] media-entitiy: add a function to create multiple links
-  [media] dvbdev: create links on devices with multiple frontends
-  [media] mxl111sf: Add a tuner entity
-
- drivers/media/common/siano/smsdvb-main.c    |  2 +-
- drivers/media/dvb-core/dvbdev.c             | 98 +++++++++++++++++++++++++----
- drivers/media/dvb-core/dvbdev.h             | 33 +++++++++-
- drivers/media/media-entity.c                | 65 +++++++++++++++++++
- drivers/media/usb/au0828/au0828-dvb.c       |  2 +-
- drivers/media/usb/cx231xx/cx231xx-dvb.c     |  2 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |  4 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf.c     | 20 ++++++
- drivers/media/usb/dvb-usb-v2/mxl111sf.h     |  5 ++
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c     |  2 +-
- include/media/media-entity.h                | 51 +++++++++++++++
- 11 files changed, 264 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9b9e423e4fc4..4f90be43b5a9 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1140,6 +1140,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 		goto err_m2m;
+ 
+ 	/* Initialize continious memory allocator */
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(gsc->alloc_ctx)) {
+ 		ret = PTR_ERR(gsc->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index cef2a7f07cdb..368e19b50498 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -1019,6 +1019,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Initialize contiguous memory allocator */
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 49658ca39e51..123772fa0241 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -841,6 +841,7 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_pm;
+ 
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(is->alloc_ctx)) {
+ 		ret = PTR_ERR(is->alloc_ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 6f76afd909c4..9cfd2221f53d 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1564,6 +1564,7 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 			goto err_sd;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index e1936d9d27da..31f6c233b146 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -681,6 +681,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 		goto put_clk_gate;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(dev->alloc_ctx)) {
+ 		ret = PTR_ERR(dev->alloc_ctx);
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 4a608cbe0fdb..6bd92f014a23 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2839,6 +2839,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 		goto device_register_rollback;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(&pdev->dev, DMA_BIT_MASK(32));
+ 	jpeg->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(jpeg->alloc_ctx)) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to init memory allocator\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3ffe2ecfd5ef..3e9cdafe2168 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1143,11 +1143,13 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
+ 	if (IS_ERR(dev->alloc_ctx[0])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[0]);
+ 		goto err_res;
+ 	}
++	vb2_dma_contig_set_max_seg_size(dev->mem_dev_r, DMA_BIT_MASK(32));
+ 	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
+ 	if (IS_ERR(dev->alloc_ctx[1])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[1]);
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index dc1c679e136c..1d9c2d5a10e7 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -80,6 +80,7 @@ int mxr_acquire_video(struct mxr_device *mdev,
+ 		goto fail;
+ 	}
+ 
++	vb2_dma_contig_set_max_seg_size(mdev->dev, DMA_BIT_MASK(32));
+ 	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+ 	if (IS_ERR(mdev->alloc_ctx)) {
+ 		mxr_err(mdev, "could not acquire vb2 allocator\n");
 -- 
-2.5.0
-
+1.9.2
 
