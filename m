@@ -1,741 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932239AbbLECNI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:08 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60614 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933006AbbLPNew (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 08:34:52 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 11/32] v4l: vsp1: Split pipeline management code from vsp1_video.c
-Date: Sat,  5 Dec 2015 04:12:45 +0200
-Message-Id: <1449281586-25726-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v3 21/23] media: Remove pre-allocated entity enumeration bitmap
+Date: Wed, 16 Dec 2015 15:32:36 +0200
+Message-Id: <1450272758-29446-22-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be used to control the vsp1 driver from the DU driver
-without using video nodes.
+The bitmaps for entity enumerations used to be statically allocated. Now
+that the drivers have been converted to use the new interface which
+explicitly initialises the enum objects, drop the pre-allocated bitmaps.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/vsp1/Makefile     |   3 +-
- drivers/media/platform/vsp1/vsp1_pipe.c  | 247 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h  |  85 +++++++++++
- drivers/media/platform/vsp1/vsp1_video.c | 223 +---------------------------
- drivers/media/platform/vsp1/vsp1_video.h |  59 +-------
- 5 files changed, 338 insertions(+), 279 deletions(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.h
+ drivers/media/media-entity.c | 16 +++++-----------
+ include/media/media-entity.h |  9 ++-------
+ 2 files changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/Makefile b/drivers/media/platform/vsp1/Makefile
-index 6a93f928dfde..0ef0b5384125 100644
---- a/drivers/media/platform/vsp1/Makefile
-+++ b/drivers/media/platform/vsp1/Makefile
-@@ -1,4 +1,5 @@
--vsp1-y					:= vsp1_drv.o vsp1_entity.o vsp1_video.o
-+vsp1-y					:= vsp1_drv.o vsp1_entity.o vsp1_pipe.o
-+vsp1-y					+= vsp1_video.o
- vsp1-y					+= vsp1_rpf.o vsp1_rwpf.o vsp1_wpf.o
- vsp1-y					+= vsp1_hsit.o vsp1_lif.o vsp1_lut.o
- vsp1-y					+= vsp1_bru.o vsp1_sru.o vsp1_uds.o
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-new file mode 100644
-index 000000000000..199d57f1fe06
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -0,0 +1,247 @@
-+/*
-+ * vsp1_pipe.c  --  R-Car VSP1 Pipeline
-+ *
-+ * Copyright (C) 2013-2015 Renesas Electronics Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/list.h>
-+#include <linux/wait.h>
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_bru.h"
-+#include "vsp1_entity.h"
-+#include "vsp1_pipe.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_uds.h"
-+
-+/* -----------------------------------------------------------------------------
-+ * Pipeline Management
-+ */
-+
-+void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
-+{
-+	if (pipe->bru) {
-+		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
-+		unsigned int i;
-+
-+		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
-+			bru->inputs[i].rpf = NULL;
-+	}
-+
-+	INIT_LIST_HEAD(&pipe->entities);
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+	pipe->buffers_ready = 0;
-+	pipe->num_inputs = 0;
-+	pipe->output = NULL;
-+	pipe->bru = NULL;
-+	pipe->lif = NULL;
-+	pipe->uds = NULL;
-+}
-+
-+void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+
-+	vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index), VI6_CMD_STRCMD);
-+	pipe->state = VSP1_PIPELINE_RUNNING;
-+	pipe->buffers_ready = 0;
-+}
-+
-+bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe)
-+{
-+	unsigned long flags;
-+	bool stopped;
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+	stopped = pipe->state == VSP1_PIPELINE_STOPPED,
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+
-+	return stopped;
-+}
-+
-+int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+	if (pipe->state == VSP1_PIPELINE_RUNNING)
-+		pipe->state = VSP1_PIPELINE_STOPPING;
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+
-+	ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-+				 msecs_to_jiffies(500));
-+	ret = ret == 0 ? -ETIMEDOUT : 0;
-+
-+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+		if (entity->route && entity->route->reg)
-+			vsp1_write(entity->vsp1, entity->route->reg,
-+				   VI6_DPR_NODE_UNUSED);
-+
-+		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
-+{
-+	unsigned int mask;
-+
-+	mask = ((1 << pipe->num_inputs) - 1) << 1;
-+	if (!pipe->lif)
-+		mask |= 1 << 0;
-+
-+	return pipe->buffers_ready == mask;
-+}
-+
-+void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	enum vsp1_pipeline_state state;
-+	unsigned long flags;
-+
-+	if (pipe == NULL)
-+		return;
-+
-+	/* Signal frame end to the pipeline handler. */
-+	pipe->frame_end(pipe);
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	state = pipe->state;
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+
-+	/* If a stop has been requested, mark the pipeline as stopped and
-+	 * return.
-+	 */
-+	if (state == VSP1_PIPELINE_STOPPING) {
-+		wake_up(&pipe->wq);
-+		goto done;
-+	}
-+
-+	/* Restart the pipeline if ready. */
-+	if (vsp1_pipeline_ready(pipe))
-+		vsp1_pipeline_run(pipe);
-+
-+done:
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+}
-+
-+/*
-+ * Propagate the alpha value through the pipeline.
-+ *
-+ * As the UDS has restricted scaling capabilities when the alpha component needs
-+ * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
-+ * value. The UDS then outputs a fixed alpha value which needs to be programmed
-+ * from the input RPF alpha.
-+ */
-+void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
-+				   struct vsp1_entity *input,
-+				   unsigned int alpha)
-+{
-+	struct vsp1_entity *entity;
-+	struct media_pad *pad;
-+
-+	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
-+
-+	while (pad) {
-+		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			break;
-+
-+		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-+
-+		/* The BRU background color has a fixed alpha value set to 255,
-+		 * the output alpha value is thus always equal to 255.
-+		 */
-+		if (entity->type == VSP1_ENTITY_BRU)
-+			alpha = 255;
-+
-+		if (entity->type == VSP1_ENTITY_UDS) {
-+			struct vsp1_uds *uds = to_uds(&entity->subdev);
-+
-+			vsp1_uds_set_alpha(uds, alpha);
-+			break;
-+		}
-+
-+		pad = &entity->pads[entity->source_pad];
-+		pad = media_entity_remote_pad(pad);
-+	}
-+}
-+
-+void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
-+{
-+	unsigned long flags;
-+	unsigned int i;
-+	int ret;
-+
-+	/* To avoid increasing the system suspend time needlessly, loop over the
-+	 * pipelines twice, first to set them all to the stopping state, and
-+	 * then to wait for the stop to complete.
-+	 */
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+		if (pipe->state == VSP1_PIPELINE_RUNNING)
-+			pipe->state = VSP1_PIPELINE_STOPPING;
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
-+	}
-+
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
-+					 msecs_to_jiffies(500));
-+		if (ret == 0)
-+			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
-+				 wpf->entity.index);
-+	}
-+}
-+
-+void vsp1_pipelines_resume(struct vsp1_device *vsp1)
-+{
-+	unsigned int i;
-+
-+	/* Resume pipeline all running pipelines. */
-+	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		if (pipe == NULL)
-+			continue;
-+
-+		if (vsp1_pipeline_ready(pipe))
-+			vsp1_pipeline_run(pipe);
-+	}
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-new file mode 100644
-index 000000000000..f8a099fba973
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -0,0 +1,85 @@
-+/*
-+ * vsp1_pipe.h  --  R-Car VSP1 Pipeline
-+ *
-+ * Copyright (C) 2013-2015 Renesas Electronics Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_PIPE_H__
-+#define __VSP1_PIPE_H__
-+
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <linux/wait.h>
-+
-+#include <media/media-entity.h>
-+
-+struct vsp1_rwpf;
-+
-+enum vsp1_pipeline_state {
-+	VSP1_PIPELINE_STOPPED,
-+	VSP1_PIPELINE_RUNNING,
-+	VSP1_PIPELINE_STOPPING,
-+};
-+
-+/*
-+ * struct vsp1_pipeline - A VSP1 hardware pipeline
-+ * @media: the media pipeline
-+ * @irqlock: protects the pipeline state
-+ * @lock: protects the pipeline use count and stream count
-+ */
-+struct vsp1_pipeline {
-+	struct media_pipeline pipe;
-+
-+	spinlock_t irqlock;
-+	enum vsp1_pipeline_state state;
-+	wait_queue_head_t wq;
-+
-+	void (*frame_end)(struct vsp1_pipeline *pipe);
-+
-+	struct mutex lock;
-+	unsigned int use_count;
-+	unsigned int stream_count;
-+	unsigned int buffers_ready;
-+
-+	unsigned int num_inputs;
-+	struct vsp1_rwpf *inputs[VSP1_MAX_RPF];
-+	struct vsp1_rwpf *output;
-+	struct vsp1_entity *bru;
-+	struct vsp1_entity *lif;
-+	struct vsp1_entity *uds;
-+	struct vsp1_entity *uds_input;
-+
-+	struct list_head entities;
-+};
-+
-+static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
-+{
-+	if (likely(e->pipe))
-+		return container_of(e->pipe, struct vsp1_pipeline, pipe);
-+	else
-+		return NULL;
-+}
-+
-+void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-+
-+void vsp1_pipeline_run(struct vsp1_pipeline *pipe);
-+bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe);
-+int vsp1_pipeline_stop(struct vsp1_pipeline *pipe);
-+bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe);
-+
-+void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
-+
-+void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
-+				   struct vsp1_entity *input,
-+				   unsigned int alpha);
-+
-+void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
-+void vsp1_pipelines_resume(struct vsp1_device *vsp1);
-+
-+#endif /* __VSP1_PIPE_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 8f9807e6a606..6a55eba88dba 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -30,6 +30,7 @@
- #include "vsp1.h"
- #include "vsp1_bru.h"
- #include "vsp1_entity.h"
-+#include "vsp1_pipe.h"
- #include "vsp1_rwpf.h"
- #include "vsp1_uds.h"
- #include "vsp1_video.h"
-@@ -383,26 +384,6 @@ static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 	return 0;
- }
- 
--static void __vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
--{
--	if (pipe->bru) {
--		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--		unsigned int i;
--
--		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
--			bru->inputs[i].rpf = NULL;
--	}
--
--	INIT_LIST_HEAD(&pipe->entities);
--	pipe->state = VSP1_PIPELINE_STOPPED;
--	pipe->buffers_ready = 0;
--	pipe->num_inputs = 0;
--	pipe->output = NULL;
--	pipe->bru = NULL;
--	pipe->lif = NULL;
--	pipe->uds = NULL;
--}
--
- static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 				  struct vsp1_video *video)
- {
-@@ -465,7 +446,7 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
- 	return 0;
- 
- error:
--	__vsp1_pipeline_cleanup(pipe);
-+	vsp1_pipeline_reset(pipe);
- 	return ret;
- }
- 
-@@ -497,69 +478,11 @@ static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
- 
- 	/* If we're the last user clean up the pipeline. */
- 	if (--pipe->use_count == 0)
--		__vsp1_pipeline_cleanup(pipe);
-+		vsp1_pipeline_reset(pipe);
- 
- 	mutex_unlock(&pipe->lock);
- }
- 
--static void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
--{
--	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
--
--	vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index), VI6_CMD_STRCMD);
--	pipe->state = VSP1_PIPELINE_RUNNING;
--	pipe->buffers_ready = 0;
--}
--
--static bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe)
--{
--	unsigned long flags;
--	bool stopped;
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--	stopped = pipe->state == VSP1_PIPELINE_STOPPED,
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--
--	return stopped;
--}
--
--static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
--{
--	struct vsp1_entity *entity;
--	unsigned long flags;
--	int ret;
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--	if (pipe->state == VSP1_PIPELINE_RUNNING)
--		pipe->state = VSP1_PIPELINE_STOPPING;
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--
--	ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
--				 msecs_to_jiffies(500));
--	ret = ret == 0 ? -ETIMEDOUT : 0;
--
--	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		if (entity->route && entity->route->reg)
--			vsp1_write(entity->vsp1, entity->route->reg,
--				   VI6_DPR_NODE_UNUSED);
--
--		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
--	}
--
--	return ret;
--}
--
--static bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
--{
--	unsigned int mask;
--
--	mask = ((1 << pipe->num_inputs) - 1) << 1;
--	if (!pipe->lif)
--		mask |= 1 << 0;
--
--	return pipe->buffers_ready == mask;
--}
--
- /*
-  * vsp1_video_complete_buffer - Complete the current buffer
-  * @video: the video node
-@@ -648,146 +571,6 @@ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 		vsp1_video_frame_end(pipe, pipe->output);
- }
- 
--void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
--{
--	enum vsp1_pipeline_state state;
--	unsigned long flags;
--
--	if (pipe == NULL)
--		return;
--
--	/* Signal frame end to the pipeline handler. */
--	pipe->frame_end(pipe);
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
--	state = pipe->state;
--	pipe->state = VSP1_PIPELINE_STOPPED;
--
--	/* If a stop has been requested, mark the pipeline as stopped and
--	 * return.
--	 */
--	if (state == VSP1_PIPELINE_STOPPING) {
--		wake_up(&pipe->wq);
--		goto done;
--	}
--
--	/* Restart the pipeline if ready. */
--	if (vsp1_pipeline_ready(pipe))
--		vsp1_pipeline_run(pipe);
--
--done:
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--}
--
--/*
-- * Propagate the alpha value through the pipeline.
-- *
-- * As the UDS has restricted scaling capabilities when the alpha component needs
-- * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
-- * value. The UDS then outputs a fixed alpha value which needs to be programmed
-- * from the input RPF alpha.
-- */
--void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_entity *input,
--				   unsigned int alpha)
--{
--	struct vsp1_entity *entity;
--	struct media_pad *pad;
--
--	pad = media_entity_remote_pad(&input->pads[RWPF_PAD_SOURCE]);
--
--	while (pad) {
--		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
--			break;
--
--		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
--
--		/* The BRU background color has a fixed alpha value set to 255,
--		 * the output alpha value is thus always equal to 255.
--		 */
--		if (entity->type == VSP1_ENTITY_BRU)
--			alpha = 255;
--
--		if (entity->type == VSP1_ENTITY_UDS) {
--			struct vsp1_uds *uds = to_uds(&entity->subdev);
--
--			vsp1_uds_set_alpha(uds, alpha);
--			break;
--		}
--
--		pad = &entity->pads[entity->source_pad];
--		pad = media_entity_remote_pad(pad);
--	}
--}
--
--void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
--{
--	unsigned long flags;
--	unsigned int i;
--	int ret;
--
--	/* To avoid increasing the system suspend time needlessly, loop over the
--	 * pipelines twice, first to set them all to the stopping state, and then
--	 * to wait for the stop to complete.
--	 */
--	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
--		if (pipe == NULL)
--			continue;
--
--		spin_lock_irqsave(&pipe->irqlock, flags);
--		if (pipe->state == VSP1_PIPELINE_RUNNING)
--			pipe->state = VSP1_PIPELINE_STOPPING;
--		spin_unlock_irqrestore(&pipe->irqlock, flags);
--	}
--
--	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
--		if (pipe == NULL)
--			continue;
--
--		ret = wait_event_timeout(pipe->wq, vsp1_pipeline_stopped(pipe),
--					 msecs_to_jiffies(500));
--		if (ret == 0)
--			dev_warn(vsp1->dev, "pipeline %u stop timeout\n",
--				 wpf->entity.index);
--	}
--}
--
--void vsp1_pipelines_resume(struct vsp1_device *vsp1)
--{
--	unsigned int i;
--
--	/* Resume pipeline all running pipelines. */
--	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
--
--		if (wpf == NULL)
--			continue;
--
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
--		if (pipe == NULL)
--			continue;
--
--		if (vsp1_pipeline_ready(pipe))
--			vsp1_pipeline_run(pipe);
--	}
--}
--
- /* -----------------------------------------------------------------------------
-  * videobuf2 Queue Operations
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index ddf3c23..c799a4e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -222,14 +222,10 @@ void media_gobj_remove(struct media_gobj *gobj)
   */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index b79fdaa7ebdc..faccb2aede5c 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -15,15 +15,12 @@
+ int __media_entity_enum_init(struct media_entity_enum *ent_enum, int idx_max)
+ {
+-	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
+-		ent_enum->bmap = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
+-					 sizeof(long), GFP_KERNEL);
+-		if (!ent_enum->bmap)
+-			return -ENOMEM;
+-	} else {
+-		ent_enum->bmap = ent_enum->prealloc_bmap;
+-	}
++	ent_enum->bmap = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
++				 sizeof(long), GFP_KERNEL);
++	if (!ent_enum->bmap)
++		return -ENOMEM;
  
- #include <linux/list.h>
- #include <linux/spinlock.h>
--#include <linux/wait.h>
+ 	bitmap_zero(ent_enum->bmap, idx_max);
+ 	ent_enum->idx_max = idx_max;
+@@ -245,9 +241,7 @@ EXPORT_SYMBOL_GPL(__media_entity_enum_init);
+  */
+ void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
+ {
+-	if (ent_enum->bmap != ent_enum->prealloc_bmap)
+-		kfree(ent_enum->bmap);
+-	ent_enum->bmap = NULL;
++	kfree(ent_enum->bmap);
+ }
+ EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
  
--#include <media/media-entity.h>
- #include <media/videobuf2-v4l2.h>
- 
-+#include "vsp1_pipe.h"
- #include "vsp1_rwpf.h"
- 
--struct vsp1_video;
--
- /*
-  * struct vsp1_format_info - VSP1 video format description
-  * @mbus: media bus format code
-@@ -51,51 +48,6 @@ struct vsp1_format_info {
- 	bool alpha;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 251eddf..034b9d7 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -72,27 +72,22 @@ struct media_gobj {
  };
  
--enum vsp1_pipeline_state {
--	VSP1_PIPELINE_STOPPED,
--	VSP1_PIPELINE_RUNNING,
--	VSP1_PIPELINE_STOPPING,
--};
--
--/*
-- * struct vsp1_pipeline - A VSP1 hardware pipeline
-- * @media: the media pipeline
-- * @irqlock: protects the pipeline state
-- * @lock: protects the pipeline use count and stream count
-- */
--struct vsp1_pipeline {
--	struct media_pipeline pipe;
--
--	spinlock_t irqlock;
--	enum vsp1_pipeline_state state;
--	wait_queue_head_t wq;
--
--	void (*frame_end)(struct vsp1_pipeline *pipe);
--
--	struct mutex lock;
--	unsigned int use_count;
--	unsigned int stream_count;
--	unsigned int buffers_ready;
--
--	unsigned int num_inputs;
--	struct vsp1_rwpf *inputs[VSP1_MAX_RPF];
--	struct vsp1_rwpf *output;
--	struct vsp1_entity *bru;
--	struct vsp1_entity *lif;
--	struct vsp1_entity *uds;
--	struct vsp1_entity *uds_input;
--
--	struct list_head entities;
--};
--
--static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
--{
--	if (likely(e->pipe))
--		return container_of(e->pipe, struct vsp1_pipeline, pipe);
--	else
--		return NULL;
--}
--
- struct vsp1_vb2_buffer {
- 	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
-@@ -138,13 +90,4 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 				     struct vsp1_rwpf *rwpf);
- void vsp1_video_cleanup(struct vsp1_video *video);
+ #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
+-#define MEDIA_ENTITY_ENUM_MAX_ID	64
  
--void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
--
--void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_entity *input,
--				   unsigned int alpha);
--
--void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
--void vsp1_pipelines_resume(struct vsp1_device *vsp1);
--
- #endif /* __VSP1_VIDEO_H__ */
+ /*
+  * The number of pads can't be bigger than the number of entities,
+  * as the worse-case scenario is to have one entity linked up to
+- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
++ * 63 entities.
+  */
+-#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
++#define MEDIA_ENTITY_MAX_PADS		63
+ 
+ /**
+  * struct media_entity_enum - An enumeration of media entities.
+  *
+- * @prealloc_bmap: Pre-allocated space reserved for media entities if the
+- *		total number of entities does not exceed
+- *		MEDIA_ENTITY_ENUM_MAX_ID.
+  * @bmap:	Bit map in which each bit represents one entity at struct
+  *		media_entity->internal_idx.
+  * @idx_max:	Number of bits in bmap
+  */
+ struct media_entity_enum {
+-	DECLARE_BITMAP(prealloc_bmap, MEDIA_ENTITY_ENUM_MAX_ID);
+ 	unsigned long *bmap;
+ 	int idx_max;
+ };
 -- 
-2.4.10
+2.1.4
 
