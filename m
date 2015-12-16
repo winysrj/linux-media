@@ -1,93 +1,165 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <hmehmetkurnaz@gmail.com>) id 1ZyJiV-0005uD-AK
-	for linux-dvb@linuxtv.org; Mon, 16 Nov 2015 14:21:08 +0100
-Received: from mail-lf0-f66.google.com ([209.85.215.66])
-	by mail.tu-berlin.de (exim-4.76/mailfrontend-8) with esmtps
-	[UNKNOWN:AES128-GCM-SHA256:128] for <linux-dvb@linuxtv.org>
-	id 1ZyJiU-0006av-jX; Mon, 16 Nov 2015 14:21:07 +0100
-Received: by lfu94 with SMTP id 94so2940247lfu.1
-	for <linux-dvb@linuxtv.org>; Mon, 16 Nov 2015 05:21:05 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 16 Nov 2015 15:21:05 +0200
-Message-ID: <CAGYfdei+wZBP+5wwXqeFgMNp0JDH_YZXOtmeVUjO09USKF8EXQ@mail.gmail.com>
-From: Mehmet Kurnaz <hmehmetkurnaz@gmail.com>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: [linux-dvb] M88RS6000 single chip DVB-S2 receiver with dw2102.c
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0973725103=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60601 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932907AbbLPNew (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 08:34:52 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v3 20/23] staging: v4l: davinci_vpbe: Use the new media graph walk interface
+Date: Wed, 16 Dec 2015 15:32:35 +0200
+Message-Id: <1450272758-29446-21-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============0973725103==
-Content-Type: multipart/alternative; boundary=001a114002c809cdb40524a84844
+The media graph walk requires initialisation and cleanup soon. Update the
+users to perform the soon necessary API calls.
 
---001a114002c809cdb40524a84844
-Content-Type: text/plain; charset=UTF-8
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 37 ++++++++++++++++++-------
+ drivers/staging/media/davinci_vpfe/vpfe_video.h |  1 +
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-Hello all,
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 2dbf14b..1bacd19 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -127,13 +127,14 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
+ }
+ 
+ /* make a note of pipeline details */
+-static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
++static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ {
++	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video_dev.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct vpfe_pipeline *pipe = &video->pipe;
+ 	struct vpfe_video_device *far_end = NULL;
+-	struct media_entity_graph graph;
++	int ret;
+ 
+ 	pipe->input_num = 0;
+ 	pipe->output_num = 0;
+@@ -144,6 +145,11 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		pipe->outputs[pipe->output_num++] = video;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&video->lock);
++		return -ENOMEM;
++	}
+ 	media_entity_graph_walk_start(&graph, entity);
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+ 		if (entity == &video->video_dev.entity)
+@@ -156,7 +162,10 @@ static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		else
+ 			pipe->outputs[pipe->output_num++] = far_end;
+ 	}
++	media_entity_graph_walk_cleanup(&graph);
+ 	mutex_unlock(&mdev->graph_mutex);
++
++	return 0;
+ }
+ 
+ /* update pipe state selected by user */
+@@ -165,7 +174,9 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
+ 	struct vpfe_pipeline *pipe = &video->pipe;
+ 	int ret;
+ 
+-	vpfe_prepare_pipeline(video);
++	ret = vpfe_prepare_pipeline(video);
++	if (ret)
++		return ret;
+ 
+ 	/* Find out if there is any input video
+ 	  if yes, it is single shot.
+@@ -276,11 +287,10 @@ static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
+  */
+ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *entity;
+ 	struct v4l2_subdev *subdev;
+ 	struct media_device *mdev;
+-	int ret = 0;
++	int ret;
+ 
+ 	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
+ 		entity = vpfe_get_input_entity(pipe->outputs[0]);
+@@ -289,8 +299,12 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_entity_graph_walk_start(&graph, entity);
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	ret = media_entity_graph_walk_init(&pipe->graph,
++					   entity->graph_obj.mdev);
++	if (ret)
++		goto out;
++	media_entity_graph_walk_start(&pipe->graph, entity);
++	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -299,6 +313,9 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 		if (ret < 0 && ret != -ENOIOCTLCMD)
+ 			break;
+ 	}
++out:
++	if (ret)
++		media_entity_graph_walk_cleanup(&pipe->graph);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	return ret;
+ }
+@@ -316,7 +333,6 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+  */
+ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ {
+-	struct media_entity_graph graph;
+ 	struct media_entity *entity;
+ 	struct v4l2_subdev *subdev;
+ 	struct media_device *mdev;
+@@ -329,9 +345,9 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(&pipe->graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -342,6 +358,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 	}
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&pipe->graph);
+ 	return ret ? -ETIMEDOUT : 0;
+ }
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+index 1b1b6c4..81f7698 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -51,6 +51,7 @@ enum vpfe_video_state {
+ struct vpfe_pipeline {
+ 	/* media pipeline */
+ 	struct media_pipeline		*pipe;
++	struct media_entity_graph	graph;
+ 	/* state of the pipeline, continuous,
+ 	 * single-shot or stopped
+ 	 */
+-- 
+2.1.4
 
-I don't know that I am in right mailing-list and i am newbie about dvb
-receiver's drivers.
-
-I have a DVBWorld DVB-S2 receiver with cy7c68013 and Montage M88RS6000
-single
-
-chip. I searched linux driver but unfortunately couldn't find any one. I
-found M88RS6000 driver from dvbsky.
-And I used dvb-usb-dw2102.fw. Is it right choice?
-
-But I have to add some functions to dw2102.c source. One of them is i2c
-transfer function. I need "request" command in dw210x_op_rw() function for
-read and write operations to write i2c transfer function for this receiver.
-I asked to dvbworld but there is no response for a week. How can i write
-i2c transfer function?
-
-So thanks
-Mehmet Kurnaz
-
---001a114002c809cdb40524a84844
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><span class=3D"im" style=3D"font-size:12.8px">Hello all,<b=
-r><br>I don&#39;t know that I am in right mailing-list and i am newbie abou=
-t dvb<br>receiver&#39;s drivers.<br><br></span><span style=3D"font-size:12.=
-8px">I have a DVBWorld DVB-S2 receiver with cy7c68013 and Montage M88RS6000=
- single</span><div class=3D"" style=3D"font-size:12.8px"><div id=3D":zj" cl=
-ass=3D"" tabindex=3D"0"><img class=3D"" src=3D"https://ssl.gstatic.com/ui/v=
-1/icons/mail/images/cleardot.gif"></div></div><div class=3D"" style=3D"font=
--size:12.8px"><span class=3D"im"><br>chip. I searched linux driver but unfo=
-rtunately couldn&#39;t find any one. I<br>found M88RS6000 driver from dvbsk=
-y.<br>And I used dvb-usb-dw2102.fw. Is it right choice?<br><br>But I have t=
-o add some functions to dw2102.c source. One of them is i2c<br>transfer fun=
-ction. I need &quot;request&quot; command in dw210x_op_rw() function for<br=
->read and write operations to write i2c transfer function for this receiver=
-.<br>I asked to dvbworld but there is no response for a week. How can i wri=
-te<br>i2c transfer function?<br><br>So thanks<br>Mehmet Kurnaz</span></div>=
-</div>
-
---001a114002c809cdb40524a84844--
-
-
---===============0973725103==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0973725103==--
