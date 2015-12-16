@@ -1,67 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34425 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbbLDMqa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 07:46:30 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-api@vger.kernel.org
-Subject: [PATCH 3/4] drm, ipu-v3: use https://linuxtv.org for LinuxTV URL
-Date: Fri,  4 Dec 2015 10:46:22 -0200
-Message-Id: <4a3d0cb06b3e4248ba4a659d7f2a7a8fa1a877fc.1449232861.git.mchehab@osg.samsung.com>
-In-Reply-To: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-In-Reply-To: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24664 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965528AbbLPPhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 10:37:40 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH v3 4/7] media: vb2-dma-contig: add helper for setting dma max
+ seg size
+Date: Wed, 16 Dec 2015 16:37:26 +0100
+Message-id: <1450280249-24681-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While https was always supported on linuxtv.org, only in
-Dec 3 2015 the website is using valid certificates.
+Add a helper function for device drivers to set DMA's max_seg_size.
+Setting it to largest possible value lets DMA-mapping API always create
+contiguous mappings in DMA address space. This is essential for all
+devices, which use dma-contig videobuf2 memory allocator and shared
+buffers.
 
-As we're planning to drop pure http support on some
-future, change the references at DRM include and at
-the ipu-v3 driver to point to the https://linuxtv.org
-URL instead.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/gpu/ipu-v3/ipu-cpmem.c | 2 +-
- include/uapi/drm/drm_fourcc.h  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 14 ++++++++++++++
+ include/media/videobuf2-dma-contig.h           |  1 +
+ 2 files changed, 15 insertions(+)
 
-diff --git a/drivers/gpu/ipu-v3/ipu-cpmem.c b/drivers/gpu/ipu-v3/ipu-cpmem.c
-index 63eb16bf2cf0..883a314cd83a 100644
---- a/drivers/gpu/ipu-v3/ipu-cpmem.c
-+++ b/drivers/gpu/ipu-v3/ipu-cpmem.c
-@@ -161,7 +161,7 @@ static u32 ipu_ch_param_read_field(struct ipuv3_channel *ch, u32 wbs)
-  * The DRM pixel formats and IPU internal representation are ordered the other
-  * way around, with the first named component ordered at the most significant
-  * bits. Further, V4L2 formats are not well defined:
-- *     http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
-+ *     https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
-  * We choose the interpretation which matches GStreamer behavior.
-  */
- static int v4l2_pix_fmt_to_drm_fourcc(u32 pixelformat)
-diff --git a/include/uapi/drm/drm_fourcc.h b/include/uapi/drm/drm_fourcc.h
-index 0b69a7753558..ee2d542c65f5 100644
---- a/include/uapi/drm/drm_fourcc.h
-+++ b/include/uapi/drm/drm_fourcc.h
-@@ -225,7 +225,7 @@
-  * - multiple of 128 pixels for the width
-  * - multiple of  32 pixels for the height
-  *
-- * For more information: see http://linuxtv.org/downloads/v4l-dvb-apis/re32.html
-+ * For more information: see https://linuxtv.org/downloads/v4l-dvb-apis/re32.html
-  */
- #define DRM_FORMAT_MOD_SAMSUNG_64_32_TILE	fourcc_mod_code(SAMSUNG, 1)
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index c33127284cfe..bd893788d1ae 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -742,6 +742,20 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ }
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+ 
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
++{
++	if (!dev->dma_parms) {
++		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
++		if (!dev->dma_parms)
++			return -ENOMEM;
++	}
++	if (dma_get_max_seg_size(dev) < size)
++		return dma_set_max_seg_size(dev, size);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
++
+ MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index c33dfa69d7ab..0e6ba644939e 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ 
+ void *vb2_dma_contig_init_ctx(struct device *dev);
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
+ 
+ extern const struct vb2_mem_ops vb2_dma_contig_memops;
  
 -- 
-2.5.0
-
+1.9.2
 
