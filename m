@@ -1,104 +1,309 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60618 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932556AbbLPNeu (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47316 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965728AbbLPKOl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:50 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 13/23] media: Use entity enums in graph walk
-Date: Wed, 16 Dec 2015 15:32:28 +0200
-Message-Id: <1450272758-29446-14-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 16 Dec 2015 05:14:41 -0500
+From: Markus Pargmann <mpa@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] [media] mt9v032: Add V4L2 controls for AEC and AGC
+Date: Wed, 16 Dec 2015 11:14:28 +0100
+Message-ID: <2570493.HaAAxn7ErG@adelgunde>
+In-Reply-To: <290053152.GcUooHzFZY@avalon>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de> <1450104113-6392-3-git-send-email-mpa@pengutronix.de> <290053152.GcUooHzFZY@avalon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart43950959.ZmiIeT8nBD"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will also mean that the necessary graph related data structures will
-be allocated dynamically, removing the need for maximum ID checks.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 16 ++++++----------
- include/media/media-entity.h |  4 ++--
- 2 files changed, 8 insertions(+), 12 deletions(-)
+--nextPart43950959.ZmiIeT8nBD
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 2232cb3..2dd60d75 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -366,7 +366,7 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- __must_check int media_entity_graph_walk_init(
- 	struct media_entity_graph *graph, struct media_device *mdev)
- {
--	return 0;
-+	return media_entity_enum_init(&graph->ent_enum, mdev);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
- 
-@@ -376,6 +376,7 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
-  */
- void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
- {
-+	media_entity_enum_cleanup(&graph->ent_enum);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
- 
-@@ -395,14 +396,11 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 				   struct media_entity *entity)
- {
-+	media_entity_enum_zero(&graph->ent_enum);
-+	media_entity_enum_set(&graph->ent_enum, entity);
-+
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
--	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
--
--	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
--		return;
--
--	__set_bit(media_entity_id(entity), graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -445,11 +443,9 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
--		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
--			return NULL;
- 
- 		/* Has the entity already been visited? */
--		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
-+		if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
- 			link_top(graph) = link_top(graph)->next;
- 			continue;
- 		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index eaddcba..c29ddc2 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -103,7 +103,7 @@ struct media_entity_enum {
-  * @stack:		Graph traversal stack; the stack contains information
-  *			on the path the media entities to be walked and the
-  *			links through which they were reached.
-- * @entities:		Visited entities
-+ * @ent_enum:		Visited entities
-  * @top:		The top of the stack
-  */
- struct media_entity_graph {
-@@ -112,7 +112,7 @@ struct media_entity_graph {
- 		struct list_head *link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
- 
--	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
-+	struct media_entity_enum ent_enum;
- 	int top;
- };
- 
--- 
-2.1.4
+Hi Laurent,
+
+On Wednesday 16 December 2015 09:47:58 Laurent Pinchart wrote:
+> Hi Markus,
+>=20
+> Thank you for the patch.
+>=20
+> On Monday 14 December 2015 15:41:53 Markus Pargmann wrote:
+> > This patch adds V4L2 controls for Auto Exposure Control and Auto Ga=
+in
+> > Control settings. These settings include low pass filter, update
+> > frequency of these settings and the update interval for those units=
+.
+> >=20
+> > Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+>=20
+> Please see below for a few comments. If you agree about them there's =
+no need=20
+> to resubmit, I'll fix the patch when applying.
+
+Most of them are fine, I commented on the open ones.
+
+>=20
+> > ---
+> >  drivers/media/i2c/mt9v032.c | 153 ++++++++++++++++++++++++++++++++=
+++++++++-
+> >  1 file changed, 152 insertions(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v03=
+2.c
+> > index cc16acf001de..6cbc3b87eda9 100644
+> > --- a/drivers/media/i2c/mt9v032.c
+> > +++ b/drivers/media/i2c/mt9v032.c
+>=20
+> [snip]
+>=20
+> >  enum mt9v032_model {
+> > @@ -162,6 +169,8 @@ struct mt9v032_model_data {
+> >  =09unsigned int min_shutter;
+> >  =09unsigned int max_shutter;
+> >  =09unsigned int pclk_reg;
+> > +=09unsigned int aec_max_shutter_reg;
+> > +=09const struct v4l2_ctrl_config * const aec_max_shutter_v4l2_ctrl=
+;
+> >  };
+> >=20
+> >  struct mt9v032_model_info {
+> > @@ -175,6 +184,9 @@ static const struct mt9v032_model_version
+> > mt9v032_versions[] =3D { { MT9V034_CHIP_ID_REV1, "MT9V024/MT9V034 r=
+ev1" },
+> >  };
+> >=20
+> > +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_width=
+;
+> > +static const struct v4l2_ctrl_config mt9v034_aec_max_shutter_width=
+;
+>=20
+> We can avoid forward declarations by moving the mt9v032_model_data ar=
+ray=20
+> further down in the driver.
+>=20
+> >  static const struct mt9v032_model_data mt9v032_model_data[] =3D {
+> >  =09{
+> >  =09=09/* MT9V022, MT9V032 revisions 1/2/3 */
+>=20
+> [snip]
+>=20
+> > @@ 647,6 +663,33 @@ static int mt9v032_set_selection(struct v4l2_su=
+bdev
+> > *subdev, */
+> >=20
+> >  #define V4L2_CID_TEST_PATTERN_COLOR=09(V4L2_CID_USER_BASE | 0x1001=
+)
+> > +/*
+> > + * Value between 1 and 64 to set the desired bin. This is effectiv=
+ely a
+> > measure + * of how bright the image is supposed to be. Both AGC and=
+ AEC try
+> > to reach + * this.
+> > + */
+> > +#define V4L2_CID_AEGC_DESIRED_BIN=09=09(V4L2_CID_USER_BASE | 0x100=
+2)
+> > +/*
+> > + * LPF is the low pass filter capability of the chip. Both AEC and=
+ AGC have
+> > + * this setting. This limits the speed in which AGC/AEC adjust the=
+ir
+> > settings.
+> > + * Possible values are 0-2. 0 means no LPF. For 1 and 2 this equat=
+ion is
+> > used:
+> > + * =09if |(Calculated new exp - current exp)| > (current exp / 4)
+> > + * =09=09next exp =3D Calculated new exp
+> > + * =09else
+> > + * =09=09next exp =3D Current exp + ((Calculated new exp - current=
+ exp) /=20
+> 2^LPF)
+>=20
+> Over 80 columns, you can fix it by just reducing the indentation by o=
+ne tab.
+>=20
+> > + */
+> > +#define V4L2_CID_AEC_LPF=09=09(V4L2_CID_USER_BASE | 0x1003)
+> > +#define V4L2_CID_AGC_LPF=09=09(V4L2_CID_USER_BASE | 0x1004)
+> > +/*
+> > + * Value between 0 and 15. This is the number of frames being skip=
+ped
+> > before
+> > + * updating the auto exposure/gain.
+> > + */
+> > +#define V4L2_CID_AEC_UPDATE_INTERVAL=09(V4L2_CID_USER_BASE | 0x100=
+5)
+> > +#define V4L2_CID_AGC_UPDATE_INTERVAL=09(V4L2_CID_USER_BASE | 0x100=
+6)
+> > +/*
+> > + * Maximum shutter width used for AEC.
+> > + */
+> > +#define V4L2_CID_AEC_MAX_SHUTTER_WIDTH=09(V4L2_CID_USER_BASE | 0x1=
+007)
+>=20
+> [snip]
+>=20
+> > @@ -745,6 +810,84 @@ static const struct v4l2_ctrl_config
+> > mt9v032_test_pattern_color =3D { .flags=09=09=3D 0,
+> >  };
+> >=20
+> > +static const struct v4l2_ctrl_config mt9v032_aegc_controls[] =3D {=
+
+> > +=09{
+> > +=09=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09=09.id=09=09=3D V4L2_CID_AEGC_DESIRED_BIN,
+> > +=09=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09=09.name=09=09=3D "aec_agc_desired_bin",
+>=20
+> I forgot to reply to your e-mail asking what proper controls names wo=
+uld be,=20
+> sorry.
+>=20
+> V4L2 control names contain spaces and use uppercase as needed. This o=
+ne could=20
+> be "AEC/AGC Desired Bin" for instance.
+
+Ah I see. I was just wondering as v4l2-ctl showed everything with lower=
+case
+letters and underscores. But with a closer look it seems something betw=
+een
+driver and v4l2-ctl translates them from uppercase/spaces to
+lowercase/underscores. So yes that's fine then and makes sense.
+
+>=20
+> > +=09=09.min=09=09=3D 1,
+> > +=09=09.max=09=09=3D 64,
+> > +=09=09.step=09=09=3D 1,
+> > +=09=09.def=09=09=3D 58,
+> > +=09=09.flags=09=09=3D 0,
+> > +=09}, {
+> > +=09=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09=09.id=09=09=3D V4L2_CID_AEC_LPF,
+> > +=09=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09=09.name=09=09=3D "aec_lpf",
+> > +=09=09.min=09=09=3D 0,
+> > +=09=09.max=09=09=3D 2,
+> > +=09=09.step=09=09=3D 1,
+> > +=09=09.def=09=09=3D 0,
+> > +=09=09.flags=09=09=3D 0,
+> > +=09}, {
+> > +=09=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09=09.id=09=09=3D V4L2_CID_AGC_LPF,
+> > +=09=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09=09.name=09=09=3D "agc_lpf",
+> > +=09=09.min=09=09=3D 0,
+> > +=09=09.max=09=09=3D 2,
+> > +=09=09.step=09=09=3D 1,
+> > +=09=09.def=09=09=3D 2,
+> > +=09=09.flags=09=09=3D 0,
+> > +=09}, {
+> > +=09=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09=09.id=09=09=3D V4L2_CID_AEC_UPDATE_INTERVAL,
+> > +=09=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09=09.name=09=09=3D "aec_update_interval",
+> > +=09=09.min=09=09=3D 0,
+> > +=09=09.max=09=09=3D 16,
+> > +=09=09.step=09=09=3D 1,
+> > +=09=09.def=09=09=3D 2,
+> > +=09=09.flags=09=09=3D 0,
+> > +=09}, {
+> > +=09=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09=09.id=09=09=3D V4L2_CID_AGC_UPDATE_INTERVAL,
+> > +=09=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09=09.name=09=09=3D "agc_update_interval",
+> > +=09=09.min=09=09=3D 0,
+> > +=09=09.max=09=09=3D 16,
+> > +=09=09.step=09=09=3D 1,
+> > +=09=09.def=09=09=3D 2,
+> > +=09=09.flags=09=09=3D 0,
+> > +=09}
+> > +};
+> > +
+> > +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_width=
+ =3D {
+> > +=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09.id=09=09=3D V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> > +=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09.name=09=09=3D "aec_max_shutter_width",
+> > +=09.min=09=09=3D 1,
+> > +=09.max=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
+>=20
+> According the the MT9V032 datasheet I have, the maximum value is 2047=
+ while=20
+> MT9V032_TOTAL_SHUTTER_WIDTH_MAX is defined as 32767. Do you have any=20=
+
+> information that would hint for an error in the datasheet ?
+
+The register is defined as having 15 bits. I simply assumed that the al=
+ready
+defined TOTAL_SHUTTER_WIDTH_MAX would apply for this register as well. =
+At least
+it should end up controlling the same property of the chip. I didn't te=
+st this
+on mt9v032 but on mt9v024.
+
+Thanks,
+
+Markus
+
+>=20
+> > +=09.step=09=09=3D 1,
+> > +=09.def=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> > +=09.flags=09=09=3D 0,
+> > +};
+> > +
+> > +static const struct v4l2_ctrl_config mt9v034_aec_max_shutter_width=
+ =3D {
+> > +=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > +=09.id=09=09=3D V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> > +=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > +=09.name=09=09=3D "aec_max_shutter_width",
+> > +=09.min=09=09=3D 1,
+> > +=09.max=09=09=3D MT9V034_TOTAL_SHUTTER_WIDTH_MAX,
+> > +=09.step=09=09=3D 1,
+> > +=09.def=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> > +=09.flags=09=09=3D 0,
+> > +};
+>=20
+> [snip]
+>=20
+>=20
+
+=2D-=20
+Pengutronix e.K.                           |                           =
+  |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
+  |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
+5 |
+
+--nextPart43950959.ZmiIeT8nBD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJWcTmJAAoJEEpcgKtcEGQQCiIQAJk3UNAvSB2SVTTSCPtBMn6h
+mjNnGQY5DejCisEb8PdUsdwhyDc/QyNbnuE6K9MnmmHMXt6vKB8ebmoDr4HRBePj
+knnaegSpE+B7EwlDlyDjNAY9KRJQNIK81BTo+UTdnAOmf0ywILXvyZ9+3Kp8Szqe
+opShZFKDpBIYWmWZ9Y8fTm1wIUtqt/bOYEigxfnMleHqOu/ft3r94LHQLct6kt4w
+hA7GJ4yszGRVOjQg5Vy6iPR2InEFyu3az4PX+x2lH6QoTEWiMjEL8+wgkOc6xk0i
+FcmepWwlRnhCjTLRIsKtBdDPO1p2r0w5WoL/UpQc1TQy86gtQxtCqPhzRaOTX8np
+NwxBc882JmTzTT6Buo4vyf7G9z3YNbXq5st8F8CUnFnu3XfdCcBxyg6orQpNyJkJ
+GfkQk9BjMzep0BOGMJhlPx2ZfGI738fkWIZXOBRWareAQWmgFmqTDTwB6x1cE3n5
+KlqPdiCSFx50HhhwuydEVhjVx3ryyuEbipMUITMqnF0shx4wK10t44nt617nNg72
+Ow5bQTC+JlwPrjI5sTZ40DMgeRzLY1wESg68etLLTGSHhFuJLKhztzWJ9eKqu67q
+9bwQlGr19tNIy0o2RE1nFwtZITMQqJaX8b3U3RWsCqlGQBdz5y0AahLlJq1OVrB9
+KgQtuRQN0MTZKX8QXPuq
+=kkUp
+-----END PGP SIGNATURE-----
+
+--nextPart43950959.ZmiIeT8nBD--
 
