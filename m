@@ -1,138 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56383 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbbLFDUH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 22:20:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v8 01/55] [media] media: create a macro to get entity ID
-Date: Sun, 06 Dec 2015 05:20:20 +0200
-Message-ID: <2446178.XgL7rIoWQj@avalon>
-In-Reply-To: <6185117c4ad70fd3e1c780689e0ad2407fdf1294.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <6185117c4ad70fd3e1c780689e0ad2407fdf1294.1440902901.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:17324 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965788AbbLPPhm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 10:37:42 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH v3 6/7] media: s5p-mfc: replace custom reserved memory init
+ code with generic one
+Date: Wed, 16 Dec 2015 16:37:28 +0100
+Message-id: <1450280249-24681-7-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch removes custom code for initialization and handling of
+reserved memory regions in s5p-mfc driver and replaces it with generic
+named reserved memory regions specified in device tree.
 
-Thank you for the patch.
+s5p-mfc driver now handles two reserved memory regions: "left" and
+"right", defined by generic reserved memory bindings. Support for non-dt
+platform has been removed, because all supported platforms have been
+converted to device tree.
 
-On Sunday 30 August 2015 00:06:12 Mauro Carvalho Chehab wrote:
-> Instead of accessing directly entity.id, let's create a macro,
-> as this field will be moved into a common struct later on.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 129 +++++++++++++++----------------
+ 1 file changed, 62 insertions(+), 67 deletions(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index c55ab5029323..e429605ca2c3 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -77,8 +77,8 @@ static struct media_entity *find_entity(struct
-> media_device *mdev, u32 id) spin_lock(&mdev->lock);
-> 
->  	media_device_for_each_entity(entity, mdev) {
-> -		if ((entity->id == id && !next) ||
-> -		    (entity->id > id && next)) {
-> +		if (((media_entity_id(entity) == id) && !next) ||
-> +		    ((media_entity_id(entity) > id) && next)) {
->  			spin_unlock(&mdev->lock);
->  			return entity;
->  		}
-> @@ -104,7 +104,7 @@ static long media_device_enum_entities(struct
-> media_device *mdev, if (ent == NULL)
->  		return -EINVAL;
-> 
-> -	u_ent.id = ent->id;
-> +	u_ent.id = media_entity_id(ent);
->  	if (ent->name)
->  		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
->  	u_ent.type = ent->type;
-> @@ -122,7 +122,7 @@ static long media_device_enum_entities(struct
-> media_device *mdev, static void media_device_kpad_to_upad(const struct
-> media_pad *kpad, struct media_pad_desc *upad)
->  {
-> -	upad->entity = kpad->entity->id;
-> +	upad->entity = media_entity_id(kpad->entity);
->  	upad->index = kpad->index;
->  	upad->flags = kpad->flags;
->  }
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 949e5f92cbdc..cb0ac4e0dfa5 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -140,10 +140,10 @@ void media_entity_graph_walk_start(struct
-> media_entity_graph *graph, graph->stack[graph->top].entity = NULL;
->  	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
-> 
-> -	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-> +	if (WARN_ON(media_entity_id(entity) >= MEDIA_ENTITY_ENUM_MAX_ID))
->  		return;
-> 
-> -	__set_bit(entity->id, graph->entities);
-> +	__set_bit(media_entity_id(entity), graph->entities);
->  	stack_push(graph, entity);
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-> @@ -184,11 +184,11 @@ media_entity_graph_walk_next(struct media_entity_graph
-> *graph)
-> 
->  		/* Get the entity in the other end of the link . */
->  		next = media_entity_other(entity, link);
-> -		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-> +		if (WARN_ON(media_entity_id(next) >= MEDIA_ENTITY_ENUM_MAX_ID))
->  			return NULL;
-> 
->  		/* Has the entity already been visited? */
-> -		if (__test_and_set_bit(next->id, graph->entities)) {
-> +		if (__test_and_set_bit(media_entity_id(next), graph->entities)) {
->  			link_top(graph)++;
->  			continue;
->  		}
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 17f08973f835..debe4e539df6
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -352,10 +352,10 @@ static int vsp1_pipeline_validate_branch(struct
-> vsp1_pipeline *pipe, break;
-> 
->  		/* Ensure the branch has no loop. */
-> -		if (entities & (1 << entity->subdev.entity.id))
-> +		if (entities & (1 << media_entity_id(&entity->subdev.entity)))
->  			return -EPIPE;
-> 
-> -		entities |= 1 << entity->subdev.entity.id;
-> +		entities |= 1 << media_entity_id(&entity->subdev.entity);
-> 
->  		/* UDS can't be chained. */
->  		if (entity->type == VSP1_ENTITY_UDS) {
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8b21a4d920d9..0a66fc225559 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -113,6 +113,11 @@ static inline u32 media_entity_subtype(struct
-> media_entity *entity) return entity->type & MEDIA_ENT_SUBTYPE_MASK;
->  }
-> 
-> +static inline u32 media_entity_id(struct media_entity *entity)
-> +{
-> +	return entity->id;
-> +}
-> +
->  #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
->  #define MEDIA_ENTITY_ENUM_MAX_ID	64
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3e9cdafe2168..306344994c8e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -22,6 +22,7 @@
+ #include <media/v4l2-event.h>
+ #include <linux/workqueue.h>
+ #include <linux/of.h>
++#include <linux/of_reserved_mem.h>
+ #include <media/videobuf2-v4l2.h>
+ #include "s5p_mfc_common.h"
+ #include "s5p_mfc_ctrl.h"
+@@ -1022,55 +1023,67 @@ static const struct v4l2_file_operations s5p_mfc_fops = {
+ 	.mmap = s5p_mfc_mmap,
+ };
+ 
+-static int match_child(struct device *dev, void *data)
++/* DMA memory related helper functions */
++static void s5p_mfc_memdev_release(struct device *dev)
+ {
+-	if (!dev_name(dev))
+-		return 0;
+-	return !strcmp(dev_name(dev), (char *)data);
++	of_reserved_mem_device_release(dev);
+ }
+ 
+-static void *mfc_get_drv_data(struct platform_device *pdev);
+-
+-static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
++static struct device *s5p_mfc_alloc_memdev(struct device *dev, const char *name)
+ {
+-	unsigned int mem_info[2] = { };
++	struct device *child;
++	int ret;
+ 
+-	dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
+-			sizeof(struct device), GFP_KERNEL);
+-	if (!dev->mem_dev_l) {
+-		mfc_err("Not enough memory\n");
+-		return -ENOMEM;
+-	}
+-	device_initialize(dev->mem_dev_l);
+-	of_property_read_u32_array(dev->plat_dev->dev.of_node,
+-			"samsung,mfc-l", mem_info, 2);
+-	if (dma_declare_coherent_memory(dev->mem_dev_l, mem_info[0],
+-				mem_info[0], mem_info[1],
+-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
+-		mfc_err("Failed to declare coherent memory for\n"
+-		"MFC device\n");
+-		return -ENOMEM;
++	child = devm_kzalloc(dev, sizeof(struct device), GFP_KERNEL);
++	if (!child)
++		return NULL;
++
++	device_initialize(child);
++	dev_set_name(child, "%s:%s", dev_name(dev), name);
++	child->parent = dev;
++	child->bus = dev->bus;
++	child->coherent_dma_mask = dev->coherent_dma_mask;
++	child->dma_mask = dev->dma_mask;
++	child->release = s5p_mfc_memdev_release;
++
++	if (device_add(child) == 0) {
++		ret = of_reserved_mem_init_by_name(child, dev->of_node, name);
++		if (ret == 0)
++			return child;
+ 	}
+ 
+-	dev->mem_dev_r = devm_kzalloc(&dev->plat_dev->dev,
+-			sizeof(struct device), GFP_KERNEL);
+-	if (!dev->mem_dev_r) {
+-		mfc_err("Not enough memory\n");
+-		return -ENOMEM;
+-	}
+-	device_initialize(dev->mem_dev_r);
+-	of_property_read_u32_array(dev->plat_dev->dev.of_node,
+-			"samsung,mfc-r", mem_info, 2);
+-	if (dma_declare_coherent_memory(dev->mem_dev_r, mem_info[0],
+-				mem_info[0], mem_info[1],
+-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
+-		pr_err("Failed to declare coherent memory for\n"
+-		"MFC device\n");
+-		return -ENOMEM;
++	put_device(child);
++	return NULL;
++}
++
++static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	/*
++	 * Create and initialize virtual devices for accessing
++	 * reserved memory regions.
++	 */
++	mfc_dev->mem_dev_l = s5p_mfc_alloc_memdev(dev, "left");
++	if (!mfc_dev->mem_dev_l)
++		return -ENODEV;
++	mfc_dev->mem_dev_r = s5p_mfc_alloc_memdev(dev, "right");
++	if (!mfc_dev->mem_dev_r) {
++		device_unregister(mfc_dev->mem_dev_l);
++		return -ENODEV;
+ 	}
++
+ 	return 0;
+ }
+ 
++static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
++{
++	device_unregister(mfc_dev->mem_dev_l);
++	device_unregister(mfc_dev->mem_dev_r);
++}
++
++static void *mfc_get_drv_data(struct platform_device *pdev);
++
+ /* MFC probe function */
+ static int s5p_mfc_probe(struct platform_device *pdev)
+ {
+@@ -1096,12 +1109,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 
+ 	dev->variant = mfc_get_drv_data(pdev);
+ 
+-	ret = s5p_mfc_init_pm(dev);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "failed to get mfc clock source\n");
+-		return ret;
+-	}
+-
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 
+ 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -1122,25 +1129,16 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 		goto err_res;
+ 	}
+ 
+-	if (pdev->dev.of_node) {
+-		ret = s5p_mfc_alloc_memdevs(dev);
+-		if (ret < 0)
+-			goto err_res;
+-	} else {
+-		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
+-				"s5p-mfc-l", match_child);
+-		if (!dev->mem_dev_l) {
+-			mfc_err("Mem child (L) device get failed\n");
+-			ret = -ENODEV;
+-			goto err_res;
+-		}
+-		dev->mem_dev_r = device_find_child(&dev->plat_dev->dev,
+-				"s5p-mfc-r", match_child);
+-		if (!dev->mem_dev_r) {
+-			mfc_err("Mem child (R) device get failed\n");
+-			ret = -ENODEV;
+-			goto err_res;
+-		}
++	ret = s5p_mfc_configure_dma_memory(dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to configure DMA memory\n");
++		return ret;
++	}
++
++	ret = s5p_mfc_init_pm(dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to get mfc clock source\n");
++		return ret;
+ 	}
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev->mem_dev_l, DMA_BIT_MASK(32));
+@@ -1274,10 +1272,7 @@ static int s5p_mfc_remove(struct platform_device *pdev)
+ 	s5p_mfc_release_firmware(dev);
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[0]);
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx[1]);
+-	if (pdev->dev.of_node) {
+-		put_device(dev->mem_dev_l);
+-		put_device(dev->mem_dev_r);
+-	}
++	s5p_mfc_unconfigure_dma_memory(dev);
+ 
+ 	s5p_mfc_final_pm(dev);
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.2
 
