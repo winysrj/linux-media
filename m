@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59671 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750882AbbLJTNQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 14:13:16 -0500
-Date: Thu, 10 Dec 2015 17:13:11 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 12/18] [media] media-entity: must check
- media_create_pad_link()
-Message-ID: <20151210171311.5148d2b3@recife.lan>
-In-Reply-To: <3963361.pdRumI6NVS@avalon>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-	<4dc311149dc667420c59ba7060846ba993cef507.1441559233.git.mchehab@osg.samsung.com>
-	<3963361.pdRumI6NVS@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60618 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933045AbbLPNew (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 08:34:52 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v3 23/23] media: Update media graph walk documentation for the changed API
+Date: Wed, 16 Dec 2015 15:32:38 +0200
+Message-Id: <1450272758-29446-24-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 19:54:17 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+media_entity_graph_walk_init() and media_entity_graph_walk_cleanup() are
+now mandatory.
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 06 September 2015 14:30:55 Mauro Carvalho Chehab wrote:
-> > Drivers should check if media_create_pad_link() actually
-> > worked.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 62f882d872b1..8bdc10dcc5e7 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -348,8 +348,9 @@ int media_entity_init(struct media_entity *entity, u16
-> > num_pads, struct media_pad *pads);
-> >  void media_entity_cleanup(struct media_entity *entity);
-> > 
-> > -int media_create_pad_link(struct media_entity *source, u16 source_pad,
-> > -		struct media_entity *sink, u16 sink_pad, u32 flags);
-> > +__must_check int media_create_pad_link(struct media_entity *source,
-> > +			u16 source_pad,	struct media_entity *sink,
-> 
-> s/,\t/, /
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media-framework.txt | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-Fixed.
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index b424de6..738a526 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -241,13 +241,22 @@ supported by the graph traversal API. To prevent infinite loops, the graph
+ traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
+ currently defined as 16.
+ 
+-Drivers initiate a graph traversal by calling
++The graph traversal must be initialised calling
++
++	media_entity_graph_walk_init(struct media_entity_graph *graph);
++
++The return value of the function must be checked. Should the number of
++graph entities exceed the pre-allocated memory, it will also allocate
++memory for the enumeration.
++
++Once initialised, the graph walk may be started by calling
+ 
+ 	media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 				      struct media_entity *entity);
+ 
+-The graph structure, provided by the caller, is initialized to start graph
+-traversal at the given entity.
++The graph structure, provided by the caller, is initialized to start
++graph traversal at the given entity. It is possible to start the graph
++walk multiple times using the same graph struct.
+ 
+ Drivers can then retrieve the next entity by calling
+ 
+@@ -255,8 +264,11 @@ Drivers can then retrieve the next entity by calling
+ 
+ When the graph traversal is complete the function will return NULL.
+ 
+-Graph traversal can be interrupted at any moment. No cleanup function call is
+-required and the graph structure can be freed normally.
++Graph traversal can be interrupted at any moment. Once the graph
++structure is no longer needed, the resources that have been allocated
++by media_entity_graph_walk_init() are released using
++
++	media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+ 
+ Helper functions can be used to find a link between two given pads, or a pad
+ connected to another pad through an enabled link
+-- 
+2.1.4
 
-> 
-> > +			u16 sink_pad, u32 flags);
-> 
-> And it would make sense to squash this with the patch that introduces 
-> media_create_pad_link().
-
-Maybe, but it is too late for that ;) Also, not sure about this 
-specific case, but on the other patches adding __must_check, some
-things needed to be fixed before actually adding the change.
-
-> 
-> >  void __media_entity_remove_links(struct media_entity *entity);
-> >  void media_entity_remove_links(struct media_entity *entity);
-> 
