@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:38764 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbbL0Pbh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60596 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754452AbbLPNet (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 10:31:37 -0500
-Received: by mail-ig0-f172.google.com with SMTP id mw1so10657195igb.1
-        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2015 07:31:37 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 27 Dec 2015 17:31:36 +0200
-Message-ID: <CAJ2oMh+0-2nmbWxeEHV-V6hkXFYXm-2L5mzHT3+v0WSUMpRd1g@mail.gmail.com>
-Subject: PCIe sg dma device used as dma-contig
-From: Ran Shalit <ranshalit@gmail.com>
+	Wed, 16 Dec 2015 08:34:49 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v3 05/23] media: Add KernelDoc documentation for struct media_entity_graph
+Date: Wed, 16 Dec 2015 15:32:20 +0200
+Message-Id: <1450272758-29446-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+KernelDoc doesn't appear to handle anonymous structs defined inside
+another gracefully. As the struct is internal to the framework graph walk
+algorithm, detailed documentation isn't seen very important.
 
-The following question is not totally in the scope of v4l2, but more
-about your advise concering dma alternatives for non-expreciened v4l2
-device writer.
-We intend to use the fpga for concurrent 3xHD and 3xSD.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/media/media-entity.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-We have some dillema regadring the fpga to choose from:
-ALTERA fpga which use contiguous dma memory, or Xilinx fpga which is
-using scatter-gather architecture.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 4f789a4..3068c30 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -97,6 +97,15 @@ struct media_entity_enum {
+ 	int idx_max;
+ };
+ 
++/**
++ * struct media_entity_graph - Media graph traversal state
++ *
++ * @stack:		Graph traversal stack; the stack contains information
++ *			on the path the media entities to be walked and the
++ *			links through which they were reached.
++ * @entities:		Visited entities
++ * @top:		The top of the stack
++ */
+ struct media_entity_graph {
+ 	struct {
+ 		struct media_entity *entity;
+-- 
+2.1.4
 
-With xilinx, it seems that the sg architecture can also be used as
-contiguous according to the following:
-"... While these descriptors are not required to be contiguous, they
-should be contained within an 8 megabyte region which corresponds to
-the width of the AXI_PCIe_SG port"
-it seems according to the above description that sg-list can be used
-as single contiguous descriptor (with dma-cotig), though the 8MBytes
-seems like a problematic constrain. This constrain make it difficult
-to be used with dma-contig solution in v4l2.
-
-Our current direction is try to imeplement it as simple as possible.
-Therefore we prefer the dma contiguous solution (I think that together
-with CMA and a strong cpu like 64-bit i7 it can handle contigious
-memory for 3xHD and 3xSD allocation).
-
-Any feedback is appreciated,
-Ran
