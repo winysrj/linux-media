@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35888 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933164AbbLRO3c (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60614 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754462AbbLPNeu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 09:29:32 -0500
-Received: by mail-wm0-f46.google.com with SMTP id p187so65899700wmp.1
-        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 06:29:31 -0800 (PST)
-From: Jemma Denson <jdenson@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org
-Subject: [v4l-utils PATCH-v2 1/4] dvbv5-zap.c: fix setting signal handlers
-Date: Fri, 18 Dec 2015 14:28:23 +0000
-Message-Id: <1450448906-17000-2-git-send-email-jdenson@gmail.com>
-In-Reply-To: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
-References: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
+	Wed, 16 Dec 2015 08:34:50 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com,
+	Hyun Kwon <hyun.kwon@xilinx.com>
+Subject: [PATCH v3 11/23] v4l: xilinx: Use the new media graph walk interface
+Date: Wed, 16 Dec 2015 15:32:26 +0200
+Message-Id: <1450272758-29446-12-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signal handlers are currently out of order - SIGALRM is always set, and
-SIGINT only set when timeout is set. These should be the other way round.
+The media graph walk requires initialisation and cleanup soon. Update the
+users to perform the soon necessary API calls.
 
-Signed-off-by: Jemma Denson <jdenson@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hyun Kwon <hyun.kwon@xilinx.com>
 ---
- utils/dvb/dvbv5-zap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/xilinx/xilinx-dma.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index e19d7c2..e927383 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -959,10 +959,10 @@ int main(int argc, char **argv)
- 			goto err;
- 	}
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index bc244a0..0a19824 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -182,10 +182,17 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int num_inputs = 0;
+ 	unsigned int num_outputs = 0;
++	int ret;
  
--	signal(SIGALRM, do_timeout);
- 	signal(SIGTERM, do_timeout);
-+	signal(SIGINT, do_timeout);
- 	if (args.timeout > 0) {
--		signal(SIGINT, do_timeout);
-+		signal(SIGALRM, do_timeout);
- 		alarm(args.timeout);
- 	}
+ 	mutex_lock(&mdev->graph_mutex);
  
+ 	/* Walk the graph to locate the video nodes. */
++	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	if (ret) {
++		mutex_unlock(&mdev->graph_mutex);
++		return ret;
++	}
++
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
+@@ -206,6 +213,8 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
++	media_entity_graph_walk_cleanup(&graph);
++
+ 	/* We need exactly one output and zero or one input. */
+ 	if (num_outputs != 1 || num_inputs > 1)
+ 		return -EPIPE;
 -- 
-2.1.0
+2.1.4
 
