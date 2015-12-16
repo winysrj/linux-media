@@ -1,67 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934193AbbLQIlM (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:25610 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934045AbbLPPhm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:12 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 32/48] vb2: Add allow_requests flag
-Date: Thu, 17 Dec 2015 10:40:10 +0200
-Message-Id: <1450341626-6695-33-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 16 Dec 2015 10:37:42 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	devicetree@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH v3 7/7] media: s5p-mfc: add iommu support
+Date: Wed, 16 Dec 2015 16:37:29 +0100
+Message-id: <1450280249-24681-8-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
+References: <1450280249-24681-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds support for IOMMU to s5p-mfc device driver. MFC firmware
+is limited and it cannot use the default configuration. If IOMMU is
+available, the patch disables the default DMA address space
+configuration and creates a new address space of size limited to 256M
+and base address set to 0x20000000.
 
-The driver has to set allow_requests explicitly in order to allow
-queuing or preparing buffers for a specific request ID.
+For now the same address space is shared by both 'left' and 'right'
+memory channels, because the DMA/IOMMU frameworks do not support
+configuring them separately. This is not optimal, but besides limiting
+total address space available has no other drawbacks (MFC firmware
+supports 256M of address space per each channel).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-v4l2.c | 5 +++++
- include/media/videobuf2-core.h           | 2 ++
- 2 files changed, 7 insertions(+)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c       | 24 ++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 79 ++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index f6a2800e5f66..2c8776891535 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -169,6 +169,11 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 306344994c8e..bae7c0f7bfd4 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -30,6 +30,7 @@
+ #include "s5p_mfc_dec.h"
+ #include "s5p_mfc_enc.h"
+ #include "s5p_mfc_intr.h"
++#include "s5p_mfc_iommu.h"
+ #include "s5p_mfc_opr.h"
+ #include "s5p_mfc_cmd.h"
+ #include "s5p_mfc_pm.h"
+@@ -1061,6 +1062,22 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 	struct device *dev = &mfc_dev->plat_dev->dev;
  
-+	if (!q->allow_requests && b->request) {
-+		dprintk(1, "%s: unsupported request ID\n", opname);
-+		return -EINVAL;
+ 	/*
++	 * When IOMMU is available, we cannot use the default configuration,
++	 * because of MFC firmware requirements: address space limited to
++	 * 256M and non-zero default start address.
++	 * This is still simplified, not optimal configuration, but for now
++	 * IOMMU core doesn't allow to configure device's IOMMUs channel
++	 * separately.
++	 */
++	if (exynos_is_iommu_available(dev)) {
++		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
++						 S5P_MFC_IOMMU_DMA_SIZE);
++		if (ret == 0)
++			mfc_dev->mem_dev_l = mfc_dev->mem_dev_r = dev;
++		return ret;
 +	}
 +
- 	return __verify_planes_array(q->bufs[b->index], b);
++	/*
+ 	 * Create and initialize virtual devices for accessing
+ 	 * reserved memory regions.
+ 	 */
+@@ -1078,6 +1095,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ 
+ static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
+ {
++	struct device *dev = &mfc_dev->plat_dev->dev;
++
++	if (exynos_is_iommu_available(dev)) {
++		exynos_unconfigure_iommu(dev);
++		return;
++	}
++
+ 	device_unregister(mfc_dev->mem_dev_l);
+ 	device_unregister(mfc_dev->mem_dev_r);
  }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 647ebfe5174f..5eb30071dcf1 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -379,6 +379,7 @@ struct vb2_buf_ops {
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-+ * @allow_requests:		allow request != 0 to be passed to the driver
-  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
-  *		driver can set this to a mutex to let the v4l2 core serialize
-  *		the queuing ioctls. If the driver wants to handle locking
-@@ -441,6 +442,7 @@ struct vb2_queue {
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
-+	unsigned			allow_requests:1;
- 
- 	struct mutex			*lock;
- 	void				*owner;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+new file mode 100644
+index 000000000000..5d1d1c2922e8
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (C) 2015 Samsung Electronics Co.Ltd
++ * Authors: Marek Szyprowski <m.szyprowski@samsung.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#ifndef S5P_MFC_IOMMU_H_
++#define S5P_MFC_IOMMU_H_
++
++#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
++#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
++
++#ifdef CONFIG_EXYNOS_IOMMU
++
++#include <asm/dma-iommu.h>
++
++static inline bool exynos_is_iommu_available(struct device *dev)
++{
++	return dev->archdata.iommu != NULL;
++}
++
++static inline void exynos_unconfigure_iommu(struct device *dev)
++{
++	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
++
++	arm_iommu_detach_device(dev);
++	arm_iommu_release_mapping(mapping);
++}
++
++static inline int exynos_configure_iommu(struct device *dev,
++					 unsigned int base, unsigned int size)
++{
++	struct dma_iommu_mapping *mapping = NULL;
++	int ret;
++
++	/* Disable the default mapping created by device core */
++	if (to_dma_iommu_mapping(dev))
++		exynos_unconfigure_iommu(dev);
++
++	mapping = arm_iommu_create_mapping(dev->bus, base, size);
++	if (IS_ERR(mapping)) {
++		pr_warn("Failed to create IOMMU mapping for device %s\n",
++			dev_name(dev));
++		return PTR_ERR(mapping);
++	}
++
++	ret = arm_iommu_attach_device(dev, mapping);
++	if (ret) {
++		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
++				dev_name(dev));
++		arm_iommu_release_mapping(mapping);
++		return ret;
++	}
++
++	return 0;
++}
++
++#else
++
++static inline bool exynos_is_iommu_available(struct device *dev)
++{
++	return false;
++}
++
++static inline int exynos_configure_iommu(struct device *dev,
++					 unsigned int base, unsigned int size)
++{
++	return -ENOSYS;
++}
++
++static inline void exynos_unconfigure_iommu(struct device *dev) { }
++
++#endif
++
++#endif /* S5P_MFC_IOMMU_H_ */
 -- 
-2.4.10
+1.9.2
 
