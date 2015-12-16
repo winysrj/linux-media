@@ -1,64 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:33812 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750798AbbLCRXo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2015 12:23:44 -0500
-Received: by oba1 with SMTP id 1so13966622oba.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2015 09:23:43 -0800 (PST)
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:35380 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965466AbbLPPgJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2015 10:36:09 -0500
+Received: by mail-wm0-f42.google.com with SMTP id l126so43968650wml.0
+        for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 07:36:08 -0800 (PST)
+Date: Wed, 16 Dec 2015 16:36:06 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dmitry Torokhov <dtor@chromium.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org,
+	Andrew Bresticker <abrestic@chromium.org>,
+	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
+	dri-devel@lists.freedesktop.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Riley Andrews <riandrews@android.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] android: fix warning when releasing active sync point
+Message-ID: <20151216153606.GR30437@phenom.ffwll.local>
+References: <20151215012955.GA28277@dtor-ws>
+ <20151215092601.GI3189@phenom.ffwll.local>
+ <20151215190008.GE883@joana>
+ <CAE_wzQ87y-Py8miGoyVwRz7qL4xgDse5U5dLEj58D_QeHHkprg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
-References: <CAAhQ-nCBFCZhNxdB-Tp0E=cX9BOgAh9qApPaFKruvJSASxL5_w@mail.gmail.com>
-	<CALzAhNWpejNALQbNF71TeF9ZqaCef3i8naVYzUQ=o+oKfqvAuA@mail.gmail.com>
-	<CAAhQ-nCPA3fWqzLGOFYztm_oCs6z_acoDXh5sz8=Hfn3bc4dNw@mail.gmail.com>
-Date: Thu, 3 Dec 2015 17:23:43 +0000
-Message-ID: <CAOS+5GFApYMJn68T97N_-MOWd=kTxn3XN5VoH1GbzLCxFrZHtA@mail.gmail.com>
-Subject: Re: Dear TV card experts - I need you help
-From: Another Sillyname <anothersname@googlemail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAE_wzQ87y-Py8miGoyVwRz7qL4xgDse5U5dLEj58D_QeHHkprg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It occurs to me that someone who is so cavalier with not paying legal
-royalties would be pretty unlikely to pay bills for the advice and
-support.
+On Tue, Dec 15, 2015 at 11:08:01AM -0800, Dmitry Torokhov wrote:
+> On Tue, Dec 15, 2015 at 11:00 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
+> > 2015-12-15 Daniel Vetter <daniel@ffwll.ch>:
+> >
+> >> On Mon, Dec 14, 2015 at 05:29:55PM -0800, Dmitry Torokhov wrote:
+> >> > Userspace can close the sync device while there are still active fence
+> >> > points, in which case kernel produces the following warning:
+> >> >
+> >> > [   43.853176] ------------[ cut here ]------------
+> >> > [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
+> >> > [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
+> >> > [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
+> >> > [   43.885834] Call trace:
+> >> > [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
+> >> > [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
+> >> > [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
+> >> > [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
+> >> > [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
+> >> > [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
+> >> > [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
+> >> > [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
+> >> > [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
+> >> > [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
+> >> > [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
+> >> > [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
+> >> > [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
+> >> > [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
+> >> >
+> >> > Let's fix it by introducing a new optional callback (disable_signaling)
+> >> > to fence operations so that drivers can do proper clean ups when we
+> >> > remove last callback for given fence.
+> >> >
+> >> > Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
+> >> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
+> >> > ---
+> >> >  drivers/dma-buf/fence.c        | 6 +++++-
+> >> >  drivers/staging/android/sync.c | 8 ++++++++
+> >> >  include/linux/fence.h          | 2 ++
+> >> >  3 files changed, 15 insertions(+), 1 deletion(-)
+> >> >
+> >> > diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
+> >> > index 7b05dbe..0ed73ad 100644
+> >> > --- a/drivers/dma-buf/fence.c
+> >> > +++ b/drivers/dma-buf/fence.c
+> >> > @@ -304,8 +304,12 @@ fence_remove_callback(struct fence *fence, struct fence_cb *cb)
+> >> >     spin_lock_irqsave(fence->lock, flags);
+> >> >
+> >> >     ret = !list_empty(&cb->node);
+> >> > -   if (ret)
+> >> > +   if (ret) {
+> >> >             list_del_init(&cb->node);
+> >> > +           if (list_empty(&fence->cb_list))
+> >> > +                   if (fence->ops->disable_signaling)
+> >> > +                           fence->ops->disable_signaling(fence);
+> >>
+> >> What exactly is the bug here? A fence with no callbacks registered any
+> >> more shouldn't have any problem. Why exactly does this blow up?
+> >
+> > The WARN_ON is probably this one:
+> > https://android.googlesource.com/kernel/common/+/android-3.18/drivers/staging/android/sync.c#433
+> >
+> > I've been wondering in the last few days if this warning is really
+> > necessary. If the user is closing a sync_timeline that has unsignalled
+> > fences it should probably be aware of that already. Then I think it is
+> > okay to remove the the sync_pt from the active_list at the release-time.
+> > In fact I've already prepared a patch doing that. Thoughts?
+> >
+> 
+> Maybe, but you need to make sure that you only affecting your fences.
+> 
+> My main objection is that still leaves fence_remove_callback() being
+> not mirror image of fence_add_callback().
 
-On 3 December 2015 at 16:56, Mr Andersson <mr.andersson.001@gmail.com> wrote:
-> Steven, I appreciate your concern.
->
-> But the legal parts are of no concern to us, and we are already aware
-> of potential legal complexities, especially in western countries, but
-> fortunately there are many other countries outside of the western
-> hemisphere. There is also plenty of internet based providers that
-> already offers this, albeit with a less than ideal quality of service.
-> So consider that a non issue for now.
->
-> I'd like to keep this discussion on the technological aspects.
->
->
->
-> On Thu, Dec 3, 2015 at 3:29 PM, Steven Toth <stoth@kernellabs.com> wrote:
->> (Please don't reply privately, keep all correspondence to this mailing list.)
->>
->>> Let me start of by presenting myself. I am a Computer Engineer and a
->>> business man, looking to launch a service where TV channels from
->>> primarily satellites will be made available to the public.
->>
->> You and 2 million other entrepreneurs, past, present and future.
->>
->> In most western countries, It's illegal to randomly redistribute
->> television content unless you have specific paid-for negotiated rights
->> with the content providers and the broadcasters. You should start by
->> studying the law and contacting the content owners, negotiating
->> contracts and seeking permission.
->>
->> Solve the legal contract / redistribution first, then the technology
->> to make it happen is easily available.
->>
->> --
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's 100% intentional. I looked at the sync.c code a bit more and it
+duplicates a bunch of the fence stuff still. We need to either merge that
+code into the mainline struct fence logic, or remove it. There shouldn't
+really be any need for the userspace ABI layer to keep track of active
+fences at all. Worse, it means that you must use the sync_pt struct to be
+able to export it to userspace, and can't just export any normal struct
+fence object. That breaks the abstraction we're aiming for.
+
+Imo just remove that WARN_ON for now.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
