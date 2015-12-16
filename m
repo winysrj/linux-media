@@ -1,90 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46740 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932287AbbLRRQT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60597 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754518AbbLPNet (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 12:16:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH/RFC 26/48] videodev2.h: Add request field to v4l2_pix_format_mplane
-Date: Fri, 18 Dec 2015 19:16:14 +0200
-Message-ID: <3030478.j1ZKoooRrc@avalon>
-In-Reply-To: <5673EB82.2060903@xs4all.nl>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1450341626-6695-27-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <5673EB82.2060903@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 16 Dec 2015 08:34:49 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, javier@osg.samsung.com
+Subject: [PATCH v3 06/23] media: Move media graph state for streamon/off to the pipeline
+Date: Wed, 16 Dec 2015 15:32:21 +0200
+Message-Id: <1450272758-29446-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The struct media_entity_graph was allocated in the stack, limiting the
+number of entities that could be reasonably allocated. Instead, move the
+struct to struct media_pipeline which is typically allocated using
+kmalloc() instead.
 
-Thank you for the review.
+The intent is to keep the enumeration around for later use for the
+duration of the streaming. As streaming is eventually stopped, an
+unfortunate memory allocation failure would prevent stopping the
+streaming. As no memory will need to be allocated, the problem is avoided
+altogether.
 
-On Friday 18 December 2015 12:18:26 Hans Verkuil wrote:
-> On 12/17/2015 09:40 AM, Laurent Pinchart wrote:
-> > Let userspace specify a request ID when getting or setting formats. The
-> > support is limited to the multi-planar API at the moment, extending it
-> > to the single-planar API is possible if needed.
-> > 
-> > From a userspace point of view the API change is also minimized and
-> > doesn't require any new ioctl.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  include/uapi/linux/videodev2.h | 4 +++-
-> >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index 5af1d2d87558..5b2a8bc80eb2 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1973,6 +1973,7 @@ struct v4l2_plane_pix_format {
-> > 
-> >   * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-> >   * @quantization:	enum v4l2_quantization, colorspace quantization
-> >   * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
-> > 
-> > + * @request:		request ID
-> > 
-> >   */
-> >  
-> >  struct v4l2_pix_format_mplane {
-> >  
-> >  	__u32				width;
-> > 
-> > @@ -1987,7 +1988,8 @@ struct v4l2_pix_format_mplane {
-> > 
-> >  	__u8				ycbcr_enc;
-> >  	__u8				quantization;
-> >  	__u8				xfer_func;
-> > 
-> > -	__u8				reserved[7];
-> > +	__u8				reserved[3];
-> > +	__u32				request;
-> 
-> I think I mentioned this before: I feel uncomfortable using 4 bytes of the
-> reserved fields when the request ID is limited to 16 bits anyway.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-entity.c | 16 ++++++++--------
+ include/media/media-entity.h |  6 ++++++
+ 2 files changed, 14 insertions(+), 8 deletions(-)
 
-I'm still unsure whether request IDs should be 16 or 32 bits long. If we go 
-for 16 bits then I'll of course make this field a __u16.
-
-> I would prefer a __u16 here. Also put the request field *before* the
-> reserved array, not after.
-
-The reserved array isn't aligned to a 32 bit (or even 16 bit) boundary. I can 
-put the request field before it, with a 8 bit hole before the field.
-
-> >  } __attribute__ ((packed));
-> >  
-> >  /**
-
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 67eebcb..786a01f 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -456,16 +456,16 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+ 					     struct media_pipeline *pipe)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_entity_graph graph;
++	struct media_entity_graph *graph = &pipe->graph;
+ 	struct media_entity *entity_err = entity;
+ 	struct media_link *link;
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
+ 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
+ 
+@@ -546,9 +546,9 @@ error:
+ 	 * Link validation on graph failed. We revert what we did and
+ 	 * return the error.
+ 	 */
+-	media_entity_graph_walk_start(&graph, entity_err);
++	media_entity_graph_walk_start(graph, entity_err);
+ 
+-	while ((entity_err = media_entity_graph_walk_next(&graph))) {
++	while ((entity_err = media_entity_graph_walk_next(graph))) {
+ 		entity_err->stream_count--;
+ 		if (entity_err->stream_count == 0)
+ 			entity_err->pipe = NULL;
+@@ -582,13 +582,13 @@ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
+ void media_entity_pipeline_stop(struct media_entity *entity)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_entity_graph graph;
++	struct media_entity_graph *graph = &entity->pipe->graph;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_entity_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_entity_graph_walk_next(graph))) {
+ 		entity->stream_count--;
+ 		if (entity->stream_count == 0)
+ 			entity->pipe = NULL;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 3068c30..9315158 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -116,7 +116,13 @@ struct media_entity_graph {
+ 	int top;
+ };
+ 
++/*
++ * struct media_pipeline - Media pipeline related information
++ *
++ * @graph:	Media graph walk during pipeline start / stop
++ */
+ struct media_pipeline {
++	struct media_entity_graph graph;
+ };
+ 
+ /**
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
