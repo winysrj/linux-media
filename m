@@ -1,119 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59115 "EHLO lists.s-osg.org"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:29452 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755232AbbLQCUB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 21:20:01 -0500
-Date: Sat, 12 Dec 2015 13:18:00 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: Re: [PATCH v2 07/22] media: Amend media graph walk API by init and
- cleanup functions
-Message-ID: <20151212131800.78745c38@recife.lan>
-In-Reply-To: <1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
+	id S932174AbbLQRDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 12:03:24 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+ <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <5672EAD6.2000706@free.fr>
+Date: Thu, 17 Dec 2015 18:03:18 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20151217140943.7048811b@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 29 Nov 2015 21:20:08 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On 17/12/2015 17:09, Mauro Carvalho Chehab wrote:
 
-> Add media_entity_graph_walk_init() and media_entity_graph_walk_cleanup()
-> functions in order to dynamically allocate memory for the graph. This is
-> not done in media_entity_graph_walk_start() as there are situations where
-> e.g. correct error handling, that itself may not fail, requires successful
-> graph walk.
+> As I said before, heavily patched Kernel. It seems that the network stack
+> was updated to some newer version. The media_build backport considers
+> only the upstream Kernels. In the specific case of 3.4, it is known
+> to build fine with Kernel linux-3.4.27. See:
+> 	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
 
-Looks ok to me.
+I don't think the network stack is different from vanilla...
 
+I had a different idea:
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 39 ++++++++++++++++++++++++++++++++++-----
->  include/media/media-entity.h |  5 ++++-
->  2 files changed, 38 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 667ab32..bf3c31f 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -353,14 +353,44 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
->  #define stack_top(en)	((en)->stack[(en)->top].entity)
->  
->  /**
-> + * media_entity_graph_walk_init - Allocate resources for graph walk
-> + * @graph: Media graph structure that will be used to walk the graph
-> + * @mdev: Media device
-> + *
-> + * Reserve resources for graph walk in media device's current
-> + * state. The memory must be released using
-> + * media_entity_graph_walk_free().
-> + *
-> + * Returns error on failure, zero on success.
-> + */
-> +__must_check int media_entity_graph_walk_init(
-> +	struct media_entity_graph *graph, struct media_device *mdev)
-> +{
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
-> +
-> +/**
-> + * media_entity_graph_walk_cleanup - Release resources related to graph walking
-> + * @graph: Media graph structure that was used to walk the graph
-> + */
-> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
-> +{
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
-> +
-> +/**
->   * media_entity_graph_walk_start - Start walking the media graph at a given entity
->   * @graph: Media graph structure that will be used to walk the graph
->   * @entity: Starting entity
->   *
-> - * This function initializes the graph traversal structure to walk the entities
-> - * graph starting at the given entity. The traversal structure must not be
-> - * modified by the caller during graph traversal. When done the structure can
-> - * safely be freed.
-> + * Before using this function, media_entity_graph_walk_init() must be
-> + * used to allocate resources used for walking the graph. This
-> + * function initializes the graph traversal structure to walk the
-> + * entities graph starting at the given entity. The traversal
-> + * structure must not be modified by the caller during graph
-> + * traversal. After the graph walk, the resources must be released
-> + * using media_entity_graph_walk_cleanup().
->   */
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  				   struct media_entity *entity)
-> @@ -377,7 +407,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
->  
-> -
->  /**
->   * media_entity_graph_walk_next - Get the next entity in the graph
->   * @graph: Media graph structure
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 4b5ca39..f0652e2 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -506,8 +506,11 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  void media_entity_put(struct media_entity *entity);
->  
-> +__must_check int media_entity_graph_walk_init(
-> +	struct media_entity_graph *graph, struct media_device *mdev);
-> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
-> -		struct media_entity *entity);
-> +				   struct media_entity *entity);
->  struct media_entity *
->  media_entity_graph_walk_next(struct media_entity_graph *graph);
->  __must_check int media_entity_pipeline_start(struct media_entity *entity,
+The media_build process prints:
+
+"Preparing to compile for kernel version 3.4.3913"
+
+In fact, the custom kernel's Makefile contains:
+
+VERSION = 3
+PATCHLEVEL = 4
+SUBLEVEL = 39
+EXTRAVERSION = 13
+NAME = Saber-toothed Squirrel
+
+Is it possible that the build process gets confused by the EXTRAVERSION field?
+
+Regards.
+
