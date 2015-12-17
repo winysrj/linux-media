@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19710 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756617AbbLHOjX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 09:39:23 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Subject: [PATCH] media: s5p-jpeg: Adjust buffer size for Exynos 4412
-Date: Tue, 08 Dec 2015 15:39:08 +0100
-Message-id: <1449585548-17113-1-git-send-email-m.szyprowski@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934193AbbLQIlM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:41:12 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 32/48] vb2: Add allow_requests flag
+Date: Thu, 17 Dec 2015 10:40:10 +0200
+Message-Id: <1450341626-6695-33-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Eliminate iommu fault during encoding by adjusting image size
-used for buffer size computation and ensuring that the buffer is not
-overrun.
+The driver has to set allow_requests explicitly in order to allow
+queuing or preparing buffers for a specific request ID.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 5 +++++
+ include/media/videobuf2-core.h           | 2 ++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 4a608cb..49556e2 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -1548,8 +1548,10 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	u32 pix_fmt = f->fmt.pix.pixelformat;
- 	int w = pix->width, h = pix->height, wh_align;
-+	int padding = 0;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index f6a2800e5f66..2c8776891535 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -169,6 +169,11 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
  
- 	if (pix_fmt == V4L2_PIX_FMT_RGB32 ||
-+	    pix_fmt == V4L2_PIX_FMT_RGB565 ||
- 	    pix_fmt == V4L2_PIX_FMT_NV24 ||
- 	    pix_fmt == V4L2_PIX_FMT_NV42 ||
- 	    pix_fmt == V4L2_PIX_FMT_NV12 ||
-@@ -1564,7 +1566,10 @@ static int exynos4_jpeg_get_output_buffer_size(struct s5p_jpeg_ctx *ctx,
- 			       &h, S5P_JPEG_MIN_HEIGHT,
- 			       S5P_JPEG_MAX_HEIGHT, wh_align);
- 
--	return w * h * fmt_depth >> 3;
-+	if (ctx->jpeg->variant->version == SJPEG_EXYNOS4)
-+		padding = PAGE_SIZE;
++	if (!q->allow_requests && b->request) {
++		dprintk(1, "%s: unsupported request ID\n", opname);
++		return -EINVAL;
++	}
 +
-+	return (w * h * fmt_depth >> 3) + padding;
+ 	return __verify_planes_array(q->bufs[b->index], b);
  }
  
- static int exynos3250_jpeg_try_downscale(struct s5p_jpeg_ctx *ctx,
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 647ebfe5174f..5eb30071dcf1 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -379,6 +379,7 @@ struct vb2_buf_ops {
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
++ * @allow_requests:		allow request != 0 to be passed to the driver
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -441,6 +442,7 @@ struct vb2_queue {
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
++	unsigned			allow_requests:1;
+ 
+ 	struct mutex			*lock;
+ 	void				*owner;
 -- 
-1.9.2
+2.4.10
 
