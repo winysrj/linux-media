@@ -1,201 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:64075 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:59217 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964890AbbLWJsg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2015 04:48:36 -0500
-Date: Wed, 23 Dec 2015 10:47:57 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Aviv Greenberg <avivgr@gmail.com>
-Subject: Re: per-frame camera metadata (again)
-In-Reply-To: <56749F85.8000502@linux.intel.com>
-Message-ID: <Pine.LNX.4.64.1512231004050.6327@axis700.grange>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
- <567136C6.8090009@xs4all.nl> <56749F85.8000502@linux.intel.com>
+	id S1753207AbbLQQJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 11:09:48 -0500
+Date: Thu, 17 Dec 2015 14:09:43 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Mason <slash.tmp@free.fr>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: Automatic device driver back-porting with media_build
+Message-ID: <20151217140943.7048811b@recife.lan>
+In-Reply-To: <5672D5A6.8090505@free.fr>
+References: <5672A6F0.6070003@free.fr>
+	<20151217105543.13599560@recife.lan>
+	<5672BE15.9070006@free.fr>
+	<20151217120830.0fc27f01@recife.lan>
+	<5672C713.6090101@free.fr>
+	<20151217125505.0abc4b40@recife.lan>
+	<5672D5A6.8090505@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Thu, 17 Dec 2015 16:32:54 +0100
+Mason <slash.tmp@free.fr> escreveu:
 
-On Sat, 19 Dec 2015, Sakari Ailus wrote:
-
-> Hi Guennadi and Hans,
+> On 17/12/2015 15:55, Mauro Carvalho Chehab wrote:
 > 
-> Hans Verkuil wrote:
-> > On 12/16/15 10:37, Guennadi Liakhovetski wrote:
-> > > Hi all,
-> > > 
-> > > A project, I am currently working on, requires acquiringing per-frame
-> > > metadata from the camera and passing it to user-space. This is not the
-> > > first time this comes up and I know such discussions have been held
-> > > before. A typical user is Android (also my case), where you have to
-> > > provide parameter values, that have been used to capture a specific frame,
-> > > to the user. I know Hans is working to handle one side of this process -
-> > > sending per-request controls,
+> > Em Thu, 17 Dec 2015 15:30:43 +0100
+> > Mason <slash.tmp@free.fr> escreveu:
 > > 
-> > Actually, the request framework can do both sides of the equation: giving
-> > back meta data in read-only controls that are per-frame. While ideally the
-> > driver would extract the information from the binary blob and put it in
-> > nice controls, it is also possible to make a control that just contains the
-> > binary blob itself. Whether that's a good approach depends on many factors
-> > and that's another topic.
-> 
-> I think that could be possible in some cases. If you don't have a lot of
-> metadata, then, sure.
-> 
-> > > but I'm not aware whether he or anyone else
-> > > is actively working on this already or is planning to do so in the near
-> > > future? I also know, that several proprietary solutions have been
-> > > developed and are in use in various projects.
-> > > 
-> > > I think a general agreement has been, that such data has to be passed via
-> > > a buffer queue. But there are a few possibilities there too. Below are
-> > > some:
-> > > 
-> > > 1. Multiplanar. A separate plane is dedicated to metadata. Pros: (a)
-> > > metadata is already associated to specific frames, which they correspond
-> > > to. Cons: (a) a correct implementation would specify image plane fourcc
-> > > separately from any metadata plane format description, but we currently
-> > > don't support per-plane format specification.
+> >> On 17/12/2015 15:08, Mauro Carvalho Chehab wrote:
+> >>
+> >>> Then I guess you're not using vanilla 3.4 Kernel, but some heavily
+> >>> modified version. You're on your own here.
+> >>
+> >> #ifdef NEED_KVFREE
+> >> #include <linux/mm.h>
+> >> static inline void kvfree(const void *addr)
+> >> {
+> >> 	if (is_vmalloc_addr(addr))
+> >> 		vfree(addr);
+> >> 	else
+> >> 		kfree(addr);
+> >> }
+> >> #endif
+> >>
+> >> /tmp/sandbox/media_build/v4l/compat.h: In function 'kvfree':
+> >> /tmp/sandbox/media_build/v4l/compat.h:1631:3: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
+> >>    vfree(addr);
+> >>    ^
+> >>
+> >> vfree is declared in linux/vmalloc.h
+> >>
+> >> The fix is trivial:
+> >>
+> >> diff --git a/v4l/compat.h b/v4l/compat.h
+> >> index c225c07d6caa..7f3f1d5f9d11 100644
+> >> --- a/v4l/compat.h
+> >> +++ b/v4l/compat.h
+> >> @@ -1625,6 +1625,7 @@ static inline void eth_zero_addr(u8 *addr)
+> >>  
+> >>  #ifdef NEED_KVFREE
+> >>  #include <linux/mm.h>
+> >> +#include <linux/vmalloc.h>
+> >>  static inline void kvfree(const void *addr)
+> >>  {
+> >>         if (is_vmalloc_addr(addr))
+> >>
+> >>
 > > 
-> > This only makes sense if the data actually comes in via DMA and if it is
-> > large enough to make it worth the effort of implementing this. As you say,
-> > it will require figuring out how to do per-frame fourcc.
+> > Well, it doesn't hurt to add it to the media_build tree, since
+> > vmalloc.h exists at least since 2.6.11.
 > > 
-> > It also only makes sense if the metadata comes in at the same time as the
-> > frame.
-> 
-> I agree. Much of the time the metadata indeed arrives earlier than the
-> rest of the frame. The frame layout nor the use cases should be assumed
-> in the bridge (ISP) driver which implements the interface, essentially
-> forcing this on the user. This is a major drawback in the approach.
-> 
-> Albeit. If you combine this with the need to pass buffer data to the user
-> before the entire buffer is ready, i.e. a plane is ready, you could get around
-> this quite neatly.
-> 
-> However, if the DMA engine writing the metadata is different than what's
-> writing the image data to memory, then you have a plain metadata buffer --- as
-> it's a different video node. But there's really nothing special about that
-> then.
-> 
-> Conceptually we should support multi-part frames rather than metadata, albeit
-> metadata is just a single use case where a single DMA engine outputs multiple
-> kind of data. This could be statistics as well. Or multiple images, e.g. YUV
-> and RAW format images of the same frame.
-
-If you stream different kinds of images (raw, yuv), then using multiple 
-nodes is rather straight-forward, isn't it? Whereas for statistics and 
-metadata, if we do that, do we assign new FOURCC codes for each new such 
-data layout?
-
-> 
-> With CSI-2, as the virtual channels are independent, one could start and stop
-> them at different times and the frame rate in those channels could as well be
-> unrelated. This suggests that different virtual channels should be
-> conceptually separate streams also in V4L2 and thus the data from different
-> streams should not end up to the same buffer.
-> 
-> Metadata usually (or practically ever?) does not arrive on a separate virtual
-> channel though. So this isn't something that necessarily is taken into account
-> right now but it's good to be aware of it.
-
-A camera can send image data and metadata on the same virtual channel, but 
-then it should use different data types for them?
-
-> > > 2. Separate buffer queues. Pros: (a) no need to extend multiplanar buffer
-> > > implementation. Cons: (a) more difficult synchronisation with image
-> > > frames, (b) still need to work out a way to specify the metadata version.
-> 
-> Do you think you have different versions of metadata from a sensor, for
-> instance? Based on what I've seen these tend to be sensor specific, or
-> SMIA which defines a metadata type for each bit depth for compliant sensors.
-> 
-> Each metadata format should have a 4cc code, SMIA bit depth specific or
-> sensor specific where metadata is sensor specific.
-> 
-> Other kind of metadata than what you get from sensors is not covered by the
-> thoughts above.
-> 
-> <URL:http://www.retiisi.org.uk/v4l2/foil/v4l2-multi-format.pdf>
-> 
-> I think I'd still favour separate buffer queues.
-
-And separate video nodes then.
-
-> > > Any further options? Of the above my choice would go with (1) but with a
-> > > dedicated metadata plane in struct vb2_buffer.
+> > Added upstream.
 > > 
-> > 3. Use the request framework and return the metadata as control(s). Since
-> > controls
-> > can be associated with events when they change you can subscribe to such
-> > events.
-> > Note: currently I haven't implemented such events for request controls since
-> > I am
-> > not certainly how it would be used, but this would be a good test case.
-> > 
-> > Pros: (a) no need to extend multiplanar buffer implementation, (b) syncing
-> > up
-> > with the image frames should be easy (both use the same request ID), (c) a
-> > lot
-> > of freedom on how to export the metadata. Cons: (a) request framework is
-> > still
-> > work in progress (currently worked on by Laurent), (b) probably too slow for
-> > really large amounts of metadata, you'll need proper DMA handling for that
-> > in
-> > which case I would go for 2.
+> > Did the driver compile fine?
 > 
-> Agreed. You could consider it as a drawback that the number of new controls
-> required for this could be large as well, but then already for other reasons
-> the best implementation would rather be the second option mentioned.
-
-But wouldn't a single extended control with all metadata-transferred 
-controls solve the performance issue?
-
-> > > In either of the above options we also need a way to tell the user what is
-> > > in the metadata buffer, its format. We could create new FOURCC codes for
-> > > them, perhaps as V4L2_META_FMT_... or the user space could identify the
-> > > metadata format based on the camera model and an opaque type (metadata
-> > > version code) value. Since metadata formats seem to be extremely camera-
-> > > specific, I'd go with the latter option.
+> I wanted to fix the NEED_WRITEL_RELAXED warning, but I don't know Perl.
 > 
-> I think I'd use separate 4cc codes for the metadata formats when they really
-> are different. There are plenty of possible 4cc codes we can use. :-)
+> v4l/scripts/make_config_compat.pl
 > 
-> Documenting the formats might be painful though.
-
-The advantage of this approach together with a separate video node / 
-buffer queue is, that no changes to the core would be required.
-
-At the moment I think, that using (extended) controls would be the most 
-"correct" way to implement that metadata, but you can associate such 
-control values with frames only when the request API is there. Yet another 
-caveat is, that we define V4L2_CTRL_ID2CLASS() as ((id) & 0x0fff0000UL)
-and V4L2_CID_PRIVATE_BASE as 0x08000000, so that drivers cannot define 
-private controls to belong to existing classes. Was this intensional?
-
-Thanks
-Guennadi
-
-> > > Comments extremely welcome.
-> > 
-> > What I like about the request framework is that the driver can pick apart
-> > the metadata and turn it into well-defined controls. So the knowledge how
-> > to do that is in the place where it belongs. In cases where the meta data
-> > is simple too large for that to be feasible, then I don't have much of an
-> > opinion. Camera + version could be enough. Although the same can just as
-> > easily be encoded as a fourcc (V4L2_META_FMT_OVXXXX_V1, _V2, etc). A fourcc
-> > is more consistent with the current API.
+> check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
+> incorrectly outputs
+> #define NEED_WRITEL_RELAXED 1
 > 
-> -- 
-> Kind regards,
 > 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+> In file included from <command-line>:0:0:
+> /tmp/sandbox/media_build/v4l/compat.h:1568:0: warning: "writel_relaxed" redefined
+>  #define writel_relaxed writel
+>  ^
+> In file included from include/linux/scatterlist.h:10:0,
+>                  from /tmp/sandbox/media_build/v4l/compat.h:1255,
+>                  from <command-line>:0:
+> /tmp/sandbox/custom-linux-3.4/arch/arm/include/asm/io.h:235:0: note: this is the location of the previous definition
+>  #define writel_relaxed(v,c) ((void)__raw_writel((__force u32) \
+>  ^
+> 
+> Shouldn't the script examine arch/$ARCH/include/asm/io.h instead of
+> include/asm-generic/io.h ? (Or perhaps both?)
+> 
+> Does make_config_compat.pl know about ARCH?
+
+No to both. When you do a "make init" on the Kernel repository, it
+will evaluate the ARCH vars.
+
+This is also needed for the media build to work, as it needs to
+check what CONFIG vars are enabled on the targeted Kernel.
+
+> 
+> The following patch makes "#define NEED_WRITEL_RELAXED 1" go away,
+> but I'm looking for a general solution.
+> 
+> 
+> The next error is:
+> 
+>   CC [M]  /tmp/sandbox/media_build/v4l/dvb_net.o
+> /tmp/sandbox/media_build/v4l/dvb_net.c: In function 'dvb_net_add_if':
+> /tmp/sandbox/media_build/v4l/dvb_net.c:1244:38: error: macro "alloc_netdev" passed 4 arguments, but takes just 3
+>        NET_NAME_UNKNOWN, dvb_net_setup);
+>                                       ^
+> /tmp/sandbox/media_build/v4l/dvb_net.c:1243:8: error: 'alloc_netdev' undeclared (first use in this function)
+>   net = alloc_netdev(sizeof(struct dvb_net_priv), "dvb",
+>         ^
+> /tmp/sandbox/media_build/v4l/dvb_net.c:1243:8: note: each undeclared identifier is reported only once for each function it appears in
+> /tmp/sandbox/media_build/v4l/dvb_net.c: At top level:
+> /tmp/sandbox/media_build/v4l/dvb_net.c:1205:13: warning: 'dvb_net_setup' defined but not used [-Wunused-function]
+>  static void dvb_net_setup(struct net_device *dev)
+> 
+> Will look into it.
+
+As I said before, heavily patched Kernel. It seems that the network stack
+was updated to some newer version. The media_build backport considers
+only the upstream Kernels. In the specific case of 3.4, it is known
+to build fine with Kernel linux-3.4.27. See:
+	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
+
+
+Regards,
+Mauro
+
+
+
+> 
+> 
+> Regards.
+> 
+> diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+> index 641f55e9c137..30a004525c08 100644
+> --- a/v4l/scripts/make_config_compat.pl
+> +++ b/v4l/scripts/make_config_compat.pl
+> @@ -664,7 +664,7 @@ sub check_other_dependencies()
+>         check_files_for_func("DMA_ATTR_SKIP_CPU_SYNC", "NEED_DMA_ATTR_SKIP_CPU_SYNC", "include/linux/dma-attrs.h");
+>         check_files_for_func("sign_extend32", "NEED_SIGN_EXTEND32", "include/linux/bitops.h");
+>         check_files_for_func("netdev_dbg", "NEED_NETDEV_DBG", "include/linux/netdevice.h");
+> -       check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
+> +       check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "arch/arm/include/asm/io.h");
+>         check_files_for_func("get_user_pages_unlocked", "NEED_GET_USER_PAGES_UNLOCKED", "include/linux/mm.h");
+>         check_files_for_func("pr_warn_once", "NEED_PR_WARN_ONCE", "include/linux/printk.h");
+>         check_files_for_func("DIV_ROUND_CLOSEST_ULL", "NEED_DIV_ROUND_CLOSEST_ULL", "include/linux/kernel.h");
+> 
 > 
