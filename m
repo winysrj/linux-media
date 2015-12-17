@@ -1,62 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60452 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750803AbbL1QFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 11:05:36 -0500
-Subject: Re: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
-To: Greg KH <gregkh@linuxfoundation.org>
-References: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
- <5681572F.601@osg.samsung.com> <20151228154429.GA27560@kroah.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:47355 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756194AbbLQK5l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 05:57:41 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56815DCE.6040304@osg.samsung.com>
-Date: Mon, 28 Dec 2015 09:05:34 -0700
-MIME-Version: 1.0
-In-Reply-To: <20151228154429.GA27560@kroah.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] [media] media-entity: don't sleep at media_device_register_entity()
+Date: Thu, 17 Dec 2015 08:57:17 -0200
+Message-Id: <cdf0ebd1152b3c3458c4d159615d0a83f1905f25.1450349794.git.mchehab@osg.samsung.com>
+In-Reply-To: <0d0999f2b491441af60a795f8809e3a72dd99dda.1450287492.git.mchehab@osg.samsung.com>
+References: <0d0999f2b491441af60a795f8809e3a72dd99dda.1450287492.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/28/2015 08:44 AM, Greg KH wrote:
-> On Mon, Dec 28, 2015 at 08:37:19AM -0700, Shuah Khan wrote:
->> On 12/28/2015 07:03 AM, Mauro Carvalho Chehab wrote:
->>> There are a few discussions left with regards to this ioctl:
->>>
->>> 1) the name of the new structs will contain _v2_ on it?
->>> 2) what's the best alternative to avoid compat32 issues?
->>>
->>> Due to that, let's postpone the addition of this new ioctl to
->>> the next Kernel version, to give people more time to discuss it.
->>
->> I thought we discussed this in our irc meeting and
->> arrived at a good solution for compat32 issue
->>
->> My recommendation is getting this ioctl into 4.5 with
->> a warning that it could change. The reason for that is
->> that this ioctl helps with testing the media controller
->> v2 api. Without this API, we won't see much testing from
->> userspace in 4.5
-> 
-> People will ignore the warning, that never works :(
-> 
+media_device_register_entity() is protected by a spin_lock.
 
-Yeah. If people do ignore warnings, it could become a
-problem if we have to make changes.
+Calling ida_pre_get() with GFP_KERNEL may put it to sleep,
+with is a bad idea and causes this warning:
 
--- Shuah
+[ 8812.397195] BUG: sleeping function called from invalid context at mm/slub.c:1287
+[ 8812.397203] in_atomic(): 1, irqs_disabled(): 0, pid: 15179, name: modprobe
+[ 8812.397207] INFO: lockdep is turned off.
+[ 8812.397213] CPU: 2 PID: 15179 Comm: modprobe Tainted: G    B           4.4.0-rc2+ #41
+[ 8812.397218] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+[ 8812.397222]  0000000000000000 ffff880314c77268 ffffffff818f8ba7 ffff8803b17dde00
+[ 8812.397232]  ffff880314c77290 ffffffff811c2ee5 ffff8803b17dde00 ffffffff8284dbc9
+[ 8812.397241]  0000000000000507 ffff880314c772d0 ffffffff811c30d5 0000000041b58ab3
+[ 8812.397250] Call Trace:
+[ 8812.397258]  [<ffffffff818f8ba7>] dump_stack+0x4b/0x64
+[ 8812.397265]  [<ffffffff811c2ee5>] ___might_sleep+0x245/0x3a0
+[ 8812.397270]  [<ffffffff811c30d5>] __might_sleep+0x95/0x1a0
+[ 8812.397276]  [<ffffffff818fd083>] ? ida_pre_get+0x113/0x250
+[ 8812.397282]  [<ffffffff8153bb77>] kmem_cache_alloc+0x197/0x250
+[ 8812.397288]  [<ffffffff818fd083>] ida_pre_get+0x113/0x250
+[ 8812.397293]  [<ffffffff818fd265>] ida_simple_get+0xa5/0x170
+[ 8812.397298]  [<ffffffff818fd1c0>] ? ida_pre_get+0x250/0x250
+[ 8812.397306]  [<ffffffffa07382d1>] media_device_register_entity+0x171/0x420 [media]
+[ 8812.397318]  [<ffffffffa129e76f>] v4l2_device_register_subdev+0x34f/0x640 [videodev]
+[ 8812.397324]  [<ffffffffa0768dea>] v4l2_i2c_new_subdev_board+0x12a/0x250 [v4l2_common]
+[ 8812.397330]  [<ffffffffa0768fe7>] v4l2_i2c_new_subdev+0xd7/0x110 [v4l2_common]
+[ 8812.397337]  [<ffffffffa0768f10>] ? v4l2_i2c_new_subdev_board+0x250/0x250 [v4l2_common]
+[ 8812.397347]  [<ffffffffa13d2f76>] au0828_card_analog_fe_setup+0x2e6/0x3f0 [au0828]
+[ 8812.397352]  [<ffffffff814450cc>] ? power_down+0xc4/0xc4
+[ 8812.397361]  [<ffffffffa13d2c90>] ? au0828_tuner_callback+0x160/0x160 [au0828]
+[ 8812.397370]  [<ffffffffa13d319f>] au0828_card_setup+0x11f/0x340 [au0828]
+[ 8812.397378]  [<ffffffffa13d3080>] ? au0828_card_analog_fe_setup+0x3f0/0x3f0 [au0828]
+[ 8812.397384]  [<ffffffff812a575b>] ? msleep+0x7b/0xc0
+[ 8812.397393]  [<ffffffffa13d0d79>] au0828_usb_probe+0x679/0xcf0 [au0828]
+[ 8812.397399]  [<ffffffff81d7619d>] usb_probe_interface+0x45d/0x940
+[ 8812.397406]  [<ffffffff81ca7004>] driver_probe_device+0x454/0xd90
+[ 8812.397411]  [<ffffffff81ca7940>] ? driver_probe_device+0xd90/0xd90
+[ 8812.397417]  [<ffffffff81ca7940>] ? driver_probe_device+0xd90/0xd90
+[ 8812.397422]  [<ffffffff81ca7a61>] __driver_attach+0x121/0x160
+[ 8812.397427]  [<ffffffff81ca141f>] bus_for_each_dev+0x11f/0x1a0
+[ 8812.397433]  [<ffffffff81ca1300>] ? subsys_dev_iter_exit+0x10/0x10
+[ 8812.397439]  [<ffffffff822917d7>] ? _raw_spin_unlock+0x27/0x40
+[ 8812.397445]  [<ffffffff81ca5d4d>] driver_attach+0x3d/0x50
+[ 8812.397450]  [<ffffffff81ca5039>] bus_add_driver+0x4c9/0x770
+[ 8812.397456]  [<ffffffff81ca944c>] driver_register+0x18c/0x3b0
+[ 8812.397462]  [<ffffffff8124c952>] ? __raw_spin_lock_init+0x32/0x100
+[ 8812.397468]  [<ffffffff81d71e58>] usb_register_driver+0x1f8/0x440
+[ 8812.397473]  [<ffffffffa0208000>] ? 0xffffffffa0208000
+[ 8812.397481]  [<ffffffffa02080b7>] au0828_init+0xb7/0x1000 [au0828]
+[ 8812.397486]  [<ffffffff810021b1>] do_one_initcall+0x141/0x300
+[ 8812.397492]  [<ffffffff81002070>] ? try_to_run_init_process+0x40/0x40
+[ 8812.397497]  [<ffffffff8123bbf6>] ? trace_hardirqs_on_caller+0x16/0x590
+[ 8812.397502]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
+[ 8812.397507]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
+[ 8812.397512]  [<ffffffff815406e6>] ? kasan_unpoison_shadow+0x36/0x50
+[ 8812.397517]  [<ffffffff815407f7>] ? __asan_register_globals+0x87/0xa0
+[ 8812.397524]  [<ffffffff814454e5>] do_init_module+0x1d0/0x5a4
+[ 8812.397530]  [<ffffffff812ed7e8>] load_module+0x6648/0x9d70
+[ 8812.397535]  [<ffffffff812e4b70>] ? symbol_put_addr+0x50/0x50
+[ 8812.397546]  [<ffffffff812e71a0>] ? module_frob_arch_sections+0x20/0x20
+[ 8812.397552]  [<ffffffff8158e950>] ? open_exec+0x50/0x50
+[ 8812.397559]  [<ffffffff811648db>] ? ns_capable+0x5b/0xd0
+[ 8812.397565]  [<ffffffff812f1208>] SyS_finit_module+0x108/0x130
+[ 8812.397571]  [<ffffffff812f1100>] ? SyS_init_module+0x1f0/0x1f0
+[ 8812.397576]  [<ffffffff81004044>] ? lockdep_sys_exit_thunk+0x12/0x14
+[ 8812.397582]  [<ffffffff82292236>] entry_SYSCALL_64_fastpath+0x16/0x7a
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3e0227555196..b786b1092044 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -537,6 +537,7 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
+ 	unsigned int i;
++	int ret;
+ 
+ 	if (entity->function == MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN ||
+ 	    entity->function == MEDIA_ENT_F_UNKNOWN)
+@@ -551,13 +552,16 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	entity->num_links = 0;
+ 	entity->num_backlinks = 0;
+ 
++	if (!ida_pre_get(&mdev->entity_internal_idx, GFP_KERNEL))
++		return -ENOMEM;
++
+ 	spin_lock(&mdev->lock);
+ 
+-	entity->internal_idx = ida_simple_get(&mdev->entity_internal_idx, 1, 0,
+-					      GFP_KERNEL);
+-	if (entity->internal_idx < 0) {
++	ret = ida_get_new_above(&mdev->entity_internal_idx, 1,
++				&entity->internal_idx);
++	if (ret < 0) {
+ 		spin_unlock(&mdev->lock);
+-		return entity->internal_idx;
++		return ret;
+ 	}
+ 
+ 	mdev->entity_internal_idx_max =
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.5.0
+
