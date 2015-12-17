@@ -1,322 +1,425 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39210 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134AbbLLPJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:09:47 -0500
-Date: Sat, 12 Dec 2015 13:09:36 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 03/22] media: Add an API to manage entity
- enumerations
-Message-ID: <20151212130936.6cf7cdee@recife.lan>
-In-Reply-To: <1448824823-10372-4-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-4-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938AbbLQIk4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:40:56 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 17/48] v4l: vsp1: Move subdev initialization code to vsp1_entity_init()
+Date: Thu, 17 Dec 2015 10:39:55 +0200
+Message-Id: <1450341626-6695-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Don't duplicate the code in every module driver, centralize it in a
+single place.
 
-Em Sun, 29 Nov 2015 21:20:04 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    | 18 ++----------------
+ drivers/media/platform/vsp1/vsp1_entity.c | 30 +++++++++++++++++++++++++-----
+ drivers/media/platform/vsp1/vsp1_entity.h |  5 ++---
+ drivers/media/platform/vsp1/vsp1_hsit.c   | 17 ++---------------
+ drivers/media/platform/vsp1/vsp1_lif.c    | 16 +---------------
+ drivers/media/platform/vsp1/vsp1_lut.c    | 16 +---------------
+ drivers/media/platform/vsp1/vsp1_rpf.c    | 18 +++---------------
+ drivers/media/platform/vsp1/vsp1_sru.c    | 16 +---------------
+ drivers/media/platform/vsp1/vsp1_uds.c    | 18 +++---------------
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 18 +++---------------
+ 10 files changed, 43 insertions(+), 129 deletions(-)
 
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> This is useful in e.g. knowing whether certain operations have already
-> been performed for an entity. The users include the framework itself (for
-> graph walking) and a number of drivers.
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 6a6e9d84f1ca..2ca80d3dda1f 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -405,7 +405,6 @@ static struct v4l2_subdev_ops bru_ops = {
+ 
+ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_bru *bru;
+ 	int ret;
+ 
+@@ -415,24 +414,11 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ 
+ 	bru->entity.type = VSP1_ENTITY_BRU;
+ 
+-	ret = vsp1_entity_init(vsp1, &bru->entity,
+-			       vsp1->info->num_bru_inputs + 1);
++	ret = vsp1_entity_init(vsp1, &bru->entity, "bru",
++			       vsp1->info->num_bru_inputs + 1, &bru_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &bru->entity.subdev;
+-	v4l2_subdev_init(subdev, &bru_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
+-		 dev_name(vsp1->dev));
+-	v4l2_set_subdevdata(subdev, bru);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&bru->ctrls, 1);
+ 	v4l2_ctrl_new_std(&bru->ctrls, &bru_ctrl_ops, V4L2_CID_BG_COLOR,
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index dfa0735e36f4..602e2a7a155e 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -70,8 +70,8 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
+  * formats are initialized on the file handle. Otherwise active formats are
+  * initialized on the device.
+  */
+-void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
+-			    struct v4l2_subdev_pad_config *cfg)
++static void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_pad_config *cfg)
+ {
+ 	struct v4l2_subdev_format format;
+ 	unsigned int pad;
+@@ -159,9 +159,12 @@ static const struct vsp1_route vsp1_routes[] = {
+ };
+ 
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+-		     unsigned int num_pads)
++		     const char *name, unsigned int num_pads,
++		     const struct v4l2_subdev_ops *ops)
+ {
++	struct v4l2_subdev *subdev;
+ 	unsigned int i;
++	int ret;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vsp1_routes); ++i) {
+ 		if (vsp1_routes[i].type == entity->type &&
+@@ -196,8 +199,25 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 	entity->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	/* Initialize the media entity. */
+-	return media_entity_init(&entity->subdev.entity, num_pads,
+-				 entity->pads, 0);
++	ret = media_entity_init(&entity->subdev.entity, num_pads,
++				entity->pads, 0);
++	if (ret < 0)
++		return ret;
++
++	/* Initialize the V4L2 subdev. */
++	subdev = &entity->subdev;
++	v4l2_subdev_init(subdev, ops);
++
++	subdev->entity.ops = &vsp1->media_ops;
++	subdev->internal_ops = &vsp1_subdev_internal_ops;
++	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
++		 dev_name(vsp1->dev), name);
++
++	vsp1_entity_init_formats(subdev, NULL);
++
++	return 0;
+ }
+ 
+ void vsp1_entity_destroy(struct vsp1_entity *entity)
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 203872164f8e..d76090059ced 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -81,7 +81,8 @@ static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
+ }
+ 
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+-		     unsigned int num_pads);
++		     const char *name, unsigned int num_pads,
++		     const struct v4l2_subdev_ops *ops);
+ void vsp1_entity_destroy(struct vsp1_entity *entity);
+ 
+ extern const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops;
+@@ -94,8 +95,6 @@ struct v4l2_mbus_framefmt *
+ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
+ 			   struct v4l2_subdev_pad_config *cfg,
+ 			   unsigned int pad, u32 which);
+-void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
+-			      struct v4l2_subdev_pad_config *cfg);
+ 
+ void vsp1_entity_route_setup(struct vsp1_entity *source);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index e820fe0b4f00..49ff74b51e03 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -180,7 +180,6 @@ static struct v4l2_subdev_ops hsit_ops = {
+ 
+ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_hsit *hsit;
+ 	int ret;
+ 
+@@ -195,22 +194,10 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ 	else
+ 		hsit->entity.type = VSP1_ENTITY_HST;
+ 
+-	ret = vsp1_entity_init(vsp1, &hsit->entity, 2);
++	ret = vsp1_entity_init(vsp1, &hsit->entity, inverse ? "hsi" : "hst", 2,
++			       &hsit_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &hsit->entity.subdev;
+-	v4l2_subdev_init(subdev, &hsit_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
+-		 dev_name(vsp1->dev), inverse ? "hsi" : "hst");
+-	v4l2_set_subdevdata(subdev, hsit);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	return hsit;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index be0ea166016c..ead6cc3aa3fa 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -207,7 +207,6 @@ static struct v4l2_subdev_ops lif_ops = {
+ 
+ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_lif *lif;
+ 	int ret;
+ 
+@@ -217,22 +216,9 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ 
+ 	lif->entity.type = VSP1_ENTITY_LIF;
+ 
+-	ret = vsp1_entity_init(vsp1, &lif->entity, 2);
++	ret = vsp1_entity_init(vsp1, &lif->entity, "lif", 2, &lif_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &lif->entity.subdev;
+-	v4l2_subdev_init(subdev, &lif_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
+-		 dev_name(vsp1->dev));
+-	v4l2_set_subdevdata(subdev, lif);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	return lif;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 3af849dbee5a..6ba6a58fbac6 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -221,7 +221,6 @@ static struct v4l2_subdev_ops lut_ops = {
+ 
+ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_lut *lut;
+ 	int ret;
+ 
+@@ -231,22 +230,9 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 
+ 	lut->entity.type = VSP1_ENTITY_LUT;
+ 
+-	ret = vsp1_entity_init(vsp1, &lut->entity, 2);
++	ret = vsp1_entity_init(vsp1, &lut->entity, "lut", 2, &lut_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &lut->entity.subdev;
+-	v4l2_subdev_init(subdev, &lut_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
+-		 dev_name(vsp1->dev));
+-	v4l2_set_subdevdata(subdev, lut);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	return lut;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 09919db7e0ea..8d9e511fd61a 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -164,8 +164,8 @@ static const struct vsp1_rwpf_operations rpf_vdev_ops = {
+ 
+ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_rwpf *rpf;
++	char name[6];
+ 	int ret;
+ 
+ 	rpf = devm_kzalloc(vsp1->dev, sizeof(*rpf), GFP_KERNEL);
+@@ -180,23 +180,11 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	rpf->entity.type = VSP1_ENTITY_RPF;
+ 	rpf->entity.index = index;
+ 
+-	ret = vsp1_entity_init(vsp1, &rpf->entity, 2);
++	sprintf(name, "rpf.%u", index);
++	ret = vsp1_entity_init(vsp1, &rpf->entity, name, 2, &rpf_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &rpf->entity.subdev;
+-	v4l2_subdev_init(subdev, &rpf_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
+-		 dev_name(vsp1->dev), index);
+-	v4l2_set_subdevdata(subdev, rpf);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	/* Initialize the control handler. */
+ 	ret = vsp1_rwpf_init_ctrls(rpf);
+ 	if (ret < 0) {
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 19b7923cb137..c8642bf8b1a1 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -324,7 +324,6 @@ static struct v4l2_subdev_ops sru_ops = {
+ 
+ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_sru *sru;
+ 	int ret;
+ 
+@@ -334,23 +333,10 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 
+ 	sru->entity.type = VSP1_ENTITY_SRU;
+ 
+-	ret = vsp1_entity_init(vsp1, &sru->entity, 2);
++	ret = vsp1_entity_init(vsp1, &sru->entity, "sru", 2, &sru_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &sru->entity.subdev;
+-	v4l2_subdev_init(subdev, &sru_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s sru",
+-		 dev_name(vsp1->dev));
+-	v4l2_set_subdevdata(subdev, sru);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&sru->ctrls, 1);
+ 	v4l2_ctrl_new_custom(&sru->ctrls, &sru_intensity_control, NULL);
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 83ec8942f8e7..34689adda810 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -322,8 +322,8 @@ static struct v4l2_subdev_ops uds_ops = {
+ 
+ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_uds *uds;
++	char name[6];
+ 	int ret;
+ 
+ 	uds = devm_kzalloc(vsp1->dev, sizeof(*uds), GFP_KERNEL);
+@@ -333,22 +333,10 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ 	uds->entity.type = VSP1_ENTITY_UDS;
+ 	uds->entity.index = index;
+ 
+-	ret = vsp1_entity_init(vsp1, &uds->entity, 2);
++	sprintf(name, "uds.%u", index);
++	ret = vsp1_entity_init(vsp1, &uds->entity, name, 2, &uds_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &uds->entity.subdev;
+-	v4l2_subdev_init(subdev, &uds_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
+-		 dev_name(vsp1->dev), index);
+-	v4l2_set_subdevdata(subdev, uds);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	return uds;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d889997b7948..b81595eb51dc 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -179,8 +179,8 @@ static void vsp1_wpf_destroy(struct vsp1_entity *entity)
+ 
+ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+-	struct v4l2_subdev *subdev;
+ 	struct vsp1_rwpf *wpf;
++	char name[6];
+ 	int ret;
+ 
+ 	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
+@@ -196,7 +196,8 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	wpf->entity.type = VSP1_ENTITY_WPF;
+ 	wpf->entity.index = index;
+ 
+-	ret = vsp1_entity_init(vsp1, &wpf->entity, 2);
++	sprintf(name, "wpf.%u", index);
++	ret = vsp1_entity_init(vsp1, &wpf->entity, name, 2, &wpf_ops);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+@@ -207,19 +208,6 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 		goto error;
+ 	}
+ 
+-	/* Initialize the V4L2 subdev. */
+-	subdev = &wpf->entity.subdev;
+-	v4l2_subdev_init(subdev, &wpf_ops);
+-
+-	subdev->entity.ops = &vsp1->media_ops;
+-	subdev->internal_ops = &vsp1_subdev_internal_ops;
+-	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
+-		 dev_name(vsp1->dev), index);
+-	v4l2_set_subdevdata(subdev, wpf);
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-
+-	vsp1_entity_init_formats(subdev, NULL);
+-
+ 	/* Initialize the control handler. */
+ 	ret = vsp1_rwpf_init_ctrls(wpf);
+ 	if (ret < 0) {
+-- 
+2.4.10
 
-Please use better names on the vars. See below for details.
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c |  39 +++++++++++++
->  include/media/media-device.h |  14 +++++
->  include/media/media-entity.h | 136 ++++++++++++++++++++++++++++++++++++++++---
->  3 files changed, 181 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index d11f440..fceaf44 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -213,6 +213,45 @@ void media_gobj_remove(struct media_gobj *gobj)
->  }
->  
->  /**
-> + * __media_entity_enum_init - Initialise an entity enumeration
-> + *
-> + * @e: Entity enumeration to be initialised
-> + * @idx_max: Maximum number of entities in the enumeration
-> + *
-> + * Returns zero on success or a negative error code.
-> + */
-
-We're using kernel-doc macros only at the header files. Please
-move those macros to there.
-
-> +int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
-
-using "e" as a var is not nice, specially on a public header.
-
-I would use "ent_enum" instead for media_entity_enum pointers. This
-applies everywhere on this patch series.
-
-> +{
-> +	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-> +		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
-> +			       sizeof(long), GFP_KERNEL);
-> +		if (!e->e)
-> +			return -ENOMEM;
-> +	} else {
-> +		e->e = e->__e;
-
-This is crap! I can't tell what the above code is doing,
-as the var names don't give any clue!
-
-> +	}
-> +
-> +	bitmap_zero(e->e, idx_max);
-
-Ok, here, there's a hint that one of the "e" is a bitmap, while
-the other is a struct... Weird, and very easy to do wrong things!
-
-Please name the bitmap as "ent_enum_bmap" or something like that.
-
-> +	e->idx_max = idx_max;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-> +
-> +/**
-> + * media_entity_enum_cleanup - Release resources of an entity enumeration
-> + *
-> + * @e: Entity enumeration to be released
-> + */
-> +void media_entity_enum_cleanup(struct media_entity_enum *e)
-> +{
-> +	if (e->e != e->__e)
-> +		kfree(e->e);
-> +	e->e = NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
-> +
-> +/**
->   * media_entity_init - Initialize a media entity
->   *
->   * @num_pads: Total number of sink and source pads.
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index c0e1764..2d46c66 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -110,6 +110,20 @@ struct media_device {
->  /* media_devnode to media_device */
->  #define to_media_device(node) container_of(node, struct media_device, devnode)
->  
-> +/**
-> + * media_entity_enum_init - Initialise an entity enumeration
-> + *
-> + * @e: Entity enumeration to be initialised
-> + * @mdev: The related media device
-> + *
-> + * Returns zero on success or a negative error code.
-> + */
-> +static inline __must_check int media_entity_enum_init(
-> +	struct media_entity_enum *e, struct media_device *mdev)
-> +{
-> +	return __media_entity_enum_init(e, mdev->entity_internal_idx_max + 1);
-> +}
-> +
->  void media_device_init(struct media_device *mdev);
->  void media_device_cleanup(struct media_device *mdev);
->  int __must_check __media_device_register(struct media_device *mdev,
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index d3d3a39..5a0339a 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -23,7 +23,7 @@
->  #ifndef _MEDIA_ENTITY_H
->  #define _MEDIA_ENTITY_H
->  
-> -#include <linux/bitops.h>
-> +#include <linux/bitmap.h>
->  #include <linux/kernel.h>
->  #include <linux/list.h>
->  #include <linux/media.h>
-> @@ -71,6 +71,30 @@ struct media_gobj {
->  	struct list_head	list;
->  };
->  
-> +#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> +#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> +
-> +/*
-> + * The number of pads can't be bigger than the number of entities,
-> + * as the worse-case scenario is to have one entity linked up to
-> + * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> + */
-> +#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> +
-> +/* struct media_entity_enum - An enumeration of media entities.
-> + *
-> + * @__e:	Pre-allocated space reserved for media entities if the total
-> + *		number of entities  does not exceed MEDIA_ENTITY_ENUM_MAX_ID.
-> + * @e:		Bit mask in which each bit represents one entity at struct
-> + *		media_entity->internal_idx.
-> + * @idx_max:	Number of bits in the enum.
-> + */
-> +struct media_entity_enum {
-> +	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-> +	unsigned long *e;
-
-As mentioned before, don't use single letter names, specially inside
-publicly used structures. There's no good reason for that, and the
-code become really obscure.
-
-Also, just declare one bitmap. having a "pre-allocated" hardcoded
-one here is very confusing.
-
-> +	int idx_max;
-> +};
-> +
->  struct media_pipeline {
->  };
->  
-> @@ -307,15 +331,111 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
->  	}
->  }
->  
-> -#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> -#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> +int __media_entity_enum_init(struct media_entity_enum *e, int idx_max);
-> +void media_entity_enum_cleanup(struct media_entity_enum *e);
->  
-> -/*
-> - * The number of pads can't be bigger than the number of entities,
-> - * as the worse-case scenario is to have one entity linked up to
-> - * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> +/**
-> + * media_entity_enum_zero - Clear the entire enum
-> + *
-> + * @e: Entity enumeration to be cleared
->   */
-> -#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> +static inline void media_entity_enum_zero(struct media_entity_enum *e)
-> +{
-> +	bitmap_zero(e->e, e->idx_max);
-> +}
-> +
-> +/**
-> + * media_entity_enum_set - Mark a single entity in the enum
-> + *
-> + * @e: Entity enumeration
-> + * @entity: Entity to be marked
-> + */
-> +static inline void media_entity_enum_set(struct media_entity_enum *e,
-> +					 struct media_entity *entity)
-> +{
-> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> +		return;
-> +
-> +	__set_bit(entity->internal_idx, e->e);
-> +}
-> +
-> +/**
-> + * media_entity_enum_clear - Unmark a single entity in the enum
-> + *
-> + * @e: Entity enumeration
-> + * @entity: Entity to be unmarked
-> + */
-> +static inline void media_entity_enum_clear(struct media_entity_enum *e,
-> +					   struct media_entity *entity)
-> +{
-> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> +		return;
-> +
-> +	__clear_bit(entity->internal_idx, e->e);
-> +}
-> +
-> +/**
-> + * media_entity_enum_test - Test whether the entity is marked
-> + *
-> + * @e: Entity enumeration
-> + * @entity: Entity to be tested
-> + *
-> + * Returns true if the entity was marked.
-> + */
-> +static inline bool media_entity_enum_test(struct media_entity_enum *e,
-> +					  struct media_entity *entity)
-> +{
-> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> +		return true;
-> +
-> +	return test_bit(entity->internal_idx, e->e);
-> +}
-> +
-> +/**
-> + * media_entity_enum_test - Test whether the entity is marked, and mark it
-> + *
-> + * @e: Entity enumeration
-> + * @entity: Entity to be tested
-> + *
-> + * Returns true if the entity was marked, and mark it before doing so.
-> + */
-> +static inline bool media_entity_enum_test_and_set(struct media_entity_enum *e,
-> +						  struct media_entity *entity)
-> +{
-> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> +		return true;
-> +
-> +	return __test_and_set_bit(entity->internal_idx, e->e);
-> +}
-> +
-> +/**
-> + * media_entity_enum_test - Test whether the entire enum is empty
-> + *
-> + * @e: Entity enumeration
-> + * @entity: Entity to be tested
-> + *
-> + * Returns true if the entity was marked.
-> + */
-> +static inline bool media_entity_enum_empty(struct media_entity_enum *e)
-> +{
-> +	return bitmap_empty(e->e, e->idx_max);
-> +}
-> +
-> +/**
-> + * media_entity_enum_intersects - Test whether two enums intersect
-> + *
-> + * @e: First entity enumeration
-> + * @f: Second entity enumeration
-> + *
-> + * Returns true if entity enumerations e and f intersect, otherwise false.
-> + */
-> +static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
-> +						struct media_entity_enum *f)
-
-Huh, this is even uglier! The first media_entity_enum "e", and the
-second "f"...
-
-For me, "f" is reserved for a "float" type ;) Seriously, the conventional
-usage for single-letter vars is to use them only for vars that don't
-deserve a name, like temporary integer vars and loop indexes (i, j, k),
-temporary pointers (p), temporary float values (f), etc.
-
-All the rest should have more than one letter. Failing to do that makes
-the code very hard to be read by other people.
-
-> +{
-> +	WARN_ON(e->idx_max != f->idx_max);
-> +
-> +	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
-> +}
->  
->  struct media_entity_graph {
->  	struct {
