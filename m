@@ -1,227 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933390AbbLQIlY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:24 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 43/48] v4l: vsp1: Merge RPF and WPF pad ops structures
-Date: Thu, 17 Dec 2015 10:40:21 +0200
-Message-Id: <1450341626-6695-44-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:38974 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934691AbbLQPdA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 10:33:00 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <5672D5A6.8090505@free.fr>
+Date: Thu, 17 Dec 2015 16:32:54 +0100
+MIME-Version: 1.0
+In-Reply-To: <20151217125505.0abc4b40@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The two structures are identical, merge them and move the result to
-vsp1_rwpf.c. All rwpf pad operations can now be declared static.
+On 17/12/2015 15:55, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_rpf.c  | 12 +------
- drivers/media/platform/vsp1/vsp1_rwpf.c | 60 +++++++++++++++++++--------------
- drivers/media/platform/vsp1/vsp1_rwpf.h | 19 +----------
- drivers/media/platform/vsp1/vsp1_wpf.c  | 12 +------
- 4 files changed, 38 insertions(+), 65 deletions(-)
+> Em Thu, 17 Dec 2015 15:30:43 +0100
+> Mason <slash.tmp@free.fr> escreveu:
+> 
+>> On 17/12/2015 15:08, Mauro Carvalho Chehab wrote:
+>>
+>>> Then I guess you're not using vanilla 3.4 Kernel, but some heavily
+>>> modified version. You're on your own here.
+>>
+>> #ifdef NEED_KVFREE
+>> #include <linux/mm.h>
+>> static inline void kvfree(const void *addr)
+>> {
+>> 	if (is_vmalloc_addr(addr))
+>> 		vfree(addr);
+>> 	else
+>> 		kfree(addr);
+>> }
+>> #endif
+>>
+>> /tmp/sandbox/media_build/v4l/compat.h: In function 'kvfree':
+>> /tmp/sandbox/media_build/v4l/compat.h:1631:3: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
+>>    vfree(addr);
+>>    ^
+>>
+>> vfree is declared in linux/vmalloc.h
+>>
+>> The fix is trivial:
+>>
+>> diff --git a/v4l/compat.h b/v4l/compat.h
+>> index c225c07d6caa..7f3f1d5f9d11 100644
+>> --- a/v4l/compat.h
+>> +++ b/v4l/compat.h
+>> @@ -1625,6 +1625,7 @@ static inline void eth_zero_addr(u8 *addr)
+>>  
+>>  #ifdef NEED_KVFREE
+>>  #include <linux/mm.h>
+>> +#include <linux/vmalloc.h>
+>>  static inline void kvfree(const void *addr)
+>>  {
+>>         if (is_vmalloc_addr(addr))
+>>
+>>
+> 
+> Well, it doesn't hurt to add it to the media_build tree, since
+> vmalloc.h exists at least since 2.6.11.
+> 
+> Added upstream.
+> 
+> Did the driver compile fine?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index eb17fa134750..84a3aedae768 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -36,18 +36,8 @@ static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf, u32 reg, u32 data)
-  * V4L2 Subdevice Operations
-  */
- 
--static struct v4l2_subdev_pad_ops rpf_pad_ops = {
--	.init_cfg = vsp1_entity_init_cfg,
--	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
--	.enum_frame_size = vsp1_rwpf_enum_frame_size,
--	.get_fmt = vsp1_rwpf_get_format,
--	.set_fmt = vsp1_rwpf_set_format,
--	.get_selection = vsp1_rwpf_get_selection,
--	.set_selection = vsp1_rwpf_set_selection,
--};
--
- static struct v4l2_subdev_ops rpf_ops = {
--	.pad    = &rpf_pad_ops,
-+	.pad    = &vsp1_rwpf_pad_ops,
- };
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index 0c5ad023adfb..4d302f5cccb2 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -20,13 +20,20 @@
- #define RWPF_MIN_WIDTH				1
- #define RWPF_MIN_HEIGHT				1
- 
-+struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
-+				     struct v4l2_subdev_pad_config *config)
-+{
-+	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
-+					RWPF_PAD_SINK);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 Subdevice Pad Operations
-  */
- 
--int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
--			     struct v4l2_subdev_pad_config *cfg,
--			     struct v4l2_subdev_mbus_code_enum *code)
-+static int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-+				    struct v4l2_subdev_pad_config *cfg,
-+				    struct v4l2_subdev_mbus_code_enum *code)
- {
- 	static const unsigned int codes[] = {
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
-@@ -41,9 +48,9 @@ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
--			      struct v4l2_subdev_pad_config *cfg,
--			      struct v4l2_subdev_frame_size_enum *fse)
-+static int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
-+				     struct v4l2_subdev_pad_config *cfg,
-+				     struct v4l2_subdev_frame_size_enum *fse)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
-@@ -76,16 +83,9 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
--				     struct v4l2_subdev_pad_config *config)
--{
--	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
--					RWPF_PAD_SINK);
--}
--
--int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
--			 struct v4l2_subdev_pad_config *cfg,
--			 struct v4l2_subdev_format *fmt)
-+static int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
-+				struct v4l2_subdev_pad_config *cfg,
-+				struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
-@@ -100,9 +100,9 @@ int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
--			 struct v4l2_subdev_pad_config *cfg,
--			 struct v4l2_subdev_format *fmt)
-+static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
-+				struct v4l2_subdev_pad_config *cfg,
-+				struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
-@@ -154,9 +154,9 @@ int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
--			    struct v4l2_subdev_pad_config *cfg,
--			    struct v4l2_subdev_selection *sel)
-+static int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_selection *sel)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
-@@ -191,9 +191,9 @@ int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
--			    struct v4l2_subdev_pad_config *cfg,
--			    struct v4l2_subdev_selection *sel)
-+static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_selection *sel)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
- 	struct v4l2_subdev_pad_config *config;
-@@ -250,6 +250,16 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
-+const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
-+	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
-+	.enum_frame_size = vsp1_rwpf_enum_frame_size,
-+	.get_fmt = vsp1_rwpf_get_format,
-+	.set_fmt = vsp1_rwpf_set_format,
-+	.get_selection = vsp1_rwpf_get_selection,
-+	.set_selection = vsp1_rwpf_set_selection,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Controls
-  */
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 4ebfab61e0ef..9502710977e8 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -68,24 +68,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
- 
- int vsp1_rwpf_init_ctrls(struct vsp1_rwpf *rwpf);
- 
--int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
--			     struct v4l2_subdev_pad_config *cfg,
--			     struct v4l2_subdev_mbus_code_enum *code);
--int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
--			      struct v4l2_subdev_pad_config *cfg,
--			      struct v4l2_subdev_frame_size_enum *fse);
--int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
--			 struct v4l2_subdev_pad_config *cfg,
--			 struct v4l2_subdev_format *fmt);
--int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
--			 struct v4l2_subdev_pad_config *cfg,
--			 struct v4l2_subdev_format *fmt);
--int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
--			    struct v4l2_subdev_pad_config *cfg,
--			    struct v4l2_subdev_selection *sel);
--int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
--			    struct v4l2_subdev_pad_config *cfg,
--			    struct v4l2_subdev_selection *sel);
-+extern const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops;
- 
- struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
- 				     struct v4l2_subdev_pad_config *config);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index bdc7d6623fe1..3f4b7208f3ef 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -92,19 +92,9 @@ static struct v4l2_subdev_video_ops wpf_video_ops = {
- 	.s_stream = wpf_s_stream,
- };
- 
--static struct v4l2_subdev_pad_ops wpf_pad_ops = {
--	.init_cfg = vsp1_entity_init_cfg,
--	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
--	.enum_frame_size = vsp1_rwpf_enum_frame_size,
--	.get_fmt = vsp1_rwpf_get_format,
--	.set_fmt = vsp1_rwpf_set_format,
--	.get_selection = vsp1_rwpf_get_selection,
--	.set_selection = vsp1_rwpf_set_selection,
--};
--
- static struct v4l2_subdev_ops wpf_ops = {
- 	.video	= &wpf_video_ops,
--	.pad    = &wpf_pad_ops,
-+	.pad    = &vsp1_rwpf_pad_ops,
- };
- 
- /* -----------------------------------------------------------------------------
--- 
-2.4.10
+I wanted to fix the NEED_WRITEL_RELAXED warning, but I don't know Perl.
+
+v4l/scripts/make_config_compat.pl
+
+check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
+incorrectly outputs
+#define NEED_WRITEL_RELAXED 1
+
+
+In file included from <command-line>:0:0:
+/tmp/sandbox/media_build/v4l/compat.h:1568:0: warning: "writel_relaxed" redefined
+ #define writel_relaxed writel
+ ^
+In file included from include/linux/scatterlist.h:10:0,
+                 from /tmp/sandbox/media_build/v4l/compat.h:1255,
+                 from <command-line>:0:
+/tmp/sandbox/custom-linux-3.4/arch/arm/include/asm/io.h:235:0: note: this is the location of the previous definition
+ #define writel_relaxed(v,c) ((void)__raw_writel((__force u32) \
+ ^
+
+Shouldn't the script examine arch/$ARCH/include/asm/io.h instead of
+include/asm-generic/io.h ? (Or perhaps both?)
+
+Does make_config_compat.pl know about ARCH?
+
+The following patch makes "#define NEED_WRITEL_RELAXED 1" go away,
+but I'm looking for a general solution.
+
+
+The next error is:
+
+  CC [M]  /tmp/sandbox/media_build/v4l/dvb_net.o
+/tmp/sandbox/media_build/v4l/dvb_net.c: In function 'dvb_net_add_if':
+/tmp/sandbox/media_build/v4l/dvb_net.c:1244:38: error: macro "alloc_netdev" passed 4 arguments, but takes just 3
+       NET_NAME_UNKNOWN, dvb_net_setup);
+                                      ^
+/tmp/sandbox/media_build/v4l/dvb_net.c:1243:8: error: 'alloc_netdev' undeclared (first use in this function)
+  net = alloc_netdev(sizeof(struct dvb_net_priv), "dvb",
+        ^
+/tmp/sandbox/media_build/v4l/dvb_net.c:1243:8: note: each undeclared identifier is reported only once for each function it appears in
+/tmp/sandbox/media_build/v4l/dvb_net.c: At top level:
+/tmp/sandbox/media_build/v4l/dvb_net.c:1205:13: warning: 'dvb_net_setup' defined but not used [-Wunused-function]
+ static void dvb_net_setup(struct net_device *dev)
+
+Will look into it.
+
+
+Regards.
+
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index 641f55e9c137..30a004525c08 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -664,7 +664,7 @@ sub check_other_dependencies()
+        check_files_for_func("DMA_ATTR_SKIP_CPU_SYNC", "NEED_DMA_ATTR_SKIP_CPU_SYNC", "include/linux/dma-attrs.h");
+        check_files_for_func("sign_extend32", "NEED_SIGN_EXTEND32", "include/linux/bitops.h");
+        check_files_for_func("netdev_dbg", "NEED_NETDEV_DBG", "include/linux/netdevice.h");
+-       check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
++       check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "arch/arm/include/asm/io.h");
+        check_files_for_func("get_user_pages_unlocked", "NEED_GET_USER_PAGES_UNLOCKED", "include/linux/mm.h");
+        check_files_for_func("pr_warn_once", "NEED_PR_WARN_ONCE", "include/linux/printk.h");
+        check_files_for_func("DIV_ROUND_CLOSEST_ULL", "NEED_DIV_ROUND_CLOSEST_ULL", "include/linux/kernel.h");
+
 
