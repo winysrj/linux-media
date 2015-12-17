@@ -1,144 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56080 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbbLZXr4 (ORCPT
+	with ESMTP id S933291AbbLQIlC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Dec 2015 18:47:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>
-Subject: Re: per-frame camera metadata (again)
-Date: Sun, 27 Dec 2015 01:47:54 +0200
-Message-ID: <5520197.vJSVcNd1Sr@avalon>
-In-Reply-To: <Pine.LNX.4.64.1512241123060.12474@axis700.grange>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange> <2560629.CtpjHgJUC1@avalon> <Pine.LNX.4.64.1512241123060.12474@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 17 Dec 2015 03:41:02 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 22/48] media: Add per-file-handle data support
+Date: Thu, 17 Dec 2015 10:40:00 +0200
+Message-Id: <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+The media devnode core associates devnodes with files by storing the
+devnode pointer in the file structure private_data field. In order to
+allow tracking of per-file-handle data introduce a new media devnode
+file handle structure that stores the devnode pointer, and store a
+pointer to that structure in the file private_data field.
 
-On Thursday 24 December 2015 11:42:49 Guennadi Liakhovetski wrote:
-> Hi Laurent,
-> 
-> Let me put this at the top: So far it looks like we converge on two
-> possibilities:
-> 
-> (1) a separate video-device node with a separate queue. No user-space
-> visible changes are required apart from new FOURCC codes. In the kernel
-> we'd have to add some subdev API between the bridge and the sensor drivers
-> to let the sensor driver instruct the bridge driver to use some of the
-> data, arriving over the camera interface, as metadata.
+Users of the media devnode code (the only existing user being
+media_device) are responsible for managing their own subclass of the
+media_devnode_fh structure.
 
-The interface should be more generic and allow describing how multiple 
-channels (in terms of virtual channels and data types for CSI-2 for instance) 
-are multiplexed over a single physical link. I'm not sure how to represent 
-that at the media controller level, that's also one topic that needs to be 
-researched.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/media-device.c  | 22 ++++++++++++++++++++++
+ drivers/media/media-devnode.c | 19 +++++++++----------
+ include/media/media-devnode.h | 18 +++++++++++++++++-
+ 3 files changed, 48 insertions(+), 11 deletions(-)
 
-> (2) parsing metadata by the sensor subdevice driver to make it available
-> as controls. This would only (properly) work with the request API, which
-> is still a work in progress. Apart from that request API no additional
-> user-space visible changes would be required. The kernel subdevice API
-> would have to be extended as above, to specify metadata location.
-> Additionally, the bridge driver would have to pass the metadata buffer
-> back to the subdevice driver for parsing.
-> 
-> Since the request API isn't available yet and even the latest version
-> doesn't support per-request controls, looks like immediately only the
-> former approach can be used.
-
-Both approaches require development, I'm certainly open to collaborating on 
-the request API to finalize it sooner :-)
-
-> On Wed, 23 Dec 2015, Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> >>> My other use case (Android camera HAL v3 for Project Ara) mainly deals
-> >>> with controls and meta-data, but I'll then likely pass the meta-data
-> >>> blob to userspace as-is, as its format isn't always known to the
-> >>> driver. I'm also concerned about efficiency but haven't had time to
-> >>> perform measurements yet.
-> >> 
-> >> Hm, why is it not known to the subdevice driver? Does the buffer layout
-> >> depend on some external conditions? Maybe loaded firmware? But it should
-> >> be possible to tell the driver, say, that the current metadata buffer
-> >> layout has version N?
-> > 
-> > My devices are class-compliant but can use a device-specific meta-data
-> > format. The kernel driver knows about the device class only, knowledge
-> > about any device-specific format is only available in userspace.
-> 
-> So, unless you want to add camera-specific code to your class-driver
-> (UVC?),
-
-Not UVC, project Ara camera class.
-
-> that's another argument against approach (2) above.
-
-In my case that's correct, although I could still use the request API with a 
-single binary blob control.
-
-> >> Those metadata buffers can well contain some parameters, that can also
-> >> be obtained via controls. So, if we just send metadata buffers to the
-> >> user as is, we create duplication, which isn't nice.
-> > 
-> > In my case there won't be any duplication as there will likely be no
-> > control at all, but I agree with you in the general case.
-> > 
-> >> Besides, the end user will anyway want broken down control values. E.g.
-> >> in the Android case, the app is getting single controls, not opaque
-> >> metadata buffers. Of course, one could create a vendor metadata tag
-> >> "metadata blob," but that's not how Android does it so far.
-> >> 
-> >> OTOH passing those buffers to the subdevice driver for parsing and
-> >> returning them as an (extended) control also seems a bit ugly.
-> >> 
-> >> What about performance cost? If we pass all those parameters as a single
-> >> extended control (as long as they are of the same class), the cost won't
-> >> be higher, than dequeuing a buffer? Let's not take the parsing cost and
-> >> the control struct memory overhead into account for now.
-> > 
-> > If you take nothing into account then the cost won't be higher ;-) It's
-> > the parsing cost I was referring to, including the cost of updating the
-> > control value from within the kernel.
-> 
-> I meant mostly context switching costs, switching between the kernel- and
-> the user-space. If we had to extract all controls one by one that wouldn't
-> be a negligible overhead, I guess.
-
-Agreed.
-
-> [snip]
-> 
-> >>>> Right, our use-cases so far don't send a lot of data as per-frame
-> >>>> metadata, no idea what others do.
-> >>> 
-> >>> What kind of hardware do you deal with that sends meta-data ? And over
-> >>> what kind of channel does it send it ?
-> >> 
-> >> A CSI-2 connected camera sensor.
-> > 
-> > Is meta-data sent as embedded data lines with a different CSI-2 DT ?
-> 
-> A different data type, yes.
-> 
-> So, all in all it looks that the only immediately available option and,
-> possibly, the only feasible option at all is a separate buffer queue. Do
-> we agree, that a subdev API is needed to inform the bridge driver about
-> the availability and location of the metadata?
-
-As explained above I agree we need to extend the subdev API.
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7b39440192d6..285f7d79d848 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -24,23 +24,45 @@
+ #include <linux/export.h>
+ #include <linux/ioctl.h>
+ #include <linux/media.h>
++#include <linux/slab.h>
+ #include <linux/types.h>
+ 
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
+ 
++struct media_device_fh {
++	struct media_devnode_fh fh;
++};
++
++static inline struct media_device_fh *media_device_fh(struct file *filp)
++{
++	return container_of(filp->private_data, struct media_device_fh, fh);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Userspace API
+  */
+ 
+ static int media_device_open(struct file *filp)
+ {
++	struct media_device_fh *fh;
++
++	fh = kzalloc(sizeof(*media_device_fh), GFP_KERNEL);
++	if (!fh)
++		return -ENOMEM;
++
++	filp->private_data = &fh->fh;
++
+ 	return 0;
+ }
+ 
+ static int media_device_close(struct file *filp)
+ {
++	struct media_device_fh *fh = media_device_fh(filp);
++
++	kfree(fh);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index ebf9626e5ae5..67bac29838d3 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -154,6 +154,7 @@ static long media_compat_ioctl(struct file *filp, unsigned int cmd,
+ /* Override for the open function */
+ static int media_open(struct inode *inode, struct file *filp)
+ {
++	struct media_devnode_fh *fh;
+ 	struct media_devnode *mdev;
+ 	int ret;
+ 
+@@ -175,16 +176,15 @@ static int media_open(struct inode *inode, struct file *filp)
+ 	get_device(&mdev->dev);
+ 	mutex_unlock(&media_devnode_lock);
+ 
+-	filp->private_data = mdev;
+-
+-	if (mdev->fops->open) {
+-		ret = mdev->fops->open(filp);
+-		if (ret) {
+-			put_device(&mdev->dev);
+-			return ret;
+-		}
++	ret = mdev->fops->open(filp);
++	if (ret) {
++		put_device(&mdev->dev);
++		return ret;
+ 	}
+ 
++	fh = filp->private_data;
++	fh->devnode = mdev;
++
+ 	return 0;
+ }
+ 
+@@ -193,8 +193,7 @@ static int media_release(struct inode *inode, struct file *filp)
+ {
+ 	struct media_devnode *mdev = media_devnode_data(filp);
+ 
+-	if (mdev->fops->release)
+-		mdev->fops->release(filp);
++	mdev->fops->release(filp);
+ 
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index 17ddae32060d..ce81047cb4fc 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -52,6 +52,20 @@ struct media_file_operations {
+ };
+ 
+ /**
++ * struct media_devnode_fh - Media device node file handle
++ * @devnode:	pointer to the media device node
++ *
++ * This structure serves as a base for per-file-handle data storage. Media
++ * device node users embed media_devnode_fh in their custom file handle data
++ * structures and store the media_devnode_fh in the file private_data in order
++ * to let the media device node core locate the media_devnode corresponding to a
++ * file handle.
++ */
++struct media_devnode_fh {
++	struct media_devnode *devnode;
++};
++
++/**
+  * struct media_devnode - Media device node
+  * @fops:	pointer to struct media_file_operations with media device ops
+  * @dev:	struct device pointer for the media controller device
+@@ -92,7 +106,9 @@ void media_devnode_unregister(struct media_devnode *mdev);
+ 
+ static inline struct media_devnode *media_devnode_data(struct file *filp)
+ {
+-	return filp->private_data;
++	struct media_devnode_fh *fh = filp->private_data;
++
++	return fh->devnode;
+ }
+ 
+ static inline int media_devnode_is_registered(struct media_devnode *mdev)
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.10
 
