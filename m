@@ -1,153 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56357 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669AbbLFDFO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 22:05:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v8 18/55] [media] omap3isp: create links after all subdevs have been bound
-Date: Sun, 06 Dec 2015 05:05:25 +0200
-Message-ID: <2092688.POBCcC9dJr@avalon>
-In-Reply-To: <55EFF25D.5010905@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <20150909080333.GL3175@valkosipuli.retiisi.org.uk> <55EFF25D.5010905@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:59187 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934734AbbLQOIf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 09:08:35 -0500
+Date: Thu, 17 Dec 2015 12:08:30 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Mason <slash.tmp@free.fr>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: Automatic device driver back-porting with media_build
+Message-ID: <20151217120830.0fc27f01@recife.lan>
+In-Reply-To: <5672BE15.9070006@free.fr>
+References: <5672A6F0.6070003@free.fr>
+	<20151217105543.13599560@recife.lan>
+	<5672BE15.9070006@free.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Em Thu, 17 Dec 2015 14:52:21 +0100
+Mason <slash.tmp@free.fr> escreveu:
 
-Thank you for the patch.
-
-On Wednesday 09 September 2015 10:48:29 Javier Martinez Canillas wrote:
-> On 09/09/2015 10:03 AM, Sakari Ailus wrote:
-> > On Sun, Aug 30, 2015 at 12:06:29AM -0300, Mauro Carvalho Chehab wrote:
-> >> From: Javier Martinez Canillas <javier@osg.samsung.com>
-> >> 
-> >> The omap3isp driver parses the graph endpoints to know how many
-> >> subdevices needs to be registered async and register notifiers callbacks
-> >> for to know when these are bound and when the async registrations are
-> >> completed.
-> >> 
-> >> Currently the entities pad are linked with the correct ISP input
-> >> interface when the subdevs are bound but it happens before entitities are
-> >> registered with the media device so that won't work now that the entity
-> >> links list is initialized on device registration.
-> >> 
-> >> So instead creating the pad links when the subdevice is bound, create
-> >> them on the complete callback once all the subdevices have been bound but
-> >> only try to create for the ones that have a bus configuration set during
-> >> bound.
-> >> 
-> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >> 
-> >> diff --git a/drivers/media/platform/omap3isp/isp.c
-> >> b/drivers/media/platform/omap3isp/isp.c index b8f6f81d2db2..69e7733d36cd
-> >> 100644
-> >> --- a/drivers/media/platform/omap3isp/isp.c
-> >> +++ b/drivers/media/platform/omap3isp/isp.c
-> >> @@ -2321,26 +2321,33 @@ static int isp_subdev_notifier_bound(struct
-> >> v4l2_async_notifier *async,
-> >>  				     struct v4l2_subdev *subdev,
-> >>  				     struct v4l2_async_subdev *asd)
-> >>  {
-> >> -	struct isp_device *isp = container_of(async, struct isp_device,
-> >> -					      notifier);
-> >>  	struct isp_async_subdev *isd =
-> >>  		container_of(asd, struct isp_async_subdev, asd);
-> >> -	int ret;
-> >> -
-> >> -	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
-> >> -	if (ret < 0)
-> >> -		return ret;
-> >> 
-> >>  	isd->sd = subdev;
-> >>  	isd->sd->host_priv = &isd->bus;
-> >> 
-> >> -	return ret;
-> >> +	return 0;
-> >>  }
-> >>  
-> >>  static int isp_subdev_notifier_complete(struct v4l2_async_notifier
-> >>  *async)
-> >>  {
-> >>  	struct isp_device *isp = container_of(async, struct isp_device,
-> >>  					      notifier);
-> >> +	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
-> >> +	struct v4l2_subdev *sd;
-> >> +	struct isp_bus_cfg *bus;
-> >> +	int ret;
-> >> +
-> >> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> >> +		/* Only try to link entities whose interface was set on bound */
-> >> +		if (sd->host_priv) {
-> >> +			bus = (struct isp_bus_cfg *)sd->host_priv;
-> >> +			ret = isp_link_entity(isp, &sd->entity, bus->interface);
-> >> +			if (ret < 0)
-> >> +				return ret;
-> >> +		}
-> >> +	}
-> >>  	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
-> >>  }
+> Hello Mauro,
+> 
+> On 17/12/2015 13:55, Mauro Carvalho Chehab wrote:
+> 
+> > Mason wrote:
 > > 
-> > I think you're working around a problem here, not really fixing it.
+> >> I have a TechnoTrend TT-TVStick CT2-4400v2 USB tuner, as described here:
+> >> http://linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400
+> >>
+> >> According to the article, the device is supported since kernel 3.19
+> >> and indeed, if I use a 4.1 kernel, I can pick CONFIG_DVB_USB_DVBSKY
+> >> and everything seems to work.
+> >>
+> >> Unfortunately (for me), I've been asked to make this driver work on
+> >> an ancient 3.4 kernel.
+> >>
+> >> The linuxtv article mentions:
+> >>
+> >> "Drivers are included in kernel 3.17 (for version 1) and 3.19 (for version 2).
+> >> They can be built with media_build for older kernels."
+> >> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> >>
+> >> This seems to imply that I can use the media_build framework to
+> >> automatically (??) back-port a 3.19 driver to a 3.4 kernel?
 > > 
-> > This change will create the links only after the media device is
-> > registered, which means the user may obtain a partial enumeration of
-> > links if the enumeration is performed too early.
+> > "automatically" is a complex word ;)
+> 
+> If I get it working, I think you can even say "auto-magically" ;-)
+> 
+> >> This sounds too good to be true...
+> >> How far back can I go?
 > > 
-> > Before this set, the problem also was that the media device was registered
-> > before the async entities were bound, again making it possible to obtain a
-> > partial enumeration of entities.
+> > The goal is to allow compilation since 2.6.32, but please notice that
+> > not all drivers will go that far. Basically, when the backport seems too
+> > complex, we just remove the driver from the list of drivers that are
+> > compiled for a given legacy version.
+> > 
+> > Se the file v4l/versions.txt to double-check if the drivers you need
+> > have such restrictions. I suspect that, in the specific case of
+> > DVB_USB_DVBSKY, it should compile.
 > 
-> You are absolutely correct but I think these are separate issues. The
-> problem here is that v4l2_async_test_notify() [0] first invokes the bound
-> notifier callback and then calls v4l2_device_register_subdev() that
-> register the media entity with the media device.
+> That is great news.
 > 
-> Since now is a requirement that the entities must be registered prior
-> creating pads links (because to init a MEDIA_GRAPH_LINK object a mdev has
-> to be set), $SUBJECT is needed regardless of the race between subdev
-> registration and the media dev node being available to user-space before
-> everything is registered.
-> > What I'd suggest instead is that we split media device initialisation and
-> > registration to the system; that way the media device can be prepared
-> > (entities registered and links created) before it becomes visible to the
-> > user space. I can write a patch for that if you like.
+> > That doesn't mean that it was tested there. We don't test those
+> > backports to check against regressions. We only work, at best
+> > effort basis, to make them to build. So, use it with your own
+> > risk. If you find any problems, feel free to send us patches
+> > fixing it.
 > 
-> Agreed, looking at the implementation it seems that
-> __media_device_register() has to be split (possibly being renamed to
-> __media_device_init) so it only contains the initialization logic and all
-> the media device node registration logic moved to another function (that
-> would become media_device_register).
+> My first problem is that compilation fails on the first file ;-)
+> See attached log.
 > 
-> I think the media dev node registration has to be made in the complete
-> callback to make sure that happens when all the subdevs have been already
-> registered.
+> My steps are:
 > 
-> Is that what you had in mind? I can also write such a patch if you want.
+> cd media_build/linux
+> make tar DIR=/tmp/sandbox/media_tree
+> make untar
+> cd ..
+> make release DIR=/tmp/sandbox/custom-linux-3.4
+> make
+> 
+> I will investigate and report back.
 
-I think I've already commented on it in my review of another patch (but can't 
-find it right now), I agree with you. We need to properly think about 
-initialization (and, for that matter, cleanup as well) order, both for the 
-media device and the entities. And, as a corollary, for subdevs too. The 
-current media entity and subdevs initialization and registration code grew in 
-an organic way without much design behind it, let's not repeat the same 
-mistake.
+Then I guess you're not using vanilla 3.4 Kernel, but some heavily
+modified version. You're on your own here.
 
-> [0]:
-> http://lxr.free-electrons.com/source/drivers/media/v4l2-core/v4l2-async.c#L
-> 96 [1]:
-> http://lxr.free-electrons.com/source/drivers/media/media-device.c#L372
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
