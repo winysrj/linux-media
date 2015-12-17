@@ -1,242 +1,346 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:36144 "EHLO
-	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753433AbbLJDEn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 22:04:43 -0500
-Received: by iofh3 with SMTP id h3so81718500iof.3
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2015 19:04:43 -0800 (PST)
-Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
-        by smtp.gmail.com with ESMTPSA id v85sm4429645ioi.20.2015.12.09.19.04.41
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Wed, 09 Dec 2015 19:04:41 -0800 (PST)
-From: Maury Markowitz <maury.markowitz@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: [PATCH] ca-ON-Toronto: adding scan file for Toronto, Canada
-Message-Id: <7963B923-0B4C-4FA6-847D-0D9C521C7DA0@gmail.com>
-Date: Wed, 9 Dec 2015 22:04:41 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194AbbLQIko (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:40:44 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 05/48] v4l: vsp1: Store the display list manager in the WPF
+Date: Thu, 17 Dec 2015 10:39:43 +0200
+Message-Id: <1450341626-6695-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My second patch, you can be slightly less gentle now :-)
+Each WPF can process display lists independently, move the manager to
+the WPF to reflect that and prepare for display list support for non-DRM
+pipelines.
 
-This is a scan listing for the Toronto area, along with some of the harder to get signals. I was unsure how to enter the NTSC (analog) signals so I commented them out.
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- atsc/ca-ON-Toronto | 200 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 200 insertions(+)
- create mode 100644 atsc/ca-ON-Toronto
+ drivers/media/platform/vsp1/vsp1_dl.c     | 37 ++++++++++++++++++++++++++-----
+ drivers/media/platform/vsp1/vsp1_dl.h     | 26 ++++------------------
+ drivers/media/platform/vsp1/vsp1_drm.c    | 19 +++++++---------
+ drivers/media/platform/vsp1/vsp1_drm.h    |  9 +-------
+ drivers/media/platform/vsp1/vsp1_entity.c |  2 ++
+ drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_rwpf.h   |  3 +++
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 18 +++++++++++++++
+ 8 files changed, 70 insertions(+), 46 deletions(-)
 
-diff --git a/atsc/ca-ON-Toronto b/atsc/ca-ON-Toronto
-new file mode 100644
-index 0000000..3923f64
---- /dev/null
-+++ b/atsc/ca-ON-Toronto
-@@ -0,0 +1,200 @@
-+#------------------------------------------------------------------------------
-+# location			   : Toronto, ON, Canada
-+# provider			   : OTA
-+# date (yyyy-mm-dd)    : 2015-12-09
-+# provided by (opt)    : maury.markowitz@gmail.com
-+#------------------------------------------------------------------------------
-+#
-+# The following list are the main channels available in Toronto, including
-+# both local channels as well as those from the US in the Buffalo area.
-+# More distant stations like Rochester and Syracuse are listed below
-+#
-+#------------------------------------------------------------------------------
-+# CFTO, Toronto CTV, physical channel 9, virtual channel 9, 17.4 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 189028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 5f49f52e22f2..32661daac7b0 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -48,6 +48,25 @@ struct vsp1_dl_list {
+ 	int reg_count;
+ };
+ 
++/**
++ * struct vsp1_dl_manager - Display List manager
++ * @vsp1: the VSP1 device
++ * @lock: protects the active, queued and pending lists
++ * @free: array of all free display lists
++ * @active: list currently being processed (loaded) by hardware
++ * @queued: list queued to the hardware (written to the DL registers)
++ * @pending: list waiting to be queued to the hardware
++ */
++struct vsp1_dl_manager {
++	struct vsp1_device *vsp1;
 +
-+# WUTV, Buffalo FOX, physical channel 14, virtual channel 29, 1000 kW, 981' tower, 43.025612 -78.928373
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 473028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
++	spinlock_t lock;
++	struct list_head free;
++	struct vsp1_dl_list *active;
++	struct vsp1_dl_list *queued;
++	struct vsp1_dl_list *pending;
++};
 +
-+# CHCH, Hamilton independent, physical channel 15, virtual channel 11, 132 kW, unknown tower, 43.207500 -79.774167
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 479028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+ /* -----------------------------------------------------------------------------
+  * Display List Transaction Management
+  */
+@@ -257,11 +276,16 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+ 	dlm->pending = NULL;
+ }
+ 
+-int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
+-		  unsigned int prealloc)
++struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
++					unsigned int prealloc)
+ {
++	struct vsp1_dl_manager *dlm;
+ 	unsigned int i;
+ 
++	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
++	if (!dlm)
++		return NULL;
 +
-+# CICA, Toronto TVO, physical channel 19, virtual channel 19, 106.5 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 503028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+ 	dlm->vsp1 = vsp1;
+ 
+ 	spin_lock_init(&dlm->lock);
+@@ -272,18 +296,21 @@ int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
+ 
+ 		dl = vsp1_dl_list_alloc(dlm);
+ 		if (!dl)
+-			return -ENOMEM;
++			return NULL;
+ 
+ 		list_add_tail(&dl->list, &dlm->free);
+ 	}
+ 
+-	return 0;
++	return dlm;
+ }
+ 
+-void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm)
++void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
+ {
+ 	struct vsp1_dl_list *dl, *next;
+ 
++	if (!dlm)
++		return;
 +
-+# CBLT, Toronto CBC, physical channel 20, virtual channel 5, 38 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 509028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+ 	list_for_each_entry_safe(dl, next, &dlm->free, list) {
+ 		list_del(&dl->list);
+ 		vsp1_dl_list_free(dl);
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index caa6a85f6825..46f7ae337374 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -17,31 +17,13 @@
+ 
+ struct vsp1_device;
+ struct vsp1_dl_list;
+-
+-/**
+- * struct vsp1_dl_manager - Display List manager
+- * @vsp1: the VSP1 device
+- * @lock: protects the active, queued and pending lists
+- * @free: array of all free display lists
+- * @active: list currently being processed (loaded) by hardware
+- * @queued: list queued to the hardware (written to the DL registers)
+- * @pending: list waiting to be queued to the hardware
+- */
+-struct vsp1_dl_manager {
+-	struct vsp1_device *vsp1;
+-
+-	spinlock_t lock;
+-	struct list_head free;
+-	struct vsp1_dl_list *active;
+-	struct vsp1_dl_list *queued;
+-	struct vsp1_dl_list *pending;
+-};
++struct vsp1_dl_manager;
+ 
+ void vsp1_dlm_setup(struct vsp1_device *vsp1);
+ 
+-int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
+-		  unsigned int prealloc);
+-void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm);
++struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
++					unsigned int prealloc);
++void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
+ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index bc275bb38352..b3df694569e7 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -31,11 +31,14 @@
+  * Interrupt Handling
+  */
+ 
+-void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
++void vsp1_drm_display_start(struct vsp1_device *vsp1)
+ {
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
++}
+ 
+-	vsp1_dlm_irq_frame_end(&vsp1->drm->dlm);
++void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
++{
++	vsp1_dlm_irq_frame_end(pipe->output->dlm);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -101,7 +104,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 
+ 		pipe->num_inputs = 0;
+ 
+-		vsp1_dlm_reset(&vsp1->drm->dlm);
++		vsp1_dlm_reset(pipe->output->dlm);
+ 		vsp1_device_put(vsp1);
+ 
+ 		dev_dbg(vsp1->dev, "%s: pipeline disabled\n", __func__);
+@@ -228,7 +231,7 @@ void vsp1_du_atomic_begin(struct device *dev)
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 
+ 	/* Prepare the display list. */
+-	pipe->dl = vsp1_dl_list_get(&vsp1->drm->dlm);
++	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
+ 
+@@ -555,16 +558,11 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ {
+ 	struct vsp1_pipeline *pipe;
+ 	unsigned int i;
+-	int ret;
+ 
+ 	vsp1->drm = devm_kzalloc(vsp1->dev, sizeof(*vsp1->drm), GFP_KERNEL);
+ 	if (!vsp1->drm)
+ 		return -ENOMEM;
+ 
+-	ret = vsp1_dlm_init(vsp1, &vsp1->drm->dlm, 4);
+-	if (ret < 0)
+-		return ret;
+-
+ 	pipe = &vsp1->drm->pipe;
+ 
+ 	vsp1_pipeline_init(pipe);
+@@ -590,5 +588,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1)
+ {
+-	vsp1_dlm_cleanup(&vsp1->drm->dlm);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 5ef32cff9601..1acf6048841b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -13,7 +13,6 @@
+ #ifndef __VSP1_DRM_H__
+ #define __VSP1_DRM_H__
+ 
+-#include "vsp1_dl.h"
+ #include "vsp1_pipe.h"
+ 
+ /**
+@@ -21,22 +20,16 @@
+  * @pipe: the VSP1 pipeline used for display
+  * @num_inputs: number of active pipeline inputs at the beginning of an update
+  * @update: the pipeline configuration has been updated
+- * @dlm: display list manager used for DRM operation
+  */
+ struct vsp1_drm {
+ 	struct vsp1_pipeline pipe;
+ 	unsigned int num_inputs;
+ 	bool update;
+-	struct vsp1_dl_manager dlm;
+ };
+ 
+ int vsp1_drm_init(struct vsp1_device *vsp1);
+ void vsp1_drm_cleanup(struct vsp1_device *vsp1);
+ int vsp1_drm_create_links(struct vsp1_device *vsp1);
+-
+-static inline void vsp1_drm_display_start(struct vsp1_device *vsp1)
+-{
+-	vsp1_dlm_irq_display_start(&vsp1->drm->dlm);
+-}
++void vsp1_drm_display_start(struct vsp1_device *vsp1);
+ 
+ #endif /* __VSP1_DRM_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 0d1163eb3362..c005d374c254 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -244,6 +244,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 
+ void vsp1_entity_destroy(struct vsp1_entity *entity)
+ {
++	if (entity->destroy)
++		entity->destroy(entity);
+ 	if (entity->subdev.ctrl_handler)
+ 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
+ 	media_entity_cleanup(&entity->subdev.entity);
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 311d5b64c9a5..259880e524fe 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -56,6 +56,8 @@ struct vsp1_route {
+ struct vsp1_entity {
+ 	struct vsp1_device *vsp1;
+ 
++	void (*destroy)(struct vsp1_entity *);
 +
-+# CBLFT, Toronto CBC French, physical channel 25, virtual channel 25, 2.5 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 539028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+ 	enum vsp1_entity_type type;
+ 	unsigned int index;
+ 	const struct vsp1_route *route;
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 8e8235682ada..d04df39b2737 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -24,6 +24,7 @@
+ #define RWPF_PAD_SOURCE				1
+ 
+ struct v4l2_ctrl;
++struct vsp1_dl_manager;
+ struct vsp1_rwpf;
+ struct vsp1_video;
+ 
+@@ -60,6 +61,8 @@ struct vsp1_rwpf {
+ 
+ 	unsigned int offsets[2];
+ 	dma_addr_t buf_addr[3];
 +
-+# WNLO, Buffalo CW, physical channel 32, virtual channel 23, 1000 kW, 994' tower, 43.030057 -78.920594
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 581028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
++	struct vsp1_dl_manager *dlm;
+ };
+ 
+ static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index c78d4af50fcf..6afc9c8d9adc 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -16,6 +16,7 @@
+ #include <media/v4l2-subdev.h>
+ 
+ #include "vsp1.h"
++#include "vsp1_dl.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_video.h"
+ 
+@@ -218,6 +219,13 @@ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
+  * Initialization and Cleanup
+  */
+ 
++static void vsp1_wpf_destroy(struct vsp1_entity *entity)
++{
++	struct vsp1_rwpf *wpf = container_of(entity, struct vsp1_rwpf, entity);
 +
-+# WGRZ, Buffalo NBC, physical channel 33, virtual channel 2, 480 kW, 968' tower, 42.718671 -78.562801
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 587028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
++	vsp1_dlm_destroy(wpf->dlm);
++}
 +
-+# CHCJ, Hamilton CTV Two, physical channel 35, virtual channel 35, 390 kW, unknown tower, 43.231667 -79.859167
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 599028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
+ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ {
+ 	struct v4l2_subdev *subdev;
+@@ -233,6 +241,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	wpf->max_width = WPF_MAX_WIDTH;
+ 	wpf->max_height = WPF_MAX_HEIGHT;
+ 
++	wpf->entity.destroy = vsp1_wpf_destroy;
+ 	wpf->entity.type = VSP1_ENTITY_WPF;
+ 	wpf->entity.index = index;
+ 
+@@ -240,6 +249,15 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
++	/* Initialize the display list manager if the WPF is used for display */
++	if ((vsp1->info->features & VSP1_HAS_LIF) && index == 0) {
++		wpf->dlm = vsp1_dlm_create(vsp1, 4);
++		if (!wpf->dlm) {
++			ret = -ENOMEM;
++			goto error;
++		}
++	}
 +
-+# CITS, Hamilton CTS, physical channel 36, virtual channel 36, 5 kW, unknown tower, 43.207500 -79.774167
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 605028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WKBW, Buffalo ABC, physical channel 38, virtual channel 7, 358 kW, 1420' tower, 42.637505 -78.619719
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 611028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WIVB, Buffalo CBS, physical channel 39, virtual channel 4, 790 kW, 1368' tower, 42.659227 -78.625581
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 623028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CJMT, Toronto Omni, physical channel 40, virtual channel 40, 19.5 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 629028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CIII, Toronto Global, physical channel 41, virtual channel 41, 38 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 635028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WNED, Buffalo PBS, physical channel 43, virtual channel 17, 473 kW, 1110' tower, 43.207500 -79.774167
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 647028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CITY, Toronto independent, physical channel 44, virtual channel 57, 21 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 653028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CFMT, Toronto Omni 2, physical channel 47, virtual channel 47, 22.2 kW, 1611' CN tower, 43.642500 -79.387222
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 671028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WNYO, Buffalo MyN, physical channel 49, virtual channel 49, 198 kW, 946' tower, 42.782838 -78.457521
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 683028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+#------------------------------------------------------------------------------
-+#
-+# The following stations are much more difficult to receive from the Toronto
-+# area, either weaker transmitters, being at odd angles, or are further from
-+# the Toronto area
-+#
-+#------------------------------------------------------------------------------
-+
-+# WBBZ, Buffalo MeTV, physical channel 7, virtual channel 67, 26.9 kW, unknown tower, 42.567839 -78.723083
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 177028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CKVR, Barrie A, physical channel 10, virtual channel 10, 11 kW, 1611' CN tower, 44.351389 -79.698333
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 195028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CHEX, Peterborough CBC, physical channel 12, virtual channel 12, 20 kW, unknown tower, 44.328056 -78.299444
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 207028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WPXJ, Batavia ION, physical channel 23, virtual channel 51, 455 kW, unknown tower, 42.895061 -78.015288
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 527028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# WYNB, Buffalo independent, physical channel 26, virtual channel 26, 243 kW, unknown tower, 42.393392 -79.228653
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 545028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+# CKVP, St. Catherine's TVO, physical channel 42, virtual channel 42, 11 kW, 496' tower, 43.051667 -79.300833
-+[CHANNEL]
-+	DELIVERY_SYSTEM = ATSC
-+	FREQUENCY = 641028615
-+	MODULATION = VSB/8
-+	INVERSION = AUTO
-+
-+#------------------------------------------------------------------------------
-+#
-+# The following stations are NTSC analog
-+#
-+#------------------------------------------------------------------------------
-+
-+# CHEX, Courtice CBC, physical channel 22, virtual channel 22, 6 kW, unknown tower, 43.954167 -78.806389
-+#[CHANNEL]
-+#	DELIVERY_SYSTEM = ATSC
-+#	FREQUENCY = 521028615
-+#	MODULATION = VSB/8
-+#	INVERSION = AUTO
+ 	/* Initialize the V4L2 subdev. */
+ 	subdev = &wpf->entity.subdev;
+ 	v4l2_subdev_init(subdev, &wpf_ops);
 -- 
-2.5.4 (Apple Git-61)
-
+2.4.10
 
