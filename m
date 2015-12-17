@@ -1,99 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60614 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933006AbbLPNew (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 21/23] media: Remove pre-allocated entity enumeration bitmap
-Date: Wed, 16 Dec 2015 15:32:36 +0200
-Message-Id: <1450272758-29446-22-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:59194 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755797AbbLQO6L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 09:58:11 -0500
+Date: Thu, 17 Dec 2015 12:58:06 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [PATCH] [media] uapi/media.h: Use u32 for the number of graph
+ objects
+Message-ID: <20151217125806.3f4f879e@recife.lan>
+In-Reply-To: <2035986.3qXU4Qokl3@wuerfel>
+References: <40e950dbb6a3b7f73da52e147fa51441b762131a.1450350558.git.mchehab@osg.samsung.com>
+	<5672A69F.7020505@xs4all.nl>
+	<20151217104556.70d4f0f8@recife.lan>
+	<2035986.3qXU4Qokl3@wuerfel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The bitmaps for entity enumerations used to be statically allocated. Now
-that the drivers have been converted to use the new interface which
-explicitly initialises the enum objects, drop the pre-allocated bitmaps.
+Em Thu, 17 Dec 2015 14:55:11 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 16 +++++-----------
- include/media/media-entity.h |  9 ++-------
- 2 files changed, 7 insertions(+), 18 deletions(-)
+> On Thursday 17 December 2015 10:45:56 Mauro Carvalho Chehab wrote:
+> > If I understood well, he's proposing to do is:
+> > 
+> > struct media_v2_topology {
+> >         __u64 topology_version;
+> > 
+> >         __u32 num_entities;
+> >         __u32 num_interfaces;
+> >         __u32 num_pads;
+> >         __u32 num_links;
+> > 
+> >         __u64 ptr_entities;
+> >         __u64 ptr_interfaces;
+> >         __u64 ptr_pads;
+> >         __u64 ptr_links;
+> > };
+> > 
+> > The problem is that, if we latter need to extend it to add a new type
+> > the extension will not be too nice. For example, I did some experimental
+> > patches adding graph groups:
+> > 
+> 
+> Can you clarify how the 'topology_version' is used here? Is that
+> the version of the structure layout that decides how we interpret the
+> rest, or is it a number that is runtime dependent?
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index ddf3c23..c799a4e 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -222,14 +222,10 @@ void media_gobj_remove(struct media_gobj *gobj)
-  */
- int __media_entity_enum_init(struct media_entity_enum *ent_enum, int idx_max)
- {
--	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
--		ent_enum->bmap = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
--					 sizeof(long), GFP_KERNEL);
--		if (!ent_enum->bmap)
--			return -ENOMEM;
--	} else {
--		ent_enum->bmap = ent_enum->prealloc_bmap;
--	}
-+	ent_enum->bmap = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
-+				 sizeof(long), GFP_KERNEL);
-+	if (!ent_enum->bmap)
-+		return -ENOMEM;
- 
- 	bitmap_zero(ent_enum->bmap, idx_max);
- 	ent_enum->idx_max = idx_max;
-@@ -245,9 +241,7 @@ EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-  */
- void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
- {
--	if (ent_enum->bmap != ent_enum->prealloc_bmap)
--		kfree(ent_enum->bmap);
--	ent_enum->bmap = NULL;
-+	kfree(ent_enum->bmap);
- }
- EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
- 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 251eddf..034b9d7 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -72,27 +72,22 @@ struct media_gobj {
- };
- 
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
--#define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
- /*
-  * The number of pads can't be bigger than the number of entities,
-  * as the worse-case scenario is to have one entity linked up to
-- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+ * 63 entities.
-  */
--#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+#define MEDIA_ENTITY_MAX_PADS		63
- 
- /**
-  * struct media_entity_enum - An enumeration of media entities.
-  *
-- * @prealloc_bmap: Pre-allocated space reserved for media entities if the
-- *		total number of entities does not exceed
-- *		MEDIA_ENTITY_ENUM_MAX_ID.
-  * @bmap:	Bit map in which each bit represents one entity at struct
-  *		media_entity->internal_idx.
-  * @idx_max:	Number of bits in bmap
-  */
- struct media_entity_enum {
--	DECLARE_BITMAP(prealloc_bmap, MEDIA_ENTITY_ENUM_MAX_ID);
- 	unsigned long *bmap;
- 	int idx_max;
- };
--- 
-2.1.4
+No, topology_version is just a mononotonic counter that starts on 0
+and it is incremented every time a graph object is added or removed. 
 
+It is meant to be used to track if the topology changes after a previous
+call to this ioctl.
+
+On existing media controller embedded device hardware, it should
+always be zero, but on devices that allow dynamic hardware changes
+(some embedded DTV hardware allows that - also on devices with FPGA,
+with RISC CPUs or hot-pluggable devices) should use it to know if the
+hardware got modified. 
+
+This is also needed on multi-function devices where different drivers 
+are used for each function. That's the case of au0828, with uses a
+media driver for video, and the standard USB Audio Class driver for
+audio. As the drivers are independent, the topology_version will
+be zero when the first driver is loaded, but it will change during
+at probe time on second driver. It will also be increased if one
+of the drivers got unbind.
+
+> If this is an API version, I think the answer can simply be to drop
+> the topology_version field entirely, and use a new ioctl command code
+> whenever the API changes. This is the preferred method anyway.
+
+Regards,
+Mauro.
