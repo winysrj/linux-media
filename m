@@ -1,191 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58811 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106AbbLJLhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 06:37:38 -0500
-Date: Thu, 10 Dec 2015 09:37:32 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH 05/18] [media] media-controller: enable all interface
- links at init
-Message-ID: <20151210093732.650344b5@recife.lan>
-In-Reply-To: <29585066.DcXagjeG5R@avalon>
-References: <cover.1441559233.git.mchehab@osg.samsung.com>
-	<2ddddaaaecbdbf624441793ca4c57e81530eaf05.1441559233.git.mchehab@osg.samsung.com>
-	<29585066.DcXagjeG5R@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933390AbbLQIlY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:41:24 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 43/48] v4l: vsp1: Merge RPF and WPF pad ops structures
+Date: Thu, 17 Dec 2015 10:40:21 +0200
+Message-Id: <1450341626-6695-44-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 23 Nov 2015 21:46:53 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+The two structures are identical, merge them and move the result to
+vsp1_rwpf.c. All rwpf pad operations can now be declared static.
 
-> Hi Mauro,
-> 
-> Thank you for the patch.
-> 
-> On Sunday 06 September 2015 14:30:48 Mauro Carvalho Chehab wrote:
-> > Interface links are normally enabled, meaning that the interfaces are
-> > bound to the entities. So, any ioctl send to the interface are reflected
-> 
-> s/send/sent/
-> 
-> > at the entities managed by the interface.
-> > 
-> > However, when a device is usage, other interfaces for the same hardware
-> 
-> s/usage/in use/
-> 
-> > could be decoupled from the entities linked to them, because the
-> > hardware may have some parts busy.
-> > 
-> > That's for example, what happens when an hybrid TV device is in usage.
-> 
-> s/usage/use/
-> 
-> > If it is streaming analog TV or capturing signals from S-Video/Composite
-> > connectors, typically the digital part of the hardware can't be used and
-> > vice-versa.
-> > 
-> > This is generally due to some internal hardware or firmware limitation,
-> > that it is not easily mapped via data pipelines.
-> > 
-> > What the Kernel drivers do internally is that they decouple the hardware
-> > from the interface. So, all changes, if allowed, are done only at some
-> > interface cache, but not physically changed at the hardware.
-> > 
-> > The usage is similar to the usage of the MEDIA_LNK_FL_ENABLED on data
-> > links. So, let's use the same flag to indicate if ether the interface
-> 
-> s/ether/either/
-> 
-> > to entity link is bound/enabled or not.
-> 
-> I believe we'll need to experiment with the interface links to see what's 
-> really needed there. As a general rule I'd like to avoid exposing too much 
-> information to userspace without a clear indication that the information is 
-> actually needed, as it's always easier to expose additional information later 
-> than to remove information already exposed.
-> 
-> For this reason I'd like to see as a first step how we would do in userspace 
-> without making those links dynamic. If we then realize that we're lacking 
-> information we'll decide on the best course of action and on exactly what to 
-> expose and how to expose it, using concrete userspace use cases.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 12 +------
+ drivers/media/platform/vsp1/vsp1_rwpf.c | 60 +++++++++++++++++++--------------
+ drivers/media/platform/vsp1/vsp1_rwpf.h | 19 +----------
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 12 +------
+ 4 files changed, 38 insertions(+), 65 deletions(-)
 
-As discussed during MC workshop, the need of marking an interface link as
-active or not is because, on complex devices like hybrid TV ones, typically
-either the analog side of the digital side of the device is disabled.
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index eb17fa134750..84a3aedae768 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -36,18 +36,8 @@ static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf, u32 reg, u32 data)
+  * V4L2 Subdevice Operations
+  */
+ 
+-static struct v4l2_subdev_pad_ops rpf_pad_ops = {
+-	.init_cfg = vsp1_entity_init_cfg,
+-	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+-	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+-	.get_fmt = vsp1_rwpf_get_format,
+-	.set_fmt = vsp1_rwpf_set_format,
+-	.get_selection = vsp1_rwpf_get_selection,
+-	.set_selection = vsp1_rwpf_set_selection,
+-};
+-
+ static struct v4l2_subdev_ops rpf_ops = {
+-	.pad    = &rpf_pad_ops,
++	.pad    = &vsp1_rwpf_pad_ops,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index 0c5ad023adfb..4d302f5cccb2 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -20,13 +20,20 @@
+ #define RWPF_MIN_WIDTH				1
+ #define RWPF_MIN_HEIGHT				1
+ 
++struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
++				     struct v4l2_subdev_pad_config *config)
++{
++	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
++					RWPF_PAD_SINK);
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2 Subdevice Pad Operations
+  */
+ 
+-int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+-			     struct v4l2_subdev_pad_config *cfg,
+-			     struct v4l2_subdev_mbus_code_enum *code)
++static int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
++				    struct v4l2_subdev_pad_config *cfg,
++				    struct v4l2_subdev_mbus_code_enum *code)
+ {
+ 	static const unsigned int codes[] = {
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+@@ -41,9 +48,9 @@ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+-			      struct v4l2_subdev_pad_config *cfg,
+-			      struct v4l2_subdev_frame_size_enum *fse)
++static int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
++				     struct v4l2_subdev_pad_config *cfg,
++				     struct v4l2_subdev_frame_size_enum *fse)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_subdev_pad_config *config;
+@@ -76,16 +83,9 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
+-				     struct v4l2_subdev_pad_config *config)
+-{
+-	return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, config,
+-					RWPF_PAD_SINK);
+-}
+-
+-int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
+-			 struct v4l2_subdev_pad_config *cfg,
+-			 struct v4l2_subdev_format *fmt)
++static int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_subdev_pad_config *config;
+@@ -100,9 +100,9 @@ int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+-			 struct v4l2_subdev_pad_config *cfg,
+-			 struct v4l2_subdev_format *fmt)
++static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_subdev_pad_config *config;
+@@ -154,9 +154,9 @@ int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    struct v4l2_subdev_selection *sel)
++static int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_selection *sel)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_subdev_pad_config *config;
+@@ -191,9 +191,9 @@ int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    struct v4l2_subdev_selection *sel)
++static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_selection *sel)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+ 	struct v4l2_subdev_pad_config *config;
+@@ -250,6 +250,16 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
++const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops = {
++	.init_cfg = vsp1_entity_init_cfg,
++	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
++	.enum_frame_size = vsp1_rwpf_enum_frame_size,
++	.get_fmt = vsp1_rwpf_get_format,
++	.set_fmt = vsp1_rwpf_set_format,
++	.get_selection = vsp1_rwpf_get_selection,
++	.set_selection = vsp1_rwpf_set_selection,
++};
++
+ /* -----------------------------------------------------------------------------
+  * Controls
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 4ebfab61e0ef..9502710977e8 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -68,24 +68,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
+ 
+ int vsp1_rwpf_init_ctrls(struct vsp1_rwpf *rwpf);
+ 
+-int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+-			     struct v4l2_subdev_pad_config *cfg,
+-			     struct v4l2_subdev_mbus_code_enum *code);
+-int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+-			      struct v4l2_subdev_pad_config *cfg,
+-			      struct v4l2_subdev_frame_size_enum *fse);
+-int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
+-			 struct v4l2_subdev_pad_config *cfg,
+-			 struct v4l2_subdev_format *fmt);
+-int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+-			 struct v4l2_subdev_pad_config *cfg,
+-			 struct v4l2_subdev_format *fmt);
+-int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    struct v4l2_subdev_selection *sel);
+-int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    struct v4l2_subdev_selection *sel);
++extern const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops;
+ 
+ struct v4l2_rect *vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf,
+ 				     struct v4l2_subdev_pad_config *config);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index bdc7d6623fe1..3f4b7208f3ef 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -92,19 +92,9 @@ static struct v4l2_subdev_video_ops wpf_video_ops = {
+ 	.s_stream = wpf_s_stream,
+ };
+ 
+-static struct v4l2_subdev_pad_ops wpf_pad_ops = {
+-	.init_cfg = vsp1_entity_init_cfg,
+-	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+-	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+-	.get_fmt = vsp1_rwpf_get_format,
+-	.set_fmt = vsp1_rwpf_set_format,
+-	.get_selection = vsp1_rwpf_get_selection,
+-	.set_selection = vsp1_rwpf_set_selection,
+-};
+-
+ static struct v4l2_subdev_ops wpf_ops = {
+ 	.video	= &wpf_video_ops,
+-	.pad    = &wpf_pad_ops,
++	.pad    = &vsp1_rwpf_pad_ops,
+ };
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+2.4.10
 
-So, for example, if an hybrid device is working in digital mode, any
-change done via the V4L2 interfaces should not be applied to the hardware.
-The interface should either cache such changes to be applied the next
-time the device would switch to analog mode or return EBUSY.
-
-In other words, the link between the interface and the hardware entities
-are disabled.
-
-This is needed internally at the MC representation of the hardware
-(and one of the main reasons why we need MC on hybrid devices).
-
-Applications also need such information, as, except for a couple
-applications:
-	- xawtv4, (with is not a popular one)
-	- mythTV
-All other open source applications I'm aware of are either digital only
-or analog only and some radio applications even run as applets.
-
-So, the user may have more than one application running at the same time,
-being one active and the other would need to report that it cannot be
-activated because the device is busy.
-
-So, this change is actually needed.
-
-Anyway, I'm splitting this patch in two parts: one for DVB and another
-one for V4L, as I'm reordering some patches on the final rebase due
-to some troubles detected with KASAN and DEBUG_KMEMLEAK, and splitting
-it avoids merge conflicts.
-
-> 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/dvb-core/dvbdev.c
-> > b/drivers/media/dvb-core/dvbdev.c index a8e7e2398f7a..5c4fb41060b4 100644
-> > --- a/drivers/media/dvb-core/dvbdev.c
-> > +++ b/drivers/media/dvb-core/dvbdev.c
-> > @@ -396,7 +396,8 @@ static void dvb_register_media_device(struct dvb_device
-> > *dvbdev, if (!dvbdev->entity || !dvbdev->intf_devnode)
-> >  		return;
-> > 
-> > -	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf, 0);
-> > +	media_create_intf_link(dvbdev->entity, &dvbdev->intf_devnode->intf,
-> > +			       MEDIA_LNK_FL_ENABLED);
-> > 
-> >  #endif
-> >  }
-> > @@ -583,20 +584,24 @@ void dvb_create_media_graph(struct dvb_adapter *adap)
-> >  	/* Create indirect interface links for FE->tuner, DVR->demux and CA->ca 
-> */
-> > media_device_for_each_intf(intf, mdev) {
-> >  		if (intf->type == MEDIA_INTF_T_DVB_CA && ca)
-> > -			media_create_intf_link(ca, intf, 0);
-> > +			media_create_intf_link(ca, intf, MEDIA_LNK_FL_ENABLED);
-> > 
-> >  		if (intf->type == MEDIA_INTF_T_DVB_FE && tuner)
-> > -			media_create_intf_link(tuner, intf, 0);
-> > +			media_create_intf_link(tuner, intf,
-> > +					       MEDIA_LNK_FL_ENABLED);
-> > 
-> >  		if (intf->type == MEDIA_INTF_T_DVB_DVR && demux)
-> > -			media_create_intf_link(demux, intf, 0);
-> > +			media_create_intf_link(demux, intf,
-> > +					       MEDIA_LNK_FL_ENABLED);
-> > 
-> >  		media_device_for_each_entity(entity, mdev) {
-> >  			if (entity->type == MEDIA_ENT_T_DVB_TSOUT) {
-> >  				if (!strcmp(entity->name, DVR_TSOUT))
-> > -					media_create_intf_link(entity, intf, 0);
-> > +					media_create_intf_link(entity, intf,
-> > +							       MEDIA_LNK_FL_ENABLED);
-> >  				if (!strcmp(entity->name, DEMUX_TSOUT))
-> > -					media_create_intf_link(entity, intf, 0);
-> > +					media_create_intf_link(entity, intf,
-> > +							       MEDIA_LNK_FL_ENABLED);
-> >  				break;
-> >  			}
-> >  		}
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> > b/drivers/media/v4l2-core/v4l2-dev.c index 07123dd569c4..8429da66754a
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -788,7 +788,8 @@ static int video_register_media_controller(struct
-> > video_device *vdev, int type) struct media_link *link;
-> > 
-> >  		link = media_create_intf_link(&vdev->entity,
-> > -					      &vdev->intf_devnode->intf, 0);
-> > +					      &vdev->intf_devnode->intf,
-> > +					      MEDIA_LNK_FL_ENABLED);
-> >  		if (!link) {
-> >  			media_devnode_remove(vdev->intf_devnode);
-> >  			media_device_unregister_entity(&vdev->entity);
-> > diff --git a/drivers/media/v4l2-core/v4l2-device.c
-> > b/drivers/media/v4l2-core/v4l2-device.c index e788a085ba96..bb58d90fde5e
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-device.c
-> > +++ b/drivers/media/v4l2-core/v4l2-device.c
-> > @@ -256,7 +256,7 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device
-> > *v4l2_dev)
-> > 
-> >  			link = media_create_intf_link(&sd->entity,
-> >  						      &vdev->intf_devnode->intf,
-> > -						      0);
-> > +						      MEDIA_LNK_FL_ENABLED);
-> >  			if (!link)
-> >  				goto clean_up;
-> >  		}
-> 
