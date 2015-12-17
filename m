@@ -1,64 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:26430 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752548AbbLKIu2 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755196AbbLQIlF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 03:50:28 -0500
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Ran Shalit <ranshalit@gmail.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 11 Dec 2015 09:50:16 +0100
-Subject: Re: v4l2 kernel module debugging methods
-Message-ID: <566A8E48.7080603@st.com>
-References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
- <1449361427.31991.17.camel@collabora.com>
- <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
-In-Reply-To: <CAJ2oMh+MG20jYdNSfXWZN+0vH2BPi_Z+v4OB-VH5ehi7qmfmpw@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Thu, 17 Dec 2015 03:41:05 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 25/48] videodev2.h: Add request field to v4l2_buffer
+Date: Thu, 17 Dec 2015 10:40:03 +0200
+Message-Id: <1450341626-6695-26-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgUmFuLA0KDQpPbiAxMi8xMC8yMDE1IDEwOjQ2IFBNLCBSYW4gU2hhbGl0IHdyb3RlOg0KPiBP
-biBTdW4sIERlYyA2LCAyMDE1IGF0IDI6MjMgQU0sIE5pY29sYXMgRHVmcmVzbmUNCj4gPG5pY29s
-YXMuZHVmcmVzbmVAY29sbGFib3JhLmNvbT4gd3JvdGU6DQo+PiBMZSBkaW1hbmNoZSAwNiBkw6lj
-ZW1icmUgMjAxNSDDoCAwMDowMCArMDIwMCwgUmFuIFNoYWxpdCBhIMOpY3JpdCA6DQo+Pj4gSGVs
-bG8sDQo+Pj4NCj4+PiBJIHdvdWxkIGxpa2UgdG8gYXNrIGEgZ2VuZXJhbCBxdWVzdGlvbiByZWdh
-cmRpbmcgbWV0aG9kcyB0byBkZWJ1ZyBhDQo+Pj4gdjRsMiBkZXZpY2UgZHJpdmVyLg0KPj4+IFNp
-bmNlIEkgYXNzdW1lIHRoYXQgdGhlIGtlcm5lbCBkcml2ZXIgd2lsbCBwcm9iYWJseSB3b24ndCB3
-b3JrIGluDQo+Pj4gZmlyc3QgdHJ5IGFmdGVyIGNvZGluZyBldmVyeXRoaW5nIGluc2lkZSB0aGUg
-ZGV2aWNlIGRyaXZlci4uLg0KPj4+DQo+Pj4gMS4gRG8geW91IHRoaW5rIHFlbXUva2dkYiBkZWJ1
-Z2dlciBpcyBhIGdvb2QgbWV0aG9kIGZvciB0aGUgZGV2aWNlDQo+Pj4gZHJpdmVyIGRlYnVnZ2lu
-ZyAsIG9yIGlzIGl0IHBsYWluIHByaW50aW5nID8NCj4+Pg0KPj4+IDIuIElzIHRoZXJlIGEgc2lt
-cGxlIHdheSB0byBkaXNwbGF5IHRoZSBpbWFnZSBvZiBhIFlVVi1saWtlIGJ1ZmZlciBpbg0KPj4+
-IG1lbW9yeSA/DQo+Pg0KPj4gTW9zdCBMaW51eCBkaXN0cmlidXRpb24gc2hpcHMgR1N0cmVhbWVy
-LiBZb3UgY2FuIHdpdGggR1N0cmVhbWVyIHJlYWQNCj4+IGFuZCBkaXNwbGF5IGEgcmF3IFlVViBp
-bWFnZXMgKHlvdSBuZWVkIHRvIGtub3cgdGhlIHNwZWNpZmljIGZvcm1hdCkNCj4+IHVzaW5nIHZp
-ZGVvcGFyc2UgZWxlbWVudC4NCj4+DQo+PiAgICBnc3QtbGF1bmNoLTEuMCBmaWxlc3JjIGxvY2F0
-aW9uPW15Lnl1diAhIHZpZGVvcGFyc2UgZm9ybWF0PXl1eTIgd2lkdGg9MzIwIGhlaWdodD0yNDAg
-ISBpbWFnZWZyZWV6ZSAhIHZpZGVvY29udmVydCAhIGF1dG92aWRlb3NpbmsNCj4+DQo+PiBZb3Ug
-Y291bGQgYWxzbyBlbmNvZGUgYW5kIHN0b3JlIHRvIHZhcmlvdXMgZm9ybWF0cywgcmVwbGFjaW5n
-IHRoZQ0KPj4gaW1hZ2VmcmVlemUgLi4uIHNlY3Rpb24gd2l0aCBhbiBlbmNvZGVyIGFuZCBhIGZp
-bGVzaW5rLiBOb3RlIHRoYXQNCj4+IHZpZGVvcGFyc2UgdW5mb3J0dW5hdGx5IGRvZXMgbm90IGFs
-bG93IHBhc3Npbmcgc3RyaWRlcyBhcnJheSBvcg0KPj4gb2Zmc2V0cy4gU28gaXQgd2lsbCB3b3Jr
-IG9ubHkgaWYgeW91IHNldCB0aGUgd2lkdGgvaGVpZ2h0IHRvIHBhZGRlZA0KPj4gd2lkdGgvaGVp
-Z2h0Lg0KPj4NCj4+IHJlZ2FyZHMsDQo+PiBOaWNvbGFzDQo+DQo+IEhpIE5pY29sYXMsDQo+DQo+
-IFRoYW5rIHlvdSBmb3IgdGhlIGNvbW1lbnQuDQo+IEFzIHNvbWVvbmUgZXhwcmVpbmNlZCB3aXRo
-IHY0bDIgZGV2aWNlIGRyaXZlciwgZG8geW91IHJlY29tbWVuZWQgdXNpbmcNCj4gZGVidWdnaW5n
-IHRlY2huaXF1ZSBzdWNoIGFzIHFlbXUgKG9yIGtnZGIpIG9yIGRvIHlvdSByYXRoZXIgdXNlIHBs
-YWluDQo+IHByaW50aW5nID8NCj4NCj4gVGhhbmsgeW91IHZlcnkgbXVjaCwNCj4gUmFuDQoNCg0K
-WW91IGNhbiBnZXQgc2V2ZXJhbCBsZXZlbCBvZiBsb2dzLg0KRmlyc3QsIHlvdSBjYW4gZW5hYmxl
-IHY0bDIgY29yZSBkZWJ1ZyBsb2dzLiBFeGFtcGxlOg0KICBlY2hvIDMgPiAvc3lzL2NsYXNzL3Zp
-ZGVvNGxpbnV4L3ZpZGVvMC9kZWJ1Zw0KTW9yZSBkZXRhaWxzOiANCmh0dHBzOi8vd3d3Lmtlcm5l
-bC5vcmcvZG9jL0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvdjRsMi1mcmFtZXdvcmsudHh0DQoN
-CklmIHRoZSB0ZXN0ZWQgZHJpdmVyIHVzZXMgdGhlIHY0bDJfbWVtMm1lbSBmcmFtZXdvcmsgeW91
-IGNhbiBnZXQgTTJNIA0KbG9ncyB3aXRoOg0KICBlY2hvIFkgPiAvc3lzL21vZHVsZS92NGwyX21l
-bTJtZW0vcGFyYW1ldGVycy9kZWJ1Zw0KDQpHZXQgYWxzbyBpbnRlcm5hbCB2YjIgbG9ncyB3aXRo
-Og0KICBlY2hvIDMgPiAvc3lzL21vZHVsZS92aWRlb2J1ZjJfY29yZS9wYXJhbWV0ZXJzL2RlYnVn
-DQoNCkFuZCBvcHRpb25hbGx5IG1vcmUgbG9ncyB1c2luZyB0aGUgZHluYW1pYyBkZWJ1ZyBmZWF0
-dXJlOiANCihodHRwczovL3d3dy5rZXJuZWwub3JnL2RvYy9Eb2N1bWVudGF0aW9uL2R5bmFtaWMt
-ZGVidWctaG93dG8udHh0KS4gRXhhbXBsZToNCiAgZWNobyAibW9kdWxlIG15X2RyaXZlciArcCIg
-PiAvc3lzL2tlcm5lbC9kZWJ1Zy9keW5hbWljX2RlYnVnL2NvbnRyb2wNCg0KRmFiaWVu
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+When queuing buffers allow for passing the request ID that
+should be associated with this buffer. Split the u32 reserved2 field
+into two u16 fields, one for request, one with the old reserved2 name.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cpia2/cpia2_v4l.c           | 1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 4 ++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c      | 2 ++
+ include/media/videobuf2-v4l2.h                | 2 ++
+ include/uapi/linux/videodev2.h                | 4 +++-
+ 6 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index 9caea8344547..01c596a4a760 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -952,6 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
++	buf->request = 0;
+ 	buf->reserved2 = 0;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 8fd84a67478a..ebd3cd4dee73 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -347,7 +347,8 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u16			request;
++	__u16			reserved2;
+ 	__u32			reserved;
+ };
+ 
+@@ -512,6 +513,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
++		put_user(kp->request, &up->request) ||
+ 		put_user(kp->reserved2, &up->reserved2) ||
+ 		put_user(kp->reserved, &up->reserved))
+ 			return -EFAULT;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6dd16a..67a4aa760aa3 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -441,14 +441,14 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+ 	const struct v4l2_plane *plane;
+ 	int i;
+ 
+-	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, "
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request=%u, "
+ 		"flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+-			prt_names(p->type, v4l2_type_names),
++			prt_names(p->type, v4l2_type_names), p->request,
+ 			p->flags, prt_names(p->field, v4l2_field_names),
+ 			p->sequence, prt_names(p->memory, v4l2_memory_names));
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 2d1e5b7d85a2..f6a2800e5f66 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -194,6 +194,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = vbuf->timestamp;
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
++	b->request = vbuf->request;
+ 	b->reserved2 = 0;
+ 	b->reserved = 0;
+ 
+@@ -311,6 +312,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ 	vbuf->timestamp.tv_sec = 0;
+ 	vbuf->timestamp.tv_usec = 0;
+ 	vbuf->sequence = 0;
++	vbuf->request = b->request;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+ 		if (b->memory == VB2_MEMORY_USERPTR) {
+diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+index 5abab1e7c7e8..48d6a34dcdb4 100644
+--- a/include/media/videobuf2-v4l2.h
++++ b/include/media/videobuf2-v4l2.h
+@@ -31,6 +31,7 @@
+  * @timestamp:	frame timestamp
+  * @timecode:	frame timecode
+  * @sequence:	sequence count of this frame
++ * @request:	request used by the buffer
+  * Should contain enough information to be able to cover all the fields
+  * of struct v4l2_buffer at videodev2.h
+  */
+@@ -42,6 +43,7 @@ struct vb2_v4l2_buffer {
+ 	struct timeval		timestamp;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
++	__u32			request;
+ };
+ 
+ /*
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 14cd5ebfee6d..5af1d2d87558 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -844,6 +844,7 @@ struct v4l2_plane {
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+  *		buffers (when type != *_MPLANE); number of elements in the
+  *		planes array for multi-plane buffers
++ * @request: this buffer should use this request
+  *
+  * Contains data exchanged by application and driver using one of the Streaming
+  * I/O methods.
+@@ -867,7 +868,8 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__u16			request;
++	__u16			reserved2;
+ 	__u32			reserved;
+ };
+ 
+-- 
+2.4.10
+
