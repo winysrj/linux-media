@@ -1,21 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.229.124.91] ([103.229.124.91]:4284 "HELO im285.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S932973AbbLWQYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2015 11:24:18 -0500
-Date: Thu, 24 Dec 2015 00:24:13 +0800
-From: "xpp18" <xpp18@im285.com>
-Reply-To: comebaby25@sohu.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Merry Christmas
-Message-ID: <201512240024136713605@im285.com>
+Received: from mout.web.de ([212.227.15.4]:52040 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751566AbbLQSf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 13:35:59 -0500
+Received: from [192.168.2.22] ([93.201.236.35]) by smtp.web.de (mrweb001) with
+ ESMTPSA (Nemesis) id 0M3Slc-1aRRIz0NtI-00r32a for
+ <linux-media@vger.kernel.org>; Thu, 17 Dec 2015 19:35:57 +0100
+To: linux-media@vger.kernel.org
+From: "W.Pelser" <w.pelser@web.de>
+Subject: dvb-t
+Message-ID: <5673008C.6030105@web.de>
+Date: Thu, 17 Dec 2015 19:35:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-zeLDs7/Nu6e/qrei08Cyu82j0KqjrMjDxOPN+ry+uPzN+qOsta28vrK7ta2how0K16jStbXE08XW
-yr/Nu6e/qreiz7XNs6Osx+u8087SUS0tUToyMDM2MDE5NTE51NrP37nbv7TR3cq+1rvQ6DEwt9bW
-07y0v8nBy73ioaM=
+Hallo !
+Greg Kroah-Hartman asked me, to  send it to you.
+
+ > https://bugzilla.kernel.org/show_bug.cgi?id=109521
+ >
+ >             Bug ID: 109521
+ >            Summary: kernel 4.4-RCx does not connect DVB-T USB Stick 
+during
+ >                     resume from hibernate
+
+
