@@ -1,117 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59738 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751219AbbLUMOo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 07:14:44 -0500
-Subject: Re: [PATCH v5 1/3] [media] media-device: check before unregister if
- mdev was registered
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
- <1449874629-8973-2-git-send-email-javier@osg.samsung.com>
- <566B5DFB.3020100@osg.samsung.com> <20151215084153.1f54d561@recife.lan>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Message-ID: <5677ED2D.2040708@osg.samsung.com>
-Date: Mon, 21 Dec 2015 09:14:37 -0300
-MIME-Version: 1.0
-In-Reply-To: <20151215084153.1f54d561@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933289AbbLQIlA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:41:00 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 21/48] media: Move media_device link_notify operation to an ops structure
+Date: Thu, 17 Dec 2015 10:39:59 +0200
+Message-Id: <1450341626-6695-22-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+This will allow adding new operations without increasing the
+media_device structure size for drivers that don't implement any media
+device operation.
 
-On 12/15/2015 07:41 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Dec 2015 16:36:27 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> On 12/11/2015 03:57 PM, Javier Martinez Canillas wrote:
->>> Most media functions that unregister, check if the corresponding register
->>> function succeed before. So these functions can safely be called even if a
->>> registration was never made or the component as already been unregistered.
->>>
->>> Add the same check to media_device_unregister() function for consistency.
->>>
->>> This will also allow to split the media_device_register() function in an
->>> initialization and registration functions without the need to change the
->>> generic cleanup functions and error code paths for all the media drivers.
->>>
->>> Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>
->>> ---
->>>
->>> Changes in v5: None
->>> Changes in v4: None
->>> Changes in v3: None
->>> Changes in v2:
->>> - Reword the documentation for media_device_unregister(). Suggested by Sakari.
->>> - Added Sakari's Acked-by tag for patch #1.
->>>
->>>  drivers/media/media-device.c | 6 ++++++
->>>  1 file changed, 6 insertions(+)
->>>
->>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>> index c12481c753a0..11c1c7383361 100644
->>> --- a/drivers/media/media-device.c
->>> +++ b/drivers/media/media-device.c
->>> @@ -577,6 +577,8 @@ EXPORT_SYMBOL_GPL(__media_device_register);
->>>   * media_device_unregister - unregister a media device
->>>   * @mdev:	The media device
->>>   *
->>> + * It is safe to call this function on an unregistered
->>> + * (but initialised) media device.
->>>   */
->>>  void media_device_unregister(struct media_device *mdev)
->>>  {
->>> @@ -584,6 +586,10 @@ void media_device_unregister(struct media_device *mdev)
->>>  	struct media_entity *next;
->>>  	struct media_interface *intf, *tmp_intf;
->>>  
->>> +	/* Check if mdev was ever registered at all */
->>> +	if (!media_devnode_is_registered(&mdev->devnode))
->>> +		return;
->>
->> This is a good check, however, this check will not prevent
->> media_device_unregister() from getting run twice by two
->> different drivers. i.e media_devnode gets unregistered
->> towards the end of at the end of media_device_unregister().
->>
->> In an example case, if bridge driver and snd-usb-aduio both
->> call media_device_unregister(), this check won't help prevent
->> media_device_unregister() being done only once. I think we
->> need a different state variable in struct media_device
->> to ensure unregister is done only once.
-> 
-> True. We need move the spin_lock() code to be called before
-> calling media_device_is_registered().
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/media-entity.c                  | 11 ++++++-----
+ drivers/media/platform/exynos4-is/media-dev.c |  6 +++++-
+ drivers/media/platform/omap3isp/isp.c         |  6 +++++-
+ drivers/staging/media/omap4iss/iss.c          |  6 +++++-
+ include/media/media-device.h                  | 14 +++++++++++---
+ 5 files changed, 32 insertions(+), 11 deletions(-)
 
-I see, the check in $SUBJECT was to avoid each driver to have a similar
-check for cleanup in its error path but I didn't take into account the
-fact that two drivers may share the same struct media_device, as you
-explained to me is the case for ALSA and V4L2 MC integration.
-
-> I'm sending such patches.
->
-
-Thanks, I'll review and test them.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 767fe55ba08e..1e1c08c0c947 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -592,17 +592,18 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
  
-> Thanks for reporting it.
-> 
-> Regards,
-> Mauro
-> 
-
-Best regards,
+ 	mdev = source->parent;
+ 
+-	if (mdev->link_notify) {
+-		ret = mdev->link_notify(link, flags,
+-					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
++	if (mdev->ops && mdev->ops->link_notify) {
++		ret = mdev->ops->link_notify(link, flags,
++					     MEDIA_DEV_NOTIFY_PRE_LINK_CH);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+ 	ret = __media_entity_setup_link_notify(link, flags);
+ 
+-	if (mdev->link_notify)
+-		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
++	if (mdev->ops && mdev->ops->link_notify)
++		mdev->ops->link_notify(link, flags,
++				       MEDIA_DEV_NOTIFY_POST_LINK_CH);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 9481ce3201a2..091f5930e424 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1111,6 +1111,10 @@ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+ 	return ret ? -EPIPE : 0;
+ }
+ 
++static const struct media_device_ops fimc_md_ops = {
++	.link_notify = fimc_md_link_notify,
++};
++
+ static ssize_t fimc_md_sysfs_show(struct device *dev,
+ 				  struct device_attribute *attr, char *buf)
+ {
+@@ -1334,7 +1338,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 
+ 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
+ 		sizeof(fmd->media_dev.model));
+-	fmd->media_dev.link_notify = fimc_md_link_notify;
++	fmd->media_dev.ops = &fimc_md_ops;
+ 	fmd->media_dev.dev = dev;
+ 
+ 	v4l2_dev = &fmd->v4l2_dev;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 56e683b19a73..a35c292955e7 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -851,6 +851,10 @@ static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
+ 	return 0;
+ }
+ 
++static const struct media_device_ops isp_media_ops {
++	.link_notify = isp_pipeline_link_notify,
++};
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline stream management
+  */
+@@ -1873,7 +1877,7 @@ static int isp_register_entities(struct isp_device *isp)
+ 	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
+ 		sizeof(isp->media_dev.model));
+ 	isp->media_dev.hw_revision = isp->revision;
+-	isp->media_dev.link_notify = isp_pipeline_link_notify;
++	isp->media_dev.ops = &isp_media_ops;
+ 	ret = media_device_register(&isp->media_dev);
+ 	if (ret < 0) {
+ 		dev_err(isp->dev, "%s: Media device registration failed (%d)\n",
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index e27a988540a6..dbff493c6a25 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -556,6 +556,10 @@ static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
+ 	return 0;
+ }
+ 
++static const struct media_device_ops iss_media_ops = {
++	.link_notify = iss_pipeline_link_notify,
++};
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline stream management
+  */
+@@ -1183,7 +1187,7 @@ static int iss_register_entities(struct iss_device *iss)
+ 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
+ 		sizeof(iss->media_dev.model));
+ 	iss->media_dev.hw_revision = iss->revision;
+-	iss->media_dev.link_notify = iss_pipeline_link_notify;
++	iss->media_dev.ops = &iss_media_ops;
+ 	ret = media_device_register(&iss->media_dev);
+ 	if (ret < 0) {
+ 		dev_err(iss->dev, "Media device registration failed (%d)\n",
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6e6db78f1ee2..7e6de4dbf497 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -33,6 +33,15 @@
+ struct device;
+ 
+ /**
++ * struct media_device_ops - Media device operations
++ * @link_notify: Link state change notification callback
++ */
++struct media_device_ops {
++	int (*link_notify)(struct media_link *link, u32 flags,
++			   unsigned int notification);
++};
++
++/**
+  * struct media_device - Media device
+  * @dev:	Parent device
+  * @devnode:	Media device node
+@@ -45,7 +54,7 @@ struct device;
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+- * @link_notify: Link state change notification callback
++ * @ops:	Operation handler callbacks
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -76,8 +85,7 @@ struct media_device {
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
+ 
+-	int (*link_notify)(struct media_link *link, u32 flags,
+-			   unsigned int notification);
++	const struct media_device_ops *ops;
+ };
+ 
+ /* Supported link_notify @notification values. */
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.10
+
