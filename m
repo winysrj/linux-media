@@ -1,87 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933374AbbLQIlH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:41:07 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 27/48] v4l2-subdev.h: Add request field to format and selection structures
-Date: Thu, 17 Dec 2015 10:40:05 +0200
-Message-Id: <1450341626-6695-28-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:28634 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750830AbbLQRRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 12:17:50 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+ <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
+ <5672EAD6.2000706@free.fr>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <5672EE38.5040400@free.fr>
+Date: Thu, 17 Dec 2015 18:17:44 +0100
+MIME-Version: 1.0
+In-Reply-To: <5672EAD6.2000706@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let userspace specify a request ID when getting or setting formats or
-selection rectangles.
+On 17/12/2015 18:03, Mason wrote:
 
->From a userspace point of view the API change is minimized and doesn't
-require any new ioctl.
+> On 17/12/2015 17:09, Mauro Carvalho Chehab wrote:
+> 
+>> As I said before, heavily patched Kernel. It seems that the network stack
+>> was updated to some newer version. The media_build backport considers
+>> only the upstream Kernels. In the specific case of 3.4, it is known
+>> to build fine with Kernel linux-3.4.27. See:
+>> 	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
+> 
+> I don't think the network stack is different from vanilla...
+> 
+> I had a different idea:
+> 
+> The media_build process prints:
+> 
+> "Preparing to compile for kernel version 3.4.3913"
+> 
+> In fact, the custom kernel's Makefile contains:
+> 
+> VERSION = 3
+> PATCHLEVEL = 4
+> SUBLEVEL = 39
+> EXTRAVERSION = 13
+> NAME = Saber-toothed Squirrel
+> 
+> Is it possible that the build process gets confused by the EXTRAVERSION field?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/uapi/linux/v4l2-subdev.h | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+Could this be the problem?
+(Missing '.' between sublevel and extra)
+Although with vanilla kernels, it will print 3.4.39. which is
+probably wrong...
 
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index dbce2b554e02..2f1691ce9df5 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -32,10 +32,12 @@
-  * enum v4l2_subdev_format_whence - Media bus format type
-  * @V4L2_SUBDEV_FORMAT_TRY: try format, for negotiation only
-  * @V4L2_SUBDEV_FORMAT_ACTIVE: active format, applied to the device
-+ * @V4L2_SUBDEV_FORMAT_REQUEST: format stored in request
-  */
- enum v4l2_subdev_format_whence {
- 	V4L2_SUBDEV_FORMAT_TRY = 0,
- 	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+	V4L2_SUBDEV_FORMAT_REQUEST = 2,
- };
- 
- /**
-@@ -43,12 +45,17 @@ enum v4l2_subdev_format_whence {
-  * @which: format type (from enum v4l2_subdev_format_whence)
-  * @pad: pad number, as reported by the media API
-  * @format: media bus format (format code and frame size)
-+ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-+ * @reserved2: for future use, set to zero for now
-+ * @reserved: for future use, set to zero for now
-  */
- struct v4l2_subdev_format {
- 	__u32 which;
- 	__u32 pad;
- 	struct v4l2_mbus_framefmt format;
--	__u32 reserved[8];
-+	__u16 request;
-+	__u16 reserved2;
-+	__u32 reserved[7];
- };
- 
- /**
-@@ -139,6 +146,8 @@ struct v4l2_subdev_frame_interval_enum {
-  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
-  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r: coordinates of the selection window
-+ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-+ * @reserved2: for future use, set to zero for now
-  * @reserved: for future use, set to zero for now
-  *
-  * Hardware may use multiple helper windows to process a video stream.
-@@ -151,7 +160,9 @@ struct v4l2_subdev_selection {
- 	__u32 target;
- 	__u32 flags;
- 	struct v4l2_rect r;
--	__u32 reserved[8];
-+	__u16 request;
-+	__u16 reserved2;
-+	__u32 reserved[7];
- };
- 
- /* Backwards compatibility define --- to be removed */
--- 
-2.4.10
+diff --git a/v4l/Makefile b/v4l/Makefile
+index 1542092004fa..9147a98639b7 100644
+--- a/v4l/Makefile
++++ b/v4l/Makefile
+@@ -233,9 +233,9 @@ ifneq ($(DIR),)
+        -e '    elsif (/^EXTRAVERSION\s*=\s*(\S+)\n/){ $$extra=$$1; }' \
+        -e '    elsif (/^KERNELSRC\s*:=\s*(\S.*)\n/ || /^MAKEARGS\s*:=\s*-C\s*(\S.*)\n/)' \
+        -e '        { $$o=$$d; $$d=$$1; goto S; }' \
+        -e '};' \
+-       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",' \
++       -e 'printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s.%s\n",' \
+        -e '    $$version,$$level,$$sublevel,$$version,$$level,$$sublevel,$$extra);' \
+        -e 'print "OUTDIR:=$$o\n" if($$o);' \
+        -e 'print "SRCDIR:=$$d\n";' > $(obj)/.version
+        @cat .version|grep KERNELRELEASE:|sed s,'KERNELRELEASE:=','Forcing compiling to version ',
 
