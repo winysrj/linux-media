@@ -1,254 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f179.google.com ([209.85.213.179]:38550 "EHLO
-	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754627AbbLBMDJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2015 07:03:09 -0500
-Received: by igbxm8 with SMTP id xm8so30383317igb.1
-        for <linux-media@vger.kernel.org>; Wed, 02 Dec 2015 04:03:08 -0800 (PST)
+Received: from smtp2-g21.free.fr ([212.27.42.2]:58516 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755448AbbLQNw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 08:52:26 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <5672BE15.9070006@free.fr>
+Date: Thu, 17 Dec 2015 14:52:21 +0100
 MIME-Version: 1.0
-In-Reply-To: <5469B5EF.6070408@xs4all.nl>
-References: <1411310909-32825-1-git-send-email-hverkuil@xs4all.nl>
-	<1411310909-32825-5-git-send-email-hverkuil@xs4all.nl>
-	<20141114154433.GF8907@valkosipuli.retiisi.org.uk>
-	<5469B5EF.6070408@xs4all.nl>
-Date: Wed, 2 Dec 2015 13:03:08 +0100
-Message-ID: <CAFqH_52f6Nh7LsjpkWavFXUAMDMqHX3E4DFYzMGonHDzucsasA@mail.gmail.com>
-Subject: Re: [RFC PATCH 04/11] v4l2-ctrls: add config store support
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	pawel@osciak.com, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20151217105543.13599560@recife.lan>
+Content-Type: multipart/mixed;
+ boundary="------------040103020401070906080105"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Hans,
+This is a multi-part message in MIME format.
+--------------040103020401070906080105
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-2014-11-17 9:46 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> On 11/14/2014 04:44 PM, Sakari Ailus wrote:
->> Hi Hans,
->>
->> Some comments below.
->>
->> On Sun, Sep 21, 2014 at 04:48:22PM +0200, Hans Verkuil wrote:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-ctrls.c | 150 +++++++++++++++++++++++++++++------
->>>  drivers/media/v4l2-core/v4l2-ioctl.c |   4 +-
->>>  include/media/v4l2-ctrls.h           |  14 ++++
->>>  3 files changed, 141 insertions(+), 27 deletions(-)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> index 35d1f3d..df0f3ee 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->>> @@ -1478,6 +1478,15 @@ static int cur_to_user(struct v4l2_ext_control *c,
->>>      return ptr_to_user(c, ctrl, ctrl->p_cur);
->>>  }
->>>
->>> +/* Helper function: copy the store's control value back to the caller */
->>> +static int store_to_user(struct v4l2_ext_control *c,
->>> +                   struct v4l2_ctrl *ctrl, unsigned store)
->>> +{
->>> +    if (store == 0)
->>> +            return ptr_to_user(c, ctrl, ctrl->p_new);
->>> +    return ptr_to_user(c, ctrl, ctrl->p_stores[store - 1]);
->>> +}
->>> +
->>>  /* Helper function: copy the new control value back to the caller */
->>>  static int new_to_user(struct v4l2_ext_control *c,
->>>                     struct v4l2_ctrl *ctrl)
->>> @@ -1585,6 +1594,14 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
->>>      }
->>>  }
->>>
->>> +/* Helper function: copy the new control value to the store */
->>> +static void new_to_store(struct v4l2_ctrl *ctrl)
->>> +{
->>> +    /* has_changed is set by cluster_changed */
->>> +    if (ctrl && ctrl->has_changed)
->>> +            ptr_to_ptr(ctrl, ctrl->p_new, ctrl->p_stores[ctrl->store - 1]);
->>> +}
->>> +
->>>  /* Copy the current value to the new value */
->>>  static void cur_to_new(struct v4l2_ctrl *ctrl)
->>>  {
->>> @@ -1603,13 +1620,18 @@ static int cluster_changed(struct v4l2_ctrl *master)
->>>
->>>      for (i = 0; i < master->ncontrols; i++) {
->>>              struct v4l2_ctrl *ctrl = master->cluster[i];
->>> +            union v4l2_ctrl_ptr ptr;
->>>              bool ctrl_changed = false;
->>>
->>>              if (ctrl == NULL)
->>>                      continue;
->>> +            if (ctrl->store)
->>> +                    ptr = ctrl->p_stores[ctrl->store - 1];
->>> +            else
->>> +                    ptr = ctrl->p_cur;
->>>              for (idx = 0; !ctrl_changed && idx < ctrl->elems; idx++)
->>>                      ctrl_changed = !ctrl->type_ops->equal(ctrl, idx,
->>> -                            ctrl->p_cur, ctrl->p_new);
->>> +                            ptr, ctrl->p_new);
->>>              ctrl->has_changed = ctrl_changed;
->>>              changed |= ctrl->has_changed;
->>>      }
->>> @@ -1740,6 +1762,13 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
->>>              list_del(&ctrl->node);
->>>              list_for_each_entry_safe(sev, next_sev, &ctrl->ev_subs, node)
->>>                      list_del(&sev->node);
->>> +            if (ctrl->p_stores) {
->>> +                    unsigned s;
->>> +
->>> +                    for (s = 0; s < ctrl->nr_of_stores; s++)
->>> +                            kfree(ctrl->p_stores[s].p);
->>> +            }
->>> +            kfree(ctrl->p_stores);
->>>              kfree(ctrl);
->>>      }
->>>      kfree(hdl->buckets);
->>> @@ -1970,7 +1999,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->>>              handler_set_err(hdl, -ERANGE);
->>>              return NULL;
->>>      }
->>> -    if (is_array &&
->>> +    if ((is_array || (flags & V4L2_CTRL_FLAG_CAN_STORE)) &&
->>>          (type == V4L2_CTRL_TYPE_BUTTON ||
->>>           type == V4L2_CTRL_TYPE_CTRL_CLASS)) {
->>>              handler_set_err(hdl, -EINVAL);
->>> @@ -2084,8 +2113,10 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
->>>                      is_menu ? cfg->menu_skip_mask : step, def,
->>>                      cfg->dims, cfg->elem_size,
->>>                      flags, qmenu, qmenu_int, priv);
->>> -    if (ctrl)
->>> +    if (ctrl) {
->>
->> I think it'd be cleaner to return NULL here if ctrl == NULL. Up to you.
->
-> Agreed.
->
->>
->>>              ctrl->is_private = cfg->is_private;
->>> +            ctrl->can_store = cfg->can_store;
->>> +    }
->>>      return ctrl;
->>>  }
->>>  EXPORT_SYMBOL(v4l2_ctrl_new_custom);
->>> @@ -2452,6 +2483,7 @@ int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
->>>                              cur_to_new(master->cluster[i]);
->>>                              master->cluster[i]->is_new = 1;
->>>                              master->cluster[i]->done = true;
->>> +                            master->cluster[i]->store = 0;
->>>                      }
->>>              }
->>>              ret = call_op(master, s_ctrl);
->>> @@ -2539,6 +2571,8 @@ int v4l2_query_ext_ctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_query_ext_ctr
->>>              qc->id = ctrl->id;
->>>      strlcpy(qc->name, ctrl->name, sizeof(qc->name));
->>>      qc->flags = ctrl->flags;
->>> +    if (ctrl->can_store)
->>> +            qc->flags |= V4L2_CTRL_FLAG_CAN_STORE;
->>>      qc->type = ctrl->type;
->>>      if (ctrl->is_ptr)
->>>              qc->flags |= V4L2_CTRL_FLAG_HAS_PAYLOAD;
->>> @@ -2700,6 +2734,8 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->>>                           struct v4l2_ctrl_helper *helpers,
->>>                           bool get)
->>>  {
->>> +    u32 ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
->>> +    unsigned store = cs->config_store & 0xffff;
->>>      struct v4l2_ctrl_helper *h;
->>>      bool have_clusters = false;
->>>      u32 i;
->>> @@ -2712,7 +2748,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->>>
->>>              cs->error_idx = i;
->>>
->>> -            if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
->>> +            if (ctrl_class && V4L2_CTRL_ID2CLASS(id) != ctrl_class)
->>>                      return -EINVAL;
->>>
->>>              /* Old-style private controls are not allowed for
->>> @@ -2725,6 +2761,8 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->>>              ctrl = ref->ctrl;
->>>              if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
->>>                      return -EINVAL;
->>> +            if (store && !ctrl->can_store)
->>> +                    return -EINVAL;
->>>
->>>              if (ctrl->cluster[0]->ncontrols > 1)
->>>                      have_clusters = true;
->>> @@ -2796,6 +2834,32 @@ static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
->>>      return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
->>>  }
->>>
->>> +static int extend_store(struct v4l2_ctrl *ctrl, unsigned stores)
->>
->> What limits the number of stores? In my opinion 2^16 - 1 is just a tad too
->> many... I think it'll be always easier to extend this rather than shrink it.
->> Also the user shouldn't be allowed to allocate obscene amounts of memory for
->> something like this.
->>
->> I might limit this to 255 for instance.
->
-> My plan (not part of this patch series) was to have a default limit (probably
-> VIDEO_MAX_FRAME) that drivers can override. I suspect that bridge drivers may
-> need to be able to set this limit for all subdev drivers as well, but we'll
-> see how that will work out. All the information necessary is available, so if
-> we need it, it wouldn't be too difficult.
->
-> But it certainly will have to be limited.
->
->>
->>> +{
->>> +    unsigned s, idx;
->>> +    union v4l2_ctrl_ptr *p;
->>> +
->>> +    p = kcalloc(stores, sizeof(union v4l2_ctrl_ptr), GFP_KERNEL);
->>> +    if (p == NULL)
->>> +            return -ENOMEM;
->>> +    for (s = ctrl->nr_of_stores; s < stores; s++) {
->>> +            p[s].p = kcalloc(ctrl->elems, ctrl->elem_size, GFP_KERNEL);
->>> +            if (p[s].p == NULL) {
->>> +                    while (s > ctrl->nr_of_stores)
->>> +                            kfree(p[--s].p);
->>> +                    kfree(p);
->>> +                    return -ENOMEM;
->>> +            }
->>> +            for (idx = 0; idx < ctrl->elems; idx++)
->>> +                    ctrl->type_ops->init(ctrl, idx, p[s]);
->>> +    }
->>> +    if (ctrl->p_stores)
->>> +            memcpy(p, ctrl->p_stores, ctrl->nr_of_stores * sizeof(union v4l2_ctrl_ptr));
->>
->> Please consider wrapping the line. I'd might use sizeof(*p) instead.
->
-> Agreed.
->
->>
->>> +    kfree(ctrl->p_stores);
->>> +    ctrl->p_stores = p;
->>> +    ctrl->nr_of_stores = stores;
->>> +    return 0;
->>> +}
->
-> Regards,
->
->         Hans
->
+Hello Mauro,
 
-We've a driver that uses your confstore stuff and we'd like to push
-upstream. I'm wondering if there is any plan to upstream the confstore
-patches or if this was abandoned for some reason. Thanks
+On 17/12/2015 13:55, Mauro Carvalho Chehab wrote:
 
-Regards,
+> Mason wrote:
+> 
+>> I have a TechnoTrend TT-TVStick CT2-4400v2 USB tuner, as described here:
+>> http://linuxtv.org/wiki/index.php/TechnoTrend_TT-TVStick_CT2-4400
+>>
+>> According to the article, the device is supported since kernel 3.19
+>> and indeed, if I use a 4.1 kernel, I can pick CONFIG_DVB_USB_DVBSKY
+>> and everything seems to work.
+>>
+>> Unfortunately (for me), I've been asked to make this driver work on
+>> an ancient 3.4 kernel.
+>>
+>> The linuxtv article mentions:
+>>
+>> "Drivers are included in kernel 3.17 (for version 1) and 3.19 (for version 2).
+>> They can be built with media_build for older kernels."
+>> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>
+>> This seems to imply that I can use the media_build framework to
+>> automatically (??) back-port a 3.19 driver to a 3.4 kernel?
+> 
+> "automatically" is a complex word ;)
 
-  Enric
+If I get it working, I think you can even say "auto-magically" ;-)
+
+>> This sounds too good to be true...
+>> How far back can I go?
+> 
+> The goal is to allow compilation since 2.6.32, but please notice that
+> not all drivers will go that far. Basically, when the backport seems too
+> complex, we just remove the driver from the list of drivers that are
+> compiled for a given legacy version.
+> 
+> Se the file v4l/versions.txt to double-check if the drivers you need
+> have such restrictions. I suspect that, in the specific case of
+> DVB_USB_DVBSKY, it should compile.
+
+That is great news.
+
+> That doesn't mean that it was tested there. We don't test those
+> backports to check against regressions. We only work, at best
+> effort basis, to make them to build. So, use it with your own
+> risk. If you find any problems, feel free to send us patches
+> fixing it.
+
+My first problem is that compilation fails on the first file ;-)
+See attached log.
+
+My steps are:
+
+cd media_build/linux
+make tar DIR=/tmp/sandbox/media_tree
+make untar
+cd ..
+make release DIR=/tmp/sandbox/custom-linux-3.4
+make
+
+I will investigate and report back.
+
+Regards.
 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------040103020401070906080105
+Content-Type: text/x-log;
+ name="build.log"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+ filename="build.log"
+
+/tmp/sandbox$ cd media_build/linux
+/tmp/sandbox/media_build/linux$ make tar DIR=3D/tmp/sandbox/media_tree
+rm -f /tmp/sandbox/media_build/linux/linux-media.tar.bz2
+tar cf /tmp/sandbox/media_build/linux/linux-media.tar -C /tmp/sandbox/med=
+ia_tree sound/pci/bt87x.c mm/frame_vector.c include/linux/mmc/sdio_ids.h =
+include/sound/aci.h include/uapi/linux/usb/video.h include/linux/via-core=
+=2Eh include/linux/ti_wilink_st.h include/linux/dma-buf.h include/linux/f=
+ence.h include/linux/of_graph.h include/linux/kconfig.h include/linux/hdm=
+i.h include/linux/compiler-gcc.h include/linux/dma/xilinx_dma.h include/t=
+race/events/v4l2.h include/trace/events/vb2.h include/linux/pci_ids.h inc=
+lude/misc/altera.h include/uapi/linux/lirc.h include/uapi/linux/videodev2=
+=2Eh include/uapi/linux/meye.h include/uapi/linux/ivtv.h include/uapi/lin=
+ux/ivtvfb.h include/uapi/linux/media.h include/uapi/linux/media-bus-forma=
+t.h include/uapi/linux/v4l2-dv-timings.h include/uapi/linux/v4l2-controls=
+=2Eh include/uapi/linux/uvcvideo.h include/uapi/linux/vsp1.h include/uapi=
+/linux/xilinx-v4l2-controls.h include/uapi/linux/smiapp.h include/uapi/li=
+nux/v4l2-subdev.h include/uapi/linux/v4l2-common.h include/uapi/linux/v4l=
+2-mediabus.h include/linux/fixp-arith.h firmware/av7110/bootcode.bin.ihex=
+ firmware/av7110/Boot.S firmware/cpia2/stv0672_vp4.bin.ihex firmware/ihex=
+2fw.c firmware/vicam/firmware.H16 firmware/ttusb-budget/dspbootcode.bin.i=
+hex
+git --git-dir /tmp/sandbox/media_tree/.git log --pretty=3Doneline -n3 |se=
+d -r 's,([\x22]),,g; s,([\x25\x5c]),\1\1,g' >git_log
+perl -e 'while (<>) { $a=3D$1 if (m/^\s*VERSION\s*=3D\s*(\d+)/); $b=3D$1 =
+if (m/^\s*PATCHLEVEL\s*=3D\s*(\d+)/); $c=3D$1 if (m/^\s*SUBLEVEL\s*=3D\s*=
+(\d+)/); } printf "#define V4L2_VERSION %d\n", ((($a) << 16) + (($b) << 8=
+) + ($c))' /tmp/sandbox/media_tree/Makefile > kernel_version.h
+tar rvf /tmp/sandbox/media_build/linux/linux-media.tar git_log kernel_ver=
+sion.h
+git_log
+kernel_version.h
+for i in drivers/media/ drivers/staging/media/ drivers/misc/altera-stapl/=
+ include/media/ include/dt-bindings/media/ include/linux/platform_data/me=
+dia/ include/uapi/linux/dvb/; do \
+		if [ "`echo $i|grep Documentation`" =3D "" ]; then \
+			dir=3D"`(cd /tmp/sandbox/media_tree; find $i -type f -name '*.[ch]')`"=
+; \
+			dir=3D"$dir `(cd /tmp/sandbox/media_tree; find $i -type f -name Makefi=
+le)`"; \
+			dir=3D"$dir `(cd /tmp/sandbox/media_tree; find $i -type f -name Kconfi=
+g)`"; \
+			tar rvf /tmp/sandbox/media_build/linux/linux-media.tar -C /tmp/sandbox=
+/media_tree $dir; \
+		else \
+			tar rvf /tmp/sandbox/media_build/linux/linux-media.tar -C /tmp/sandbox=
+/media_tree $i; \
+		fi; done; bzip2 /tmp/sandbox/media_build/linux/linux-media.tar
+[snip list of 2247 files]
+/tmp/sandbox/media_build/linux$ make untar
+tar xfj linux-media.tar.bz2
+rm -f .patches_applied .linked_dir .git_log.md5
+/tmp/sandbox/media_build/linux$ cd ..
+/tmp/sandbox/media_build$ make release DIR=3D/tmp/sandbox/custom-linux-3.=
+4
+make -C /tmp/sandbox/media_build/v4l release
+make[1]: Entering directory `/tmp/sandbox/media_build/v4l'
+Searching in /tmp/sandbox/custom-linux-3.4/Makefile for kernel version.
+Forcing compiling to version 3.4.3913
+make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
+/tmp/sandbox/media_build$ make
+make -C /tmp/sandbox/media_build/v4l=20
+make[1]: Entering directory `/tmp/sandbox/media_build/v4l'
+scripts/make_makefile.pl
+Updating/Creating .config
+make[2]: Entering directory `/tmp/sandbox/media_build/linux'
+Applying patches for kernel 3.4.3913
+patch -s -f -N -p1 -i ../backports/api_version.patch
+patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+patch -s -f -N -p1 -i ../backports/debug.patch
+patch -s -f -N -p1 -i ../backports/drx39xxj.patch
+patch -s -f -N -p1 -i ../backports/v4.1_pat_enabled.patch
+patch -s -f -N -p1 -i ../backports/v4.0_dma_buf_export.patch
+patch -s -f -N -p1 -i ../backports/v4.0_drop_trace.patch
+patch -s -f -N -p1 -i ../backports/v4.0_fwnode.patch
+patch -s -f -N -p1 -i ../backports/v3.19_get_user_pages_locked.patch
+Patched drivers/media/dvb-core/dvbdev.c
+Patched drivers/media/v4l2-core/v4l2-dev.c
+Patched drivers/media/rc/rc-main.c
+make[2]: Leaving directory `/tmp/sandbox/media_build/linux'
+Preparing to compile for kernel version 3.4.3913
+WARNING: This is the V4L/DVB backport tree, with experimental drivers
+	 backported to run on legacy kernels from the development tree at:
+		http://git.linuxtv.org/media-tree.git.
+	 It is generally safe to use it for testing a new driver or
+	 feature, but its usage on production environments is risky.
+	 Don't use it in production. You've been warned.
+V4L2_FLASH_LED_CLASS: Requires at least kernel 4.2.0
+VIDEOBUF2_DMA_CONTIG: Requires at least kernel 3.6.0
+IR_HIX5HD2: Requires at least kernel 3.10.0
+IR_IMG: Requires at least kernel 3.9.0
+RC_ST: Requires at least kernel 3.15.0
+DVB_USB_RTL28XXU: Requires at least kernel 3.7.0
+VIDEO_FB_IVTV: Requires at least kernel 3.11.0
+DVB_PT3: Requires at least kernel 3.11.0
+DVB_NETUP_UNIDVB: Requires at least kernel 3.7.0
+VIDEO_RCAR_VIN: Requires at least kernel 3.9.0
+VIDEO_XILINX: Requires at least kernel 3.17.0
+VIDEO_CODA: Requires at least kernel 3.5.0
+VIDEO_SH_VEU: Requires at least kernel 3.9.0
+VIDEO_RENESAS_VSP1: Requires at least kernel 3.9.0
+RADIO_SI4713: Requires at least kernel 3.13.0
+I2C_SI4713: Requires at least kernel 3.17.0
+VIDEO_ADV7183: Requires at least kernel 3.5.0
+VIDEO_ADV7604: Requires at least kernel 3.17.0
+VIDEO_TC358743: Requires at least kernel 3.17.0
+VIDEO_OV2659: Requires at least kernel 3.5.0
+VIDEO_OV9650: Requires at least kernel 3.5.0
+VIDEO_VS6624: Requires at least kernel 3.5.0
+VIDEO_MT9P031: Requires at least kernel 3.17.0
+VIDEO_MT9T001: Requires at least kernel 3.5.0
+VIDEO_MT9V032: Requires at least kernel 3.19.0
+VIDEO_NOON010PC30: Requires at least kernel 3.5.0
+VIDEO_M5MOLS: Requires at least kernel 3.6.0
+VIDEO_S5K6AA: Requires at least kernel 3.5.0
+VIDEO_S5K6A3: Requires at least kernel 3.5.0
+VIDEO_S5K5BAF: Requires at least kernel 3.5.0
+VIDEO_SMIAPP: Requires at least kernel 4.0.0
+VIDEO_S5C73M3: Requires at least kernel 3.6.0
+VIDEO_ADP1653: Requires at least kernel 3.17.0
+SOC_CAMERA_OV2640: Requires at least kernel 3.17.0
+MEDIA_TUNER_E4000: Requires at least kernel 3.5.0
+DVB_M88DS3103: Requires at least kernel 3.8.0
+DVB_TS2020: Requires at least kernel 3.8.0
+DVB_RTL2830: Requires at least kernel 3.8.0
+DVB_RTL2832: Requires at least kernel 3.8.0
+Created default (all yes) .config file
+=2E/scripts/make_myconfig.pl
+make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
+make[1]: Entering directory `/tmp/sandbox/media_build/v4l'
+scripts/make_makefile.pl
+make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
+make[1]: Entering directory `/tmp/sandbox/media_build/v4l'
+perl scripts/make_config_compat.pl /tmp/sandbox/custom-linux-3.4 ./.mycon=
+fig ./config-compat.h
+creating symbolic links...
+make -C firmware prep
+make[2]: Entering directory `/tmp/sandbox/media_build/v4l/firmware'
+make[2]: Leaving directory `/tmp/sandbox/media_build/v4l/firmware'
+make -C firmware
+make[2]: Entering directory `/tmp/sandbox/media_build/v4l/firmware'
+  CC  ihex2fw
+Generating vicam/firmware.fw
+Generating ttusb-budget/dspbootcode.bin
+Generating cpia2/stv0672_vp4.bin
+Generating av7110/bootcode.bin
+make[2]: Leaving directory `/tmp/sandbox/media_build/v4l/firmware'
+Kernel build directory is /tmp/sandbox/custom-linux-3.4
+make -C ../linux apply_patches
+make[2]: Entering directory `/tmp/sandbox/media_build/linux'
+Patches for 3.4.3913 already applied.
+make[2]: Leaving directory `/tmp/sandbox/media_build/linux'
+make -C /tmp/sandbox/custom-linux-3.4 SUBDIRS=3D/tmp/sandbox/media_build/=
+v4l  modules
+make[2]: Entering directory `/tmp/sandbox/custom-linux-3.4'
+  CC [M]  /tmp/sandbox/media_build/v4l/aptina-pll.o
+In file included from <command-line>:0:0:
+/tmp/sandbox/media_build/v4l/compat.h:1568:0: warning: "writel_relaxed" r=
+edefined
+ #define writel_relaxed writel
+ ^
+In file included from include/linux/scatterlist.h:10:0,
+                 from /tmp/sandbox/media_build/v4l/compat.h:1255,
+                 from <command-line>:0:
+/tmp/sandbox/custom-linux-3.4/arch/arm/include/asm/io.h:235:0: note: this=
+ is the location of the previous definition
+ #define writel_relaxed(v,c) ((void)__raw_writel((__force u32) \
+ ^
+In file included from <command-line>:0:0:
+/tmp/sandbox/media_build/v4l/compat.h: In function 'kvfree':
+/tmp/sandbox/media_build/v4l/compat.h:1631:3: error: implicit declaration=
+ of function 'vfree' [-Werror=3Dimplicit-function-declaration]
+   vfree(addr);
+   ^
+cc1: some warnings being treated as errors
+make[3]: *** [/tmp/sandbox/media_build/v4l/aptina-pll.o] Error 1
+make[2]: *** [_module_/tmp/sandbox/media_build/v4l] Error 2
+make[2]: Leaving directory `/tmp/sandbox/custom-linux-3.4'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
+make: *** [all] Error 2
+
+--------------040103020401070906080105--
