@@ -1,164 +1,377 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41206 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932136AbbLGPRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2015 10:17:25 -0500
-Subject: Re: [PATCH v8 18/55] [media] omap3isp: create links after all subdevs
- have been bound
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com>
- <20150909080333.GL3175@valkosipuli.retiisi.org.uk>
- <55EFF25D.5010905@osg.samsung.com> <2092688.POBCcC9dJr@avalon>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <5665A2FD.8010308@osg.samsung.com>
-Date: Mon, 7 Dec 2015 12:17:17 -0300
-MIME-Version: 1.0
-In-Reply-To: <2092688.POBCcC9dJr@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429AbbLQIlC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2015 03:41:02 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH/RFC 23/48] media: Add request API
+Date: Thu, 17 Dec 2015 10:40:01 +0200
+Message-Id: <1450341626-6695-24-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
+The request API allows bundling media device parameters with request
+objects and applying them atomically, either synchronously or
+asynchronously.
 
-On 12/06/2015 12:05 AM, Laurent Pinchart wrote:
-> Hi Javier,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 09 September 2015 10:48:29 Javier Martinez Canillas wrote:
->> On 09/09/2015 10:03 AM, Sakari Ailus wrote:
->>> On Sun, Aug 30, 2015 at 12:06:29AM -0300, Mauro Carvalho Chehab wrote:
->>>> From: Javier Martinez Canillas <javier@osg.samsung.com>
->>>>
->>>> The omap3isp driver parses the graph endpoints to know how many
->>>> subdevices needs to be registered async and register notifiers callbacks
->>>> for to know when these are bound and when the async registrations are
->>>> completed.
->>>>
->>>> Currently the entities pad are linked with the correct ISP input
->>>> interface when the subdevs are bound but it happens before entitities are
->>>> registered with the media device so that won't work now that the entity
->>>> links list is initialized on device registration.
->>>>
->>>> So instead creating the pad links when the subdevice is bound, create
->>>> them on the complete callback once all the subdevices have been bound but
->>>> only try to create for the ones that have a bus configuration set during
->>>> bound.
->>>>
->>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>>
->>>> diff --git a/drivers/media/platform/omap3isp/isp.c
->>>> b/drivers/media/platform/omap3isp/isp.c index b8f6f81d2db2..69e7733d36cd
->>>> 100644
->>>> --- a/drivers/media/platform/omap3isp/isp.c
->>>> +++ b/drivers/media/platform/omap3isp/isp.c
->>>> @@ -2321,26 +2321,33 @@ static int isp_subdev_notifier_bound(struct
->>>> v4l2_async_notifier *async,
->>>>  				     struct v4l2_subdev *subdev,
->>>>  				     struct v4l2_async_subdev *asd)
->>>>  {
->>>> -	struct isp_device *isp = container_of(async, struct isp_device,
->>>> -					      notifier);
->>>>  	struct isp_async_subdev *isd =
->>>>  		container_of(asd, struct isp_async_subdev, asd);
->>>> -	int ret;
->>>> -
->>>> -	ret = isp_link_entity(isp, &subdev->entity, isd->bus.interface);
->>>> -	if (ret < 0)
->>>> -		return ret;
->>>>
->>>>  	isd->sd = subdev;
->>>>  	isd->sd->host_priv = &isd->bus;
->>>>
->>>> -	return ret;
->>>> +	return 0;
->>>>  }
->>>>  
->>>>  static int isp_subdev_notifier_complete(struct v4l2_async_notifier
->>>>  *async)
->>>>  {
->>>>  	struct isp_device *isp = container_of(async, struct isp_device,
->>>>  					      notifier);
->>>> +	struct v4l2_device *v4l2_dev = &isp->v4l2_dev;
->>>> +	struct v4l2_subdev *sd;
->>>> +	struct isp_bus_cfg *bus;
->>>> +	int ret;
->>>> +
->>>> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
->>>> +		/* Only try to link entities whose interface was set on bound */
->>>> +		if (sd->host_priv) {
->>>> +			bus = (struct isp_bus_cfg *)sd->host_priv;
->>>> +			ret = isp_link_entity(isp, &sd->entity, bus->interface);
->>>> +			if (ret < 0)
->>>> +				return ret;
->>>> +		}
->>>> +	}
->>>>  	return v4l2_device_register_subdev_nodes(&isp->v4l2_dev);
->>>>  }
->>>
->>> I think you're working around a problem here, not really fixing it.
->>>
->>> This change will create the links only after the media device is
->>> registered, which means the user may obtain a partial enumeration of
->>> links if the enumeration is performed too early.
->>>
->>> Before this set, the problem also was that the media device was registered
->>> before the async entities were bound, again making it possible to obtain a
->>> partial enumeration of entities.
->>
->> You are absolutely correct but I think these are separate issues. The
->> problem here is that v4l2_async_test_notify() [0] first invokes the bound
->> notifier callback and then calls v4l2_device_register_subdev() that
->> register the media entity with the media device.
->>
->> Since now is a requirement that the entities must be registered prior
->> creating pads links (because to init a MEDIA_GRAPH_LINK object a mdev has
->> to be set), $SUBJECT is needed regardless of the race between subdev
->> registration and the media dev node being available to user-space before
->> everything is registered.
->>> What I'd suggest instead is that we split media device initialisation and
->>> registration to the system; that way the media device can be prepared
->>> (entities registered and links created) before it becomes visible to the
->>> user space. I can write a patch for that if you like.
->>
->> Agreed, looking at the implementation it seems that
->> __media_device_register() has to be split (possibly being renamed to
->> __media_device_init) so it only contains the initialization logic and all
->> the media device node registration logic moved to another function (that
->> would become media_device_register).
->>
->> I think the media dev node registration has to be made in the complete
->> callback to make sure that happens when all the subdevs have been already
->> registered.
->>
->> Is that what you had in mind? I can also write such a patch if you want.
-> 
-> I think I've already commented on it in my review of another patch (but can't 
-> find it right now), I agree with you. We need to properly think about 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-I'm glad that you agree, could you please review the v4 of patch series
-"Fix race between graph enumeration and entities registration" [0] that
-I posted a while ago?
+---
 
-> initialization (and, for that matter, cleanup as well) order, both for the 
-> media device and the entities. And, as a corollary, for subdevs too. The
-> current media entity and subdevs initialization and registration code grew in 
-> an organic way without much design behind it, let's not repeat the same 
-> mistake.
-> 
+Changes since v0:
 
-Agreed, and this should be properly documented so driver authors can follow.
+- Make the request ID 32 bits wide internally
+---
+ drivers/media/media-device.c | 175 +++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h |  41 ++++++++++
+ include/uapi/linux/media.h   |  12 +++
+ 3 files changed, 228 insertions(+)
 
-[0]: https://lkml.org/lkml/2015/9/15/371
-
-Best regards,
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 285f7d79d848..37da26806ed8 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -33,6 +33,7 @@
+ 
+ struct media_device_fh {
+ 	struct media_devnode_fh fh;
++	struct list_head requests;
+ };
+ 
+ static inline struct media_device_fh *media_device_fh(struct file *filp)
+@@ -41,6 +42,161 @@ static inline struct media_device_fh *media_device_fh(struct file *filp)
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * Requests
++ */
++
++/**
++ * media_device_request_find - Find a request based from its ID
++ * @mdev: The media device
++ * @reqid: The request ID
++ *
++ * Find and return the request associated with the given ID, or NULL if no such
++ * request exists.
++ *
++ * When the function returns a non-NULL request it increases its reference
++ * count. The caller is responsible for releasing the reference by calling
++ * media_device_request_put() on the request.
++ */
++struct media_device_request *
++media_device_request_find(struct media_device *mdev, u16 reqid)
++{
++	struct media_device_request *req;
++	unsigned long flags;
++	bool found = false;
++
++	spin_lock_irqsave(&mdev->req_lock, flags);
++	list_for_each_entry(req, &mdev->requests, list) {
++		if (req->id == reqid) {
++			kref_get(&req->kref);
++			found = true;
++			break;
++		}
++	}
++	spin_unlock_irqrestore(&mdev->req_lock, flags);
++
++	return found ? req : NULL;
++}
++EXPORT_SYMBOL_GPL(media_device_request_find);
++
++void media_device_request_get(struct media_device_request *req)
++{
++	kref_get(&req->kref);
++}
++EXPORT_SYMBOL_GPL(media_device_request_get);
++
++static void media_device_request_release(struct kref *kref)
++{
++	struct media_device_request *req =
++		container_of(kref, struct media_device_request, kref);
++	struct media_device *mdev = req->mdev;
++
++	mdev->ops->req_free(mdev, req);
++}
++
++void media_device_request_put(struct media_device_request *req)
++{
++	kref_put(&req->kref, media_device_request_release);
++}
++EXPORT_SYMBOL_GPL(media_device_request_put);
++
++static int media_device_request_alloc(struct media_device *mdev,
++				      struct media_device_fh *fh,
++				      struct media_request_cmd *cmd)
++{
++	struct media_device_request *req;
++	unsigned long flags;
++
++	req = mdev->ops->req_alloc(mdev);
++	if (!req)
++		return -ENOMEM;
++
++	req->mdev = mdev;
++	kref_init(&req->kref);
++
++	spin_lock_irqsave(&mdev->req_lock, flags);
++	req->id = ++mdev->req_id;
++	list_add_tail(&req->list, &mdev->requests);
++	list_add_tail(&req->fh_list, &fh->requests);
++	spin_unlock_irqrestore(&mdev->req_lock, flags);
++
++	cmd->request = req->id;
++	return 0;
++}
++
++static void media_device_request_delete(struct media_device *mdev,
++					struct media_device_request *req)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&mdev->req_lock, flags);
++	list_del(&req->list);
++	spin_unlock_irqrestore(&mdev->req_lock, flags);
++
++	media_device_request_put(req);
++}
++
++static long media_device_request_cmd(struct media_device *mdev,
++				     struct media_device_fh *fh,
++				     struct media_request_cmd __user *_cmd)
++{
++	struct media_device_request *req = NULL;
++	struct media_request_cmd cmd;
++	int ret;
++
++	if (!mdev->ops || !mdev->ops->req_alloc || !mdev->ops->req_free)
++		return -ENOTTY;
++
++	if (copy_from_user(&cmd, _cmd, sizeof(cmd)))
++		return -EFAULT;
++
++	if (cmd.cmd != MEDIA_REQ_CMD_ALLOC) {
++		req = media_device_request_find(mdev, cmd.request);
++		if (!req)
++			return -EINVAL;
++	}
++
++	switch (cmd.cmd) {
++	case MEDIA_REQ_CMD_ALLOC:
++		ret = media_device_request_alloc(mdev, fh, &cmd);
++		break;
++
++	case MEDIA_REQ_CMD_DELETE:
++		media_device_request_delete(mdev, req);
++		ret = 0;
++		break;
++
++	case MEDIA_REQ_CMD_APPLY:
++		if (!mdev->ops->req_apply)
++			return -ENOSYS;
++
++		ret = mdev->ops->req_apply(mdev, req);
++		break;
++
++	case MEDIA_REQ_CMD_QUEUE:
++		if (!mdev->ops->req_queue)
++			return -ENOSYS;
++
++		ret = mdev->ops->req_queue(mdev, req);
++		break;
++
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	if (req)
++		media_device_request_put(req);
++
++	if (ret < 0)
++		return ret;
++
++	if (copy_to_user(_cmd, &cmd, sizeof(cmd)))
++		return -EFAULT;
++
++	return 0;
++}
++
++/* -----------------------------------------------------------------------------
+  * Userspace API
+  */
+ 
+@@ -52,6 +208,7 @@ static int media_device_open(struct file *filp)
+ 	if (!fh)
+ 		return -ENOMEM;
+ 
++	INIT_LIST_HEAD(&fh->requests);
+ 	filp->private_data = &fh->fh;
+ 
+ 	return 0;
+@@ -60,6 +217,15 @@ static int media_device_open(struct file *filp)
+ static int media_device_close(struct file *filp)
+ {
+ 	struct media_device_fh *fh = media_device_fh(filp);
++	struct media_device *mdev = to_media_device(fh->fh.devnode);
++	struct media_device_request *req, *next;
++
++	spin_lock_irq(&mdev->req_lock);
++	list_for_each_entry_safe(req, next, &fh->requests, fh_list) {
++		list_del(&req->fh_list);
++		media_device_request_put(req);
++	}
++	spin_unlock_irq(&mdev->req_lock);
+ 
+ 	kfree(fh);
+ 
+@@ -257,6 +423,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ {
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+ 	struct media_device *dev = to_media_device(devnode);
++	struct media_device_fh *fh = media_device_fh(filp);
+ 	long ret;
+ 
+ 	switch (cmd) {
+@@ -284,6 +451,11 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
++	case MEDIA_IOC_REQUEST_CMD:
++		ret = media_device_request_cmd(dev, fh,
++				(struct media_request_cmd __user *)arg);
++		break;
++
+ 	default:
+ 		ret = -ENOIOCTLCMD;
+ 	}
+@@ -404,6 +576,9 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 
++	spin_lock_init(&mdev->req_lock);
++	INIT_LIST_HEAD(&mdev->requests);
++
+ 	/* Register the device node. */
+ 	mdev->devnode.fops = &media_device_fops;
+ 	mdev->devnode.parent = mdev->dev;
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 7e6de4dbf497..bc003bedf087 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -23,6 +23,7 @@
+ #ifndef _MEDIA_DEVICE_H
+ #define _MEDIA_DEVICE_H
+ 
++#include <linux/kref.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+@@ -31,14 +32,42 @@
+ #include <media/media-entity.h>
+ 
+ struct device;
++struct media_device;
++
++/**
++ * struct media_device_request - Media device request
++ * @id: Request ID
++ * @mdev: Media device this request belongs to
++ * @kref: Reference count
++ * @list: List entry in the media device requests list
++ * @fh_list: List entry in the media file handle requests list
++ */
++struct media_device_request {
++	u32 id;
++	struct media_device *mdev;
++	struct kref kref;
++	struct list_head list;
++	struct list_head fh_list;
++};
+ 
+ /**
+  * struct media_device_ops - Media device operations
+  * @link_notify: Link state change notification callback
++ * @req_alloc: Allocate a request
++ * @req_free: Free a request
++ * @req_apply: Apply a request
++ * @req_queue: Queue a request
+  */
+ struct media_device_ops {
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
++	struct media_device_request *(*req_alloc)(struct media_device *mdev);
++	void (*req_free)(struct media_device *mdev,
++			 struct media_device_request *req);
++	int (*req_apply)(struct media_device *mdev,
++			 struct media_device_request *req);
++	int (*req_queue)(struct media_device *mdev,
++			 struct media_device_request *req);
+ };
+ 
+ /**
+@@ -55,6 +84,9 @@ struct media_device_ops {
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+  * @ops:	Operation handler callbacks
++ * @req_lock:	Protects the req_id and requests fields
++ * @req_id:	Last request ID that was allocated
++ * @requests:	List of allocated requests
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -86,6 +118,10 @@ struct media_device {
+ 	struct mutex graph_mutex;
+ 
+ 	const struct media_device_ops *ops;
++
++	spinlock_t req_lock;
++	u32 req_id;
++	struct list_head requests;
+ };
+ 
+ /* Supported link_notify @notification values. */
+@@ -108,4 +144,9 @@ void media_device_unregister_entity(struct media_entity *entity);
+ #define media_device_for_each_entity(entity, mdev)			\
+ 	list_for_each_entry(entity, &(mdev)->entities, list)
+ 
++struct media_device_request *
++media_device_request_find(struct media_device *mdev, u16 reqid);
++void media_device_request_get(struct media_device_request *req);
++void media_device_request_put(struct media_device_request *req);
++
+ #endif
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 4e816be3de39..fd8887a03988 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -167,9 +167,21 @@ struct media_links_enum {
+ 	__u32 reserved[4];
+ };
+ 
++#define MEDIA_REQ_CMD_ALLOC		0
++#define MEDIA_REQ_CMD_DELETE		1
++#define MEDIA_REQ_CMD_APPLY		2
++#define MEDIA_REQ_CMD_QUEUE		3
++
++struct media_request_cmd {
++	__u32 cmd;
++	__u32 request;
++	__u32 reserved[9];
++};
++
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
++#define MEDIA_IOC_REQUEST_CMD		_IOWR('|', 0x04, struct media_request_cmd)
+ 
+ #endif /* __LINUX_MEDIA_H */
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.10
+
