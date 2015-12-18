@@ -1,180 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:59811 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbbLIN6n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2015 08:58:43 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v2 7/7] media: s5p-mfc: add iommu support
-Date: Wed, 09 Dec 2015 14:58:22 +0100
-Message-id: <1449669502-24601-8-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
-References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:57135 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752021AbbLRMLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 07:11:04 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+ <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
+ <5672EAD6.2000706@free.fr> <5673E393.8050309@free.fr>
+ <20151218090345.623cef4c@recife.lan> <20151218092225.387cea22@recife.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <5673F7CF.9090605@free.fr>
+Date: Fri, 18 Dec 2015 13:10:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <20151218092225.387cea22@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for IOMMU to s5p-mfc device driver. MFC firmware
-is limited and it cannot use the default configuration. If IOMMU is
-available, the patch disables the default DMA address space
-configuration and creates a new address space of size limited to 256M
-and base address set to 0x20000000.
+On 18/12/2015 12:22, Mauro Carvalho Chehab wrote:
 
-For now the same address space is shared by both 'left' and 'right'
-memory channels, because the DMA/IOMMU frameworks do not support
-configuring them separately. This is not optimal, but besides limiting
-total address space available has no other drawbacks (MFC firmware
-supports 256M of address space per each channel).
+> Patch applied.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c       | 24 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 79 ++++++++++++++++++++++++++
- 2 files changed, 103 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+Great! Thanks.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 3063449..bae7c0f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -30,6 +30,7 @@
- #include "s5p_mfc_dec.h"
- #include "s5p_mfc_enc.h"
- #include "s5p_mfc_intr.h"
-+#include "s5p_mfc_iommu.h"
- #include "s5p_mfc_opr.h"
- #include "s5p_mfc_cmd.h"
- #include "s5p_mfc_pm.h"
-@@ -1061,6 +1062,22 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	/*
-+	 * When IOMMU is available, we cannot use the default configuration,
-+	 * because of MFC firmware requirements: address space limited to
-+	 * 256M and non-zero default start address.
-+	 * This is still simplified, not optimal configuration, but for now
-+	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-+	 * separately.
-+	 */
-+	if (exynos_is_iommu_available(dev)) {
-+		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-+						 S5P_MFC_IOMMU_DMA_SIZE);
-+		if (ret == 0)
-+			mfc_dev->mem_dev_l = mfc_dev->mem_dev_r = dev;
-+		return ret;
-+	}
-+
-+	/*
- 	 * Create and initialize virtual devices for accessing
- 	 * reserved memory regions.
- 	 */
-@@ -1078,6 +1095,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 
- static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+
-+	if (exynos_is_iommu_available(dev)) {
-+		exynos_unconfigure_iommu(dev);
-+		return;
-+	}
-+
- 	device_unregister(mfc_dev->mem_dev_l);
- 	device_unregister(mfc_dev->mem_dev_r);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-new file mode 100644
-index 0000000..5d1d1c2
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (C) 2015 Samsung Electronics Co.Ltd
-+ * Authors: Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
-+ */
-+
-+#ifndef S5P_MFC_IOMMU_H_
-+#define S5P_MFC_IOMMU_H_
-+
-+#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
-+#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
-+
-+#ifdef CONFIG_EXYNOS_IOMMU
-+
-+#include <asm/dma-iommu.h>
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return dev->archdata.iommu != NULL;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev)
-+{
-+	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
-+
-+	arm_iommu_detach_device(dev);
-+	arm_iommu_release_mapping(mapping);
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	struct dma_iommu_mapping *mapping = NULL;
-+	int ret;
-+
-+	/* Disable the default mapping created by device core */
-+	if (to_dma_iommu_mapping(dev))
-+		exynos_unconfigure_iommu(dev);
-+
-+	mapping = arm_iommu_create_mapping(dev->bus, base, size);
-+	if (IS_ERR(mapping)) {
-+		pr_warn("Failed to create IOMMU mapping for device %s\n",
-+			dev_name(dev));
-+		return PTR_ERR(mapping);
-+	}
-+
-+	ret = arm_iommu_attach_device(dev, mapping);
-+	if (ret) {
-+		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
-+				dev_name(dev));
-+		arm_iommu_release_mapping(mapping);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev) { }
-+
-+#endif
-+
-+#endif /* S5P_MFC_IOMMU_H_ */
--- 
-1.9.2
+Using the latest media_build master + my writel_relaxed work-around,
+compilation proceeds much further, then dies on device tree stuff:
+(same error with vanilla and custom kernel)
+
+Will look into it. Any idea? :-(
+
+By the way, if I was not clear, I'm cross-compiling for an ARM platform.
+
+  CC [M]  /tmp/sandbox/media_build/v4l/v4l2-of.o
+/tmp/sandbox/media_build/v4l/v4l2-of.c: In function 'v4l2_of_parse_csi_bus':
+/tmp/sandbox/media_build/v4l/v4l2-of.c:38:4: error: implicit declaration of function 'of_prop_next_u32' [-Werror=implicit-function-declaration]
+    lane = of_prop_next_u32(prop, lane, &v);
+    ^
+/tmp/sandbox/media_build/v4l/v4l2-of.c:38:9: warning: assignment makes pointer from integer without a cast
+    lane = of_prop_next_u32(prop, lane, &v);
+         ^
+/tmp/sandbox/media_build/v4l/v4l2-of.c:52:13: warning: assignment makes pointer from integer without a cast
+    polarity = of_prop_next_u32(prop, polarity, &v);
+             ^
+/tmp/sandbox/media_build/v4l/v4l2-of.c: In function 'v4l2_of_parse_link':
+/tmp/sandbox/media_build/v4l/v4l2-of.c:287:24: warning: passing argument 1 of 'of_parse_phandle' discards 'const' qualifier from pointer target type
+  np = of_parse_phandle(node, "remote-endpoint", 0);
+                        ^
+In file included from include/linux/i2c.h:36:0,
+                 from /tmp/sandbox/media_build/v4l/compat.h:977,
+                 from <command-line>:0:
+include/linux/of.h:237:28: note: expected 'struct device_node *' but argument is of type 'const struct device_node *'
+ extern struct device_node *of_parse_phandle(struct device_node *np,
+                            ^
+cc1: some warnings being treated as errors
+make[3]: *** [/tmp/sandbox/media_build/v4l/v4l2-of.o] Error 1
+make[2]: *** [_module_/tmp/sandbox/media_build/v4l] Error 2
+make[2]: Leaving directory `/tmp/sandbox/linux-3.4.39'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/tmp/sandbox/media_build/v4l'
+make: *** [all] Error 2
 
