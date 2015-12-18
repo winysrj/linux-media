@@ -1,78 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41564 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965115AbbLHP3w (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:33721 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933216AbbLRO3e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:29:52 -0500
-Date: Tue, 8 Dec 2015 17:29:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
-Message-ID: <20151208152915.GH17128@valkosipuli.retiisi.org.uk>
-References: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 18 Dec 2015 09:29:34 -0500
+Received: by mail-wm0-f42.google.com with SMTP id p187so67213048wmp.0
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 06:29:34 -0800 (PST)
+From: Jemma Denson <jdenson@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: [v4l-utils PATCH-v2 4/4] dvbv5-zap.c: Move common signals code into function
+Date: Fri, 18 Dec 2015 14:28:26 +0000
+Message-Id: <1450448906-17000-5-git-send-email-jdenson@gmail.com>
+In-Reply-To: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
+References: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent and Gjorgji,
+Code repeated 3 times; move to common function.
 
-On Mon, Dec 07, 2015 at 10:45:39AM +0200, Laurent Pinchart wrote:
-> From: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> 
-> Buffer length is needed for single plane as well, otherwise
-> is uninitialized and behaviour is undetermined.
+Signed-off-by: Jemma Denson <jdenson@gmail.com>
+---
+ utils/dvb/dvbv5-zap.c | 33 +++++++++++++--------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
-How about:
-
-The v4l2_buffer length field must be passed as well from user to kernel and
-back, otherwise uninitialised values will be used.
-
-> 
-> Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Shouldn't this be submitted to stable as well?
-
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 8fd84a67478a..b0faa1f7e3a9 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_DMABUF:
-> -			if (get_user(kp->m.fd, &up->m.fd))
-> +			if (get_user(kp->m.fd, &up->m.fd) ||
-> +			    get_user(kp->length, &up->length))
->  				return -EFAULT;
-> +
->  			break;
->  		}
->  	}
-> @@ -550,7 +552,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_DMABUF:
-> -			if (put_user(kp->m.fd, &up->m.fd))
-> +			if (put_user(kp->m.fd, &up->m.fd) ||
-> +			    put_user(kp->length, &up->length))
->  				return -EFAULT;
->  			break;
->  		}
-
+diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
+index 2d71307..ef17be9 100644
+--- a/utils/dvb/dvbv5-zap.c
++++ b/utils/dvb/dvbv5-zap.c
+@@ -737,6 +737,16 @@ int do_traffic_monitor(struct arguments *args,
+ 	return 0;
+ }
+ 
++static void set_signals(struct arguments *args)
++{
++	signal(SIGTERM, do_timeout);
++	signal(SIGINT, do_timeout);
++	if (args->timeout > 0) {
++		signal(SIGALRM, do_timeout);
++		alarm(args->timeout);
++	}
++}
++
+ int main(int argc, char **argv)
+ {
+ 	struct arguments args;
+@@ -855,26 +865,14 @@ int main(int argc, char **argv)
+ 		goto err;
+ 
+ 	if (args.exit_after_tuning) {
+-		signal(SIGTERM, do_timeout);
+-		signal(SIGINT, do_timeout);
+-		if (args.timeout > 0) {
+-			signal(SIGALRM, do_timeout);
+-			alarm(args.timeout);
+-		}
+-
++		set_signals(&args);
+ 		err = 0;
+ 		check_frontend(&args, parms);
+ 		goto err;
+ 	}
+ 
+ 	if (args.traffic_monitor) {
+-		signal(SIGTERM, do_timeout);
+-		signal(SIGINT, do_timeout);
+-		if (args.timeout > 0) {
+-			signal(SIGALRM, do_timeout);
+-			alarm(args.timeout);
+-		}
+-
++		set_signals(&args);
+ 		err = do_traffic_monitor(&args, parms);
+ 		goto err;
+ 	}
+@@ -966,12 +964,7 @@ int main(int argc, char **argv)
+ 			goto err;
+ 	}
+ 
+-	signal(SIGTERM, do_timeout);
+-	signal(SIGINT, do_timeout);
+-	if (args.timeout > 0) {
+-		signal(SIGALRM, do_timeout);
+-		alarm(args.timeout);
+-	}
++	set_signals(&args);
+ 
+ 	if (!check_frontend(&args, parms)) {
+ 		err = 1;
 -- 
-Kind regards,
+2.1.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
