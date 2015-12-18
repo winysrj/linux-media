@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59926 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751274AbbLVNIz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2015 08:08:55 -0500
-Subject: Re: [PATCH] next: media: cx231xx: add #ifdef to fix compile error
-To: Okash Khawaja <okash.khawaja@gmail.com>
-References: <20151222102721.GA1892@bytefire-computer>
- <5679461B.6020402@osg.samsung.com> <20151222130033.GA24691@bytefire-computer>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56794B5F.2040709@osg.samsung.com>
-Date: Tue, 22 Dec 2015 10:08:47 -0300
-MIME-Version: 1.0
-In-Reply-To: <20151222130033.GA24691@bytefire-computer>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38827 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbbLRKfL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 05:35:11 -0500
+Received: by mail-wm0-f41.google.com with SMTP id l126so59071551wml.1
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 02:35:11 -0800 (PST)
+From: Jemma Denson <jdenson@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: [v4l-utils PATCH 1/1] dvbv5-zap.c: fix setting signal handlers
+Date: Fri, 18 Dec 2015 10:35:03 +0000
+Message-Id: <1450434903-15524-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Okash,
+Signal handlers are currently out of order - SIGALRM is always set, and
+SIGINT only set when timeout is set. These should be the other way round.
 
-On 12/22/2015 10:00 AM, Okash Khawaja wrote:
+Signed-off-by: Jemma Denson <jdenson@gmail.com>
+---
+ utils/dvb/dvbv5-zap.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-[snip]
-
-> 
-> Cool. There was another similar compile error
-> 
-> https://lkml.org/lkml/2015/12/22/196
->
-
-Yes and you can see in that thread that I also mention
-that was fixed already :)
+diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
+index e19d7c2..e927383 100644
+--- a/utils/dvb/dvbv5-zap.c
++++ b/utils/dvb/dvbv5-zap.c
+@@ -959,10 +959,10 @@ int main(int argc, char **argv)
+ 			goto err;
+ 	}
  
-> Thanks,
-> Okash
-> 
-
-Best regards,
+-	signal(SIGALRM, do_timeout);
+ 	signal(SIGTERM, do_timeout);
++	signal(SIGINT, do_timeout);
+ 	if (args.timeout > 0) {
+-		signal(SIGINT, do_timeout);
++		signal(SIGALRM, do_timeout);
+ 		alarm(args.timeout);
+ 	}
+ 
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.1.0
+
