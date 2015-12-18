@@ -1,80 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38091 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222AbbL3Qqr (ORCPT
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:35333 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753354AbbLRNFt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 11:46:47 -0500
-Received: by mail-wm0-f47.google.com with SMTP id b14so55519965wmb.1
-        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:47 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 05/16] media: rc: nuvoton-cir: factor out logical device
- enabling
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <568408EC.5090900@gmail.com>
-Date: Wed, 30 Dec 2015 17:40:12 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Dec 2015 08:05:49 -0500
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH 5/5] staging: media: lirc: use new parport device model
+Date: Fri, 18 Dec 2015 18:35:29 +0530
+Message-Id: <1450443929-15305-5-git-send-email-sudipm.mukherjee@gmail.com>
+In-Reply-To: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
+References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Factor out enabling of a logical device.
+Modify lirc_parallel driver to use the new parallel port device model.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 ---
- drivers/media/rc/nuvoton-cir.c | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/staging/media/lirc/lirc_parallel.c | 100 +++++++++++++++++++----------
+ 1 file changed, 65 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index ceb6b95..8ed8011 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -110,6 +110,15 @@ static inline void nvt_select_logical_dev(struct nvt_dev *nvt, u8 ldev)
- 	nvt_cr_write(nvt, ldev, CR_LOGICAL_DEV_SEL);
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
+index 0156114..20ec9b6 100644
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ b/drivers/staging/media/lirc/lirc_parallel.c
+@@ -629,43 +629,26 @@ static void kf(void *handle)
+ 	*/
  }
  
-+/* select and enable logical device with setting EFM mode*/
-+static inline void nvt_enable_logical_dev(struct nvt_dev *nvt, u8 ldev)
-+{
-+	nvt_efm_enable(nvt);
-+	nvt_select_logical_dev(nvt, ldev);
-+	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
-+	nvt_efm_disable(nvt);
+-/*** module initialization and cleanup ***/
+-
+-static int __init lirc_parallel_init(void)
++static void lirc_parallel_attach(struct parport *port)
+ {
+-	int result;
++	struct pardev_cb lirc_parallel_cb;
+ 
+-	result = platform_driver_register(&lirc_parallel_driver);
+-	if (result) {
+-		pr_notice("platform_driver_register returned %d\n", result);
+-		return result;
+-	}
++	if (port->base != io)
++		return;
+ 
+-	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
+-	if (!lirc_parallel_dev) {
+-		result = -ENOMEM;
+-		goto exit_driver_unregister;
+-	}
++	pport = port;
++	memset(&lirc_parallel_cb, 0, sizeof(lirc_parallel_cb));
++	lirc_parallel_cb.preempt = pf;
++	lirc_parallel_cb.wakeup = kf;
++	lirc_parallel_cb.irq_func = lirc_lirc_irq_handler;
+ 
+-	result = platform_device_add(lirc_parallel_dev);
+-	if (result)
+-		goto exit_device_put;
+-
+-	pport = parport_find_base(io);
+-	if (!pport) {
+-		pr_notice("no port at %x found\n", io);
+-		result = -ENXIO;
+-		goto exit_device_put;
+-	}
+-	ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
+-					   pf, kf, lirc_lirc_irq_handler, 0,
+-					   NULL);
+-	parport_put_port(pport);
++	ppdevice = parport_register_dev_model(port, LIRC_DRIVER_NAME,
++					      &lirc_parallel_cb, 0);
+ 	if (!ppdevice) {
+ 		pr_notice("parport_register_device() failed\n");
+-		result = -ENXIO;
+-		goto exit_device_put;
++		return;
+ 	}
++
+ 	if (parport_claim(ppdevice) != 0)
+ 		goto skip_init;
+ 	is_claimed = 1;
+@@ -693,18 +676,66 @@ static int __init lirc_parallel_init(void)
+ 
+ 	is_claimed = 0;
+ 	parport_release(ppdevice);
+- skip_init:
++
++skip_init:
++	return;
 +}
 +
- /* select and disable logical device with setting EFM mode*/
- static inline void nvt_disable_logical_dev(struct nvt_dev *nvt, u8 ldev)
++static void lirc_parallel_detach(struct parport *port)
++{
++	if (port->base != io)
++		return;
++
++	parport_unregister_device(ppdevice);
++}
++
++static struct parport_driver lirc_parport_driver = {
++	.name = LIRC_DRIVER_NAME,
++	.match_port = lirc_parallel_attach,
++	.detach = lirc_parallel_detach,
++	.devmodel = true,
++};
++
++/*** module initialization and cleanup ***/
++
++static int __init lirc_parallel_init(void)
++{
++	int result;
++
++	result = platform_driver_register(&lirc_parallel_driver);
++	if (result) {
++		pr_notice("platform_driver_register returned %d\n", result);
++		return result;
++	}
++
++	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
++	if (!lirc_parallel_dev) {
++		result = -ENOMEM;
++		goto exit_driver_unregister;
++	}
++
++	result = platform_device_add(lirc_parallel_dev);
++	if (result)
++		goto exit_device_put;
++
++	result = parport_register_driver(&lirc_parport_driver);
++	if (result) {
++		pr_notice("parport_register_driver returned %d\n", result);
++		goto exit_device_put;
++	}
++
+ 	driver.dev = &lirc_parallel_dev->dev;
+ 	driver.minor = lirc_register_driver(&driver);
+ 	if (driver.minor < 0) {
+ 		pr_notice("register_chrdev() failed\n");
+-		parport_unregister_device(ppdevice);
+ 		result = -EIO;
+-		goto exit_device_put;
++		goto exit_unregister;
+ 	}
+ 	pr_info("installed using port 0x%04x irq %d\n", io, irq);
+ 	return 0;
+ 
++exit_unregister:
++	parport_unregister_driver(&lirc_parport_driver);
+ exit_device_put:
+ 	platform_device_put(lirc_parallel_dev);
+ exit_driver_unregister:
+@@ -714,9 +745,8 @@ exit_driver_unregister:
+ 
+ static void __exit lirc_parallel_exit(void)
  {
-@@ -916,13 +925,8 @@ static void nvt_enable_cir(struct nvt_dev *nvt)
- 			  CIR_IRCON_RXINV | CIR_IRCON_SAMPLE_PERIOD_SEL,
- 			  CIR_IRCON);
- 
--	nvt_efm_enable(nvt);
+-	parport_unregister_device(ppdevice);
+ 	lirc_unregister_driver(driver.minor);
 -
- 	/* enable the CIR logical device */
--	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
--	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
--
--	nvt_efm_disable(nvt);
-+	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
- 
- 	/* clear all pending interrupts */
- 	nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
-@@ -1168,11 +1172,7 @@ static int nvt_resume(struct pnp_dev *pdev)
- 	nvt_set_cir_iren(nvt);
- 
- 	/* Enable CIR logical device */
--	nvt_efm_enable(nvt);
--	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
--	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
--
--	nvt_efm_disable(nvt);
-+	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
- 
- 	nvt_cir_regs_init(nvt);
- 	nvt_cir_wake_regs_init(nvt);
++	parport_unregister_driver(&lirc_parport_driver);
+ 	platform_device_unregister(lirc_parallel_dev);
+ 	platform_driver_unregister(&lirc_parallel_driver);
+ }
 -- 
-2.6.4
-
+1.9.1
 
