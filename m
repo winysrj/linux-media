@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43359 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754267AbbLDQfX (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:56784 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754185AbbLRQwn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2015 11:35:23 -0500
-Message-ID: <1449246920.3451.18.camel@pengutronix.de>
-Subject: Re: [PATCH 3/4] drm, ipu-v3: use https://linuxtv.org for LinuxTV URL
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Fri, 18 Dec 2015 11:52:43 -0500
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <0df11a53b7100d93643483e9fcfaf4eb69b492a5.1450455971.git.mchehab@osg.samsung.com>
+References: <0df11a53b7100d93643483e9fcfaf4eb69b492a5.1450455971.git.mchehab@osg.samsung.com>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Cc: dhowells@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Airlie <airlied@linux.ie>,
-	dri-devel@lists.freedesktop.org, linux-api@vger.kernel.org
-Date: Fri, 04 Dec 2015 17:35:20 +0100
-In-Reply-To: <4a3d0cb06b3e4248ba4a659d7f2a7a8fa1a877fc.1449232861.git.mchehab@osg.samsung.com>
-References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-	 <4a3d0cb06b3e4248ba4a659d7f2a7a8fa1a877fc.1449232861.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: Re: [PATCH] [media] cx23885-dvb: move initialization of a8293_pdata
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <1699.1450457560.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: 8BIT
+Date: Fri, 18 Dec 2015 16:52:40 +0000
+Message-ID: <1700.1450457560@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 04.12.2015, 10:46 -0200 schrieb Mauro Carvalho Chehab:
-> While https was always supported on linuxtv.org, only in
-> Dec 3 2015 the website is using valid certificates.
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+
+> Smatch complains about where the au8293_data is placed:
 > 
-> As we're planning to drop pure http support on some
-> future, change the references at DRM include and at
-> the ipu-v3 driver to point to the https://linuxtv.org
-> URL instead.
+> drivers/media/pci/cx23885/cx23885-dvb.c:2174 dvb_register() info: 'a8293_pdata' is not actually initialized (unreached code).
+> 
+> It is not actually expected to have such initialization at
+> 
+> switch {
+> 	foo = bar;
+> 
+> 	case:
+> ...
+> }
+> 
+> Not really sure how gcc does that, but this is something that I would
+> expect that different compilers would do different things.
+> 
+> So, move the initialization outside the switch(), making smatch to
+> shut up one warning.
 > 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Yeah - checked with the compiler people: it's not really expected to
+initialise as expected.
 
-regards
-Philipp
-
+Acked-by: David Howells <dhowells@redhat.com>
