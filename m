@@ -1,34 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:35971 "EHLO
-	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549AbbLUSbg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 13:31:36 -0500
-Received: by mail-qk0-f177.google.com with SMTP id t125so140463825qkh.3
-        for <linux-media@vger.kernel.org>; Mon, 21 Dec 2015 10:31:35 -0800 (PST)
+Received: from smtp4-g21.free.fr ([212.27.42.4]:54298 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964957AbbLRTm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 14:42:59 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+ <56743DF7.2040904@free.fr>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <567461B9.2070704@free.fr>
+Date: Fri, 18 Dec 2015 20:42:49 +0100
 MIME-Version: 1.0
-In-Reply-To: <CALs+mqZH7EpEYLsi5H2DLH12TSMmeAxNbwfOuwNyrE8_U2Oxqg@mail.gmail.com>
-References: <CALs+mqZH7EpEYLsi5H2DLH12TSMmeAxNbwfOuwNyrE8_U2Oxqg@mail.gmail.com>
-Date: Mon, 21 Dec 2015 13:31:35 -0500
-Message-ID: <CALzAhNUCJQJyS_aF1cFsOJ40R9n6mMb3VPefg_iwiw+dt_F1sw@mail.gmail.com>
-Subject: Re: Raw ATSC Stream Capture
-From: Steven Toth <stoth@kernellabs.com>
-To: =?UTF-8?Q?Thom=C3=A1s_Inskip?= <tinskip@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <56743DF7.2040904@free.fr>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> on how to do this online.  Could someone please send me some info on
-> how to do this, or at least point me in the right direction?
->
-> Oh, I'm using a Hauppauge HDR-955Q tuner.
+On 18/12/2015 18:10, Mason wrote:
 
-v4l2-ctl isn't used for ATSC transmissions, its generally used for
-analog TV only.
+> Am I doing something wrong?
 
-Take a look at the 'azap' and 'dvbtraffic' tools. These are what you need.
+Yes, I didn't have I2C enabled.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+By running 'make menuconfig' in a recent kernel, I could see which
+Kconfig options are required to build the dvbsky driver.
+
+Mauro, I hope you'll find time to address my remaining bug reports.
+
+Issue #1
+check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
+is definitely incorrect for older kernels.
+
+Issue #2
+WARNING: "nsecs_to_jiffies" [/tmp/sandbox/media_build/v4l/gpio-ir-recv.ko] undefined!
+
+Regards.
+
