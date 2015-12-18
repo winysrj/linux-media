@@ -1,131 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38527 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751640AbbLMLB7 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44513 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932075AbbLRELR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 06:01:59 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/4] [media] media-entity.h: Document some ancillary functions
-Date: Sun, 13 Dec 2015 09:01:40 -0200
-Message-Id: <fdbcf0a3ea104306c7532b304c71edc606def019.1450004500.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 17 Dec 2015 23:11:17 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1011F1869BE
+	for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 05:11:12 +0100 (CET)
+Date: Fri, 18 Dec 2015 05:11:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20151218041112.1011F1869BE@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a basic documentation for most ancillary functions.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- include/media/media-entity.h | 58 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 57 insertions(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d073b205e6a6..81aca1f5a09a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -238,11 +238,21 @@ struct media_intf_devnode {
- 	u32				minor;
- };
- 
-+/**
-+ * media_entity_id() - return the media entity graph object id
-+ *
-+ * @entity:	pointer to entity
-+ */
- static inline u32 media_entity_id(struct media_entity *entity)
- {
- 	return entity->graph_obj.id;
- }
- 
-+/**
-+ * media_type() - return the media object type
-+ *
-+ * @gobj:	pointer to the media graph object
-+ */
- static inline enum media_gobj_type media_type(struct media_gobj *gobj)
- {
- 	return gobj->id >> MEDIA_BITS_PER_LOCAL_ID;
-@@ -263,6 +273,15 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u32 local_id)
- 	return id;
- }
- 
-+/**
-+ * is_media_entity_v4l2_io() - identify if the entity main function
-+ *			       is a V4L2 I/O
-+ *
-+ * @entity:	pointer to entity
-+ *
-+ * Return: true if the entity main function is one of the V4L2 I/O types
-+ *	(video, VBI or SDR radio); false otherwise.
-+ */
- static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- {
- 	if (!entity)
-@@ -278,6 +297,16 @@ static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- 	}
- }
- 
-+/**
-+ * is_media_entity_v4l2_subdev - return true if the entity main function is
-+ *				 associated with the V4L2 API subdev usage
-+ *
-+ * @entity:	pointer to entity
-+ *
-+ * This is an ancillary function used by subdev-based V4L2 drivers.
-+ * It checks if the entity function is one of functions used by a V4L2 subdev,
-+ * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-+ */
- static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- {
- 	if (!entity)
-@@ -652,16 +681,43 @@ struct media_link *
- __must_check media_create_intf_link(struct media_entity *entity,
- 				    struct media_interface *intf,
- 				    u32 flags);
-+/**
-+ * __media_remove_intf_link() - remove a single interface link
-+ *
-+ * @link:	pointer to &media_link.
-+ *
-+ * Note: this is an unlocked version of media_remove_intf_link()
-+ */
- void __media_remove_intf_link(struct media_link *link);
-+
-+/**
-+ * media_remove_intf_link() - remove a single interface link
-+ *
-+ * @link:	pointer to &media_link.
-+ *
-+ * Note: prefer to use this one, instead of __media_remove_intf_link()
-+ */
- void media_remove_intf_link(struct media_link *link);
-+
-+/**
-+ * __media_remove_intf_links() - remove all links associated with an interface
-+ *
-+ * @intf:	pointer to &media_interface
-+ *
-+ * Note: this is an unlocked version of media_remove_intf_links().
-+ */
- void __media_remove_intf_links(struct media_interface *intf);
- /**
-  * media_remove_intf_links() - remove all links associated with an interface
-  *
-  * @intf:	pointer to &media_interface
-  *
-- * Note: this is called automatically when an entity is unregistered via
-+ * Notes:
-+ *
-+ * this is called automatically when an entity is unregistered via
-  * media_device_register_entity() and by media_devnode_remove().
-+ *
-+ * Prefer to use this one, instead of __media_remove_intf_links().
-  */
- void media_remove_intf_links(struct media_interface *intf);
- 
--- 
-2.5.0
+date:		Fri Dec 18 04:00:19 CET 2015
+git branch:	test
+git hash:	52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
