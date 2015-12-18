@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:43277 "EHLO
-	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932649AbbLGSmQ (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:34425 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933180AbbLRO3d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2015 13:42:16 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.de, perex@perex.cz,
-	chehabrafael@gmail.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, chris.j.arges@canonical.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 MC Next Gen] sound/usb: Fix out of bounds access in media_entity_init()
-Date: Mon,  7 Dec 2015 11:42:12 -0700
-Message-Id: <1449513732-5482-1-git-send-email-shuahkh@osg.samsung.com>
+	Fri, 18 Dec 2015 09:29:33 -0500
+Received: by mail-wm0-f54.google.com with SMTP id l126so67894845wml.1
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2015 06:29:32 -0800 (PST)
+From: Jemma Denson <jdenson@gmail.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: [v4l-utils PATCH-v2 2/4] dvbv5-zap.c: allow timeout with -x
+Date: Fri, 18 Dec 2015 14:28:24 +0000
+Message-Id: <1450448906-17000-3-git-send-email-jdenson@gmail.com>
+In-Reply-To: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
+References: <1450448906-17000-1-git-send-email-jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the out of bounds access in media_entity_init() found
-by KASan. This is a result of media_mixer_init() failing
-to allocate memory for all 3 of its pads before calling
-media_entity_init(). Fix it to allocate memory for the
-right struct media_mixer_ctl instead of struct media_ctl.
+Timeout handlers aren't set when running with -x (exit after tuning).
+This patch adds handlers so -t can be used with -x.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Without a timeout dvbv5-zap will run forever if there's no signal,
+preventing it's use by scripts to obtain signal stats.
+
+Signed-off-by: Jemma Denson <jdenson@gmail.com>
 ---
+ utils/dvb/dvbv5-zap.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Changes since v1:
-Change to address review comment from Takashi Iwai
-
-This patch fixes the mixer patch below:
-https://patchwork.linuxtv.org/patch/31827/
-
- sound/usb/media.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index bebe27b..b0d283f 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -233,8 +233,8 @@ int media_mixer_init(struct snd_usb_audio *chip)
- 		if (mixer->media_mixer_ctl)
- 			continue;
+diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
+index e927383..2d19d45 100644
+--- a/utils/dvb/dvbv5-zap.c
++++ b/utils/dvb/dvbv5-zap.c
+@@ -855,6 +855,13 @@ int main(int argc, char **argv)
+ 		goto err;
  
--		/* allocate media_ctl */
--		mctl = kzalloc(sizeof(struct media_ctl), GFP_KERNEL);
-+		/* allocate media_mixer_ctl */
-+		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
- 		if (!mctl)
- 			return -ENOMEM;
- 
+ 	if (args.exit_after_tuning) {
++		signal(SIGTERM, do_timeout);
++		signal(SIGINT, do_timeout);
++		if (args.timeout > 0) {
++			signal(SIGALRM, do_timeout);
++			alarm(args.timeout);
++		}
++
+ 		err = 0;
+ 		check_frontend(&args, parms);
+ 		goto err;
 -- 
-2.5.0
+2.1.0
 
