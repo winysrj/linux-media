@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:29452 "EHLO smtp2-g21.free.fr"
+Received: from lists.s-osg.org ([54.187.51.154]:59428 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932174AbbLQRDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 12:03:24 -0500
-Subject: Re: Automatic device driver back-porting with media_build
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
- <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
- <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <5672EAD6.2000706@free.fr>
-Date: Thu, 17 Dec 2015 18:03:18 +0100
+	id S932344AbbLRRdv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 12:33:51 -0500
+Date: Fri, 18 Dec 2015 15:33:46 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.4-rc6] media fixes
+Message-ID: <20151218153346.79127e7d@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <20151217140943.7048811b@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/12/2015 17:09, Mauro Carvalho Chehab wrote:
+The following changes since commit 8005c49d9aea74d382f474ce11afbbc7d7130bec:
 
-> As I said before, heavily patched Kernel. It seems that the network stack
-> was updated to some newer version. The media_build backport considers
-> only the upstream Kernels. In the specific case of 3.4, it is known
-> to build fine with Kernel linux-3.4.27. See:
-> 	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
+  Linux 4.4-rc1 (2015-11-15 17:00:27 -0800)
 
-I don't think the network stack is different from vanilla...
+are available in the git repository at:
 
-I had a different idea:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.4-3
 
-The media_build process prints:
+for you to fetch changes up to aa0850e1d56623845b46350ffd971afa9241886d:
 
-"Preparing to compile for kernel version 3.4.3913"
+  [media] airspy: increase USB control message buffer size (2015-12-18 15:25:29 -0200)
 
-In fact, the custom kernel's Makefile contains:
+----------------------------------------------------------------
+media fixes for v4.4-rc6
 
-VERSION = 3
-PATCHLEVEL = 4
-SUBLEVEL = 39
-EXTRAVERSION = 13
-NAME = Saber-toothed Squirrel
+----------------------------------------------------------------
+Antti Palosaari (3):
+      [media] hackrf: fix possible null ptr on debug printing
+      [media] hackrf: move RF gain ctrl enable behind module parameter
+      [media] airspy: increase USB control message buffer size
 
-Is it possible that the build process gets confused by the EXTRAVERSION field?
+Mauro Carvalho Chehab (1):
+      [media] Revert "[media] ivtv: avoid going past input/audio array"
 
-Regards.
+ drivers/media/pci/ivtv/ivtv-driver.c |  4 ++--
+ drivers/media/usb/airspy/airspy.c    |  2 +-
+ drivers/media/usb/hackrf/hackrf.c    | 13 ++++++++++++-
+ 3 files changed, 15 insertions(+), 4 deletions(-)
 
