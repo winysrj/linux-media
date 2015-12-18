@@ -1,129 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54540 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932880AbbLPNo6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:44:58 -0500
-Subject: Re: [PATCH v2 6/8] [Media] vcodec: mediatek: Add Mediatek V4L2 Video
- Encoder Driver
-To: tiffany lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hansverk@cisco.com>
-References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
- <1449827743-22895-7-git-send-email-tiffany.lin@mediatek.com>
- <566EBAFC.3010408@xs4all.nl> <1450187460.21350.35.camel@mtksdaap41>
- <567020F1.1000204@cisco.com> <1450271857.6730.26.camel@mtksdaap41>
-Cc: daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56716B88.7090301@xs4all.nl>
-Date: Wed, 16 Dec 2015 14:47:52 +0100
+Received: from smtp2-g21.free.fr ([212.27.42.2]:14086 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933007AbbLRRKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 12:10:23 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <56743DF7.2040904@free.fr>
+Date: Fri, 18 Dec 2015 18:10:15 +0100
 MIME-Version: 1.0
-In-Reply-To: <1450271857.6730.26.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20151217125505.0abc4b40@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/15 14:17, tiffany lin wrote:
-> Hi Hans,
-> 
-> 
-> On Tue, 2015-12-15 at 15:17 +0100, Hans Verkuil wrote:
->>
->> On 12/15/15 14:51, tiffany lin wrote:
->>> We are not familiar with v4l2-compliance utility, we will check how to
->>> use it.
->>
->> It's part of v4l-utils.git (http://git.linuxtv.org/v4l-utils.git/). There is a
->> fairly decent man page. It does exhaustive compliance tests for V4L2 devices.
->>
->> That said, the support for memory-to-memory codec devices is not great, so I wouldn't
->> trust any failures it reports when using the streaming tests (i.e. the --stream*
->> options). By default just run 'v4l2-compliance -d /dev/videoX' to do the compliance
->> test.
->>
->> Note: before I accept this driver I do want to see that compliance test output!
->>
-> Got it. We will provide it in next version.
-> Now our driver is developed and run base on kernel v3.18.
-> V4L2 and vb2 have some difference between Linux 4.4-rc1 and 3.18 kernel.
-> Is it ok we provided test output base on v3.18 or we need to base on
-> 4.4-rc1?
+On 17/12/2015 15:55, Mauro Carvalho Chehab wrote:
 
-I'm actually not sure if the latest v4l2-compliance test suite will work with a 3.18
-kernel. so either you have to go back to an older version of v4l2-compliance that
-works with 3.18 (go back to commit 4a57509a8334aca6ca8e81cd3beb08d5be397dac, that
-might do the trick) or (and that's what I recommend) go with the latest kernel.
+> Did the driver compile fine?
 
-For the media tree that is http://git.linuxtv.org/media_tree.git/log/.
+Once all the modules finish building, I have many *.ko files in v4l.
 
-The final version of the patch has to be against that kernel anyway.
+I copy them to my target's /lib/modules/3.4.39.13/kernel
+and run depmod -a
 
->>>>> +}
->>>>> +
->>>>> +int m2mctx_venc_queue_init(void *priv, struct vb2_queue *src_vq,
->>>>> +			   struct vb2_queue *dst_vq)
->>>>> +{
->>>>> +	struct mtk_vcodec_ctx *ctx = priv;
->>>>> +	int ret;
->>>>> +
->>>>> +	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->>>>> +	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
->>>>
->>>> You're using videobuf2-dma-contig, so VB2_USERPTR is generally useless in that
->>>> case. I would drop it.
->>>>
->>> Sorry, I don't get it. 
->>> We are using videobuf2-dma-contig, but we also using VB2_USERPTR.
->>
->> ???? In that case the user pointer you pass in must point to physically contiguous
->> memory. Which means you got it through some magic. Typically what should be used
->> are dmabuf handles to pass buffers around between different subsystems.
->>
->> The use of VB2_USERPTR for that purpose is deprecated.
->>
->> Or am I misunderstanding you as well?
->>
-> Our encoder support all three modes.
-> In case that A driver + Encode driver flow, OUTPUT buffer will be
-> VB2_DMABUF from A driver.
-> In case that read YCbCr frame data from file and encode them to bit
-> stream flow, we use VB2_USERPTR and VB2_MMAP.
-> In VB2_USERPTR case, videobuf2-dma-contig will help us get continuous
-> dma address.
-> Our chip has IOMMU and M4U that help us get continuous phy address for
-> encode HW.
-> 
-> http://lists.infradead.org/pipermail/linux-mediatek/2015-October/002525.html
+It seems modprobe rc-dvbsky doesn't bring in all the stuff needed
+to actually use the device.
 
-Ah, OK. Have you tested this with malloc()ed buffers? Just asking :-)
+I added a few more modules at random:
 
-Regards,
+Module                  Size  Used by
+dvb_core               73479  0 
+v4l2_common             1628  0 
+videodev              111886  1 v4l2_common
+media                   9838  1 videodev
+rc_dvbsky                815  0 
+rc_core                15521  1 rc_dvbsky
 
-	Hans
+Probably needs dvb_usb but I don't see it built...
+
+$ grep -rn '\<CONFIG_DVB_USB\>'
+linux/drivers/media/usb/dvb-usb/Makefile:3:obj-$(CONFIG_DVB_USB) += dvb-usb.o
+v4l/.myconfig:245:CONFIG_DVB_USB                               := n
+v4l/Makefile.media:1010:obj-$(CONFIG_DVB_USB) += dvb-usb.o
+v4l/config-compat.h:548:#undef CONFIG_DVB_USB
+v4l/.config:183:# CONFIG_DVB_USB is not set
+
+(All these files are generated by the build process.)
+
+Am I doing something wrong?
+
+Regards.
+
