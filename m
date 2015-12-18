@@ -1,246 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47780 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472AbbLHUUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 15:20:33 -0500
-Date: Tue, 8 Dec 2015 18:20:29 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 49/55] [media] media-device: add support for
- MEDIA_IOC_G_TOPOLOGY ioctl
-Message-ID: <20151208182029.55106b2e@recife.lan>
-In-Reply-To: <55F2E076.30102@xs4all.nl>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
-	<55F2E076.30102@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:34000 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753354AbbLRNFn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 08:05:43 -0500
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH 3/5] staging: media: lirc: space around operator
+Date: Fri, 18 Dec 2015 18:35:27 +0530
+Message-Id: <1450443929-15305-3-git-send-email-sudipm.mukherjee@gmail.com>
+In-Reply-To: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
+References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Sep 2015 16:08:54 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+checkpatch complains about missing space around operators.
 
-> On 09/06/2015 02:03 PM, Mauro Carvalho Chehab wrote:
-> > Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
-> > with the RFC for the MC next generation.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> Two comments:
-> 
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 5b2c9f7fcd45..96a476eeb16e 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -232,6 +232,156 @@ static long media_device_setup_link(struct media_device *mdev,
-> >  	return ret;
-> >  }
-> >  
-> > +static long __media_device_get_topology(struct media_device *mdev,
-> > +				      struct media_v2_topology *topo)
-> > +{
-> > +	struct media_entity *entity;
-> > +	struct media_interface *intf;
-> > +	struct media_pad *pad;
-> > +	struct media_link *link;
-> > +	struct media_v2_entity uentity;
-> > +	struct media_v2_interface uintf;
-> > +	struct media_v2_pad upad;
-> > +	struct media_v2_link ulink;
-> > +	int ret = 0, i;
-> > +
-> > +	topo->topology_version = mdev->topology_version;
-> > +
-> > +	/* Get entities and number of entities */
-> > +	i = 0;
-> > +	media_device_for_each_entity(entity, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->entities)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_entities) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		/* Copy fields to userspace struct if not error */
-> > +		memset(&uentity, 0, sizeof(uentity));
-> > +		uentity.id = entity->graph_obj.id;
-> > +		strncpy(uentity.name, entity->name,
-> > +			sizeof(uentity.name));
-> > +
-> > +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_entities = i;
-> > +
-> > +	/* Get interfaces and number of interfaces */
-> > +	i = 0;
-> > +	media_device_for_each_intf(intf, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->interfaces)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_interfaces) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&uintf, 0, sizeof(uintf));
-> > +
-> > +		/* Copy intf fields to userspace struct */
-> > +		uintf.id = intf->graph_obj.id;
-> > +		uintf.intf_type = intf->type;
-> > +		uintf.flags = intf->flags;
-> > +
-> > +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
-> > +			struct media_intf_devnode *devnode;
-> > +
-> > +			devnode = intf_to_devnode(intf);
-> > +
-> > +			uintf.devnode.major = devnode->major;
-> > +			uintf.devnode.minor = devnode->minor;
-> > +		}
-> > +
-> > +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_interfaces = i;
-> > +
-> > +	/* Get pads and number of pads */
-> > +	i = 0;
-> > +	media_device_for_each_pad(pad, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->pads)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_pads) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&upad, 0, sizeof(upad));
-> > +
-> > +		/* Copy pad fields to userspace struct */
-> > +		upad.id = pad->graph_obj.id;
-> > +		upad.entity_id = pad->entity->graph_obj.id;
-> > +		upad.flags = pad->flags;
-> > +
-> > +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_pads = i;
-> > +
-> > +	/* Get links and number of links */
-> > +	i = 0;
-> > +	media_device_for_each_link(link, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->links)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_links) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&ulink, 0, sizeof(ulink));
-> > +
-> > +		/* Copy link fields to userspace struct */
-> > +		ulink.id = link->graph_obj.id;
-> > +		ulink.source_id = link->gobj0->id;
-> > +		ulink.sink_id = link->gobj1->id;
-> > +		ulink.flags = link->flags;
-> > +
-> > +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
-> > +			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
-> 
-> Why isn't this flag part of link->flags? I would expect that when an interface
-> link is created the media core code will set this flag automatically.
-> 
-> It's a bit strange that this flag is set here. Or am I missing something?
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+---
+ drivers/staging/media/lirc/lirc_parallel.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-Well, this is a flag for the userspace API. The Kernel doesn't
-need it. 
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
+index f65ab93..e09894d 100644
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ b/drivers/staging/media/lirc/lirc_parallel.c
+@@ -161,17 +161,17 @@ static unsigned int init_lirc_timer(void)
+ 			     || (now.tv_sec == tv.tv_sec
+ 				 && now.tv_usec < tv.tv_usec)));
+ 
+-	timeelapsed = (now.tv_sec + 1 - tv.tv_sec)*1000000
++	timeelapsed = (now.tv_sec + 1 - tv.tv_sec) * 1000000
+ 		     + (now.tv_usec - tv.tv_usec);
+ 	if (count >= 1000 && timeelapsed > 0) {
+ 		if (default_timer == 0) {
+ 			/* autodetect timer */
+-			newtimer = (1000000*count)/timeelapsed;
++			newtimer = (1000000 * count) / timeelapsed;
+ 			pr_info("%u Hz timer detected\n", newtimer);
+ 			return newtimer;
+ 		}
+-		newtimer = (1000000*count)/timeelapsed;
+-		if (abs(newtimer - default_timer) > default_timer/10) {
++		newtimer = (1000000 * count) / timeelapsed;
++		if (abs(newtimer - default_timer) > default_timer / 10) {
+ 			/* bad timer */
+ 			pr_notice("bad timer: %u Hz\n", newtimer);
+ 			pr_notice("using default timer: %u Hz\n",
+@@ -196,7 +196,7 @@ static int lirc_claim(void)
+ 			return 0;
+ 		}
+ 	}
+-	out(LIRC_LP_CONTROL, LP_PSELECP|LP_PINITP);
++	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
+ 	is_claimed = 1;
+ 	return 1;
+ }
+@@ -251,7 +251,7 @@ static void lirc_lirc_irq_handler(void *blah)
+ 			/* really long time */
+ 			data = PULSE_MASK;
+ 		else
+-			data = (int)(signal*1000000 +
++			data = (int)(signal * 1000000 +
+ 					 tv.tv_usec - lasttv.tv_usec +
+ 					 LIRC_SFH506_DELAY);
+ 
+@@ -269,7 +269,7 @@ static void lirc_lirc_irq_handler(void *blah)
+ 		init = 1;
+ 	}
+ 
+-	timeout = timer/10;	/* timeout after 1/10 sec. */
++	timeout = timer / 10;	/* timeout after 1/10 sec. */
+ 	signal = 1;
+ 	level = lirc_get_timer();
+ 	do {
+@@ -291,7 +291,7 @@ static void lirc_lirc_irq_handler(void *blah)
+ 		/* adjust value to usecs */
+ 		__u64 helper;
+ 
+-		helper = ((__u64)signal)*1000000;
++		helper = ((__u64)signal) * 1000000;
+ 		do_div(helper, timer);
+ 		signal = (long)helper;
+ 
+@@ -299,7 +299,7 @@ static void lirc_lirc_irq_handler(void *blah)
+ 			data = signal - LIRC_SFH506_DELAY;
+ 		else
+ 			data = 1;
+-		rbuf_write(PULSE_BIT|data); /* pulse */
++		rbuf_write(PULSE_BIT | data); /* pulse */
+ 	}
+ 	do_gettimeofday(&lasttv);
+ #else
+@@ -336,7 +336,7 @@ static ssize_t lirc_read(struct file *filep, char __user *buf, size_t n,
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 	while (count < n) {
+ 		if (rptr != wptr) {
+-			if (copy_to_user(buf+count, &rbuf[rptr],
++			if (copy_to_user(buf + count, &rbuf[rptr],
+ 					 sizeof(int))) {
+ 				result = -EFAULT;
+ 				break;
+@@ -398,7 +398,7 @@ static ssize_t lirc_write(struct file *filep, const char __user *buf, size_t n,
+ 	for (i = 0; i < count; i++) {
+ 		__u64 helper;
+ 
+-		helper = ((__u64)wbuf[i])*timer;
++		helper = ((__u64)wbuf[i]) * timer;
+ 		do_div(helper, 1000000);
+ 		wbuf[i] = (int)helper;
+ 	}
+@@ -669,7 +669,7 @@ static int __init lirc_parallel_init(void)
+ 	if (parport_claim(ppdevice) != 0)
+ 		goto skip_init;
+ 	is_claimed = 1;
+-	out(LIRC_LP_CONTROL, LP_PSELECP|LP_PINITP);
++	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
+ 
+ #ifdef LIRC_TIMER
+ 	if (debug)
+-- 
+1.9.1
 
-I don't object to move it to be set when link gets created on some
-followup patch, if needed.
-
-> 
-> > +
-> > +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_links = i;
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static long media_device_get_topology(struct media_device *mdev,
-> > +				      struct media_v2_topology __user *utopo)
-> > +{
-> > +	struct media_v2_topology ktopo;
-> > +	int ret;
-> > +
-> > +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
-> > +
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = __media_device_get_topology(mdev, &ktopo);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
-> > +
-> > +	return ret;
-> > +}
-> > +
-> >  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  			       unsigned long arg)
-> >  {
-> > @@ -264,6 +414,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  		mutex_unlock(&dev->graph_mutex);
-> >  		break;
-> >  
-> > +	case MEDIA_IOC_G_TOPOLOGY:
-> > +		mutex_lock(&dev->graph_mutex);
-> > +		ret = media_device_get_topology(dev,
-> > +				(struct media_v2_topology __user *)arg);
-> > +		mutex_unlock(&dev->graph_mutex);
-> > +		break;
-> > +
-> >  	default:
-> >  		ret = -ENOIOCTLCMD;
-> >  	}
-> > @@ -312,6 +469,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
-> >  	case MEDIA_IOC_DEVICE_INFO:
-> >  	case MEDIA_IOC_ENUM_ENTITIES:
-> >  	case MEDIA_IOC_SETUP_LINK:
-> > +	case MEDIA_IOC_G_TOPOLOGY:
-> >  		return media_device_ioctl(filp, cmd, arg);
-> 
-> This doesn't work: G_TOPOLOGY needs pointer conversion.
-
-True. I'll address this on a separate patch.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> >  
-> >  	case MEDIA_IOC_ENUM_LINKS32:
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
