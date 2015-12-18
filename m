@@ -1,141 +1,409 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:42964 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752139AbbLQFwc (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:8054 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750990AbbLRKpl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 00:52:32 -0500
-Message-ID: <1450331547.7283.4.camel@mtksdaap41>
-Subject: Re: [PATCH v2 6/8] [Media] vcodec: mediatek: Add Mediatek V4L2
- Video Encoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hansverk@cisco.com>, <daniel.thompson@linaro.org>,
-	"Rob Herring" <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	"Kumar Gala" <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	"Benoit Parrot" <bparrot@ti.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Thu, 17 Dec 2015 13:52:27 +0800
-In-Reply-To: <56716B88.7090301@xs4all.nl>
-References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1449827743-22895-7-git-send-email-tiffany.lin@mediatek.com>
-	 <566EBAFC.3010408@xs4all.nl> <1450187460.21350.35.camel@mtksdaap41>
-	 <567020F1.1000204@cisco.com> <1450271857.6730.26.camel@mtksdaap41>
-	 <56716B88.7090301@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Dec 2015 05:45:41 -0500
+From: Yannick Fertre <yannick.fertre@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	<hugues.fruchet@st.com>, <kernel@stlinux.com>
+Subject: [PATCH 0/3] support of v4l2 encoder for STMicroelectronics SOC.
+Date: Fri, 18 Dec 2015 11:45:30 +0100
+Message-ID: <1450435533-15974-1-git-send-email-yannick.fertre@st.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2015-12-16 at 14:47 +0100, Hans Verkuil wrote:
-> On 12/16/15 14:17, tiffany lin wrote:
-> > Hi Hans,
-> > 
-> > 
-> > On Tue, 2015-12-15 at 15:17 +0100, Hans Verkuil wrote:
-> >>
-> >> On 12/15/15 14:51, tiffany lin wrote:
-> >>> We are not familiar with v4l2-compliance utility, we will check how to
-> >>> use it.
-> >>
-> >> It's part of v4l-utils.git (http://git.linuxtv.org/v4l-utils.git/). There is a
-> >> fairly decent man page. It does exhaustive compliance tests for V4L2 devices.
-> >>
-> >> That said, the support for memory-to-memory codec devices is not great, so I wouldn't
-> >> trust any failures it reports when using the streaming tests (i.e. the --stream*
-> >> options). By default just run 'v4l2-compliance -d /dev/videoX' to do the compliance
-> >> test.
-> >>
-> >> Note: before I accept this driver I do want to see that compliance test output!
-> >>
-> > Got it. We will provide it in next version.
-> > Now our driver is developed and run base on kernel v3.18.
-> > V4L2 and vb2 have some difference between Linux 4.4-rc1 and 3.18 kernel.
-> > Is it ok we provided test output base on v3.18 or we need to base on
-> > 4.4-rc1?
-> 
-> I'm actually not sure if the latest v4l2-compliance test suite will work with a 3.18
-> kernel. so either you have to go back to an older version of v4l2-compliance that
-> works with 3.18 (go back to commit 4a57509a8334aca6ca8e81cd3beb08d5be397dac, that
-> might do the trick) or (and that's what I recommend) go with the latest kernel.
-> 
-> For the media tree that is http://git.linuxtv.org/media_tree.git/log/.
-> 
-> The final version of the patch has to be against that kernel anyway.
-> 
-Got it. Thanks for your help, we will try it. ^_^
+version 1:
+	- Initial submission.
 
-> >>>>> +}
-> >>>>> +
-> >>>>> +int m2mctx_venc_queue_init(void *priv, struct vb2_queue *src_vq,
-> >>>>> +			   struct vb2_queue *dst_vq)
-> >>>>> +{
-> >>>>> +	struct mtk_vcodec_ctx *ctx = priv;
-> >>>>> +	int ret;
-> >>>>> +
-> >>>>> +	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> >>>>> +	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-> >>>>
-> >>>> You're using videobuf2-dma-contig, so VB2_USERPTR is generally useless in that
-> >>>> case. I would drop it.
-> >>>>
-> >>> Sorry, I don't get it. 
-> >>> We are using videobuf2-dma-contig, but we also using VB2_USERPTR.
-> >>
-> >> ???? In that case the user pointer you pass in must point to physically contiguous
-> >> memory. Which means you got it through some magic. Typically what should be used
-> >> are dmabuf handles to pass buffers around between different subsystems.
-> >>
-> >> The use of VB2_USERPTR for that purpose is deprecated.
-> >>
-> >> Or am I misunderstanding you as well?
-> >>
-> > Our encoder support all three modes.
-> > In case that A driver + Encode driver flow, OUTPUT buffer will be
-> > VB2_DMABUF from A driver.
-> > In case that read YCbCr frame data from file and encode them to bit
-> > stream flow, we use VB2_USERPTR and VB2_MMAP.
-> > In VB2_USERPTR case, videobuf2-dma-contig will help us get continuous
-> > dma address.
-> > Our chip has IOMMU and M4U that help us get continuous phy address for
-> > encode HW.
-> > 
-> > http://lists.infradead.org/pipermail/linux-mediatek/2015-October/002525.html
-> 
-> Ah, OK. Have you tested this with malloc()ed buffers? Just asking :-)
-> 
-Yes. Actually we tested this with new()ed buffers. I think it default
-call malloc.
+Only one feature supported and tested:
+- encode (RGB32, RGB24, RGB16, NV12, NV21, UYVY, VYUY) to h264 video format
 
-> Regards,
-> 
-> 	Hans
+The driver is mainly implemented across three files:
+- hva-v4l2.c
+- hva-h264.c
+- hva-hw.c
+hva-v4l2.c manages the V4L2 interface with the userland.
+It calls the HW services that are implemented in hva-hw.c.
+hva-h264.c manages specific part of h264 codec.
 
-best regards,
-Tiffany
+Below is the v4l2-compliance report for the sti hva driver.
+Note: using patched v4l2-compliance:
+"v4l2-compliance: test SELECTION only for the supported buf_type"
+
+root@st-next:/# ./v4l2-compliance 
+Driver Info:
+        Driver name   : 8c85000.hva
+        Card type     : 8c85000.hva
+        Bus info      : platform:hva
+        Driver version: 4.4.0
+        Capabilities  : 0x84208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_TRY_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                fail: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1435): doioctl(node, VIDIOC_S_FMT, &fmt)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 42, Succeeded: 42, Failed: 0, Warnings: 12
+
+root@st-next:/# ./v4l2-compliance -f
+Driver Info:
+        Driver name   : 8c85000.hva
+        Card type     : 8c85000.hva
+        Bus info      : platform:hva
+        Driver version: 4.4.0
+        Capabilities  : 0x84208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_TRY_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                fail: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1435): doioctl(node, VIDIOC_S_FMT, &fmt)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Stream using all formats:
+        Not supported for M2M devices
+
+Total: 42, Succeeded: 42, Failed: 0, Warnings: 12
+
+root@st-next:/# ./v4l2-compliance -s
+Driver Info:
+        Driver name   : 8c85000.hva
+        Card type     : 8c85000.hva
+        Bus info      : platform:hva
+        Driver version: 4.4.0
+        Capabilities  : 0x84208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04208000
+                Video Memory-to-Memory
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(707): TRY_FMT cannot handle an invalid pixelformat
+.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(708): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(709): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_TRY_FMT: OK
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(923): S_FMT cannot handle an invalid pixelformat.
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(924): This may or may not be a problem. For more i
+nformation see:
+                warn: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(925): http://www.mail-archive.com/linux-media@vger
+.kernel.org/msg56550.html
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                fail: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1435): doioctl(node, VIDIOC_S_FMT, &fmt)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK (Not Supported)
+                fail: /local/frq07647/views/opensdk-1.0.4/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-buffers.cpp(948): ret != EINVAL
+        test MMAP: FAIL
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 45, Succeeded: 44, Failed: 1, Warnings: 12
+
+
+Yannick Fertre (3):
+  Documentation: devicetree: add STI HVA binding
+  [media] hva: STiH41x multi-format video encoder V4L2 driver
+  [media] hva: add h264 support
+
+ .../devicetree/bindings/media/st,sti-hva.txt       |   26 +
+ drivers/media/platform/Kconfig                     |   13 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/sti/hva/Makefile            |    2 +
+ drivers/media/platform/sti/hva/hva-h264.c          | 1225 ++++++++++++++++
+ drivers/media/platform/sti/hva/hva-hw.c            |  561 +++++++
+ drivers/media/platform/sti/hva/hva-hw.h            |   76 +
+ drivers/media/platform/sti/hva/hva-mem.c           |   63 +
+ drivers/media/platform/sti/hva/hva-mem.h           |   20 +
+ drivers/media/platform/sti/hva/hva-v4l2.c          | 1530 ++++++++++++++++++++
+ drivers/media/platform/sti/hva/hva.h               |  499 +++++++
+ 11 files changed, 4016 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,sti-hva.txt
+ create mode 100644 drivers/media/platform/sti/hva/Makefile
+ create mode 100644 drivers/media/platform/sti/hva/hva-h264.c
+ create mode 100644 drivers/media/platform/sti/hva/hva-hw.c
+ create mode 100644 drivers/media/platform/sti/hva/hva-hw.h
+ create mode 100644 drivers/media/platform/sti/hva/hva-mem.c
+ create mode 100644 drivers/media/platform/sti/hva/hva-mem.h
+ create mode 100644 drivers/media/platform/sti/hva/hva-v4l2.c
+ create mode 100644 drivers/media/platform/sti/hva/hva.h
+
+-- 
+1.9.1
 
