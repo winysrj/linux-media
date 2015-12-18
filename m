@@ -1,235 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:47761 "EHLO lists.s-osg.org"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:27114 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752402AbbLHURI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 15:17:08 -0500
-Date: Tue, 8 Dec 2015 18:17:03 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 49/55] [media] media-device: add support for
- MEDIA_IOC_G_TOPOLOGY ioctl
-Message-ID: <20151208181703.41708194@recife.lan>
-In-Reply-To: <9023513.eAoiovcSfY@avalon>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com>
-	<2b36475229b2cbb574a03e7866bcbc7b04ff02cf.1441540862.git.mchehab@osg.samsung.com>
-	<9023513.eAoiovcSfY@avalon>
+	id S1751199AbbLRM7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 07:59:54 -0500
+Subject: Re: Automatic device driver back-porting with media_build
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
+ <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
+ <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
+ <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
+ <5672EAD6.2000706@free.fr> <5673E393.8050309@free.fr>
+ <20151218090345.623cef4c@recife.lan> <20151218092225.387cea22@recife.lan>
+ <5673F7CF.9090605@free.fr>
+From: Mason <slash.tmp@free.fr>
+Message-ID: <56740343.4000904@free.fr>
+Date: Fri, 18 Dec 2015 13:59:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <5673F7CF.9090605@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 24 Nov 2015 00:04:02 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+On 18/12/2015 13:10, Mason wrote:
 
-> Hi Mauro,
+> On 18/12/2015 12:22, Mauro Carvalho Chehab wrote:
 > 
-> Thank you for the patch.
+>> Patch applied.
 > 
-> Sakari and Hans have made several comments on this and the previous version of 
-> the same patch and I generally agree with them. I'll thus review the next 
-> version.
-
-What next version? If I got it right, the issues that Sailus commented
-are related to future implementations, needed if/when we need to have
-dynamic PADs.
-
-We're not adding support for dynamic PADs for now.
-
-So, I don't have anything planned to change on this patch.
-
-Regards,
-Mauro
-
+> Great! Thanks.
 > 
-> On Sunday 06 September 2015 09:03:09 Mauro Carvalho Chehab wrote:
-> > Add support for the new MEDIA_IOC_G_TOPOLOGY ioctl, according
-> > with the RFC for the MC next generation.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 5b2c9f7fcd45..96a476eeb16e 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -232,6 +232,156 @@ static long media_device_setup_link(struct
-> > media_device *mdev, return ret;
-> >  }
-> > 
-> > +static long __media_device_get_topology(struct media_device *mdev,
-> > +				      struct media_v2_topology *topo)
-> > +{
-> > +	struct media_entity *entity;
-> > +	struct media_interface *intf;
-> > +	struct media_pad *pad;
-> > +	struct media_link *link;
-> > +	struct media_v2_entity uentity;
-> > +	struct media_v2_interface uintf;
-> > +	struct media_v2_pad upad;
-> > +	struct media_v2_link ulink;
-> > +	int ret = 0, i;
-> > +
-> > +	topo->topology_version = mdev->topology_version;
-> > +
-> > +	/* Get entities and number of entities */
-> > +	i = 0;
-> > +	media_device_for_each_entity(entity, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->entities)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_entities) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		/* Copy fields to userspace struct if not error */
-> > +		memset(&uentity, 0, sizeof(uentity));
-> > +		uentity.id = entity->graph_obj.id;
-> > +		strncpy(uentity.name, entity->name,
-> > +			sizeof(uentity.name));
-> > +
-> > +		if (copy_to_user(&topo->entities[i - 1], &uentity, sizeof(uentity)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_entities = i;
-> > +
-> > +	/* Get interfaces and number of interfaces */
-> > +	i = 0;
-> > +	media_device_for_each_intf(intf, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->interfaces)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_interfaces) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&uintf, 0, sizeof(uintf));
-> > +
-> > +		/* Copy intf fields to userspace struct */
-> > +		uintf.id = intf->graph_obj.id;
-> > +		uintf.intf_type = intf->type;
-> > +		uintf.flags = intf->flags;
-> > +
-> > +		if (media_type(&intf->graph_obj) == MEDIA_GRAPH_INTF_DEVNODE) {
-> > +			struct media_intf_devnode *devnode;
-> > +
-> > +			devnode = intf_to_devnode(intf);
-> > +
-> > +			uintf.devnode.major = devnode->major;
-> > +			uintf.devnode.minor = devnode->minor;
-> > +		}
-> > +
-> > +		if (copy_to_user(&topo->interfaces[i - 1], &uintf, sizeof(uintf)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_interfaces = i;
-> > +
-> > +	/* Get pads and number of pads */
-> > +	i = 0;
-> > +	media_device_for_each_pad(pad, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->pads)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_pads) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&upad, 0, sizeof(upad));
-> > +
-> > +		/* Copy pad fields to userspace struct */
-> > +		upad.id = pad->graph_obj.id;
-> > +		upad.entity_id = pad->entity->graph_obj.id;
-> > +		upad.flags = pad->flags;
-> > +
-> > +		if (copy_to_user(&topo->pads[i - 1], &upad, sizeof(upad)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_pads = i;
-> > +
-> > +	/* Get links and number of links */
-> > +	i = 0;
-> > +	media_device_for_each_link(link, mdev) {
-> > +		i++;
-> > +
-> > +		if (ret || !topo->links)
-> > +			continue;
-> > +
-> > +		if (i > topo->num_links) {
-> > +			ret = -ENOSPC;
-> > +			continue;
-> > +		}
-> > +
-> > +		memset(&ulink, 0, sizeof(ulink));
-> > +
-> > +		/* Copy link fields to userspace struct */
-> > +		ulink.id = link->graph_obj.id;
-> > +		ulink.source_id = link->gobj0->id;
-> > +		ulink.sink_id = link->gobj1->id;
-> > +		ulink.flags = link->flags;
-> > +
-> > +		if (media_type(link->gobj0) != MEDIA_GRAPH_PAD)
-> > +			ulink.flags |= MEDIA_LNK_FL_INTERFACE_LINK;
-> > +
-> > +		if (copy_to_user(&topo->links[i - 1], &ulink, sizeof(ulink)))
-> > +			ret = -EFAULT;
-> > +	}
-> > +	topo->num_links = i;
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static long media_device_get_topology(struct media_device *mdev,
-> > +				      struct media_v2_topology __user *utopo)
-> > +{
-> > +	struct media_v2_topology ktopo;
-> > +	int ret;
-> > +
-> > +	ret = copy_from_user(&ktopo, utopo, sizeof(ktopo));
-> > +
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = __media_device_get_topology(mdev, &ktopo);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = copy_to_user(utopo, &ktopo, sizeof(*utopo));
-> > +
-> > +	return ret;
-> > +}
-> > +
-> >  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> >  			       unsigned long arg)
-> >  {
-> > @@ -264,6 +414,13 @@ static long media_device_ioctl(struct file *filp,
-> > unsigned int cmd, mutex_unlock(&dev->graph_mutex);
-> >  		break;
-> > 
-> > +	case MEDIA_IOC_G_TOPOLOGY:
-> > +		mutex_lock(&dev->graph_mutex);
-> > +		ret = media_device_get_topology(dev,
-> > +				(struct media_v2_topology __user *)arg);
-> > +		mutex_unlock(&dev->graph_mutex);
-> > +		break;
-> > +
-> >  	default:
-> >  		ret = -ENOIOCTLCMD;
-> >  	}
-> > @@ -312,6 +469,7 @@ static long media_device_compat_ioctl(struct file *filp,
-> > unsigned int cmd, case MEDIA_IOC_DEVICE_INFO:
-> >  	case MEDIA_IOC_ENUM_ENTITIES:
-> >  	case MEDIA_IOC_SETUP_LINK:
-> > +	case MEDIA_IOC_G_TOPOLOGY:
-> >  		return media_device_ioctl(filp, cmd, arg);
-> > 
-> >  	case MEDIA_IOC_ENUM_LINKS32:
+> Using the latest media_build master + my writel_relaxed work-around,
+> compilation proceeds much further, then dies on device tree stuff:
+> (same error with vanilla and custom kernel)
 > 
+> Will look into it. Any idea? :-(
+> 
+> By the way, if I was not clear, I'm cross-compiling for an ARM platform.
+> 
+>   CC [M]  /tmp/sandbox/media_build/v4l/v4l2-of.o
+> /tmp/sandbox/media_build/v4l/v4l2-of.c: In function 'v4l2_of_parse_csi_bus':
+> /tmp/sandbox/media_build/v4l/v4l2-of.c:38:4: error: implicit declaration of function 'of_prop_next_u32' [-Werror=implicit-function-declaration]
+>     lane = of_prop_next_u32(prop, lane, &v);
+>     ^
+
+of_prop_next_u32() was introduced by commit c541adc637066
+$ git describe --contains c541adc637066
+v3.5-rc1~176^2~34
+
+So it seems something needs to be done for kernels older than 3.5
+
+I'll hack around it by adding
+
+static inline const __be32 *of_prop_next_u32(struct property *prop,
+		const __be32 *cur, u32 *pu)
+{
+	return NULL;
+}
+
+What's the correct fix?
+
+> /tmp/sandbox/media_build/v4l/v4l2-of.c: In function 'v4l2_of_parse_link':
+> /tmp/sandbox/media_build/v4l/v4l2-of.c:287:24: warning: passing argument 1 of 'of_parse_phandle' discards 'const' qualifier from pointer target type
+>   np = of_parse_phandle(node, "remote-endpoint", 0);
+>                         ^
+
+Commit b8fbdc42c5c5d made the first parameter const.
+
+$ git describe --contains b8fbdc42c5c5d
+v3.8-rc1~105^2~13
+
+I suppose I can live with the warning for now.
+
+Regards.
+
