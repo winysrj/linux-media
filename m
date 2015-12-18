@@ -1,83 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39163 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303AbbLNBhE (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.133]:51492 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752957AbbLRPOY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 20:37:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH 2/3] media: adv7604: implement cropcap
-Date: Sun, 13 Dec 2015 20:22:38 +0200
-Message-ID: <1608066.4zMrs5mlUF@avalon>
-In-Reply-To: <1449849893-14865-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1449849893-14865-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1449849893-14865-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Fri, 18 Dec 2015 10:14:24 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] [media] dvbdev: avoid unused functions
+Date: Fri, 18 Dec 2015 16:14:06 +0100
+Message-ID: <1622537.sJciORk4kT@wuerfel>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+The dvb_create_tsout_entity and dvb_create_media_entity
+functions are only called if CONFIG_MEDIA_CONTROLLER_DVB is
+enabled, otherwise we get a compiler warning:
 
-Thank you for the patch.
+dvb-core/dvbdev.c:219:12: warning: 'dvb_create_tsout_entity' defined but not used [-Wunused-function]
+dvb-core/dvbdev.c:264:12: warning: 'dvb_create_media_entity' defined but not used [-Wunused-function]
 
-On Friday 11 December 2015 17:04:52 Ulrich Hecht wrote:
-> Used by the rcar_vin driver.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index d30e7cc..1bfa9f3 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1896,6 +1896,22 @@ static int adv76xx_g_crop(struct v4l2_subdev *sd,
-> struct v4l2_crop *a) return 0;
->  }
-> 
-> +static int adv76xx_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-> +{
-> +	struct adv76xx_state *state = to_state(sd);
-> +
-> +	a->bounds.left	 = 0;
-> +	a->bounds.top	 = 0;
-> +	a->bounds.width	 = state->timings.bt.width;
-> +	a->bounds.height = state->timings.bt.height;
-> +	a->defrect	 = a->bounds;
-> +	a->type		 = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+This moves the #ifdef inside of the two functions to the
+outside, to avoid the two warnings.
 
-As for patch 1/3 the type field is an input parameter.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-> +	a->pixelaspect.numerator   = 1;
-> +	a->pixelaspect.denominator = 1;
-
-I'm curious, is this always true with HDMI ?
-
-> +
-> +	return 0;
-> +}
-> +
->  static int adv76xx_set_format(struct v4l2_subdev *sd,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_format *format)
-> @@ -2419,6 +2435,7 @@ static const struct v4l2_subdev_core_ops
-> adv76xx_core_ops = { static const struct v4l2_subdev_video_ops
-> adv76xx_video_ops = {
->  	.s_routing = adv76xx_s_routing,
->  	.g_crop = adv76xx_g_crop,
-> +	.cropcap = adv76xx_cropcap,
->  	.g_input_status = adv76xx_g_input_status,
->  	.s_dv_timings = adv76xx_s_dv_timings,
->  	.g_dv_timings = adv76xx_g_dv_timings,
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index b56e00817d3f..860dd7d06b60 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -216,10 +216,10 @@ static void dvb_media_device_free(struct dvb_device *dvbdev)
+ #endif
+ }
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ static int dvb_create_tsout_entity(struct dvb_device *dvbdev,
+ 				    const char *name, int npads)
+ {
+-#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	int i, ret = 0;
+ 
+ 	dvbdev->tsout_pads = kcalloc(npads, sizeof(*dvbdev->tsout_pads),
+@@ -254,7 +254,6 @@ static int dvb_create_tsout_entity(struct dvb_device *dvbdev,
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-#endif
+ 	return 0;
+ }
+ 
+@@ -264,7 +263,6 @@ static int dvb_create_tsout_entity(struct dvb_device *dvbdev,
+ static int dvb_create_media_entity(struct dvb_device *dvbdev,
+ 				   int type, int demux_sink_pads)
+ {
+-#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	int i, ret, npads;
+ 
+ 	switch (type) {
+@@ -352,9 +350,9 @@ static int dvb_create_media_entity(struct dvb_device *dvbdev,
+ 	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
+ 		__func__, dvbdev->entity->name);
+ 
+-#endif
+ 	return 0;
+ }
++#endif
+ 
+ static int dvb_register_media_device(struct dvb_device *dvbdev,
+ 				     int type, int minor,
 
