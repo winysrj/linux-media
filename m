@@ -1,109 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:15644 "EHLO
-	relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751814AbbLNB6m (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64839 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933050AbbLRRWP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 20:58:42 -0500
-Message-ID: <566E224D.7020206@rvc.renesas.com>
-Date: Mon, 14 Dec 2015 08:58:37 +0700
-From: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Toru Oishi <toru.oishi.zj@rvc.renesas.com>,
-	Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
-Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <3938053.0568U3PJkY@avalon> <566A8CAF.9080200@rvc.renesas.com> <53707193.Qr7t8enSnR@avalon>
-In-Reply-To: <53707193.Qr7t8enSnR@avalon>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Dec 2015 12:22:15 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NZK00E14DL13WB0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Dec 2015 17:22:13 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: "'open list:ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC)...'"
+	<linux-media@vger.kernel.org>
+Cc: kamil@wypas.org
+Subject: [GIT PULL] mem2mem changes
+Date: Fri, 18 Dec 2015 18:22:11 +0100
+Message-id: <009201d139b8$a1ac14b0$e5043e10$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/14/2015 1:53 AM, Laurent Pinchart wrote:
-> Hello Khiem,
->
-> On Friday 11 December 2015 15:43:27 Khiem Nguyen wrote:
->> On 12/6/2015 5:54 AM, Laurent Pinchart wrote:
->>> On Saturday 05 December 2015 11:57:49 Geert Uytterhoeven wrote:
->>>> On Sat, Dec 5, 2015 at 3:12 AM, Laurent Pinchart wrote:
->>>>> This patch set adds support for the Renesas R-Car Gen3 SoC family to the
->>>>> VSP1 driver. The large number of patches is caused by a change in the
->>>>> display controller architecture that makes usage of the VSP mandatory as
->>>>> the display controller has lost the ability to read data from memory.
->>>>>
->>>>> Patch 01/32 to 27/32 prepare for the implementation of an API exported
->>>>> to the DRM driver in patch 28/32. Patches 31/32 enables support for the
->>>>> R-Car Gen3 family, and patch 32/32 finally enhances perfomances by
->>>>> implementing support for display lists.
->>>>>
->>>>> The major change compared to v1 is the usage of the IP version register
->>>>> instead of DT properties to configure device parameters such as the
->>>>> number of BRU inputs or the availability of the BRU.
->>>>
->>>> Thanks for your series!
->>>>
->>>> As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112
->>>> is getting old, and has lots of conflicts with recent -next, do you plan
->>>> to publish this in a branch, and a separate branch for integration, to
->>>> ease integration in renesas-drivers?
->>>>
->>>> Alternatively, I can just import the series you posted, but having the
->>>> broken-out integration part would be nice.
->>>
->>> The issue I'm facing is that there's more than just two series. Beside the
->>> base VSP patches from this series, I have a series of DRM patches that
->>> depend on this one, a series of V4L2 core patches, another series of VSP
->>> patches that I still need to finish and a bunch of integration patches.
->>> As some of these have dependencies on H3 CCF support that hasn't landed
->>> in Simon's tree yet, I have merged your topic/cpg-mssr-v6 and
->>> topic/r8a7795-drivers-sh-v1 branches into my tree for development.
->>>
->>> I could keep all series in separate branches and merge the two topic
->>> branches last, but that's not very handy during development when I have
->>> to continuously rebase my patches. Is there a way I could handle this
->>> that would make your life easier while not making mine more difficult ?
->>>
->>> In the meantime I've pushed vsp1-kms-20151206 to
->>> git://linuxtv.org/pinchartl/media.git.
->>
->> I failed to confirm DU (VGA port) with above branch.
->>
->> To make DU (VGA port) work,
->> it seems I need to merge more branches like topic/cpg-mssr-v6
->> and topic/r8a7795-drivers-sh-v1 branches from renesas-drivers repo, is
->> it correct ?
->
-> The
->
-> 	git://linuxtv.org/pinchartl/media.git vsp1-kms-20151206
->
-> branch already contains topic/r8a7795-drivers-sh-v1 and topic/cpg-mssr-v6.
-> What is the failure you're seeing ?
->
+The following changes since commit ecc2fe20e63a21b7db23065ff061b66fbc08e08b:
 
-Honestly, I tried some configurations but there's no output to VGA port 
-(the display is blank).
-1. The default 'defconfig' of this tag.
-2. Enable DRM, CMA, RCAR_DU
-3. Enable DRM, CMA, RCAR_DU, VSP1
-      -> I got kernel build error in file 
-drivers/media/platform/vsp1/vsp1_pipe.c
+  [media] cx23885: video instead of vbi register used (2015-12-18 13:37:12
+-0200)
 
-I also tried another tag vsp1-kms-request-20151206 which have more 
-patches on top of vsp1-kms-20151206.
-After enabling all DRM, CMA, RCAR_DU, VSP1, kernel build is OK.
-Got a 'green color' display and no kernel log output.
+are available in the git repository at:
 
-With the same u-boot and IPL, it's able to see display output normally 
-if using Gen3 BSP version.
-Therefore, I guess it's no impact to DU operation.
+  git://linuxtv.org/kdebski/media_tree_2.git for-4.5
 
-Please let me know your procedure to test DU operation with your tag.
+for you to fetch changes up to 64d8dc83df6bbd58e1782670d6adaf2ff6be9141:
 
--- 
-Best regards,
-KHIEM Nguyen
+  coda: enable MPEG-2 ES decoding (2015-12-18 17:31:03 +0100)
+
+----------------------------------------------------------------
+Andrzej Hajda (6):
+      s5p-mfc: use one implementation of s5p_mfc_get_new_ctx
+      s5p-mfc: make queue cleanup code common
+      s5p-mfc: remove unnecessary callbacks
+      s5p-mfc: use spinlock to protect MFC context
+      s5p-mfc: merge together s5p_mfc_hw_call and s5p_mfc_hw_call_void
+      s5p-mfc: remove volatile attribute from MFC register addresses
+
+Julia Lawall (1):
+      s5p-mfc: constify s5p_mfc_codec_ops structures
+
+Philipp Zabel (5):
+      coda: make to_coda_video_device static
+      coda: relax coda_jpeg_check_buffer for trailing bytes
+      coda: hook up vidioc_prepare_buf
+      coda: don't start streaming without queued buffers
+      coda: enable MPEG-2 ES decoding
+
+ drivers/media/platform/coda/coda-bit.c          |   2 +-
+ drivers/media/platform/coda/coda-common.c       |  21 +-
+ drivers/media/platform/coda/coda-jpeg.c         |  26 +-
+ drivers/media/platform/coda/coda.h              |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |  99 +++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  14 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  16 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  35 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.h    |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  44 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.h    |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    | 507
+++++++++++++------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  94 -----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 121 +-----
+ 14 files changed, 390 insertions(+), 595 deletions(-)
 
