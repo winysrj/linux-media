@@ -1,43 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44652 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933258AbbLQIkw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:42577 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753869AbbLRQOz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:52 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 13/48] v4l: vsp1: Document calling context of vsp1_pipeline_propagate_alpha()
-Date: Thu, 17 Dec 2015 10:39:51 +0200
-Message-Id: <1450341626-6695-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 18 Dec 2015 11:14:55 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] [media] videobuf2: avoid memory leak on errors
+Date: Fri, 18 Dec 2015 14:14:30 -0200
+Message-Id: <b62ef37c6e2f30d1b5ce3889212050d738c04885.1450455268.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function can only be called from a s_stream handler as it requires a
-valid display list context (due to calling vsp1_uds_set_alpha() which
-writes to module registers). Document the requirement.
+As reported by smatch:
+	drivers/media/v4l2-core/videobuf2-core.c:2415 __vb2_init_fileio() warn: possible memory leak of 'fileio'
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+While here, avoid the usage of sizeof(struct foo_struct).
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index facf68f999ce..9549aacab3cf 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -297,6 +297,9 @@ done:
-  * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
-  * value. The UDS then outputs a fixed alpha value which needs to be programmed
-  * from the input RPF alpha.
-+ *
-+ * This function can only be called from a subdev s_stream handler as it
-+ * requires a valid display list context.
-  */
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 				   struct vsp1_entity *input,
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index e6890d47cdcb..c5d49d7a0d76 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2406,13 +2406,15 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 		(read) ? "read" : "write", count, q->fileio_read_once,
+ 		q->fileio_write_immediately);
+ 
+-	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
++	fileio = kzalloc(sizeof(*fileio), GFP_KERNEL);
+ 	if (fileio == NULL)
+ 		return -ENOMEM;
+ 
+ 	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
+-	if (fileio->b == NULL)
++	if (fileio->b == NULL) {
++		kfree(fileio);
+ 		return -ENOMEM;
++	}
+ 
+ 	fileio->read_once = q->fileio_read_once;
+ 	fileio->write_immediately = q->fileio_write_immediately;
 -- 
-2.4.10
+2.5.0
 
