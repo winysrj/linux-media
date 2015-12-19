@@ -1,38 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35878 "EHLO mail.kapsi.fi"
+Received: from mout.web.de ([212.227.15.3]:49234 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753713AbbLFLJh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2015 06:09:37 -0500
-Received: from mobile-access-5d6ab8-153.dhcp.inet.fi ([93.106.184.153] helo=[192.168.1.2])
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <timo.helkio@kapsi.fi>)
-	id 1a5XCB-0004pP-Df
-	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 13:09:35 +0200
-From: =?UTF-8?Q?Timo_Helki=c3=b6?= <timo.helkio@kapsi.fi>
-Subject: DVBSky T980C ci not working with kernel 4.x
-Reply-To: timo.helkio@kapsi.fi
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <5664176E.9090705@kapsi.fi>
-Date: Sun, 6 Dec 2015 13:09:34 +0200
+	id S1751106AbbLSPYJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Dec 2015 10:24:09 -0500
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] [media] gsc-m2m: Use an unsigned data type for a variable
+Message-ID: <5675765F.9020002@users.sourceforge.net>
+Date: Sat, 19 Dec 2015 16:23:11 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 19 Dec 2015 15:28:37 +0100
 
-Hi
+The data type "int" was used by the variable "ret" in the
+gsc_m2m_poll() function despite of the aspect that the type "unsigned int"
+will usually be needed for the return value from a call of the
+v4l2_m2m_poll() function.
+Improve this implementation detail by addition of the type modifier then.
 
+This issue was detected by using the Coccinelle software.
 
-Common interface in Dvbsky T980C is not working with Ubuntu 15.10 kernel 
-4.2.0 and vanilla kernel 4.6 and latest dvb-drivers from Linux-media 
-git. With Ubuntu 15.04 and kernel 3.19 it is working. I have tryid to 
-find differences in drivers, but my knolege of c it is not possible. 
-Erros message is "invalid PC-card".
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I have also Tevii S470 with same PCIe bridge Conexant cx23885.
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index d82e717..f2c091c 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -701,7 +701,7 @@ static unsigned int gsc_m2m_poll(struct file *file,
+ {
+ 	struct gsc_ctx *ctx = fh_to_ctx(file->private_data);
+ 	struct gsc_dev *gsc = ctx->gsc_dev;
+-	int ret;
++	unsigned int ret;
+ 
+ 	if (mutex_lock_interruptible(&gsc->lock))
+ 		return -ERESTARTSYS;
+-- 
+2.6.3
 
-How to debug this? I can do minor changes to drivers for testing it.
-
-   Timo Helkiö
