@@ -1,118 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39241 "EHLO lists.s-osg.org"
+Received: from mga01.intel.com ([192.55.52.88]:38071 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032AbbLLPTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 10:19:14 -0500
-Date: Sat, 12 Dec 2015 13:19:10 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: Re: [PATCH v2 07/22] media: Amend media graph walk API by init and
- cleanup functions
-Message-ID: <20151212131910.03c667ee@recife.lan>
-In-Reply-To: <1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-8-git-send-email-sakari.ailus@iki.fi>
+	id S1751422AbbLSAIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2015 19:08:37 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: per-frame camera metadata (again)
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Aviv Greenberg <avivgr@gmail.com>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <567136C6.8090009@xs4all.nl>
+Message-ID: <56749F85.8000502@linux.intel.com>
+Date: Sat, 19 Dec 2015 02:06:29 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <567136C6.8090009@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 29 Nov 2015 21:20:08 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Hi Guennadi and Hans,
 
-> Add media_entity_graph_walk_init() and media_entity_graph_walk_cleanup()
-> functions in order to dynamically allocate memory for the graph. This is
-> not done in media_entity_graph_walk_start() as there are situations where
-> e.g. correct error handling, that itself may not fail, requires successful
-> graph walk.
+Hans Verkuil wrote:
+> On 12/16/15 10:37, Guennadi Liakhovetski wrote:
+>> Hi all,
+>>
+>> A project, I am currently working on, requires acquiringing per-frame
+>> metadata from the camera and passing it to user-space. This is not the
+>> first time this comes up and I know such discussions have been held
+>> before. A typical user is Android (also my case), where you have to
+>> provide parameter values, that have been used to capture a specific frame,
+>> to the user. I know Hans is working to handle one side of this process -
+>> sending per-request controls,
+>
+> Actually, the request framework can do both sides of the equation: giving
+> back meta data in read-only controls that are per-frame. While ideally the
+> driver would extract the information from the binary blob and put it in
+> nice controls, it is also possible to make a control that just contains the
+> binary blob itself. Whether that's a good approach depends on many factors
+> and that's another topic.
 
-looks ok to me.
+I think that could be possible in some cases. If you don't have a lot of
+metadata, then, sure.
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 39 ++++++++++++++++++++++++++++++++++-----
->  include/media/media-entity.h |  5 ++++-
->  2 files changed, 38 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 667ab32..bf3c31f 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -353,14 +353,44 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
->  #define stack_top(en)	((en)->stack[(en)->top].entity)
->  
->  /**
-> + * media_entity_graph_walk_init - Allocate resources for graph walk
-> + * @graph: Media graph structure that will be used to walk the graph
-> + * @mdev: Media device
-> + *
-> + * Reserve resources for graph walk in media device's current
-> + * state. The memory must be released using
-> + * media_entity_graph_walk_free().
-> + *
-> + * Returns error on failure, zero on success.
-> + */
-> +__must_check int media_entity_graph_walk_init(
-> +	struct media_entity_graph *graph, struct media_device *mdev)
-> +{
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
-> +
-> +/**
-> + * media_entity_graph_walk_cleanup - Release resources related to graph walking
-> + * @graph: Media graph structure that was used to walk the graph
-> + */
-> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
-> +{
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
-> +
-> +/**
->   * media_entity_graph_walk_start - Start walking the media graph at a given entity
->   * @graph: Media graph structure that will be used to walk the graph
->   * @entity: Starting entity
->   *
-> - * This function initializes the graph traversal structure to walk the entities
-> - * graph starting at the given entity. The traversal structure must not be
-> - * modified by the caller during graph traversal. When done the structure can
-> - * safely be freed.
-> + * Before using this function, media_entity_graph_walk_init() must be
-> + * used to allocate resources used for walking the graph. This
-> + * function initializes the graph traversal structure to walk the
-> + * entities graph starting at the given entity. The traversal
-> + * structure must not be modified by the caller during graph
-> + * traversal. After the graph walk, the resources must be released
-> + * using media_entity_graph_walk_cleanup().
->   */
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  				   struct media_entity *entity)
-> @@ -377,7 +407,6 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  }
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
->  
-> -
->  /**
->   * media_entity_graph_walk_next - Get the next entity in the graph
->   * @graph: Media graph structure
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 4b5ca39..f0652e2 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -506,8 +506,11 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  void media_entity_put(struct media_entity *entity);
->  
-> +__must_check int media_entity_graph_walk_init(
-> +	struct media_entity_graph *graph, struct media_device *mdev);
-> +void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
-> -		struct media_entity *entity);
-> +				   struct media_entity *entity);
->  struct media_entity *
->  media_entity_graph_walk_next(struct media_entity_graph *graph);
->  __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>
+>> but I'm not aware whether he or anyone else
+>> is actively working on this already or is planning to do so in the near
+>> future? I also know, that several proprietary solutions have been
+>> developed and are in use in various projects.
+>>
+>> I think a general agreement has been, that such data has to be passed via
+>> a buffer queue. But there are a few possibilities there too. Below are
+>> some:
+>>
+>> 1. Multiplanar. A separate plane is dedicated to metadata. Pros: (a)
+>> metadata is already associated to specific frames, which they correspond
+>> to. Cons: (a) a correct implementation would specify image plane fourcc
+>> separately from any metadata plane format description, but we currently
+>> don't support per-plane format specification.
+>
+> This only makes sense if the data actually comes in via DMA and if it is
+> large enough to make it worth the effort of implementing this. As you say,
+> it will require figuring out how to do per-frame fourcc.
+>
+> It also only makes sense if the metadata comes in at the same time as the
+> frame.
+
+I agree. Much of the time the metadata indeed arrives earlier than the
+rest of the frame. The frame layout nor the use cases should be assumed
+in the bridge (ISP) driver which implements the interface, essentially
+forcing this on the user. This is a major drawback in the approach.
+
+Albeit. If you combine this with the need to pass buffer data to the 
+user before the entire buffer is ready, i.e. a plane is ready, you could 
+get around this quite neatly.
+
+However, if the DMA engine writing the metadata is different than what's 
+writing the image data to memory, then you have a plain metadata buffer 
+--- as it's a different video node. But there's really nothing special 
+about that then.
+
+Conceptually we should support multi-part frames rather than metadata, 
+albeit metadata is just a single use case where a single DMA engine 
+outputs multiple kind of data. This could be statistics as well. Or 
+multiple images, e.g. YUV and RAW format images of the same frame.
+
+With CSI-2, as the virtual channels are independent, one could start and 
+stop them at different times and the frame rate in those channels could 
+as well be unrelated. This suggests that different virtual channels 
+should be conceptually separate streams also in V4L2 and thus the data 
+from different streams should not end up to the same buffer.
+
+Metadata usually (or practically ever?) does not arrive on a separate 
+virtual channel though. So this isn't something that necessarily is 
+taken into account right now but it's good to be aware of it.
+
+>
+>> 2. Separate buffer queues. Pros: (a) no need to extend multiplanar buffer
+>> implementation. Cons: (a) more difficult synchronisation with image
+>> frames, (b) still need to work out a way to specify the metadata version.
+
+Do you think you have different versions of metadata from a sensor, for
+instance? Based on what I've seen these tend to be sensor specific, or
+SMIA which defines a metadata type for each bit depth for compliant sensors.
+
+Each metadata format should have a 4cc code, SMIA bit depth specific or
+sensor specific where metadata is sensor specific.
+
+Other kind of metadata than what you get from sensors is not covered by 
+the thoughts above.
+
+<URL:http://www.retiisi.org.uk/v4l2/foil/v4l2-multi-format.pdf>
+
+I think I'd still favour separate buffer queues.
+
+>>
+>> Any further options? Of the above my choice would go with (1) but with a
+>> dedicated metadata plane in struct vb2_buffer.
+>
+> 3. Use the request framework and return the metadata as control(s). Since controls
+> can be associated with events when they change you can subscribe to such events.
+> Note: currently I haven't implemented such events for request controls since I am
+> not certainly how it would be used, but this would be a good test case.
+>
+> Pros: (a) no need to extend multiplanar buffer implementation, (b) syncing up
+> with the image frames should be easy (both use the same request ID), (c) a lot
+> of freedom on how to export the metadata. Cons: (a) request framework is still
+> work in progress (currently worked on by Laurent), (b) probably too slow for
+> really large amounts of metadata, you'll need proper DMA handling for that in
+> which case I would go for 2.
+
+Agreed. You could consider it as a drawback that the number of new 
+controls required for this could be large as well, but then already for 
+other reasons the best implementation would rather be the second option 
+mentioned.
+
+>
+>>
+>> In either of the above options we also need a way to tell the user what is
+>> in the metadata buffer, its format. We could create new FOURCC codes for
+>> them, perhaps as V4L2_META_FMT_... or the user space could identify the
+>> metadata format based on the camera model and an opaque type (metadata
+>> version code) value. Since metadata formats seem to be extremely camera-
+>> specific, I'd go with the latter option.
+
+I think I'd use separate 4cc codes for the metadata formats when they 
+really are different. There are plenty of possible 4cc codes we can use. :-)
+
+Documenting the formats might be painful though.
+
+>>
+>> Comments extremely welcome.
+>
+> What I like about the request framework is that the driver can pick apart
+> the metadata and turn it into well-defined controls. So the knowledge how
+> to do that is in the place where it belongs. In cases where the meta data
+> is simple too large for that to be feasible, then I don't have much of an
+> opinion. Camera + version could be enough. Although the same can just as
+> easily be encoded as a fourcc (V4L2_META_FMT_OVXXXX_V1, _V2, etc). A fourcc
+> is more consistent with the current API.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
