@@ -1,74 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:36777 "EHLO
-	mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964956AbbLORW6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59443 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752303AbbLSAlB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 12:22:58 -0500
-Received: by mail-io0-f170.google.com with SMTP id o67so26878639iof.3
-        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:22:58 -0800 (PST)
-Received: from mail-ig0-f169.google.com (mail-ig0-f169.google.com. [209.85.213.169])
-        by smtp.gmail.com with ESMTPSA id j28sm1394287ioo.3.2015.12.15.09.22.57
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Tue, 15 Dec 2015 09:22:57 -0800 (PST)
-Received: by mail-ig0-f169.google.com with SMTP id mv3so107690961igc.0
-        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2015 09:22:57 -0800 (PST)
+	Fri, 18 Dec 2015 19:41:01 -0500
+Date: Sat, 19 Dec 2015 02:40:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Subject: Re: [PATCH/RFC 22/48] media: Add per-file-handle data support
+Message-ID: <20151219004027.GS17128@valkosipuli.retiisi.org.uk>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20151215133020.GD883@joana>
-References: <20151215012955.GA28277@dtor-ws>
-	<20151215133020.GD883@joana>
-Date: Tue, 15 Dec 2015 09:22:56 -0800
-Message-ID: <CAE_wzQ_4ygv3h0tvScLihR+j9xg=OL1kS2qxE-KNH2DOxRNgUw@mail.gmail.com>
-Subject: Re: [PATCH] android: fix warning when releasing active sync point
-From: Dmitry Torokhov <dtor@chromium.org>
-To: Gustavo Padovan <gustavo@padovan.org>,
-	Dmitry Torokhov <dtor@chromium.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Andrew Bresticker <abrestic@chromium.org>,
-	=?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
-	dri-devel@lists.freedesktop.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Riley Andrews <riandrews@android.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2015 at 5:30 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> 2015-12-14 Dmitry Torokhov <dtor@chromium.org>:
->
->> Userspace can close the sync device while there are still active fence
->> points, in which case kernel produces the following warning:
->>
->> [   43.853176] ------------[ cut here ]------------
->> [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
->> [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
->> [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
->> [   43.885834] Call trace:
->> [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
->> [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
->> [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
->> [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
->> [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
->> [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
->> [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
->> [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
->> [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
->> [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
->> [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
->> [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
->> [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
->> [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
->
-> This crash report seems to be for a 3.18 kernel. Can you reproduce it
-> on upstream kernel as well?
+Hi Laurent,
 
-Unfortunately this board does not run upsrteam just yet, but looking
-at the sync driver and fence code we are pretty much in sync with
-upstream.
+Thanks for the set!
 
-Thanks.
+On Thu, Dec 17, 2015 at 10:40:00AM +0200, Laurent Pinchart wrote:
+> The media devnode core associates devnodes with files by storing the
+> devnode pointer in the file structure private_data field. In order to
+> allow tracking of per-file-handle data introduce a new media devnode
+> file handle structure that stores the devnode pointer, and store a
+> pointer to that structure in the file private_data field.
+> 
+> Users of the media devnode code (the only existing user being
+> media_device) are responsible for managing their own subclass of the
+> media_devnode_fh structure.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/media-device.c  | 22 ++++++++++++++++++++++
+>  drivers/media/media-devnode.c | 19 +++++++++----------
+>  include/media/media-devnode.h | 18 +++++++++++++++++-
+>  3 files changed, 48 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7b39440192d6..285f7d79d848 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -24,23 +24,45 @@
+>  #include <linux/export.h>
+>  #include <linux/ioctl.h>
+>  #include <linux/media.h>
+> +#include <linux/slab.h>
+>  #include <linux/types.h>
+>  
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+>  
+> +struct media_device_fh {
+> +	struct media_devnode_fh fh;
+> +};
+> +
+> +static inline struct media_device_fh *media_device_fh(struct file *filp)
+> +{
+> +	return container_of(filp->private_data, struct media_device_fh, fh);
+> +}
+> +
+>  /* -----------------------------------------------------------------------------
+>   * Userspace API
+>   */
+>  
+>  static int media_device_open(struct file *filp)
+>  {
+> +	struct media_device_fh *fh;
+> +
+> +	fh = kzalloc(sizeof(*media_device_fh), GFP_KERNEL);
+
+sizeof(*fh) ?
+
+With that fixed,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> +	if (!fh)
+> +		return -ENOMEM;
+> +
+> +	filp->private_data = &fh->fh;
+> +
+>  	return 0;
+>  }
+>  
+>  static int media_device_close(struct file *filp)
+>  {
+> +	struct media_device_fh *fh = media_device_fh(filp);
+> +
+> +	kfree(fh);
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index ebf9626e5ae5..67bac29838d3 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -154,6 +154,7 @@ static long media_compat_ioctl(struct file *filp, unsigned int cmd,
+>  /* Override for the open function */
+>  static int media_open(struct inode *inode, struct file *filp)
+>  {
+> +	struct media_devnode_fh *fh;
+>  	struct media_devnode *mdev;
+>  	int ret;
+>  
+> @@ -175,16 +176,15 @@ static int media_open(struct inode *inode, struct file *filp)
+>  	get_device(&mdev->dev);
+>  	mutex_unlock(&media_devnode_lock);
+>  
+> -	filp->private_data = mdev;
+> -
+> -	if (mdev->fops->open) {
+> -		ret = mdev->fops->open(filp);
+> -		if (ret) {
+> -			put_device(&mdev->dev);
+> -			return ret;
+> -		}
+> +	ret = mdev->fops->open(filp);
+> +	if (ret) {
+> +		put_device(&mdev->dev);
+> +		return ret;
+>  	}
+>  
+> +	fh = filp->private_data;
+> +	fh->devnode = mdev;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -193,8 +193,7 @@ static int media_release(struct inode *inode, struct file *filp)
+>  {
+>  	struct media_devnode *mdev = media_devnode_data(filp);
+>  
+> -	if (mdev->fops->release)
+> -		mdev->fops->release(filp);
+> +	mdev->fops->release(filp);
+>  
+>  	/* decrease the refcount unconditionally since the release()
+>  	   return value is ignored. */
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index 17ddae32060d..ce81047cb4fc 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -52,6 +52,20 @@ struct media_file_operations {
+>  };
+>  
+>  /**
+> + * struct media_devnode_fh - Media device node file handle
+> + * @devnode:	pointer to the media device node
+> + *
+> + * This structure serves as a base for per-file-handle data storage. Media
+> + * device node users embed media_devnode_fh in their custom file handle data
+> + * structures and store the media_devnode_fh in the file private_data in order
+> + * to let the media device node core locate the media_devnode corresponding to a
+> + * file handle.
+> + */
+> +struct media_devnode_fh {
+> +	struct media_devnode *devnode;
+> +};
+> +
+> +/**
+>   * struct media_devnode - Media device node
+>   * @fops:	pointer to struct media_file_operations with media device ops
+>   * @dev:	struct device pointer for the media controller device
+> @@ -92,7 +106,9 @@ void media_devnode_unregister(struct media_devnode *mdev);
+>  
+>  static inline struct media_devnode *media_devnode_data(struct file *filp)
+>  {
+> -	return filp->private_data;
+> +	struct media_devnode_fh *fh = filp->private_data;
+> +
+> +	return fh->devnode;
+>  }
+>  
+>  static inline int media_devnode_is_registered(struct media_devnode *mdev)
 
 -- 
-Dmitry
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
