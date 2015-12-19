@@ -1,99 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37005 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262AbbLTL5Z convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:36907 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752753AbbLSD30 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 06:57:25 -0500
-Received: by mail-wm0-f41.google.com with SMTP id p187so37610104wmp.0
-        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2015 03:57:24 -0800 (PST)
-Date: Sun, 20 Dec 2015 12:57:17 +0100
-From: Nikola =?UTF-8?B?Rm9ycsOz?= <nikola.forro@gmail.com>
+	Fri, 18 Dec 2015 22:29:26 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 24A181867BD
+	for <linux-media@vger.kernel.org>; Sat, 19 Dec 2015 04:29:21 +0100 (CET)
+Date: Sat, 19 Dec 2015 04:29:21 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: lkundrak@v3.sk
-Subject: [PATCH] usbtv: discard redundant video fields
-Message-ID: <20151220125717.376e7903@urna>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20151219032921.24A181867BD@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are many dropped fields with some sources, leading to many
-redundant fields without counterparts. When this redundant field
-is odd, a new frame is pushed containing this odd field interleaved
-with whatever was left in the buffer, causing video artifacts.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Do not push a new frame after processing every odd field, but do it
-only after those which come after an even field.
+Results of the daily build of media_tree:
 
-Signed-off-by: Nikola Forró <nikola.forro@gmail.com>
----
- drivers/media/usb/usbtv/usbtv-video.c | 33 +++++++++++++++++++--------------
- drivers/media/usb/usbtv/usbtv.h       |  1 +
- 2 files changed, 20 insertions(+), 14 deletions(-)
+date:		Sat Dec 19 04:00:21 CET 2015
+git branch:	test
+git hash:	0aff8a894a2be4c22e6414db33061153a4b35bc9
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3202-g618e15b
+host hardware:	x86_64
+host os:	4.2.0-164
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index e645c9d..a20fd60 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -312,20 +312,24 @@ static void usbtv_image_chunk(struct usbtv *usbtv, __be32 *chunk)
-        usbtv_chunk_to_vbuf(frame, &chunk[1], chunk_no, odd);
-        usbtv->chunks_done++;
- 
--       /* Last chunk in a frame, signalling an end */
--       if (odd && chunk_no == usbtv->n_chunks-1) {
--               int size = vb2_plane_size(&buf->vb.vb2_buf, 0);
--               enum vb2_buffer_state state = usbtv->chunks_done ==
--                                               usbtv->n_chunks ?
--                                               VB2_BUF_STATE_DONE :
--                                               VB2_BUF_STATE_ERROR;
--
--               buf->vb.field = V4L2_FIELD_INTERLACED;
--               buf->vb.sequence = usbtv->sequence++;
--               v4l2_get_timestamp(&buf->vb.timestamp);
--               vb2_set_plane_payload(&buf->vb.vb2_buf, 0, size);
--               vb2_buffer_done(&buf->vb.vb2_buf, state);
--               list_del(&buf->list);
-+       /* Last chunk in a field */
-+       if (chunk_no == usbtv->n_chunks-1) {
-+               /* Last chunk in a frame, signalling an end */
-+               if (odd && !usbtv->last_odd) {
-+                       int size = vb2_plane_size(&buf->vb.vb2_buf, 0);
-+                       enum vb2_buffer_state state = usbtv->chunks_done ==
-+                                                       usbtv->n_chunks ?
-+                                                       VB2_BUF_STATE_DONE :
-+                                                       VB2_BUF_STATE_ERROR;
-+
-+                       buf->vb.field = V4L2_FIELD_INTERLACED;
-+                       buf->vb.sequence = usbtv->sequence++;
-+                       v4l2_get_timestamp(&buf->vb.timestamp);
-+                       vb2_set_plane_payload(&buf->vb.vb2_buf, 0, size);
-+                       vb2_buffer_done(&buf->vb.vb2_buf, state);
-+                       list_del(&buf->list);
-+               }
-+               usbtv->last_odd = odd;
-        }
- 
-        spin_unlock_irqrestore(&usbtv->buflock, flags);
-@@ -640,6 +644,7 @@ static int usbtv_start_streaming(struct vb2_queue *vq, unsigned int count)
-        if (usbtv->udev == NULL)
-                return -ENODEV;
- 
-+       usbtv->last_odd = 1;
-        usbtv->sequence = 0;
-        return usbtv_start(usbtv);
- }
-diff --git a/drivers/media/usb/usbtv/usbtv.h b/drivers/media/usb/usbtv/usbtv.h
-index 19cb8bf..161b38d 100644
---- a/drivers/media/usb/usbtv/usbtv.h
-+++ b/drivers/media/usb/usbtv/usbtv.h
-@@ -95,6 +95,7 @@ struct usbtv {
-        int width, height;
-        int n_chunks;
-        int iso_size;
-+       int last_odd;
-        unsigned int sequence;
-        struct urb *isoc_urbs[USBTV_ISOC_TRANSFERS];
- 
--- 
-2.6.4
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
