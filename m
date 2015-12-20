@@ -1,34 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58936 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753463AbbL2O17 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 09:27:59 -0500
-Date: Tue, 29 Dec 2015 16:27:23 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: omap3isp: Fix data lane shift configuration
-Message-ID: <20151229142722.GC26561@valkosipuli.retiisi.org.uk>
-References: <1451398311-3964-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1451398311-3964-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:32912 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751421AbbLTCDy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Dec 2015 21:03:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] rtl28xxu: return demod reg page from driver cache
+Date: Sun, 20 Dec 2015 04:03:34 +0200
+Message-Id: <1450577015-29465-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 29, 2015 at 04:11:51PM +0200, Laurent Pinchart wrote:
-> The data-shift DT property speficies the number of bits to be shifted,
-> but the driver still interprets the value as a multiple of two bits as
-> used by now removed platform data support. Fix it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Return current active rtl2830/rtl2832 register page from the driver
+cache in order to reduce I2C I/O. Register page is already cached
+due to I2C write needs.
 
-Thanks!
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 5a503a6..eb5787a 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -181,11 +181,17 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			goto err_mutex_unlock;
+ 		} else if (msg[0].addr == 0x10) {
+ 			/* method 1 - integrated demod */
+-			req.value = (msg[0].buf[0] << 8) | (msg[0].addr << 1);
+-			req.index = CMD_DEMOD_RD | dev->page;
+-			req.size = msg[1].len;
+-			req.data = &msg[1].buf[0];
+-			ret = rtl28xxu_ctrl_msg(d, &req);
++			if (msg[0].buf[0] == 0x00) {
++				/* return demod page from driver cache */
++				msg[1].buf[0] = dev->page;
++				ret = 0;
++			} else {
++				req.value = (msg[0].buf[0] << 8) | (msg[0].addr << 1);
++				req.index = CMD_DEMOD_RD | dev->page;
++				req.size = msg[1].len;
++				req.data = &msg[1].buf[0];
++				ret = rtl28xxu_ctrl_msg(d, &req);
++			}
+ 		} else if (msg[0].len < 2) {
+ 			/* method 2 - old I2C */
+ 			req.value = (msg[0].buf[0] << 8) | (msg[0].addr << 1);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
+
