@@ -1,85 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:34024 "EHLO
-	mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754466AbbLPIja (ORCPT
+Received: from mail-io0-f193.google.com ([209.85.223.193]:35439 "EHLO
+	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766AbbLTW2v convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 03:39:30 -0500
-MIME-Version: 1.0
-In-Reply-To: <3938053.0568U3PJkY@avalon>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<CAMuHMdW13=rftd1HOWBGcjH8aYCjyGZ0u60TkVeTif7+HFuwsQ@mail.gmail.com>
-	<3938053.0568U3PJkY@avalon>
-Date: Wed, 16 Dec 2015 09:39:29 +0100
-Message-ID: <CAMuHMdXpJP9GFCsOVz2224BS5-XFTMrQwoDnzBbcuo+iv4R=Gw@mail.gmail.com>
-Subject: Re: [PATCH v2 00/32] VSP: Add R-Car Gen3 support
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 20 Dec 2015 17:28:51 -0500
+Received: by mail-io0-f193.google.com with SMTP id o67so12619052iof.2
+        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2015 14:28:51 -0800 (PST)
+Received: from [10.0.1.175] (dhcp-108-168-93-48.cable.user.start.ca. [108.168.93.48])
+        by smtp.gmail.com with ESMTPSA id z6sm6915517ign.1.2015.12.20.14.28.48
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Sun, 20 Dec 2015 14:28:48 -0800 (PST)
+From: Maury Markowitz <maury.markowitz@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Subject: Some build questions
+Message-Id: <4E98CF25-E122-473E-9B4F-BC75920C2E70@gmail.com>
+Date: Sun, 20 Dec 2015 17:28:48 -0500
+To: linux-media <linux-media@vger.kernel.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.2 \(3112\))
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+I’m looking over the page here:
 
-On Sat, Dec 5, 2015 at 11:54 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Saturday 05 December 2015 11:57:49 Geert Uytterhoeven wrote:
->> As http://git.linuxtv.org/pinchartl/media.git/tag/?id=vsp1-kms-20151112 is
->> getting old, and has lots of conflicts with recent -next, do you plan to
->> publish this in a branch, and a separate branch for integration, to ease
->> integration in renesas-drivers?
->>
->> Alternatively, I can just import the series you posted, but having the
->> broken-out integration part would be nice.
->
-> The issue I'm facing is that there's more than just two series. Beside the
-> base VSP patches from this series, I have a series of DRM patches that depend
-> on this one, a series of V4L2 core patches, another series of VSP patches that
-> I still need to finish and a bunch of integration patches. As some of these
-> have dependencies on H3 CCF support that hasn't landed in Simon's tree yet, I
-> have merged your topic/cpg-mssr-v6 and topic/r8a7795-drivers-sh-v1 branches
-> into my tree for development.
->
-> I could keep all series in separate branches and merge the two topic branches
-> last, but that's not very handy during development when I have to continuously
-> rebase my patches. Is there a way I could handle this that would make your
-> life easier while not making mine more difficult ?
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-I feel your pain...
+There are a number of passages on this page which could use a little clarification. But before I jump in, I want to be sure I really understand them.
 
-For development, committing to a single branch and rebasing interactively is
-also my workflow. But after a few 100 commits, rebasing takes a long time.
-And you can't publish that tree.
+1) "This seems to be fixed on a fully updated systtem (5 July 2011)"
 
-I started moving "finished" stuff to separate topic branches (this is the
-stuff published/imported into renesas-drivers topic branches, or kept in
-private branches for the parts I don't want to publish it yet), and merging
-them early on.
-Actual development is still done on top with frequent rebasing.
+Given that this warning appears to be talking about a problem that was fixed almost five years ago, would anyone object if this was moved to a note section at the bottom of the page? And is the second note still an issue or is that long gone too?
 
-The problem starts when updating that. Instead of a simple rebase -i, it now
-involves:
-  - Duplicating the old topic branch, version number increased,
-  - Interactively rebasing the new topic branch, including/squashing commits
-    from recent development,
-  - Merging in the new topic branch "early on", and rebasing all other private
-    development on top of that.
-For "big" changes that's OK. For adding a bunch of Acked-by's it's a lot of
-work.
+2) "Note: The build script will clone the entire media-tree.git, which will take some time”
 
-> In the meantime I've pushed vsp1-kms-20151206 to
-> git://linuxtv.org/pinchartl/media.git.
+We should be precise with our terminology here. I believe this is trying to say:
 
-Hadn't thanked you yet for that: Thanks!
+"This build script will copy the entire linux source code tree from our git repository into the 'media' directory."
 
-Gr{oetje,eeting}s,
+Is that correct? Or do some of you actually have something called "media_tree"?
 
-                        Geert
+3) "make tar DIR=<some dir with media -git tree>”
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Am I correct this passage is referring to the same thing as (2)? That is, "media -git tree” is the same thing as "media-tree.git"? If so, would it not be proper to use the same terminology here?
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+And am I correct in understanding that this step, the tar/untar, is replacing the original "media" directory I got from v4l with the new one in the external/custom/other kernel?
