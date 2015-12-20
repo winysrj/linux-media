@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:35017 "EHLO
-	avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbbL0TOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 14:14:24 -0500
-From: Chris Mayo <aklhfex@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36419 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750845AbbLTDP4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Dec 2015 22:15:56 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [v4l-utils PATCH] man: Fix typos in dvbv5-scan dvbv5-zap pages
-Date: Sun, 27 Dec 2015 19:06:45 +0000
-Message-Id: <1451243205-22517-1-git-send-email-aklhfex@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] rtl2832: do not filter out slave TS null packets
+Date: Sun, 20 Dec 2015 05:15:45 +0200
+Message-Id: <1450581345-8187-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Chris Mayo <aklhfex@gmail.com>
----
- utils/dvb/dvbv5-scan.1.in | 2 +-
- utils/dvb/dvbv5-zap.1.in  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Do not remove slave TS NULL padding PID (0x1fff) by default as
+there is no real need. After that whole TS is passed to kernel sw
+PID filter.
 
-diff --git a/utils/dvb/dvbv5-scan.1.in b/utils/dvb/dvbv5-scan.1.in
-index 8958ceb..e6fe3ee 100644
---- a/utils/dvb/dvbv5-scan.1.in
-+++ b/utils/dvb/dvbv5-scan.1.in
-@@ -172,7 +172,7 @@ New transponder/channel found: #39: 507000000
- .fi
- .PP
- The scan process will then scan the other 38 discovered new transponders,
--and generate a dvb_channel.com with several entries with will have not only
-+and generate a dvb_channel.conf with several entries with will have not only
- the physical channel/transponder info, but also the Service ID, and the
- corresponding audio/video/other program IDs (PID), like:
- .PP
-diff --git a/utils/dvb/dvbv5-zap.1.in b/utils/dvb/dvbv5-zap.1.in
-index 9bf2687..2445593 100644
---- a/utils/dvb/dvbv5-zap.1.in
-+++ b/utils/dvb/dvbv5-zap.1.in
-@@ -167,7 +167,7 @@ DVR interface '/dev/dvb/adapter0/dvr0' can now be opened
- The channel can be watched by playing the contents of the DVR interface,
- with some player that recognizes the MPEG\-TS format.
- .PP
--For example, this audio-only channel can be playew with mplayer:
-+For example, this audio-only channel can be played with mplayer:
- .PP
- .nf
- $ \fBmplayer \-cache 800 /dev/dvb/adapter0/dvr0\fR
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 60250cc..10f2119 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1100,18 +1100,6 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_bulk_write(client, 0x022, "\x01", 1);
+-	if (ret)
+-		goto err;
+-
+-	ret = rtl2832_bulk_write(client, 0x026, "\x1f", 1);
+-	if (ret)
+-		goto err;
+-
+-	ret = rtl2832_bulk_write(client, 0x027, "\xff", 1);
+-	if (ret)
+-		goto err;
+-
+ 	ret = rtl2832_bulk_write(client, 0x192, "\x7f\xf7\xff", 3);
+ 	if (ret)
+ 		goto err;
 -- 
-2.4.10
+http://palosaari.fi/
 
