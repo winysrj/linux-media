@@ -1,100 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40997 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:50027 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755632AbbLGNRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2015 08:17:06 -0500
-Date: Mon, 7 Dec 2015 11:16:49 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Ben Hutchings <ben@decadent.org.uk>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Woodhouse <dwmw2@infradead.org>
-Subject: Re: [PATCH 2/4] WHENCE: use https://linuxtv.org for LinuxTV URLs
-Message-ID: <20151207111649.30ef0fa2@recife.lan>
-In-Reply-To: <1449454726.2824.64.camel@decadent.org.uk>
-References: <a825eaec8d62f2679880fc1679622da9d77820a9.1449232861.git.mchehab@osg.samsung.com>
-	<e9a73f67222e49579154d3b8cb3ae71aa7898d94.1449232861.git.mchehab@osg.samsung.com>
-	<1449454726.2824.64.camel@decadent.org.uk>
+	id S1751289AbbLTDgt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Dec 2015 22:36:49 -0500
+Subject: Re: [PATCH 3/3] rtl28xxu: change Astrometa DVB-T2 to always use
+ hardware pid filters
+To: Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org
+References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
+ <1448763016-10527-3-git-send-email-benjamin@southpole.se>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <5676224F.3030803@iki.fi>
+Date: Sun, 20 Dec 2015 05:36:47 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/vJ1K5MDQkm6PFvuqGaBBVVU"; protocol="application/pgp-signature"
+In-Reply-To: <1448763016-10527-3-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/vJ1K5MDQkm6PFvuqGaBBVVU
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Moikka!
+I did some testing and I cannot see reason to force hw pid filter for 
+that device. I assume you somehow think it does not work without 
+filtering, but I think it does.
 
-Em Mon, 07 Dec 2015 02:18:46 +0000
-Ben Hutchings <ben@decadent.org.uk> escreveu:
+I tested streaming with mn88472 demod DVB-C and DVB-T2 modes without 
+stream errors. DVB-T2 (live) datarate 45Mbps and DVB-C (modulator) 
+datarate 50Mbps. Maximum DVB-T2 (8MHz) datarate is 50Mbps - in a real 
+life it is bit less.
 
-> On Fri, 2015-12-04 at 10:46 -0200, Mauro Carvalho Chehab wrote:
-> > While https was always supported on linuxtv.org, only in
-> > Dec 3 2015 the website is using valid certificates.
-> >=20
-> > As we're planning to drop pure http support on some
-> > future, change the http://linuxtv.org references at firmware/WHENCE
-> > file to point to https://linuxtv.org instead.
->=20
-> I've made the corresponding change in the linux-firmware.git
-> repository.=20
+DVB-C
+1fff 19870.47 p/s 29184.8 Kbps 207966 KB
+TOT 34313.26 p/s 50397.6 Kbps 359127 KB
 
-Thanks!
+DVB-T2
+1fff 2589.99 p/s 3804.0 Kbps 21400 KB
+TOT 30346.18 p/s 44570.9 Kbps 250745 KB
 
->=C2=A0I don't know who, if anyone, maintains the firmware
-> subdirectory now.
+So point me the reason hw PID filters need to be forced.
 
-Well, I guess it should be fine then to send this patch via the
-media tree.
+regards
+Antti
 
-Regards,
-Mauro
 
->=20
-> Ben.
->=20
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> > =C2=A0firmware/WHENCE | 2 +-
-> > =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/firmware/WHENCE b/firmware/WHENCE
-> > index 0c4d96dee9b6..de6f22e008f1 100644
-> > --- a/firmware/WHENCE
-> > +++ b/firmware/WHENCE
-> > @@ -677,7 +677,7 @@ File: av7110/bootcode.bin
-> > =C2=A0
-> > =C2=A0Licence: GPLv2 or later
-> > =C2=A0
-> > -ARM assembly source code available at http://www.linuxtv.org/downloads=
-/firmware/Boot.S
-> > +ARM assembly source code available at https://linuxtv.org/downloads/fi=
-rmware/Boot.S
-> > =C2=A0
-> > =C2=A0-----------------------------------------------------------------=
----------
-> > =C2=A0
+On 11/29/2015 04:10 AM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+> ---
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 35 ++++++++++++++++++++++++++++++++-
+>   1 file changed, 34 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index 5a503a6..74201ec 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1848,6 +1848,39 @@ static const struct dvb_usb_device_properties rtl28xxu_props = {
+>   	},
+>   };
+>
+> +static const struct dvb_usb_device_properties rtl28xxp_props = {
+> +	.driver_name = KBUILD_MODNAME,
+> +	.owner = THIS_MODULE,
+> +	.adapter_nr = adapter_nr,
+> +	.size_of_priv = sizeof(struct rtl28xxu_dev),
+> +
+> +	.identify_state = rtl28xxu_identify_state,
+> +	.power_ctrl = rtl28xxu_power_ctrl,
+> +	.frontend_ctrl = rtl28xxu_frontend_ctrl,
+> +	.i2c_algo = &rtl28xxu_i2c_algo,
+> +	.read_config = rtl28xxu_read_config,
+> +	.frontend_attach = rtl28xxu_frontend_attach,
+> +	.frontend_detach = rtl28xxu_frontend_detach,
+> +	.tuner_attach = rtl28xxu_tuner_attach,
+> +	.tuner_detach = rtl28xxu_tuner_detach,
+> +	.init = rtl28xxu_init,
+> +
+> +	.get_rc_config = rtl28xxu_get_rc_config,
+> +	.num_adapters = 1,
+> +	.adapter = {
+> +		{
+> +			.caps = DVB_USB_ADAP_NEED_PID_FILTERING |
+> +				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+> +
+> +			.pid_filter_count = 32,
+> +			.pid_filter_ctrl = rtl28xxu_pid_filter_ctrl,
+> +			.pid_filter = rtl28xxu_pid_filter,
+> +
+> +			.stream = DVB_USB_STREAM_BULK(0x81, 6, 8 * 512),
+> +		},
+> +	},
+> +};
+> +
+>   static const struct usb_device_id rtl28xxu_id_table[] = {
+>   	/* RTL2831U devices: */
+>   	{ DVB_USB_DEVICE(USB_VID_REALTEK, USB_PID_REALTEK_RTL2831U,
+> @@ -1919,7 +1952,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>
+>   	/* RTL2832P devices: */
+>   	{ DVB_USB_DEVICE(USB_VID_HANFTEK, 0x0131,
+> -		&rtl28xxu_props, "Astrometa DVB-T2", NULL) },
+> +		&rtl28xxp_props, "Astrometa DVB-T2", NULL) },
+>   	{ DVB_USB_DEVICE(0x5654, 0xca42,
+>   		&rtl28xxu_props, "GoTView MasterHD 3", NULL) },
+>   	{ }
+>
 
---Sig_/vJ1K5MDQkm6PFvuqGaBBVVU
-Content-Type: application/pgp-signature
-Content-Description: Assinatura digital OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWZYbCAAoJEAhfPr2O5OEVZ40QAIWl5GPSppF7NkqBvo9wY2KM
-LA8sanug0mRikqbpemjMCVmfDxWfTyI2teB+6eJ3CqAB60WpamtJbUhDzbbnj+cd
-Rwf5sqQ7x76rBmbD2pm7MDjRZDa9DT0eYzlCi5VXe+LKAMMBiG5lavXS+Pxe6qL2
-j3RPLojmGxakggpTtc8w/ttKVMwi6dbOKjIIs49+jnpYdX69xLZnifo43xYSPsTN
-xl+qZLgqHpWynCu5r2zb6PVvumZ5tAoMoRZLgKYeS/9NKLUxIbjevQS4dfgkJUvO
-VL5o0LhWlveE7Ryc04Cq30OzOXuY+6vu7pUDJ7W4q7Pg1lndy9Xhqh4/QopgFLXH
-klj5ZHsOSqsbciVeLzhh0/t7yHN4eCYafiZN1udp1zGWhqdQ6qEjpC/n720Rs6X0
-4P0t82olxbD35zr9Z0TFzx+daE7t/TLAsRijLaJcojSkL736GXWVNPaWLU9E8VCg
-m+yZdkYfdvs4t6Jd7sbZMQMMZN8zEGTOP63L3DuLfvmy646+MMSRAxf6zUQ3gjFB
-8pAqgN495OTtN+r3gb+kMOam/HftxRUQNQjL5JGCPgIjtN5EARai/t45ag/qKCUK
-dV3CUabVaGMfC7SEvlVeCY3mTHTLrMY31i2Iay2ybgQGndZ5hA+Gprev1sqnBrvO
-3cAIzRnhpXKLuheXbQtQ
-=6r73
------END PGP SIGNATURE-----
-
---Sig_/vJ1K5MDQkm6PFvuqGaBBVVU--
+-- 
+http://palosaari.fi/
