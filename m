@@ -1,125 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48323 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbbL1OEW (ORCPT
+Received: from [103.29.214.116] ([103.29.214.116]:33579 "EHLO mail.fuchs.co.id"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751826AbbLVKtK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 09:04:22 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
-Date: Mon, 28 Dec 2015 12:03:47 -0200
-Message-Id: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
+	Tue, 22 Dec 2015 05:49:10 -0500
+Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: 
+To: Recipients <yeni.isnaeni@fuchs.co.id>
+From: Financial Service <yeni.isnaeni@fuchs.co.id>
+Date: Tue, 22 Dec 2015 04:18:17 +0530
+Reply-To: m_rajeshkumar@aol.co.uk
+Message-Id: <20151221224831.3EAC1751D2B@mail.fuchs.co.id>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few discussions left with regards to this ioctl:
-
-1) the name of the new structs will contain _v2_ on it?
-2) what's the best alternative to avoid compat32 issues?
-
-Due to that, let's postpone the addition of this new ioctl to
-the next Kernel version, to give people more time to discuss it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
-
-Resending the patch, as the first one were sent to the wrong ML. Also, add the
-relevant parties to the Cc of thiis patch.
-
- Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
- drivers/media/media-device.c                             | 5 ++++-
- include/uapi/linux/media.h                               | 6 +++++-
- 3 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-index e0d49fa329f0..63152ab9efba 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-@@ -48,6 +48,9 @@
- 
-   <refsect1>
-     <title>Description</title>
-+
-+    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
-+
-     <para>The typical usage of this ioctl is to call it twice.
-     On the first call, the structure defined at &media-v2-topology; should
-     be zeroed. At return, if no errors happen, this ioctl will return the
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 4d1c13de494b..900124c04e9a 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
- 	return ret;
- }
- 
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- static long __media_device_get_topology(struct media_device *mdev,
- 				      struct media_v2_topology *topo)
- {
-@@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
- 
- 	return 0;
- }
-+#endif
- 
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			       unsigned long arg)
-@@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- 	case MEDIA_IOC_G_TOPOLOGY:
- 		mutex_lock(&dev->graph_mutex);
- 		ret = media_device_get_topology(dev,
- 				(struct media_v2_topology __user *)arg);
- 		mutex_unlock(&dev->graph_mutex);
- 		break;
--
-+#endif
- 	default:
- 		ret = -ENOIOCTLCMD;
- 	}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 5dbb208e5451..1e3c8cb43bd7 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -286,7 +286,7 @@ struct media_links_enum {
-  *	  later, before the adding this API upstream.
-  */
- 
--
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- struct media_v2_entity {
- 	__u32 id;
- 	char name[64];		/* FIXME: move to a property? (RFC says so) */
-@@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
- {
- 	return (void __user *)(uintptr_t)arg;
- }
-+#endif
- 
- /* ioctls */
- 
-@@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-+
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
-+#endif
- 
- #endif /* __LINUX_MEDIA_H */
--- 
-2.5.0
-
-
+Are you in need of private or business loans for various purposes? if yes,apply now
