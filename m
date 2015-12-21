@@ -1,382 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41757 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383AbbLNAzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 19:55:04 -0500
-Date: Sun, 13 Dec 2015 22:54:57 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:50504 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbbLUM06 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Dec 2015 07:26:58 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 03/22] media: Add an API to manage entity
- enumerations
-Message-ID: <20151213225457.46ba2f6c@recife.lan>
-In-Reply-To: <566DED38.1040802@iki.fi>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
-	<1448824823-10372-4-git-send-email-sakari.ailus@iki.fi>
-	<20151212130936.6cf7cdee@recife.lan>
-	<566DED38.1040802@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH] au8522: Avoid memory leak in case of errors
+Date: Mon, 21 Dec 2015 10:26:29 -0200
+Message-Id: <e14d568af71dd44f5b34bb710936354a88bafbbd.1450700786.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 14 Dec 2015 00:12:08 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+As reported by kmemleak:
 
-> Hi Mauro,
-> 
-> Thanks for the comments!
-> 
-> Mauro Carvalho Chehab wrote:
-> > Hi Sakari,
-> > 
-> > Em Sun, 29 Nov 2015 21:20:04 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > 
-> >> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>
-> >> This is useful in e.g. knowing whether certain operations have already
-> >> been performed for an entity. The users include the framework itself (for
-> >> graph walking) and a number of drivers.
-> > 
-> > Please use better names on the vars. See below for details.
-> > 
-> >>
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >>  drivers/media/media-entity.c |  39 +++++++++++++
-> >>  include/media/media-device.h |  14 +++++
-> >>  include/media/media-entity.h | 136 ++++++++++++++++++++++++++++++++++++++++---
-> >>  3 files changed, 181 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> >> index d11f440..fceaf44 100644
-> >> --- a/drivers/media/media-entity.c
-> >> +++ b/drivers/media/media-entity.c
-> >> @@ -213,6 +213,45 @@ void media_gobj_remove(struct media_gobj *gobj)
-> >>  }
-> >>  
-> >>  /**
-> >> + * __media_entity_enum_init - Initialise an entity enumeration
-> >> + *
-> >> + * @e: Entity enumeration to be initialised
-> >> + * @idx_max: Maximum number of entities in the enumeration
-> >> + *
-> >> + * Returns zero on success or a negative error code.
-> >> + */
-> > 
-> > We're using kernel-doc macros only at the header files. Please
-> > move those macros to there.
-> 
-> Oops. Will fix.
-> 
-> > 
-> >> +int __media_entity_enum_init(struct media_entity_enum *e, int idx_max)
-> > 
-> > using "e" as a var is not nice, specially on a public header.
-> > 
-> > I would use "ent_enum" instead for media_entity_enum pointers. This
-> > applies everywhere on this patch series.
-> 
-> I'm fine with that suggestion, I'll change to use ent_enum instead
-> (where there's no more specific purpose for the variable / field).
+	unreferenced object 0xffff880321e1da40 (size 32):
+	  comm "modprobe", pid 3309, jiffies 4295019569 (age 2359.636s)
+	  hex dump (first 32 bytes):
+	    47 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  G...............
+	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+	  backtrace:
+	    [<ffffffff82278c8e>] kmemleak_alloc+0x4e/0xb0
+	    [<ffffffff8153c08c>] kmem_cache_alloc_trace+0x1ec/0x280
+	    [<ffffffffa13a896a>] au8522_probe+0x19a/0xa30 [au8522_decoder]
+	    [<ffffffff81de0032>] i2c_device_probe+0x2b2/0x490
+	    [<ffffffff81ca7004>] driver_probe_device+0x454/0xd90
+	    [<ffffffff81ca7c1b>] __device_attach_driver+0x17b/0x230
+	    [<ffffffff81ca15da>] bus_for_each_drv+0x11a/0x1b0
+	    [<ffffffff81ca6a4d>] __device_attach+0x1cd/0x2c0
+	    [<ffffffff81ca7d43>] device_initial_probe+0x13/0x20
+	    [<ffffffff81ca451f>] bus_probe_device+0x1af/0x250
+	    [<ffffffff81c9e0f3>] device_add+0x943/0x13b0
+	    [<ffffffff81c9eb7a>] device_register+0x1a/0x20
+	    [<ffffffff81de8626>] i2c_new_device+0x5d6/0x8f0
+	    [<ffffffffa0d88ea4>] v4l2_i2c_new_subdev_board+0x1e4/0x250 [v4l2_common]
+	    [<ffffffffa0d88fe7>] v4l2_i2c_new_subdev+0xd7/0x110 [v4l2_common]
+	    [<ffffffffa13b2f76>] au0828_card_analog_fe_setup+0x2e6/0x3f0 [au0828]
 
-Thanks!
-> 
-> > 
-> >> +{
-> >> +	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-> >> +		e->e = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
-> >> +			       sizeof(long), GFP_KERNEL);
-> >> +		if (!e->e)
-> >> +			return -ENOMEM;
-> >> +	} else {
-> >> +		e->e = e->__e;
-> > 
-> > This is crap! I can't tell what the above code is doing,
-> > as the var names don't give any clue!
-> 
-> In retrospect, the names could perhaps have been more descriptive.
-> There's no need to be angry at the letter "e" however, it's just doing
-> its job...
+Checking where the error happens:
+	(gdb) list *au8522_probe+0x19a
+	0x99a is in au8522_probe (drivers/media/dvb-frontends/au8522_decoder.c:761).
+	756			printk(KERN_INFO "au8522_decoder attach existing instance.\n");
+	757			break;
+	758		}
+	759
+	760		demod_config = kzalloc(sizeof(struct au8522_config), GFP_KERNEL);
+	761		if (demod_config == NULL) {
+	762			if (instance == 1)
+	763				kfree(state);
+	764			return -ENOMEM;
+	765		}
 
-I'm not angry with the letter "e" (or with you). Just the above code
-seems too obscure for a poor reviewer ;)
+Shows that the error pathc is not being handled properly. The issue here is
+that it should have been calling hybrid_tuner_release_state() function, by
+calling au8522_release_state().
 
-> 
-> > 
-> >> +	}
-> >> +
-> >> +	bitmap_zero(e->e, idx_max);
-> > 
-> > Ok, here, there's a hint that one of the "e" is a bitmap, while
-> > the other is a struct... Weird, and very easy to do wrong things!
-> > 
-> > Please name the bitmap as "ent_enum_bmap" or something like that.
-> 
-> Fine with that.
-> 
-> > 
-> >> +	e->idx_max = idx_max;
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-> >> +
-> >> +/**
-> >> + * media_entity_enum_cleanup - Release resources of an entity enumeration
-> >> + *
-> >> + * @e: Entity enumeration to be released
-> >> + */
-> >> +void media_entity_enum_cleanup(struct media_entity_enum *e)
-> >> +{
-> >> +	if (e->e != e->__e)
-> >> +		kfree(e->e);
-> >> +	e->e = NULL;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
-> >> +
-> >> +/**
-> >>   * media_entity_init - Initialize a media entity
-> >>   *
-> >>   * @num_pads: Total number of sink and source pads.
-> >> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> >> index c0e1764..2d46c66 100644
-> >> --- a/include/media/media-device.h
-> >> +++ b/include/media/media-device.h
-> >> @@ -110,6 +110,20 @@ struct media_device {
-> >>  /* media_devnode to media_device */
-> >>  #define to_media_device(node) container_of(node, struct media_device, devnode)
-> >>  
-> >> +/**
-> >> + * media_entity_enum_init - Initialise an entity enumeration
-> >> + *
-> >> + * @e: Entity enumeration to be initialised
-> >> + * @mdev: The related media device
-> >> + *
-> >> + * Returns zero on success or a negative error code.
-> >> + */
-> >> +static inline __must_check int media_entity_enum_init(
-> >> +	struct media_entity_enum *e, struct media_device *mdev)
-> >> +{
-> >> +	return __media_entity_enum_init(e, mdev->entity_internal_idx_max + 1);
-> >> +}
-> >> +
-> >>  void media_device_init(struct media_device *mdev);
-> >>  void media_device_cleanup(struct media_device *mdev);
-> >>  int __must_check __media_device_register(struct media_device *mdev,
-> >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> >> index d3d3a39..5a0339a 100644
-> >> --- a/include/media/media-entity.h
-> >> +++ b/include/media/media-entity.h
-> >> @@ -23,7 +23,7 @@
-> >>  #ifndef _MEDIA_ENTITY_H
-> >>  #define _MEDIA_ENTITY_H
-> >>  
-> >> -#include <linux/bitops.h>
-> >> +#include <linux/bitmap.h>
-> >>  #include <linux/kernel.h>
-> >>  #include <linux/list.h>
-> >>  #include <linux/media.h>
-> >> @@ -71,6 +71,30 @@ struct media_gobj {
-> >>  	struct list_head	list;
-> >>  };
-> >>  
-> >> +#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> >> +#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> >> +
-> >> +/*
-> >> + * The number of pads can't be bigger than the number of entities,
-> >> + * as the worse-case scenario is to have one entity linked up to
-> >> + * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> >> + */
-> >> +#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> >> +
-> >> +/* struct media_entity_enum - An enumeration of media entities.
-> >> + *
-> >> + * @__e:	Pre-allocated space reserved for media entities if the total
-> >> + *		number of entities  does not exceed MEDIA_ENTITY_ENUM_MAX_ID.
-> >> + * @e:		Bit mask in which each bit represents one entity at struct
-> >> + *		media_entity->internal_idx.
-> >> + * @idx_max:	Number of bits in the enum.
-> >> + */
-> >> +struct media_entity_enum {
-> >> +	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-> >> +	unsigned long *e;
-> > 
-> > As mentioned before, don't use single letter names, specially inside
-> > publicly used structures. There's no good reason for that, and the
-> > code become really obscure.
-> > 
-> > Also, just declare one bitmap. having a "pre-allocated" hardcoded
-> > one here is very confusing.
-> 
-> I prefer to keep it as allocating a few bytes of memory is silly. In the
-> vast majority of the cases the pre-allocated array will be sufficient.
+Yet, it is easier to just reorder the allocation, with makes the error path
+simpler.
 
-"vast majority" actually depends on the driver/subsystem. The fact that
-right now most drivers work fine with < 64 entities may not be
-true in the future.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522_decoder.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-> 
-> I have no strong opinion about this though. I agree it'd simplify the
-> code to remove it.
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 28d7dc2fee34..88fddbbf8491 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -738,11 +738,16 @@ static int au8522_probe(struct i2c_client *client,
+ 		return -EIO;
+ 	}
+ 
++	demod_config = kzalloc(sizeof(struct au8522_config), GFP_KERNEL);
++	if (!demod_config)
++		return -ENOMEM;
++
+ 	/* allocate memory for the internal state */
+ 	instance = au8522_get_state(&state, client->adapter, client->addr);
+ 	switch (instance) {
+ 	case 0:
+ 		printk(KERN_ERR "au8522_decoder allocation failed\n");
++		kfree(demod_config);
+ 		return -EIO;
+ 	case 1:
+ 		/* new demod instance */
+@@ -754,12 +759,6 @@ static int au8522_probe(struct i2c_client *client,
+ 		break;
+ 	}
+ 
+-	demod_config = kzalloc(sizeof(struct au8522_config), GFP_KERNEL);
+-	if (demod_config == NULL) {
+-		if (instance == 1)
+-			kfree(state);
+-		return -ENOMEM;
+-	}
+ 	demod_config->demod_address = 0x8e >> 1;
+ 
+ 	state->config = demod_config;
+-- 
+2.5.0
 
-IMHO, a simpler code is a good reason to do that.
-
-> 
-> > 
-> >> +	int idx_max;
-> >> +};
-> >> +
-> >>  struct media_pipeline {
-> >>  };
-> >>  
-> >> @@ -307,15 +331,111 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
-> >>  	}
-> >>  }
-> >>  
-> >> -#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> >> -#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> >> +int __media_entity_enum_init(struct media_entity_enum *e, int idx_max);
-> >> +void media_entity_enum_cleanup(struct media_entity_enum *e);
-> >>  
-> >> -/*
-> >> - * The number of pads can't be bigger than the number of entities,
-> >> - * as the worse-case scenario is to have one entity linked up to
-> >> - * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> >> +/**
-> >> + * media_entity_enum_zero - Clear the entire enum
-> >> + *
-> >> + * @e: Entity enumeration to be cleared
-> >>   */
-> >> -#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> >> +static inline void media_entity_enum_zero(struct media_entity_enum *e)
-> >> +{
-> >> +	bitmap_zero(e->e, e->idx_max);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_set - Mark a single entity in the enum
-> >> + *
-> >> + * @e: Entity enumeration
-> >> + * @entity: Entity to be marked
-> >> + */
-> >> +static inline void media_entity_enum_set(struct media_entity_enum *e,
-> >> +					 struct media_entity *entity)
-> >> +{
-> >> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> >> +		return;
-> >> +
-> >> +	__set_bit(entity->internal_idx, e->e);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_clear - Unmark a single entity in the enum
-> >> + *
-> >> + * @e: Entity enumeration
-> >> + * @entity: Entity to be unmarked
-> >> + */
-> >> +static inline void media_entity_enum_clear(struct media_entity_enum *e,
-> >> +					   struct media_entity *entity)
-> >> +{
-> >> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> >> +		return;
-> >> +
-> >> +	__clear_bit(entity->internal_idx, e->e);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_test - Test whether the entity is marked
-> >> + *
-> >> + * @e: Entity enumeration
-> >> + * @entity: Entity to be tested
-> >> + *
-> >> + * Returns true if the entity was marked.
-> >> + */
-> >> +static inline bool media_entity_enum_test(struct media_entity_enum *e,
-> >> +					  struct media_entity *entity)
-> >> +{
-> >> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> >> +		return true;
-> >> +
-> >> +	return test_bit(entity->internal_idx, e->e);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_test - Test whether the entity is marked, and mark it
-> >> + *
-> >> + * @e: Entity enumeration
-> >> + * @entity: Entity to be tested
-> >> + *
-> >> + * Returns true if the entity was marked, and mark it before doing so.
-> >> + */
-> >> +static inline bool media_entity_enum_test_and_set(struct media_entity_enum *e,
-> >> +						  struct media_entity *entity)
-> >> +{
-> >> +	if (WARN_ON(entity->internal_idx >= e->idx_max))
-> >> +		return true;
-> >> +
-> >> +	return __test_and_set_bit(entity->internal_idx, e->e);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_test - Test whether the entire enum is empty
-> >> + *
-> >> + * @e: Entity enumeration
-> >> + * @entity: Entity to be tested
-> >> + *
-> >> + * Returns true if the entity was marked.
-> >> + */
-> >> +static inline bool media_entity_enum_empty(struct media_entity_enum *e)
-> >> +{
-> >> +	return bitmap_empty(e->e, e->idx_max);
-> >> +}
-> >> +
-> >> +/**
-> >> + * media_entity_enum_intersects - Test whether two enums intersect
-> >> + *
-> >> + * @e: First entity enumeration
-> >> + * @f: Second entity enumeration
-> >> + *
-> >> + * Returns true if entity enumerations e and f intersect, otherwise false.
-> >> + */
-> >> +static inline bool media_entity_enum_intersects(struct media_entity_enum *e,
-> >> +						struct media_entity_enum *f)
-> > 
-> > Huh, this is even uglier! The first media_entity_enum "e", and the
-> > second "f"...
-> > 
-> > For me, "f" is reserved for a "float" type ;) Seriously, the conventional
-> > usage for single-letter vars is to use them only for vars that don't
-> > deserve a name, like temporary integer vars and loop indexes (i, j, k),
-> > temporary pointers (p), temporary float values (f), etc.
-> > 
-> > All the rest should have more than one letter. Failing to do that makes
-> > the code very hard to be read by other people.
-> 
-> Frankly, if the function is to find an intersection between two sets,
-> why would someone really care what those sets would be called? This is a
-> tiny function.
-
-That looks ugly from the documentation standpoint.
-
-> If you however really disdain the letter "f" as well, I can opt for
-> using ent_enum[12] instead. :-)
-
-Naming as ent_enum1 and ent_enum2 sounds better.
-
-> 
-> > 
-> >> +{
-> >> +	WARN_ON(e->idx_max != f->idx_max);
-> >> +
-> >> +	return bitmap_intersects(e->e, f->e, min(e->idx_max, f->idx_max));
-> >> +}
-> >>  
-> >>  struct media_entity_graph {
-> >>  	struct {
-> 
