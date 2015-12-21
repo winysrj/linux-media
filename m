@@ -1,120 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35380 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965466AbbLPPgJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 10:36:09 -0500
-Received: by mail-wm0-f42.google.com with SMTP id l126so43968650wml.0
-        for <linux-media@vger.kernel.org>; Wed, 16 Dec 2015 07:36:08 -0800 (PST)
-Date: Wed, 16 Dec 2015 16:36:06 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Dmitry Torokhov <dtor@chromium.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	Andrew Bresticker <abrestic@chromium.org>,
-	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-	dri-devel@lists.freedesktop.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Riley Andrews <riandrews@android.com>,
+Received: from mail.kapsi.fi ([217.30.184.167]:46946 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751153AbbLUCmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Dec 2015 21:42:17 -0500
+Subject: Re: [PATCH 1/3] rtl2832: add support for slave ts pid filter
+To: Benjamin Larsson <benjamin@southpole.se>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH] android: fix warning when releasing active sync point
-Message-ID: <20151216153606.GR30437@phenom.ffwll.local>
-References: <20151215012955.GA28277@dtor-ws>
- <20151215092601.GI3189@phenom.ffwll.local>
- <20151215190008.GE883@joana>
- <CAE_wzQ87y-Py8miGoyVwRz7qL4xgDse5U5dLEj58D_QeHHkprg@mail.gmail.com>
+References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <56776708.4010204@iki.fi>
+Date: Mon, 21 Dec 2015 04:42:16 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAE_wzQ87y-Py8miGoyVwRz7qL4xgDse5U5dLEj58D_QeHHkprg@mail.gmail.com>
+In-Reply-To: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2015 at 11:08:01AM -0800, Dmitry Torokhov wrote:
-> On Tue, Dec 15, 2015 at 11:00 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> > 2015-12-15 Daniel Vetter <daniel@ffwll.ch>:
-> >
-> >> On Mon, Dec 14, 2015 at 05:29:55PM -0800, Dmitry Torokhov wrote:
-> >> > Userspace can close the sync device while there are still active fence
-> >> > points, in which case kernel produces the following warning:
-> >> >
-> >> > [   43.853176] ------------[ cut here ]------------
-> >> > [   43.857834] WARNING: CPU: 0 PID: 892 at /mnt/host/source/src/third_party/kernel/v3.18/drivers/staging/android/sync.c:439 android_fence_release+0x88/0x104()
-> >> > [   43.871741] CPU: 0 PID: 892 Comm: Binder_5 Tainted: G     U 3.18.0-07661-g0550ce9 #1
-> >> > [   43.880176] Hardware name: Google Tegra210 Smaug Rev 1+ (DT)
-> >> > [   43.885834] Call trace:
-> >> > [   43.888294] [<ffffffc000207464>] dump_backtrace+0x0/0x10c
-> >> > [   43.893697] [<ffffffc000207580>] show_stack+0x10/0x1c
-> >> > [   43.898756] [<ffffffc000ab1258>] dump_stack+0x74/0xb8
-> >> > [   43.903814] [<ffffffc00021d414>] warn_slowpath_common+0x84/0xb0
-> >> > [   43.909736] [<ffffffc00021d530>] warn_slowpath_null+0x14/0x20
-> >> > [   43.915482] [<ffffffc00088aefc>] android_fence_release+0x84/0x104
-> >> > [   43.921582] [<ffffffc000671cc4>] fence_release+0x104/0x134
-> >> > [   43.927066] [<ffffffc00088b0cc>] sync_fence_free+0x74/0x9c
-> >> > [   43.932552] [<ffffffc00088b128>] sync_fence_release+0x34/0x48
-> >> > [   43.938304] [<ffffffc000317bbc>] __fput+0x100/0x1b8
-> >> > [   43.943185] [<ffffffc000317cc8>] ____fput+0x8/0x14
-> >> > [   43.947982] [<ffffffc000237f38>] task_work_run+0xb0/0xe4
-> >> > [   43.953297] [<ffffffc000207074>] do_notify_resume+0x44/0x5c
-> >> > [   43.958867] ---[ end trace 5a2aa4027cc5d171 ]---
-> >> >
-> >> > Let's fix it by introducing a new optional callback (disable_signaling)
-> >> > to fence operations so that drivers can do proper clean ups when we
-> >> > remove last callback for given fence.
-> >> >
-> >> > Reviewed-by: Andrew Bresticker <abrestic@chromium.org>
-> >> > Signed-off-by: Dmitry Torokhov <dtor@chromium.org>
-> >> > ---
-> >> >  drivers/dma-buf/fence.c        | 6 +++++-
-> >> >  drivers/staging/android/sync.c | 8 ++++++++
-> >> >  include/linux/fence.h          | 2 ++
-> >> >  3 files changed, 15 insertions(+), 1 deletion(-)
-> >> >
-> >> > diff --git a/drivers/dma-buf/fence.c b/drivers/dma-buf/fence.c
-> >> > index 7b05dbe..0ed73ad 100644
-> >> > --- a/drivers/dma-buf/fence.c
-> >> > +++ b/drivers/dma-buf/fence.c
-> >> > @@ -304,8 +304,12 @@ fence_remove_callback(struct fence *fence, struct fence_cb *cb)
-> >> >     spin_lock_irqsave(fence->lock, flags);
-> >> >
-> >> >     ret = !list_empty(&cb->node);
-> >> > -   if (ret)
-> >> > +   if (ret) {
-> >> >             list_del_init(&cb->node);
-> >> > +           if (list_empty(&fence->cb_list))
-> >> > +                   if (fence->ops->disable_signaling)
-> >> > +                           fence->ops->disable_signaling(fence);
-> >>
-> >> What exactly is the bug here? A fence with no callbacks registered any
-> >> more shouldn't have any problem. Why exactly does this blow up?
-> >
-> > The WARN_ON is probably this one:
-> > https://android.googlesource.com/kernel/common/+/android-3.18/drivers/staging/android/sync.c#433
-> >
-> > I've been wondering in the last few days if this warning is really
-> > necessary. If the user is closing a sync_timeline that has unsignalled
-> > fences it should probably be aware of that already. Then I think it is
-> > okay to remove the the sync_pt from the active_list at the release-time.
-> > In fact I've already prepared a patch doing that. Thoughts?
-> >
-> 
-> Maybe, but you need to make sure that you only affecting your fences.
-> 
-> My main objection is that still leaves fence_remove_callback() being
-> not mirror image of fence_add_callback().
+Patch looks acceptable, but it is broken in a mean it does not apply :(
 
-That's 100% intentional. I looked at the sync.c code a bit more and it
-duplicates a bunch of the fence stuff still. We need to either merge that
-code into the mainline struct fence logic, or remove it. There shouldn't
-really be any need for the userspace ABI layer to keep track of active
-fences at all. Worse, it means that you must use the sync_pt struct to be
-able to export it to userspace, and can't just export any normal struct
-fence object. That breaks the abstraction we're aiming for.
+$ wget -O - https://patchwork.linuxtv.org/patch/32030/mbox/ | git am -3 -s
+--2015-12-21 04:40:46--  https://patchwork.linuxtv.org/patch/32030/mbox/
+Resolving patchwork.linuxtv.org (patchwork.linuxtv.org)... 130.149.80.248
+Connecting to patchwork.linuxtv.org 
+(patchwork.linuxtv.org)|130.149.80.248|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/plain]
+Saving to: ‘STDOUT’
 
-Imo just remove that WARN_ON for now.
--Daniel
+-                                                   [ <=> 
+ 
+               ]   2.73K  --.-KB/s   in 0s
+
+2015-12-21 04:40:46 (60.4 MB/s) - written to stdout [2796]
+
+Applying: rtl2832: add support for slave ts pid filter
+fatal: corrupt patch at line 39
+Repository lacks necessary blobs to fall back on 3-way merge.
+Cannot fall back to three-way merge.
+Patch failed at 0001 rtl2832: add support for slave ts pid filter
+The copy of the patch that failed is found in:
+    /home/crope/linuxtv/code/media_tree/.git/rebase-apply/patch
+When you have resolved this problem, run "git am --continue".
+If you prefer to skip this patch, run "git am --skip" instead.
+To restore the original branch and stop patching, run "git am --abort".
+[crope@localhost media_tree]$ patch -p1 < .git/rebase-apply/patch
+patching file drivers/media/dvb-frontends/rtl2832.c
+patch: **** malformed patch at line 39: @@ -1178,14 +1185,22 @@ static 
+int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
+
+[crope@localhost media_tree]$ git am --abort
+[crope@localhost media_tree]$ git am ~/\[PATCH\ 1_3\]\ rtl2832\:\ add\ 
+support\ for\ slave\ ts\ pid\ filter.eml
+Applying: rtl2832: add support for slave ts pid filter
+fatal: corrupt patch at line 39
+Patch failed at 0001 rtl2832: add support for slave ts pid filter
+The copy of the patch that failed is found in:
+    /home/crope/linuxtv/code/media_tree/.git/rebase-apply/patch
+When you have resolved this problem, run "git am --continue".
+If you prefer to skip this patch, run "git am --skip" instead.
+To restore the original branch and stop patching, run "git am --abort".
+[crope@localhost media_tree]$ git am --abort
+
+Antti
+
+On 11/29/2015 04:10 AM, Benjamin Larsson wrote:
+> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+> ---
+>   drivers/media/dvb-frontends/rtl2832.c      | 21 ++++++++++++++++++---
+>   drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+>   2 files changed, 19 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+> index 78b87b2..e054079 100644
+> --- a/drivers/media/dvb-frontends/rtl2832.c
+> +++ b/drivers/media/dvb-frontends/rtl2832.c
+> @@ -407,6 +407,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
+>   	/* start statistics polling */
+>   	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+>   	dev->sleeping = false;
+> +	dev->slave_ts = false;
+>
+>   	return 0;
+>   err:
+> @@ -1122,6 +1123,8 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
+>   	if (ret)
+>   		goto err;
+>
+> +	dev->slave_ts = true;
+> +
+>   	return 0;
+>   err:
+>   	dev_dbg(&client->dev, "failed=%d\n", ret);
+> @@ -1143,7 +1146,11 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+>   	else
+>   		u8tmp = 0x00;
+>
+> -	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
+> +	if (dev->slave_ts)
+> +		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
+> +	else
+> +		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -1178,14 +1185,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
+>   	buf[1] = (dev->filters >>  8) & 0xff;
+>   	buf[2] = (dev->filters >> 16) & 0xff;
+>   	buf[3] = (dev->filters >> 24) & 0xff;
+> -	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
+> +
+> +	if (dev->slave_ts)
+> +		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
+> +	else
+> +		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* add PID */
+>   	buf[0] = (pid >> 8) & 0xff;
+>   	buf[1] = (pid >> 0) & 0xff;
+> -	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
+> +
+> +	if (dev->slave_ts)
+> +		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
+> +	else
+> +		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
+>   	if (ret)
+>   		goto err;
+>
+> diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+> index 5dcd3a4..efc230f 100644
+> --- a/drivers/media/dvb-frontends/rtl2832_priv.h
+> +++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+> @@ -46,6 +46,7 @@ struct rtl2832_dev {
+>   	bool sleeping;
+>   	struct delayed_work i2c_gate_work;
+>   	unsigned long filters; /* PID filter */
+> +	bool slave_ts;
+>   };
+>
+>   struct rtl2832_reg_entry {
+>
+
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+http://palosaari.fi/
