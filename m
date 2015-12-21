@@ -1,65 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:34398 "EHLO
-	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792AbbLHWMN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 17:12:13 -0500
-Subject: Re: DVBSky T980C ci not working with kernel 4.x
-To: Nibble Max <nibble.max@gmail.com>,
-	"timo.helkio" <timo.helkio@kapsi.fi>
-References: <201512081149525312370@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <5667544E.3010205@mbox200.swipnet.se>
-Date: Tue, 8 Dec 2015 23:06:06 +0100
-MIME-Version: 1.0
-In-Reply-To: <201512081149525312370@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lists.s-osg.org ([54.187.51.154]:59805 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751009AbbLUPHb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Dec 2015 10:07:31 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] [media] cx231xx: fix compilation when !CONFIG_MEDIA_CONTROLLER
+Date: Mon, 21 Dec 2015 12:07:12 -0300
+Message-Id: <1450710432-25715-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2015-12-08 04:49, Nibble Max wrote:
->
-> Does this card work with the media code from dvbsky.net from kernel 4.x?
->
-> On 2015-12-06 19:10:41, Timo_Helkiö <timo.helkio@kapsi.fi> wrote:
->>
->> Hi
->>
->>
->> Common interface in Dvbsky T980C is not working with Ubuntu 15.10 kernel
->> 4.2.0 and vanilla kernel 4.6 and latest dvb-drivers from Linux-media
->> git. With Ubuntu 15.04 and kernel 3.19 it is working. I have tryid to
->> find differences in drivers, but my knolege of c it is not possible.
->> Erros message is "invalid PC-card".
->>
->> I have also Tevii S470 with same PCIe bridge Conexant cx23885.
->>
->> How to debug this? I can do minor changes to drivers for testing it.
->>
->>    Timo Helkiö
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Best Regards,
-> Max
+Commit 1590ad7b5271 ("[media] media-device: split media initialization
+and registration") split the media dev initialization and registration
+but introduced a build error since media_device_register() was called
+unconditionally even when the MEDIA_CONTROLLER config was not enabled:
 
+   drivers/media/usb/cx231xx/cx231xx-cards.c: In function 'cx231xx_usb_probe':
+   drivers/media/usb/cx231xx/cx231xx-cards.c:1741:36: error: 'struct cx231xx' has no member named 'media_dev'
+     retval = media_device_register(dev->media_dev);
 
-the code from dvbsky works, specificaly this one:
-http://www.dvbsky.net/download/linux/media_build-bst-151028.tar.gz
+Fixes: 1590ad7b5271 ("[media] media-device: split media initialization and registration")
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-i contacted dvbsky a month or two ago and complained about their old 
-drivers no longer working on newer kernels, then i got the above link 
-and CI works.
+---
 
-but, i would prefer a working solution using the official code that is 
-in the kernel or the "proper" media_build.
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-there is several reports of this card being broken but unfortunately it 
-looks like noone can fix it.
-unfortunately i dont know enough to debug kernel drivers or how the 
-linux kernel works.
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 35692d19b652..220a5dba8a2d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -1751,7 +1751,9 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	if (retval < 0)
+ 		goto done;
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
+ 	retval = media_device_register(dev->media_dev);
++#endif
+ 
+ done:
+ 	if (retval < 0)
+-- 
+2.4.3
 
