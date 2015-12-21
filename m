@@ -1,127 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49803 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244AbbLGDwt (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45251 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbbLURDc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2015 22:52:49 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E6BBDE0BBD
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2015 04:52:43 +0100 (CET)
-Date: Mon, 07 Dec 2015 04:52:43 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151207035243.E6BBDE0BBD@tschai.lan>
+	Mon, 21 Dec 2015 12:03:32 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Jiri Kosina <jkosina@suse.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH v2] [media] au8522: Avoid memory leak for device config data
+Date: Mon, 21 Dec 2015 15:02:51 -0200
+Message-Id: <177d26a15571eba1a797ec1e2f2392acd2fadd0d.1450717344.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+As reported by kmemleak:
 
-Results of the daily build of media_tree:
+	unreferenced object 0xffff880321e1da40 (size 32):
+	  comm "modprobe", pid 3309, jiffies 4295019569 (age 2359.636s)
+	  hex dump (first 32 bytes):
+	    47 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  G...............
+	    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+	  backtrace:
+	    [<ffffffff82278c8e>] kmemleak_alloc+0x4e/0xb0
+	    [<ffffffff8153c08c>] kmem_cache_alloc_trace+0x1ec/0x280
+	    [<ffffffffa13a896a>] au8522_probe+0x19a/0xa30 [au8522_decoder]
+	    [<ffffffff81de0032>] i2c_device_probe+0x2b2/0x490
+	    [<ffffffff81ca7004>] driver_probe_device+0x454/0xd90
+	    [<ffffffff81ca7c1b>] __device_attach_driver+0x17b/0x230
+	    [<ffffffff81ca15da>] bus_for_each_drv+0x11a/0x1b0
+	    [<ffffffff81ca6a4d>] __device_attach+0x1cd/0x2c0
+	    [<ffffffff81ca7d43>] device_initial_probe+0x13/0x20
+	    [<ffffffff81ca451f>] bus_probe_device+0x1af/0x250
+	    [<ffffffff81c9e0f3>] device_add+0x943/0x13b0
+	    [<ffffffff81c9eb7a>] device_register+0x1a/0x20
+	    [<ffffffff81de8626>] i2c_new_device+0x5d6/0x8f0
+	    [<ffffffffa0d88ea4>] v4l2_i2c_new_subdev_board+0x1e4/0x250 [v4l2_common]
+	    [<ffffffffa0d88fe7>] v4l2_i2c_new_subdev+0xd7/0x110 [v4l2_common]
+	    [<ffffffffa13b2f76>] au0828_card_analog_fe_setup+0x2e6/0x3f0 [au0828]
 
-date:		Mon Dec  7 04:00:17 CET 2015
-git branch:	test
-git hash:	21312f6ddb1710750761c4b140b7367208b4f89e
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+Checking where the error happens:
+	(gdb) list *au8522_probe+0x19a
+	0x99a is in au8522_probe (drivers/media/dvb-frontends/au8522_decoder.c:761).
+	756			printk(KERN_INFO "au8522_decoder attach existing instance.\n");
+	757			break;
+	758		}
+	759
+	760		demod_config = kzalloc(sizeof(struct au8522_config), GFP_KERNEL);
+	761		if (demod_config == NULL) {
+	762			if (instance == 1)
+	763				kfree(state);
+	764			return -ENOMEM;
+	765		}
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-smatch: ERRORS
+Shows that the error path is not being handled properly.
 
-Detailed results are available here:
+The are actually several issues here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+1) config free should have been calling hybrid_tuner_release_state()
+function, by calling au8522_release_state();
 
-Full logs are available here:
+2) config is only allocated at the digital part. On the analog one,
+it is received from the caller.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+A complex logic could be added to address it, however, it is simpler
+to just embeed config inside the state.
 
-The Media Infrastructure API from this daily build is here:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522_common.c  | 10 +++++-----
+ drivers/media/dvb-frontends/au8522_decoder.c | 10 +---------
+ drivers/media/dvb-frontends/au8522_dig.c     | 16 ++++++++--------
+ drivers/media/dvb-frontends/au8522_priv.h    |  2 +-
+ 4 files changed, 15 insertions(+), 23 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/dvb-frontends/au8522_common.c b/drivers/media/dvb-frontends/au8522_common.c
+index 3559ff230045..f135126bc373 100644
+--- a/drivers/media/dvb-frontends/au8522_common.c
++++ b/drivers/media/dvb-frontends/au8522_common.c
+@@ -44,7 +44,7 @@ int au8522_writereg(struct au8522_state *state, u16 reg, u8 data)
+ 	int ret;
+ 	u8 buf[] = { (reg >> 8) | 0x80, reg & 0xff, data };
+ 
+-	struct i2c_msg msg = { .addr = state->config->demod_address,
++	struct i2c_msg msg = { .addr = state->config.demod_address,
+ 			       .flags = 0, .buf = buf, .len = 3 };
+ 
+ 	ret = i2c_transfer(state->i2c, &msg, 1);
+@@ -64,9 +64,9 @@ u8 au8522_readreg(struct au8522_state *state, u16 reg)
+ 	u8 b1[] = { 0 };
+ 
+ 	struct i2c_msg msg[] = {
+-		{ .addr = state->config->demod_address, .flags = 0,
++		{ .addr = state->config.demod_address, .flags = 0,
+ 		  .buf = b0, .len = 2 },
+-		{ .addr = state->config->demod_address, .flags = I2C_M_RD,
++		{ .addr = state->config.demod_address, .flags = I2C_M_RD,
+ 		  .buf = b1, .len = 1 } };
+ 
+ 	ret = i2c_transfer(state->i2c, msg, 2);
+@@ -140,7 +140,7 @@ EXPORT_SYMBOL(au8522_release_state);
+ 
+ static int au8522_led_gpio_enable(struct au8522_state *state, int onoff)
+ {
+-	struct au8522_led_config *led_config = state->config->led_cfg;
++	struct au8522_led_config *led_config = state->config.led_cfg;
+ 	u8 val;
+ 
+ 	/* bail out if we can't control an LED */
+@@ -170,7 +170,7 @@ static int au8522_led_gpio_enable(struct au8522_state *state, int onoff)
+  */
+ int au8522_led_ctrl(struct au8522_state *state, int led)
+ {
+-	struct au8522_led_config *led_config = state->config->led_cfg;
++	struct au8522_led_config *led_config = state->config.led_cfg;
+ 	int i, ret = 0;
+ 
+ 	/* bail out if we can't control an LED */
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 28d7dc2fee34..b3502a6191ba 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -754,15 +754,7 @@ static int au8522_probe(struct i2c_client *client,
+ 		break;
+ 	}
+ 
+-	demod_config = kzalloc(sizeof(struct au8522_config), GFP_KERNEL);
+-	if (demod_config == NULL) {
+-		if (instance == 1)
+-			kfree(state);
+-		return -ENOMEM;
+-	}
+-	demod_config->demod_address = 0x8e >> 1;
+-
+-	state->config = demod_config;
++	state->config.demod_address = 0x8e >> 1;
+ 	state->i2c = client->adapter;
+ 
+ 	sd = &state->sd;
+diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
+index f956f13fb3dc..6c1e97640f3f 100644
+--- a/drivers/media/dvb-frontends/au8522_dig.c
++++ b/drivers/media/dvb-frontends/au8522_dig.c
+@@ -566,7 +566,7 @@ static int au8522_enable_modulation(struct dvb_frontend *fe,
+ 			au8522_writereg(state,
+ 				VSB_mod_tab[i].reg,
+ 				VSB_mod_tab[i].data);
+-		au8522_set_if(fe, state->config->vsb_if);
++		au8522_set_if(fe, state->config.vsb_if);
+ 		break;
+ 	case QAM_64:
+ 		dprintk("%s() QAM 64\n", __func__);
+@@ -574,7 +574,7 @@ static int au8522_enable_modulation(struct dvb_frontend *fe,
+ 			au8522_writereg(state,
+ 				QAM64_mod_tab[i].reg,
+ 				QAM64_mod_tab[i].data);
+-		au8522_set_if(fe, state->config->qam_if);
++		au8522_set_if(fe, state->config.qam_if);
+ 		break;
+ 	case QAM_256:
+ 		if (zv_mode) {
+@@ -583,7 +583,7 @@ static int au8522_enable_modulation(struct dvb_frontend *fe,
+ 				au8522_writereg(state,
+ 					QAM256_mod_tab_zv_mode[i].reg,
+ 					QAM256_mod_tab_zv_mode[i].data);
+-			au8522_set_if(fe, state->config->qam_if);
++			au8522_set_if(fe, state->config.qam_if);
+ 			msleep(100);
+ 			au8522_writereg(state, 0x821a, 0x00);
+ 		} else {
+@@ -592,7 +592,7 @@ static int au8522_enable_modulation(struct dvb_frontend *fe,
+ 				au8522_writereg(state,
+ 					QAM256_mod_tab[i].reg,
+ 					QAM256_mod_tab[i].data);
+-			au8522_set_if(fe, state->config->qam_if);
++			au8522_set_if(fe, state->config.qam_if);
+ 		}
+ 		break;
+ 	default:
+@@ -666,7 +666,7 @@ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 			*status |= FE_HAS_LOCK | FE_HAS_SYNC;
+ 	}
+ 
+-	switch (state->config->status_mode) {
++	switch (state->config.status_mode) {
+ 	case AU8522_DEMODLOCKING:
+ 		dprintk("%s() DEMODLOCKING\n", __func__);
+ 		if (*status & FE_HAS_VITERBI)
+@@ -704,7 +704,7 @@ static int au8522_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 
+ static int au8522_led_status(struct au8522_state *state, const u16 *snr)
+ {
+-	struct au8522_led_config *led_config = state->config->led_cfg;
++	struct au8522_led_config *led_config = state->config.led_cfg;
+ 	int led;
+ 	u16 strong;
+ 
+@@ -758,7 +758,7 @@ static int au8522_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 					    au8522_readreg(state, 0x4311),
+ 					    snr);
+ 
+-	if (state->config->led_cfg)
++	if (state->config.led_cfg)
+ 		au8522_led_status(state, snr);
+ 
+ 	return ret;
+@@ -866,7 +866,7 @@ struct dvb_frontend *au8522_attach(const struct au8522_config *config,
+ 	}
+ 
+ 	/* setup the state */
+-	state->config = config;
++	state->config = *config;
+ 	state->i2c = i2c;
+ 	state->operational_mode = AU8522_DIGITAL_MODE;
+ 
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index 951b3847e6f6..ee330c61aa61 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -50,7 +50,7 @@ struct au8522_state {
+ 	struct list_head hybrid_tuner_instance_list;
+ 
+ 	/* configuration settings */
+-	const struct au8522_config *config;
++	struct au8522_config config;
+ 
+ 	struct dvb_frontend frontend;
+ 
+-- 
+2.5.0
+
+
