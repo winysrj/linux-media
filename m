@@ -1,55 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40346 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753714AbbLNSkn (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:55996 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774AbbLUGym (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 13:40:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tuukka Toivonen <tuukka.toivonen@intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH v2] Return proper error code if STREAMON fails
-Date: Mon, 14 Dec 2015 20:40:55 +0200
-Message-ID: <2309522.HN147kSG6f@avalon>
-In-Reply-To: <1737708.1znbc4YfP6@ttoivone-desk1>
-References: <207011196.fyjkdD1C8L@ttoivone-desk1> <181264909.M62ZDuucnX@ttoivone-desk1> <1737708.1znbc4YfP6@ttoivone-desk1>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 21 Dec 2015 01:54:42 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0NZP000YG4J38080@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 21 Dec 2015 06:54:39 +0000 (GMT)
+Subject: Re: [PATCH] [media] videobuf2: avoid memory leak on errors
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <b62ef37c6e2f30d1b5ce3889212050d738c04885.1450455268.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <5677A22D.4010908@samsung.com>
+Date: Mon, 21 Dec 2015 07:54:37 +0100
+MIME-version: 1.0
+In-reply-to: <b62ef37c6e2f30d1b5ce3889212050d738c04885.1450455268.git.mchehab@osg.samsung.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tuukka,
+Hello,
 
-On Monday 14 December 2015 09:49:57 Tuukka Toivonen wrote:
-> Return the error code if video_enable() and VIDIOC_STREAMON
-> fails.
-> 
-> Signed-off-by: Tuukka Toivonen <tuukka.toivonen@intel.com>
+On 2015-12-18 17:14, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+> 	drivers/media/v4l2-core/videobuf2-core.c:2415 __vb2_init_fileio() warn: possible memory leak of 'fileio'
+>
+> While here, avoid the usage of sizeof(struct foo_struct).
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Applied to my tree and pushed, thank you for the patch.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
 > ---
->  yavta.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index b627725..3d80d3c 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -1708,7 +1708,9 @@ static int video_do_capture(struct device *dev,
-> unsigned int nframes, }
-> 
->  	/* Stop streaming. */
-> -	video_enable(dev, 0);
-> +	ret = video_enable(dev, 0);
-> +	if (ret < 0)
-> +		return ret;
-> 
->  	if (nframes == 0) {
->  		printf("No frames captured.\n");
+>   drivers/media/v4l2-core/videobuf2-core.c | 6 ++++--
+>   1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index e6890d47cdcb..c5d49d7a0d76 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2406,13 +2406,15 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>   		(read) ? "read" : "write", count, q->fileio_read_once,
+>   		q->fileio_write_immediately);
+>   
+> -	fileio = kzalloc(sizeof(struct vb2_fileio_data), GFP_KERNEL);
+> +	fileio = kzalloc(sizeof(*fileio), GFP_KERNEL);
+>   	if (fileio == NULL)
+>   		return -ENOMEM;
+>   
+>   	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
+> -	if (fileio->b == NULL)
+> +	if (fileio->b == NULL) {
+> +		kfree(fileio);
+>   		return -ENOMEM;
+> +	}
+>   
+>   	fileio->read_once = q->fileio_read_once;
+>   	fileio->write_immediately = q->fileio_write_immediately;
 
+Best regards
 -- 
-Regards,
-
-Laurent Pinchart
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
