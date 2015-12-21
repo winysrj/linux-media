@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56784 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754185AbbLRQwn convert rfc822-to-8bit (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49621 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079AbbLUDxh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 11:52:43 -0500
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <0df11a53b7100d93643483e9fcfaf4eb69b492a5.1450455971.git.mchehab@osg.samsung.com>
-References: <0df11a53b7100d93643483e9fcfaf4eb69b492a5.1450455971.git.mchehab@osg.samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: dhowells@redhat.com,
+	Sun, 20 Dec 2015 22:53:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH] [media] cx23885-dvb: move initialization of a8293_pdata
+	Linux-sh list <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH/RFC 26/48] videodev2.h: Add request field to v4l2_pix_format_mplane
+Date: Mon, 21 Dec 2015 05:53:32 +0200
+Message-ID: <2483596.RbRG4xoGDV@avalon>
+In-Reply-To: <CAMuHMdU5ZRZyNwkKissXckvAWaD4osDYhCM7STw3L0wL_xgQnQ@mail.gmail.com>
+References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <3030478.j1ZKoooRrc@avalon> <CAMuHMdU5ZRZyNwkKissXckvAWaD4osDYhCM7STw3L0wL_xgQnQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
-Content-ID: <1699.1450457560.1@warthog.procyon.org.uk>
-Content-Transfer-Encoding: 8BIT
-Date: Fri, 18 Dec 2015 16:52:40 +0000
-Message-ID: <1700.1450457560@warthog.procyon.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+Hi Geert,
 
-> Smatch complains about where the au8293_data is placed:
-> 
-> drivers/media/pci/cx23885/cx23885-dvb.c:2174 dvb_register() info: 'a8293_pdata' is not actually initialized (unreached code).
-> 
-> It is not actually expected to have such initialization at
-> 
-> switch {
-> 	foo = bar;
-> 
-> 	case:
-> ...
-> }
-> 
-> Not really sure how gcc does that, but this is something that I would
-> expect that different compilers would do different things.
-> 
-> So, move the initialization outside the switch(), making smatch to
-> shut up one warning.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Friday 18 December 2015 18:37:51 Geert Uytterhoeven wrote:
+> On Fri, Dec 18, 2015 at 6:16 PM, Laurent Pinchart wrote:
+> >> > @@ -1987,7 +1988,8 @@ struct v4l2_pix_format_mplane {
+> >> >     __u8                            ycbcr_enc;
+> >> >     __u8                            quantization;
+> >> >     __u8                            xfer_func;
+> >> > -   __u8                            reserved[7];
+> >> > +   __u8                            reserved[3];
+> >> > +   __u32                           request;
+> >> 
+> >> I think I mentioned this before: I feel uncomfortable using 4 bytes of
+> >> the reserved fields when the request ID is limited to 16 bits anyway.
+> > 
+> > I'm still unsure whether request IDs should be 16 or 32 bits long. If we
+> > go for 16 bits then I'll of course make this field a __u16.
+> > 
+> >> I would prefer a __u16 here. Also put the request field *before* the
+> >> reserved array, not after.
+> > 
+> > The reserved array isn't aligned to a 32 bit (or even 16 bit) boundary. I
+> > can put the request field before it, with a 8 bit hole before the field.
+>
+> There's no alignment at all due to:
+>
+> >> >  } __attribute__ ((packed));
 
-Yeah - checked with the compiler people: it's not really expected to
-initialise as expected.
+Oops, indeed. Still, isn't it better to keep 16-bit or 32-bit values aligned 
+to 16-bit or 32-bit boundaries ?
 
-Acked-by: David Howells <dhowells@redhat.com>
+-- 
+Regards,
+
+Laurent Pinchart
+
