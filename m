@@ -1,45 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:36546 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162AbbLTJrs (ORCPT
+Received: from shell.v3.sk ([92.60.52.57]:51350 "EHLO shell.v3.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965AbbLUPSS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 04:47:48 -0500
-Subject: Re: [PATCH 3/3] rtl28xxu: change Astrometa DVB-T2 to always use
- hardware pid filters
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
- <1448763016-10527-3-git-send-email-benjamin@southpole.se>
- <5676224F.3030803@iki.fi>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <5676793B.1070209@southpole.se>
-Date: Sun, 20 Dec 2015 10:47:39 +0100
-MIME-Version: 1.0
-In-Reply-To: <5676224F.3030803@iki.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 21 Dec 2015 10:18:18 -0500
+Message-ID: <1450710545.12572.17.camel@v3.sk>
+Subject: Re: [PATCH] usbtv: discard redundant video fields
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Nikola =?ISO-8859-1?Q?Forr=F3?= <nikola.forro@gmail.com>,
+	linux-media@vger.kernel.org
+Date: Mon, 21 Dec 2015 16:09:05 +0100
+In-Reply-To: <20151220125717.376e7903@urna>
+References: <20151220125717.376e7903@urna>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/20/2015 04:36 AM, Antti Palosaari wrote:
-> Moikka!
-> I did some testing and I cannot see reason to force hw pid filter for
-> that device. I assume you somehow think it does not work without
-> filtering, but I think it does.
->
+On Sun, 2015-12-20 at 12:57 +0100, Nikola Forró wrote:
+> There are many dropped fields with some sources, leading to many
+> redundant fields without counterparts. When this redundant field
+> is odd, a new frame is pushed containing this odd field interleaved
+> with whatever was left in the buffer, causing video artifacts.
+> 
+> Do not push a new frame after processing every odd field, but do it
+> only after those which come after an even field.
+> 
+> Signed-off-by: Nikola Forró <nikola.forro@gmail.com>
 
-[... proof that I was wrong ...]
+Acked-by: Lubomir Rintel <lkundrak@v3.sk>
 
->
-> So point me the reason hw PID filters need to be forced.
-
-The only reason would be that I suspected that high rates would not be 
-possible over the bridge and that this was the default mode for the 
-binary driver but as you proved that the bridge is able to support the 
-rate this patch can be nacked.
-
->
-> regards
-> Antti
-
-MvH
-Benjamin Larsson
+Thanks,
+Lubo
