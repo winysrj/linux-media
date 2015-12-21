@@ -1,60 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:2546 "EHLO smtp2-g21.free.fr"
+Received: from lists.s-osg.org ([54.187.51.154]:59797 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755448AbbLQOat (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 09:30:49 -0500
-Subject: Re: Automatic device driver back-porting with media_build
+	id S1751182AbbLUOmc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Dec 2015 09:42:32 -0500
+Subject: Re: [PATCH v2] [media] media-device: handle errors at
+ media_device_init()
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <5672C713.6090101@free.fr>
-Date: Thu, 17 Dec 2015 15:30:43 +0100
+References: <e4902f65ceabce2f315e63ba75d4482a4985b351.1450182151.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56780FCD.9060007@osg.samsung.com>
+Date: Mon, 21 Dec 2015 11:42:21 -0300
 MIME-Version: 1.0
-In-Reply-To: <20151217120830.0fc27f01@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <e4902f65ceabce2f315e63ba75d4482a4985b351.1450182151.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/12/2015 15:08, Mauro Carvalho Chehab wrote:
+Hello Mauro,
 
-> Then I guess you're not using vanilla 3.4 Kernel, but some heavily
-> modified version. You're on your own here.
+On 12/15/2015 09:22 AM, Mauro Carvalho Chehab wrote:
+> Changeset 43ac4401dca9 ("[media] media-device: split media
+> initialization and registration") broke media device register
+> into two separate functions, but introduced a BUG_ON() and
+> made media_device_init() void. It also introduced several
+> warnings.
+> 
+> Instead of adding BUG_ON(), let's revert to WARN_ON() and fix
+> the init code in a way that, if something goes wrong during
+> device init, driver probe will fail without causing the Kernel
+> to BUG.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
 
-#ifdef NEED_KVFREE
-#include <linux/mm.h>
-static inline void kvfree(const void *addr)
-{
-	if (is_vmalloc_addr(addr))
-		vfree(addr);
-	else
-		kfree(addr);
-}
-#endif
+I agree with your patch, in fact the first version of the media
+split patch did exactly this and later media_device_init() was
+converted to void and the BUG_ON() introduced to address some
+feedback I got during the patches review.
 
-/tmp/sandbox/media_build/v4l/compat.h: In function 'kvfree':
-/tmp/sandbox/media_build/v4l/compat.h:1631:3: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
-   vfree(addr);
-   ^
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-vfree is declared in linux/vmalloc.h
+On an OMAP3 IGEPv2:
 
-The fix is trivial:
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index c225c07d6caa..7f3f1d5f9d11 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -1625,6 +1625,7 @@ static inline void eth_zero_addr(u8 *addr)
- 
- #ifdef NEED_KVFREE
- #include <linux/mm.h>
-+#include <linux/vmalloc.h>
- static inline void kvfree(const void *addr)
- {
-        if (is_vmalloc_addr(addr))
-
-
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
