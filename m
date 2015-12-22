@@ -1,51 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:35460 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636AbbLLVpa (ORCPT
+Received: from outbound.smtp.vt.edu ([198.82.183.121]:34620 "EHLO
+	omr1.cc.vt.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752964AbbLVKqb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2015 16:45:30 -0500
-Subject: Re: AF9035 with no tuner?
-To: Jiri Slaby <jirislaby@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-References: <566C8CC1.3040906@gmail.com> <566C8DB2.7080303@southpole.se>
- <566C90D5.1060107@gmail.com>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <566C9577.5030604@southpole.se>
-Date: Sat, 12 Dec 2015 22:45:27 +0100
-MIME-Version: 1.0
-In-Reply-To: <566C90D5.1060107@gmail.com>
-Content-Type: text/plain; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 22 Dec 2015 05:46:31 -0500
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: next-20151222 - compile failure in drivers/media/usb/uvc/uvc_driver.c
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Date: Tue, 22 Dec 2015 05:18:36 -0500
+Message-ID: <75073.1450779516@turing-police.cc.vt.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2015 10:25 PM, Jiri Slaby wrote:
-> On 12/12/2015, 10:12 PM, Benjamin Larsson wrote:
->> On 12/12/2015 10:08 PM, Jiri Slaby wrote:
->>> Hello,
->>>
->>> I have a USB device which digitizes composite video into a MPEG-2 stream
->>> (I think). It is an AF9035 device according to windows. But it has no
->>> tuner. Is there a way to make it working on linux or am I out of luck?
->>>
->>
->> Open the device and take pictures of the pcb and the chips. After that
->> it might be possible to identify what kind of device it is.
->
-> Sure:
-> http://www.fi.muni.cz/~xslaby/sklad/back.JPG
-> http://www.fi.muni.cz/~xslaby/sklad/front.JPG
->
-> thanks,
->
+next-20151222 fails to build for me:
 
-Hi, seems like this device is a nogo.
+  CC      drivers/media/usb/uvc/uvc_driver.o
+drivers/media/usb/uvc/uvc_driver.c: In function 'uvc_probe':
+drivers/media/usb/uvc/uvc_driver.c:1941:32: error: 'struct uvc_device' has no member named 'mdev'
+  if (media_device_register(&dev->mdev) < 0)
+                                ^
+scripts/Makefile.build:258: recipe for target 'drivers/media/usb/uvc/uvc_driver.o' failed
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/24210
+'git blame' points at that line being added in:
 
-No driver support for the composite interface of the af9035. No driver 
-support for the AVF 4910BA1 video digitizer chip.
+commit 1590ad7b52714fddc958189103c95541b49b1dae
+Author: Javier Martinez Canillas <javier@osg.samsung.com>
+Date:   Fri Dec 11 20:57:08 2015 -0200
 
+    [media] media-device: split media initialization and registration
 
-MvH
-Benjamin Larsson
+Not sure what went wrong here.
