@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yes.iam.tj ([109.74.197.121]:58750 "EHLO iam.tj"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752504AbbLRLzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 06:55:03 -0500
-To: linux-media@vger.kernel.org
-Subject: sn9c20x: incorrect support for 0c45:6270 MT9V011/MT9V111  =?UTF-8?Q?=3F?=
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52484 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932639AbbLVXIz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2015 18:08:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Valdis Kletnieks <Valdis.Kletnieks@vt.edu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: next-20151222 - compile failure in drivers/media/usb/uvc/uvc_driver.c
+Date: Wed, 23 Dec 2015 01:07:31 +0200
+Message-ID: <2247066.MzciOvtu7X@avalon>
+In-Reply-To: <20151222163350.044bd9c4@recife.lan>
+References: <75073.1450779516@turing-police.cc.vt.edu> <1975883.EPhFUU4nET@avalon> <20151222163350.044bd9c4@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Fri, 18 Dec 2015 11:48:19 +0000
-From: TJ <linux@iam.tj>
-Message-ID: <f75a1c2564625a7c0ea49822e4553f1f@iam.tj>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've been trying to get the 0c45:6270 Vehoh VMS-001 'Discovery' 
-Microscope to work correctly and discovered what seem to be differences 
-in the bridge_init and other control commands. The most obvious 
-difference currently is the LEDs do not turn on, but there seem to be 
-other problems with empty frames, bad/unrecognised formats, and 
-resolutions, although vlc is able to render a usable JPEG stream.
+Hi Mauro,
 
-I've installed the Windows XP Sonix driver package in a Qemu virtual 
-machine guest and used wireshark on the host (Kubuntu 15.10, kernel 
-v4.2) to capture and analyse the control commands.
+On Tuesday 22 December 2015 16:33:50 Mauro Carvalho Chehab wrote:
+> Em Tue, 22 Dec 2015 20:06:38 +0200 Laurent Pinchart escreveu:
+> > On Tuesday 22 December 2015 09:40:43 Javier Martinez Canillas wrote:
+> > > On 12/22/2015 07:18 AM, Valdis Kletnieks wrote:
+> > > > next-20151222 fails to build for me:
+> > > >   CC      drivers/media/usb/uvc/uvc_driver.o
+> > > > 
+> > > > drivers/media/usb/uvc/uvc_driver.c: In function 'uvc_probe':
+> > > > drivers/media/usb/uvc/uvc_driver.c:1941:32: error: 'struct uvc_device'
+> > > > has no member named 'mdev'
+> > > > 
+> > > >   if (media_device_register(&dev->mdev) < 0)
+> > > >                                 ^
+> > > > 
+> > > > scripts/Makefile.build:258: recipe for target
+> > > > 'drivers/media/usb/uvc/uvc_driver.o' failed
+> > > > 
+> > > > 'git blame' points at that line being added in:
+> > > > 
+> > > > commit 1590ad7b52714fddc958189103c95541b49b1dae
+> > > > Author: Javier Martinez Canillas <javier@osg.samsung.com>
+> > > > Date:   Fri Dec 11 20:57:08 2015 -0200
+> > > > 
+> > > >     [media] media-device: split media initialization and registration
+> > > > 
+> > > > Not sure what went wrong here.
+> > > 
+> > > It was my forgetting to test with !CONFIG_MEDIA_CONTROLLER...
+> > > 
+> > > Anyways, I've already posted a fix for this:
+> > > 
+> > > https://lkml.org/lkml/2015/12/21/224
+> > 
+> > Thank you for the fix.
+> > 
+> > I know this is an unpopular request, but can't we make this MC rework
+> > series bisectable ? We're introducing bugs, which is unavoidable given
+> > the scope of the change, and I'm really worried about how difficult we'll
+> > make it to debug them if we keep piling even compilation fixes on top.
+> > 
+> > I can spend a day this week rebasing the patches myself if that could
+> > help.
+> 
+> Laurent,
+> 
+> The problem is that those patches got merged already at media_tree,
+> at the media-controller topic branch.
+> 
+> Any rebase there will break the git copies from all developers that are
+> based on it. It will also break the trees at linuxtv.org, since the
+> developer trees share objects with media_tree.git, in order to save
+> space on the servers.
 
-https://iam.tj/projects/misc/usbmon-0c45-6270.pcapng
+But that branch hasn't been merged to master, so it doesn't have to be the one 
+we send upstream, does it ? I'm willing to spend time working on the patches 
+if it can help.
 
-That seems to show the bridge_init, and possibly some of the i2c_init, 
-byte sequences are different. It being the first time I've sniffed a USB 
-driver though, I'm not yet 100% confident I'm identifying the correct 
-starting point of the control command flow or the relationships between 
-code and what is on the wire.
+> What we could try to do is to fold them just before sending the pull
+> request upstream, as we're using tags for pull requests.
+> 
+> I'll do that during the merge window, if someone reminds me about
+> what patches should be fold. I guess there are only two or three
+> patches to be fold, as the only compilation breakages I'm aware are
+> the ones related to Javier's patch series that broke media_device
+> init from the media devnode creation.
 
-The Windows .inf seems to indicate the chipset is MT9V111:
+-- 
+Regards,
 
-%USBPCamDesc% = SN.USBPCam,USB\VID_0c45&PID_6270 ; SN9C201 + 
-MI0360\MT9V111
+Laurent Pinchart
 
-but the sn9c20x is matching as the MT9V011 (I've copied the module to a 
-DKMS build location and named the clone sn9c20x_vehoh, matching only on 
-0c45_6270, to make testing easier):
-
-  gspca_main: v2.14.0 registered
-  gspca_main: sn9c20x_vehoh-2.14.0 probing 0c45:6270
-  sn9c20x_vehoh: MT9V011 sensor detected
-  sn9c20x_vehoh: MT9VPRB sensor detected
-  input: sn9c20x_vehoh as 
-/devices/pci0000:00/0000:00:1d.7/usb2/2-3/input/input34
-  sn9c20x_vehoh 2-3:1.0: video1 created
-
-I'd like to know the best way to add the correct command support in 
-this situation where the existing Linux driver's control data is 
-different to that in use by the Windows driver?
-
-Do I somehow create another profile in the driver, or directly modify 
-the existing data and command sequences (this latter would seem to risk 
-regressions for other users) ?
-
-If creating another profile, how would they differentiate seeing as the 
-device IDs are identical (I've not seen any sign of obvious version 
-responses so far) ?
-
-My first attempt to add the correct command values for controlling the 
-LEDs failed, and seems to indicate that more than 1 command is sent to 
-control the LEDs, unlike the sn9c20x driver.
