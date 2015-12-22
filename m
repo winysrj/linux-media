@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:52246 "EHLO mout.web.de"
+Received: from lists.s-osg.org ([54.187.51.154]:59915 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906AbbL2KTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2015 05:19:05 -0500
-Subject: [PATCH] [media] hdpvr: Refactoring for hdpvr_read()
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <56825E06.6040708@users.sourceforge.net>
-Date: Tue, 29 Dec 2015 11:18:46 +0100
+	id S1753822AbbLVMks (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2015 07:40:48 -0500
+Subject: Re: next-20151222 - compile failure in
+ drivers/media/usb/uvc/uvc_driver.c
+To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <75073.1450779516@turing-police.cc.vt.edu>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <567944CB.4070505@osg.samsung.com>
+Date: Tue, 22 Dec 2015 09:40:43 -0300
 MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <75073.1450779516@turing-police.cc.vt.edu>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 29 Dec 2015 11:02:43 +0100
+Hello Valdis,
 
-Let us return directly if the element "status" of the variable "buf"
-indicates "BUFSTAT_READY".
-A check repetition can be excluded for the variable "ret" at the end then.
+On 12/22/2015 07:18 AM, Valdis Kletnieks wrote:
+> next-20151222 fails to build for me:
+> 
+>   CC      drivers/media/usb/uvc/uvc_driver.o
+> drivers/media/usb/uvc/uvc_driver.c: In function 'uvc_probe':
+> drivers/media/usb/uvc/uvc_driver.c:1941:32: error: 'struct uvc_device' has no member named 'mdev'
+>   if (media_device_register(&dev->mdev) < 0)
+>                                 ^
+> scripts/Makefile.build:258: recipe for target 'drivers/media/usb/uvc/uvc_driver.o' failed
+> 
+> 'git blame' points at that line being added in:
+> 
+> commit 1590ad7b52714fddc958189103c95541b49b1dae
+> Author: Javier Martinez Canillas <javier@osg.samsung.com>
+> Date:   Fri Dec 11 20:57:08 2015 -0200
+> 
+>     [media] media-device: split media initialization and registration
+> 
+> Not sure what went wrong here.
+>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/hdpvr/hdpvr-video.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+It was my forgetting to test with !CONFIG_MEDIA_CONTROLLER...
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index 7dee22d..ba7f022 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -462,10 +462,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 			}
- 
- 			if (wait_event_interruptible(dev->wait_data,
--					      buf->status == BUFSTAT_READY)) {
--				ret = -ERESTARTSYS;
--				goto err;
--			}
-+					      buf->status == BUFSTAT_READY))
-+				return -ERESTARTSYS;
- 		}
- 
- 		if (buf->status != BUFSTAT_READY)
+Anyways, I've already posted a fix for this:
+
+https://lkml.org/lkml/2015/12/21/224
+
+Best regards,
 -- 
-2.6.3
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
