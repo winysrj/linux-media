@@ -1,127 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55674 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751312AbbLKDml (ORCPT
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:33202 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751444AbbLVNax (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 22:42:41 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 52AF1E1728
-	for <linux-media@vger.kernel.org>; Fri, 11 Dec 2015 04:42:36 +0100 (CET)
-Date: Fri, 11 Dec 2015 04:42:36 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151211034236.52AF1E1728@tschai.lan>
+	Tue, 22 Dec 2015 08:30:53 -0500
+Received: by mail-yk0-f178.google.com with SMTP id 140so163403692ykp.0
+        for <linux-media@vger.kernel.org>; Tue, 22 Dec 2015 05:30:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1512221122420.31855@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+	<567136C6.8090009@xs4all.nl>
+	<Pine.LNX.4.64.1512161108540.24913@axis700.grange>
+	<4607936.L97stxNvbj@avalon>
+	<Pine.LNX.4.64.1512221122420.31855@axis700.grange>
+Date: Tue, 22 Dec 2015 05:30:52 -0800
+Message-ID: <CAFP0Ok9t53p6zAJBBu=ov7O8nfrwvn=RxJUCkOPgFmJ3xuzbEQ@mail.gmail.com>
+Subject: Re: per-frame camera metadata (again)
+From: karthik poduval <karthik.poduval@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+I have been wanting to share these thoughts for the group but was
+waiting for the right time which I think is now since Guennadi brought
+up this discussion.
 
-Results of the daily build of media_tree:
+For the Amazon Fire phone 4 corner camera, here is how we passed
+metadata from driver to application (which was a CV client requiring
+per frame metadata).
 
-date:		Fri Dec 11 04:00:20 CET 2015
-git branch:	test
-git hash:	991ce92f8de24cde063d531246602b6e14d3fef2
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+We took an unused field in struct v4l2_buffer (__u32 reserved in this
+case) and used it to pass in a pointer to a user space metadata object
+(i.e. struct app_metadata) to the driver via the VIDIOC_DQBUF ioctl
+call.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-smatch: ERRORS
+struct v4l2_buffer for reference.
+http://lxr.free-electrons.com/source/include/uapi/linux/videodev2.h#L836
 
-Detailed results are available here:
+The driver copied its local copy of the metadata object to the
+userspace metadata object using the copy_to_user primitive offered by
+the kernel.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Here is how we handled the metadata in the driver code.
+https://github.com/Fire-Phone/android_kernel_amazon_kodiak/blob/master/drivers/media/platform/msm/camera_v2/camera/camera.c#L235
 
-Full logs are available here:
+This was done before HAL V3 was available. With HAL V3, the metadata
+object can be the HAL v3 metadata buffer. Non Android devices can use
+custom metadata format (like the one we used).
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+With this approach, the metadata always accompanies the frame data as
+it's available along with the frame buffer inside struct v4l2_buffer
+from the VIDIOC_DQBUF ioctl call.
 
-The Media Infrastructure API from this daily build is here:
+If the community likes this idea, the v4l2_buffer can now be
+officially modified to contain a pointer to user space metadata object
+v4l2_buffer.metadata and then metadata format and size can be agreed
+upon between application and driver.
+Thoughts ?
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+Regards,
+Karthik Poduval
+
+
+On Tue, Dec 22, 2015 at 3:16 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Laurent,
+>
+> On Mon, 21 Dec 2015, Laurent Pinchart wrote:
+>
+>> Hi Guennadi,
+>>
+>> On Wednesday 16 December 2015 12:25:24 Guennadi Liakhovetski wrote:
+>> > On Wed, 16 Dec 2015, Hans Verkuil wrote:
+>> > > On 12/16/15 10:37, Guennadi Liakhovetski wrote:
+>> > > > Hi all,
+>> > > >
+>> > > > A project, I am currently working on, requires acquiringing per-frame
+>> > > > metadata from the camera and passing it to user-space. This is not the
+>> > > > first time this comes up and I know such discussions have been held
+>> > > > before. A typical user is Android (also my case), where you have to
+>> > > > provide parameter values, that have been used to capture a specific
+>> > > > frame, to the user. I know Hans is working to handle one side of this
+>> > > > process - sending per-request controls,
+>> > >
+>> > > Actually, the request framework can do both sides of the equation: giving
+>> > > back meta data in read-only controls that are per-frame. While ideally the
+>> > > driver would extract the information from the binary blob and put it in
+>> > > nice controls, it is also possible to make a control that just contains
+>> > > the binary blob itself. Whether that's a good approach depends on many
+>> > > factors and that's another topic.
+>> >
+>> > Yes, sorry, didn't mention this possibility. On the one hand I agree, that
+>> > this would look nice and consistent - you send a bunch of controls down
+>> > and you get them back in exactly the same way, nicely taken apart. OTOH
+>> > there are some issues with that:
+>> >
+>> > 1. Metadata values can indeed come from the camera in a buffer, that's
+>> > DMAed to a buffer by the bridge - we have such examples. In our use-cases
+>> > those buffers are separate from main data, so, that the driver could
+>> > allocate them itself, but can there be cases, in which those buffers have
+>> > to be supplied by the user?
+>>
+>> The only case I can think of where the user would benefit from supplying the
+>> buffer is sharing meta data with other processes and/or devices *if* the
+>> amount of meta data is so large that a memcpy would negatively affect
+>> performances. And I can't think of such a case at the moment :-)
+>
+> Ok, so, we could for now limit metadata buffer support to driver
+> allocation.
+>
+>> > 2. Size - not sure how large those control buffers can become, in
+>> > use-cases, that I'm aware of we transfer up to 20 single-value parameters
+>> > per frame.
+>>
+>> I have to deal with a system that can transfer up to ~200 parameters per frame
+>> (at least in theory).
+>
+> Are they single-value (say, up to 32 bits) parameters or can be arrays /
+> data chunks?
+>
+>> > 3. With control values delivered per DMA, it's the bridge driver, that
+>> > gets the data, but it's the sensor subdevice driver, that knows what that
+>> > buffer contains. So, to deliver those parameters to the user, the sensor
+>> > driver control processing routines will have to get access to that
+>> > metadata buffer. This isn't supported so far even with the proposed
+>> > request API?
+>>
+>> Correct. My current implementation (see git://linuxtv.org/pinchartl/media.git
+>> drm/du/vsp1-kms/request) doesn't deal with controls yet as the first use case
+>> I focused on for the request API primarily requires setting formats (and
+>> links, which are my next target).
+>>
+>> My other use case (Android camera HAL v3 for Project Ara) mainly deals with
+>> controls and meta-data, but I'll then likely pass the meta-data blob to
+>> userspace as-is, as its format isn't always known to the driver. I'm also
+>> concerned about efficiency but haven't had time to perform measurements yet.
+>
+> Hm, why is it not known to the subdevice driver? Does the buffer layout
+> depend on some external conditions? Maybe loaded firmware? But it should
+> be possible to tell the driver, say, that the current metadata buffer
+> layout has version N?
+>
+> Those metadata buffers can well contain some parameters, that can also be
+> obtained via controls. So, if we just send metadata buffers to the user as
+> is, we create duplication, which isn't nice. Besides, the end user will
+> anyway want broken down control values. E.g. in the Android case, the app
+> is getting single controls, not opaque metadata buffers. Of course, one
+> could create a vendor metadata tag "metadata blob," but that's not how
+> Android does it so far.
+>
+> OTOH passing those buffers to the subdevice driver for parsing and
+> returning them as an (extended) control also seems a bit ugly.
+>
+> What about performance cost? If we pass all those parameters as a single
+> extended control (as long as they are of the same class), the cost won't
+> be higher, than dequeuing a buffer? Let's not take the parsing cost and
+> the control struct memory overhead into account for now.
+>
+> User-friendliness: I think, implementors would prefer to pass a complete
+> buffer to the user-space to avoid having to modify drivers every time they
+> modify those parameters.
+>
+>> > > > but I'm not aware whether he or anyone else is actively working on this
+>> > > > already or is planning to do so in the near future? I also know, that
+>> > > > several proprietary solutions have been developed and are in use in
+>> > > > various projects.
+>> > > >
+>> > > > I think a general agreement has been, that such data has to be passed
+>> > > > via a buffer queue. But there are a few possibilities there too. Below
+>> > > > are some:
+>> > > >
+>> > > > 1. Multiplanar. A separate plane is dedicated to metadata. Pros: (a)
+>> > > > metadata is already associated to specific frames, which they correspond
+>> > > > to. Cons: (a) a correct implementation would specify image plane fourcc
+>> > > > separately from any metadata plane format description, but we currently
+>> > > > don't support per-plane format specification.
+>> > >
+>> > > This only makes sense if the data actually comes in via DMA and if it is
+>> > > large enough to make it worth the effort of implementing this. As you say,
+>> > > it will require figuring out how to do per-frame fourcc.
+>> > >
+>> > > It also only makes sense if the metadata comes in at the same time as the
+>> > > frame.
+>> > >
+>> > > > 2. Separate buffer queues. Pros: (a) no need to extend multiplanar
+>> > > > buffer implementation. Cons: (a) more difficult synchronisation with
+>> > > > image frames, (b) still need to work out a way to specify the metadata
+>> > > > version.
+>> > > >
+>> > > > Any further options? Of the above my choice would go with (1) but with a
+>> > > > dedicated metadata plane in struct vb2_buffer.
+>> > >
+>> > > 3. Use the request framework and return the metadata as control(s). Since
+>> > > controls can be associated with events when they change you can subscribe
+>> > > to such events. Note: currently I haven't implemented such events for
+>> > > request controls since I am not certainly how it would be used, but this
+>> > > would be a good test case.
+>> > >
+>> > > Pros: (a) no need to extend multiplanar buffer implementation, (b) syncing
+>> > > up with the image frames should be easy (both use the same request ID),
+>> > > (c) a lot of freedom on how to export the metadata. Cons: (a) request
+>> > > framework is still work in progress (currently worked on by Laurent), (b)
+>> > > probably too slow for really large amounts of metadata, you'll need
+>> > > proper DMA handling for that in which case I would go for 2.
+>>
+>> (a) will eventually be solved, (b) needs measurements before discussing it
+>> further.
+>>
+>> > For (2) (separate buffer queue) would we have to extend VIDIOC_DQBUF to
+>> > select a specific buffer queue?
+>>
+>> Wouldn't it use a separate video device node ?
+>
+> Ok, that seems like a better option to me too, agree.
+>
+>> > > > In either of the above options we also need a way to tell the user what
+>> > > > is in the metadata buffer, its format. We could create new FOURCC codes
+>> > > > for them, perhaps as V4L2_META_FMT_... or the user space could identify
+>> > > > the metadata format based on the camera model and an opaque type
+>> > > > (metadata version code) value. Since metadata formats seem to be
+>> > > > extremely camera-specific, I'd go with the latter option.
+>> > > >
+>> > > > Comments extremely welcome.
+>> > >
+>> > > What I like about the request framework is that the driver can pick apart
+>> > > the metadata and turn it into well-defined controls. So the knowledge how
+>> > > to do that is in the place where it belongs. In cases where the meta data
+>> > > is simple too large for that to be feasible, then I don't have much of an
+>> > > opinion. Camera + version could be enough. Although the same can just as
+>> > > easily be encoded as a fourcc (V4L2_META_FMT_OVXXXX_V1, _V2, etc). A
+>> > > fourcc is more consistent with the current API.
+>> >
+>> > Right, our use-cases so far don't send a lot of data as per-frame
+>> > metadata, no idea what others do.
+>>
+>> What kind of hardware do you deal with that sends meta-data ? And over what
+>> kind of channel does it send it ?
+>
+> A CSI-2 connected camera sensor.
+>
+> Thanks
+> Guennadi
+>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Regards,
+Karthik Poduval
