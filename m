@@ -1,57 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:55410 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752049AbbL1Pdf (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36961 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212AbbLVNhA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 10:33:35 -0500
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-	by mailout.nyi.internal (Postfix) with ESMTP id 82AB820817
-	for <linux-media@vger.kernel.org>; Mon, 28 Dec 2015 10:33:34 -0500 (EST)
-Date: Mon, 28 Dec 2015 07:33:32 -0800
-From: Greg KH <greg@kroah.com>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org, andrey.od.utkin@gmail.com
-Subject: Re: On Lindent shortcomings and massive style fixing
-Message-ID: <20151228153332.GA6159@kroah.com>
-References: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com>
+	Tue, 22 Dec 2015 08:37:00 -0500
+Content-Type: text/plain;
+	charset=us-ascii
+Mime-Version: 1.0 (1.0)
+Subject: Re: [PATCH] next: media: cx231xx: add #ifdef to fix compile error
+From: Okash Khawaja <okash.khawaja@gmail.com>
+In-Reply-To: <56794B5F.2040709@osg.samsung.com>
+Date: Tue, 22 Dec 2015 13:36:57 +0000
+Cc: "mchehab@osg.samsung.com" <mchehab@osg.samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <A7E099BF-619E-457C-A17F-77FEC39860E7@gmail.com>
+References: <20151222102721.GA1892@bytefire-computer> <5679461B.6020402@osg.samsung.com> <20151222130033.GA24691@bytefire-computer> <56794B5F.2040709@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 28, 2015 at 04:33:27PM +0200, Andrey Utkin wrote:
-> After some iterations of checkpatch.pl, on a new developed driver
-> (tw5864), now I have the following:
-> 
->  $ grep 'WARNING\|ERROR' /src/checkpatch.tw5864 | sort | uniq -c
->      31 ERROR: do not use C99 // comments
->     147 WARNING: Block comments use a trailing */ on a separate line
->     144 WARNING: Block comments use * on subsequent lines
->     435 WARNING: line over 80 characters
-> 
-> At this point, Lindent was already used, and checkpatch.pl warnings
-> introduced by Lindent itself were fixed. Usage of "indent
-> --linux-style" (which behaves differently BTW) doesn't help anymore,
-> too.
-> 
-> Could anybody please advise how to sort out these issues
-> automatically, because they look like perfectly solvable in automated
-> fashion. Of course manual work would result in more niceness, but I am
-> not eager to go through hundreds of place of code just to fix "over 80
-> characters" issues now.
 
-Shouldn't take very long to do so, all of the above can be fixed in less
-than a day's worth of work manually.  Or you can use indent to fix up
-the line length issues, but watch out for the results, sometimes it's
-better to refactor the code than to just blindly accept the output of
-that tool.
+> On 22 Dec 2015, at 13:08, Javier Martinez Canillas <javier@osg.samsung.com> wrote:
+> 
+> Hello Okash,
+> 
+> On 12/22/2015 10:00 AM, Okash Khawaja wrote:
+> 
+> [snip]
+> 
+>> 
+>> Cool. There was another similar compile error
+>> 
+>> https://lkml.org/lkml/2015/12/22/196
+> 
+> Yes and you can see in that thread that I also mention
+> that was fixed already :)
+> 
+>> Thanks,
+>> Okash
+> 
+> Best regards,
+> -- 
+> Javier Martinez Canillas
+> Open Source Group
+> Samsung Research America
 
-good luck!
-
-greg k-h
+Of course! I'm blind. 
