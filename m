@@ -1,31 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:54442 "EHLO mout.web.de"
+Received: from mx1.redhat.com ([209.132.183.28]:54444 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754053AbbL0OUo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 09:20:44 -0500
-Received: from [192.168.1.2] ([77.182.171.219]) by smtp.web.de (mrweb101) with
- ESMTPSA (Nemesis) id 0MKJ7S-1aBY1k1xTS-001hry for
- <linux-media@vger.kernel.org>; Sun, 27 Dec 2015 15:20:42 +0100
-To: linux-media@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [media] af9013: Checking for register accesses?
-Message-ID: <567FF3B0.1010003@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 15:20:32 +0100
+	id S1752117AbbLVLn6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2015 06:43:58 -0500
+Subject: Re: [PATCH] [media] rc: sunxi-cir: Initialize the spinlock properly
+To: Chen-Yu Tsai <wens@csie.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+References: <1450758455-22945-1-git-send-email-wens@csie.org>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <5679377B.3030004@redhat.com>
+Date: Tue, 22 Dec 2015 12:43:55 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1450758455-22945-1-git-send-email-wens@csie.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-I have looked at the implementations of functions like the following once more.
-https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/dvb-frontends/af9013.c?id=80c75a0f1d81922bf322c0634d1e1a15825a89e6#n124
-* af9013_rd_regs
-* af9013_wr_regs
+On 22-12-15 05:27, Chen-Yu Tsai wrote:
+> The driver allocates the spinlock but fails to initialize it correctly.
+> The kernel reports a BUG indicating bad spinlock magic when spinlock
+> debugging is enabled.
+>
+> Call spin_lock_init() on it to initialize it correctly.
+>
+> Fixes: b4e3e59fb59c ("[media] rc: add sunxi-ir driver")
+> Signed-off-by: Chen-Yu Tsai <wens@csie.org>
 
-Both functions will always return zero so far. Should they eventually forward
-an error code from other function calls?
+Good catch:
+
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 
 Regards,
-Markus
+
+Hans
+
+
+> ---
+>   drivers/media/rc/sunxi-cir.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+> index 7830aef3db45..40f77685cc4a 100644
+> --- a/drivers/media/rc/sunxi-cir.c
+> +++ b/drivers/media/rc/sunxi-cir.c
+> @@ -153,6 +153,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>   	if (!ir)
+>   		return -ENOMEM;
+>
+> +	spin_lock_init(&ir->ir_lock);
+> +
+>   	if (of_device_is_compatible(dn, "allwinner,sun5i-a13-ir"))
+>   		ir->fifo_size = 64;
+>   	else
+>
