@@ -1,56 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52485 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754845AbbL3Nti (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:37254 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864AbbLVOWI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2015 08:49:38 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/6] [media] dvb-usb-v2: postpone removal of media_device
-Date: Wed, 30 Dec 2015 11:48:53 -0200
-Message-Id: <cccfecf355eac4661feb925b076bdac3b5535ca5.1451482760.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
-References: <cover.1451482760.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
-References: <cover.1451482760.git.mchehab@osg.samsung.com>
+	Tue, 22 Dec 2015 09:22:08 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2 1/2] media: adv7604: implement get_selection
+Date: Tue, 22 Dec 2015 15:22:01 +0100
+Message-Id: <1450794122-31293-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We should not remove the media_device until its last usage,
-or we may have use after free troubles.
+The rcar_vin driver relies on this.
 
-So, move the per-adapter media_device removal to happen at
-the end of the adapter removal code.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/adv7604.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index e8491f73c0d9..f0565bf3673e 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -542,7 +542,6 @@ static int dvb_usbv2_adapter_dvb_exit(struct dvb_usb_adapter *adap)
- 		adap->demux.dmx.close(&adap->demux.dmx);
- 		dvb_dmxdev_release(&adap->dmxdev);
- 		dvb_dmx_release(&adap->demux);
--		dvb_usbv2_media_device_unregister(adap);
- 		dvb_unregister_adapter(&adap->dvb_adap);
- 	}
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index be5980c..8ad5c28 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1885,6 +1885,26 @@ static int adv76xx_get_format(struct v4l2_subdev *sd,
+ 	return 0;
+ }
  
-@@ -852,6 +851,7 @@ static int dvb_usbv2_adapter_exit(struct dvb_usb_device *d)
- 			dvb_usbv2_adapter_dvb_exit(&d->adapter[i]);
- 			dvb_usbv2_adapter_stream_exit(&d->adapter[i]);
- 			dvb_usbv2_adapter_frontend_exit(&d->adapter[i]);
-+			dvb_usbv2_media_device_unregister(&d->adapter[i]);
- 		}
- 	}
++static int adv76xx_get_selection(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_selection *sel)
++{
++	struct adv76xx_state *state = to_state(sd);
++
++	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++		return -EINVAL;
++	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
++	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
++		return -EINVAL;
++
++	sel->r.left	= 0;
++	sel->r.top	= 0;
++	sel->r.width	= state->timings.bt.width;
++	sel->r.height	= state->timings.bt.height;
++
++	return 0;
++}
++
+ static int adv76xx_set_format(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_format *format)
+@@ -2415,6 +2435,7 @@ static const struct v4l2_subdev_video_ops adv76xx_video_ops = {
  
+ static const struct v4l2_subdev_pad_ops adv76xx_pad_ops = {
+ 	.enum_mbus_code = adv76xx_enum_mbus_code,
++	.get_selection = adv76xx_get_selection,
+ 	.get_fmt = adv76xx_get_format,
+ 	.set_fmt = adv76xx_set_format,
+ 	.get_edid = adv76xx_get_edid,
 -- 
-2.5.0
-
+2.6.3
 
