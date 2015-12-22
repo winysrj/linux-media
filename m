@@ -1,100 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60619 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932562AbbLPNeu (ORCPT
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:36790 "EHLO
+	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbbLVRoo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:50 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com
-Subject: [PATCH v3 14/23] media: Keep using the same graph walk object for a given pipeline
-Date: Wed, 16 Dec 2015 15:32:29 +0200
-Message-Id: <1450272758-29446-15-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 22 Dec 2015 12:44:44 -0500
+Received: by mail-lf0-f45.google.com with SMTP id z124so128844578lfa.3
+        for <linux-media@vger.kernel.org>; Tue, 22 Dec 2015 09:44:43 -0800 (PST)
+Subject: Re: [PATCH v2] adv7604: add direct interrupt handling
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+References: <1450794087-31153-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <56798C04.1030109@cogentembedded.com>
+Date: Tue, 22 Dec 2015 20:44:36 +0300
+MIME-Version: 1.0
+In-Reply-To: <1450794087-31153-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialise a given graph walk object once, and then keep using it whilst
-the same pipeline is running. Once the pipeline is stopped, release the
-graph walk object.
+Hello.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-entity.c | 17 +++++++++++------
- include/media/media-entity.h |  4 +++-
- 2 files changed, 14 insertions(+), 7 deletions(-)
+On 12/22/2015 05:21 PM, Ulrich Hecht wrote:
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 2dd60d75..ddf3c23 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -488,10 +488,10 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
--	ret = media_entity_graph_walk_init(&pipe->graph, mdev);
--	if (ret) {
--		mutex_unlock(&mdev->graph_mutex);
--		return ret;
-+	if (!pipe->streaming_count++) {
-+		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
-+		if (ret)
-+			goto error_graph_walk_start;
- 	}
- 
- 	media_entity_graph_walk_start(&pipe->graph, entity);
-@@ -592,7 +592,9 @@ error:
- 			break;
- 	}
- 
--	media_entity_graph_walk_cleanup(graph);
-+error_graph_walk_start:
-+	if (!--pipe->streaming_count)
-+		media_entity_graph_walk_cleanup(graph);
- 
- 	mutex_unlock(&mdev->graph_mutex);
- 
-@@ -616,9 +618,11 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct media_entity_graph *graph = &entity->pipe->graph;
-+	struct media_pipeline *pipe = entity->pipe;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
-+	WARN_ON(!pipe->streaming_count);
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
-@@ -627,7 +631,8 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- 			entity->pipe = NULL;
- 	}
- 
--	media_entity_graph_walk_cleanup(graph);
-+	if (!--pipe->streaming_count)
-+		media_entity_graph_walk_cleanup(graph);
- 
- 	mutex_unlock(&mdev->graph_mutex);
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index c29ddc2..251eddf 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -119,9 +119,11 @@ struct media_entity_graph {
- /*
-  * struct media_pipeline - Media pipeline related information
-  *
-- * @graph:	Media graph walk during pipeline start / stop
-+ * @streaming_count:	Streaming start count - streaming stop count
-+ * @graph:		Media graph walk during pipeline start / stop
-  */
- struct media_pipeline {
-+	int streaming_count;
- 	struct media_entity_graph graph;
- };
- 
--- 
-2.1.4
+> When probed from device tree, the i2c client driver can handle the
+> interrupt on its own.
+>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+> This revision implements the suggested style changes and drops the
+> IRQF_TRIGGER_LOW flag, which is handled in the device tree.
+>
+> CU
+> Uli
+>
+>
+>   drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
+>   1 file changed, 22 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 5bd81bd..be5980c 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -31,6 +31,7 @@
+>   #include <linux/gpio/consumer.h>
+>   #include <linux/hdmi.h>
+>   #include <linux/i2c.h>
+> +#include <linux/interrupt.h>
+>   #include <linux/kernel.h>
+>   #include <linux/module.h>
+>   #include <linux/slab.h>
+> @@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+>   	return 0;
+>   }
+>
+> +static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
+> +{
+> +	struct adv76xx_state *state = devid;
+> +	bool handled;
+> +
+> +	adv76xx_isr(&state->sd, 0, &handled);
+> +
+> +	return handled ? IRQ_HANDLED : IRQ_NONE;
+
+    Just IRQ_RETVAL(handled), maybe?
+
+[...]
+
+MBR, Sergei
 
