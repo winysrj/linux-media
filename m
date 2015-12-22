@@ -1,90 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:63988 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566AbbL1V5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 16:57:01 -0500
-Subject: [PATCH] [media] au0828: Refactoring for start_urb_transfer()
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <5681B01F.4070401@users.sourceforge.net>
-Date: Mon, 28 Dec 2015 22:56:47 +0100
-MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37297 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754427AbbLVOWK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2015 09:22:10 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2 2/2] media: adv7604: update timings on change of input signal
+Date: Tue, 22 Dec 2015 15:22:02 +0100
+Message-Id: <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 28 Dec 2015 22:52:48 +0100
+Without this, .get_selection will always return the boot-time state.
 
-This issue was detected by using the Coccinelle software.
-
-1. Let us return directly if a buffer allocation failed.
-
-2. Delete the jump label "err" then.
-
-3. Drop the explicit initialisation for the variable "ret"
-   at the beginning.
-
-4. Return zero as a constant at the end.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/usb/au0828/au0828-dvb.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/media/i2c/adv7604.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
-index cd542b4..e5f1e20 100644
---- a/drivers/media/usb/au0828/au0828-dvb.c
-+++ b/drivers/media/usb/au0828/au0828-dvb.c
-@@ -181,7 +181,7 @@ static int stop_urb_transfer(struct au0828_dev *dev)
- static int start_urb_transfer(struct au0828_dev *dev)
- {
- 	struct urb *purb;
--	int i, ret = -ENOMEM;
-+	int i, ret;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 8ad5c28..dcd659b 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1945,6 +1945,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	u8 fmt_change_digital;
+ 	u8 fmt_change;
+ 	u8 tx_5v;
++	int ret;
  
- 	dprintk(2, "%s()\n", __func__);
+ 	if (irq_reg_0x43)
+ 		io_write(sd, 0x44, irq_reg_0x43);
+@@ -1968,6 +1969,14 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
  
-@@ -194,7 +194,7 @@ static int start_urb_transfer(struct au0828_dev *dev)
+ 		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
  
- 		dev->urbs[i] = usb_alloc_urb(0, GFP_KERNEL);
- 		if (!dev->urbs[i])
--			goto err;
-+			return -ENOMEM;
- 
- 		purb = dev->urbs[i];
- 
-@@ -207,9 +207,10 @@ static int start_urb_transfer(struct au0828_dev *dev)
- 		if (!purb->transfer_buffer) {
- 			usb_free_urb(purb);
- 			dev->urbs[i] = NULL;
-+			ret = -ENOMEM;
- 			pr_err("%s: failed big buffer allocation, err = %d\n",
- 			       __func__, ret);
--			goto err;
-+			return ret;
- 		}
- 
- 		purb->status = -EINPROGRESS;
-@@ -235,10 +236,7 @@ static int start_urb_transfer(struct au0828_dev *dev)
++		/* update timings */
++		ret = adv76xx_query_dv_timings(sd, &state->timings);
++		if (ret == -ENOLINK) {
++			/* no signal, fall back to default timings */
++			state->timings = (struct v4l2_dv_timings)
++				V4L2_DV_BT_CEA_640X480P59_94;
++		}
++
+ 		if (handled)
+ 			*handled = true;
  	}
- 
- 	dev->urb_streaming = true;
--	ret = 0;
--
--err:
--	return ret;
-+	return 0;
- }
- 
- static void au0828_start_transport(struct au0828_dev *dev)
 -- 
 2.6.3
 
