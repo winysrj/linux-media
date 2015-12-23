@@ -1,30 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:30727 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965001AbbLHPSq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:18:46 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH v2 0/3] List supported formats in libv4l2subdev
-Date: Tue,  8 Dec 2015 17:15:13 +0200
-Message-Id: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from [103.229.124.91] ([103.229.124.91]:4284 "HELO im285.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S932973AbbLWQYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2015 11:24:18 -0500
+Date: Thu, 24 Dec 2015 00:24:13 +0800
+From: "xpp18" <xpp18@im285.com>
+Reply-To: comebaby25@sohu.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Merry Christmas
+Message-ID: <201512240024136713605@im285.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Rebased on current v4l-utils. There were conflicts as new media bus
-formats were added. The earlier version is here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg94619.html>
-
-These patches go on top of the field support set, which hasn't appeared in
-the archive yet. The earlier version is here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg94605.html>
-
--- 
-Kind regards,
-Sakari
-
+zeLDs7/Nu6e/qrei08Cyu82j0KqjrMjDxOPN+ry+uPzN+qOsta28vrK7ta2how0K16jStbXE08XW
+yr/Nu6e/qreiz7XNs6Osx+u8087SUS0tUToyMDM2MDE5NTE51NrP37nbv7TR3cq+1rvQ6DEwt9bW
+07y0v8nBy73ioaM=
