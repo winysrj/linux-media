@@ -1,112 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout0.freenet.de ([195.4.92.90]:56394 "EHLO mout0.freenet.de"
+Received: from mout.gmx.net ([212.227.17.21]:64075 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751516AbbLFIZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2015 03:25:58 -0500
-Received: from [195.4.92.140] (helo=mjail0.freenet.de)
-	by mout0.freenet.de with esmtpa (ID stguenth@freenet.de) (port 25) (Exim 4.85 #1)
-	id 1a5UK0-00040W-B5
-	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:05:28 +0100
-Received: from localhost ([::1]:51105 helo=mjail0.freenet.de)
-	by mjail0.freenet.de with esmtpa (ID stguenth@freenet.de) (Exim 4.85 #1)
-	id 1a5UK0-00031f-6u
-	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:05:28 +0100
-Received: from mx3.freenet.de ([195.4.92.13]:36194)
-	by mjail0.freenet.de with esmtpa (ID stguenth@freenet.de) (Exim 4.85 #1)
-	id 1a5UHp-0006R6-Kb
-	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:03:13 +0100
-Received: from aftr-37-24-144-114.unity-media.net ([37.24.144.114]:13222 helo=[192.168.1.100])
-	by mx3.freenet.de with esmtpsa (ID stguenth@freenet.de) (TLSv1.2:DHE-RSA-AES128-SHA:128) (port 587) (Exim 4.85 #1)
-	id 1a5UHp-0004tJ-As
-	for linux-media@vger.kernel.org; Sun, 06 Dec 2015 09:03:13 +0100
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Steffen_G=c3=bcnther?= <stguenth@freenet.de>
-Subject: Changes in dw2102.c to support my Tevii S662
-Message-ID: <5663EBBF.6060504@freenet.de>
-Date: Sun, 6 Dec 2015 09:03:11 +0100
+	id S964890AbbLWJsg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2015 04:48:36 -0500
+Date: Wed, 23 Dec 2015 10:47:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+In-Reply-To: <56749F85.8000502@linux.intel.com>
+Message-ID: <Pine.LNX.4.64.1512231004050.6327@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <567136C6.8090009@xs4all.nl> <56749F85.8000502@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010307040900070401000905"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010307040900070401000905
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Sakari,
 
-Hi,
+On Sat, 19 Dec 2015, Sakari Ailus wrote:
 
-I made some small changes on top of this patch
+> Hi Guennadi and Hans,
+> 
+> Hans Verkuil wrote:
+> > On 12/16/15 10:37, Guennadi Liakhovetski wrote:
+> > > Hi all,
+> > > 
+> > > A project, I am currently working on, requires acquiringing per-frame
+> > > metadata from the camera and passing it to user-space. This is not the
+> > > first time this comes up and I know such discussions have been held
+> > > before. A typical user is Android (also my case), where you have to
+> > > provide parameter values, that have been used to capture a specific frame,
+> > > to the user. I know Hans is working to handle one side of this process -
+> > > sending per-request controls,
+> > 
+> > Actually, the request framework can do both sides of the equation: giving
+> > back meta data in read-only controls that are per-frame. While ideally the
+> > driver would extract the information from the binary blob and put it in
+> > nice controls, it is also possible to make a control that just contains the
+> > binary blob itself. Whether that's a good approach depends on many factors
+> > and that's another topic.
+> 
+> I think that could be possible in some cases. If you don't have a lot of
+> metadata, then, sure.
+> 
+> > > but I'm not aware whether he or anyone else
+> > > is actively working on this already or is planning to do so in the near
+> > > future? I also know, that several proprietary solutions have been
+> > > developed and are in use in various projects.
+> > > 
+> > > I think a general agreement has been, that such data has to be passed via
+> > > a buffer queue. But there are a few possibilities there too. Below are
+> > > some:
+> > > 
+> > > 1. Multiplanar. A separate plane is dedicated to metadata. Pros: (a)
+> > > metadata is already associated to specific frames, which they correspond
+> > > to. Cons: (a) a correct implementation would specify image plane fourcc
+> > > separately from any metadata plane format description, but we currently
+> > > don't support per-plane format specification.
+> > 
+> > This only makes sense if the data actually comes in via DMA and if it is
+> > large enough to make it worth the effort of implementing this. As you say,
+> > it will require figuring out how to do per-frame fourcc.
+> > 
+> > It also only makes sense if the metadata comes in at the same time as the
+> > frame.
+> 
+> I agree. Much of the time the metadata indeed arrives earlier than the
+> rest of the frame. The frame layout nor the use cases should be assumed
+> in the bridge (ISP) driver which implements the interface, essentially
+> forcing this on the user. This is a major drawback in the approach.
+> 
+> Albeit. If you combine this with the need to pass buffer data to the user
+> before the entire buffer is ready, i.e. a plane is ready, you could get around
+> this quite neatly.
+> 
+> However, if the DMA engine writing the metadata is different than what's
+> writing the image data to memory, then you have a plain metadata buffer --- as
+> it's a different video node. But there's really nothing special about that
+> then.
+> 
+> Conceptually we should support multi-part frames rather than metadata, albeit
+> metadata is just a single use case where a single DMA engine outputs multiple
+> kind of data. This could be statistics as well. Or multiple images, e.g. YUV
+> and RAW format images of the same frame.
 
-https://patchwork.linuxtv.org/patch/28925/
+If you stream different kinds of images (raw, yuv), then using multiple 
+nodes is rather straight-forward, isn't it? Whereas for statistics and 
+metadata, if we do that, do we assign new FOURCC codes for each new such 
+data layout?
 
-to support my Tevii S662 with module dvb-usb-dw2102.
+> 
+> With CSI-2, as the virtual channels are independent, one could start and stop
+> them at different times and the frame rate in those channels could as well be
+> unrelated. This suggests that different virtual channels should be
+> conceptually separate streams also in V4L2 and thus the data from different
+> streams should not end up to the same buffer.
+> 
+> Metadata usually (or practically ever?) does not arrive on a separate virtual
+> channel though. So this isn't something that necessarily is taken into account
+> right now but it's good to be aware of it.
 
-Scanning and tuning in works for me.
+A camera can send image data and metadata on the same virtual channel, but 
+then it should use different data types for them?
 
-Hope this is usefull!?
+> > > 2. Separate buffer queues. Pros: (a) no need to extend multiplanar buffer
+> > > implementation. Cons: (a) more difficult synchronisation with image
+> > > frames, (b) still need to work out a way to specify the metadata version.
+> 
+> Do you think you have different versions of metadata from a sensor, for
+> instance? Based on what I've seen these tend to be sensor specific, or
+> SMIA which defines a metadata type for each bit depth for compliant sensors.
+> 
+> Each metadata format should have a 4cc code, SMIA bit depth specific or
+> sensor specific where metadata is sensor specific.
+> 
+> Other kind of metadata than what you get from sensors is not covered by the
+> thoughts above.
+> 
+> <URL:http://www.retiisi.org.uk/v4l2/foil/v4l2-multi-format.pdf>
+> 
+> I think I'd still favour separate buffer queues.
 
-Regards
-Steffen
+And separate video nodes then.
 
---------------010307040900070401000905
-Content-Type: text/x-patch;
- name="tevii_s662-dw2102.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="tevii_s662-dw2102.patch"
+> > > Any further options? Of the above my choice would go with (1) but with a
+> > > dedicated metadata plane in struct vb2_buffer.
+> > 
+> > 3. Use the request framework and return the metadata as control(s). Since
+> > controls
+> > can be associated with events when they change you can subscribe to such
+> > events.
+> > Note: currently I haven't implemented such events for request controls since
+> > I am
+> > not certainly how it would be used, but this would be a good test case.
+> > 
+> > Pros: (a) no need to extend multiplanar buffer implementation, (b) syncing
+> > up
+> > with the image frames should be easy (both use the same request ID), (c) a
+> > lot
+> > of freedom on how to export the metadata. Cons: (a) request framework is
+> > still
+> > work in progress (currently worked on by Laurent), (b) probably too slow for
+> > really large amounts of metadata, you'll need proper DMA handling for that
+> > in
+> > which case I would go for 2.
+> 
+> Agreed. You could consider it as a drawback that the number of new controls
+> required for this could be large as well, but then already for other reasons
+> the best implementation would rather be the second option mentioned.
 
---- /home/sguenther/Downloads/tv-treiber/drivers/media/usb/dvb-usb/dw2102.c
-+++ /home/sguenther/Downloads/media-test-orig/dw2102.c
-@@ -1,6 +1,6 @@
- /* DVB USB framework compliant Linux driver for the
-  *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
-- *	TeVii S600, S630, S650, S660, S480, S421, S632
-+ *	TeVii S600, S630, S650, S660, S480, S421, S632, S482, S662,
-  *	Prof 1100, 7500,
-  *	Geniatech SU3000, T220,
-  *	TechnoTrend S2-4600 Cards
-@@ -1686,6 +1686,7 @@
- 	GOTVIEW_SAT_HD,
- 	GENIATECH_T220,
- 	TECHNOTREND_S2_4600,
-+	TEVII_S662,
- 	TEVII_S482_1,
- 	TEVII_S482_2,
- };
-@@ -1713,6 +1714,7 @@
- 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
- 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
- 		USB_PID_TECHNOTREND_CONNECT_S2_4600)},
-+	[TEVII_S662] = {USB_DEVICE(0x9022, 0xd662)},
- 	[TEVII_S482_1] = {USB_DEVICE(0x9022, 0xd483)},
- 	[TEVII_S482_2] = {USB_DEVICE(0x9022, 0xd484)},
- 	{ }
-@@ -2232,10 +2234,14 @@
- 		} },
- 		}
- 	},
--	.num_device_descs = 3,
-+	.num_device_descs = 4,
- 	.devices = {
- 		{ "TechnoTrend TT-connect S2-4600",
- 			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
-+			{ NULL },
-+		},
-+		{ "TeVii S662",
-+			{ &dw2102_table[TEVII_S662], NULL },
- 			{ NULL },
- 		},
- 		{ "TeVii S482 (tuner 1)",
-@@ -2359,7 +2365,7 @@
- MODULE_AUTHOR("Igor M. Liplianin (c) liplianin@me.by");
- MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
- 			" DVB-C 3101 USB2.0,"
--			" TeVii S600, S630, S650, S660, S480, S421, S632"
-+			" TeVii S600, S630, S650, S660, S480, S421, S632, S482, S662,"
- 			" Prof 1100, 7500 USB2.0,"
- 			" Geniatech SU3000, T220,"
- 			" TechnoTrend S2-4600 devices");
+But wouldn't a single extended control with all metadata-transferred 
+controls solve the performance issue?
 
---------------010307040900070401000905--
+> > > In either of the above options we also need a way to tell the user what is
+> > > in the metadata buffer, its format. We could create new FOURCC codes for
+> > > them, perhaps as V4L2_META_FMT_... or the user space could identify the
+> > > metadata format based on the camera model and an opaque type (metadata
+> > > version code) value. Since metadata formats seem to be extremely camera-
+> > > specific, I'd go with the latter option.
+> 
+> I think I'd use separate 4cc codes for the metadata formats when they really
+> are different. There are plenty of possible 4cc codes we can use. :-)
+> 
+> Documenting the formats might be painful though.
+
+The advantage of this approach together with a separate video node / 
+buffer queue is, that no changes to the core would be required.
+
+At the moment I think, that using (extended) controls would be the most 
+"correct" way to implement that metadata, but you can associate such 
+control values with frames only when the request API is there. Yet another 
+caveat is, that we define V4L2_CTRL_ID2CLASS() as ((id) & 0x0fff0000UL)
+and V4L2_CID_PRIVATE_BASE as 0x08000000, so that drivers cannot define 
+private controls to belong to existing classes. Was this intensional?
+
+Thanks
+Guennadi
+
+> > > Comments extremely welcome.
+> > 
+> > What I like about the request framework is that the driver can pick apart
+> > the metadata and turn it into well-defined controls. So the knowledge how
+> > to do that is in the place where it belongs. In cases where the meta data
+> > is simple too large for that to be feasible, then I don't have much of an
+> > opinion. Camera + version could be enough. Although the same can just as
+> > easily be encoded as a fourcc (V4L2_META_FMT_OVXXXX_V1, _V2, etc). A fourcc
+> > is more consistent with the current API.
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+> 
