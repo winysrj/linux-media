@@ -1,229 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932199AbbLECNT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:19 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 27/32] v4l: vsp1: Don't validate links when the userspace API is disabled
-Date: Sat,  5 Dec 2015 04:13:01 +0200
-Message-Id: <1449281586-25726-28-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:60168 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754871AbbLWMct (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2015 07:32:49 -0500
+Date: Wed, 23 Dec 2015 10:32:42 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, javier@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+	=?UTF-8?B?QmVu?= =?UTF-8?B?b8OudA==?= Cousson
+	<bcousson@baylibre.com>, Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
+Message-ID: <20151223103242.44deaea4@recife.lan>
+In-Reply-To: <20151216140301.GO17128@valkosipuli.retiisi.org.uk>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	<20151216140301.GO17128@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the pipeline is configured internally by the driver when the
-userspace API is disabled its configuration can be trusted and link
-validation isn't needed.
+Em Wed, 16 Dec 2015 16:03:01 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Hi Javier,
+> 
+> On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
+> > This is the third version of the unrestricted media entity ID range
+> > support set. I've taken Mauro's comments into account and fixed a number
+> > of bugs as well (omap3isp memory leak and omap4iss stream start).
+> 
+> Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
+> test the OMAP4 ISS with these patches?
+> 
+> Thanks.
+> 
+
+Sakari,
+
+Testing with OMAP4 is not possible. The driver is broken: it doesn't
+support DT, and the required pdata definition is missing.
+
+Both Javier and I tried to fix it in the last couple days, in order to test
+it with a PandaBoard. We came with the enclosed patch, but it is still 
+incomplete. Based on what's written on this e-mail:
+	 https://www.mail-archive.com/linux-media@vger.kernel.org/msg89247.html
+
+It seems that this is an already known issue.
+
+So, I'm considering this driver as BROKEN. Not much sense on doing any
+tests on it, while this doesn't get fixed.
+
+Regards,
+Mauro
+
+PS.: With the enclosed patch, I got this error:
+	[    0.267639] platform omap4iss: failed to claim resource 2
+
+But, even if I comment out the platform code that returns this error,
+there are still other missing things:
+	[    7.131622] omap4iss omap4iss: Unable to get iss_fck clock info
+	[    7.137878] omap4iss omap4iss: Unable to get clocks
+
 ---
- drivers/media/platform/vsp1/vsp1.h        |  2 ++
- drivers/media/platform/vsp1/vsp1_bru.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_drv.c    | 10 ++++++++++
- drivers/media/platform/vsp1/vsp1_entity.c | 11 +++--------
- drivers/media/platform/vsp1/vsp1_entity.h |  5 ++++-
- drivers/media/platform/vsp1/vsp1_hsit.c   |  2 +-
- drivers/media/platform/vsp1/vsp1_lif.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_lut.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_uds.c    |  2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 +-
- 12 files changed, 27 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 4fd4386a7049..454201bf59ee 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -78,6 +78,8 @@ struct vsp1_device {
+ARM: add a pdata quirks for OMAP4 panda camera
+    
+This is a hack to make it to believe that the pandaboard
+has a camera.
+
+
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index 1dfe34654c43..998bb6936dc0 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -36,6 +36,8 @@
+ #include "soc.h"
+ #include "hsmmc.h"
  
- 	struct v4l2_device v4l2_dev;
- 	struct media_device media_dev;
++#include "../../../drivers/staging/media/omap4iss/iss.h"
 +
-+	struct media_entity_operations media_ops;
- };
+ struct pdata_init {
+ 	const char *compatible;
+ 	void (*fn)(void);
+@@ -408,6 +410,124 @@ static void __init t410_abort_init(void)
+ }
+ #endif
  
- int vsp1_device_get(struct vsp1_device *vsp1);
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index baebfbbef61d..848bfb5a42ff 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -424,7 +424,7 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 	subdev = &bru->entity.subdev;
- 	v4l2_subdev_init(subdev, &bru_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 3c8de1d5c80e..6d086c048975 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -21,6 +21,8 @@
- #include <linux/platform_device.h>
- #include <linux/videodev2.h>
- 
-+#include <media/v4l2-subdev.h>
++#ifdef CONFIG_ARCH_OMAP4
 +
- #include "vsp1.h"
- #include "vsp1_bru.h"
- #include "vsp1_hsit.h"
-@@ -217,6 +219,14 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		return ret;
++static struct resource panda_iss_resource[] = {
++	{
++		.start = 0x52000000,
++		.end = 0x52000000 + 0x100,
++		.name = "top",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52001000,
++		.end = 0x52001000 + 0x170,
++		.name = "csi2_a_regs1",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52001170,
++		.end = 0x52001170 + 0x020,
++		.name = "camerarx_core1",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52001400,
++		.end = 0x52001400 + 0x170,
++		.name = "csi2_b_regs1",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52001570,
++		.end = 0x52001570 + 0x020,
++		.name = "camerarx_core2",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52002000,
++		.end = 0x52002000 + 0x200,
++		.name = "bte",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52010000,
++		.end = 0x52010000 + 0x0a0,
++		.name = "isp_sys1",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52010400,
++		.end = 0x52010400 + 0x400,
++		.name = "isp_resizer",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52010800,
++		.end = 0x52010800 + 0x800,
++		.name = "isp_ipipe",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52011000,
++		.end = 0x52011000 + 0x200,
++		.name = "isp_isif",
++		.flags = IORESOURCE_MEM,
++	}, {
++		.start = 0x52011200,
++		.end = 0x52011200 + 0x080,
++		.name = "isp_ipipeif",
++		.flags = IORESOURCE_MEM,
++	}
++};
++
++static struct i2c_board_info panda_camera_i2c_device = {
++	I2C_BOARD_INFO("smia", 0x10),
++};
++
++static struct iss_subdev_i2c_board_info panda_camera_subdevs[] = {
++	{
++		.board_info = &panda_camera_i2c_device,
++		.i2c_adapter_id = 3,
++	},
++};
++
++static struct iss_v4l2_subdevs_group iss_subdevs[] = {
++	{
++		.subdevs = panda_camera_subdevs,
++		.interface = ISS_INTERFACE_CSI2A_PHY1,
++		.bus = {
++			.csi2 = {
++				.lanecfg = {
++					.clk = {
++						.pol = 0,
++						.pos = 2,
++					},
++					.data[0] = {
++						.pol = 0,
++						.pos = 1,
++					},
++					.data[1] = {
++						.pol = 0,
++						.pos = 3,
++					},
++				},
++			} },
++	},
++	{ /* sentinel */ },
++};
++
++static struct iss_platform_data iss_pdata = {
++	.subdevs = iss_subdevs,
++};
++
++static struct platform_device omap4iss_device = {
++	.name           = "omap4iss",
++	.id             = -1,
++	.dev = {
++		.platform_data = &iss_pdata,
++	},
++	.num_resources  = ARRAY_SIZE(panda_iss_resource),
++	.resource       = panda_iss_resource,
++};
++
++static void __init omap4_panda_legacy_init(void)
++{
++	platform_device_register(&omap4iss_device);
++}
++
++#endif /* CONFIG_ARCH_OMAP4 */
++
+ #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+ static struct iommu_platform_data omap4_iommu_pdata = {
+ 	.reset_name = "mmu_cache",
+@@ -539,6 +659,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
+ #ifdef CONFIG_SOC_TI81XX
+ 	{ "hp,t410", t410_abort_init, },
+ #endif
++#ifdef CONFIG_ARCH_OMAP4
++	{ "ti,omap4-panda", omap4_panda_legacy_init, },
++#endif
+ #ifdef CONFIG_SOC_OMAP5
+ 	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
+ #endif
+
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 30b473cfb020..b528cacda17b 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -1412,6 +1412,9 @@ static int iss_probe(struct platform_device *pdev)
+ 	unsigned int i;
+ 	int ret;
+ 
++
++printk("%s: pdata=%p\n", __func__, pdata);
++
+ 	if (!pdata)
+ 		return -EINVAL;
+ 
+@@ -1437,24 +1440,33 @@ static int iss_probe(struct platform_device *pdev)
+ 	iss->syscon = syscon_regmap_lookup_by_compatible("syscon");
+ 	if (IS_ERR(iss->syscon)) {
+ 		ret = PTR_ERR(iss->syscon);
++		dev_err(iss->dev, "Unable to find syscon");
+ 		goto error;
  	}
  
-+	vsp1->media_ops.link_setup = vsp1_entity_link_setup;
-+	/* Don't perform link validation when the userspace API is disabled as
-+	 * the pipeline is configured internally by the driver in that case, and
-+	 * its configuration can thus be trusted.
-+	 */
-+	if (vsp1->pdata.uapi)
-+		vsp1->media_ops.link_validate = v4l2_subdev_link_validate;
-+
- 	vdev->mdev = mdev;
- 	ret = v4l2_device_register(vsp1->dev, vdev);
- 	if (ret < 0) {
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 75bf85693f35..38a496f43050 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -131,9 +131,9 @@ const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops = {
-  * Media Operations
-  */
+ 	/* Clocks */
+ 	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(iss->dev, "Unable to map memory resource\n");
+ 		goto error;
++	}
  
--static int vsp1_entity_link_setup(struct media_entity *entity,
--				  const struct media_pad *local,
--				  const struct media_pad *remote, u32 flags)
-+int vsp1_entity_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags)
- {
- 	struct vsp1_entity *source;
+ 	ret = iss_get_clocks(iss);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(iss->dev, "Unable to get clocks\n");
+ 		goto error;
++	}
  
-@@ -158,11 +158,6 @@ static int vsp1_entity_link_setup(struct media_entity *entity,
- 	return 0;
- }
+-	if (!omap4iss_get(iss))
++	if (!omap4iss_get(iss)) {
++		dev_err(iss->dev, "Failed to acquire ISS resource\n");
+ 		goto error;
++	}
  
--const struct media_entity_operations vsp1_media_ops = {
--	.link_setup = vsp1_entity_link_setup,
--	.link_validate = v4l2_subdev_link_validate,
--};
--
- /* -----------------------------------------------------------------------------
-  * Initialization
-  */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 360a2e668ac2..83570dfde8ec 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -86,7 +86,10 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- void vsp1_entity_destroy(struct vsp1_entity *entity);
+ 	ret = iss_reset(iss);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(iss->dev, "Unable to reset ISS\n");
+ 		goto error_iss;
++	}
  
- extern const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops;
--extern const struct media_entity_operations vsp1_media_ops;
-+
-+int vsp1_entity_link_setup(struct media_entity *entity,
-+			   const struct media_pad *local,
-+			   const struct media_pad *remote, u32 flags);
- 
- struct v4l2_mbus_framefmt *
- vsp1_entity_get_pad_format(struct vsp1_entity *entity,
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index 8ffb817ae525..c1087cff31a0 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -203,7 +203,7 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
- 	subdev = &hsit->entity.subdev;
- 	v4l2_subdev_init(subdev, &hsit_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
- 		 dev_name(vsp1->dev), inverse ? "hsi" : "hst");
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index b868bce08982..b8e73d32d14d 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -223,7 +223,7 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
- 	subdev = &lif->entity.subdev;
- 	v4l2_subdev_init(subdev, &lif_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 9e33caa9c616..4b89095e7b5f 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -237,7 +237,7 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
- 	subdev = &lut->entity.subdev;
- 	v4l2_subdev_init(subdev, &lut_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index b1d4a46f230e..3992da09e466 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -245,7 +245,7 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &rpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &rpf_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
- 		 dev_name(vsp1->dev), index);
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index cff4a1d82e3b..6dcf76a1ca57 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -363,7 +363,7 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
- 	subdev = &sru->entity.subdev;
- 	v4l2_subdev_init(subdev, &sru_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s sru",
- 		 dev_name(vsp1->dev));
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 27ad07466ebd..bba67770cf95 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -338,7 +338,7 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &uds->entity.subdev;
- 	v4l2_subdev_init(subdev, &uds_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
- 		 dev_name(vsp1->dev), index);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 40eeaf2d76d2..849ed81d86a1 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -243,7 +243,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	subdev = &wpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &wpf_ops);
- 
--	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->entity.ops = &vsp1->media_ops;
- 	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
- 		 dev_name(vsp1->dev), index);
--- 
-2.4.10
-
+ 	iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
+ 	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
