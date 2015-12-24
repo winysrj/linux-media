@@ -1,105 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40148 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156AbbLNPuh (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51340 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751036AbbLXNSL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 10:50:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v2 4/7] media: vb2-dma-contig: add helper for setting dma max seg size
-Date: Mon, 14 Dec 2015 17:50:50 +0200
-Message-ID: <1604824.dB2dzDMl5I@avalon>
-In-Reply-To: <566E89D6.40603@samsung.com>
-References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com> <3238962.HlGfVT9mcy@avalon> <566E89D6.40603@samsung.com>
+	Thu, 24 Dec 2015 08:18:11 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Thu, 24 Dec 2015 14:18:10 +0100
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: v4l-dvb <linux-media@vger.kernel.org>
+Cc: "laurent.pinchart" <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] DocBook media: make explicit that standard/timings never
+ change automatically
+Message-ID: <2176a82408f1a6cf55a94bc25cfe5dc4@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+A driver might detect a new standard or DV timings, but it will never 
+change to
+those new timings automatically. Instead it will send an event and let 
+the application
+take care of it.
 
-On Monday 14 December 2015 10:20:22 Marek Szyprowski wrote:
-> On 2015-12-13 20:57, Laurent Pinchart wrote:
-> > On Wednesday 09 December 2015 14:58:19 Marek Szyprowski wrote:
-> >> Add a helper function for device drivers to set DMA's max_seg_size.
-> >> Setting it to largest possible value lets DMA-mapping API always create
-> >> contiguous mappings in DMA address space. This is essential for all
-> >> devices, which use dma-contig videobuf2 memory allocator and shared
-> >> buffers.
-> >> 
-> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >> ---
-> >> 
-> >>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
-> >>   include/media/videobuf2-dma-contig.h           |  1 +
-> >>   2 files changed, 16 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index c331272..628518d
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> @@ -742,6 +742,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
-> >> 
-> >>   }
-> >>   EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
-> >> 
-> >> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
-> >> size)
-> >> +{
-> >> +	if (!dev->dma_parms) {
-> > 
-> > When can this function be called with dev->dma_parms not NULL ?
-> 
-> When one loads a module with multimedia driver (which calls this
-> function), then unloads and loads it again. It is rather safe to have this
-> check.
+Make this explicit in the documentation.
 
-Don't you have a much bigger problem in that case ? When you unload the module 
-the device will be unbound from the driver, causing the memory allocated by 
-devm_kzalloc to be freed. dev->dma_parms will then point to freed memory, 
-which will get reused by all subsequent calls to dma_get_max_seg_size(), 
-dma_get_max_seg_size() & co (including the ones in this function).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+  .../DocBook/media/v4l/vidioc-query-dv-timings.xml          | 14 
+++++++++++++--
+  Documentation/DocBook/media/v4l/vidioc-querystd.xml        | 10 
+++++++++++
+  2 files changed, 22 insertions(+), 2 deletions(-)
 
-> >> +		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
-> >> +					      GFP_KERNEL);
-> >> +		if (!dev->dma_parms)
-> >> +			return -ENOMEM;
-> >> +	}
-> >> +	if (dma_get_max_seg_size(dev) < size)
-> >> +		return dma_set_max_seg_size(dev, size);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
-> >> +
-> >>   MODULE_DESCRIPTION("DMA-contig memory handling routines for
-> >>   videobuf2");
-> >>   MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
-> >>   MODULE_LICENSE("GPL");
-> >> diff --git a/include/media/videobuf2-dma-contig.h
-> >> b/include/media/videobuf2-dma-contig.h index c33dfa6..0e6ba64 100644
-> >> --- a/include/media/videobuf2-dma-contig.h
-> >> +++ b/include/media/videobuf2-dma-contig.h
-> >> @@ -26,6 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb,
-> >> unsigned int plane_no)
-> >>  void *vb2_dma_contig_init_ctx(struct device *dev);
-> >>  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
-> >> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int
-> >> size);
-> >>  extern const struct vb2_mem_ops vb2_dma_contig_memops;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml 
+b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
+index e9c70a8..eba0293 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
+@@ -60,9 +60,19 @@ input</refpurpose>
+  automatically, similar to sensing the video standard. To do so, 
+applications
+  call <constant>VIDIOC_QUERY_DV_TIMINGS</constant> with a pointer to a
+  &v4l2-dv-timings;. Once the hardware detects the timings, it will fill 
+in the
+-timings structure.
++timings structure.</para>
 
+-If the timings could not be detected because there was no signal, then
++<para>Please note that drivers will <emphasis>never</emphasis> switch 
+timings automatically
++if new timings are detected. Instead, drivers will send the
++<constant>V4L2_EVENT_SOURCE_CHANGE</constant> event (if they support 
+this) and expect
++that userspace will take action by calling 
+<constant>VIDIOC_QUERY_DV_TIMINGS</constant>.
++The reason is that new timings usually mean different buffer sizes as 
+well, and you
++cannot change buffer sizes on the fly. In general, applications that 
+receive the
++Source Change event will have to call 
+<constant>VIDIOC_QUERY_DV_TIMINGS</constant>,
++and if the detected timings are valid they will have to stop streaming, 
+set the new
++timings, allocate new buffers and start streaming again.</para>
++
++<para>If the timings could not be detected because there was no signal, 
+then
+  <errorcode>ENOLINK</errorcode> is returned. If a signal was detected, 
+but
+  it was unstable and the receiver could not lock to the signal, then
+  <errorcode>ENOLCK</errorcode> is returned. If the receiver could lock 
+to the signal,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-querystd.xml 
+b/Documentation/DocBook/media/v4l/vidioc-querystd.xml
+index 2223485..8efa917 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-querystd.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-querystd.xml
+@@ -59,6 +59,16 @@ then the driver will return V4L2_STD_UNKNOWN. When 
+detection is not
+  possible or fails, the set must contain all standards supported by the
+  current video input or output.</para>
+
++<para>Please note that drivers will <emphasis>never</emphasis> switch 
+the video standard
++automatically if a new video standard is detected. Instead, drivers 
+will send the
++<constant>V4L2_EVENT_SOURCE_CHANGE</constant> event (if they support 
+this) and expect
++that userspace will take action by calling 
+<constant>VIDIOC_QUERYSTD</constant>.
++The reason is that a new video standard can mean different buffer sizes 
+as well, and you
++cannot change buffer sizes on the fly. In general, applications that 
+receive the
++Source Change event will have to call 
+<constant>VIDIOC_QUERYSTD</constant>,
++and if the detected video standard is valid they will have to stop 
+streaming, set the new
++standard, allocate new buffers and start streaming again.</para>
++
+    </refsect1>
+
+    <refsect1>
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.4
 
