@@ -1,188 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59443 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752303AbbLSAlB (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54170 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154AbbLXKyv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 19:41:01 -0500
-Date: Sat, 19 Dec 2015 02:40:27 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-Subject: Re: [PATCH/RFC 22/48] media: Add per-file-handle data support
-Message-ID: <20151219004027.GS17128@valkosipuli.retiisi.org.uk>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 24 Dec 2015 05:54:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: karthik poduval <karthik.poduval@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+Date: Thu, 24 Dec 2015 12:54:51 +0200
+Message-ID: <3419549.kxZAihUTho@avalon>
+In-Reply-To: <CAFP0Ok9t53p6zAJBBu=ov7O8nfrwvn=RxJUCkOPgFmJ3xuzbEQ@mail.gmail.com>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange> <Pine.LNX.4.64.1512221122420.31855@axis700.grange> <CAFP0Ok9t53p6zAJBBu=ov7O8nfrwvn=RxJUCkOPgFmJ3xuzbEQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1450341626-6695-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello Karthik,
 
-Thanks for the set!
-
-On Thu, Dec 17, 2015 at 10:40:00AM +0200, Laurent Pinchart wrote:
-> The media devnode core associates devnodes with files by storing the
-> devnode pointer in the file structure private_data field. In order to
-> allow tracking of per-file-handle data introduce a new media devnode
-> file handle structure that stores the devnode pointer, and store a
-> pointer to that structure in the file private_data field.
+On Tuesday 22 December 2015 05:30:52 karthik poduval wrote:
+> I have been wanting to share these thoughts for the group but was
+> waiting for the right time which I think is now since Guennadi brought
+> up this discussion.
 > 
-> Users of the media devnode code (the only existing user being
-> media_device) are responsible for managing their own subclass of the
-> media_devnode_fh structure.
+> For the Amazon Fire phone 4 corner camera, here is how we passed
+> metadata from driver to application (which was a CV client requiring
+> per frame metadata).
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/media-device.c  | 22 ++++++++++++++++++++++
->  drivers/media/media-devnode.c | 19 +++++++++----------
->  include/media/media-devnode.h | 18 +++++++++++++++++-
->  3 files changed, 48 insertions(+), 11 deletions(-)
+> We took an unused field in struct v4l2_buffer (__u32 reserved in this
+> case) and used it to pass in a pointer to a user space metadata object
+> (i.e. struct app_metadata) to the driver via the VIDIOC_DQBUF ioctl
+> call.
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 7b39440192d6..285f7d79d848 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -24,23 +24,45 @@
->  #include <linux/export.h>
->  #include <linux/ioctl.h>
->  #include <linux/media.h>
-> +#include <linux/slab.h>
->  #include <linux/types.h>
->  
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
->  
-> +struct media_device_fh {
-> +	struct media_devnode_fh fh;
-> +};
-> +
-> +static inline struct media_device_fh *media_device_fh(struct file *filp)
-> +{
-> +	return container_of(filp->private_data, struct media_device_fh, fh);
-> +}
-> +
->  /* -----------------------------------------------------------------------------
->   * Userspace API
->   */
->  
->  static int media_device_open(struct file *filp)
->  {
-> +	struct media_device_fh *fh;
-> +
-> +	fh = kzalloc(sizeof(*media_device_fh), GFP_KERNEL);
+> struct v4l2_buffer for reference.
+> http://lxr.free-electrons.com/source/include/uapi/linux/videodev2.h#L836
+> 
+> The driver copied its local copy of the metadata object to the
+> userspace metadata object using the copy_to_user primitive offered by
+> the kernel.
+> 
+> Here is how we handled the metadata in the driver code.
+> https://github.com/Fire-Phone/android_kernel_amazon_kodiak/blob/master/drive
+> rs/media/platform/msm/camera_v2/camera/camera.c#L235
+> 
+> This was done before HAL V3 was available. With HAL V3, the metadata
+> object can be the HAL v3 metadata buffer. Non Android devices can use
+> custom metadata format (like the one we used).
+> 
+> With this approach, the metadata always accompanies the frame data as
+> it's available along with the frame buffer inside struct v4l2_buffer
+> from the VIDIOC_DQBUF ioctl call.
+> 
+> If the community likes this idea, the v4l2_buffer can now be
+> officially modified to contain a pointer to user space metadata object
+> v4l2_buffer.metadata and then metadata format and size can be agreed
+> upon between application and driver.
+> Thoughts ?
 
-sizeof(*fh) ?
+I see several issues with that approach. The first one is that the meta-data 
+buffer is only passed at DQBUF time. Drivers thus need to copy data using the 
+CPU instead of capturing meta-data directly to the buffer through DMA. If the 
+meta-data size is small the performance impact can be negligible, but that 
+might not be true in the general case.
 
-With that fixed,
+A second issue is that the approach isn't generic enough in my opinion. If we 
+want to attach additional data buffers to a v4l2_buffer I agree with Sakari 
+that we should design a multi-part buffer API in order to not limit the 
+implementation to meta-data, but support other kind of information such as 
+statistics for instance.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +	if (!fh)
-> +		return -ENOMEM;
-> +
-> +	filp->private_data = &fh->fh;
-> +
->  	return 0;
->  }
->  
->  static int media_device_close(struct file *filp)
->  {
-> +	struct media_device_fh *fh = media_device_fh(filp);
-> +
-> +	kfree(fh);
-> +
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index ebf9626e5ae5..67bac29838d3 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -154,6 +154,7 @@ static long media_compat_ioctl(struct file *filp, unsigned int cmd,
->  /* Override for the open function */
->  static int media_open(struct inode *inode, struct file *filp)
->  {
-> +	struct media_devnode_fh *fh;
->  	struct media_devnode *mdev;
->  	int ret;
->  
-> @@ -175,16 +176,15 @@ static int media_open(struct inode *inode, struct file *filp)
->  	get_device(&mdev->dev);
->  	mutex_unlock(&media_devnode_lock);
->  
-> -	filp->private_data = mdev;
-> -
-> -	if (mdev->fops->open) {
-> -		ret = mdev->fops->open(filp);
-> -		if (ret) {
-> -			put_device(&mdev->dev);
-> -			return ret;
-> -		}
-> +	ret = mdev->fops->open(filp);
-> +	if (ret) {
-> +		put_device(&mdev->dev);
-> +		return ret;
->  	}
->  
-> +	fh = filp->private_data;
-> +	fh->devnode = mdev;
-> +
->  	return 0;
->  }
->  
-> @@ -193,8 +193,7 @@ static int media_release(struct inode *inode, struct file *filp)
->  {
->  	struct media_devnode *mdev = media_devnode_data(filp);
->  
-> -	if (mdev->fops->release)
-> -		mdev->fops->release(filp);
-> +	mdev->fops->release(filp);
->  
->  	/* decrease the refcount unconditionally since the release()
->  	   return value is ignored. */
-> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-> index 17ddae32060d..ce81047cb4fc 100644
-> --- a/include/media/media-devnode.h
-> +++ b/include/media/media-devnode.h
-> @@ -52,6 +52,20 @@ struct media_file_operations {
->  };
->  
->  /**
-> + * struct media_devnode_fh - Media device node file handle
-> + * @devnode:	pointer to the media device node
-> + *
-> + * This structure serves as a base for per-file-handle data storage. Media
-> + * device node users embed media_devnode_fh in their custom file handle data
-> + * structures and store the media_devnode_fh in the file private_data in order
-> + * to let the media device node core locate the media_devnode corresponding to a
-> + * file handle.
-> + */
-> +struct media_devnode_fh {
-> +	struct media_devnode *devnode;
-> +};
-> +
-> +/**
->   * struct media_devnode - Media device node
->   * @fops:	pointer to struct media_file_operations with media device ops
->   * @dev:	struct device pointer for the media controller device
-> @@ -92,7 +106,9 @@ void media_devnode_unregister(struct media_devnode *mdev);
->  
->  static inline struct media_devnode *media_devnode_data(struct file *filp)
->  {
-> -	return filp->private_data;
-> +	struct media_devnode_fh *fh = filp->private_data;
-> +
-> +	return fh->devnode;
->  }
->  
->  static inline int media_devnode_is_registered(struct media_devnode *mdev)
+Finally, it might be beneficial in some use cases to pass meta-data to 
+userspace before the end of the frame (assuming meta-data is available earlier 
+of course). That's certainly true for statistics, use cases for meta-data are 
+less clear to me though.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
