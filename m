@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59193 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753199AbbLQOzK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 09:55:10 -0500
-Date: Thu, 17 Dec 2015 12:55:05 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Mason <slash.tmp@free.fr>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: Automatic device driver back-porting with media_build
-Message-ID: <20151217125505.0abc4b40@recife.lan>
-In-Reply-To: <5672C713.6090101@free.fr>
-References: <5672A6F0.6070003@free.fr>
-	<20151217105543.13599560@recife.lan>
-	<5672BE15.9070006@free.fr>
-	<20151217120830.0fc27f01@recife.lan>
-	<5672C713.6090101@free.fr>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54495 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535AbbLXRds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Dec 2015 12:33:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: hverkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	linux-media-owner@vger.kernel.org
+Subject: Re: per-frame camera metadata (again)
+Date: Thu, 24 Dec 2015 19:33:47 +0200
+Message-ID: <1635284.ayChAxBmkc@avalon>
+In-Reply-To: <86a64428cff3a4056742bb169de13e70@xs4all.nl>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange> <4268557.IA99RCLRfS@avalon> <86a64428cff3a4056742bb169de13e70@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Dec 2015 15:30:43 +0100
-Mason <slash.tmp@free.fr> escreveu:
+Hi Hans,
 
-> On 17/12/2015 15:08, Mauro Carvalho Chehab wrote:
+On Thursday 24 December 2015 13:54:11 hverkuil wrote:
+> On 2015-12-24 12:29, Laurent Pinchart wrote:
+> >> Control classes are not deprecated, only the use of the control_class
+> >> field in struct v4l2_ext_controls to limit the controls in the list to
+> >> a single control class is deprecated. That old limitation was from pre-
+> >> control-framework times to simplify driver design. With the creation
+> >> of the control framework that limitation is no longer needed.
+> > 
+> > Doesn't that effectively deprecated control classes ? We can certainly
+> > group controls in categories for documentation purposes, but the control
+> > class as an API concept is quite useless nowadays.
 > 
-> > Then I guess you're not using vanilla 3.4 Kernel, but some heavily
-> > modified version. You're on your own here.
-> 
-> #ifdef NEED_KVFREE
-> #include <linux/mm.h>
-> static inline void kvfree(const void *addr)
-> {
-> 	if (is_vmalloc_addr(addr))
-> 		vfree(addr);
-> 	else
-> 		kfree(addr);
-> }
-> #endif
-> 
-> /tmp/sandbox/media_build/v4l/compat.h: In function 'kvfree':
-> /tmp/sandbox/media_build/v4l/compat.h:1631:3: error: implicit declaration of function 'vfree' [-Werror=implicit-function-declaration]
->    vfree(addr);
->    ^
-> 
-> vfree is declared in linux/vmalloc.h
-> 
-> The fix is trivial:
-> 
-> diff --git a/v4l/compat.h b/v4l/compat.h
-> index c225c07d6caa..7f3f1d5f9d11 100644
-> --- a/v4l/compat.h
-> +++ b/v4l/compat.h
-> @@ -1625,6 +1625,7 @@ static inline void eth_zero_addr(u8 *addr)
->  
->  #ifdef NEED_KVFREE
->  #include <linux/mm.h>
-> +#include <linux/vmalloc.h>
->  static inline void kvfree(const void *addr)
->  {
->         if (is_vmalloc_addr(addr))
-> 
-> 
+> No it's not. It is meant to be used by GUIs to group controls into tab
+> pages or something similar. See qv4l2 or v4l2-ctl. It's very useful.
 
-Well, it doesn't hurt to add it to the media_build tree, since
-vmalloc.h exists at least since 2.6.11.
+I guess I'll just keep disagreeing with you regarding whether the kernel 
+should provide GUI hints then (cf. V4L2_CTRL_FLAG_SLIDER) :-)
 
-Added upstream.
-
-Did the driver compile fine?
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
