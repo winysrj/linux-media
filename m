@@ -1,48 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60423 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751396AbbL1OQA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 09:16:00 -0500
-Subject: Re: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56814412.4000903@osg.samsung.com>
-Date: Mon, 28 Dec 2015 11:15:46 -0300
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:42888 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751601AbbLZU7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Dec 2015 15:59:01 -0500
+Date: Sat, 26 Dec 2015 21:58:58 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Gilles Muller <Gilles.Muller@lip6.fr>,
+	Nicolas Palix <nicolas.palix@imag.fr>,
+	Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr,
+	linux-kernel@vger.kernel.org,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	linux-media@vger.kernel.org, netdev@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-spi@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+cc: kernel-janitors@vger.kernel.org
+Subject: [PATCH v2] coccinelle: api: check for propagation of error from
+ platform_get_irq
+In-Reply-To: <567EF895.6080702@cogentembedded.com>
+Message-ID: <alpine.DEB.2.02.1512262156580.2070@localhost6.localdomain6>
+References: <1451157891-24881-1-git-send-email-Julia.Lawall@lip6.fr> <567EF188.7020203@cogentembedded.com> <alpine.DEB.2.02.1512262107340.2070@localhost6.localdomain6> <alpine.DEB.2.02.1512262123500.2070@localhost6.localdomain6>
+ <567EF895.6080702@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+The error return value of platform_get_irq seems to often get dropped.
 
-On 12/28/2015 11:03 AM, Mauro Carvalho Chehab wrote:
-> There are a few discussions left with regards to this ioctl:
-> 
-> 1) the name of the new structs will contain _v2_ on it?
-> 2) what's the best alternative to avoid compat32 issues?
-> 
-> Due to that, let's postpone the addition of this new ioctl to
-> the next Kernel version, to give people more time to discuss it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-I agree that leaving the IOCTL out for now is the most sensible thing to
-do since as you said, we didn't have time due holidays season to finish
-the discussion about the struct media_v2_topology layout.
+---
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+v2: Check for the direct return case also.  Added some mailing lists of
+common offenders.
+
+diff --git a/scripts/coccinelle/api/platform_get_irq_return.cocci b/scripts/coccinelle/api/platform_get_irq_return.cocci
+new file mode 100644
+index 0000000..44680d0
+--- /dev/null
++++ b/scripts/coccinelle/api/platform_get_irq_return.cocci
+@@ -0,0 +1,58 @@
++/// Propagate the return value of platform_get_irq.
++//# Sometimes the return value of platform_get_irq is tested using <= 0, but 0
++//# might not be an appropriate return value in an error case.
++///
++// Confidence: Moderate
++// Copyright: (C) 2015 Julia Lawall, Inria. GPLv2.
++// URL: http://coccinelle.lip6.fr/
++// Options: --no-includes --include-headers
++
++virtual context
++virtual org
++virtual report
++
++// ----------------------------------------------------------------------------
++
++@r depends on context || org || report@
++constant C;
++statement S;
++expression e, ret;
++position j0, j1;
++@@
++
++* e@j0 = platform_get_irq(...);
++(
++if@j1 (...) {
++  ...
++  return -C;
++} else S
++|
++if@j1 (...) {
++  ...
++  ret = -C;
++  ...
++  return ret;
++} else S
++)
++
++// ----------------------------------------------------------------------------
++
++@script:python r_org depends on org@
++j0 << r.j0;
++j1 << r.j1;
++@@
++
++msg = "Propagate return value of platform_get_irq."
++coccilib.org.print_todo(j0[0], msg)
++coccilib.org.print_link(j1[0], "")
++
++// ----------------------------------------------------------------------------
++
++@script:python r_report depends on report@
++j0 << r.j0;
++j1 << r.j1;
++@@
++
++msg = "Propagate return value of platform_get_irq around line %s." % (j1[0].line)
++coccilib.report.print_report(j0[0], msg)
++
