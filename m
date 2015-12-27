@@ -1,96 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59725 "EHLO lists.s-osg.org"
+Received: from mout.web.de ([212.227.17.11]:54125 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751530AbbLULVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 06:21:32 -0500
-Subject: Re: [PATCH v5 0/3] [media] Fix race between graph enumeration and
- entities registration
+	id S1751695AbbL0Umv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2015 15:42:51 -0500
+From: Soeren Moch <smoch@web.de>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1449874629-8973-1-git-send-email-javier@osg.samsung.com>
- <20151212115025.06e54516@recife.lan>
-Cc: linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <5677E0B5.1080007@osg.samsung.com>
-Date: Mon, 21 Dec 2015 08:21:25 -0300
-MIME-Version: 1.0
-In-Reply-To: <20151212115025.06e54516@recife.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Cc: Soeren Moch <smoch@web.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: dvb_ringbuffer: Add memory barriers
+Date: Sun, 27 Dec 2015 21:41:56 +0100
+Message-Id: <1451248920-4935-1-git-send-email-smoch@web.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Implement memory barriers according to Documentation/circular-buffers.txt:
+- use smp_store_release() to update ringbuffer read/write pointers
+- use smp_load_acquire() to load write pointer on reader side
+- use ACCESS_ONCE() to load read pointer on writer side
 
-On 12/12/2015 10:50 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 11 Dec 2015 19:57:06 -0300
-> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
-> 
->> Hello,
->>
->> This series fixes the issue of media device nodes being registered before
->> all the media entities and pads links are created so if user-space tries
->> to enumerate the graph too early, it may get a partial graph enumeration
->> since everything may not been registered yet.
->>
->> The solution (suggested by Sakari Ailus) is to separate the media device
->> registration from the initialization so drivers can first initialize the
->> media device, create the graph and then finally register the media device
->> node once is finished.
->>
->> This is the fifth version of the series and is a rebase on top of latest
->> MC next gen and the only important change is the addition of patch 3/3.
->>
->> Patch #1 adds a check to the media_device_unregister() function to know if
->> the media device has been registed yet so calling it will be safe and the
->> cleanup functions of the drivers won't need to be changed in case register
->> failed.
->>
->> Patch #2 does the init and registration split, changing all the drivers to
->> make the change atomic and also adds a cleanup function for media devices.
->>
->> Patch #3 sets a topology version 0 at media device registration to allow
->> user-space to know that the graph is "static" (i.e: no graph updates after
->> the media device was registered).
-> 
-> Got some troubles when compiling those patches:
-> 
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_init’:
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:104:6: warning: unused variable ‘ret’ [-Wunused-variable]
->   int ret;
->       ^
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c: In function ‘dvb_usb_media_device_register’:
-> drivers/media/usb/dvb-usb/dvb-usb-dvb.c:129:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
->   media_device_register(adap->dvb_adap.mdev);
->   ^
-> 
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_init’:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:409:6: warning: unused variable ‘ret’ [-Wunused-variable]
->   int ret;
->       ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_adapter_frontend_init’:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:706:34: warning: passing argument 1 of ‘dvb_usbv2_media_device_register’ from incompatible pointer type [-Wincompatible-pointer-types]
->   dvb_usbv2_media_device_register(&adap->dvb_adap);
->                                   ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:432:13: note: expected ‘struct dvb_usb_adapter *’ but argument is of type ‘struct dvb_adapter *’
->  static void dvb_usbv2_media_device_register(struct dvb_usb_adapter *adap)
->              ^
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function ‘dvb_usbv2_media_device_register’:
-> drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:435:2: warning: ignoring return value of ‘__media_device_register’, declared with attribute warn_unused_result [-Wunused-result]
->   media_device_register(adap->dvb_adap.mdev);
-> 
->
+This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
+quad core system with different types (PCI, USB) of DVB tuners.
 
-Sorry for missing these, the patches needed a rebase but neither
-omap2plus_defconfig nor exynos_defconfing (the platforms I used
-for testing) enabled DVB_USB and I forgot to do a more extensive
-build test.
+Signed-off-by: Soeren Moch <smoch@web.de>
+Cc: stable@vger.kernel.org # 3.14+
+---
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-Best regards,
+Since smp_store_release() and smp_load_acquire() were introduced in linux-3.14,
+a 3.14+ stable tag was added. Is it desired to apply a similar patch to older
+stable kernels?
+---
+ drivers/media/dvb-core/dvb_ringbuffer.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_ringbuffer.c b/drivers/media/dvb-core/dvb_ringbuffer.c
+index 1100e98..58b5968 100644
+--- a/drivers/media/dvb-core/dvb_ringbuffer.c
++++ b/drivers/media/dvb-core/dvb_ringbuffer.c
+@@ -55,7 +55,7 @@ void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len)
+ 
+ int dvb_ringbuffer_empty(struct dvb_ringbuffer *rbuf)
+ {
+-	return (rbuf->pread==rbuf->pwrite);
++	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
+ }
+ 
+ 
+@@ -64,7 +64,7 @@ ssize_t dvb_ringbuffer_free(struct dvb_ringbuffer *rbuf)
+ {
+ 	ssize_t free;
+ 
+-	free = rbuf->pread - rbuf->pwrite;
++	free = ACCESS_ONCE(rbuf->pread) - rbuf->pwrite;
+ 	if (free <= 0)
+ 		free += rbuf->size;
+ 	return free-1;
+@@ -76,7 +76,7 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+ {
+ 	ssize_t avail;
+ 
+-	avail = rbuf->pwrite - rbuf->pread;
++	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
+ 	if (avail < 0)
+ 		avail += rbuf->size;
+ 	return avail;
+@@ -86,14 +86,15 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+ 
+ void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf)
+ {
+-	rbuf->pread = rbuf->pwrite;
++	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
+ 	rbuf->error = 0;
+ }
+ EXPORT_SYMBOL(dvb_ringbuffer_flush);
+ 
+ void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
+ {
+-	rbuf->pread = rbuf->pwrite = 0;
++	smp_store_release(&rbuf->pread, 0);
++	smp_store_release(&rbuf->pwrite, 0);
+ 	rbuf->error = 0;
+ }
+ 
+@@ -119,12 +120,12 @@ ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf, u8 __user *buf, si
+ 			return -EFAULT;
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pread = 0;
++		smp_store_release(&rbuf->pread, 0);
+ 	}
+ 	if (copy_to_user(buf, rbuf->data+rbuf->pread, todo))
+ 		return -EFAULT;
+ 
+-	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+ 
+ 	return len;
+ }
+@@ -139,11 +140,11 @@ void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf, u8 *buf, size_t len)
+ 		memcpy(buf, rbuf->data+rbuf->pread, split);
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pread = 0;
++		smp_store_release(&rbuf->pread, 0);
+ 	}
+ 	memcpy(buf, rbuf->data+rbuf->pread, todo);
+ 
+-	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+ }
+ 
+ 
+@@ -158,10 +159,10 @@ ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf, size_t
+ 		memcpy(rbuf->data+rbuf->pwrite, buf, split);
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pwrite = 0;
++		smp_store_release(&rbuf->pwrite, 0);
+ 	}
+ 	memcpy(rbuf->data+rbuf->pwrite, buf, todo);
+-	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+ 
+ 	return len;
+ }
+@@ -181,12 +182,12 @@ ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
+ 			return len - todo;
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pwrite = 0;
++		smp_store_release(&rbuf->pwrite, 0);
+ 	}
+ 	status = copy_from_user(rbuf->data+rbuf->pwrite, buf, todo);
+ 	if (status)
+ 		return len - todo;
+-	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+ 
+ 	return len;
+ }
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+1.9.1
+
