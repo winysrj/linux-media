@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42530 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751201AbbLUMpf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 07:45:35 -0500
-Date: Mon, 21 Dec 2015 14:45:32 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH 1/1] Allow building static binaries
-Message-ID: <20151221124532.GT17128@valkosipuli.retiisi.org.uk>
-References: <1449587901-12784-1-git-send-email-sakari.ailus@linux.intel.com>
- <20151210132124.GK17128@valkosipuli.retiisi.org.uk>
- <5671C7BC.9090002@googlemail.com>
+Received: from mout.web.de ([212.227.17.11]:63741 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753282AbbL0LT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2015 06:19:29 -0500
+Received: from [192.168.1.40] ([88.69.149.15]) by smtp.web.de (mrweb103) with
+ ESMTPSA (Nemesis) id 0MQNma-1ZjPgR1cr6-00Tlzi for
+ <linux-media@vger.kernel.org>; Sun, 27 Dec 2015 12:19:27 +0100
+To: linux-media@vger.kernel.org
+From: Peter Schlaf <peter.schlaf@web.de>
+Subject: Probably a new board ID for em28xx: [1b80:e349]
+Message-ID: <567FC93D.7060602@web.de>
+Date: Sun, 27 Dec 2015 12:19:25 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5671C7BC.9090002@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+Hi,
 
-On Wed, Dec 16, 2015 at 09:21:16PM +0100, Gregor Jasny wrote:
-> Hello,
-> 
-> On 10/12/15 14:21, Sakari Ailus wrote:
-> > I discussed with Hans and he thought you'd be the best person to take a look
-> > at this.
-> > 
-> > The case is that I'd like to build static binaries and that doesn't seem to
-> > work with what's in Makefile.am for libv4l1 and libv4l2 at the moment.
-> 
-> Sorry for the late reply. Didi not notice this email earlier. Your patch
-> does not do what you'd like to achieve. Both v4l1compat and v4l2convert
-> are libraries which only purpose is to get preloaded by the loader. So
-> build them statically does not make sense. Instead they should not be
-> built at all. To achieve this the WITH_V4L_WRAPPERS variable should
-> evaluate to false. This is triggered by
-> 
-> AM_CONDITIONAL([WITH_V4L_WRAPPERS], [test x$enable_libv4l != xno -a
-> x$enable_shared != xno])
-> 
-> So changing
-> 
-> LDFLAGS="--static -static" ./configure --enable-static
-> 
-> to
-> 
-> LDFLAGS="--static -static" ./configure --enable-static --disabled-shared
-> 
-> should do the trick. Does this help?
+I have a small usb-device with s-vhs, composite-video and stereo-audio 
+cabels attached.
 
-It does. I get statically linked binaries now without changes. Thank you,
-Gregor!
+The shell just says "MAGIX" and "Made in China". It has also a black 
+button to push.
 
-Hans, Mauro, please ignore the patch.
+I plugged it in to get some video grabbed but no /dev/videoX was created.
 
--- 
-Kind regards,
+"lsusb" output:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+         Bus 003 Device 012: ID 1b80:e349 Afatech
+
+journalctl -f output:
+
+         kernel: usb 3-1.1: new high-speed USB device number 12 using 
+ehci-pci
+         kernel: usb 3-1.1: New USB device found, idVendor=1b80, 
+idProduct=e349
+         kernel: usb 3-1.1: New USB device strings: Mfr=0, Product=1, 
+SerialNumber=0
+         kernel: usb 3-1.1: Product: USB 2861 Device
+         mtp-probe[7688]: checking bus 3, device 12: 
+"/sys/devices/pci0000:00/0000:00:1a.0/usb3/3-1/3-1.1"
+         mtp-probe[7688]: bus: 3, device: 12 was not an MTP device
+
+Kernel is 4.1.13-5-default on openSuse 42.1
+
+I opened that thing and found these chips:
+
+       SAA7113H
+       EM2860
+       EMP202
+
+I did
+       modprobe em28xx
+       modprobe saa7115
+
+but still got no video-device.
+
+
+(I use an application called "cheese" which works perfect with my other 
+usb videograbbing device.)
+
+Is there anything else I can do?
+
+
+CU
+Peter
+
