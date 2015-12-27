@@ -1,79 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56370 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934AbbLFDN3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 22:13:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v8 16/55] [media] media: Don't accept early-created links
-Date: Sun, 06 Dec 2015 05:13:42 +0200
-Message-ID: <4429074.sB9E7s8GZM@avalon>
-In-Reply-To: <7c566a41726e8ba88873b427912ca7797c63ec2f.1441540862.git.mchehab@osg.samsung.com>
-References: <ec40936d7349f390dd8b73b90fa0e0708de596a9.1441540862.git.mchehab@osg.samsung.com> <7c566a41726e8ba88873b427912ca7797c63ec2f.1441540862.git.mchehab@osg.samsung.com>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:23886 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750782AbbL0GNv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2015 01:13:51 -0500
+Date: Sun, 27 Dec 2015 07:13:48 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Gilles Muller <Gilles.Muller@lip6.fr>,
+	Nicolas Palix <nicolas.palix@imag.fr>,
+	Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH v2] coccinelle: api: check for propagation of error from
+ platform_get_irq
+In-Reply-To: <567F166B.7030208@cogentembedded.com>
+Message-ID: <alpine.DEB.2.02.1512270709420.2038@localhost6.localdomain6>
+References: <1451157891-24881-1-git-send-email-Julia.Lawall@lip6.fr> <567EF188.7020203@cogentembedded.com> <alpine.DEB.2.02.1512262107340.2070@localhost6.localdomain6> <alpine.DEB.2.02.1512262123500.2070@localhost6.localdomain6> <567EF895.6080702@cogentembedded.com>
+ <alpine.DEB.2.02.1512262156580.2070@localhost6.localdomain6> <567F141C.8010000@cogentembedded.com> <alpine.DEB.2.02.1512262330430.2070@localhost6.localdomain6> <567F166B.7030208@cogentembedded.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+>    Well, looking again, the patch should be good. I just thought its goal was
+> to fix the code as well...
 
-Thank you for the patch.
+I could do that for the irq < 0 case, but I think that in that case, kbuild
+will only run the patch version, and the <= cases will not be reported on.
+I don't have a general fix for the <= 0.  Is it even correct to have < in
+some cases and <= in others?
 
-On Sunday 06 September 2015 09:02:47 Mauro Carvalho Chehab wrote:
-> Links are graph objects that represent the links of two already
-> existing objects in the graph.
-> 
-> While with the current implementation, it is possible to create
-> the links earlier, It doesn't make any sense to allow linking
-> two objects when they are not both created.
-> 
-> So, remove the code that would be handling those early-created
-> links and add a BUG_ON() to ensure that.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 138b18416460..0d85c6c28004 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -443,13 +443,6 @@ int __must_check media_device_register_entity(struct
-> media_device *mdev, media_gobj_init(mdev, MEDIA_GRAPH_ENTITY,
-> &entity->graph_obj);
->  	list_add_tail(&entity->list, &mdev->entities);
-> 
-> -	/*
-> -	 * Initialize objects at the links
-> -	 * in the case where links got created before entity register
-> -	 */
-> -	for (i = 0; i < entity->num_links; i++)
-> -		media_gobj_init(mdev, MEDIA_GRAPH_LINK,
-> -				&entity->links[i].graph_obj);
->  	/* Initialize objects at the pads */
->  	for (i = 0; i < entity->num_pads; i++)
->  		media_gobj_init(mdev, MEDIA_GRAPH_PAD,
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 27fce6224972..0926f08be981 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -161,6 +161,8 @@ void media_gobj_init(struct media_device *mdev,
->  			   enum media_gobj_type type,
->  			   struct media_gobj *gobj)
->  {
-> +	BUG_ON(!mdev);
-> +
-
-Please use a WARN_ON() and return (and possibly make the function return an 
-int error code), we don't want to panic completely for this.
-
->  	gobj->mdev = mdev;
-> 
->  	/* Create a per-type unique object ID */
-
--- 
-Regards,
-
-Laurent Pinchart
-
+julia
