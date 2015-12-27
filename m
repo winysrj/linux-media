@@ -1,127 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36952 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755811AbbLHDwv (ORCPT
+Received: from mail-lf0-f49.google.com ([209.85.215.49]:33777 "EHLO
+	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752281AbbL0LSs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2015 22:52:51 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id A2688E0BBD
-	for <linux-media@vger.kernel.org>; Tue,  8 Dec 2015 04:52:45 +0100 (CET)
-Date: Tue, 08 Dec 2015 04:52:45 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20151208035245.A2688E0BBD@tschai.lan>
+	Sun, 27 Dec 2015 06:18:48 -0500
+Received: by mail-lf0-f49.google.com with SMTP id p203so189185591lfa.0
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2015 03:18:47 -0800 (PST)
+Subject: Re: [PATCH v2] coccinelle: api: check for propagation of error from
+ platform_get_irq
+To: Julia Lawall <julia.lawall@lip6.fr>
+References: <1451157891-24881-1-git-send-email-Julia.Lawall@lip6.fr>
+ <567EF188.7020203@cogentembedded.com>
+ <alpine.DEB.2.02.1512262107340.2070@localhost6.localdomain6>
+ <alpine.DEB.2.02.1512262123500.2070@localhost6.localdomain6>
+ <567EF895.6080702@cogentembedded.com>
+ <alpine.DEB.2.02.1512262156580.2070@localhost6.localdomain6>
+ <567F141C.8010000@cogentembedded.com>
+ <alpine.DEB.2.02.1512262330430.2070@localhost6.localdomain6>
+ <567F166B.7030208@cogentembedded.com>
+ <alpine.DEB.2.02.1512270709420.2038@localhost6.localdomain6>
+Cc: Gilles Muller <Gilles.Muller@lip6.fr>,
+	Nicolas Palix <nicolas.palix@imag.fr>,
+	Michal Marek <mmarek@suse.com>, cocci@systeme.lip6.fr,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-spi@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	kernel-janitors@vger.kernel.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <567FC914.4080705@cogentembedded.com>
+Date: Sun, 27 Dec 2015 14:18:44 +0300
+MIME-Version: 1.0
+In-Reply-To: <alpine.DEB.2.02.1512270709420.2038@localhost6.localdomain6>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 12/27/2015 9:13 AM, Julia Lawall wrote:
 
-Results of the daily build of media_tree:
+>>     Well, looking again, the patch should be good. I just thought its goal was
+>> to fix the code as well...
+>
+> I could do that for the irq < 0 case, but I think that in that case, kbuild
+> will only run the patch version, and the <= cases will not be reported on.
+> I don't have a general fix for the <= 0.  Is it even correct to have < in
+> some cases and <= in others?
 
-date:		Tue Dec  8 04:00:16 CET 2015
-git branch:	test
-git hash:	21312f6ddb1710750761c4b140b7367208b4f89e
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0
-smatch version:	v0.5.0-3202-g618e15b
-host hardware:	x86_64
-host os:	4.2.0-164
+    That's a good question...
+    In my prior fixes of this case I preferred to consider IRQ0 valid and so 
+used 'irq < 0'. I myself don't share the "IRQ0 is invalid" sentiment...
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-smatch: ERRORS
+> julia
 
-Detailed results are available here:
+MBR, Sergei
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
