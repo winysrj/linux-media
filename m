@@ -1,146 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51791 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbbLKNeb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56681 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524AbbL0RLi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 08:34:31 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-doc@vger.kernel.org
-Subject: [PATCH 04/10] media-entity.h: get rid of revision and group_id fields
-Date: Fri, 11 Dec 2015 11:34:09 -0200
-Message-Id: <434fe402a7b41a8d0b27bb5ab421a204007de4c2.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1449840443.git.mchehab@osg.samsung.com>
-References: <cover.1449840443.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sun, 27 Dec 2015 12:11:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	javier@osg.samsung.com, hverkuil@xs4all.nl,
+	linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+	=?ISO-8859-1?Q?Beno=EEt?= Cousson <bcousson@baylibre.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 00/23] Unrestricted media entity ID range support
+Date: Sun, 27 Dec 2015 19:11:36 +0200
+Message-ID: <26879584.9P9vDMYfPM@avalon>
+In-Reply-To: <20151223103242.44deaea4@recife.lan>
+References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi> <20151216140301.GO17128@valkosipuli.retiisi.org.uk> <20151223103242.44deaea4@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both revision and group_id fields were never used and were always
-initialized to zero. Remove them.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml | 13 ++-----------
- Documentation/media-framework.txt                           | 12 +++++-------
- drivers/media/media-device.c                                |  4 ++--
- include/media/media-entity.h                                |  4 ----
- 4 files changed, 9 insertions(+), 24 deletions(-)
+On Wednesday 23 December 2015 10:32:42 Mauro Carvalho Chehab wrote:
+> Em Wed, 16 Dec 2015 16:03:01 +0200 Sakari Ailus escreveu:
+> > On Wed, Dec 16, 2015 at 03:32:15PM +0200, Sakari Ailus wrote:
+> > > This is the third version of the unrestricted media entity ID range
+> > > support set. I've taken Mauro's comments into account and fixed a number
+> > > of bugs as well (omap3isp memory leak and omap4iss stream start).
+> > 
+> > Javier: Mauro told me you might have OMAP4 hardware. Would you be able to
+> > test the OMAP4 ISS with these patches?
+> > 
+> > Thanks.
+> 
+> Sakari,
+> 
+> Testing with OMAP4 is not possible. The driver is broken: it doesn't
+> support DT, and the required pdata definition is missing.
 
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-index 27f8817e7abe..9f7614a01234 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-enum-entities.xml
-@@ -59,15 +59,6 @@
-     <para>Entity IDs can be non-contiguous. Applications must
-     <emphasis>not</emphasis> try to enumerate entities by calling
-     MEDIA_IOC_ENUM_ENTITIES with increasing id's until they get an error.</para>
--    <para>Two or more entities that share a common non-zero
--    <structfield>group_id</structfield> value are considered as logically
--    grouped. Groups are used to report
--    <itemizedlist>
--      <listitem><para>ALSA, VBI and video nodes that carry the same media
--      stream</para></listitem>
--      <listitem><para>lens and flash controllers associated with a sensor</para></listitem>
--    </itemizedlist>
--    </para>
- 
-     <table pgwide="1" frame="none" id="media-entity-desc">
-       <title>struct <structname>media_entity_desc</structname></title>
-@@ -106,7 +97,7 @@
- 	    <entry><structfield>revision</structfield></entry>
- 	    <entry></entry>
- 	    <entry></entry>
--	    <entry>Entity revision in a driver/hardware specific format.</entry>
-+	    <entry>Entity revision. Always zero (obsolete)</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -120,7 +111,7 @@
- 	    <entry><structfield>group_id</structfield></entry>
- 	    <entry></entry>
- 	    <entry></entry>
--	    <entry>Entity group ID</entry>
-+	    <entry>Entity group ID. Always zero (obsolete)</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u16</entry>
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 7fbfe4bd1f47..ef3663af1db3 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -110,10 +110,10 @@ If no pads are needed, drivers could directly fill entity->num_pads
- with 0 and entity->pads with NULL or to call the above function that
- will do the same.
- 
--The media_entity name, type, flags, revision and group_id fields should be
--initialized before calling media_device_register_entity(). Entities embedded
--in higher-level standard structures can have some of those fields set by the
--higher-level framework.
-+The media_entity name, type and flags fields should be initialized before
-+calling media_device_register_entity(). Entities embedded in higher-level
-+standard structures can have some of those fields set by the higher-level
-+framework.
- 
- As the number of pads is known in advance, the pads array is not allocated
- dynamically but is managed by the entity driver. Most drivers will embed the
-@@ -164,9 +164,7 @@ Entities have flags that describe the entity capabilities and state.
- 
- Logical entity groups can be defined by setting the group ID of all member
- entities to the same non-zero value. An entity group serves no purpose in the
--kernel, but is reported to userspace during entities enumeration. The group_id
--field belongs to the media device driver and must not by touched by entity
--drivers.
-+kernel, but is reported to userspace during entities enumeration.
- 
- Media device drivers should define groups if several entities are logically
- bound together. Example usages include reporting
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index b8cd7733a31c..537160bb461e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -109,9 +109,9 @@ static long media_device_enum_entities(struct media_device *mdev,
- 	if (ent->name)
- 		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
- 	u_ent.type = ent->function;
--	u_ent.revision = ent->revision;
-+	u_ent.revision = 0;		/* Unused */
- 	u_ent.flags = ent->flags;
--	u_ent.group_id = ent->group_id;
-+	u_ent.group_id = 0;		/* Unused */
- 	u_ent.pads = ent->num_pads;
- 	u_ent.links = ent->num_links - ent->num_backlinks;
- 	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 32fef503d950..031536723d8c 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -153,9 +153,7 @@ struct media_entity_operations {
-  * @name:	Entity name.
-  * @function:	Entity main function, as defined in uapi/media.h
-  *		(MEDIA_ENT_F_*)
-- * @revision:	Entity revision - OBSOLETE - should be removed soon.
-  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-- * @group_id:	Entity group ID - OBSOLETE - should be removed soon.
-  * @num_pads:	Number of sink and source pads.
-  * @num_links:	Total number of links, forward and back, enabled and disabled.
-  * @num_backlinks: Number of backlinks
-@@ -180,9 +178,7 @@ struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
- 	u32 function;
--	u32 revision;
- 	unsigned long flags;
--	u32 group_id;
- 
- 	u16 num_pads;
- 	u16 num_links;
+What do you mean by missing ? struct iss_platform_data is defined in 
+include/media/omap4iss.h.
+
+> Both Javier and I tried to fix it in the last couple days, in order to test
+> it with a PandaBoard. We came with the enclosed patch, but it is still
+> incomplete. Based on what's written on this e-mail:
+> 	 https://www.mail-archive.com/linux-media@vger.kernel.org/msg89247.html
+> 
+> It seems that this is an already known issue.
+> 
+> So, I'm considering this driver as BROKEN. Not much sense on doing any
+> tests on it, while this doesn't get fixed.
+> 
+> Regards,
+> Mauro
+> 
+> PS.: With the enclosed patch, I got this error:
+> 	[    0.267639] platform omap4iss: failed to claim resource 2
+> 
+> But, even if I comment out the platform code that returns this error,
+> there are still other missing things:
+> 	[    7.131622] omap4iss omap4iss: Unable to get iss_fck clock info
+> 	[    7.137878] omap4iss omap4iss: Unable to get clocks
+> 
+> ---
+> 
+> ARM: add a pdata quirks for OMAP4 panda camera
+> 
+> This is a hack to make it to believe that the pandaboard
+> has a camera.
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/pdata-quirks.c
+> b/arch/arm/mach-omap2/pdata-quirks.c index 1dfe34654c43..998bb6936dc0
+> 100644
+> --- a/arch/arm/mach-omap2/pdata-quirks.c
+> +++ b/arch/arm/mach-omap2/pdata-quirks.c
+> @@ -36,6 +36,8 @@
+>  #include "soc.h"
+>  #include "hsmmc.h"
+> 
+> +#include "../../../drivers/staging/media/omap4iss/iss.h"
+> +
+>  struct pdata_init {
+>  	const char *compatible;
+>  	void (*fn)(void);
+> @@ -408,6 +410,124 @@ static void __init t410_abort_init(void)
+>  }
+>  #endif
+> 
+> +#ifdef CONFIG_ARCH_OMAP4
+> +
+> +static struct resource panda_iss_resource[] = {
+> +	{
+> +		.start = 0x52000000,
+> +		.end = 0x52000000 + 0x100,
+> +		.name = "top",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52001000,
+> +		.end = 0x52001000 + 0x170,
+> +		.name = "csi2_a_regs1",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52001170,
+> +		.end = 0x52001170 + 0x020,
+> +		.name = "camerarx_core1",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52001400,
+> +		.end = 0x52001400 + 0x170,
+> +		.name = "csi2_b_regs1",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52001570,
+> +		.end = 0x52001570 + 0x020,
+> +		.name = "camerarx_core2",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52002000,
+> +		.end = 0x52002000 + 0x200,
+> +		.name = "bte",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52010000,
+> +		.end = 0x52010000 + 0x0a0,
+> +		.name = "isp_sys1",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52010400,
+> +		.end = 0x52010400 + 0x400,
+> +		.name = "isp_resizer",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52010800,
+> +		.end = 0x52010800 + 0x800,
+> +		.name = "isp_ipipe",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52011000,
+> +		.end = 0x52011000 + 0x200,
+> +		.name = "isp_isif",
+> +		.flags = IORESOURCE_MEM,
+> +	}, {
+> +		.start = 0x52011200,
+> +		.end = 0x52011200 + 0x080,
+> +		.name = "isp_ipipeif",
+> +		.flags = IORESOURCE_MEM,
+> +	}
+> +};
+> +
+> +static struct i2c_board_info panda_camera_i2c_device = {
+> +	I2C_BOARD_INFO("smia", 0x10),
+> +};
+> +
+> +static struct iss_subdev_i2c_board_info panda_camera_subdevs[] = {
+> +	{
+> +		.board_info = &panda_camera_i2c_device,
+> +		.i2c_adapter_id = 3,
+> +	},
+> +};
+> +
+> +static struct iss_v4l2_subdevs_group iss_subdevs[] = {
+> +	{
+> +		.subdevs = panda_camera_subdevs,
+> +		.interface = ISS_INTERFACE_CSI2A_PHY1,
+> +		.bus = {
+> +			.csi2 = {
+> +				.lanecfg = {
+> +					.clk = {
+> +						.pol = 0,
+> +						.pos = 2,
+> +					},
+> +					.data[0] = {
+> +						.pol = 0,
+> +						.pos = 1,
+> +					},
+> +					.data[1] = {
+> +						.pol = 0,
+> +						.pos = 3,
+> +					},
+> +				},
+> +			} },
+> +	},
+> +	{ /* sentinel */ },
+> +};
+> +
+> +static struct iss_platform_data iss_pdata = {
+> +	.subdevs = iss_subdevs,
+> +};
+> +
+> +static struct platform_device omap4iss_device = {
+> +	.name           = "omap4iss",
+> +	.id             = -1,
+> +	.dev = {
+> +		.platform_data = &iss_pdata,
+> +	},
+> +	.num_resources  = ARRAY_SIZE(panda_iss_resource),
+> +	.resource       = panda_iss_resource,
+> +};
+> +
+> +static void __init omap4_panda_legacy_init(void)
+> +{
+> +	platform_device_register(&omap4iss_device);
+> +}
+> +
+> +#endif /* CONFIG_ARCH_OMAP4 */
+> +
+>  #if defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_SOC_OMAP5)
+>  static struct iommu_platform_data omap4_iommu_pdata = {
+>  	.reset_name = "mmu_cache",
+> @@ -539,6 +659,9 @@ static struct pdata_init pdata_quirks[] __initdata = {
+>  #ifdef CONFIG_SOC_TI81XX
+>  	{ "hp,t410", t410_abort_init, },
+>  #endif
+> +#ifdef CONFIG_ARCH_OMAP4
+> +	{ "ti,omap4-panda", omap4_panda_legacy_init, },
+> +#endif
+>  #ifdef CONFIG_SOC_OMAP5
+>  	{ "ti,omap5-uevm", omap5_uevm_legacy_init, },
+>  #endif
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss.c
+> b/drivers/staging/media/omap4iss/iss.c index 30b473cfb020..b528cacda17b
+> 100644
+> --- a/drivers/staging/media/omap4iss/iss.c
+> +++ b/drivers/staging/media/omap4iss/iss.c
+> @@ -1412,6 +1412,9 @@ static int iss_probe(struct platform_device *pdev)
+>  	unsigned int i;
+>  	int ret;
+> 
+> +
+> +printk("%s: pdata=%p\n", __func__, pdata);
+> +
+>  	if (!pdata)
+>  		return -EINVAL;
+> 
+> @@ -1437,24 +1440,33 @@ static int iss_probe(struct platform_device *pdev)
+>  	iss->syscon = syscon_regmap_lookup_by_compatible("syscon");
+>  	if (IS_ERR(iss->syscon)) {
+>  		ret = PTR_ERR(iss->syscon);
+> +		dev_err(iss->dev, "Unable to find syscon");
+>  		goto error;
+>  	}
+> 
+>  	/* Clocks */
+>  	ret = iss_map_mem_resource(pdev, iss, OMAP4_ISS_MEM_TOP);
+> -	if (ret < 0)
+> +	if (ret < 0) {
+> +		dev_err(iss->dev, "Unable to map memory resource\n");
+>  		goto error;
+> +	}
+> 
+>  	ret = iss_get_clocks(iss);
+> -	if (ret < 0)
+> +	if (ret < 0) {
+> +		dev_err(iss->dev, "Unable to get clocks\n");
+>  		goto error;
+> +	}
+> 
+> -	if (!omap4iss_get(iss))
+> +	if (!omap4iss_get(iss)) {
+> +		dev_err(iss->dev, "Failed to acquire ISS resource\n");
+>  		goto error;
+> +	}
+> 
+>  	ret = iss_reset(iss);
+> -	if (ret < 0)
+> +	if (ret < 0) {
+> +		dev_err(iss->dev, "Unable to reset ISS\n");
+>  		goto error_iss;
+> +	}
+> 
+>  	iss->revision = iss_reg_read(iss, OMAP4_ISS_MEM_TOP, ISS_HL_REVISION);
+>  	dev_info(iss->dev, "Revision %08x found\n", iss->revision);
+
 -- 
-2.5.0
+Regards,
 
+Laurent Pinchart
 
