@@ -1,64 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56056 "EHLO lists.s-osg.org"
+Received: from mout.web.de ([212.227.17.11]:54442 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750964AbbLCNTU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2015 08:19:20 -0500
-Date: Thu, 3 Dec 2015 11:19:12 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Benoit Parrot <bparrot@ti.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.5] New ti-cal driver
-Message-ID: <20151203111912.6fdfc076@recife.lan>
-In-Reply-To: <56585B0E.8090907@xs4all.nl>
-References: <56585B0E.8090907@xs4all.nl>
+	id S1754053AbbL0OUo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2015 09:20:44 -0500
+Received: from [192.168.1.2] ([77.182.171.219]) by smtp.web.de (mrweb101) with
+ ESMTPSA (Nemesis) id 0MKJ7S-1aBY1k1xTS-001hry for
+ <linux-media@vger.kernel.org>; Sun, 27 Dec 2015 15:20:42 +0100
+To: linux-media@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [media] af9013: Checking for register accesses?
+Message-ID: <567FF3B0.1010003@users.sourceforge.net>
+Date: Sun, 27 Dec 2015 15:20:32 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 27 Nov 2015 14:30:54 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hello,
 
-> The following changes since commit 10897dacea26943dd80bd6629117f4620fc320ef:
-> 
->   Merge tag 'v4.4-rc2' into patchwork (2015-11-23 14:16:58 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git cal
-> 
-> for you to fetch changes up to 5df9a7909b737e9725c1005b3b39383e9c2490ca:
-> 
->   media: v4l: ti-vpe: Document DRA72 CAL h/w module (2015-11-27 14:25:07 +0100)
-> 
-> ----------------------------------------------------------------
-> Benoit Parrot (2):
->       media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
->       media: v4l: ti-vpe: Document DRA72 CAL h/w module
+I have looked at the implementations of functions like the following once more.
+https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/dvb-frontends/af9013.c?id=80c75a0f1d81922bf322c0634d1e1a15825a89e6#n124
+* af9013_rd_regs
+* af9013_wr_regs
 
-Please put the DT documentation patch before the patch itself. Documenting
-first makes easier to review, and removes a checkpatch warning:
+Both functions will always return zero so far. Should they eventually forward
+an error code from other function calls?
 
-WARNING: DT compatible string "ti,dra72-cal" appears un-documented -- check ./Documentation/devicetree/bindings/
-#2210: FILE: drivers/media/platform/ti-vpe/cal.c:2128:
-+	{ .compatible = "ti,dra72-cal", },
-
-
-Also, with regards to:
-
->       media: v4l: ti-vpe: Add CAL v4l2 camera capture driver
-
-WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
-#78: 
-new file mode 100644
-
-Please add an entry to MAINTAINERS for platform/ti-vpe.
-
-Thanks,
-Mauro
-
-
-
-
-
+Regards,
+Markus
