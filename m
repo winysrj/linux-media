@@ -1,115 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:38663 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754651AbbLKJ4F (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:54776 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750975AbbL1JUR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 04:56:05 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
+	Mon, 28 Dec 2015 04:20:17 -0500
+Date: Mon, 28 Dec 2015 10:20:10 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>
-CC: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Subject: [PATCH v2 5/8] arm64: dts: mediatek: Add Video Encoder for MT8173
-Date: Fri, 11 Dec 2015 17:55:40 +0800
-Message-ID: <1449827743-22895-6-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] [media] tuners: One check less in m88rs6000t_get_rf_strength()
+ after error detection
+In-Reply-To: <5680FDB3.7060305@users.sourceforge.net>
+Message-ID: <alpine.DEB.2.10.1512281019050.2702@hadrien>
+References: <566ABCD9.1060404@users.sourceforge.net> <5680FDB3.7060305@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video encoder node for MT8173
+On Mon, 28 Dec 2015, SF Markus Elfring wrote:
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   47 ++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 28 Dec 2015 10:10:34 +0100
+>
+> This issue was detected by using the Coccinelle software.
+>
+> Move the jump label directly before the desired log statement
+> so that the variable "ret" will not be checked once more
+> after it was determined that a function call failed.
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index b8c8ff0..a6b0fcf 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -545,6 +545,53 @@
- 			#clock-cells = <1>;
- 		};
- 
-+		larb3: larb@18001000 {
-+			compatible = "mediatek,mt8173-smi-larb";
-+			reg = <0 0x18001000 0 0x1000>;
-+			mediatek,smi = <&smi_common>;
-+			power-domains = <&scpsys MT8173_POWER_DOMAIN_VENC>;
-+			clocks = <&vencsys CLK_VENC_CKE1>,
-+				 <&vencsys CLK_VENC_CKE0>;
-+			clock-names = "apb", "smi";
-+		};
-+
-+		vcodec_enc: vcodec@18002000 {
-+			compatible = "mediatek,mt8173-vcodec-enc";
-+			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
-+			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
-+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-+				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-+			larb = <&larb3>,
-+			       <&larb5>;
-+			iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
-+				 <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
-+				 <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
-+			vpu = <&vpu>;
-+			clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>,
-+				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
-+			clock-names = "vencpll",
-+				      "venc_lt_sel",
-+				      "vcodecpll_370p5_ck";
-+		};
-+
- 		vencltsys: clock-controller@19000000 {
- 			compatible = "mediatek,mt8173-vencltsys", "syscon";
- 			reg = <0 0x19000000 0 0x1000>;
--- 
-1.7.9.5
+Why not avoid both unnecessary ifs and the enormous ugliness of a label
+inside an if by making two returns: a return 0 for success and a dev_dbg
+and return ret for failure?
 
+julia
+
+
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/tuners/m88rs6000t.c | 16 +++++++++-------
+>  1 file changed, 9 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
+> index 504bfbc..b45594e 100644
+> --- a/drivers/media/tuners/m88rs6000t.c
+> +++ b/drivers/media/tuners/m88rs6000t.c
+> @@ -510,27 +510,27 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
+>
+>  	ret = regmap_read(dev->regmap, 0x5A, &val);
+>  	if (ret)
+> -		goto err;
+> +		goto report_failure;
+>  	RF_GC = val & 0x0f;
+>
+>  	ret = regmap_read(dev->regmap, 0x5F, &val);
+>  	if (ret)
+> -		goto err;
+> +		goto report_failure;
+>  	IF_GC = val & 0x0f;
+>
+>  	ret = regmap_read(dev->regmap, 0x3F, &val);
+>  	if (ret)
+> -		goto err;
+> +		goto report_failure;
+>  	TIA_GC = (val >> 4) & 0x07;
+>
+>  	ret = regmap_read(dev->regmap, 0x77, &val);
+>  	if (ret)
+> -		goto err;
+> +		goto report_failure;
+>  	BB_GC = (val >> 4) & 0x0f;
+>
+>  	ret = regmap_read(dev->regmap, 0x76, &val);
+>  	if (ret)
+> -		goto err;
+> +		goto report_failure;
+>  	PGA2_GC = val & 0x3f;
+>  	PGA2_cri = PGA2_GC >> 2;
+>  	PGA2_crf = PGA2_GC & 0x03;
+> @@ -562,9 +562,11 @@ static int m88rs6000t_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
+>  	/* scale value to 0x0000-0xffff */
+>  	gain = clamp_val(gain, 1000U, 10500U);
+>  	*strength = (10500 - gain) * 0xffff / (10500 - 1000);
+> -err:
+> -	if (ret)
+> +
+> +	if (ret) {
+> +report_failure:
+>  		dev_dbg(&dev->client->dev, "failed=%d\n", ret);
+> +	}
+>  	return ret;
+>  }
+>
+> --
+> 2.6.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
