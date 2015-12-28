@@ -1,173 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:35333 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753354AbbLRNFt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 08:05:49 -0500
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: [PATCH 5/5] staging: media: lirc: use new parport device model
-Date: Fri, 18 Dec 2015 18:35:29 +0530
-Message-Id: <1450443929-15305-5-git-send-email-sudipm.mukherjee@gmail.com>
-In-Reply-To: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
-References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:60433 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752514AbbL1PhV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 10:37:21 -0500
+Subject: Re: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5681572F.601@osg.samsung.com>
+Date: Mon, 28 Dec 2015 08:37:19 -0700
+MIME-Version: 1.0
+In-Reply-To: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modify lirc_parallel driver to use the new parallel port device model.
+On 12/28/2015 07:03 AM, Mauro Carvalho Chehab wrote:
+> There are a few discussions left with regards to this ioctl:
+> 
+> 1) the name of the new structs will contain _v2_ on it?
+> 2) what's the best alternative to avoid compat32 issues?
+> 
+> Due to that, let's postpone the addition of this new ioctl to
+> the next Kernel version, to give people more time to discuss it.
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
----
- drivers/staging/media/lirc/lirc_parallel.c | 100 +++++++++++++++++++----------
- 1 file changed, 65 insertions(+), 35 deletions(-)
+I thought we discussed this in our irc meeting and
+arrived at a good solution for compat32 issue
 
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index 0156114..20ec9b6 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -629,43 +629,26 @@ static void kf(void *handle)
- 	*/
- }
- 
--/*** module initialization and cleanup ***/
--
--static int __init lirc_parallel_init(void)
-+static void lirc_parallel_attach(struct parport *port)
- {
--	int result;
-+	struct pardev_cb lirc_parallel_cb;
- 
--	result = platform_driver_register(&lirc_parallel_driver);
--	if (result) {
--		pr_notice("platform_driver_register returned %d\n", result);
--		return result;
--	}
-+	if (port->base != io)
-+		return;
- 
--	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
--	if (!lirc_parallel_dev) {
--		result = -ENOMEM;
--		goto exit_driver_unregister;
--	}
-+	pport = port;
-+	memset(&lirc_parallel_cb, 0, sizeof(lirc_parallel_cb));
-+	lirc_parallel_cb.preempt = pf;
-+	lirc_parallel_cb.wakeup = kf;
-+	lirc_parallel_cb.irq_func = lirc_lirc_irq_handler;
- 
--	result = platform_device_add(lirc_parallel_dev);
--	if (result)
--		goto exit_device_put;
--
--	pport = parport_find_base(io);
--	if (!pport) {
--		pr_notice("no port at %x found\n", io);
--		result = -ENXIO;
--		goto exit_device_put;
--	}
--	ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
--					   pf, kf, lirc_lirc_irq_handler, 0,
--					   NULL);
--	parport_put_port(pport);
-+	ppdevice = parport_register_dev_model(port, LIRC_DRIVER_NAME,
-+					      &lirc_parallel_cb, 0);
- 	if (!ppdevice) {
- 		pr_notice("parport_register_device() failed\n");
--		result = -ENXIO;
--		goto exit_device_put;
-+		return;
- 	}
-+
- 	if (parport_claim(ppdevice) != 0)
- 		goto skip_init;
- 	is_claimed = 1;
-@@ -693,18 +676,66 @@ static int __init lirc_parallel_init(void)
- 
- 	is_claimed = 0;
- 	parport_release(ppdevice);
-- skip_init:
-+
-+skip_init:
-+	return;
-+}
-+
-+static void lirc_parallel_detach(struct parport *port)
-+{
-+	if (port->base != io)
-+		return;
-+
-+	parport_unregister_device(ppdevice);
-+}
-+
-+static struct parport_driver lirc_parport_driver = {
-+	.name = LIRC_DRIVER_NAME,
-+	.match_port = lirc_parallel_attach,
-+	.detach = lirc_parallel_detach,
-+	.devmodel = true,
-+};
-+
-+/*** module initialization and cleanup ***/
-+
-+static int __init lirc_parallel_init(void)
-+{
-+	int result;
-+
-+	result = platform_driver_register(&lirc_parallel_driver);
-+	if (result) {
-+		pr_notice("platform_driver_register returned %d\n", result);
-+		return result;
-+	}
-+
-+	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
-+	if (!lirc_parallel_dev) {
-+		result = -ENOMEM;
-+		goto exit_driver_unregister;
-+	}
-+
-+	result = platform_device_add(lirc_parallel_dev);
-+	if (result)
-+		goto exit_device_put;
-+
-+	result = parport_register_driver(&lirc_parport_driver);
-+	if (result) {
-+		pr_notice("parport_register_driver returned %d\n", result);
-+		goto exit_device_put;
-+	}
-+
- 	driver.dev = &lirc_parallel_dev->dev;
- 	driver.minor = lirc_register_driver(&driver);
- 	if (driver.minor < 0) {
- 		pr_notice("register_chrdev() failed\n");
--		parport_unregister_device(ppdevice);
- 		result = -EIO;
--		goto exit_device_put;
-+		goto exit_unregister;
- 	}
- 	pr_info("installed using port 0x%04x irq %d\n", io, irq);
- 	return 0;
- 
-+exit_unregister:
-+	parport_unregister_driver(&lirc_parport_driver);
- exit_device_put:
- 	platform_device_put(lirc_parallel_dev);
- exit_driver_unregister:
-@@ -714,9 +745,8 @@ exit_driver_unregister:
- 
- static void __exit lirc_parallel_exit(void)
- {
--	parport_unregister_device(ppdevice);
- 	lirc_unregister_driver(driver.minor);
--
-+	parport_unregister_driver(&lirc_parport_driver);
- 	platform_device_unregister(lirc_parallel_dev);
- 	platform_driver_unregister(&lirc_parallel_driver);
- }
+My recommendation is getting this ioctl into 4.5 with
+a warning that it could change. The reason for that is
+that this ioctl helps with testing the media controller
+v2 api. Without this API, we won't see much testing from
+userspace in 4.5
+
+Maybe I am missing something, but I do think the benefits
+of having this iooctl, I hope outweighs the negatives of
+exposing this ioctl to use-space if it includes a warning.
+
+thanks,
+-- Shuah
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+> 
+> Resending the patch, as the first one were sent to the wrong ML. Also, add the
+> relevant parties to the Cc of thiis patch.
+> 
+>  Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
+>  drivers/media/media-device.c                             | 5 ++++-
+>  include/uapi/linux/media.h                               | 6 +++++-
+>  3 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> index e0d49fa329f0..63152ab9efba 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> @@ -48,6 +48,9 @@
+>  
+>    <refsect1>
+>      <title>Description</title>
+> +
+> +    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
+> +
+>      <para>The typical usage of this ioctl is to call it twice.
+>      On the first call, the structure defined at &media-v2-topology; should
+>      be zeroed. At return, if no errors happen, this ioctl will return the
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 4d1c13de494b..900124c04e9a 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
+>  	return ret;
+>  }
+>  
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  static long __media_device_get_topology(struct media_device *mdev,
+>  				      struct media_v2_topology *topo)
+>  {
+> @@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+> @@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  	case MEDIA_IOC_G_TOPOLOGY:
+>  		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_get_topology(dev,
+>  				(struct media_v2_topology __user *)arg);
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+> -
+> +#endif
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 5dbb208e5451..1e3c8cb43bd7 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -286,7 +286,7 @@ struct media_links_enum {
+>   *	  later, before the adding this API upstream.
+>   */
+>  
+> -
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  struct media_v2_entity {
+>  	__u32 id;
+>  	char name[64];		/* FIXME: move to a property? (RFC says so) */
+> @@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
+>  {
+>  	return (void __user *)(uintptr_t)arg;
+>  }
+> +#endif
+>  
+>  /* ioctls */
+>  
+> @@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+> +
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+> +#endif
+>  
+>  #endif /* __LINUX_MEDIA_H */
+> 
+
+
 -- 
-1.9.1
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
