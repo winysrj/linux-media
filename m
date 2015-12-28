@@ -1,86 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39064 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624AbbLNBgH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 20:36:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH v2 1/3] libv4l2subdev: Use generated format definitions in libv4l2subdev
-Date: Sun, 13 Dec 2015 23:36 +0200
-Message-ID: <1511163.TeqZ8E01HK@avalon>
-In-Reply-To: <1449587716-22954-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com> <1449587716-22954-2-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mout.web.de ([212.227.17.12]:65423 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751474AbbL1Qcj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 11:32:39 -0500
+Subject: [PATCH 2/2] [media] r820t: Better exception handling in
+ generic_set_freq()
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <56816256.70304@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <56816416.2060702@users.sourceforge.net>
+Date: Mon, 28 Dec 2015 17:32:22 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56816256.70304@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 28 Dec 2015 17:13:02 +0100
 
-On Tuesday 08 December 2015 17:15:14 Sakari Ailus wrote:
-> Instead of manually adding each and every new media bus pixel code to
-> libv4l2subdev, generate the list automatically. The pre-existing formats
-> that do not match the list are not modified so that existing users are
-> unaffected by this change, with the exception of converting codes to
-> strings, which will use the new definitions.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This issue was detected by using the Coccinelle software.
 
-This will result in command line strings being a bit longer than I'd like, but 
-I agree that adding them manually doesn't scale.
+Move the jump label directly before the desired log statement
+so that the variable "rc" will not be checked once more
+after a function call.
+Use the identifier "report_failure" instead of "err".
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The error logging is performed in a separate section at the end now.
 
-> ---
->  utils/media-ctl/.gitignore      | 1 +
->  utils/media-ctl/Makefile.am     | 8 ++++++++
->  utils/media-ctl/libv4l2subdev.c | 1 +
->  3 files changed, 10 insertions(+)
-> 
-> diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
-> index 95b6a57..8c7d576 100644
-> --- a/utils/media-ctl/.gitignore
-> +++ b/utils/media-ctl/.gitignore
-> @@ -1 +1,2 @@
->  media-ctl
-> +media-bus-formats.h
-> diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-> index a3931fb..a1a9225 100644
-> --- a/utils/media-ctl/Makefile.am
-> +++ b/utils/media-ctl/Makefile.am
-> @@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
->  libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
->  libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
-> 
-> +media-bus-formats.h: ../../include/linux/media-bus-format.h
-> +	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//;
-> s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \ +	< $< > $@
-> +
-> +BUILT_SOURCES = media-bus-formats.h
-> +CLEANFILES = media-bus-formats.h
-> +
-> +nodist_libv4l2subdev_la_SOURCES = media-bus-formats.h
->  libv4l2subdev_la_SOURCES = libv4l2subdev.c
->  libv4l2subdev_la_LIBADD = libmediactl.la
->  libv4l2subdev_la_CFLAGS = -static
-> diff --git a/utils/media-ctl/libv4l2subdev.c
-> b/utils/media-ctl/libv4l2subdev.c index 33c1ee6..5bcfe34 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -719,6 +719,7 @@ static struct {
->  	const char *name;
->  	enum v4l2_mbus_pixelcode code;
->  } mbus_formats[] = {
-> +#include "media-bus-formats.h"
->  	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
->  	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
->  	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/tuners/r820t.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 6ab35e3..f71642e 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -1303,7 +1303,7 @@ static int generic_set_freq(struct dvb_frontend *fe,
+ 
+ 	rc = r820t_set_tv_standard(priv, bw, type, std, delsys);
+ 	if (rc < 0)
+-		goto err;
++		goto report_failure;
+ 
+ 	if ((type == V4L2_TUNER_ANALOG_TV) && (std == V4L2_STD_SECAM_LC))
+ 		lo_freq = freq - priv->int_freq;
+@@ -1312,23 +1312,21 @@ static int generic_set_freq(struct dvb_frontend *fe,
+ 
+ 	rc = r820t_set_mux(priv, lo_freq);
+ 	if (rc < 0)
+-		goto err;
++		goto report_failure;
+ 
+ 	rc = r820t_set_pll(priv, type, lo_freq);
+ 	if (rc < 0 || !priv->has_lock)
+-		goto err;
++		goto report_failure;
+ 
+ 	rc = r820t_sysfreq_sel(priv, freq, type, std, delsys);
+ 	if (rc < 0)
+-		goto err;
++		goto report_failure;
+ 
+ 	tuner_dbg("%s: PLL locked on frequency %d Hz, gain=%d\n",
+ 		  __func__, freq, r820t_read_gain(priv));
+-
+-err:
+-
+-	if (rc < 0)
+-		tuner_dbg("%s: failed=%d\n", __func__, rc);
++	return 0;
++report_failure:
++	tuner_dbg("%s: failed=%d\n", __func__, rc);
+ 	return rc;
+ }
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.6.3
 
