@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62317 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964850AbbLOKBQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 05:01:16 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NZE005C9961N860@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 Dec 2015 10:01:13 +0000 (GMT)
-Subject: Re: [RFC PATCH] vb2: Stop allocating 'alloc_ctx',
- just set the device instead
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <566ED3D4.9050803@xs4all.nl> <28435978.1Ghf2YSlFk@avalon>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <566FE4E7.5060001@samsung.com>
-Date: Tue, 15 Dec 2015 11:01:11 +0100
-MIME-version: 1.0
-In-reply-to: <28435978.1Ghf2YSlFk@avalon>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:60452 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbbL1QFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 11:05:36 -0500
+Subject: Re: [PATCH RFC] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
+To: Greg KH <gregkh@linuxfoundation.org>
+References: <d029047c76d6d3e5e6a531080ede83f6e063f7db.1451311244.git.mchehab@osg.samsung.com>
+ <5681572F.601@osg.samsung.com> <20151228154429.GA27560@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56815DCE.6040304@osg.samsung.com>
+Date: Mon, 28 Dec 2015 09:05:34 -0700
+MIME-Version: 1.0
+In-Reply-To: <20151228154429.GA27560@kroah.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On 2015-12-14 16:40, Laurent Pinchart wrote:
-> Hi Hans,
->
-> On Monday 14 December 2015 15:36:04 Hans Verkuil wrote:
->> (Before I post this as the 'final' patch and CC all the driver developers
->> that are affected, I'd like to do an RFC post first. I always hated the
->> alloc context for obfuscating what is really going on, but let's see what
->> others think).
+On 12/28/2015 08:44 AM, Greg KH wrote:
+> On Mon, Dec 28, 2015 at 08:37:19AM -0700, Shuah Khan wrote:
+>> On 12/28/2015 07:03 AM, Mauro Carvalho Chehab wrote:
+>>> There are a few discussions left with regards to this ioctl:
+>>>
+>>> 1) the name of the new structs will contain _v2_ on it?
+>>> 2) what's the best alternative to avoid compat32 issues?
+>>>
+>>> Due to that, let's postpone the addition of this new ioctl to
+>>> the next Kernel version, to give people more time to discuss it.
 >>
+>> I thought we discussed this in our irc meeting and
+>> arrived at a good solution for compat32 issue
 >>
->> Instead of allocating a struct that contains just a single device pointer,
->> just pass that device pointer around. This avoids having to check for
->> memory allocation errors and is much easier to understand since it makes
->> explicit what was hidden in an opaque handle before.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> As most devices use the same allocation context for all planes, wouldn't it
-> make sense to just store the struct device pointer in the queue structure ?
-> The oddball driver that requires different allocation contexts (I'm thinking
-> about s5p-mfc here, there might be a couple more) would have to set the
-> allocation contexts properly in the queue_setup handler, but for all other
-> devices you could just remove that code completely.
+>> My recommendation is getting this ioctl into 4.5 with
+>> a warning that it could change. The reason for that is
+>> that this ioctl helps with testing the media controller
+>> v2 api. Without this API, we won't see much testing from
+>> userspace in 4.5
+> 
+> People will ignore the warning, that never works :(
+> 
 
-This seams a reasonable approach. vb2 was written with special (or 
-strange ;)
-requirements in mind to align it with Exynos HW. However after some time it
-turned out that most device drivers are simple and don't need fancy handling
-of allocator context, so this definitely can be simplified. It also 
-turned out
-also that there is no real 'context' for vb2 memory allocators, although 
-some
-out-of-tree code (used in Android kernels) use some more advanced structures
-there. Maybe it will be enough to let drivers to change defaults in 
-queue_setup
-and ensure that there is a 'void *alloc_ctx_priv' placeholder for allocator
-specific data.
+Yeah. If people do ignore warnings, it could become a
+problem if we have to make changes.
 
-There is one more advantage of moving struct device * to vb2_queue. One can
-then change all debugs to use dev_info/err/dbg infrastructure, so the 
-logs will
-be significantly easier to read, especially when more than one media 
-device is
-used.
+-- Shuah
 
-Best regards
+
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
