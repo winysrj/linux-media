@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:59319 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966109AbbLPVtu (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:14573 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751906AbbL1Kg1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 16:49:50 -0500
-Message-ID: <1450302584.6121.31.camel@collabora.com>
-Subject: Re: problem with coda when running qt-gstreamer and video reaches
- its end (resending in plain text)
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-	Piotr Lewicki <piotr.lewicki@elfin.de>
-Cc: linux-media@vger.kernel.org
-Date: Wed, 16 Dec 2015 16:49:44 -0500
-In-Reply-To: <1450277389.3421.53.camel@pengutronix.de>
-References: <5671618A.5000300@elfin.de> <5671627C.8020205@elfin.de>
-	 <1450277389.3421.53.camel@pengutronix.de>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-a0RFtS69m8B7Ke805aLF"
-Mime-Version: 1.0
+	Mon, 28 Dec 2015 05:36:27 -0500
+Date: Mon, 28 Dec 2015 11:36:03 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [media] tuners: One check less in m88rs6000t_get_rf_strength()
+ after error detection
+In-Reply-To: <56810F56.4080306@users.sourceforge.net>
+Message-ID: <alpine.DEB.2.10.1512281134590.2702@hadrien>
+References: <566ABCD9.1060404@users.sourceforge.net> <5680FDB3.7060305@users.sourceforge.net> <alpine.DEB.2.10.1512281019050.2702@hadrien> <56810F56.4080306@users.sourceforge.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-a0RFtS69m8B7Ke805aLF
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-Le mercredi 16 d=C3=A9cembre 2015 =C3=A0 15:49 +0100, Philipp Zabel a =C3=
-=A9crit=C2=A0:
-> > # [ 1382.828875] coda 2040000.vpu: CODA PIC_RUN timeout
-> > # [ 1383.938704] coda 2040000.vpu: CODA PIC_RUN timeout
-> >=C2=A0
-> > The video is stopped but I can see last frame on the screen although in=
-=C2=A0
-> > qt application it should receive end-of-stream message and stop the=C2=
-=A0
-> > video (resulting with black screen).
->=20
-> Looks like the coda driver is constantly fed empty buffers, which don't
-> increase the bitstream payload level, and the PIC_RUN times out with a
-> bitstream buffer underflow. What GStreamer version is this?
+On Mon, 28 Dec 2015, SF Markus Elfring wrote:
 
-I believe this is side effect of how the MFC driver worked in it's
-early stage. We had to keep pushing empty buffer to drain the driver.
-So GStreamer still poll/queue/poll/queue/... until all capture buffers
-are received. I notice recently that this behaviour can induce high CPU
-load with some other drivers that don't do any active wait when a empty
-buffer is queued. I would therefor suggest to change this code to only
-push one empty buffer for your use case. An submitted patch to support
-CMD_STOP can be found here, though is pending a re-submition by it's
-author.
+> >> Move the jump label directly before the desired log statement
+> >> so that the variable "ret" will not be checked once more
+> >> after it was determined that a function call failed.
+> >
+> > Why not avoid both unnecessary ifs
+>
+> I would find such a fine-tuning also nice in principle at more source code places.
+>
+>
+> > and the enormous ugliness of a label inside an if by making two returns:
+> > a return 0 for success and a dev_dbg and return ret for failure?
+>
+> How should your suggestion finally work when the desired execution success
+> can be determined for such functions only after several other calls succeeded?
 
-https://bugzilla.gnome.org/show_bug.cgi?id=3D733864
+Not idea what this means, but immediate return 0 followed by various code
+for reacting to an error is very common, so it looks like it should be
+possible here.
 
-For proper EOS detection with CODA driver (using EPIPE return value),
-you indeed need GStreamer 1.6+.
-
-cheers,
-Nicolas
---=-a0RFtS69m8B7Ke805aLF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlZx3HgACgkQcVMCLawGqByKkwCeNHkq2GE65G0U+bgluYNK58Ua
-/Q8AoJcUEHdn9k1W3yhrq/kmh6I1fgt0
-=gYFu
------END PGP SIGNATURE-----
-
---=-a0RFtS69m8B7Ke805aLF--
-
+julia
