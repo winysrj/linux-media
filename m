@@ -1,63 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:27402 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbbLJHoN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 02:44:13 -0500
-Subject: Re: [PATCH v2 2/7] ARM: dts: exynos4412-odroid*: enable MFC device
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1449669502-24601-1-git-send-email-m.szyprowski@samsung.com>
- <1449669502-24601-3-git-send-email-m.szyprowski@samsung.com>
-Cc: devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <56692D42.2090809@samsung.com>
-Date: Thu, 10 Dec 2015 16:44:02 +0900
-MIME-version: 1.0
-In-reply-to: <1449669502-24601-3-git-send-email-m.szyprowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mout.web.de ([212.227.17.12]:56551 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751288AbbL1PDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 10:03:22 -0500
+Subject: Re: [media] m88rs6000t: Better exception handling in five functions
+To: Julia Lawall <julia.lawall@lip6.fr>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5680FDB3.7060305@users.sourceforge.net>
+ <alpine.DEB.2.10.1512281019050.2702@hadrien>
+ <56810F56.4080306@users.sourceforge.net>
+ <alpine.DEB.2.10.1512281134590.2702@hadrien>
+ <568148FD.7080209@users.sourceforge.net>
+ <5681497E.7030702@users.sourceforge.net>
+ <alpine.DEB.2.10.1512281541330.2702@hadrien>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <56814F35.5030103@users.sourceforge.net>
+Date: Mon, 28 Dec 2015 16:03:17 +0100
+MIME-Version: 1.0
+In-Reply-To: <alpine.DEB.2.10.1512281541330.2702@hadrien>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.12.2015 22:58, Marek Szyprowski wrote:
-> Enable support for Multimedia Codec (MFC) device for all Exynos4412-based
-> Odroid boards.
+>> Move the jump label directly before the desired log statement
+>> so that the variable "ret" will not be checked once more
+>> after a function call.
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 24 ++++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-> index edf0fc8..5825abf 100644
-> --- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-> +++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-> @@ -18,6 +18,24 @@
->  		stdout-path = &serial_1;
->  	};
->  
-> +	reserved-memory {
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges;
-> +
-> +		mfc_left: region@77000000 {
-> +			compatible = "shared-dma-pool";
-> +			reusable;
-> +			reg = <0x77000000 0x1000000>;
+> This commit message fits with the previous change.
 
-Doesn't this exceed the memory of Odroid X?
+Do you prefer an other wording?
 
-For other Exynos4412 boards the length is 0x800000. I am curious: any
-particular reason for the difference?
 
-Best regards,
-Krzysztof
+> It could be nice to put a blank line before the error handling code.
 
+Is it really a coding style requirement to insert another blank line between
+the suggested placement of the statement "return 0;" and the jump label?
+
+Regards,
+Markus
