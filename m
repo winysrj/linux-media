@@ -1,136 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932288AbbLECNR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:17 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 25/32] v4l: vsp1: Make pipeline inputs array index by RPF index
-Date: Sat,  5 Dec 2015 04:12:59 +0200
-Message-Id: <1449281586-25726-26-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50330 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750771AbbL1BPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2015 20:15:00 -0500
+Date: Mon, 28 Dec 2015 03:14:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Rafael =?iso-8859-1?Q?Louren=E7o?= de Lima Chehab
+	<chehabrafael@gmail.com>
+Subject: Re: [PATCH 2/2] [media] media-device: split media initialization and
+ registration
+Message-ID: <20151228011452.GA26561@valkosipuli.retiisi.org.uk>
+References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
+ <1441890195-11650-3-git-send-email-javier@osg.samsung.com>
+ <55F1BA5C.50508@linux.intel.com>
+ <20151215091342.2f825d91@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20151215091342.2f825d91@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pipeline inputs array stores pointers to all RPFs contained in the
-pipeline. It's currently indexed contiguously by adding RPFs in the
-order they are found during graph walk. This can't easily support
-dynamic addition and removal of RPFs while streaming, which will be
-required for combined VSP+DU support.
+Hi Mauro,
 
-Make the array indexed by RPF index instead and skip NULL elements when
-iterating over RPFs.
+On Tue, Dec 15, 2015 at 09:13:42AM -0200, Mauro Carvalho Chehab wrote:
+> Em Thu, 10 Sep 2015 20:14:04 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Hi Javier,
+> > 
+> > Thanks for the set! A few comments below.
+> > 
+> > Javier Martinez Canillas wrote:
+> > > The media device node is registered and so made visible to user-space
+> > > before entities are registered and links created which means that the
+> > > media graph obtained by user-space could be only partially enumerated
+> > > if that happens too early before all the graph has been created.
+> > > 
+> > > To avoid this race condition, split the media init and registration
+> > > in separate functions and only register the media device node when
+> > > all the pending subdevices have been registered, either explicitly
+> > > by the driver or asynchronously using v4l2_async_register_subdev().
+> > > 
+> > > Also, add a media_entity_cleanup() function that will destroy the
+> > > graph_mutex that is initialized in media_entity_init().
+> > > 
+> > > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > > 
+> > > ---
+> > > 
+> > >  drivers/media/common/siano/smsdvb-main.c      |  1 +
+> > >  drivers/media/media-device.c                  | 38 +++++++++++++++++++++++----
+> > >  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++---
+> > >  drivers/media/platform/omap3isp/isp.c         | 11 +++++---
+> > >  drivers/media/platform/s3c-camif/camif-core.c | 13 ++++++---
+> > >  drivers/media/platform/vsp1/vsp1_drv.c        | 19 ++++++++++----
+> > >  drivers/media/platform/xilinx/xilinx-vipp.c   | 11 +++++---
+> > >  drivers/media/usb/au0828/au0828-core.c        | 26 +++++++++++++-----
+> > >  drivers/media/usb/cx231xx/cx231xx-cards.c     | 22 +++++++++++-----
+> > >  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 11 +++++---
+> > >  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 13 ++++++---
+> > >  drivers/media/usb/siano/smsusb.c              | 14 ++++++++--
+> > >  drivers/media/usb/uvc/uvc_driver.c            |  9 +++++--
+> > >  include/media/media-device.h                  |  2 ++
+> > >  14 files changed, 156 insertions(+), 46 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+> > > index ab345490a43a..8a1ea2192439 100644
+> > > --- a/drivers/media/common/siano/smsdvb-main.c
+> > > +++ b/drivers/media/common/siano/smsdvb-main.c
+> > > @@ -617,6 +617,7 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
+> > >  	if (!coredev->media_dev)
+> > >  		return;
+> > >  	media_device_unregister(coredev->media_dev);
+> > > +	media_device_cleanup(coredev->media_dev);
+> > >  	kfree(coredev->media_dev);
+> > >  	coredev->media_dev = NULL;
+> > >  #endif
+> > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > > index 745defb34b33..a8beb0b445a6 100644
+> > > --- a/drivers/media/media-device.c
+> > > +++ b/drivers/media/media-device.c
+> > > @@ -526,7 +526,7 @@ static void media_device_release(struct media_devnode *mdev)
+> > >  }
+> > >  
+> > >  /**
+> > > - * media_device_register - register a media device
+> > > + * media_device_init() - initialize a media device
+> > >   * @mdev:	The media device
+> > >   *
+> > >   * The caller is responsible for initializing the media device before
+> > > @@ -534,12 +534,11 @@ static void media_device_release(struct media_devnode *mdev)
+> > >   *
+> > >   * - dev must point to the parent device
+> > >   * - model must be filled with the device model name
+> > > + *
+> > > + * returns zero on success or a negative error code.
+> > >   */
+> > > -int __must_check __media_device_register(struct media_device *mdev,
+> > > -					 struct module *owner)
+> > > +int __must_check media_device_init(struct media_device *mdev)
+> > 
+> > I think I suggested making media_device_init() return void as the only
+> > remaining source of errors would be driver bugs.
+> > 
+> > I'd simply replace the WARN_ON() below with BUG().
+> 
+> That sounds like bad idea to me, and it is against the current
+> Kernel policy of using BUG() only when there's no other way, e. g. on
+> event so severe that the Kernel has no other thing to do except to
+> stop running.
+> 
+> For sure, this is not the case here. Also, all drivers have already
+> a logic that checks if the device init happened. So, they should already
+> be doing the right thing.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c  |  6 +++++-
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
- drivers/media/platform/vsp1/vsp1_video.c | 16 ++++++++++++----
- drivers/media/platform/vsp1/vsp1_wpf.c   |  5 ++++-
- 4 files changed, 22 insertions(+), 7 deletions(-)
+My point is that it's simply counter-productive to require the caller to
+perform error handling in cases such as the only possible source of the
+error being a NULL argument passed to the callee.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index df11259dcc0a..d41e4ca94a02 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -140,14 +140,18 @@ const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- {
-+	unsigned int i;
-+
- 	if (pipe->bru) {
- 		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--		unsigned int i;
- 
- 		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
- 			bru->inputs[i].rpf = NULL;
- 	}
- 
-+	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
-+		pipe->inputs[i] = NULL;
-+
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
- 	pipe->buffers_ready = 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index f9035c739e9a..c4c300561c5c 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -66,7 +66,7 @@ enum vsp1_pipeline_state {
-  * @stream_count: number of streaming video nodes
-  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
-  * @num_inputs: number of RPFs
-- * @inputs: array of RPFs in the pipeline
-+ * @inputs: array of RPFs in the pipeline (indexed by RPF index)
-  * @output: WPF at the output of the pipeline
-  * @bru: BRU entity, if present
-  * @lif: LIF entity, if present
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 141e489a8aa9..d3335eb24cce 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -305,8 +305,8 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
- 
- 		if (e->type == VSP1_ENTITY_RPF) {
- 			rwpf = to_rwpf(subdev);
--			pipe->inputs[pipe->num_inputs++] = rwpf;
--			rwpf->video->pipe_index = pipe->num_inputs;
-+			pipe->inputs[rwpf->entity.index] = rwpf;
-+			rwpf->video->pipe_index = ++pipe->num_inputs;
- 		} else if (e->type == VSP1_ENTITY_WPF) {
- 			rwpf = to_rwpf(subdev);
- 			pipe->output = rwpf;
-@@ -329,7 +329,10 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
- 	/* Follow links downstream for each input and make sure the graph
- 	 * contains no loop and that all branches end at the output WPF.
- 	 */
--	for (i = 0; i < pipe->num_inputs; ++i) {
-+	for (i = 0; i < video->vsp1->pdata.rpf_count; ++i) {
-+		if (!pipe->inputs[i])
-+			continue;
-+
- 		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
- 							  pipe->output);
- 		if (ret < 0)
-@@ -454,11 +457,16 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 
- static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	unsigned int i;
- 
- 	/* Complete buffers on all video nodes. */
--	for (i = 0; i < pipe->num_inputs; ++i)
-+	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
-+		if (!pipe->inputs[i])
-+			continue;
-+
- 		vsp1_video_frame_end(pipe, pipe->inputs[i]);
-+	}
- 
- 	if (!pipe->lif)
- 		vsp1_video_frame_end(pipe, pipe->output);
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 184a7e01aad5..d0edcde721bd 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -97,9 +97,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	 * inputs as sub-layers and select the virtual RPF as the master
- 	 * layer.
- 	 */
--	for (i = 0; i < pipe->num_inputs; ++i) {
-+	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
- 		struct vsp1_rwpf *input = pipe->inputs[i];
- 
-+		if (!input)
-+			continue;
-+
- 		srcrpf |= (!pipe->bru && pipe->num_inputs == 1)
- 			? VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index)
- 			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
+To give you some examples, device_register(), device_add() nor mutex_lock()
+perform such checks. Some functions in V4L2 do, but I understand that's
+sometimes for historical reasons where NULL arguments were allowed. Or that
+there are other possible sources for errors in non-trivial functions and the
+rest of the checks are done on the side.
+
+If you don't like BUG_ON(), just drop it. It's as simple as that.
+
+If there are other sources of errors then the matter is naturally entirely
+different.
+
 -- 
-2.4.10
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
