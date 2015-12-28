@@ -1,51 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34785 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754999AbbLJReK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2015 12:34:10 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] media-entity: fix backlink removal on __media_entity_remove_link()
-Date: Thu, 10 Dec 2015 15:33:56 -0200
-Message-Id: <e3fd58297fe77a76e3b6ba9019f64f0c1c0ceb87.1449768833.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mout.web.de ([212.227.17.11]:54265 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752483AbbL1VP7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 16:15:59 -0500
+Subject: [PATCH] [media] airspy: Better exception handling in two functions
+References: <566ABCD9.1060404@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <5681A675.80504@users.sourceforge.net>
+Date: Mon, 28 Dec 2015 22:15:33 +0100
+MIME-Version: 1.0
+In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic is testing if num_links==0 at the wrong place. Due to
-that, a backlink may be kept without removal, causing KASAN
-to complain about usage after free during either entity or
-link removal.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 28 Dec 2015 22:10:28 +0100
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This issue was detected by using the Coccinelle software.
+
+Move the jump label directly before the desired log statement
+so that the variable "ret" will not be checked once more
+after a function call.
+Use the identifier "report_failure" instead of "err".
+
+The error logging is performed in a separate section at the end now.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/media-entity.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/airspy/airspy.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d7243cb56c79..d9d42fab22ad 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -662,13 +662,13 @@ static void __media_entity_remove_link(struct media_entity *entity,
- 		if (link->source->entity == entity)
- 			remote->num_backlinks--;
+diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
+index 0d4ac59..cf2444a 100644
+--- a/drivers/media/usb/airspy/airspy.c
++++ b/drivers/media/usb/airspy/airspy.c
+@@ -889,18 +889,17 @@ static int airspy_set_lna_gain(struct airspy *s)
+ 	ret = airspy_ctrl_msg(s, CMD_SET_LNA_AGC, 0, s->lna_gain_auto->val,
+ 			&u8tmp, 1);
+ 	if (ret)
+-		goto err;
++		goto report_failure;
  
--		if (--remote->num_links == 0)
--			break;
--
- 		/* Remove the remote link */
- 		list_del(&rlink->list);
- 		media_gobj_remove(&rlink->graph_obj);
- 		kfree(rlink);
-+
-+		if (--remote->num_links == 0)
-+			break;
+ 	if (s->lna_gain_auto->val == false) {
+ 		ret = airspy_ctrl_msg(s, CMD_SET_LNA_GAIN, 0, s->lna_gain->val,
+ 				&u8tmp, 1);
+ 		if (ret)
+-			goto err;
++			goto report_failure;
  	}
- 	list_del(&link->list);
- 	media_gobj_remove(&link->graph_obj);
+-err:
+-	if (ret)
+-		dev_dbg(s->dev, "failed=%d\n", ret);
+-
++	return 0;
++report_failure:
++	dev_dbg(s->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -916,18 +915,17 @@ static int airspy_set_mixer_gain(struct airspy *s)
+ 	ret = airspy_ctrl_msg(s, CMD_SET_MIXER_AGC, 0, s->mixer_gain_auto->val,
+ 			&u8tmp, 1);
+ 	if (ret)
+-		goto err;
++		goto report_failure;
+ 
+ 	if (s->mixer_gain_auto->val == false) {
+ 		ret = airspy_ctrl_msg(s, CMD_SET_MIXER_GAIN, 0,
+ 				s->mixer_gain->val, &u8tmp, 1);
+ 		if (ret)
+-			goto err;
++			goto report_failure;
+ 	}
+-err:
+-	if (ret)
+-		dev_dbg(s->dev, "failed=%d\n", ret);
+-
++	return 0;
++report_failure:
++	dev_dbg(s->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
 -- 
-2.5.0
+2.6.3
 
