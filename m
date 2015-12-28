@@ -1,74 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:47187 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932148AbbLNKRG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2015 05:17:06 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5056FE291F
-	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2015 11:17:00 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] saa7134: add DMABUF support
-Message-ID: <566E971C.9050909@xs4all.nl>
-Date: Mon, 14 Dec 2015 11:17:00 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:60402 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751719AbbL1Mw6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2015 07:52:58 -0500
+Date: Mon, 28 Dec 2015 10:52:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-kernel@vger.kernel.org,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>
+Subject: Re: [PATCH 2/2] [media] media-device: split media initialization
+ and registration
+Message-ID: <20151228105248.4d59a15c@recife.lan>
+In-Reply-To: <20151228082633.1786af24@recife.lan>
+References: <1441890195-11650-1-git-send-email-javier@osg.samsung.com>
+	<1441890195-11650-3-git-send-email-javier@osg.samsung.com>
+	<55F1BA5C.50508@linux.intel.com>
+	<20151215091342.2f825d91@recife.lan>
+	<20151228011452.GA26561@valkosipuli.retiisi.org.uk>
+	<20151228082633.1786af24@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since saa7134 is now using vb2, there is no reason why we can't support
-dmabuf for this driver.
+Em Mon, 28 Dec 2015 08:26:33 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-empress.c | 3 ++-
- drivers/media/pci/saa7134/saa7134-video.c   | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+> Em Mon, 28 Dec 2015 03:14:53 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Tue, Dec 15, 2015 at 09:13:42AM -0200, Mauro Carvalho Chehab wrote:
+> > > Em Thu, 10 Sep 2015 20:14:04 +0300
+> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > 
+> > > > Hi Javier,
+> > > > 
+> > > > Thanks for the set! A few comments below.
+> > > > 
+> > > > Javier Martinez Canillas wrote:
+> > > > > The media device node is registered and so made visible to user-space
+> > > > > before entities are registered and links created which means that the
+> > > > > media graph obtained by user-space could be only partially enumerated
+> > > > > if that happens too early before all the graph has been created.
+> > > > > 
+> > > > > To avoid this race condition, split the media init and registration
+> > > > > in separate functions and only register the media device node when
+> > > > > all the pending subdevices have been registered, either explicitly
+> > > > > by the driver or asynchronously using v4l2_async_register_subdev().
+> > > > > 
+> > > > > Also, add a media_entity_cleanup() function that will destroy the
+> > > > > graph_mutex that is initialized in media_entity_init().
+> > > > > 
+> > > > > Suggested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > > > > 
+> > > > > ---
+> > > > > 
+> > > > >  drivers/media/common/siano/smsdvb-main.c      |  1 +
+> > > > >  drivers/media/media-device.c                  | 38 +++++++++++++++++++++++----
+> > > > >  drivers/media/platform/exynos4-is/media-dev.c | 12 ++++++---
+> > > > >  drivers/media/platform/omap3isp/isp.c         | 11 +++++---
+> > > > >  drivers/media/platform/s3c-camif/camif-core.c | 13 ++++++---
+> > > > >  drivers/media/platform/vsp1/vsp1_drv.c        | 19 ++++++++++----
+> > > > >  drivers/media/platform/xilinx/xilinx-vipp.c   | 11 +++++---
+> > > > >  drivers/media/usb/au0828/au0828-core.c        | 26 +++++++++++++-----
+> > > > >  drivers/media/usb/cx231xx/cx231xx-cards.c     | 22 +++++++++++-----
+> > > > >  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c   | 11 +++++---
+> > > > >  drivers/media/usb/dvb-usb/dvb-usb-dvb.c       | 13 ++++++---
+> > > > >  drivers/media/usb/siano/smsusb.c              | 14 ++++++++--
+> > > > >  drivers/media/usb/uvc/uvc_driver.c            |  9 +++++--
+> > > > >  include/media/media-device.h                  |  2 ++
+> > > > >  14 files changed, 156 insertions(+), 46 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+> > > > > index ab345490a43a..8a1ea2192439 100644
+> > > > > --- a/drivers/media/common/siano/smsdvb-main.c
+> > > > > +++ b/drivers/media/common/siano/smsdvb-main.c
+> > > > > @@ -617,6 +617,7 @@ static void smsdvb_media_device_unregister(struct smsdvb_client_t *client)
+> > > > >  	if (!coredev->media_dev)
+> > > > >  		return;
+> > > > >  	media_device_unregister(coredev->media_dev);
+> > > > > +	media_device_cleanup(coredev->media_dev);
+> > > > >  	kfree(coredev->media_dev);
+> > > > >  	coredev->media_dev = NULL;
+> > > > >  #endif
+> > > > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > > > > index 745defb34b33..a8beb0b445a6 100644
+> > > > > --- a/drivers/media/media-device.c
+> > > > > +++ b/drivers/media/media-device.c
+> > > > > @@ -526,7 +526,7 @@ static void media_device_release(struct media_devnode *mdev)
+> > > > >  }
+> > > > >  
+> > > > >  /**
+> > > > > - * media_device_register - register a media device
+> > > > > + * media_device_init() - initialize a media device
+> > > > >   * @mdev:	The media device
+> > > > >   *
+> > > > >   * The caller is responsible for initializing the media device before
+> > > > > @@ -534,12 +534,11 @@ static void media_device_release(struct media_devnode *mdev)
+> > > > >   *
+> > > > >   * - dev must point to the parent device
+> > > > >   * - model must be filled with the device model name
+> > > > > + *
+> > > > > + * returns zero on success or a negative error code.
+> > > > >   */
+> > > > > -int __must_check __media_device_register(struct media_device *mdev,
+> > > > > -					 struct module *owner)
+> > > > > +int __must_check media_device_init(struct media_device *mdev)
+> > > > 
+> > > > I think I suggested making media_device_init() return void as the only
+> > > > remaining source of errors would be driver bugs.
+> > > > 
+> > > > I'd simply replace the WARN_ON() below with BUG().
+> > > 
+> > > That sounds like bad idea to me, and it is against the current
+> > > Kernel policy of using BUG() only when there's no other way, e. g. on
+> > > event so severe that the Kernel has no other thing to do except to
+> > > stop running.
+> > > 
+> > > For sure, this is not the case here. Also, all drivers have already
+> > > a logic that checks if the device init happened. So, they should already
+> > > be doing the right thing.
+> > 
+> > My point is that it's simply counter-productive to require the caller to
+> > perform error handling in cases such as the only possible source of the
+> > error being a NULL argument passed to the callee.
+> > 
+> > To give you some examples, device_register(), device_add() nor mutex_lock()
+> > perform such checks. Some functions in V4L2 do, but I understand that's
+> > sometimes for historical reasons where NULL arguments were allowed. Or that
+> > there are other possible sources for errors in non-trivial functions and the
+> > rest of the checks are done on the side.
+> > 
+> > If you don't like BUG_ON(), just drop it. It's as simple as that.
+> 
+> Ah, I see your point. Yeah, dropping WARN_ON makes sense. I'll address
+> it.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 56b932c..ca417a4 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -189,6 +189,7 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_streamon		= vb2_ioctl_streamon,
- 	.vidioc_streamoff		= vb2_ioctl_streamoff,
- 	.vidioc_g_frequency		= saa7134_g_frequency,
-@@ -286,7 +287,7 @@ static int empress_init(struct saa7134_dev *dev)
- 	 * transfers that do not start at the beginning of a page. A USERPTR
- 	 * can start anywhere in a page, so USERPTR support is a no-go.
- 	 */
--	q->io_modes = VB2_MMAP | VB2_READ;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
- 	q->drv_priv = &dev->ts_q;
- 	q->ops = &saa7134_empress_qops;
- 	q->gfp_flags = GFP_DMA32;
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 4d3a7fb..179df19 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1906,6 +1906,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
- 	.vidioc_qbuf			= vb2_ioctl_qbuf,
- 	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
- 	.vidioc_s_std			= saa7134_s_std,
- 	.vidioc_g_std			= saa7134_g_std,
- 	.vidioc_querystd		= saa7134_querystd,
-@@ -2089,7 +2090,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
- 	 * USERPTR support is a no-go unless the application knows about these
- 	 * limitations and has special support for this.
- 	 */
--	q->io_modes = VB2_MMAP | VB2_READ;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
- 	if (saa7134_userptr)
- 		q->io_modes |= VB2_USERPTR;
- 	q->drv_priv = &dev->video_q;
--- 
-2.6.4
+Ok, I dropped BUG_ON() from Javier's patch. I also fold with the 3
+build fixups if !CONFIG_MEDIA_CONTROLLER, as requested by Laurent, plus
+one fixup from me (that I sent today to the ML), removing two uneeded
+vars and fixing one call for the DVB frontend that were passing the
+wrong struct.
 
+The final patch is at:
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=media-controller-rc6&id=337a643d4ac04c4c6681c9ae2b37d700c9a3fa5f
+
+There two new warnings after Javier's patch related to check if
+the device was properly registered, and if the memory allocation for
+the media_device has succeded. 
+
+As such checks were actually unrelated to Javier's changes, I added
+them on a separate patch:
+	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=media-controller-rc6&id=180a506ef4021a68c061e19c11046978a42934f7
+
+Regards,
+Mauro
