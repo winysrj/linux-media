@@ -1,69 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:33366 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417AbbLFAX6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 19:23:58 -0500
-Message-ID: <1449361427.31991.17.camel@collabora.com>
-Subject: Re: v4l2 kernel module debugging methods
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-Date: Sat, 05 Dec 2015 19:23:47 -0500
-In-Reply-To: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
-References: <CAJ2oMhKbYfqz1Vy5-ERPTZAkNZt=9+rzr6yNduQiyfAWM_Zfug@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-kamWAJz9F0PdekzPzx1U"
-Mime-Version: 1.0
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:34410 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbbL2JMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2015 04:12:07 -0500
+Received: by mail-ig0-f175.google.com with SMTP id ik10so9659950igb.1
+        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2015 01:12:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20151229053235.1d2ccb9c@recife.lan>
+References: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com>
+	<20151228153332.GA6159@kroah.com>
+	<20151229053235.1d2ccb9c@recife.lan>
+Date: Tue, 29 Dec 2015 11:12:05 +0200
+Message-ID: <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
+Subject: Re: On Lindent shortcomings and massive style fixing
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Greg KH <greg@kroah.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org, andrey.od.utkin@gmail.com,
+	Andy Whitcroft <apw@canonical.com>,
+	Joe Perches <joe@perches.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Dec 29, 2015 at 9:32 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> IMHO, there are two problems by letting indent breaking long
+> lines:
+>
+> 1) indent would break strings on printks. This is something that we don't
+> want to break strings on multiple lines in the Kernel;
 
---=-kamWAJz9F0PdekzPzx1U
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Yeah, GNU indent does its work badly (although I believe it could be
+taught to respect long literals), this makes me want to have a better
+tool for clean "relayouting" C code.
+I believe that'd require at last a proper syntax parser. With such
+tool, it would be straightforward to rewrite source code automatically
+to please any demanding reviewer of code style, except for issues of
+higher level of thought (like naming or nesting limitations).
 
-Le dimanche 06 d=C3=A9cembre 2015 =C3=A0 00:00 +0200, Ran Shalit a =C3=A9cr=
-it=C2=A0:
-> Hello,
->=20
-> I would like to ask a general question regarding methods to debug a
-> v4l2 device driver.
-> Since I assume that the kernel driver will probably won't work in
-> first try after coding everything inside the device driver...
->=20
-> 1. Do you think qemu/kgdb debugger is a good method for the device
-> driver debugging , or is it plain printing ?
->=20
-> 2. Is there a simple way to display the image of a YUV-like buffer in
-> memory ?
+> 2) It doesn't actually solve the problem of having too complex loops,
+> with is why the 80 columns warning is meant to warn. Worse than that,
+> if a piece of code is inside more than 4 or 5 indentation levels, the
+> resulting code of using indent for 80-cols line break is a total crap.
 
-Most Linux distribution ships GStreamer. You can with GStreamer read
-and display a raw YUV images (you need to know the specific format)
-using videoparse element.
+Then I'd propose to enforce nesting limitation explicitly, because
+Documentation/CodingStyle appreciates low nesting, just doesn't give
+exact numbers.
+It's better this way, because the programmer could pay attention to N
+places of excessive nesting and fix it manually, and then carelessly
+reformat NNN places of "80 chars" issues automatically, comparing to
+reviewing all NNN places, to figure out if there's excessive nesting,
+or not.
+(CCed checkpatch.pl maintainers.)
 
-=C2=A0 gst-launch-1.0 filesrc location=3Dmy.yuv ! videoparse format=3Dyuy2 =
-width=3D320 height=3D240 ! imagefreeze ! videoconvert ! autovideosink
+> That's said, on a quick look at the driver, it seems that the 80-cols
+> violations are mostly (if not all) on the comments, like:
+>
+>         int i_poc_lsb = (frame_seqno_in_gop << 1); /* why multiplied by two? TODO try without multiplication */
+>
+> and
+>
+> #define TW5864_UNDEF_REG_0x0224 0x0224  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+> #define TW5864_UNDEF_REG_0x4014 0x4014  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+> #define TW5864_UNDEF_REG_0xA800 0xA800  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+>
+> Btw, the content of tw5864-reg-undefined.h is weird... Why not just
+> add the stuff there at tw5864-reg.h and remove the comments for all
+> defines there?
 
-You could also encode and store to various formats, replacing the
-imagefreeze ... section with an encoder and a filesink. Note that
-videoparse unfortunatly does not allow passing strides array or
-offsets. So it will work only if you set the width/height to padded
-width/height.
+tw5864-reg-undefined.h will be edited for sure (maybe dropped), of
+course it won't stay as it is now.
+It was generated by script during reverse-engineering that bastard
+chip from hell.
 
-regards,
-Nicolas
---=-kamWAJz9F0PdekzPzx1U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> Also, Lindent already did some crappy 80-cols like breaks, like:
+>
+> static int pci_i2c_multi_read(struct tw5864_dev *dev, u8 devid, u8 devfn, u8 *buf,
+>                        u32 count)
+>
+> (count is misaligned with the open parenthesis)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+I just added "static " after indenting.
+Actually, Documentation/CodingStyle says nothing about alignment of
+function declaration tail on open parenthesis.
+Also I'd like to mention that I hate such alignment, because it
+requires intermixing of tabs and spaces. I am not aware if this is K&R
+thing or not. If it is, then please don't kill me.
 
-iEYEABECAAYFAlZjgBMACgkQcVMCLawGqBwbtQCfS5YXdvBx+ERUHBJBdmqH0Eyz
-LlgAnipCsQnn9FMRcMEGgcjue42EZm1H
-=T7vn
------END PGP SIGNATURE-----
-
---=-kamWAJz9F0PdekzPzx1U--
-
+Thanks for kind replies, gentlemen.
