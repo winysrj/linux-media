@@ -1,57 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59751 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299AbbLUNgc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2015 08:36:32 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] [media] uvcvideo: Only register media dev if MEDIA_CONTROLLER is defined
-Date: Mon, 21 Dec 2015 10:36:18 -0300
-Message-Id: <1450704978-17113-1-git-send-email-javier@osg.samsung.com>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:36969 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125AbbL2KTf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2015 05:19:35 -0500
+Date: Tue, 29 Dec 2015 11:19:26 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg KH <greg@kroah.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org, andrey.od.utkin@gmail.com,
+	Andy Whitcroft <apw@canonical.com>,
+	Joe Perches <joe@perches.com>
+Subject: Re: On Lindent shortcomings and massive style fixing
+In-Reply-To: <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
+Message-ID: <alpine.DEB.2.10.1512291116420.2504@hadrien>
+References: <CAM_ZknVmAnoa=+BA9Q+BSJ_dKwtBWWXHqZyJ_BH=FppqGLpFUg@mail.gmail.com> <20151228153332.GA6159@kroah.com> <20151229053235.1d2ccb9c@recife.lan> <CAM_ZknVEadva2RbM+EJXCguNx+GVfkEPVPwrrKtXCp+X14XDSw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 1590ad7b5271 ("[media] media-device: split media initialization
-and registration") split the media dev initialization and registration
-but introduced a build error since media_device_register() was called
-unconditionally even when the MEDIA_CONTROLLER config was not enabled:
 
-from drivers/media/usb/uvc/uvc_driver.c:14:
-   drivers/media/usb/uvc/uvc_driver.c: In function 'uvc_probe':
-   drivers/media/usb/uvc/uvc_driver.c:1960:32: error: 'struct uvc_device' has no member named 'mdev'
-     if (media_device_register(&dev->mdev) < 0)
 
-Fixes: 1590ad7b5271 ("[media] media-device: split media initialization and registration")
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+On Tue, 29 Dec 2015, Andrey Utkin wrote:
 
----
+> On Tue, Dec 29, 2015 at 9:32 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > IMHO, there are two problems by letting indent breaking long
+> > lines:
+> >
+> > 1) indent would break strings on printks. This is something that we don't
+> > want to break strings on multiple lines in the Kernel;
+>
+> Yeah, GNU indent does its work badly (although I believe it could be
+> taught to respect long literals), this makes me want to have a better
+> tool for clean "relayouting" C code.
+> I believe that'd require at last a proper syntax parser. With such
+> tool, it would be straightforward to rewrite source code automatically
+> to please any demanding reviewer of code style, except for issues of
+> higher level of thought (like naming or nesting limitations).
+>
+> > 2) It doesn't actually solve the problem of having too complex loops,
+> > with is why the 80 columns warning is meant to warn. Worse than that,
+> > if a piece of code is inside more than 4 or 5 indentation levels, the
+> > resulting code of using indent for 80-cols line break is a total crap.
+>
+> Then I'd propose to enforce nesting limitation explicitly, because
+> Documentation/CodingStyle appreciates low nesting, just doesn't give
+> exact numbers.
+> It's better this way, because the programmer could pay attention to N
+> places of excessive nesting and fix it manually, and then carelessly
+> reformat NNN places of "80 chars" issues automatically, comparing to
+> reviewing all NNN places, to figure out if there's excessive nesting,
+> or not.
+> (CCed checkpatch.pl maintainers.)
 
- drivers/media/usb/uvc/uvc_driver.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Personally, I prefer to see only 80 characters per line, as long as it
+doesn't require contorting the code in some other way.  So perhaps not
+everyone would agree that the issue is only the amount of nesting.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index ddf035a23e3a..599390325c09 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1957,10 +1957,11 @@ static int uvc_probe(struct usb_interface *intf,
- 	if (uvc_register_chains(dev) < 0)
- 		goto error;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
- 	/* Register the media device node */
- 	if (media_device_register(&dev->mdev) < 0)
- 		goto error;
--
-+#endif
- 	/* Save our data pointer in the interface data. */
- 	usb_set_intfdata(intf, dev);
- 
--- 
-2.4.3
+julia
 
+> > That's said, on a quick look at the driver, it seems that the 80-cols
+> > violations are mostly (if not all) on the comments, like:
+> >
+> >         int i_poc_lsb = (frame_seqno_in_gop << 1); /* why multiplied by two? TODO try without multiplication */
+> >
+> > and
+> >
+> > #define TW5864_UNDEF_REG_0x0224 0x0224  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+> > #define TW5864_UNDEF_REG_0x4014 0x4014  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+> > #define TW5864_UNDEF_REG_0xA800 0xA800  /* Undeclared in spec (or not yet added to tw5864-reg.h) but used */
+> >
+> > Btw, the content of tw5864-reg-undefined.h is weird... Why not just
+> > add the stuff there at tw5864-reg.h and remove the comments for all
+> > defines there?
+>
+> tw5864-reg-undefined.h will be edited for sure (maybe dropped), of
+> course it won't stay as it is now.
+> It was generated by script during reverse-engineering that bastard
+> chip from hell.
+>
+> > Also, Lindent already did some crappy 80-cols like breaks, like:
+> >
+> > static int pci_i2c_multi_read(struct tw5864_dev *dev, u8 devid, u8 devfn, u8 *buf,
+> >                        u32 count)
+> >
+> > (count is misaligned with the open parenthesis)
+>
+> I just added "static " after indenting.
+> Actually, Documentation/CodingStyle says nothing about alignment of
+> function declaration tail on open parenthesis.
+> Also I'd like to mention that I hate such alignment, because it
+> requires intermixing of tabs and spaces. I am not aware if this is K&R
+> thing or not. If it is, then please don't kill me.
+>
+> Thanks for kind replies, gentlemen.
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
