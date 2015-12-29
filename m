@@ -1,81 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:31851 "EHLO smtp2-g21.free.fr"
+Received: from mout.web.de ([212.227.15.4]:52246 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967230AbbLQQtF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 11:49:05 -0500
-Subject: Re: Automatic device driver back-porting with media_build
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
- <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
- <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <5672E779.9080505@free.fr>
-Date: Thu, 17 Dec 2015 17:48:57 +0100
+	id S1750906AbbL2KTF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2015 05:19:05 -0500
+Subject: [PATCH] [media] hdpvr: Refactoring for hdpvr_read()
+References: <566ABCD9.1060404@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <56825E06.6040708@users.sourceforge.net>
+Date: Tue, 29 Dec 2015 11:18:46 +0100
 MIME-Version: 1.0
-In-Reply-To: <20151217140943.7048811b@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/12/2015 17:09, Mauro Carvalho Chehab wrote:
-> Em Thu, 17 Dec 2015 16:32:54 +0100
-> Mason <slash.tmp@free.fr> escreveu:
-> 
->> I wanted to fix the NEED_WRITEL_RELAXED warning, but I don't know Perl.
->>
->> v4l/scripts/make_config_compat.pl
->>
->> check_files_for_func("writel_relaxed", "NEED_WRITEL_RELAXED", "include/asm-generic/io.h");
->> incorrectly outputs
->> #define NEED_WRITEL_RELAXED 1
->>
->>
->> In file included from <command-line>:0:0:
->> /tmp/sandbox/media_build/v4l/compat.h:1568:0: warning: "writel_relaxed" redefined
->>  #define writel_relaxed writel
->>  ^
->> In file included from include/linux/scatterlist.h:10:0,
->>                  from /tmp/sandbox/media_build/v4l/compat.h:1255,
->>                  from <command-line>:0:
->> /tmp/sandbox/custom-linux-3.4/arch/arm/include/asm/io.h:235:0: note: this is the location of the previous definition
->>  #define writel_relaxed(v,c) ((void)__raw_writel((__force u32) \
->>  ^
->>
->> Shouldn't the script examine arch/$ARCH/include/asm/io.h instead of
->> include/asm-generic/io.h ? (Or perhaps both?)
->>
->> Does make_config_compat.pl know about ARCH?
-> 
-> No to both. When you do a "make init" on the Kernel repository, it
-> will evaluate the ARCH vars.
-> 
-> This is also needed for the media build to work, as it needs to
-> check what CONFIG vars are enabled on the targeted Kernel.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 29 Dec 2015 11:02:43 +0100
 
-I downloaded the vanilla version of my custom kernel: linux-3.4.39.tar.xz
+Let us return directly if the element "status" of the variable "buf"
+indicates "BUFSTAT_READY".
+A check repetition can be excluded for the variable "ret" at the end then.
 
-Even then, NEED_WRITEL_RELAXED is incorrectly defined.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-How do you propose to fix this bug?
-
-$ grep writel_relaxed arch/arm/include/asm/io.h
-#define writel_relaxed(v,c)	((void)__raw_writel((__force u32) \
-#define writel(v,c)		({ __iowmb(); writel_relaxed(v,c); })
-
-$ grep writel_relaxed arch/x86/include/asm/io.h
-$ grep -r writel_relaxed include
-
-> As I said before, heavily patched Kernel. It seems that the network stack
-> was updated to some newer version. The media_build backport considers
-> only the upstream Kernels. In the specific case of 3.4, it is known
-> to build fine with Kernel linux-3.4.27. See:
-> 	http://hverkuil.home.xs4all.nl/logs/Wednesday.log
-
-I will keep trying to get something to compile.
-
-Regards.
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 7dee22d..ba7f022 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -462,10 +462,8 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 			}
+ 
+ 			if (wait_event_interruptible(dev->wait_data,
+-					      buf->status == BUFSTAT_READY)) {
+-				ret = -ERESTARTSYS;
+-				goto err;
+-			}
++					      buf->status == BUFSTAT_READY))
++				return -ERESTARTSYS;
+ 		}
+ 
+ 		if (buf->status != BUFSTAT_READY)
+-- 
+2.6.3
 
