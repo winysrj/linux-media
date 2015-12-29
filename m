@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:41173 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752105AbbLRPNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2015 10:13:12 -0500
-Subject: Re: Automatic device driver back-porting with media_build
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <5672A6F0.6070003@free.fr> <20151217105543.13599560@recife.lan>
- <5672BE15.9070006@free.fr> <20151217120830.0fc27f01@recife.lan>
- <5672C713.6090101@free.fr> <20151217125505.0abc4b40@recife.lan>
- <5672D5A6.8090505@free.fr> <20151217140943.7048811b@recife.lan>
- <5672EAD6.2000706@free.fr> <5673E393.8050309@free.fr>
- <20151218090345.623cef4c@recife.lan> <20151218092225.387cea22@recife.lan>
- <5673F7CF.9090605@free.fr> <56740343.4000904@free.fr>
- <56740CBA.1060903@free.fr>
-From: Mason <slash.tmp@free.fr>
-Message-ID: <56742283.1010909@free.fr>
-Date: Fri, 18 Dec 2015 16:13:07 +0100
-MIME-Version: 1.0
-In-Reply-To: <56740CBA.1060903@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59408 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753302AbbL2OLy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2015 09:11:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] v4l: omap3isp: Fix data lane shift configuration
+Date: Tue, 29 Dec 2015 16:11:51 +0200
+Message-Id: <1451398311-3964-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/12/2015 14:40, Mason wrote:
+The data-shift DT property speficies the number of bits to be shifted,
+but the driver still interprets the value as a multiple of two bits as
+used by now removed platform data support. Fix it.
 
-> I will try building a kernel with CONFIG_OF=n
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c      | 2 +-
+ drivers/media/platform/omap3isp/ispccdc.c  | 2 +-
+ drivers/media/platform/omap3isp/omap3isp.h | 8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-Build works much better with CONFIG_OF=n
-I suppose OF support with ancient kernels is untested.
-(My setup didn't need it anyway.)
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 6952d3604e52..1af6a4359706 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -449,7 +449,7 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 	case CCDC_INPUT_PARALLEL:
+ 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
+ 		ispctrl_val |= parcfg->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
+-		shift += parcfg->data_lane_shift * 2;
++		shift += parcfg->data_lane_shift;
+ 		break;
+ 
+ 	case CCDC_INPUT_CSI2A:
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 203323ce7dd4..5cf410949dbc 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2453,7 +2453,7 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
+ 			&((struct isp_bus_cfg *)
+ 			  media_entity_to_v4l2_subdev(link->source->entity)
+ 			  ->host_priv)->bus.parallel;
+-		parallel_shift = parcfg->data_lane_shift * 2;
++		parallel_shift = parcfg->data_lane_shift;
+ 	} else {
+ 		parallel_shift = 0;
+ 	}
+diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/platform/omap3isp/omap3isp.h
+index 190e259a6a2d..443e8f7673e2 100644
+--- a/drivers/media/platform/omap3isp/omap3isp.h
++++ b/drivers/media/platform/omap3isp/omap3isp.h
+@@ -33,9 +33,9 @@ enum isp_interface_type {
+  * struct isp_parallel_cfg - Parallel interface configuration
+  * @data_lane_shift: Data lane shifter
+  *		0 - CAMEXT[13:0] -> CAM[13:0]
+- *		1 - CAMEXT[13:2] -> CAM[11:0]
+- *		2 - CAMEXT[13:4] -> CAM[9:0]
+- *		3 - CAMEXT[13:6] -> CAM[7:0]
++ *		2 - CAMEXT[13:2] -> CAM[11:0]
++ *		4 - CAMEXT[13:4] -> CAM[9:0]
++ *		6 - CAMEXT[13:6] -> CAM[7:0]
+  * @clk_pol: Pixel clock polarity
+  *		0 - Sample on rising edge, 1 - Sample on falling edge
+  * @hs_pol: Horizontal synchronization polarity
+@@ -48,7 +48,7 @@ enum isp_interface_type {
+  *		0 - Normal, 1 - One's complement
+  */
+ struct isp_parallel_cfg {
+-	unsigned int data_lane_shift:2;
++	unsigned int data_lane_shift:3;
+ 	unsigned int clk_pol:1;
+ 	unsigned int hs_pol:1;
+ 	unsigned int vs_pol:1;
+-- 
+Regards,
 
-The remaining issue is:
-
-WARNING: "nsecs_to_jiffies" [/tmp/sandbox/media_build/v4l/gpio-ir-recv.ko] undefined!
-
-$ git describe --contains d560fed6abe0f
-v3.17-rc1~109^2~40
-
-The actual call site was added recently by commit 3fb136f3392d
-(Hasn't even it linux-stable yet, I only see it in next-20151123)
-
-I think a patch is needed for kernels < 3.17 right?
-
-Regards.
+Laurent Pinchart
 
