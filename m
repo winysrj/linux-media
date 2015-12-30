@@ -1,147 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46946 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153AbbLUCmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2015 21:42:17 -0500
-Subject: Re: [PATCH 1/3] rtl2832: add support for slave ts pid filter
-To: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org
-References: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <56776708.4010204@iki.fi>
-Date: Mon, 21 Dec 2015 04:42:16 +0200
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:32940 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754985AbbL3Qqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 11:46:55 -0500
+Received: by mail-wm0-f49.google.com with SMTP id f206so71492895wmf.0
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:54 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 11/16] media: rc: nuvoton-cir: improve logical device handling
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <568409CF.2050101@gmail.com>
+Date: Wed, 30 Dec 2015 17:43:59 +0100
 MIME-Version: 1.0
-In-Reply-To: <1448763016-10527-1-git-send-email-benjamin@southpole.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch looks acceptable, but it is broken in a mean it does not apply :(
+Only enable the logical devices after the registers have been initialized.
 
-$ wget -O - https://patchwork.linuxtv.org/patch/32030/mbox/ | git am -3 -s
---2015-12-21 04:40:46--  https://patchwork.linuxtv.org/patch/32030/mbox/
-Resolving patchwork.linuxtv.org (patchwork.linuxtv.org)... 130.149.80.248
-Connecting to patchwork.linuxtv.org 
-(patchwork.linuxtv.org)|130.149.80.248|:443... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: unspecified [text/plain]
-Saving to: ‘STDOUT’
+The call to nvt_enable_logical_dev in nvt_resume is not needed as this is
+done implicitely by nvt_cir_regs_init now.
 
--                                                   [ <=> 
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index cf6ccb3..e01fdc8 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -352,9 +352,8 @@ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
+ 	val |= psval;
+ 	nvt_cr_write(nvt, val, psreg);
  
-               ]   2.73K  --.-KB/s   in 0s
-
-2015-12-21 04:40:46 (60.4 MB/s) - written to stdout [2796]
-
-Applying: rtl2832: add support for slave ts pid filter
-fatal: corrupt patch at line 39
-Repository lacks necessary blobs to fall back on 3-way merge.
-Cannot fall back to three-way merge.
-Patch failed at 0001 rtl2832: add support for slave ts pid filter
-The copy of the patch that failed is found in:
-    /home/crope/linuxtv/code/media_tree/.git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
-[crope@localhost media_tree]$ patch -p1 < .git/rebase-apply/patch
-patching file drivers/media/dvb-frontends/rtl2832.c
-patch: **** malformed patch at line 39: @@ -1178,14 +1185,22 @@ static 
-int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
-
-[crope@localhost media_tree]$ git am --abort
-[crope@localhost media_tree]$ git am ~/\[PATCH\ 1_3\]\ rtl2832\:\ add\ 
-support\ for\ slave\ ts\ pid\ filter.eml
-Applying: rtl2832: add support for slave ts pid filter
-fatal: corrupt patch at line 39
-Patch failed at 0001 rtl2832: add support for slave ts pid filter
-The copy of the patch that failed is found in:
-    /home/crope/linuxtv/code/media_tree/.git/rebase-apply/patch
-When you have resolved this problem, run "git am --continue".
-If you prefer to skip this patch, run "git am --skip" instead.
-To restore the original branch and stop patching, run "git am --abort".
-[crope@localhost media_tree]$ git am --abort
-
-Antti
-
-On 11/29/2015 04:10 AM, Benjamin Larsson wrote:
-> Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
-> ---
->   drivers/media/dvb-frontends/rtl2832.c      | 21 ++++++++++++++++++---
->   drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
->   2 files changed, 19 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-> index 78b87b2..e054079 100644
-> --- a/drivers/media/dvb-frontends/rtl2832.c
-> +++ b/drivers/media/dvb-frontends/rtl2832.c
-> @@ -407,6 +407,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
->   	/* start statistics polling */
->   	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
->   	dev->sleeping = false;
-> +	dev->slave_ts = false;
->
->   	return 0;
->   err:
-> @@ -1122,6 +1123,8 @@ static int rtl2832_enable_slave_ts(struct i2c_client *client)
->   	if (ret)
->   		goto err;
->
-> +	dev->slave_ts = true;
-> +
->   	return 0;
->   err:
->   	dev_dbg(&client->dev, "failed=%d\n", ret);
-> @@ -1143,7 +1146,11 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
->   	else
->   		u8tmp = 0x00;
->
-> -	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
-> +	if (dev->slave_ts)
-> +		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
-> +	else
-> +		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
->   	if (ret)
->   		goto err;
->
-> @@ -1178,14 +1185,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
->   	buf[1] = (dev->filters >>  8) & 0xff;
->   	buf[2] = (dev->filters >> 16) & 0xff;
->   	buf[3] = (dev->filters >> 24) & 0xff;
-> -	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
-> +
-> +	if (dev->slave_ts)
-> +		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
-> +	else
-> +		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
->   	if (ret)
->   		goto err;
->
->   	/* add PID */
->   	buf[0] = (pid >> 8) & 0xff;
->   	buf[1] = (pid >> 0) & 0xff;
-> -	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
-> +
-> +	if (dev->slave_ts)
-> +		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
-> +	else
-> +		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
->   	if (ret)
->   		goto err;
->
-> diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-> index 5dcd3a4..efc230f 100644
-> --- a/drivers/media/dvb-frontends/rtl2832_priv.h
-> +++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-> @@ -46,6 +46,7 @@ struct rtl2832_dev {
->   	bool sleeping;
->   	struct delayed_work i2c_gate_work;
->   	unsigned long filters; /* PID filter */
-> +	bool slave_ts;
->   };
->
->   struct rtl2832_reg_entry {
->
-
+-	/* Select CIR logical device and enable */
++	/* Select CIR logical device */
+ 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
+-	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
+ 
+ 	nvt_set_ioaddr(nvt, &nvt->cir_addr);
+ 
+@@ -366,7 +365,7 @@ static void nvt_cir_ldev_init(struct nvt_dev *nvt)
+ 
+ static void nvt_cir_wake_ldev_init(struct nvt_dev *nvt)
+ {
+-	/* Select ACPI logical device, enable it and CIR Wake */
++	/* Select ACPI logical device and anable it */
+ 	nvt_select_logical_dev(nvt, LOGICAL_DEV_ACPI);
+ 	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
+ 
+@@ -376,9 +375,8 @@ static void nvt_cir_wake_ldev_init(struct nvt_dev *nvt)
+ 	/* enable pme interrupt of cir wakeup event */
+ 	nvt_set_reg_bit(nvt, PME_INTR_CIR_PASS_BIT, CR_ACPI_IRQ_EVENTS2);
+ 
+-	/* Select CIR Wake logical device and enable */
++	/* Select CIR Wake logical device */
+ 	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
+-	nvt_cr_write(nvt, LOGICAL_DEV_ENABLE, CR_LOGICAL_DEV_EN);
+ 
+ 	nvt_set_ioaddr(nvt, &nvt->cir_wake_addr);
+ 
+@@ -461,6 +459,9 @@ static void nvt_cir_regs_init(struct nvt_dev *nvt)
+ 
+ 	/* and finally, enable interrupts */
+ 	nvt_set_cir_iren(nvt);
++
++	/* enable the CIR logical device */
++	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
+ }
+ 
+ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+@@ -495,6 +496,9 @@ static void nvt_cir_wake_regs_init(struct nvt_dev *nvt)
+ 
+ 	/* clear any and all stray interrupts */
+ 	nvt_cir_wake_reg_write(nvt, 0xff, CIR_WAKE_IRSTS);
++
++	/* enable the CIR WAKE logical device */
++	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR_WAKE);
+ }
+ 
+ static void nvt_enable_wake(struct nvt_dev *nvt)
+@@ -1070,7 +1074,9 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	nvt_cir_wake_ldev_init(nvt);
+ 	nvt_efm_disable(nvt);
+ 
+-	/* Initialize CIR & CIR Wake Config Registers */
++	/* Initialize CIR & CIR Wake Config Registers
++	 * and enable logical devices
++	 */
+ 	nvt_cir_regs_init(nvt);
+ 	nvt_cir_wake_regs_init(nvt);
+ 
+@@ -1198,9 +1204,6 @@ static int nvt_resume(struct pnp_dev *pdev)
+ 	/* open interrupt */
+ 	nvt_set_cir_iren(nvt);
+ 
+-	/* Enable CIR logical device */
+-	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
+-
+ 	nvt_cir_regs_init(nvt);
+ 	nvt_cir_wake_regs_init(nvt);
+ 
 -- 
-http://palosaari.fi/
+2.6.4
+
+
