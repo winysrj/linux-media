@@ -1,143 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55734 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932428AbbLOXRE (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:32833 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbbL3Qqq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2015 18:17:04 -0500
-Date: Wed, 16 Dec 2015 01:16:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 30 Dec 2015 11:46:46 -0500
+Received: by mail-wm0-f49.google.com with SMTP id f206so71488769wmf.0
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:45 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 03/16] media: rc: nuvoton-cir: simplify nvt_cir_tx_inactive
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v2 03/22] media: Add an API to manage entity enumerations
-Message-ID: <20151215231629.GM17128@valkosipuli.retiisi.org.uk>
-References: <1448824823-10372-1-git-send-email-sakari.ailus@iki.fi>
- <1448824823-10372-4-git-send-email-sakari.ailus@iki.fi>
- <20151212130936.6cf7cdee@recife.lan>
- <566DED38.1040802@iki.fi>
- <20151213225457.46ba2f6c@recife.lan>
+Cc: linux-media@vger.kernel.org
+Message-ID: <568408CD.7070009@gmail.com>
+Date: Wed, 30 Dec 2015 17:39:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20151213225457.46ba2f6c@recife.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Simplify nvt_cir_tx_inactive.
 
-On Sun, Dec 13, 2015 at 10:54:57PM -0200, Mauro Carvalho Chehab wrote:
-> > >> +	e->idx_max = idx_max;
-> > >> +
-> > >> +	return 0;
-> > >> +}
-> > >> +EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-> > >> +
-> > >> +/**
-> > >> + * media_entity_enum_cleanup - Release resources of an entity enumeration
-> > >> + *
-> > >> + * @e: Entity enumeration to be released
-> > >> + */
-> > >> +void media_entity_enum_cleanup(struct media_entity_enum *e)
-> > >> +{
-> > >> +	if (e->e != e->__e)
-> > >> +		kfree(e->e);
-> > >> +	e->e = NULL;
-> > >> +}
-> > >> +EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
-> > >> +
-> > >> +/**
-> > >>   * media_entity_init - Initialize a media entity
-> > >>   *
-> > >>   * @num_pads: Total number of sink and source pads.
-> > >> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > >> index c0e1764..2d46c66 100644
-> > >> --- a/include/media/media-device.h
-> > >> +++ b/include/media/media-device.h
-> > >> @@ -110,6 +110,20 @@ struct media_device {
-> > >>  /* media_devnode to media_device */
-> > >>  #define to_media_device(node) container_of(node, struct media_device, devnode)
-> > >>  
-> > >> +/**
-> > >> + * media_entity_enum_init - Initialise an entity enumeration
-> > >> + *
-> > >> + * @e: Entity enumeration to be initialised
-> > >> + * @mdev: The related media device
-> > >> + *
-> > >> + * Returns zero on success or a negative error code.
-> > >> + */
-> > >> +static inline __must_check int media_entity_enum_init(
-> > >> +	struct media_entity_enum *e, struct media_device *mdev)
-> > >> +{
-> > >> +	return __media_entity_enum_init(e, mdev->entity_internal_idx_max + 1);
-> > >> +}
-> > >> +
-> > >>  void media_device_init(struct media_device *mdev);
-> > >>  void media_device_cleanup(struct media_device *mdev);
-> > >>  int __must_check __media_device_register(struct media_device *mdev,
-> > >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > >> index d3d3a39..5a0339a 100644
-> > >> --- a/include/media/media-entity.h
-> > >> +++ b/include/media/media-entity.h
-> > >> @@ -23,7 +23,7 @@
-> > >>  #ifndef _MEDIA_ENTITY_H
-> > >>  #define _MEDIA_ENTITY_H
-> > >>  
-> > >> -#include <linux/bitops.h>
-> > >> +#include <linux/bitmap.h>
-> > >>  #include <linux/kernel.h>
-> > >>  #include <linux/list.h>
-> > >>  #include <linux/media.h>
-> > >> @@ -71,6 +71,30 @@ struct media_gobj {
-> > >>  	struct list_head	list;
-> > >>  };
-> > >>  
-> > >> +#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-> > >> +#define MEDIA_ENTITY_ENUM_MAX_ID	64
-> > >> +
-> > >> +/*
-> > >> + * The number of pads can't be bigger than the number of entities,
-> > >> + * as the worse-case scenario is to have one entity linked up to
-> > >> + * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-> > >> + */
-> > >> +#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-> > >> +
-> > >> +/* struct media_entity_enum - An enumeration of media entities.
-> > >> + *
-> > >> + * @__e:	Pre-allocated space reserved for media entities if the total
-> > >> + *		number of entities  does not exceed MEDIA_ENTITY_ENUM_MAX_ID.
-> > >> + * @e:		Bit mask in which each bit represents one entity at struct
-> > >> + *		media_entity->internal_idx.
-> > >> + * @idx_max:	Number of bits in the enum.
-> > >> + */
-> > >> +struct media_entity_enum {
-> > >> +	DECLARE_BITMAP(__e, MEDIA_ENTITY_ENUM_MAX_ID);
-> > >> +	unsigned long *e;
-> > > 
-> > > As mentioned before, don't use single letter names, specially inside
-> > > publicly used structures. There's no good reason for that, and the
-> > > code become really obscure.
-> > > 
-> > > Also, just declare one bitmap. having a "pre-allocated" hardcoded
-> > > one here is very confusing.
-> > 
-> > I prefer to keep it as allocating a few bytes of memory is silly. In the
-> > vast majority of the cases the pre-allocated array will be sufficient.
-> 
-> "vast majority" actually depends on the driver/subsystem. The fact that
-> right now most drivers work fine with < 64 entities may not be
-> true in the future.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-One reason the pre-allocated bitmap shouldn't be removed yet is that by
-doing that, i.e. allocating memory in media_entity_enum_init(), the user
-must check the return code. The further patches in the set make drivers do
-that add __must_check modifier to the prototype.
-
-I will thus add another patch near the top to remove the pre-allocated
-bitmap.
-
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 2539d4f..f661eff 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -742,16 +742,13 @@ static void nvt_cir_log_irqs(u8 status, u8 iren)
+ static bool nvt_cir_tx_inactive(struct nvt_dev *nvt)
+ {
+ 	unsigned long flags;
+-	bool tx_inactive;
+ 	u8 tx_state;
+ 
+ 	spin_lock_irqsave(&nvt->tx.lock, flags);
+ 	tx_state = nvt->tx.tx_state;
+ 	spin_unlock_irqrestore(&nvt->tx.lock, flags);
+ 
+-	tx_inactive = (tx_state == ST_TX_NONE);
+-
+-	return tx_inactive;
++	return tx_state == ST_TX_NONE;
+ }
+ 
+ /* interrupt service routine for incoming and outgoing CIR data */
 -- 
-Kind regards,
+2.6.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
