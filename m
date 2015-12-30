@@ -1,76 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56240 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbbLFBqP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2015 20:46:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH v8 37/55] [media] omap4iss: stop MEDIA_ENT_T_V4L2_SUBDEV abuse
-Date: Sun, 06 Dec 2015 03:46:28 +0200
-Message-ID: <1463986.OOuIkiWRAs@avalon>
-In-Reply-To: <ac6f2a7a8afe83affe3b688e8b8f509987a13c96.1440902901.git.mchehab@osg.samsung.com>
-References: <cover.1440902901.git.mchehab@osg.samsung.com> <ac6f2a7a8afe83affe3b688e8b8f509987a13c96.1440902901.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:52488 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793AbbL3Nti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 08:49:38 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/6]  Some improvements for DVB media graph
+Date: Wed, 30 Dec 2015 11:48:50 -0200
+Message-Id: <cover.1451482760.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch series is the result of some additional tests with the media controller and
+several different  pure digital TV devices, using the dvb-usb, dvb-usb-v2 core and 
+the siano driver.
 
-Thank you for the patch.
+It addresses some minor issues, and improves the graph representation of
+those devices. In particular, the DVB USB v2 mxl111sf driver supports one
+device that has:
+- one tuner, provided by the MXL chipset;
+- three demodulators (one for ATSC, one for ClearQAM and one for DVB-T), each
+  one using a different chip and different driver (lg2161, lgdt3305 and an internal
+  DVB-T demodulator inside the MXL chipset);
+- one demod, provided by the MXL chipset.
 
-On Sunday 30 August 2015 00:06:48 Mauro Carvalho Chehab wrote:
-> This driver is abusing MEDIA_ENT_T_V4L2_SUBDEV, as it uses a
-> hack to check if the remote entity is a subdev. Get rid of it.
+The graph for such design is at:
+	https://mchehab.fedorapeople.org/mc-next-gen/mxl111sf.png
+with is generated, after this changeset, using mc-nextgen-test tool, available
+at:
+	https://git.linuxtv.org/mchehab/experimental-v4l-utils.git/log/?h=mc-next-gen-v2
 
-While I agree with the idea of the patch I don't think this is a hack, it was 
-a totally valid implementation with the existing API.
+The .dot file produced by the tool is at:
+	https://mchehab.fedorapeople.org/mc-next-gen/mxl111sf.dot
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/drivers/staging/media/omap4iss/iss_ipipe.c
-> b/drivers/staging/media/omap4iss/iss_ipipe.c index
-> e1a7b7ba7362..eb91ec48a21e 100644
-> --- a/drivers/staging/media/omap4iss/iss_ipipe.c
-> +++ b/drivers/staging/media/omap4iss/iss_ipipe.c
-> @@ -447,8 +447,11 @@ static int ipipe_link_setup(struct media_entity
-> *entity, struct iss_ipipe_device *ipipe = v4l2_get_subdevdata(sd);
->  	struct iss_device *iss = to_iss_device(ipipe);
-> 
-> -	switch (local->index | media_entity_type(remote->entity)) {
-> -	case IPIPE_PAD_SINK | MEDIA_ENT_T_V4L2_SUBDEV:
-> +	if (!is_media_entity_v4l2_subdev(remote->entity))
-> +		return -EINVAL;
-> +
+Before this patch series, the RF connector and tuner were not shown.
+Also, the graph were missing the connections for the frontends 0 and 1.
 
-Furthermore the ipipe entity is never connected to anything else than a 
-subdev, so you can remove this check completely.
+Mauro Carvalho Chehab (6):
+  [media] dvbdev: remove two dead functions if
+    !CONFIG_MEDIA_CONTROLLER_DVB
+  [media] dvbdev: Add RF connector if needed
+  [media] dvb-usb-v2: postpone removal of media_device
+  [media] media-entitiy: add a function to create multiple links
+  [media] dvbdev: create links on devices with multiple frontends
+  [media] mxl111sf: Add a tuner entity
 
-I'd rewrite the subject line as "omap4iss: ipipe: Don't check entity type 
-needlessly during link setup" and update the commit message accordingly.
-
-> +	switch (local->index) {
-> +	case IPIPE_PAD_SINK:
->  		/* Read from IPIPEIF. */
->  		if (!(flags & MEDIA_LNK_FL_ENABLED)) {
->  			ipipe->input = IPIPE_INPUT_NONE;
-> @@ -463,7 +466,7 @@ static int ipipe_link_setup(struct media_entity *entity,
-> 
->  		break;
-> 
-> -	case IPIPE_PAD_SOURCE_VP | MEDIA_ENT_T_V4L2_SUBDEV:
-> +	case IPIPE_PAD_SOURCE_VP:
->  		/* Send to RESIZER */
->  		if (flags & MEDIA_LNK_FL_ENABLED) {
->  			if (ipipe->output & ~IPIPE_OUTPUT_VP)
+ drivers/media/common/siano/smsdvb-main.c    |  2 +-
+ drivers/media/dvb-core/dvbdev.c             | 98 +++++++++++++++++++++++++----
+ drivers/media/dvb-core/dvbdev.h             | 33 +++++++++-
+ drivers/media/media-entity.c                | 65 +++++++++++++++++++
+ drivers/media/usb/au0828/au0828-dvb.c       |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c     |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |  4 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c     | 20 ++++++
+ drivers/media/usb/dvb-usb-v2/mxl111sf.h     |  5 ++
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c     |  2 +-
+ include/media/media-entity.h                | 51 +++++++++++++++
+ 11 files changed, 264 insertions(+), 20 deletions(-)
 
 -- 
-Regards,
+2.5.0
 
-Laurent Pinchart
 
