@@ -1,118 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:58153 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932075AbbLXKnX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2015 05:43:23 -0500
-Date: Thu, 24 Dec 2015 11:42:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>
-Subject: Re: per-frame camera metadata (again)
-In-Reply-To: <2560629.CtpjHgJUC1@avalon>
-Message-ID: <Pine.LNX.4.64.1512241123060.12474@axis700.grange>
-References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
- <4607936.L97stxNvbj@avalon> <Pine.LNX.4.64.1512221122420.31855@axis700.grange>
- <2560629.CtpjHgJUC1@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([198.137.202.9]:52492 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753991AbbL3Nti (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 08:49:38 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 4/6] [media] media-entitiy: add a function to create multiple links
+Date: Wed, 30 Dec 2015 11:48:54 -0200
+Message-Id: <9c5e0deaa4e22f04ed026e4905950c450cfcb06a.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Sometimes, it is desired to create 1:n and n:1 or even
+n:n links between different entities with the same
+function.
 
-Let me put this at the top: So far it looks like we converge on two 
-possibilities:
+This is actually needed to support DVB devices that
+have multiple frontends. While we could do a function
+like that internally at the DVB core, such function is
+generic enough to be at media-entity, and it could be
+useful on some other places.
 
-(1) a separate video-device node with a separate queue. No user-space 
-visible changes are required apart from new FOURCC codes. In the kernel 
-we'd have to add some subdev API between the bridge and the sensor drivers 
-to let the sensor driver instruct the bridge driver to use some of the 
-data, arriving over the camera interface, as metadata.
+So, add such function.
 
-(2) parsing metadata by the sensor subdevice driver to make it available 
-as controls. This would only (properly) work with the request API, which 
-is still a work in progress. Apart from that request API no additional 
-user-space visible changes would be required. The kernel subdevice API 
-would have to be extended as above, to specify metadata location. 
-Additionally, the bridge driver would have to pass the metadata buffer 
-back to the subdevice driver for parsing.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-entity.c | 65 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h | 51 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 116 insertions(+)
 
-Since the request API isn't available yet and even the latest version 
-doesn't support per-request controls, looks like immediately only the 
-former approach can be used.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index eb38bc35320a..e89d85a7d31b 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -625,6 +625,71 @@ media_create_pad_link(struct media_entity *source, u16 source_pad,
+ }
+ EXPORT_SYMBOL_GPL(media_create_pad_link);
+ 
++int media_create_pad_links(const struct media_device *mdev,
++			   const u32 source_function,
++			   struct media_entity *source,
++			   const u16 source_pad,
++			   const u32 sink_function,
++			   struct media_entity *sink,
++			   const u16 sink_pad,
++			   u32 flags,
++			   const bool allow_both_undefined)
++{
++	struct media_entity *entity;
++	unsigned function;
++	int ret;
++
++	/* Trivial case: 1:1 relation */
++	if (source && sink)
++		return media_create_pad_link(source, source_pad,
++					     sink, sink_pad, flags);
++
++	/* Worse case scenario: n:n relation */
++	if (!source && !sink) {
++		if (!allow_both_undefined)
++			return 0;
++		media_device_for_each_entity(source, mdev) {
++			if (source->function != source_function)
++				continue;
++			media_device_for_each_entity(sink, mdev) {
++				if (sink->function != sink_function)
++					continue;
++				ret = media_create_pad_link(source, source_pad,
++							    sink, sink_pad,
++							    flags);
++				if (ret)
++					return ret;
++				flags &= ~(MEDIA_LNK_FL_ENABLED |
++					   MEDIA_LNK_FL_IMMUTABLE);
++			}
++		}
++		return 0;
++	}
++
++	/* Handle 1:n and n:1 cases */
++	if (source)
++		function = sink_function;
++	else
++		function = source_function;
++
++	media_device_for_each_entity(entity, mdev) {
++		if (entity->function != function)
++			continue;
++
++		if (source)
++			ret = media_create_pad_link(source, source_pad,
++						    entity, sink_pad, flags);
++		else
++			ret = media_create_pad_link(entity, source_pad,
++						    sink, sink_pad, flags);
++		if (ret)
++			return ret;
++		flags &= ~(MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_create_pad_links);
++
+ void __media_entity_remove_links(struct media_entity *entity)
+ {
+ 	struct media_link *link, *tmp;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 79dd81fd463e..fe485d367985 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -613,6 +613,57 @@ static inline void media_entity_cleanup(struct media_entity *entity) {};
+ __must_check int media_create_pad_link(struct media_entity *source,
+ 			u16 source_pad, struct media_entity *sink,
+ 			u16 sink_pad, u32 flags);
++
++/**
++ * media_create_pad_links() - creates a link between two entities.
++ *
++ * @mdev: Pointer to the media_device that contains the object
++ * @source_function: Function of the source entities. Used only if @source is
++ *	NULL.
++ * @source: pointer to &media_entity of the source pad. If NULL, it will use
++ * 	all entities that matches the @sink_function.
++ * @source_pad: number of the source pad in the pads array
++ * @sink_function: Function of the sink entities. Used only if @sink is NULL.
++ * @sink: pointer to &media_entity of the sink pad. If NULL, it will use
++ * 	all entities that matches the @sink_function.
++ * @sink_pad: number of the sink pad in the pads array.
++ * @flags: Link flags, as defined in include/uapi/linux/media.h.
++ * @allow_both_undefined: if true, then both @source and @sink can be NULL.
++ *	In such case, it will create a crossbar between all entities that
++ *	matches @source_function to all entities that matches @sink_function.
++ *	If false, it will return 0 and won't create any link if both @source
++ *	and @sink are NULL.
++ *
++ * Valid values for flags:
++ * A %MEDIA_LNK_FL_ENABLED flag indicates that the link is enabled and can be
++ *	used to transfer media data. If multiple links are created and this
++ *	flag is passed as an argument, only the first created link will have
++ *	this flag.
++ *
++ * A %MEDIA_LNK_FL_IMMUTABLE flag indicates that the link enabled state can't
++ *	be modified at runtime. If %MEDIA_LNK_FL_IMMUTABLE is set, then
++ *	%MEDIA_LNK_FL_ENABLED must also be set since an immutable link is
++ *	always enabled.
++ *
++ * It is common for some devices to have multiple source and/or sink entities
++ * of the same type that should be linked. While media_create_pad_link()
++ * creates link by link, this function is meant to allow 1:n, n:1 and even
++ * cross-bar (n:n) links.
++ *
++ * NOTE: Before calling this function, media_entity_pads_init() and
++ * media_device_register_entity() should be called previously for the entities
++ * to be linked.
++ */
++int media_create_pad_links(const struct media_device *mdev,
++			   const u32 source_function,
++			   struct media_entity *source,
++			   const u16 source_pad,
++			   const u32 sink_function,
++			   struct media_entity *sink,
++			   const u16 sink_pad,
++			   u32 flags,
++			   const bool allow_both_undefined);
++
+ void __media_entity_remove_links(struct media_entity *entity);
+ 
+ /**
+-- 
+2.5.0
 
-On Wed, 23 Dec 2015, Laurent Pinchart wrote:
 
-[snip]
-
-> > > My other use case (Android camera HAL v3 for Project Ara) mainly deals
-> > > with controls and meta-data, but I'll then likely pass the meta-data blob
-> > > to userspace as-is, as its format isn't always known to the driver. I'm
-> > > also concerned about efficiency but haven't had time to perform
-> > > measurements yet.
-> >
-> > Hm, why is it not known to the subdevice driver? Does the buffer layout
-> > depend on some external conditions? Maybe loaded firmware? But it should
-> > be possible to tell the driver, say, that the current metadata buffer
-> > layout has version N?
-> 
-> My devices are class-compliant but can use a device-specific meta-data format. 
-> The kernel driver knows about the device class only, knowledge about any 
-> device-specific format is only available in userspace.
-
-So, unless you want to add camera-specific code to your class-driver 
-(UVC?), that's another argument against approach (2) above.
-
-> > Those metadata buffers can well contain some parameters, that can also be
-> > obtained via controls. So, if we just send metadata buffers to the user as
-> > is, we create duplication, which isn't nice.
-> 
-> In my case there won't be any duplication as there will likely be no control 
-> at all, but I agree with you in the general case.
-> 
-> > Besides, the end user will anyway want broken down control values. E.g. in
-> > the Android case, the app is getting single controls, not opaque metadata
-> > buffers. Of course, one could create a vendor metadata tag "metadata blob,"
-> > but that's not how Android does it so far.
-> > 
-> > OTOH passing those buffers to the subdevice driver for parsing and
-> > returning them as an (extended) control also seems a bit ugly.
-> > 
-> > What about performance cost? If we pass all those parameters as a single
-> > extended control (as long as they are of the same class), the cost won't
-> > be higher, than dequeuing a buffer? Let's not take the parsing cost and
-> > the control struct memory overhead into account for now.
-> 
-> If you take nothing into account then the cost won't be higher ;-) It's the 
-> parsing cost I was referring to, including the cost of updating the control 
-> value from within the kernel.
-
-I meant mostly context switching costs, switching between the kernel- and 
-the user-space. If we had to extract all controls one by one that wouldn't 
-be a negligible overhead, I guess.
-
-[snip]
-
-> > >> Right, our use-cases so far don't send a lot of data as per-frame
-> > >> metadata, no idea what others do.
-> > > 
-> > > What kind of hardware do you deal with that sends meta-data ? And over
-> > > what kind of channel does it send it ?
-> > 
-> > A CSI-2 connected camera sensor.
-> 
-> Is meta-data sent as embedded data lines with a different CSI-2 DT ?
-
-A different data type, yes.
-
-So, all in all it looks that the only immediately available option and, 
-possibly, the only feasible option at all is a separate buffer queue. Do 
-we agree, that a subdev API is needed to inform the bridge driver about 
-the availability and location of the metadata?
-
-Thanks
-Guennadi
