@@ -1,37 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60781 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871AbbLHXT2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2015 18:19:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH RESEND 0/2] Add field support to libv4l2subdev
-Date: Wed, 09 Dec 2015 01:19:42 +0200
-Message-ID: <7923777.jYttyT5pSr@avalon>
-In-Reply-To: <1449587363-22731-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587363-22731-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:36040 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbbL3Qqm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 11:46:42 -0500
+Received: by mail-wm0-f51.google.com with SMTP id l65so64876820wmf.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:42 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 01/16] media: rc: nuvoton-cir: use request_muxed_region for
+ accessing EFM registers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <568408BA.6030500@gmail.com>
+Date: Wed, 30 Dec 2015 17:39:22 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The two EFM ioports are accessed by drivers for other parts of the Nuvoton
+Super-IO chips too. Therefore access to these ioports needs to be
+protected by using request_muxed_region (like it's implemented e.g. in
+hwmon/nct6775 already).
 
-On Tuesday 08 December 2015 17:09:21 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> Just resending after a rebase, no change in the patches.
-> 
-> The earlier set is here:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg94605.html>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Thank you for the patch. I've pushed them to the public git tree.
-
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 081435c..62c82c5 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -80,17 +80,24 @@ static inline void nvt_clear_reg_bit(struct nvt_dev *nvt, u8 val, u8 reg)
+ }
+ 
+ /* enter extended function mode */
+-static inline void nvt_efm_enable(struct nvt_dev *nvt)
++static inline int nvt_efm_enable(struct nvt_dev *nvt)
+ {
++	if (!request_muxed_region(nvt->cr_efir, 2, NVT_DRIVER_NAME))
++		return -EBUSY;
++
+ 	/* Enabling Extended Function Mode explicitly requires writing 2x */
+ 	outb(EFER_EFM_ENABLE, nvt->cr_efir);
+ 	outb(EFER_EFM_ENABLE, nvt->cr_efir);
++
++	return 0;
+ }
+ 
+ /* exit extended function mode */
+ static inline void nvt_efm_disable(struct nvt_dev *nvt)
+ {
+ 	outb(EFER_EFM_DISABLE, nvt->cr_efir);
++
++	release_region(nvt->cr_efir, 2);
+ }
+ 
+ /*
 -- 
-Regards,
+2.6.4
 
-Laurent Pinchart
 
