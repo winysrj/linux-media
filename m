@@ -1,110 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39153 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752272AbbLNBg7 (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:38074 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093AbbL3Qqq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2015 20:36:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-Subject: Re: [PATCH] adv7604: add direct interrupt handling
-Date: Sun, 13 Dec 2015 20:43:27 +0200
-Message-ID: <3182169.MLSeafnaXq@avalon>
-In-Reply-To: <1449849868-14786-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1449849868-14786-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Wed, 30 Dec 2015 11:46:46 -0500
+Received: by mail-wm0-f51.google.com with SMTP id b14so55519311wmb.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:45 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 04/16] media: rc: nuvoton-cir: factor out logical device
+ disabling
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <568408E5.6030208@gmail.com>
+Date: Wed, 30 Dec 2015 17:40:05 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Factor out disabling of a logical device.
 
-Thank you for the patch.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-On Friday 11 December 2015 17:04:28 Ulrich Hecht wrote:
-> When probed from device tree, the i2c client driver can handle the
-> interrupt on its own.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
->  1 file changed, 22 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index c2df7e8..129009f 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -31,6 +31,7 @@
->  #include <linux/gpio/consumer.h>
->  #include <linux/hdmi.h>
->  #include <linux/i2c.h>
-> +#include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> @@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32
-> status, bool *handled) return 0;
->  }
-> 
-> +static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
-> +{
-> +	struct adv76xx_state *state = devid;
-> +	bool handled;
-> +
-> +	adv76xx_isr(&state->sd, 0, &handled);
-> +
-> +	return handled ? IRQ_HANDLED : IRQ_NONE;
-> +}
-> +
->  static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
-> {
->  	struct adv76xx_state *state = to_state(sd);
-> @@ -2833,8 +2844,7 @@ static int adv76xx_parse_dt(struct adv76xx_state
-> *state) state->pdata.op_656_range = 1;
->  	}
-> 
-> -	/* Disable the interrupt for now as no DT-based board uses it. */
-> -	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-> +	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
-> 
->  	/* Use the default I2C addresses. */
->  	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-> @@ -3224,6 +3234,16 @@ static int adv76xx_probe(struct i2c_client *client,
->  	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
->  			client->addr << 1, client->adapter->name);
-> 
-> +	if (client->irq) {
-> +		err = devm_request_threaded_irq(&client->dev,
-> +						client->irq,
-> +						NULL, adv76xx_irq_handler,
-> +						IRQF_TRIGGER_LOW|IRQF_ONESHOT,
-
-While you hardcode the type to active low in int1_config, a board could have 
-an inverter on the irq line, making it active high when it reaches the 
-interrupt controller.
-
-Unless I'm mistaken this will be handled properly if you set the correct 
-interrupt level in DT, so you can just remove the IRQF_TRIGGER_LOW flag here.
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +						dev_name(&client->dev), state);
-> +		if (err)
-> +			goto err_entity;
-> +	}
-> +
->  	err = v4l2_async_register_subdev(sd);
->  	if (err)
->  		goto err_entity;
-
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index f661eff..ceb6b95 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -110,6 +110,15 @@ static inline void nvt_select_logical_dev(struct nvt_dev *nvt, u8 ldev)
+ 	nvt_cr_write(nvt, ldev, CR_LOGICAL_DEV_SEL);
+ }
+ 
++/* select and disable logical device with setting EFM mode*/
++static inline void nvt_disable_logical_dev(struct nvt_dev *nvt, u8 ldev)
++{
++	nvt_efm_enable(nvt);
++	nvt_select_logical_dev(nvt, ldev);
++	nvt_cr_write(nvt, LOGICAL_DEV_DISABLE, CR_LOGICAL_DEV_EN);
++	nvt_efm_disable(nvt);
++}
++
+ /* write val to cir config register */
+ static inline void nvt_cir_reg_write(struct nvt_dev *nvt, u8 val, u8 offset)
+ {
+@@ -937,13 +946,8 @@ static void nvt_disable_cir(struct nvt_dev *nvt)
+ 	nvt_clear_cir_fifo(nvt);
+ 	nvt_clear_tx_fifo(nvt);
+ 
+-	nvt_efm_enable(nvt);
+-
+ 	/* disable the CIR logical device */
+-	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
+-	nvt_cr_write(nvt, LOGICAL_DEV_DISABLE, CR_LOGICAL_DEV_EN);
+-
+-	nvt_efm_disable(nvt);
++	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
+ }
+ 
+ static int nvt_open(struct rc_dev *dev)
+@@ -1145,13 +1149,8 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
+ 	/* disable all CIR interrupts */
+ 	nvt_cir_reg_write(nvt, 0, CIR_IREN);
+ 
+-	nvt_efm_enable(nvt);
+-
+ 	/* disable cir logical dev */
+-	nvt_select_logical_dev(nvt, LOGICAL_DEV_CIR);
+-	nvt_cr_write(nvt, LOGICAL_DEV_DISABLE, CR_LOGICAL_DEV_EN);
+-
+-	nvt_efm_disable(nvt);
++	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
+ 
+ 	/* make sure wake is enabled */
+ 	nvt_enable_wake(nvt);
 -- 
-Regards,
+2.6.4
 
-Laurent Pinchart
 
