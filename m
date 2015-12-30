@@ -1,112 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55019 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932171AbbLECNN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2015 21:13:13 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH v2 19/32] v4l: vsp1: Remove unused module read functions
-Date: Sat,  5 Dec 2015 04:12:53 +0200
-Message-Id: <1449281586-25726-20-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1449281586-25726-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38164 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753222AbbL3Qqw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 11:46:52 -0500
+Received: by mail-wm0-f44.google.com with SMTP id b14so55522735wmb.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:52 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 09/16] media: rc: nuvoton-cir: use IR_DEFAULT_TIMEOUT and
+ consider SAMPLE_PERIOD
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <568409A6.2000502@gmail.com>
+Date: Wed, 30 Dec 2015 17:43:18 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Several module read functions are not used, remove them.
+Switch to using the recently introduced IR default timeout value
+(IR_DEFAULT_TIMEOUT) and consider the value of SAMPLE_PERIOD
+when calculating the limit count register value.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c | 5 -----
- drivers/media/platform/vsp1/vsp1_lif.c | 5 -----
- drivers/media/platform/vsp1/vsp1_lut.c | 5 -----
- drivers/media/platform/vsp1/vsp1_rpf.c | 6 ------
- drivers/media/platform/vsp1/vsp1_uds.c | 6 ------
- 5 files changed, 27 deletions(-)
+ drivers/media/rc/nuvoton-cir.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index b4cc9bc478af..841bc6664bca 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -28,11 +28,6 @@
-  * Device Access
-  */
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 0ad15d3..6a3de08 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -157,8 +157,8 @@ struct nvt_dev {
+ /* total length of CIR and CIR WAKE */
+ #define CIR_IOREG_LENGTH	0x0f
  
--static inline u32 vsp1_bru_read(struct vsp1_bru *bru, u32 reg)
--{
--	return vsp1_read(bru->entity.vsp1, reg);
--}
--
- static inline void vsp1_bru_write(struct vsp1_bru *bru, u32 reg, u32 data)
- {
- 	vsp1_write(bru->entity.vsp1, reg, data);
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index 39fa5ef20fbb..b868bce08982 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -26,11 +26,6 @@
-  * Device Access
-  */
+-/* RX limit length, 8 high bits for SLCH, 8 low bits for SLCL (0x7d0 = 2000) */
+-#define CIR_RX_LIMIT_COUNT	0x7d0
++/* RX limit length, 8 high bits for SLCH, 8 low bits for SLCL */
++#define CIR_RX_LIMIT_COUNT  (IR_DEFAULT_TIMEOUT / US_TO_NS(SAMPLE_PERIOD))
  
--static inline u32 vsp1_lif_read(struct vsp1_lif *lif, u32 reg)
--{
--	return vsp1_read(lif->entity.vsp1, reg);
--}
--
- static inline void vsp1_lif_write(struct vsp1_lif *lif, u32 reg, u32 data)
- {
- 	vsp1_write(lif->entity.vsp1, reg, data);
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 656ec272a414..9e33caa9c616 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -27,11 +27,6 @@
-  * Device Access
-  */
- 
--static inline u32 vsp1_lut_read(struct vsp1_lut *lut, u32 reg)
--{
--	return vsp1_read(lut->entity.vsp1, reg);
--}
--
- static inline void vsp1_lut_write(struct vsp1_lut *lut, u32 reg, u32 data)
- {
- 	vsp1_write(lut->entity.vsp1, reg, data);
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index c0b7f76cd0b5..b9c39f9e4458 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -26,12 +26,6 @@
-  * Device Access
-  */
- 
--static inline u32 vsp1_rpf_read(struct vsp1_rwpf *rpf, u32 reg)
--{
--	return vsp1_read(rpf->entity.vsp1,
--			 reg + rpf->entity.index * VI6_RPF_OFFSET);
--}
--
- static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf, u32 reg, u32 data)
- {
- 	vsp1_write(rpf->entity.vsp1,
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index ccc8243e3493..27ad07466ebd 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -29,12 +29,6 @@
-  * Device Access
-  */
- 
--static inline u32 vsp1_uds_read(struct vsp1_uds *uds, u32 reg)
--{
--	return vsp1_read(uds->entity.vsp1,
--			 reg + uds->entity.index * VI6_UDS_OFFSET);
--}
--
- static inline void vsp1_uds_write(struct vsp1_uds *uds, u32 reg, u32 data)
- {
- 	vsp1_write(uds->entity.vsp1,
+ /* CIR Regs */
+ #define CIR_IRCON	0x00
 -- 
-2.4.10
+2.6.4
+
 
