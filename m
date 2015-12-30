@@ -1,278 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60577 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752151AbbLPNes (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:52499 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793AbbL3Ntk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2015 08:34:48 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, javier@osg.samsung.com,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v3 03/23] media: Add an API to manage entity enumerations
-Date: Wed, 16 Dec 2015 15:32:18 +0200
-Message-Id: <1450272758-29446-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
-References: <1450272758-29446-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 30 Dec 2015 08:49:40 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 6/6] [media] mxl111sf: Add a tuner entity
+Date: Wed, 30 Dec 2015 11:48:56 -0200
+Message-Id: <b408292fe9c107eeca30df484f684dc287983bd7.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+While mxl111sf may have multiple frontends, it has just one
+tuner. Reflect that on the media graph.
 
-This is useful in e.g. knowing whether certain operations have already
-been performed for an entity. The users include the framework itself (for
-graph walking) and a number of drivers.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/media-entity.c |  39 ++++++++++++
- include/media/media-device.h |  15 +++++
- include/media/media-entity.h | 140 ++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 186 insertions(+), 8 deletions(-)
+ drivers/media/dvb-core/dvbdev.h         |  6 ++++++
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c | 20 ++++++++++++++++++++
+ drivers/media/usb/dvb-usb-v2/mxl111sf.h |  5 +++++
+ 3 files changed, 31 insertions(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d11f440..67eebcb 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -213,6 +213,45 @@ void media_gobj_remove(struct media_gobj *gobj)
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index d7c67baa885e..4aff7bd3dea8 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -242,6 +242,11 @@ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
+ 	adap->mdev = mdev;
  }
  
- /**
-+ * __media_entity_enum_init - Initialise an entity enumeration
-+ *
-+ * @ent_enum: Entity enumeration to be initialised
-+ * @idx_max: Maximum number of entities in the enumeration
-+ *
-+ * Returns zero on success or a negative error code.
-+ */
-+int __media_entity_enum_init(struct media_entity_enum *ent_enum, int idx_max)
++static inline struct media_device
++*dvb_get_media_controller(struct dvb_adapter *adap)
 +{
-+	if (idx_max > MEDIA_ENTITY_ENUM_MAX_ID) {
-+		ent_enum->bmap = kcalloc(DIV_ROUND_UP(idx_max, BITS_PER_LONG),
-+					 sizeof(long), GFP_KERNEL);
-+		if (!ent_enum->bmap)
-+			return -ENOMEM;
-+	} else {
-+		ent_enum->bmap = ent_enum->prealloc_bmap;
-+	}
-+
-+	bitmap_zero(ent_enum->bmap, idx_max);
-+	ent_enum->idx_max = idx_max;
-+
-+	return 0;
++	return adap->mdev;
 +}
-+EXPORT_SYMBOL_GPL(__media_entity_enum_init);
-+
-+/**
-+ * media_entity_enum_cleanup - Release resources of an entity enumeration
-+ *
-+ * @e: Entity enumeration to be released
-+ */
-+void media_entity_enum_cleanup(struct media_entity_enum *ent_enum)
-+{
-+	if (ent_enum->bmap != ent_enum->prealloc_bmap)
-+		kfree(ent_enum->bmap);
-+	ent_enum->bmap = NULL;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_enum_cleanup);
-+
-+/**
-  * media_entity_init - Initialize a media entity
-  *
-  * @num_pads: Total number of sink and source pads.
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index c0e1764..abf94b4 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -110,6 +110,21 @@ struct media_device {
- /* media_devnode to media_device */
- #define to_media_device(node) container_of(node, struct media_device, devnode)
- 
-+/**
-+ * media_entity_enum_init - Initialise an entity enumeration
-+ *
-+ * @e: Entity enumeration to be initialised
-+ * @mdev: The related media device
-+ *
-+ * Returns zero on success or a negative error code.
-+ */
-+static inline __must_check int media_entity_enum_init(
-+	struct media_entity_enum *ent_enum, struct media_device *mdev)
-+{
-+	return __media_entity_enum_init(ent_enum,
-+					mdev->entity_internal_idx_max + 1);
-+}
-+
- void media_device_init(struct media_device *mdev);
- void media_device_cleanup(struct media_device *mdev);
- int __must_check __media_device_register(struct media_device *mdev,
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d3d3a39..70803f7 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -23,7 +23,7 @@
- #ifndef _MEDIA_ENTITY_H
- #define _MEDIA_ENTITY_H
- 
--#include <linux/bitops.h>
-+#include <linux/bitmap.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/media.h>
-@@ -71,6 +71,32 @@ struct media_gobj {
- 	struct list_head	list;
+ #else
+ static inline
+ int dvb_create_media_graph(struct dvb_adapter *adap,
+@@ -250,6 +255,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 	return 0;
  };
+ #define dvb_register_media_controller(a, b) {}
++#define dvb_get_media_controller(a) NULL
+ #endif
  
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+#define MEDIA_ENTITY_ENUM_MAX_ID	64
-+
-+/*
-+ * The number of pads can't be bigger than the number of entities,
-+ * as the worse-case scenario is to have one entity linked up to
-+ * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+ */
-+#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+
-+/**
-+ * struct media_entity_enum - An enumeration of media entities.
-+ *
-+ * @prealloc_bmap: Pre-allocated space reserved for media entities if the
-+ *		total number of entities does not exceed
-+ *		MEDIA_ENTITY_ENUM_MAX_ID.
-+ * @bmap:	Bit map in which each bit represents one entity at struct
-+ *		media_entity->internal_idx.
-+ * @idx_max:	Number of bits in bmap
-+ */
-+struct media_entity_enum {
-+	DECLARE_BITMAP(prealloc_bmap, MEDIA_ENTITY_ENUM_MAX_ID);
-+	unsigned long *bmap;
-+	int idx_max;
-+};
-+
- struct media_pipeline {
- };
+ int dvb_generic_open (struct inode *inode, struct file *file);
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+index 1710f9038d75..b669deccc34c 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+@@ -10,6 +10,7 @@
  
-@@ -307,15 +333,113 @@ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+ #include <linux/vmalloc.h>
+ #include <linux/i2c.h>
++#include <media/tuner.h>
+ 
+ #include "mxl111sf.h"
+ #include "mxl111sf-reg.h"
+@@ -868,6 +869,10 @@ static struct mxl111sf_tuner_config mxl_tuner_config = {
+ static int mxl111sf_attach_tuner(struct dvb_usb_adapter *adap)
+ {
+ 	struct mxl111sf_state *state = adap_to_priv(adap);
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	struct media_device *mdev = dvb_get_media_controller(&adap->dvb_adap);
++	int ret;
++#endif
+ 	int i;
+ 
+ 	pr_debug("%s()\n", __func__);
+@@ -879,6 +884,21 @@ static int mxl111sf_attach_tuner(struct dvb_usb_adapter *adap)
+ 		adap->fe[i]->ops.read_signal_strength = adap->fe[i]->ops.tuner_ops.get_rf_strength;
  	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	state->tuner.function = MEDIA_ENT_F_TUNER;
++	state->tuner.name = "mxl111sf tuner";
++	state->tuner_pads[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->tuner_pads[TUNER_PAD_IF_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&state->tuner,
++				     TUNER_NUM_PADS, state->tuner_pads);
++	if (ret)
++		return ret;
++
++	ret = media_device_register_entity(mdev, &state->tuner);
++	if (ret)
++		return ret;
++#endif
+ 	return 0;
  }
  
--#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
--#define MEDIA_ENTITY_ENUM_MAX_ID	64
-+int __media_entity_enum_init(struct media_entity_enum *e, int idx_max);
-+void media_entity_enum_cleanup(struct media_entity_enum *e);
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.h b/drivers/media/usb/dvb-usb-v2/mxl111sf.h
+index ee70df1f1e94..846260e0eec0 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf.h
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.h
+@@ -17,6 +17,7 @@
+ #define DVB_USB_LOG_PREFIX "mxl111sf"
+ #include "dvb_usb.h"
+ #include <media/tveeprom.h>
++#include <media/media-entity.h>
  
--/*
-- * The number of pads can't be bigger than the number of entities,
-- * as the worse-case scenario is to have one entity linked up to
-- * MEDIA_ENTITY_ENUM_MAX_ID - 1 entities.
-+/**
-+ * media_entity_enum_zero - Clear the entire enum
-+ *
-+ * @e: Entity enumeration to be cleared
-  */
--#define MEDIA_ENTITY_MAX_PADS		(MEDIA_ENTITY_ENUM_MAX_ID - 1)
-+static inline void media_entity_enum_zero(struct media_entity_enum *ent_enum)
-+{
-+	bitmap_zero(ent_enum->bmap, ent_enum->idx_max);
-+}
-+
-+/**
-+ * media_entity_enum_set - Mark a single entity in the enum
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be marked
-+ */
-+static inline void media_entity_enum_set(struct media_entity_enum *ent_enum,
-+					 struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
-+		return;
-+
-+	__set_bit(entity->internal_idx, ent_enum->bmap);
-+}
-+
-+/**
-+ * media_entity_enum_clear - Unmark a single entity in the enum
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be unmarked
-+ */
-+static inline void media_entity_enum_clear(struct media_entity_enum *ent_enum,
-+					   struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
-+		return;
-+
-+	__clear_bit(entity->internal_idx, ent_enum->bmap);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entity is marked
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked.
-+ */
-+static inline bool media_entity_enum_test(struct media_entity_enum *ent_enum,
-+					  struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
-+		return true;
-+
-+	return test_bit(entity->internal_idx, ent_enum->bmap);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entity is marked, and mark it
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked, and mark it before doing so.
-+ */
-+static inline bool media_entity_enum_test_and_set(
-+	struct media_entity_enum *ent_enum, struct media_entity *entity)
-+{
-+	if (WARN_ON(entity->internal_idx >= ent_enum->idx_max))
-+		return true;
-+
-+	return __test_and_set_bit(entity->internal_idx, ent_enum->bmap);
-+}
-+
-+/**
-+ * media_entity_enum_test - Test whether the entire enum is empty
-+ *
-+ * @e: Entity enumeration
-+ * @entity: Entity to be tested
-+ *
-+ * Returns true if the entity was marked.
-+ */
-+static inline bool media_entity_enum_empty(struct media_entity_enum *ent_enum)
-+{
-+	return bitmap_empty(ent_enum->bmap, ent_enum->idx_max);
-+}
-+
-+/**
-+ * media_entity_enum_intersects - Test whether two enums intersect
-+ *
-+ * @e: First entity enumeration
-+ * @f: Second entity enumeration
-+ *
-+ * Returns true if entity enumerations e and f intersect, otherwise false.
-+ */
-+static inline bool media_entity_enum_intersects(
-+	struct media_entity_enum *ent_enum1,
-+	struct media_entity_enum *ent_enum2)
-+{
-+	WARN_ON(ent_enum1->idx_max != ent_enum2->idx_max);
-+
-+	return bitmap_intersects(ent_enum1->bmap, ent_enum2->bmap,
-+				 min(ent_enum1->idx_max, ent_enum2->idx_max));
-+}
+ #define MXL_EP1_REG_READ     1
+ #define MXL_EP2_REG_WRITE    2
+@@ -85,6 +86,10 @@ struct mxl111sf_state {
+ 	struct mutex fe_lock;
+ 	u8 num_frontends;
+ 	struct mxl111sf_adap_state adap_state[3];
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++	struct media_entity tuner;
++	struct media_pad tuner_pads[2];
++#endif
+ };
  
- struct media_entity_graph {
- 	struct {
+ int mxl111sf_read_reg(struct mxl111sf_state *state, u8 addr, u8 *data);
 -- 
-2.1.4
+2.5.0
+
 
