@@ -1,213 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:61078 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932383AbbLHPMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2015 10:12:55 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH RESEND 2/2] media-ctl: Add field support for the media bus format
-Date: Tue,  8 Dec 2015 17:09:23 +0200
-Message-Id: <1449587363-22731-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1449587363-22731-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1449587363-22731-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:52503 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbbL3Ntl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 08:49:41 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>, Olli Salonen <olli.salonen@iki.fi>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Luis de Bethencourt <luis@debethencourt.com>
+Subject: [PATCH 2/6] [media] dvbdev: Add RF connector if needed
+Date: Wed, 30 Dec 2015 11:48:52 -0200
+Message-Id: <879ba93734fa3538720cfa814991c832d971ffa5.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1451482760.git.mchehab@osg.samsung.com>
+References: <cover.1451482760.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Several pure digital TV devices have a frontend with the tuner
+integrated on it. Add the RF connector when dvb_create_media_graph()
+is called on such devices.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested with siano and dvb_usb_mxl111sf drivers.
 
-Use strncasecmp() instead of strncmp() when comparing field names and add
-documentation on setting the field value. Wrap a few lines as well.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- utils/media-ctl/libv4l2subdev.c | 64 +++++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/media-ctl.c     |  3 ++
- utils/media-ctl/options.c       | 12 +++++++-
- utils/media-ctl/v4l2subdev.h    | 25 +++++++++++++++-
- 4 files changed, 102 insertions(+), 2 deletions(-)
+ drivers/media/common/siano/smsdvb-main.c    |  2 +-
+ drivers/media/dvb-core/dvbdev.c             | 49 +++++++++++++++++++++++++++--
+ drivers/media/dvb-core/dvbdev.h             | 20 ++++++++++--
+ drivers/media/usb/au0828/au0828-dvb.c       |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-dvb.c     |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |  2 +-
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c     |  2 +-
+ 7 files changed, 70 insertions(+), 9 deletions(-)
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 16aa530..33c1ee6 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -473,6 +473,26 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 			continue;
- 		}
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index 8a1ea2192439..d31f468830cf 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -1184,7 +1184,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+ 	if (smsdvb_debugfs_create(client) < 0)
+ 		pr_info("failed to create debugfs node\n");
  
-+		if (strhazit("field:", &p)) {
-+			enum v4l2_field field;
+-	rc = dvb_create_media_graph(&client->adapter);
++	rc = dvb_create_media_graph(&client->adapter, true);
+ 	if (rc < 0) {
+ 		pr_err("dvb_create_media_graph failed %d\n", rc);
+ 		goto client_error;
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 860dd7d06b60..28e340583ede 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -213,6 +213,13 @@ static void dvb_media_device_free(struct dvb_device *dvbdev)
+ 		media_devnode_remove(dvbdev->intf_devnode);
+ 		dvbdev->intf_devnode = NULL;
+ 	}
 +
-+			for (end = (char *)p; isalpha(*end) || *end == '-';
-+			     ++end);
-+
-+			field = v4l2_subdev_string_to_field(p, end - p);
-+			if (field == (enum v4l2_field)-1) {
-+				media_dbg(media, "Invalid field value '%*s'\n",
-+					  end - p, p);
-+				*endp = (char *)p;
-+				return NULL;
-+			}
-+
-+			format->field = field;
-+
-+			p = end;
-+			continue;
-+		}
-+
- 		/*
- 		 * Backward compatibility: crop rectangles can be specified
- 		 * implicitly without the 'crop:' property name.
-@@ -758,3 +778,47 @@ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 
- 	return mbus_formats[i].code;
- }
-+
-+static struct {
-+	const char *name;
-+	enum v4l2_field field;
-+} fields[] = {
-+	{ "any", V4L2_FIELD_ANY },
-+	{ "none", V4L2_FIELD_NONE },
-+	{ "top", V4L2_FIELD_TOP },
-+	{ "bottom", V4L2_FIELD_BOTTOM },
-+	{ "interlaced", V4L2_FIELD_INTERLACED },
-+	{ "seq-tb", V4L2_FIELD_SEQ_TB },
-+	{ "seq-bt", V4L2_FIELD_SEQ_BT },
-+	{ "alternate", V4L2_FIELD_ALTERNATE },
-+	{ "interlaced-tb", V4L2_FIELD_INTERLACED_TB },
-+	{ "interlaced-bt", V4L2_FIELD_INTERLACED_BT },
-+};
-+
-+const char *v4l2_subdev_field_to_string(enum v4l2_field field)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-+		if (fields[i].field == field)
-+			return fields[i].name;
++	if (dvbdev->adapter->conn) {
++		media_device_unregister_entity(dvbdev->adapter->conn);
++		dvbdev->adapter->conn = NULL;
++		kfree(dvbdev->adapter->conn_pads);
++		dvbdev->adapter->conn_pads = NULL;
 +	}
-+
-+	return "unknown";
-+}
-+
-+enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-+					    unsigned int length)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
-+		if (strncasecmp(fields[i].name, string, length) == 0)
-+			break;
-+	}
-+
-+	if (i == ARRAY_SIZE(fields))
-+		return (enum v4l2_field)-1;
-+
-+	return fields[i].field;
-+}
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index d3f6e04..3002fb7 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -90,6 +90,9 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	       v4l2_subdev_pixelcode_to_string(format.code),
- 	       format.width, format.height);
- 
-+	if (format.field)
-+		printf(" field:%s", v4l2_subdev_field_to_string(format.field));
-+
- 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
- 					V4L2_SEL_TGT_CROP_BOUNDS,
- 					which);
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 2751e6e..0afc9c2 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -24,7 +24,10 @@
- #include <stdlib.h>
- #include <unistd.h>
- 
-+#include <linux/videodev2.h>
-+
- #include "options.h"
-+#include "v4l2subdev.h"
- 
- #define MEDIA_DEVNAME_DEFAULT		"/dev/media0"
- 
-@@ -34,6 +37,8 @@ struct media_options media_opts = {
- 
- static void usage(const char *argv0)
- {
-+	unsigned int i;
-+
- 	printf("%s [options]\n", argv0);
- 	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
- 	printf("-e, --entity name	Print the device name associated with the given entity\n");
-@@ -58,7 +63,7 @@ static void usage(const char *argv0)
- 	printf("\tv4l2-properties = v4l2-property { ',' v4l2-property } ;\n");
- 	printf("\tv4l2-property   = v4l2-mbusfmt | v4l2-crop | v4l2-interval\n");
- 	printf("\t                | v4l2-compose | v4l2-interval ;\n");
--	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ;\n");
-+	printf("\tv4l2-mbusfmt    = 'fmt:' fcc '/' size ; { 'field:' v4l2-field ; }\n");
- 	printf("\tv4l2-crop       = 'crop:' rectangle ;\n");
- 	printf("\tv4l2-compose    = 'compose:' rectangle ;\n");
- 	printf("\tv4l2-interval   = '@' numerator '/' denominator ;\n");
-@@ -76,6 +81,11 @@ static void usage(const char *argv0)
- 	printf("\theight          Image height in pixels\n");
- 	printf("\tnumerator       Frame interval numerator\n");
- 	printf("\tdenominator     Frame interval denominator\n");
-+	printf("\tv4l2-field      One of the following:\n");
-+
-+	for (i = V4L2_FIELD_ANY; i <= V4L2_FIELD_INTERLACED_BT; i++)
-+		printf("\t                %s\n",
-+		       v4l2_subdev_field_to_string(i));
- }
- 
- #define OPT_PRINT_DOT		256
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 4961308..104e420 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -248,7 +248,7 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
- /**
-  * @brief Parse string to media bus pixel code.
-  * @param string - input string
-- * @param lenght - length of the string
-+ * @param length - length of the string
-  *
-  * Parse human readable string @a string to an media bus pixel code.
-  *
-@@ -256,4 +256,27 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
-  */
- enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 							 unsigned int length);
-+
-+/**
-+ * @brief Convert a field order to string.
-+ * @param field - field order
-+ *
-+ * Convert field order @a field to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_field_to_string(enum v4l2_field field);
-+
-+/**
-+ * @brief Parse string to field order.
-+ * @param string - input string
-+ * @param length - length of the string
-+ *
-+ * Parse human readable string @a string to field order.
-+ *
-+ * @return field order on success, -1 on failure.
-+ */
-+enum v4l2_field v4l2_subdev_string_to_field(const char *string,
-+					    unsigned int length);
-+
  #endif
+ }
+ 
+@@ -559,16 +566,18 @@ static int dvb_create_io_intf_links(struct dvb_adapter *adap,
+ 	return 0;
+ }
+ 
+-int dvb_create_media_graph(struct dvb_adapter *adap)
++int dvb_create_media_graph(struct dvb_adapter *adap,
++			   bool create_rf_connector)
+ {
+ 	struct media_device *mdev = adap->mdev;
+-	struct media_entity *entity, *tuner = NULL, *demod = NULL;
++	struct media_entity *entity, *tuner = NULL, *demod = NULL, *conn;
+ 	struct media_entity *demux = NULL, *ca = NULL;
+ 	struct media_link *link;
+ 	struct media_interface *intf;
+ 	unsigned demux_pad = 0;
+ 	unsigned dvr_pad = 0;
+ 	int ret;
++	static const char *connector_name = "Television";
+ 
+ 	if (!mdev)
+ 		return 0;
+@@ -590,6 +599,42 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
+ 		}
+ 	}
+ 
++	if (create_rf_connector) {
++		conn = kzalloc(sizeof(*conn), GFP_KERNEL);
++		if (!conn)
++			return -ENOMEM;
++		adap->conn = conn;
++
++		adap->conn_pads = kcalloc(1, sizeof(*adap->conn_pads),
++					    GFP_KERNEL);
++		if (!adap->conn_pads)
++			return -ENOMEM;
++
++		conn->flags = MEDIA_ENT_FL_CONNECTOR;
++		conn->function = MEDIA_ENT_F_CONN_RF;
++		conn->name = connector_name;
++		adap->conn_pads->flags = MEDIA_PAD_FL_SOURCE;
++
++		ret = media_entity_pads_init(conn, 1, adap->conn_pads);
++		if (ret)
++			return ret;
++
++		ret = media_device_register_entity(mdev, conn);
++		if (ret)
++			return ret;
++
++		if (!tuner)
++			ret = media_create_pad_link(conn, 0,
++						    demod, 0,
++						    MEDIA_LNK_FL_ENABLED);
++		else
++			ret = media_create_pad_link(conn, 0,
++						    tuner, TUNER_PAD_RF_INPUT,
++						    MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++	}
++
+ 	if (tuner && demod) {
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
+ 					    demod, 0, MEDIA_LNK_FL_ENABLED);
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index abee18a402e1..b622d6a3b95e 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -75,6 +75,9 @@ struct dvb_frontend;
+  *			used.
+  * @mdev:		pointer to struct media_device, used when the media
+  *			controller is used.
++ * @conn:		RF connector. Used only if the device has no separate
++ *			tuner.
++ * @conn_pads:		pointer to struct media_pad associated with @conn;
+  */
+ struct dvb_adapter {
+ 	int num;
+@@ -94,6 +97,8 @@ struct dvb_adapter {
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 	struct media_device *mdev;
++	struct media_entity *conn;
++	struct media_pad *conn_pads;
+ #endif
+ };
+ 
+@@ -214,7 +219,16 @@ int dvb_register_device(struct dvb_adapter *adap,
+ void dvb_unregister_device(struct dvb_device *dvbdev);
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-__must_check int dvb_create_media_graph(struct dvb_adapter *adap);
++/**
++ * dvb_create_media_graph - Creates media graph for the Digital TV part of the
++ * 				device.
++ *
++ * @adap:			pointer to struct dvb_adapter
++ * @create_rf_connector:	if true, it creates the RF connector too
++ */
++__must_check int dvb_create_media_graph(struct dvb_adapter *adap,
++					bool create_rf_connector);
++
+ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
+ 						 struct media_device *mdev)
+ {
+@@ -222,7 +236,9 @@ static inline void dvb_register_media_controller(struct dvb_adapter *adap,
+ }
+ 
+ #else
+-static inline int dvb_create_media_graph(struct dvb_adapter *adap)
++static inline
++int dvb_create_media_graph(struct dvb_adapter *adap,
++			   bool create_rf_connector)
+ {
+ 	return 0;
+ };
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index cd542b49a6c2..94363a3ba400 100644
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -486,7 +486,7 @@ static int dvb_register(struct au0828_dev *dev)
+ 	dvb->start_count = 0;
+ 	dvb->stop_count = 0;
+ 
+-	result = dvb_create_media_graph(&dvb->adapter);
++	result = dvb_create_media_graph(&dvb->adapter, false);
+ 	if (result < 0)
+ 		goto fail_create_graph;
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index b7552d20ebdb..b8d5b2be9293 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -551,7 +551,7 @@ static int register_dvb(struct cx231xx_dvb *dvb,
+ 
+ 	/* register network adapter */
+ 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
+-	result = dvb_create_media_graph(&dvb->adapter);
++	result = dvb_create_media_graph(&dvb->adapter, false);
+ 	if (result < 0)
+ 		goto fail_create_graph;
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 0fa2c45917b0..e8491f73c0d9 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -706,7 +706,7 @@ static int dvb_usbv2_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 		}
+ 	}
+ 
+-	ret = dvb_create_media_graph(&adap->dvb_adap);
++	ret = dvb_create_media_graph(&adap->dvb_adap, true);
+ 	if (ret < 0)
+ 		goto err_dvb_unregister_frontend;
+ 
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+index 241463ef631e..9ddfcab268be 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -330,7 +330,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = dvb_create_media_graph(&adap->dvb_adap);
++	ret = dvb_create_media_graph(&adap->dvb_adap, true);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
-2.1.0.231.g7484e3b
+2.5.0
+
 
