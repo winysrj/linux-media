@@ -1,60 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46234 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933376AbbLWRv5 (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37519 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749AbbL3MY1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2015 12:51:57 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] [media] timblogiw: protect desc
-Date: Wed, 23 Dec 2015 15:51:26 -0200
-Message-Id: <acc4439ff9d57b4e233d70415e70e37a85c695a5.1450893079.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 30 Dec 2015 07:24:27 -0500
+Received: by mail-wm0-f51.google.com with SMTP id f206so75936471wmf.0
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 04:24:26 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: core: simplify DEFINE_IR_RAW_EVENT
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <5683CCEF.5030306@gmail.com>
+Date: Wed, 30 Dec 2015 13:24:15 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As sparse complains:
-	drivers/media/platform/timblogiw.c:562:22: warning: context imbalance in 'buffer_queue' - unexpected unlock
+DEFINE_IR_RAW_EVENT can be simplified and doesn't provide much benefit
+as all elements are initialized to 0. But keep it as it is used in a
+lot of places.
+duration is the first element of the embedded union and therefore
+used for the initialization even if not explicitely mentioned.
 
-there's something weird at the logic there. The semaphore seems
-to be protecting changes at the desc struct, however, the
-callback logic is not protected.
-
-Compile-tested only.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/platform/timblogiw.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/media/rc-core.h | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index 113c9f3c0b3e..a5d2607cc396 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -566,8 +566,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 	desc = dmaengine_prep_slave_sg(fh->chan,
- 		buf->sg, sg_elems, DMA_DEV_TO_MEM,
- 		DMA_PREP_INTERRUPT);
-+	spin_lock_irq(&fh->queue_lock);
- 	if (!desc) {
--		spin_lock_irq(&fh->queue_lock);
- 		list_del_init(&vb->queue);
- 		vb->state = VIDEOBUF_PREPARED;
- 		return;
-@@ -576,8 +576,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
- 	desc->callback_param = buf;
- 	desc->callback = timblogiw_dma_cb;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index f649470..91c6633 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -226,13 +226,7 @@ struct ir_raw_event {
+ 	unsigned                carrier_report:1;
+ };
  
-+	spin_unlock_irq(&fh->queue_lock);
- 	buf->cookie = desc->tx_submit(desc);
--
- 	spin_lock_irq(&fh->queue_lock);
- }
+-#define DEFINE_IR_RAW_EVENT(event) \
+-	struct ir_raw_event event = { \
+-		{ .duration = 0 } , \
+-		.pulse = 0, \
+-		.reset = 0, \
+-		.timeout = 0, \
+-		.carrier_report = 0 }
++#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
  
+ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ {
+@@ -254,8 +248,7 @@ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
+ 
+ static inline void ir_raw_event_reset(struct rc_dev *dev)
+ {
+-	DEFINE_IR_RAW_EVENT(ev);
+-	ev.reset = true;
++	struct ir_raw_event ev = { .reset = true };
+ 
+ 	ir_raw_event_store(dev, &ev);
+ 	ir_raw_event_handle(dev);
 -- 
-2.5.0
+2.6.4
 
