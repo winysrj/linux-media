@@ -1,95 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44651 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755394AbbLQIkp (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38106 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754830AbbL3Qqt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2015 03:40:45 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH/RFC 06/48] v4l: vsp1: bru: Don't program background color in control set handler
-Date: Thu, 17 Dec 2015 10:39:44 +0200
-Message-Id: <1450341626-6695-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1450341626-6695-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 30 Dec 2015 11:46:49 -0500
+Received: by mail-wm0-f44.google.com with SMTP id b14so55520596wmb.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 08:46:48 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 06/16] media: rc: nuvoton-cir: fix clearing wake fifo
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <5684090F.9070303@gmail.com>
+Date: Wed, 30 Dec 2015 17:40:47 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The datasheet clearly states that all but a few registers can't be
-modified when the device is running. Programming the background color
-in the control set handler is thus prohibited. Program it when starting
-the module instead.
+At least on NVT6779D clearing the wake fifo works in learning mode only
+(although this condition is not mentioned in the chip spec).
+Setting the clear fifo bit has no effect in wake up mode.
+Even if clearing the wake fifo should work in wake up mode on other
+chips this workaround doesn't hurt.
+If needed the caller of nvt_clear_cir_wake_fifo has to take care
+of locking.
 
-This requires storing the background color value internally as the
-module can be started from the frame completion interrupt handler, and
-accessing control values requires taking a mutex.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c | 15 +++++++++------
- drivers/media/platform/vsp1/vsp1_bru.h |  2 ++
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ drivers/media/rc/nuvoton-cir.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index cb0dbc15ddad..4c1bd0419e12 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -42,13 +42,9 @@ static int bru_s_ctrl(struct v4l2_ctrl *ctrl)
- 	struct vsp1_bru *bru =
- 		container_of(ctrl->handler, struct vsp1_bru, ctrls);
- 
--	if (!vsp1_entity_is_streaming(&bru->entity))
--		return 0;
--
- 	switch (ctrl->id) {
- 	case V4L2_CID_BG_COLOR:
--		vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL, ctrl->val |
--			       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
-+		bru->bgcolor = ctrl->val;
- 		break;
- 	}
- 
-@@ -95,12 +91,17 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
- 		       0 : VI6_BRU_INCTRL_NRM);
- 
--	/* Set the background position to cover the whole output image. */
-+	/* Set the background position to cover the whole output image and
-+	 * configure its color.
-+	 */
- 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_SIZE,
- 		       (format->width << VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT) |
- 		       (format->height << VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT));
- 	vsp1_bru_write(bru, VI6_BRU_VIRRPF_LOC, 0);
- 
-+	vsp1_bru_write(bru, VI6_BRU_VIRRPF_COL, bru->bgcolor |
-+		       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 8ed8011..f624851 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -379,11 +379,19 @@ static void nvt_clear_cir_fifo(struct nvt_dev *nvt)
+ /* clear out the hardware's cir wake rx fifo */
+ static void nvt_clear_cir_wake_fifo(struct nvt_dev *nvt)
+ {
+-	u8 val;
++	u8 val, config;
 +
- 	/* Route BRU input 1 as SRC input to the ROP unit and configure the ROP
- 	 * unit with a NOP operation to make BRU input 1 available as the
- 	 * Blend/ROP unit B SRC input.
-@@ -438,6 +439,8 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 	v4l2_ctrl_new_std(&bru->ctrls, &bru_ctrl_ops, V4L2_CID_BG_COLOR,
- 			  0, 0xffffff, 1, 0);
- 
-+	bru->bgcolor = 0;
++	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
 +
- 	bru->entity.subdev.ctrl_handler = &bru->ctrls;
++	/* clearing wake fifo works in learning mode only */
++	nvt_cir_wake_reg_write(nvt, config & ~CIR_WAKE_IRCON_MODE0,
++			       CIR_WAKE_IRCON);
  
- 	if (bru->ctrls.error) {
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
-index dbac9686ea69..4e7d2e79b940 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.h
-+++ b/drivers/media/platform/vsp1/vsp1_bru.h
-@@ -33,6 +33,8 @@ struct vsp1_bru {
- 		struct vsp1_rwpf *rpf;
- 		struct v4l2_rect compose;
- 	} inputs[VSP1_MAX_RPF];
+ 	val = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFOCON);
+ 	nvt_cir_wake_reg_write(nvt, val | CIR_WAKE_FIFOCON_RXFIFOCLR,
+ 			       CIR_WAKE_FIFOCON);
 +
-+	u32 bgcolor;
- };
++	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
+ }
  
- static inline struct vsp1_bru *to_bru(struct v4l2_subdev *subdev)
+ /* clear out the hardware's cir tx fifo */
 -- 
-2.4.10
+2.6.4
+
 
