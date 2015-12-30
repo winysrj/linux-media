@@ -1,49 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:39155 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbbL1PMm (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45144 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752996AbbL3EAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2015 10:12:42 -0500
-Date: Mon, 28 Dec 2015 16:12:26 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [media] m88rs6000t: Better exception handling in five
- functions
-In-Reply-To: <56814F35.5030103@users.sourceforge.net>
-Message-ID: <alpine.DEB.2.10.1512281610390.2702@hadrien>
-References: <566ABCD9.1060404@users.sourceforge.net> <5680FDB3.7060305@users.sourceforge.net> <alpine.DEB.2.10.1512281019050.2702@hadrien> <56810F56.4080306@users.sourceforge.net> <alpine.DEB.2.10.1512281134590.2702@hadrien> <568148FD.7080209@users.sourceforge.net>
- <5681497E.7030702@users.sourceforge.net> <alpine.DEB.2.10.1512281541330.2702@hadrien> <56814F35.5030103@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 29 Dec 2015 23:00:00 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0B987180F62
+	for <linux-media@vger.kernel.org>; Wed, 30 Dec 2015 04:59:55 +0100 (CET)
+Date: Wed, 30 Dec 2015 04:59:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20151230035955.0B987180F62@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 28 Dec 2015, SF Markus Elfring wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> >> Move the jump label directly before the desired log statement
-> >> so that the variable "ret" will not be checked once more
-> >> after a function call.
-> >
-> > This commit message fits with the previous change.
->
-> Do you prefer an other wording?
+Results of the daily build of media_tree:
 
-Something like "Split the return into success and error cases, to avoid
-the need for testing before logging."
+date:		Wed Dec 30 04:00:14 CET 2015
+git branch:	test
+git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-The concept of the return being duplicated didn't come across in your
-message.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> > It could be nice to put a blank line before the error handling code.
->
-> Is it really a coding style requirement to insert another blank line between
-> the suggested placement of the statement "return 0;" and the jump label?
+Detailed results are available here:
 
-I don't think it is a requirement.  But some files do it, and if other
-functions in this file do it, then it would be nice to do the same.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-julia
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
