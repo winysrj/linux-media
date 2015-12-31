@@ -1,93 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:49466 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbbL0VXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2015 16:23:06 -0500
-Subject: [PATCH] [media] bttv: Returning only value constants in two functions
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <568056A1.8050602@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 22:22:41 +0100
+Received: from mail-qg0-f49.google.com ([209.85.192.49]:35139 "EHLO
+	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544AbbLaNqX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Dec 2015 08:46:23 -0500
+Received: by mail-qg0-f49.google.com with SMTP id o11so201596679qge.2
+        for <linux-media@vger.kernel.org>; Thu, 31 Dec 2015 05:46:23 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Mike Martin <mike@redtux.org.uk>
+Date: Thu, 31 Dec 2015 13:45:43 +0000
+Message-ID: <CAOwYNKZU-eb+hCzMWiBf+TNoCfTzepLn1aMiivaPNZV0qxOWUA@mail.gmail.com>
+Subject: Questions about dvbv5-scan (missing fields)
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 27 Dec 2015 22:02:21 +0100
+Hi
+I hope this is the right list to ask.
 
-Return constant integer values without storing them in the local
-variable "err" or "rc".
+I am looking at using dvbv5 for one of my projects. However there are
+some fields that I cant seem to get, in particular
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/bt8xx/bttv-driver.c | 25 ++++++-------------------
- 1 file changed, 6 insertions(+), 19 deletions(-)
+tsid
+pmt
+service_type (TV?Radio etc)
+net
+netid
+example output in VDR format
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 9400e99..cd7d6ef 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1726,22 +1726,15 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
- 	unsigned int i;
--	int err = 0;
- 
- 	for (i = 0; i < BTTV_TVNORMS; i++)
- 		if (id & bttv_tvnorms[i].v4l2_id)
- 			break;
--	if (i == BTTV_TVNORMS) {
--		err = -EINVAL;
--		goto err;
--	}
--
-+	if (i == BTTV_TVNORMS)
-+		return -EINVAL;
- 	btv->std = id;
- 	set_tvnorm(btv, i);
--
--err:
--
--	return err;
-+	return 0;
- }
- 
- static int bttv_g_std(struct file *file, void *priv, v4l2_std_id *id)
-@@ -1770,12 +1763,9 @@ static int bttv_enum_input(struct file *file, void *priv,
- {
- 	struct bttv_fh *fh = priv;
- 	struct bttv *btv = fh->btv;
--	int rc = 0;
- 
--	if (i->index >= bttv_tvcards[btv->c.type].video_inputs) {
--		rc = -EINVAL;
--		goto err;
--	}
-+	if (i->index >= bttv_tvcards[btv->c.type].video_inputs)
-+		return -EINVAL;
- 
- 	i->type     = V4L2_INPUT_TYPE_CAMERA;
- 	i->audioset = 0;
-@@ -1799,10 +1789,7 @@ static int bttv_enum_input(struct file *file, void *priv,
- 	}
- 
- 	i->std = BTTV_NORMS;
--
--err:
--
--	return rc;
-+	return 0;
- }
- 
- static int bttv_g_input(struct file *file, void *priv, unsigned int *i)
--- 
-2.6.3
+CBS Drama:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14640:0:0:0:
+Showcase TV:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:15296:0:0:0:
+Box Nation:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14416:0:0:0:
+Horror Channel:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6129:6130,6131:0:0:14480:0:0:0:
+365 Travel:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14784:0:0:0:
+Television X:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:15232:0:0:0:
+5 USA:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6689:6690,6691:0:0:12992:0:0:0:
+5*:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6673:6674,6675:0:0:12928:0:0:0:
+QUEST:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6929:6930,6931:0:0:14498:0:0:0:
 
+A can be seen there is loads of zeros where entries should be
+
+thanks
