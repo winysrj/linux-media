@@ -1,136 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:40653 "EHLO mail.kernel.org"
+Received: from mout.gmx.net ([212.227.17.20]:61010 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752095AbbLKR30 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2015 12:29:26 -0500
-Date: Fri, 11 Dec 2015 11:29:19 -0600
-From: Rob Herring <robh@kernel.org>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: daniel.thompson@linaro.org, Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Darren Etheridge <detheridge@ti.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Benoit Parrot <bparrot@ti.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	James Liao <jamesjj.liao@mediatek.com>,
-	Hongzhou Yang <hongzhou.yang@mediatek.com>,
-	Daniel Hsiao <daniel.hsiao@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-Subject: Re: [PATCH v2 4/8] dt-bindings: Add a binding for Mediatek Video
- Encoder
-Message-ID: <20151211172919.GA2896@rob-hp-laptop>
-References: <1449827743-22895-1-git-send-email-tiffany.lin@mediatek.com>
- <1449827743-22895-5-git-send-email-tiffany.lin@mediatek.com>
+	id S1750966AbbLaAOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2015 19:14:33 -0500
+Received: from [192.168.178.3] ([93.233.66.176]) by mail.gmx.com (mrgmx102)
+ with ESMTPSA (Nemesis) id 0MP1PX-1aIXct0d1z-006Ljv for
+ <linux-media@vger.kernel.org>; Thu, 31 Dec 2015 01:14:32 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?J=c3=b6rg_Knitter?= <joerg.knitter@gmx.de>
+Subject: Terratec S7 / Elgato EyeTV Sat only receives SD channels
+Message-ID: <56847375.60102@gmx.de>
+Date: Thu, 31 Dec 2015 01:14:45 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1449827743-22895-5-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 11, 2015 at 05:55:39PM +0800, Tiffany Lin wrote:
-> Add a DT binding documentation of Video Encoder for the
-> MT8173 SoC from Mediatek.
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Hi all,
 
-A question and minor issue below, otherwise:
+I try to get a Terratec S7 (which seems to be a Elgato EyeTV Sat) 
+working a my new VDR setup based on yaVDR 0.6. Unfortunately, compared 
+to the also installed DD cineS2 tuners, the Terratec S7 tuner does not 
+seem to work with DVB-S2 channels while the DVB-S channels work.
 
-Acked-by: Rob Herring <robh@kernel.org>
+There has been a posting on this list from november 2014, also 
+mentioning this problem, apparently without any reply: 
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/84677 
+with the headline "Is it fair to say that the Terratec S7 does not in 
+fact work with DVB-S2?".
 
-> ---
->  .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
->  1 file changed, 58 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> new file mode 100644
-> index 0000000..510cd81
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> @@ -0,0 +1,58 @@
-> +Mediatek Video Codec
-> +
-> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
-> +supports high resolution encoding functionalities.
-> +
-> +Required properties:
-> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
-> +- reg : Physical base address of the video codec registers and length of
-> +  memory mapped region.
-> +- interrupts : interrupt number to the cpu.
-> +- mediatek,larb : must contain the local arbiters in the current Socs.
-> +- clocks : list of clock specifiers, corresponding to entries in
-> +  the clock-names property;
-> +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
-> +- iommus : list of iommus specifiers should be enabled for hw encode.
-> +  There are 2 cells needed to enable/disable iommu.
-> +  The first one is local arbiter index(larbid), and the other is port
-> +  index(portid) within local arbiter. Specifies the larbid and portid
-> +  as defined in dt-binding/memory/mt8173-larb-port.h.
-> +- mediatek,vpu : the node of video processor unit
-> +
-> +Example:
-> +vcodec_enc: vcodec@0x18002000 {
-> +    compatible = "mediatek,mt8173-vcodec-enc";
-> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
-> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
-> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-> +    larb = <&larb3>,
-> +           <&larb5>;
-> +    iommus = <&iommu M4U_LARB3_ID M4U_PORT_VENC_RCPU>,
+Is there anyone still interested getting this fixed? Unfortunately, 
+because I am not a (linux) developer, I could only help with logfiles 
+and testing.
 
-Is this the same iommu as the VPU? If so, you can't have a mixed number 
-of cells.
+Thanks in advance - with kind regards!
 
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REC>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_BSDMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_SV_COMV>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_RD_COMV>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_LUMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_CUR_CHROMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_LUMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_REF_CHROMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_RDMA>,
-> +             <&iommu M4U_LARB3_ID M4U_PORT_VENC_NBM_WDMA>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RCPU_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_FRM_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_BSDMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_SV_COMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_RD_COMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_LUMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_CUR_CHROMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REF_LUMA_SET2>,
-> +             <&iommu M4U_LARB5_ID M4U_PORT_VENC_REC_CHROMA_SET2>;
-> +    vpu = <&vpu>;
-
-Need to update the example.
-
-> +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
-> +             <&topckgen CLK_TOP_VENC_LT_SEL>,
-> +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
-> +    clock-names = "vencpll",
-> +                  "venc_lt_sel",
-> +                  "vcodecpll_370p5_ck";
-> +  };
-> -- 
-> 1.7.9.5
-> 
+Joerg
