@@ -1,77 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:43248 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753830AbcAYJu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 04:50:29 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<569CE27F.6090702@xs4all.nl>
-	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-Date: Mon, 25 Jan 2016 10:40:19 +0100
-In-Reply-To: <CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-	(Ezequiel Garcia's message of "Mon, 18 Jan 2016 12:20:59 -0300")
-Message-ID: <m31t96j8u4.fsf@t19.piap.pl>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:36247 "EHLO
+	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbcABVX4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2016 16:23:56 -0500
+Received: by mail-io0-f178.google.com with SMTP id o67so407445757iof.3
+        for <linux-media@vger.kernel.org>; Sat, 02 Jan 2016 13:23:56 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+Date: Sat, 2 Jan 2016 23:23:55 +0200
+Message-ID: <CAJ2oMhK7f4kLYaTw874g4w2vjd5nw_FBET1JsjX9Us30Eve5GQ@mail.gmail.com>
+Subject: CMA usage in driver
+From: Ran Shalit <ranshalit@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+Hello,
 
-> A previous version of the driver didn't have that. However, under certain
-> stress testing it was observed that the PCIe link goes down. I still have the
-> traces for that:
->
-> [..]
-> [21833.389031] pciehp 0000:13:01.0:pcie24: pcie_isr: intr_loc 100
-> [21833.389035] pciehp 0000:13:01.0:pcie24: Data Link Layer State change
-> [21833.389038] pciehp 0000:13:01.0:pcie24: slot(1-5): Link Down event
-> [21833.389076] pciehp 0000:13:01.0:pcie24: Disabling
-> domain:bus:device=0000:14:00
-> [21833.389078] pciehp 0000:13:01.0:pcie24: pciehp_unconfigure_device:
-> domain:bus:dev = 0000:14:00
-> [21833.389103] TW686x 0000:14:00.0: removing
-> [21833.416557] TW686x 0000:14:00.0: removed
-> [..]
->
-> I have no idea why the link goes down (hardware issue?),
-> but it's better to handle it gracefully :)
+I made some reading on CMA usage with device driver, nut not quite sure yet.
+Do we need to call dma_declare_contiguous or does it get called from
+within videobuf2 ?
 
-Could be hw issue indeed, FWIW I have never observed this problem on my
-hw (which is ARM-based and includes TW6869).
+Is there any example how to use CMA memory in v4l2 driver ?
 
-> I understand that on some platforms this implementation could be too
-> costly (it's
-> completely cheap on any modern x86), and I intend to provide some option
-> to provide "frame DMA-to-buffer" and "scatter-gather DMA".
-
-Though I'm using the driver that I posted several months ago, with
-SG DMA field-only mode (SG DMA engine doesn't support frame mode and
-while non-SG DMA (field or frame) mode is certainly possible with CMA,
-copying the buffers is out of the question here).
-
-I wonder if that driver works for you (which would suggest a sw bug)
-or if the problems are the same (hw issue - system, power, or the chip
-itself).
-
-
-BTW adding incremental patches on top of the driver I posted would seem
-preferable to me. It would enable us to pinpoint (and not include)
-changes which tend to break something. For now, it seems I'll be stuck
-with my version, since I have to do DMA to buffers (though I could use
-the frame mode).
-
-Incremental patches are generally how it is done in Linux.
-Perhaps we should merge my driver first and you'd add your changes on
-top of it (preserving the existing functionality)?
-
-This is very easy with git.
--- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Best Regards,
+Ran
