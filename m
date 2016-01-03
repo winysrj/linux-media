@@ -1,73 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-c.eqx.gridhost.co.uk ([95.142.156.20]:39885 "EHLO
-	mail4-b.eqx.gridhost.co.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752953AbcAGIdY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 03:33:24 -0500
-Received: from [209.85.192.43] (helo=mail-qg0-f43.google.com)
-	by mail4.eqx.gridhost.co.uk with esmtpsa (UNKNOWN:AES128-GCM-SHA256:128)
-	(Exim 4.72)
-	(envelope-from <olli.salonen@iki.fi>)
-	id 1aH5zr-0003sr-25
-	for linux-media@vger.kernel.org; Thu, 07 Jan 2016 08:32:39 +0000
-Received: by mail-qg0-f43.google.com with SMTP id 6so243851137qgy.1
-        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 00:32:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1452097591-20184-1-git-send-email-torbjorn.jansson@mbox200.swipnet.se>
-References: <1452097591-20184-1-git-send-email-torbjorn.jansson@mbox200.swipnet.se>
-Date: Thu, 7 Jan 2016 09:32:38 +0100
-Message-ID: <CAAZRmGxgVxxDA2PchnmXYrCmi+3Y8Zc6Pu_J2A3CZGdz0=4F_Q@mail.gmail.com>
-Subject: Re: [PATCH] dvb-usb-dvbsky: add new product id for TT CT2-4650 CI
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:55288 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751613AbcACMci (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jan 2016 07:32:38 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: bt8xx: constify or51211_config structure
+Date: Sun,  3 Jan 2016 13:19:52 +0100
+Message-Id: <1451823592-31761-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
+The or51211_config structure is never modified, so declare it as const.
 
-On 6 January 2016 at 17:26, Torbjörn Jansson
-<torbjorn.jansson@mbox200.swipnet.se> wrote:
-> Add a new product id to dvb-usb-dvbsky for new version of TechnoTrend CT2-4650 CI
->
-> Signed-off-by: Torbjörn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-> ---
->  drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
->  drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++++
->  2 files changed, 5 insertions(+)
->
-> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-> index 1c1c298..a3761e9 100644
-> --- a/drivers/media/dvb-core/dvb-usb-ids.h
-> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
-> @@ -247,6 +247,7 @@
->  #define USB_PID_TECHNOTREND_CONNECT_CT3650             0x300d
->  #define USB_PID_TECHNOTREND_CONNECT_S2_4600             0x3011
->  #define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI                0x3012
-> +#define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2      0x3015
->  #define USB_PID_TECHNOTREND_TVSTICK_CT2_4400           0x3014
->  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY       0x005a
->  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2     0x0081
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> index 1dd9625..b4620b7 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-> @@ -847,6 +847,10 @@ static const struct usb_device_id dvbsky_id_table[] = {
->                 USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI,
->                 &dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI",
->                 RC_MAP_TT_1500) },
-> +       { DVB_USB_DEVICE(USB_VID_TECHNOTREND,
-> +               USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2,
-> +               &dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI v1.1",
-> +               RC_MAP_TT_1500) },
->         { DVB_USB_DEVICE(USB_VID_TERRATEC,
->                 USB_PID_TERRATEC_H7_3,
->                 &dvbsky_t680c_props, "Terratec H7 Rev.4",
-> --
-> 2.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Done with the help of Coccinelle.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/pci/bt8xx/dvb-bt8xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/bt8xx/dvb-bt8xx.c b/drivers/media/pci/bt8xx/dvb-bt8xx.c
+index d407244..8aeb14c 100644
+--- a/drivers/media/pci/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/pci/bt8xx/dvb-bt8xx.c
+@@ -458,7 +458,7 @@ static void or51211_sleep(struct dvb_frontend * fe)
+ 	bttv_write_gpio(bt->bttv_nr, 0x0001, 0x0000);
+ }
+ 
+-static struct or51211_config or51211_config = {
++static const struct or51211_config or51211_config = {
+ 	.demod_address = 0x15,
+ 	.request_firmware = or51211_request_firmware,
+ 	.setmode = or51211_setmode,
+
