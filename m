@@ -1,136 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58328 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946069AbcA1RPk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 12:15:40 -0500
-Date: Thu, 28 Jan 2016 15:15:22 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 04/31] media: Media Controller enable/disable source
- handler API
-Message-ID: <20160128151522.03dff6cd@recife.lan>
-In-Reply-To: <56AA41B5.1080703@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
-	<20160128131922.29e2a504@recife.lan>
-	<56AA41B5.1080703@osg.samsung.com>
+Received: from mail-io0-f180.google.com ([209.85.223.180]:33110 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbcACNee (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2016 08:34:34 -0500
+Received: by mail-io0-f180.google.com with SMTP id q21so134226606iod.0
+        for <linux-media@vger.kernel.org>; Sun, 03 Jan 2016 05:34:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1451792869.4334.33.camel@perches.com>
+References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	<1451792869.4334.33.camel@perches.com>
+Date: Sun, 3 Jan 2016 15:34:33 +0200
+Message-ID: <CAM_ZknXVt=2VQtdMi6u=EgjEPSdru7Eupq9=Dc3WMNvrVMSXOQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v0] Add tw5864 driver
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Joe Perches <joe@perches.com>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	devel@driverdev.osuosl.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrey Utkin <andrey.od.utkin@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 28 Jan 2016 09:28:37 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+On Sun, Jan 3, 2016 at 5:47 AM, Joe Perches <joe@perches.com> wrote:
+> several of these have unnecessary parentheses
 
-> On 01/28/2016 08:19 AM, Mauro Carvalho Chehab wrote:
-> > Em Wed,  6 Jan 2016 13:26:53 -0700
-> > Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> >   
-> >> Add new fields to struct media_device to add enable_source, and
-> >> disable_source handlers, and source_priv to stash driver private
-> >> data that is need to run these handlers. The enable_source handler
-> >> finds source entity for the passed in entity and check if it is
-> >> available, and activate the link using __media_entity_setup_link()
-> >> interface. Bridge driver is expected to implement and set these
-> >> handlers and private data when media_device is registered or when
-> >> bridge driver finds the media_device during probe. This is to enable
-> >> the use-case to find tuner entity connected to the decoder entity and
-> >> check if it is available, and activate it and start pipeline between
-> >> the source and the entity. The disable_source handler deactivates the
-> >> link and stops the pipeline. This handler can be invoked from the
-> >> media core (v4l-core, dvb-core) as well as other drivers such as ALSA
-> >> that control the media device.
-> >>
-> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> >> ---
-> >>  include/media/media-device.h | 19 +++++++++++++++++++
-> >>  1 file changed, 19 insertions(+)
-> >>
-> >> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> >> index 6520d1c..04b6c2e 100644
-> >> --- a/include/media/media-device.h
-> >> +++ b/include/media/media-device.h
-> >> @@ -333,6 +333,25 @@ struct media_device {
-> >>  	/* Serializes graph operations. */
-> >>  	struct mutex graph_mutex;
-> >>  
-> >> +	/* Handlers to find source entity for the sink entity and
-> >> +	 * check if it is available, and activate the link using
-> >> +	 * media_entity_setup_link() interface and start pipeline
-> >> +	 * from the source to the entity.
-> >> +	 * Bridge driver is expected to implement and set the
-> >> +	 * handler when media_device is registered or when
-> >> +	 * bridge driver finds the media_device during probe.
-> >> +	 * Bridge driver sets source_priv with information
-> >> +	 * necessary to run enable/disable source handlers.
-> >> +	 *
-> >> +	 * Use-case: find tuner entity connected to the decoder
-> >> +	 * entity and check if it is available, and activate the
-> >> +	 * using media_entity_setup_link() if it is available.
-> >> +	*/
-> >> +	void *source_priv;
-> >> +	int (*enable_source)(struct media_entity *entity,
-> >> +			     struct media_pipeline *pipe);
-> >> +	void (*disable_source)(struct media_entity *entity);  
-> > 
-> > Please document the new fields at the right place (Kernel-doc
-> > comment declared before the struct).
-> > 
-> > Is this used by the media core? If so, please but the implementation
-> > here, to make it clearer why we need those things.
-> >   
-> >> +
-> >>  	int (*link_notify)(struct media_link *link, u32 flags,
-> >>  			   unsigned int notification);
-> >>  };  
-> 
-> Hi Mauro,
-> 
-> I don't have any problems adding documentation. I would
-> like to add documentation in a add-on to the patch series.
-> The main reason is once I add documentation to this patch,
-> the rest of the patches on this file don't apply and require
-> rebase and rework. I went though a couple of rounds of this
-> while you were adding documentation to the interfaces you
-> added.
-> 
-> How about I add the documentation patches at the end of
-> the patch series? I am concerned that rebasing for the
-> documentation changes will introduce bugs. Are you okay
-> with this proposal?
+Thanks, fixed.
 
-I'm ok with that for those inlined kernel-doc stuff. On
-the changes at the uapi/linux/media.h, I would prefer if
-you could add the documentation together with the patch,
-as it makes clearer for the reviewers. As you only
-touched it on one or two patches, this won't cause any
-breakages on the remaining patches.
+> Maybe use bool a bit more
 
-Regards,
-Mauro
+Thanks, fixed.
+
+> or maybe just use fls
+
+Thanks, fls() fit greatly, rewritten the function with compatibility testing.
+
+>> +static inline int bs_size_ue(unsigned int val)
+>> +{
+>> +     int i_size = 0;
+>> +     static const int i_size0_254[255] = {
+>
+> Same sort of thing
+
+Dropped this procedure because it is not used.
+Thanks.
+
+>> diff --git a/drivers/staging/media/tw5864/tw5864-config.c b/drivers/staging/media/tw5864/tw5864-config.c
+> []
+>> +u8 tw_indir_readb(struct tw5864_dev *dev, u16 addr)
+>> +{
+>> +     int timeout = 30000;
+>
+> misleading name, retries would be more proper,
+> or maybe use real timed loops.
+
+Thanks, renamed to "retries".
+
+> This seems a little repetitive.
+
+Thanks, reworked.
+
+> u16?
+
+Thanks, fixed.
+
+> odd indentation
+
+Indeed. For some mysterious reason, vim + syntastic insists on this way. Fixed.
+
+>> +#ifdef DEBUG
+>> +     dev_dbg(&input->root->pci->dev,
+>> +             "input %d, frame md stats: min %u, max %u, avg %u, cells above threshold: %u\n",
+>> +             input->input_number, min, max, sum / md_cells,
+>> +             cnt_above_thresh);
+>> +#endif
+>
+> unnecessary #ifdef
+
+Not quite. This debug printout works with variables which are declared
+in another "#ifdef DEBUG" clause. And it turns out that dev_dbg is
+compiled not only if DEBUG is declared, so when I remove this ifdef, I
+get "undefined variable" errors. It seems it is compiled if this
+condition is met:
+
+#if (defined DEBUG) || (defined CONFIG_DYNAMIC_DEBUG)
+
+so I can wrap my stats variables into this statement instead. But such
+change is not equivalent - I guess CONFIG_DYNAMIC_DEBUG is common to
+be enabled, so debug stats will be always calculated, even when module
+is not under debug. Except if I use DEFINE_DYNAMIC_DEBUG_METADATA etc.
+in my code. Please let me know if this can be sorted out in cleaner
+way.
 
 
 
-> 
-> thanks,
-> -- Shuah
-> 
+On Sun, Jan 3, 2016 at 7:38 AM, Leon Romanovsky <leon@leon.nu> wrote:
+> On Sun, Jan 03, 2016 at 03:41:42AM +0200, Andrey Utkin wrote:
+> ....
+>> +/*
+>> + *  TW5864 driver - Exp-Golomb code functions
+>> + *
+>> + *  Copyright (C) 2015 Bluecherry, LLC <maintainers@bluecherrydvr.com>
+>> + *  Copyright (C) 2015 Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+>
+> I doubt that you have contract with your employer which permits you to
+> claim copyright on the work/product.
+
+Thank you for commenting.
+I have previously asked my employer to review copyright statment, and
+he told this is fine.
+Now I have requrested him again with reference to your comment.
+
+-- 
+Bluecherry developer.
