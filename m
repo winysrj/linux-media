@@ -1,104 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57504 "EHLO lists.s-osg.org"
+Received: from smtp01.udag.de ([62.146.106.17]:47004 "EHLO smtp01.udag.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966281AbcA1O77 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 09:59:59 -0500
-Date: Thu, 28 Jan 2016 12:59:41 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 01/31] uapi/media.h: Declare interface types for ALSA
-Message-ID: <20160128125941.143f67d0@recife.lan>
-In-Reply-To: <b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
+	id S1751456AbcACTdN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jan 2016 14:33:13 -0500
+Subject: Elgato Game Capture HD on Linux
+To: Steven Toth <stoth@kernellabs.com>
+References: <536C3403.8010402@cevel.net>
+ <CALzAhNVtyhmt8cCapu2oK5pGkJY2zNTaf6Ws26Sn9kZxgAddew@mail.gmail.com>
+ <54988806.7030800@cevel.net>
+ <CALzAhNXOzR-HXLANQvT=GeskxmiHSJgd1TffrHy_pVhLeQXdTQ@mail.gmail.com>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+From: Tolga Cakir <tolga@cevel.net>
+Message-ID: <568967D7.60403@cevel.net>
+Date: Sun, 3 Jan 2016 19:26:31 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <CALzAhNXOzR-HXLANQvT=GeskxmiHSJgd1TffrHy_pVhLeQXdTQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:26:50 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Steven,
 
-> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> Declare the interface types to be used on alsa for the new
-> G_TOPOLOGY ioctl.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-entity.c | 12 ++++++++++++
->  include/uapi/linux/media.h   |  8 ++++++++
->  2 files changed, 20 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index eb38bc3..6e02d19 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -65,6 +65,18 @@ static inline const char *intf_type(struct media_interface *intf)
->  		return "v4l2-subdev";
->  	case MEDIA_INTF_T_V4L_SWRADIO:
->  		return "swradio";
-> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-> +		return "pcm-capture";
-> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-> +		return "pcm-playback";
-> +	case MEDIA_INTF_T_ALSA_CONTROL:
-> +		return "alsa-control";
-> +	case MEDIA_INTF_T_ALSA_COMPRESS:
-> +		return "compress";
-> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
-> +		return "rawmidi";
-> +	case MEDIA_INTF_T_ALSA_HWDEP:
-> +		return "hwdep";
->  	default:
->  		return "unknown-intf";
->  	}
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index cacfceb..75cbe92 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -252,6 +252,7 @@ struct media_links_enum {
->  
->  #define MEDIA_INTF_T_DVB_BASE	0x00000100
->  #define MEDIA_INTF_T_V4L_BASE	0x00000200
-> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
->  
->  /* Interface types */
->  
-> @@ -267,6 +268,13 @@ struct media_links_enum {
->  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
->  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
->  
-> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
 
-Patch looks ok, but please document the new media interfaces at KernelDoc
-documentation.
+I wish you a happy new year, it's been a while. I've made great success 
+on the Elgato Game Capture HD driver for Linux - the major features are 
+working. Currently, it's supporting capturing / streaming HDMI with 
+1080p30 and 720p60, and component with 1080p30, 1080i60, 720p60 and 
+576p50 (PAL). Eventhough I've just quickly hacked together everything, 
+I've learned alot.
 
-> +
->  /*
->   * MC next gen API definitions
->   *
+The official Mac OS X drivers included files with comments. They were my 
+cheatsheet. One important thing, I've just recently figured out: the 
+official driver is not doing stuff sequentially, like I've always 
+assumed. It's doing many things in parallel using threads. This is the 
+reason, why reverse engineering has been a nightmare for me, cause lots 
+of unrelated, random packets showed up and I couldn't interpret them. No 
+two USB logs looked nearly the same - there were always differences. 
+Sometimes major, sometimes minor.
+
+There seems to be one thread, which is trying to receive bulk data on 
+endpoints 0x04 and 0x01 (maybe even one thread per endpoint?), without 
+any sleep. This was causing LOTS of USB log entries in conjunction with 
+my USB hardware analyzer - talking about 5 - 8 million lines for 20 seconds.
+
+Another thread is constantly checking the input source's information, 
+like resolution (small sleeps, unlike bulk receive). If it changes, this 
+thread writes new, customized configuration to the device. I have logged 
+lots of different traffic and am sure, that I can track this down.
+
+There seems to be another thread, which seems to do just the things, I 
+was actually trying to track down in the first place: plain simple 
+device setup / initialization. Just sending over some packets, like 
+bitrate configuration and video output resolution. Luckily, most of 
+these values are commented in Elgato's official Mac OS X driver and I've 
+also figured out, how most of them work 
+(https://github.com/tolga9009/elgato-gchd/blob/master/commands.h).
+
+Eventhough lots and lots of refactoring is urgently waiting for me 
+(honestly, I'm ashamed of it), I think it's atleast a good point to 
+start. I'm gonna work on refactoring / tidying up next major hacking 
+session in about 2 - 3 months. You can find the latest code here: 
+https://github.com/tolga9009/elgato-gchd. Looking forward to port this 
+over to V4L2, once the refactoring is done.
+
+If you're interested in how things turned out, I've even uploaded a 
+small video presentation on YouTube: 
+https://youtu.be/rpm6TJu6HkE?t=6m34s. You can skip it to around 6:30, 
+cause I'm just showing how to compile & firmware extraction first.
+
+
+Cheers,
+Tolga
