@@ -1,56 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54978 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751092AbcAYPBG (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:45124 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751613AbcACMK7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 10:01:06 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BF70A180D36
-	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2016 16:00:50 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.6] New TI CAL driver
-Message-ID: <56A638A2.3090602@xs4all.nl>
-Date: Mon, 25 Jan 2016 16:00:50 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 3 Jan 2016 07:10:59 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] av7110: constify sp8870_config structure
+Date: Sun,  3 Jan 2016 12:58:14 +0100
+Message-Id: <1451822294-9559-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding Benoit's new TI CAL driver.
+This sp8870_config structure is never modified, so declare it as
+const.
 
-Regards,
+Done with the help of Coccinelle.
 
-	Hans
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
+---
+ drivers/media/pci/ttpci/av7110.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The following changes since commit 99e44da7928d4abb3028258ac3cd23a48495cd61:
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index a69dc6a..18d229f 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -1739,7 +1739,7 @@ static int alps_tdlb7_request_firmware(struct dvb_frontend* fe, const struct fir
+ #endif
+ }
+ 
+-static struct sp8870_config alps_tdlb7_config = {
++static const struct sp8870_config alps_tdlb7_config = {
+ 
+ 	.demod_address = 0x71,
+ 	.request_firmware = alps_tdlb7_request_firmware,
 
-  [media] media: change email address (2016-01-25 12:01:08 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cal
-
-for you to fetch changes up to 795dc7e38f25d7f76a596dc39e031cac490b873a:
-
-  media: ti-vpe: Add CAL v4l2 camera capture driver (2016-01-25 15:54:20 +0100)
-
-----------------------------------------------------------------
-Benoit Parrot (3):
-      media: ti-vpe: Document CAL driver
-      MAINTAINERS: Add ti-vpe maintainer entry
-      media: ti-vpe: Add CAL v4l2 camera capture driver
-
- Documentation/devicetree/bindings/media/ti-cal.txt |   72 +++
- MAINTAINERS                                        |    8 +
- drivers/media/platform/Kconfig                     |   12 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/ti-vpe/Makefile             |    4 +
- drivers/media/platform/ti-vpe/cal.c                | 1970 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/cal_regs.h           |  479 ++++++++++++++
- 7 files changed, 2547 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
- create mode 100644 drivers/media/platform/ti-vpe/cal.c
- create mode 100644 drivers/media/platform/ti-vpe/cal_regs.h
