@@ -1,100 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34392 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932796AbcAYTkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 14:40:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH 1/1] v4l: libv4l2subdev: Precisely convert media bus string to code
-Date: Mon, 25 Jan 2016 21:41:12 +0200
-Message-ID: <1490379.zWhzdjB0Zz@avalon>
-In-Reply-To: <20160125113909.GA14876@valkosipuli.retiisi.org.uk>
-References: <1449674087-19122-1-git-send-email-sakari.ailus@linux.intel.com> <32957783.JQTylZjONc@avalon> <20160125113909.GA14876@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lists.s-osg.org ([54.187.51.154]:54689 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728AbcADM0G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 07:26:06 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 00/10] [media] tvp5150: add MC and DT support
+Date: Mon,  4 Jan 2016 09:25:22 -0300
+Message-Id: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello,
 
-On Monday 25 January 2016 13:39:10 Sakari Ailus wrote:
-> On Sun, Dec 13, 2015 at 11:33:45PM +0200, Laurent Pinchart wrote:
-> > On Wednesday 09 December 2015 17:14:47 Sakari Ailus wrote:
-> >> The length of the string was ignored, making it possible for the
-> >> conversion to fail due to extra characters in the string.
-> > 
-> > I'm not sure to follow you there. Is the issue that passing a string such
-> > as "SBGGR10" would match "SBGGR10_DPCM8" if it was listed before
-> > "SBGGR10" ? If that's the case I'd write the commit message as
-> 
-> Yes, that's the problem.
-> 
-> > Any character beyond the fist `length' characters in the mbus_formats
-> > strings are ignored, causing incorrect matches if the format entry starts
-> > with but isn't equal to the passed format.
-> 
-> I'll use this commit message then.
-> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> This patch should be applied before the set "[v4l-utils PATCH v2 0/3]
-> >> List supported formats in libv4l2subdev":
-> >> 
-> >> <URL:http://www.spinics.net/lists/linux-media/msg95377.html>
-> >> 
-> >>  utils/media-ctl/libv4l2subdev.c | 10 ++++------
-> >>  1 file changed, 4 insertions(+), 6 deletions(-)
-> >> 
-> >> diff --git a/utils/media-ctl/libv4l2subdev.c
-> >> b/utils/media-ctl/libv4l2subdev.c index 33c1ee6..cce527d 100644
-> >> --- a/utils/media-ctl/libv4l2subdev.c
-> >> +++ b/utils/media-ctl/libv4l2subdev.c
-> >> @@ -769,14 +769,12 @@ enum v4l2_mbus_pixelcode
-> >> v4l2_subdev_string_to_pixelcode(const char *string,
-> >> 	unsigned int i;
-> >> 
-> >>  	for (i = 0; i < ARRAY_SIZE(mbus_formats); ++i) {
-> >> -		if (strncmp(mbus_formats[i].name, string, length) == 0)
-> >> -			break;
-> >> +		if (strncmp(mbus_formats[i].name, string, length) == 0
-> >> +		    && strlen(mbus_formats[i].name) == length)
-> > 
-> > How about mbus_formats[i].name[length] == '\0' instead ? That should be
-> > more efficient.
-> 
-> Fine for me.
-> 
-> > I also wonder whether we shouldn't just get rid of the length argument and
-> > force the passed format string to be zero-terminated.
-> 
-> I believe the reason is that the current user (media-ctl test program)
-> parses the user input and passes a portion of that to this function to
-> convert the string to a numeric value. That'd be a bit more cumbersome as
-> we'd either require copying the string elsewhere or changing the input by
-> the program. I wouldn't change the behaviour, at least not now.
+One of my testing platforms for the MC next gen [0] work has been an OMAP3
+board (IGEPv2) with a tvp5151 video decoder attached to the OMAP3ISP block.
 
-Yes that's the reason, and I think it's an API design mistake (or just a lack 
-of proper API design :-)). Wouldn't it be better to copy the string in the 
-caller ?
+I've been using some patches from Laurent Pinchart that adds MC support to
+the tvp5150 driver. The patches were never posted to the list and it seems
+he doesn't have time to continue working on this so I have taken them from
+his personal tree [1] and submitting now for review.
 
-> >> +			return mbus_formats[i].code;
-> >>  	}
-> >> 
-> >> -	if (i == ARRAY_SIZE(mbus_formats))
-> >> -		return (enum v4l2_mbus_pixelcode)-1;
-> >> -
-> >> -	return mbus_formats[i].code;
-> >> +	return (enum v4l2_mbus_pixelcode)-1;
-> >>  }
-> >>  
-> >>  static struct {
+The series also contains patches that adds DT support to the driver so it
+can be used in DT based platforms.
+
+To test, the following media pipeline was used:
+
+$ media-ctl -r -l '"tvp5150 1-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x240 field:alternate]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x240 field:interlaced-tb]'
+
+And frames captured with the yavta tool:
+
+$ yavta -f UYVY -s 720x480 -n 1 --field interlaced-tb --capture=1 -F /dev/video2
+$ raw2rgbpnm -f UYVY -s 720x480 frame-000000.bin frame-000000.pnm
+
+The patches are on top of [0] not because is a depedency but just to avoid
+merge conflicts and I don't expect them to be picked before that anyways.
+
+Best regards,
+Javier
+
+[0]: http://lists.infradead.org/pipermail/linux-arm-kernel/2015-August/367109.html
+[1]: http://git.linuxtv.org/pinchartl/media.git/log/?h=omap3isp/tvp5151
+
+
+Eduard Gavin (1):
+  [media] tvp5150: Add OF match table
+
+Javier Martinez Canillas (3):
+  [media] tvp5150: Add device tree binding document
+  [media] tvp5150: Initialize the chip on probe
+  [media] tvp5150: Configure data interface via pdata or DT
+
+Laurent Pinchart (6):
+  [media] tvp5150: Restructure version detection
+  [media] tvp5150: Add tvp5151 support
+  [media] tvp5150: Add pad-level subdev operations
+  [media] tvp5150: Add pixel rate control support
+  [media] tvp5150: Add s_stream subdev operation support
+  [media] tvp5150: Add g_mbus_config subdev operation support
+
+ .../devicetree/bindings/media/i2c/tvp5150.txt      |  35 +++
+ drivers/media/i2c/tvp5150.c                        | 272 +++++++++++++++++----
+ include/media/i2c/tvp5150.h                        |   5 +
+ 3 files changed, 263 insertions(+), 49 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp5150.txt
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
