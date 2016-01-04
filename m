@@ -1,44 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from c.ponzo.net ([69.12.221.20]:33321 "EHLO c.ponzo.net"
+Received: from lists.s-osg.org ([54.187.51.154]:55624 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992AbcAUW3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 17:29:07 -0500
-From: Scott Doty <scott@ponzo.net>
-Subject: hdpvr stalls in two situations
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56A15BB2.1060006@ponzo.net>
-Date: Thu, 21 Jan 2016 14:29:06 -0800
+	id S1751704AbcADTLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 14:11:03 -0500
+Date: Mon, 4 Jan 2016 17:10:55 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Mike Martin <mike@redtux.org.uk>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Questions about dvbv5-scan (missing fields)
+Message-ID: <20160104171055.74c6f7e0@recife.lan>
+In-Reply-To: <CAOwYNKZU-eb+hCzMWiBf+TNoCfTzepLn1aMiivaPNZV0qxOWUA@mail.gmail.com>
+References: <CAOwYNKZU-eb+hCzMWiBf+TNoCfTzepLn1aMiivaPNZV0qxOWUA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Thu, 31 Dec 2015 13:45:43 +0000
+Mike Martin <mike@redtux.org.uk> escreveu:
 
-I've been trying the hdpvr driver in newer kernels, and I've discovered
-that vlc will stall after a random amount of playback.
+> Hi
+> I hope this is the right list to ask.
+> 
+> I am looking at using dvbv5 for one of my projects. However there are
+> some fields that I cant seem to get, in particular
+> 
+> tsid
+> pmt
+> service_type (TV?Radio etc)
+> net
+> netid
+> example output in VDR format
+> 
+> CBS Drama:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14640:0:0:0:
+> Showcase TV:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:15296:0:0:0:
+> Box Nation:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14416:0:0:0:
+> Horror
+> Channel:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6129:6130,6131:0:0:14480:0:0:0:
+> 365 Travel:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:14784:0:0:0:
+> Television X:538000:S0B8C34D12I1M64T8G32Y0:T:27500:0:0:0:0:15232:0:0:0: 5
+> USA:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6689:6690,6691:0:0:12992:0:0:0:
+> 5*:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6673:6674,6675:0:0:12928:0:0:0:
+> QUEST:538000:S0B8C34D12I1M64T8G32Y0:T:27500:6929:6930,6931:0:0:14498:0:0:0:
+> 
+> A can be seen there is loads of zeros where entries should be
 
-To fix this, one has to power cycle the device.
+Well, the tool provides DVR compatible file format, but it doesn't
+actually get the above fields (well, some are actually retrieved but
+not stored).
 
-Linux 4.1.15 doesn't have this behavior, though, so I've moved back to
-that kernel for my own use.  It's puzzling to me, because the drivers
-haven't changed from 4.1.15 to 4.4.  (Could this be some kind of
-regression in the USB subsystem?)
+Last time I checked, this is not a problem, since DVR update those
+field when it runs.
 
-The other situation where I see stalled video is changing channels on my
-DirecTV satellite box, and doesn't seem dependent on kernel version. 
-(In other words, it still happens with 4.1.15.)  I have the satellite
-box connected to the component input on the hdpvr.  I'm also using SPDIF
-for the hdpvr's input.  Apparently the channel-change discontinuity in
-the video, or audio, confuses either the driver or vlc, which means I
-have to exit vlc and restart to resume video playback after changing
-channels.
+It wouldn't be hard to update the tool to also retrieve/store those
+fields, but you'll need to write the patch. If you do so, feel free to
+submit it to linux-media.
 
-I'd love to dive into this and make it work properly, or help make it
-work.  Any idea where to start?
+Btw, I'm starting vacations today, so you won't hear from me about this
+subject for a while.
 
-Thanks. :)
+Regards,
+Mauro
 
- -Scott
 
+> 
+> thanks
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
