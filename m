@@ -1,123 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:50381 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbcABD40 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45718 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752624AbcADJ4z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jan 2016 22:56:26 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1DF4518092C
-	for <linux-media@vger.kernel.org>; Sat,  2 Jan 2016 04:56:21 +0100 (CET)
-Date: Sat, 02 Jan 2016 04:56:21 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160102035621.1DF4518092C@tschai.lan>
+	Mon, 4 Jan 2016 04:56:55 -0500
+From: Markus Pargmann <mpa@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] [media] mt9v032: Add V4L2 controls for AEC and AGC
+Date: Mon, 04 Jan 2016 10:56:44 +0100
+Message-ID: <1598879.76W0kKqfX7@adelgunde>
+In-Reply-To: <5194938.P3WvP9gjaZ@avalon>
+References: <1450104113-6392-1-git-send-email-mpa@pengutronix.de> <2570493.HaAAxn7ErG@adelgunde> <5194938.P3WvP9gjaZ@avalon>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart3218746.xMjAhSZ7hY"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--nextPart3218746.xMjAhSZ7hY
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 
-date:		Sat Jan  2 04:00:14 CET 2016
-git branch:	test
-git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+Hi Laurent,
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+On Tuesday 29 December 2015 11:38:39 Laurent Pinchart wrote:
+> Hi Markus,
+>=20
+> On Wednesday 16 December 2015 11:14:28 Markus Pargmann wrote:
+> > On Wednesday 16 December 2015 09:47:58 Laurent Pinchart wrote:
+> > > On Monday 14 December 2015 15:41:53 Markus Pargmann wrote:
+> > >> This patch adds V4L2 controls for Auto Exposure Control and Auto=
+ Gain
+> > >> Control settings. These settings include low pass filter, update=
 
-Detailed results are available here:
+> > >> frequency of these settings and the update interval for those un=
+its.
+> > >>=20
+> > >> Signed-off-by: Markus Pargmann <mpa@pengutronix.de>
+> > >=20
+> > > Please see below for a few comments. If you agree about them ther=
+e's no
+> > > need to resubmit, I'll fix the patch when applying.
+> >=20
+> > Most of them are fine, I commented on the open ones.
+> >=20
+> > >> ---
+> > >>=20
+> > >>  drivers/media/i2c/mt9v032.c | 153 +++++++++++++++++++++++++++++=
++++++++-
+> > >>  1 file changed, 152 insertions(+), 1 deletion(-)
+> > >>=20
+> > >> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9=
+v032.c
+> > >> index cc16acf001de..6cbc3b87eda9 100644
+> > >> --- a/drivers/media/i2c/mt9v032.c
+> > >> +++ b/drivers/media/i2c/mt9v032.c
+>=20
+> [snip]
+>=20
+> > >> +static const struct v4l2_ctrl_config mt9v032_aec_max_shutter_wi=
+dth =3D {
+> > >> +=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > >> +=09.id=09=09=3D V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> > >> +=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > >> +=09.name=09=09=3D "aec_max_shutter_width",
+> > >> +=09.min=09=09=3D 1,
+> > >> +=09.max=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_MAX,
+> > >=20
+> > > According the the MT9V032 datasheet I have, the maximum value is =
+2047
+> > > while MT9V032_TOTAL_SHUTTER_WIDTH_MAX is defined as 32767. Do you=
+ have any
+> > > information that would hint for an error in the datasheet ?
+> >=20
+> > The register is defined as having 15 bits. I simply assumed that th=
+e already
+> > defined TOTAL_SHUTTER_WIDTH_MAX would apply for this register as we=
+ll. At
+> > least it should end up controlling the same property of the chip. I=
+ didn't
+> > test this on mt9v032 but on mt9v024.
+>=20
+> According to the MT9V032 datasheet=20
+> (http://www.onsemi.com/pub/Collateral/MT9V032-D.PDF) the maximum shut=
+ter width=20
+> in AEC mode is limited to 2047. That is documented both in the Maximu=
+m Total=20
+> Shutter Width register legal values and in the "Automatic Gain Contro=
+l and=20
+> Automatic Exposure Control" section:
+>=20
+> "The exposure is measured in row-time by reading R0xBB. The exposure =
+range is
+> 1 to 2047."
+>=20
+> I assume that the the AEC unit limits the shutter width to 2047 lines=
+ and that=20
+> it's thus pointless to set the maximum total shutter width to a highe=
+r value.=20
+> Whether doing so could have any adverse effect I don't know, but bett=
+er be=20
+> same than sorry. If you agree we should limit the value to 2047 I can=
+ fix=20
+> this.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Yes, I agree. It would be great if you fix this.
 
-Full logs are available here:
+Thanks,
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Markus
 
-The Media Infrastructure API from this daily build is here:
+>=20
+> > >> +=09.step=09=09=3D 1,
+> > >> +=09.def=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> > >> +=09.flags=09=09=3D 0,
+> > >> +};
+> > >> +
+> > >> +static const struct v4l2_ctrl_config mt9v034_aec_max_shutter_wi=
+dth =3D {
+> > >> +=09.ops=09=09=3D &mt9v032_ctrl_ops,
+> > >> +=09.id=09=09=3D V4L2_CID_AEC_MAX_SHUTTER_WIDTH,
+> > >> +=09.type=09=09=3D V4L2_CTRL_TYPE_INTEGER,
+> > >> +=09.name=09=09=3D "aec_max_shutter_width",
+> > >> +=09.min=09=09=3D 1,
+> > >> +=09.max=09=09=3D MT9V034_TOTAL_SHUTTER_WIDTH_MAX,
+> > >> +=09.step=09=09=3D 1,
+> > >> +=09.def=09=09=3D MT9V032_TOTAL_SHUTTER_WIDTH_DEF,
+> > >> +=09.flags=09=09=3D 0,
+> > >> +};
+> > >=20
+> > > [snip]
+>=20
+>=20
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+=2D-=20
+Pengutronix e.K.                           |                           =
+  |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0  =
+  |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-555=
+5 |
+
+--nextPart3218746.xMjAhSZ7hY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCAAGBQJWikHhAAoJEEpcgKtcEGQQ/pwQAKCdg5Phi7Dt564Dq0M7PvDT
+g9A0sdkH/uxaTwoHJAMPaDe5L3cmnoNCQFrPDMmSsMAnyc5AEKohrgeifcxcVrgc
+5gw2qRHIEz8KbqgjF8szeAC1ZFepMCu/kdH1aaZGvvN1AaqPOo4jPfrZpGrmOt7g
+v8BAcJ91LI9/1h5u5Szw4hhy2YpyP9Y12m2bDCLAFr26MYnK3dD11A1YftQJfszX
+WW6r6RWXtq3u48SxpJkXzMk0RKNFJSHW9jXjiS84GuIT+W8gfEVB7BSFPE6Wjy2G
+VyMvYgcrlz+p3X0IvpyRxivkq7XWeI/lqjtv3DBKh5pipDBPA8n/UFYvQnim32hC
+HmgqUnvG/2di7WpeefXmiDVH+3UAay9OTBX2gjj5OTMmwbwuKLmjClkjFsaI6WLC
+xvsIot5CxUjbdw2urCciO9PBny927b3g+A+nNP004CAcJ5tizKHRESqudfJnS/aa
++l51G4LcHUiNHE8ven5qvG1IQbk1R0y3jQEFL6w26hnA+DacYgrelr7an8kJZXtq
+MADV/A9LkHZ5rObu3AbN068y8n8Q4InmIILwUBRXwMvr9gewkBAhbxnusf0KV93z
+i/BJExRiqBF8tDS25oRyom6CDioAGlXWnU5V8qbx7LvSox6kYVw1JP490fTpOIjF
+P1vZ2zZlmE791M/GvUBE
+=XjSD
+-----END PGP SIGNATURE-----
+
+--nextPart3218746.xMjAhSZ7hY--
+
