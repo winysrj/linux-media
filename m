@@ -1,104 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:40207 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934334AbcAUSJ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 13:09:58 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH REBASE 4.5 18/31] media: au0828 change to use Managed Media Controller API
-Date: Thu, 21 Jan 2016 11:09:48 -0700
-Message-Id: <a0c6c96b8dbb916752cfb2f2f34da3c3e0862bb3.1453336831.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1453336830.git.shuahkh@osg.samsung.com>
-References: <cover.1453336830.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1453336830.git.shuahkh@osg.samsung.com>
-References: <cover.1453336830.git.shuahkh@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:54698 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753395AbcADM0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 07:26:09 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 01/10] [media] tvp5150: Restructure version detection
+Date: Mon,  4 Jan 2016 09:25:23 -0300
+Message-Id: <1451910332-23385-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
+References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828 to use Managed Media Controller API to coordinate
-creating/deleting media device on parent usb device it shares
-with the snd-usb-audio driver. With this change, au0828 uses
-media_device_get_devres() to allocate a new media device devres
-or return an existing one, if it finds one.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Move the version detection code to a separate function and restructure
+it to prepare for TVP5151 support.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/media/usb/au0828/au0828-core.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index d0fb40b..10c50f5 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -135,10 +135,10 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- {
+ drivers/media/i2c/tvp5150.c | 79 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index dda8b3c000cc..9e953e5a7ec9 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1105,13 +1105,53 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+ 			I2C Client & Driver
+  ****************************************************************************/
  
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (dev->media_dev) {
-+	if (dev->media_dev &&
-+		media_devnode_is_registered(&dev->media_dev->devnode)) {
- 		media_device_unregister(dev->media_dev);
- 		media_device_cleanup(dev->media_dev);
--		kfree(dev->media_dev);
- 		dev->media_dev = NULL;
- 	}
- #endif
-@@ -224,23 +224,24 @@ static int au0828_media_device_init(struct au0828_dev *dev,
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev;
- 
--	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	mdev = media_device_get_devres(&udev->dev);
- 	if (!mdev)
- 		return -ENOMEM;
- 
--	mdev->dev = &udev->dev;
-+	if (!media_devnode_is_registered(&mdev->devnode)) {
-+		mdev->dev = &udev->dev;
- 
--	if (!dev->board.name)
--		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
--	else
--		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
--	if (udev->serial)
--		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
--	strcpy(mdev->bus_info, udev->devpath);
--	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
--	mdev->driver_version = LINUX_VERSION_CODE;
-+		if (udev->product)
-+			strlcpy(mdev->model, udev->product,
-+				sizeof(mdev->model));
-+		if (udev->serial)
-+			strlcpy(mdev->serial, udev->serial,
-+				sizeof(mdev->serial));
-+		strcpy(mdev->bus_info, udev->devpath);
-+		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
- 
--	media_device_init(mdev);
-+		media_device_init(mdev);
++static int tvp5150_detect_version(struct tvp5150 *core)
++{
++	struct v4l2_subdev *sd = &core->sd;
++	struct i2c_client *c = v4l2_get_subdevdata(sd);
++	unsigned int i;
++	u16 dev_id;
++	u16 rom_ver;
++	u8 regs[4];
++	int res;
++
++	/*
++	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
++	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER
++	 */
++	for (i = 0; i < 4; i++) {
++		res = tvp5150_read(sd, TVP5150_MSB_DEV_ID + i);
++		if (res < 0)
++			return res;
++		regs[i] = res;
 +	}
++
++	dev_id = (regs[0] << 8) | regs[1];
++	rom_ver = (regs[2] << 8) | regs[3];
++
++	v4l2_info(sd, "tvp%04x (%u.%u) chip found @ 0x%02x (%s)\n",
++		  dev_id, regs[2], regs[3], c->addr << 1, c->adapter->name);
++
++	if (dev_id == 0x5150 && rom_ver == 0x0321) { /* TVP51510A */
++		v4l2_info(sd, "tvp5150a detected.\n");
++	} else if (dev_id == 0x5150 && rom_ver == 0x0400) { /* TVP5150AM1 */
++		v4l2_info(sd, "tvp5150am1 detected.\n");
++
++		/* ITU-T BT.656.4 timing */
++		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
++	} else {
++		v4l2_info(sd, "*** unknown tvp%04x chip detected.\n", dev_id);
++	}
++
++	return 0;
++}
++
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct tvp5150 *core;
+ 	struct v4l2_subdev *sd;
+-	int tvp5150_id[4];
+-	int i, res;
++	int res;
  
- 	dev->media_dev = mdev;
- #endif
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(c->adapter,
+@@ -1124,38 +1164,9 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	sd = &core->sd;
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+ 
+-	/* 
+-	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
+-	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
+-	 */
+-	for (i = 0; i < 4; i++) {
+-		res = tvp5150_read(sd, TVP5150_MSB_DEV_ID + i);
+-		if (res < 0)
+-			return res;
+-		tvp5150_id[i] = res;
+-	}
+-
+-	v4l_info(c, "chip found @ 0x%02x (%s)\n",
+-		 c->addr << 1, c->adapter->name);
+-
+-	if (tvp5150_id[2] == 4 && tvp5150_id[3] == 0) { /* Is TVP5150AM1 */
+-		v4l2_info(sd, "tvp%02x%02xam1 detected.\n",
+-			  tvp5150_id[0], tvp5150_id[1]);
+-
+-		/* ITU-T BT.656.4 timing */
+-		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
+-	} else {
+-		/* Is TVP5150A */
+-		if (tvp5150_id[2] == 3 || tvp5150_id[3] == 0x21) {
+-			v4l2_info(sd, "tvp%02x%02xa detected.\n",
+-				  tvp5150_id[0], tvp5150_id[1]);
+-		} else {
+-			v4l2_info(sd, "*** unknown tvp%02x%02x chip detected.\n",
+-				  tvp5150_id[0], tvp5150_id[1]);
+-			v4l2_info(sd, "*** Rom ver is %d.%d\n",
+-				  tvp5150_id[2], tvp5150_id[3]);
+-		}
+-	}
++	res = tvp5150_detect_version(core);
++	if (res < 0)
++		return res;
+ 
+ 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+ 	core->input = TVP5150_COMPOSITE1;
 -- 
-2.5.0
+2.4.3
 
