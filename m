@@ -1,104 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59891 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.15.19]:59078 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794AbcA1Vzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 16:55:33 -0500
-Subject: Re: [PATCH REBASE 4.5 00/31] Sharing media resources across ALSA and
- au0828 drivers
-To: Takashi Iwai <tiwai@suse.de>
-References: <cover.1453336830.git.shuahkh@osg.samsung.com>
- <56AA2C37.3090309@osg.samsung.com> <s5h60yd7mwo.wl-tiwai@suse.de>
-Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, alsa-devel@alsa-project.org,
-	arnd@arndb.de, ricard.wanderlof@axis.com,
-	labbott@fedoraproject.org, chehabrafael@gmail.com,
-	misterpib@gmail.com, prabhakar.csengg@gmail.com,
-	ricardo.ribalda@gmail.com, ruchandani.tina@gmail.com,
-	takamichiho@gmail.com, tvboxspy@gmail.com, dominic.sacre@gmx.de,
-	crope@iki.fi, julian@jusst.de, clemens@ladisch.de,
-	pierre-louis.bossart@linux.intel.com, corbet@lwn.net,
-	joe@oampo.co.uk, johan@oljud.se, dan.carpenter@oracle.com,
-	pawel@osciak.com, p.zabel@pengutronix.de, perex@perex.cz,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, k.kozlowski@samsung.com,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
-	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linuxbugs@vittgam.net,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, daniel@zonque.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA8E4B.8080105@osg.samsung.com>
-Date: Thu, 28 Jan 2016 14:55:23 -0700
+	id S1752707AbcADVQ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 16:16:58 -0500
+Received: from [192.168.6.10] ([88.217.181.124]) by mail.gmx.com (mrgmx001)
+ with ESMTPSA (Nemesis) id 0M7Gj8-1a3Mwo1sne-00x71b for
+ <linux-media@vger.kernel.org>; Mon, 04 Jan 2016 22:16:56 +0100
+From: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
+Subject: [PATCH] af9035: add support for 2nd tuner of MSI DigiVox Diversity
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <568AE147.6070908@gmx.de>
+Date: Mon, 4 Jan 2016 22:16:55 +0100
 MIME-Version: 1.0
-In-Reply-To: <s5h60yd7mwo.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 08:18 AM, Takashi Iwai wrote:
-> On Thu, 28 Jan 2016 15:56:55 +0100,
-> Shuah Khan wrote:
->>
->> On 01/21/2016 11:09 AM, Shuah Khan wrote:
->>> Please note that I am sending just the 4 patches that
->>> changed during series rebase to Linux 4.5. The rebase
->>> was pain free. media_device_init() type change required
->>> changes to patches 18 and 26. I re-tested the series
->>> and everything looks good.
->>>
->>> [PATCH 16/31] media: au0828 video remove au0828_enable_analog_tuner()
->>> [PATCH 18/31] media: au0828 change to use Managed Media Controller API
->>> [PATCH 22/31] media: dvb-core create tuner to demod pad link in disabled state
->>> [PATCH v3 26/31] sound/usb: Update ALSA driver to use Managed Media Controller API
->>>
->>> Links:
->>> PATCH Series that contains all 31 patches:
->>> https://lkml.org/lkml/2016/1/6/668
->>>
->>> ALSA patches went through reviews and links
->>> to PATCH V3 (ALSA):
->>> https://lkml.org/lkml/2016/1/18/556
->>> https://lkml.org/lkml/2016/1/18/557
->>> https://lkml.org/lkml/2016/1/18/558
->>>
->>> Compile warns patches:
->>> https://lkml.org/lkml/2016/1/19/520
->>> https://lkml.org/lkml/2016/1/19/518
->>> https://lkml.org/lkml/2016/1/19/519
->>>
->>> Mauro and Takashi:
->>> Please let me know if you would rather see the entire
->>> patch series generated for 4.5-rc1 and sent out in a
->>> complete series instead of just the rebased patches.
->>>
->>
->> Hi Takashi,
->>
->> Are you okay with this ALSA patch series?
-> 
-> Sorry, too little time until now.
-> I know there are still a few potential problems.  Will do detailed
-> reviews later.
-> 
+PIP tested with VLC. Diversity tested with the Windows driver.
 
-I would like to wrap this up and hopefully get this
-into 4.6. Please let me know if you will be able to
-review in time for that.
+Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 4 ++--
+ drivers/media/usb/dvb-usb-v2/af9035.h | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-I have a few comments work on from Mauro and would
-like to address comments from you as well at the same
-time.
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 6e02a15..b3c09fe 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -684,7 +684,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 	if (ret < 0)
+ 		goto err;
 
-thanks,
--- Shuah
+-	if (tmp == 1 || tmp == 3) {
++	if (tmp == 1 || tmp == 3 || tmp == 5) {
+ 		/* configure gpioh1, reset & power slave demod */
+ 		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
+ 		if (ret < 0)
+@@ -823,7 +823,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	if (ret < 0)
+ 		goto err;
 
+-	if (tmp == 1 || tmp == 3)
++	if (tmp == 1 || tmp == 3 || tmp == 5)
+ 		state->dual_mode = true;
 
+ 	dev_dbg(&d->udev->dev, "%s: ts mode=%d dual mode=%d\n", __func__,
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index 416a97f..df22001 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -112,9 +112,10 @@ static const u32 clock_lut_it9135[] = {
+  * 0  TS
+  * 1  DCA + PIP
+  * 3  PIP
++ * 5  DCA + PIP
+  * n  DCA
+  *
+- * Values 0 and 3 are seen to this day. 0 for single TS and 3 for dual TS.
++ * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
+  */
+
+ #define EEPROM_BASE_AF9035        0x42fd
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.6.4
