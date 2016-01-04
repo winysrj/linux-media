@@ -1,65 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:35902 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759304AbcAKL6x (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46385 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751523AbcADTa1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 06:58:53 -0500
-Received: by mail-io0-f169.google.com with SMTP id g73so149601473ioe.3
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 03:58:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5693930C.9050001@xs4all.nl>
-References: <CAJ2oMhJVjKrfXEKx6xnGQkEpcSWBywabrDwy9biJkhjmnZ7Kbg@mail.gmail.com>
-	<5693930C.9050001@xs4all.nl>
-Date: Mon, 11 Jan 2016 13:58:51 +0200
-Message-ID: <CAJ2oMhKH7LM2o0ppmJx5BK_3e3iT8sEixg2AMHN9ueBMjB9AKA@mail.gmail.com>
-Subject: Re: vivid - add support for YUV420
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Mon, 4 Jan 2016 14:30:27 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Junghak Sung <jh1009.sung@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] coda: fix first encoded frame payload
+Date: Mon,  4 Jan 2016 20:30:09 +0100
+Message-Id: <1451935809-29554-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 1:33 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 01/09/2016 10:58 AM, Ran Shalit wrote:
->> Hello,
->>
->> I've been doing some tests with capturing video from virtual driver (vivid).
->> I've tried to force it to YUV420, but it ignores that, becuase it does
->> not support this format.
->
-> Yes, it does. What kernel are you using? Something old? Support for 4:2:0 was
-> added to vivid in March 2015.
->
->> I would please like to ask if there is some way I can output YUV420
->> format with vivi.
->
-> Upgrade your kernel :-)
+During the recent vb2_buffer restructuring, the calculation of the
+buffer payload reported to userspace was accidentally broken for the
+first encoded frame, counting only the length of the headers.
+This patch re-adds the length of the actual frame data.
 
-Right.
-The kernel in Cent0S 7.2 (last release) is 3.10.0.
-I am not sure I can update CentOS with kernel.org last release because
-of probably many dependencies ( Is it possible ?)
-Anyway, vivid , is life saving tool for newcomers. Absolutely.
+Fixes: 2d7007153f0c ("[media] media: videobuf2: Restructure vb2_buffer")
+Reported-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Tested-by: Jan Luebbe <jlu@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-bit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-Ran
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 654e964..d76511c 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -1342,7 +1342,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
+ 
+ 	/* Calculate bytesused field */
+ 	if (dst_buf->sequence == 0) {
+-		vb2_set_plane_payload(&dst_buf->vb2_buf, 0,
++		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, wr_ptr - start_ptr +
+ 					ctx->vpu_header_size[0] +
+ 					ctx->vpu_header_size[1] +
+ 					ctx->vpu_header_size[2]);
+-- 
+2.6.2
 
-
-> BTW, please don't use vivi to refer to the vivid driver. There used to be an
-> older vivi driver that was replaced by vivid, so calling the vivid driver 'vivi'
-> is very confusing to me :-)
->
-> Regards,
->
->         Hans
->
->>
->> Best Regards,
->> Ran
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
