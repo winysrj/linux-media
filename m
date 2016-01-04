@@ -1,116 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43789 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754249AbcA0Nby (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 08:31:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 1/5] v4l2-ctrls: add V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
-Date: Wed, 27 Jan 2016 14:31:39 +0100
-Message-Id: <1453901503-35473-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
-References: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:54764 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753855AbcADM0m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 07:26:42 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 10/10] [media] tvp5150: Configure data interface via pdata or DT
+Date: Mon,  4 Jan 2016 09:25:32 -0300
+Message-Id: <1451910332-23385-11-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
+References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The video decoder supports either 8-bit 4:2:2 YUV with discrete syncs
+or 8-bit ITU-R BT.656 with embedded syncs output format but currently
+BT.656 it's always reported. Allow to configure the format to use via
+either platform data or a device tree definition.
 
-HDMI and DisplayPort both support IT Content Type information that
-tells the receiver what type of material the video is, graphics such
-as from a PC desktop, Photo, Cinema or Game (low-latency).
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-This patch adds controls for receivers and transmitters to get/set
-this information.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 16 ++++++++++++++++
- include/uapi/linux/v4l2-controls.h   | 10 ++++++++++
- 2 files changed, 26 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index c9d5537..bed04b1 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -462,6 +462,14 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"RGB full range (0-255)",
- 		NULL,
- 	};
-+	static const char * const dv_it_content_type[] = {
-+		"Graphics",
-+		"Photo",
-+		"Cinema",
-+		"Game",
-+		"No IT Content",
-+		NULL,
-+	};
- 	static const char * const detect_md_mode[] = {
- 		"Disabled",
- 		"Global",
-@@ -560,6 +568,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 		return dv_rgb_range;
-+	case V4L2_CID_DV_TX_IT_CONTENT_TYPE:
-+	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:
-+		return dv_it_content_type;
- 	case V4L2_CID_DETECT_MD_MODE:
- 		return detect_md_mode;
+ drivers/media/i2c/tvp5150.c | 61 +++++++++++++++++++++++++++++++++++++++++++--
+ include/media/i2c/tvp5150.h |  5 ++++
+ 2 files changed, 64 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index fed89a811ab7..8bce45a6e264 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -6,6 +6,7 @@
+  */
  
-@@ -881,8 +892,10 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_DV_TX_EDID_PRESENT:	return "EDID Present";
- 	case V4L2_CID_DV_TX_MODE:		return "Transmit Mode";
- 	case V4L2_CID_DV_TX_RGB_RANGE:		return "Tx RGB Quantization Range";
-+	case V4L2_CID_DV_TX_IT_CONTENT_TYPE:	return "Tx IT Content Type";
- 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
- 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
-+	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:	return "Rx IT Content Type";
+ #include <linux/of_gpio.h>
++#include <linux/of_graph.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+@@ -15,6 +16,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/i2c/tvp5150.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
  
- 	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
- 	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-@@ -1038,7 +1051,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_SCENE_MODE:
- 	case V4L2_CID_DV_TX_MODE:
- 	case V4L2_CID_DV_TX_RGB_RANGE:
-+	case V4L2_CID_DV_TX_IT_CONTENT_TYPE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
-+	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
- 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-@@ -1185,6 +1200,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_TX_RXSENSE:
- 	case V4L2_CID_DV_TX_EDID_PRESENT:
- 	case V4L2_CID_DV_RX_POWER_PRESENT:
-+	case V4L2_CID_DV_RX_IT_CONTENT_TYPE:
- 	case V4L2_CID_RDS_RX_PTY:
- 	case V4L2_CID_RDS_RX_PS_NAME:
- 	case V4L2_CID_RDS_RX_RADIO_TEXT:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2d225bc..2ae5c3e 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -912,8 +912,18 @@ enum v4l2_dv_rgb_range {
- 	V4L2_DV_RGB_RANGE_FULL	  = 2,
+ #include "tvp5150_reg.h"
+ 
+@@ -39,6 +41,7 @@ struct tvp5150 {
+ 	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct v4l2_rect rect;
++	struct tvp5150_platform_data *pdata;
+ 
+ 	v4l2_std_id norm;	/* Current set standard */
+ 	u32 input;
+@@ -757,6 +760,7 @@ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct tvp5150_platform_data *pdata = decoder->pdata;
+ 
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
+@@ -774,6 +778,10 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	v4l2_ctrl_handler_setup(&decoder->hdl);
+ 
+ 	tvp5150_set_std(sd, decoder->norm);
++
++	if (pdata && pdata->bus_type == V4L2_MBUS_PARALLEL)
++		tvp5150_write(sd, TVP5150_DATA_RATE_SEL, 0x40);
++
+ 	return 0;
  };
  
-+#define V4L2_CID_DV_TX_IT_CONTENT_TYPE		(V4L2_CID_DV_CLASS_BASE + 6)
-+enum v4l2_dv_it_content_type {
-+	V4L2_DV_IT_CONTENT_TYPE_GRAPHICS  = 0,
-+	V4L2_DV_IT_CONTENT_TYPE_PHOTO	  = 1,
-+	V4L2_DV_IT_CONTENT_TYPE_CINEMA	  = 2,
-+	V4L2_DV_IT_CONTENT_TYPE_GAME	  = 3,
-+	V4L2_DV_IT_CONTENT_TYPE_NO_ITC	  = 4,
+@@ -940,6 +948,16 @@ static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
+ 				 struct v4l2_mbus_config *cfg)
+ {
++	struct tvp5150_platform_data *pdata = to_tvp5150(sd)->pdata;
++
++	if (pdata) {
++		cfg->type = pdata->bus_type;
++		cfg->flags = pdata->parallel_flags;
++
++		return 0;
++	}
++
++	/* Default values if no platform data was provided */
+ 	cfg->type = V4L2_MBUS_BT656;
+ 	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING
+ 		   | V4L2_MBUS_FIELD_EVEN_LOW | V4L2_MBUS_DATA_ACTIVE_HIGH;
+@@ -986,13 +1004,20 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
+ 
+ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ {
++	struct tvp5150_platform_data *pdata = to_tvp5150(sd)->pdata;
++	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
++	int val = 0x09;
++
++	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
++	if (pdata && pdata->bus_type == V4L2_MBUS_PARALLEL)
++		val = 0x0d;
++
+ 	/* Initializes TVP5150 to its default values */
+ 	/* # set PCLK (27MHz) */
+ 	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
+ 
+-	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+ 	if (enable)
+-		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
++		tvp5150_write(sd, TVP5150_MISC_CTL, val);
+ 	else
+ 		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
+ 
+@@ -1228,11 +1253,42 @@ static inline int tvp5150_init(struct i2c_client *c)
+ 	return 0;
+ }
+ 
++static struct tvp5150_platform_data *tvp5150_get_pdata(struct device *dev)
++{
++	struct tvp5150_platform_data *pdata = dev_get_platdata(dev);
++	struct v4l2_of_endpoint bus_cfg;
++	struct device_node *ep;
++
++	if (pdata)
++		return pdata;
++
++	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata)
++			return NULL;
++
++		ep = of_graph_get_next_endpoint(dev->of_node, NULL);
++		if (!ep)
++			return NULL;
++
++		v4l2_of_parse_endpoint(ep, &bus_cfg);
++
++		pdata->bus_type = bus_cfg.bus_type;
++		pdata->parallel_flags = bus_cfg.bus.parallel.flags;
++
++		of_node_put(ep);
++		return pdata;
++	}
++
++	return NULL;
++}
++
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct tvp5150 *core;
+ 	struct v4l2_subdev *sd;
++	struct tvp5150_platform_data *pdata = tvp5150_get_pdata(&c->dev);
+ 	int res;
+ 
+ 	/* Check if the adapter supports the needed features */
+@@ -1262,6 +1318,7 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	if (res < 0)
+ 		return res;
+ 
++	core->pdata = pdata;
+ 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
+ 	core->input = TVP5150_COMPOSITE1;
+ 	core->enable = 1;
+diff --git a/include/media/i2c/tvp5150.h b/include/media/i2c/tvp5150.h
+index 649908a25605..e4cda0c843df 100644
+--- a/include/media/i2c/tvp5150.h
++++ b/include/media/i2c/tvp5150.h
+@@ -30,4 +30,9 @@
+ #define TVP5150_NORMAL       0
+ #define TVP5150_BLACK_SCREEN 1
+ 
++struct tvp5150_platform_data {
++	enum v4l2_mbus_type bus_type;
++	unsigned int parallel_flags;
 +};
 +
- #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
- #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
-+#define V4L2_CID_DV_RX_IT_CONTENT_TYPE		(V4L2_CID_DV_CLASS_BASE + 102)
- 
- #define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
- #define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
+ #endif
 -- 
-2.7.0.rc3
+2.4.3
 
