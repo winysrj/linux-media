@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay-b32.telenor.se ([213.150.131.21]:55751 "EHLO
-	smtprelay-b32.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932135AbcAZHm0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 02:42:26 -0500
-Received: from ipb2.telenor.se (ipb2.telenor.se [195.54.127.165])
-	by smtprelay-b32.telenor.se (Postfix) with ESMTP id 0564485D22
-	for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 08:11:48 +0100 (CET)
-From: Alec Leamas <leamas.alec@gmail.com>
-To: mchehab@osg.samsung.com
-Cc: david@hardeman.nu, austin.lund@gmail.com,
-	linux-media@vger.kernel.org, Alec Leamas <leamas.alec@gmail.com>
-Subject: [PATCH] Revert "[media] media/rc: Send sync space information on lirc device"
-Date: Tue, 26 Jan 2016 08:11:06 +0100
-Message-Id: <1453792266-1542-1-git-send-email-leamas.alec@gmail.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:39837 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753071AbcADIjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2016 03:39:47 -0500
+Subject: Re: [PATCH] [media] si2165: Refactoring for si2165_writereg_mask8()
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <568020CC.1060004@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <568A2FB9.8040806@gentoo.org>
+Date: Mon, 4 Jan 2016 09:39:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <568020CC.1060004@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit a8f29e89f2b54fbf2c52be341f149bc195b63a8b. This
-commit handled drivers failing to issue a spac which causes sequences
-of mark-mark-space instead of the expected space-mark-space-mark...
+Am 27.12.2015 um 18:33 schrieb SF Markus Elfring:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Sun, 27 Dec 2015 18:23:57 +0100
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> 1. Let us return directly if a call of the si2165_readreg8()
+>    function failed.
+> 
+> 2. Reduce the scope for the local variables "ret" and "tmp" to one branch
+>    of an if statement.
+> 
+> 3. Delete the jump label "err" then.
+> 
+> 4. Return the value from a call of the si2165_writereg8() function
+>    without using an extra assignment for the variable "ret" at the end.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-The fix added an extra space for each and every timeout which fixes
-the problem for the failing drivers. However, for existing working
-drivers it  the added space causes mark-space-space sequences in the
-output which break userspace rightfully expecting
-space-mark-space-mark...
+The patch looks fine.
 
-Thus, the fix is broken and reverted. The fix is discussed in
-https://bugzilla.redhat.com/show_bug.cgi?id=1260862. In particular,
-the original committer Austin Lund agrees.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 
-Signed-off-by: Alec Leamas <leamas.alec@gmail.com>
----
- drivers/media/rc/ir-lirc-codec.c | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+Regards
+Matthias
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 5effc65..8984b33 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -39,17 +39,11 @@ static int ir_lirc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return -EINVAL;
- 
- 	/* Packet start */
--	if (ev.reset) {
--		/* Userspace expects a long space event before the start of
--		 * the signal to use as a sync.  This may be done with repeat
--		 * packets and normal samples.  But if a reset has been sent
--		 * then we assume that a long time has passed, so we send a
--		 * space with the maximum time value. */
--		sample = LIRC_SPACE(LIRC_VALUE_MASK);
--		IR_dprintk(2, "delivering reset sync space to lirc_dev\n");
-+	if (ev.reset)
-+		return 0;
- 
- 	/* Carrier reports */
--	} else if (ev.carrier_report) {
-+	if (ev.carrier_report) {
- 		sample = LIRC_FREQUENCY(ev.carrier);
- 		IR_dprintk(2, "carrier report (freq: %d)\n", sample);
- 
--- 
-2.4.3
+PS: I am going to switch to regmap, but this change is not yet polished
+and until now does not touch this function.
 
