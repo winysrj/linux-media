@@ -1,58 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53033 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414AbcASSAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 13:00:54 -0500
-Message-ID: <1453226443.5933.7.camel@collabora.com>
-Subject: V4L2 Colorspace for RGB formats
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dimitrios Katsaros <patcherwork@gmail.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 19 Jan 2016 13:00:43 -0500
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-GGNvDsXKYVjyW3Er0Mn/"
-Mime-Version: 1.0
+Received: from mailgw02.mediatek.com ([210.61.82.184]:42360 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753238AbcADKMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2016 05:12:44 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Mark Rutland <mark.rutland@arm.com>
+CC: Daniel Kurtz <djkurtz@chromium.org>, <eddie.huang@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v3 4/8] dt-bindings: Add a binding for Mediatek Video Encoder
+Date: Mon, 4 Jan 2016 18:11:52 +0800
+Message-ID: <1451902316-55931-5-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a DT binding documentation of Video Encoder for the
+MT8173 SoC from Mediatek.
 
---=-GGNvDsXKYVjyW3Er0Mn/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
 
-Hi Hans,
-
-we are having issues in GStreamer with the colorspace in V4L2. The API
-does not provide any encoding for RGB formats. The encoding matrix for
-those is usually the identity matrix, anything else makes very little
-sense to me. For example, vivid will declare a stream with RGB based
-pixel format as having the default for sRGB colorspace, which lead to
-non-identity syCC encoding.
-
-Shall we simply ignore the encoding set by drivers when the pixel
-format is RGB based ? To me it makes very little sense, but the code in
-GStreamer is very generic and this wrong information lead to errors
-when the data is converted to YUV and back to RGB.
-
-https://bugzilla.gnome.org/show_bug.cgi?id=3D759624
-
-cheers,
-Nicolas
---=-GGNvDsXKYVjyW3Er0Mn/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlaeecsACgkQcVMCLawGqBzL5QCgtDj3QUfOF2umjxIVHAc5JCf6
-tTEAn0lA39gK9khbbmBzGEpDl02gRP5h
-=ZKrQ
------END PGP SIGNATURE-----
-
---=-GGNvDsXKYVjyW3Er0Mn/--
+diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+new file mode 100644
+index 0000000..5cc35ae
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+@@ -0,0 +1,58 @@
++Mediatek Video Codec
++
++Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
++supports high resolution encoding functionalities.
++
++Required properties:
++- compatible : "mediatek,mt8173-vcodec-enc" for encoder
++- reg : Physical base address of the video codec registers and length of
++  memory mapped region.
++- interrupts : interrupt number to the cpu.
++- mediatek,larb : must contain the local arbiters in the current Socs.
++- clocks : list of clock specifiers, corresponding to entries in
++  the clock-names property;
++- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
++- iommus : list of iommus specifiers should be enabled for hw encode.
++  There are 2 cells needed to enable/disable iommu.
++  The first one is local arbiter index(larbid), and the other is port
++  index(portid) within local arbiter. Specifies the larbid and portid
++  as defined in dt-binding/memory/mt8173-larb-port.h.
++- mediatek,vpu : the node of video processor unit
++
++Example:
++vcodec_enc: vcodec@0x18002000 {
++    compatible = "mediatek,mt8173-vcodec-enc";
++    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
++          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
++    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
++           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
++    mediatek,larb = <&larb3>,
++		    <&larb5>;
++    iommus = <&iommu M4U_PORT_VENC_RCPU>,
++             <&iommu M4U_PORT_VENC_REC>,
++             <&iommu M4U_PORT_VENC_BSDMA>,
++             <&iommu M4U_PORT_VENC_SV_COMV>,
++             <&iommu M4U_PORT_VENC_RD_COMV>,
++             <&iommu M4U_PORT_VENC_CUR_LUMA>,
++             <&iommu M4U_PORT_VENC_CUR_CHROMA>,
++             <&iommu M4U_PORT_VENC_REF_LUMA>,
++             <&iommu M4U_PORT_VENC_REF_CHROMA>,
++             <&iommu M4U_PORT_VENC_NBM_RDMA>,
++             <&iommu M4U_PORT_VENC_NBM_WDMA>,
++             <&iommu M4U_PORT_VENC_RCPU_SET2>,
++             <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
++             <&iommu M4U_PORT_VENC_BSDMA_SET2>,
++             <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
++             <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
++             <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
++             <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
++             <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
++             <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
++    mediatek,vpu = <&vpu>;
++    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
++             <&topckgen CLK_TOP_VENC_LT_SEL>,
++             <&topckgen CLK_TOP_VCODECPLL_370P5>;
++    clock-names = "vencpll",
++                  "venc_lt_sel",
++                  "vcodecpll_370p5_ck";
++  };
+-- 
+1.7.9.5
 
