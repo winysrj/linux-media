@@ -1,66 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:34792 "EHLO
-	relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753425AbcARC1m convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2016 21:27:42 -0500
-From: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
-To: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	"linux-renesas-soc@vger.kernel.org"
-	<linux-renesas-soc@vger.kernel.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Sergei Shtylyov" <sergei.shtylyov@cogentembedded.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Toru Oishi <toru.oishi.zj@rvc.renesas.com>
-Subject: RE: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
- Development
-Date: Mon, 18 Jan 2016 02:27:38 +0000
-Message-ID: <SG2PR06MB09194A1BDF3B76AC4273F32AD8C00@SG2PR06MB0919.apcprd06.prod.outlook.com>
-References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
- <569C4595.70806@rvc.renesas.com>
-In-Reply-To: <569C4595.70806@rvc.renesas.com>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mout.gmx.net ([212.227.15.15]:61363 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751606AbcAELcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jan 2016 06:32:16 -0500
+Date: Tue, 5 Jan 2016 12:31:41 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+In-Reply-To: <Pine.LNX.4.64.1601011639070.30606@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1601051214080.21342@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <2560629.CtpjHgJUC1@avalon> <Pine.LNX.4.64.1512241123060.12474@axis700.grange>
+ <5520197.vJSVcNd1Sr@avalon> <Pine.LNX.4.64.1601011639070.30606@axis700.grange>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Khiem-san,
+On Fri, 1 Jan 2016, Guennadi Liakhovetski wrote:
 
-Thank you for the CC.
-
-> From: Khiem Nguyen
-> Sent: Monday, January 18, 2016 10:53 AM
+> Hi Laurent,
 > 
-> cc Shimoda-san for his information.
+> On Sun, 27 Dec 2015, Laurent Pinchart wrote:
 > 
-> On 1/18/2016 8:04 AM, Simon Horman wrote:
-> > Update the mailing list used for development of support for
-> > Renesas SoCs and related drivers.
-> >
-> > Up until now the linux-sh mailing list has been used, however,
-> > Renesas SoCs are now much wider than the SH architecture and there
-> > is some desire from some for the linux-sh list to refocus on
-> > discussion of the work on the SH architecture.
-> >
-> > Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> > Cc: Magnus Damm <magnus.damm@gmail.com>
-> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> > Hi Guennadi,
+> > 
+> > On Thursday 24 December 2015 11:42:49 Guennadi Liakhovetski wrote:
+> > > Hi Laurent,
+> > > 
+> > > Let me put this at the top: So far it looks like we converge on two
+> > > possibilities:
+> > > 
+> > > (1) a separate video-device node with a separate queue. No user-space
+> > > visible changes are required apart from new FOURCC codes. In the kernel
+> > > we'd have to add some subdev API between the bridge and the sensor drivers
+> > > to let the sensor driver instruct the bridge driver to use some of the
+> > > data, arriving over the camera interface, as metadata.
+> > 
+> > The interface should be more generic and allow describing how multiple 
+> > channels (in terms of virtual channels and data types for CSI-2 for instance) 
+> > are multiplexed over a single physical link. I'm not sure how to represent 
+> > that at the media controller level, that's also one topic that needs to be 
+> > researched.
+> 
+> Sure, agree. How about an enumetation style method, something like 
+> .enum_mbus_streams()?
 
-Acked-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+It now also occurs to me, that we currently configure pads with a single 
+configuration - pixel format, resolution. However, a single CSI-2 
+interface can transfer different frame formats at the same time. So, such 
+a sensor driver has to export multiple source pads? The bridge driver 
+would export multiple sink pads, then we don't need any new API methods, 
+we just configure each link separately, for which we have to add those 
+fields to struct v4l2_mbus_framefmt?
 
-Best regards,
-Yoshihiro Shimoda
-
-
+Thanks
+Guennadi
