@@ -1,69 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:47471 "EHLO
-	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188AbcAENJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 08:09:26 -0500
-Received: from [192.168.0.3] (tobbe.lan [192.168.0.3])
-	by gammdatan.lan (8.15.2/8.14.7) with ESMTP id u05D9Mgx003820
-	for <linux-media@vger.kernel.org>; Tue, 5 Jan 2016 14:09:22 +0100
-Subject: Re: TT USB CT2-4650 CI with new product id
-To: linux-media@vger.kernel.org
-References: <568B99E4.4080204@mbox200.swipnet.se>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <568BC08B.1020501@mbox200.swipnet.se>
-Date: Tue, 5 Jan 2016 14:09:31 +0100
-MIME-Version: 1.0
-In-Reply-To: <568B99E4.4080204@mbox200.swipnet.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:35501 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751043AbcAEVlf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 16:41:35 -0500
+Message-ID: <1452030090.2881.13.camel@collabora.com>
+Subject: Re: Multiple open and read of vivi device
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
+Date: Tue, 05 Jan 2016 16:41:30 -0500
+In-Reply-To: <CAJ2oMhJGt8gL9MBWoHq9X9LcrR0bwPVk20jvqnWRWrAuSa2T-Q@mail.gmail.com>
+References: <CAJ2oMhJGt8gL9MBWoHq9X9LcrR0bwPVk20jvqnWRWrAuSa2T-Q@mail.gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-+KM+EwpWg9wOp5r3Hi70"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-01-05 11:24, Torbjorn Jansson wrote:
-> Hello.
->
-> i just bought a new CT2-4650 dvb usb device for use with dvb-t2.
-> i picked this since it was supposed to be already working with the built
-> in drivers in the kernel, but that is not the case.
->
-> as far as i can tell it is the module dvb-usb-dvbsky that is supposed to
-> be loaded for this device.
->
-> after checking the source and the output of lsusb the device i have
-> appears to have a new product id that the drivers dont yet support :(
->
-> top few lines of output from lsusb -v:
-> ----
-> Bus 006 Device 003: ID 0b48:3015 TechnoTrend AG
-> Device Descriptor:
->    bLength                18
->    bDescriptorType         1
->    bcdUSB               2.00
->    bDeviceClass            0 (Defined at Interface level)
->    bDeviceSubClass         0
->    bDeviceProtocol         0
->    bMaxPacketSize0        64
->    idVendor           0x0b48 TechnoTrend AG
->    idProduct          0x3015
->    bcdDevice            0.00
->    iManufacturer           1 CityCom GmbH
->    iProduct                2 TechnoTrend USB2.0
-> ----
->
-> the only id number i can find in the source for CT2_4650_CI is 0x3012
-> and not 0x3015
->
-> any idea what to do?
 
-as an experiment i modified linux/drivers/media/dvb-core/dvb-usb-ids.h
-by changing this line:
-#define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI> 0x3012
-to
-#define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI>	0x3015
+--=-+KM+EwpWg9wOp5r3Hi70
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-and recompiled the modules and got it to work.
-modules load, i can scan channels, tuning and watching tv works and the 
-CI module works too.
+Le mardi 05 janvier 2016 =C3=A0 23:18 +0200, Ran Shalit a =C3=A9crit=C2=A0:
+> Does anyone knows why vivi is limited to one open ?
+> Is there some way to patch it for multiple opens and reading ?
 
-so looks like it will be possible to just add this id and get it to work.
+This is not fully exact. You can open vivid device multiple times.
+Though you can only have one instance streaming at one time. This is to
+mimic real hardware driver behaviour. Note that you can create multiple
+devices using n_devs module parameter.
+
+cheers,
+Nicolas
+--=-+KM+EwpWg9wOp5r3Hi70
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlaMOIoACgkQcVMCLawGqBzE2gCePaR8LVL5gpKLObbaVK34F7dK
+eLsAoLnuUxPEM/QDya4c83ClqG2BlLDd
+=VSVX
+-----END PGP SIGNATURE-----
+
+--=-+KM+EwpWg9wOp5r3Hi70--
 
