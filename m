@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:8614 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759215AbcAUJgj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 04:36:39 -0500
-Subject: Re: [v4l-utils 0/5] Misc build fixes
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Gregor Jasny <gjasny@googlemail.com>
-References: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
- <20160121095040.2b185fd0@free-electrons.com> <56A09F03.2090201@cisco.com>
- <20160121101556.303dbf0c@free-electrons.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <56A0A785.7000304@cisco.com>
-Date: Thu, 21 Jan 2016 10:40:21 +0100
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:36989 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487AbcAERhh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 12:37:37 -0500
+Received: by mail-wm0-f43.google.com with SMTP id f206so40324842wmf.0
+        for <linux-media@vger.kernel.org>; Tue, 05 Jan 2016 09:37:36 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20160121101556.303dbf0c@free-electrons.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20151213003201.GQ20997@ZenIV.linux.org.uk>
+References: <20151213003201.GQ20997@ZenIV.linux.org.uk>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Tue, 5 Jan 2016 17:37:06 +0000
+Message-ID: <CA+V-a8v-NC9oToS5KcaGwuATAxvOaXE3p=uT769uaKoebBVeBg@mail.gmail.com>
+Subject: Re: [PATCH][davinci] ccdc_update_raw_params() frees the wrong thing
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
-
-On 01/21/16 10:15, Thomas Petazzoni wrote:
-> Hans,
-> 
-> On Thu, 21 Jan 2016 10:04:03 +0100, Hans Verkuil wrote:
->> They are already merged, so there is nothing to do :-)
->>
->> Weird, you should have gotten an email from patchwork when I accepted these
->> patches.
-> 
-> My bad then, I searched for e-mails from patchwork in my archives, and
-> indeed found one. Looks like I'm getting old. Sorry for the noise :-)
-> 
-> In order to make this somewhat useful, when will the next release of
-> v4l-utils, with those fixes, be published ?
-
-No idea. Gregor, any plans for a new release? It's been a while, so I think
-a new release isn't a bad idea.
+On Sun, Dec 13, 2015 at 12:32 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+>         Passing a physical address to free_pages() is a bad idea.
+> config_params->fault_pxl.fpc_table_addr is set to virt_to_phys()
+> of __get_free_pages() return value; what we should pass to free_pages()
+> is its phys_to_virt().  ccdc_close() does that properly, but
+> ccdc_update_raw_params() doesn't.
+>
+> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
 Regards,
+--Prabhakar Lad
 
-	Hans
+> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+> index ffbefdf..6fba32b 100644
+> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+> @@ -261,7 +261,7 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
+>          */
+>         if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num) {
+>                 if (fpc_physaddr != NULL) {
+> -                       free_pages((unsigned long)fpc_physaddr,
+> +                       free_pages((unsigned long)fpc_virtaddr,
+>                                    get_order
+>                                    (config_params->fault_pxl.fp_num *
+>                                    FP_NUM_BYTES));
