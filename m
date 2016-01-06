@@ -1,107 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:37779 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752252AbcAFU1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:36 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 19/31] media: au0828 handle media_init and media_register window
-Date: Wed,  6 Jan 2016 13:27:08 -0700
-Message-Id: <a275989c452bd997b1919740098990c97b126886.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+Received: from mail.lysator.liu.se ([130.236.254.3]:41086 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996AbcAFHOt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 02:14:49 -0500
+Message-ID: <568CBEE2.8030602@lysator.liu.se>
+Date: Wed, 06 Jan 2016 08:14:42 +0100
+From: Peter Rosin <peda@lysator.liu.se>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] si2168: use i2c controlled mux interface
+References: <1452058920-9797-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1452058920-9797-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media device initialization and registration is split
-and there is a window between media device init and
-media device register during usb probe. au0828 bridge
-driver has to coordinate managed media device init and
-register with snd-usb-audio. Checking if the device is
-registered during media device init could result in the
-two drivers stepping on each other for media init. Change
-the media device init in au0828 to check if media device
-dev is set as this happens at the end of media device
-init in au0828 and snd-usb-audio. Change register step
-in au0828 to check if media device in registered.
+Hi Antti,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+On 2016-01-06 06:42, Antti Palosaari wrote:
+> Recent i2c mux locking update offers support for i2c controlled i2c
+> muxes. Use it and get the rid of homemade hackish i2c adapter
+> locking code.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 1f97fc0..6ef177c 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -229,7 +229,8 @@ static int au0828_media_device_init(struct au0828_dev *dev,
- 	if (!mdev)
- 		return -ENOMEM;
- 
--	if (!media_devnode_is_registered(&mdev->devnode)) {
-+	/* check if media device is already initialized */
-+	if (!mdev->dev) {
- 		mdev->dev = &udev->dev;
- 
- 		if (udev->product)
-@@ -342,6 +343,27 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 	return 0;
- }
- 
-+static int au0828_media_device_register(struct au0828_dev *dev,
-+					struct usb_device *udev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int ret;
-+
-+	if (dev->media_dev &&
-+		!media_devnode_is_registered(&dev->media_dev->devnode)) {
-+
-+		/* register media device */
-+		ret = media_device_register(dev->media_dev);
-+		if (ret) {
-+			dev_err(&udev->dev,
-+				"Media Device Register Error: %d\n", ret);
-+			return ret;
-+		}
-+	}
-+#endif
-+	return 0;
-+}
-+
- static int au0828_usb_probe(struct usb_interface *interface,
- 	const struct usb_device_id *id)
- {
-@@ -469,7 +491,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	}
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
--	retval = media_device_register(dev->media_dev);
-+	retval = au0828_media_device_register(dev, usbdev);
- #endif
- 
- done:
--- 
-2.5.0
+That looks good on a first glance, and I'm sure it felt good to get rid
+of the locking workaround :-)
 
+However, is this safe? From looking at the short datasheet of the si2168,
+it seems that the mux is used to open up the channel to the tuner? But
+what happens is there are two parallel accesses, one to the tuner and one
+to the si2168 chip? With your change, it could happen that the access to
+the si2168 happens while the gate to the tuner is open. Can that break
+anything?
+
+I.e.
+        thread one                      thread two
+        ----------                      ----------
+	open gate
+                                        access si2168
+        access tuner
+        close gate
+
+If that is safe, then I don't understand why the gate isn't left open
+at all times? The short datasheet is too short to answer my questions...
+
+Also, my series needs some Tested-by (and Reviewed-by for that matter),
+and I assume that you have tested it? Is it ok to add something like
+that from you? I understand that you may only be able to test your
+corner of the series, but that would still be very helpful. Thanks!
+
+Cheers,
+Peter
+
+> Cc: Peter Rosin <peda@axentia.se>
+> Cc: Peter Rosin <peda@lysator.liu.se>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/dvb-frontends/si2168.c | 61 ++++--------------------------------
+>  1 file changed, 6 insertions(+), 55 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+> index ae217b5..d2a5608 100644
+> --- a/drivers/media/dvb-frontends/si2168.c
+> +++ b/drivers/media/dvb-frontends/si2168.c
+> @@ -18,48 +18,15 @@
+>  
+>  static const struct dvb_frontend_ops si2168_ops;
+>  
+> -/* Own I2C adapter locking is needed because of I2C gate logic. */
+> -static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
+> -					   const char *buf, int count)
+> -{
+> -	int ret;
+> -	struct i2c_msg msg = {
+> -		.addr = client->addr,
+> -		.flags = 0,
+> -		.len = count,
+> -		.buf = (char *)buf,
+> -	};
+> -
+> -	ret = __i2c_transfer(client->adapter, &msg, 1);
+> -	return (ret == 1) ? count : ret;
+> -}
+> -
+> -static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
+> -					   char *buf, int count)
+> -{
+> -	int ret;
+> -	struct i2c_msg msg = {
+> -		.addr = client->addr,
+> -		.flags = I2C_M_RD,
+> -		.len = count,
+> -		.buf = buf,
+> -	};
+> -
+> -	ret = __i2c_transfer(client->adapter, &msg, 1);
+> -	return (ret == 1) ? count : ret;
+> -}
+> -
+>  /* execute firmware command */
+> -static int si2168_cmd_execute_unlocked(struct i2c_client *client,
+> -				       struct si2168_cmd *cmd)
+> +static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+>  {
+>  	int ret;
+>  	unsigned long timeout;
+>  
+>  	if (cmd->wlen) {
+>  		/* write cmd and args for firmware */
+> -		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
+> -						      cmd->wlen);
+> +		ret = i2c_master_send(client, cmd->args, cmd->wlen);
+>  		if (ret < 0) {
+>  			goto err;
+>  		} else if (ret != cmd->wlen) {
+> @@ -73,8 +40,7 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
+>  		#define TIMEOUT 70
+>  		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+>  		while (!time_after(jiffies, timeout)) {
+> -			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
+> -							      cmd->rlen);
+> +			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
+>  			if (ret < 0) {
+>  				goto err;
+>  			} else if (ret != cmd->rlen) {
+> @@ -109,17 +75,6 @@ err:
+>  	return ret;
+>  }
+>  
+> -static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+> -{
+> -	int ret;
+> -
+> -	i2c_lock_adapter(client->adapter);
+> -	ret = si2168_cmd_execute_unlocked(client, cmd);
+> -	i2c_unlock_adapter(client->adapter);
+> -
+> -	return ret;
+> -}
+> -
+>  static int si2168_read_status(struct dvb_frontend *fe, enum fe_status *status)
+>  {
+>  	struct i2c_client *client = fe->demodulator_priv;
+> @@ -610,11 +565,6 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+>  	return 0;
+>  }
+>  
+> -/*
+> - * I2C gate logic
+> - * We must use unlocked I2C I/O because I2C adapter lock is already taken
+> - * by the caller (usually tuner driver).
+> - */
+>  static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
+>  {
+>  	struct i2c_client *client = i2c_mux_priv(muxc);
+> @@ -625,7 +575,7 @@ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
+>  	memcpy(cmd.args, "\xc0\x0d\x01", 3);
+>  	cmd.wlen = 3;
+>  	cmd.rlen = 0;
+> -	ret = si2168_cmd_execute_unlocked(client, &cmd);
+> +	ret = si2168_cmd_execute(client, &cmd);
+>  	if (ret)
+>  		goto err;
+>  
+> @@ -645,7 +595,7 @@ static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
+>  	memcpy(cmd.args, "\xc0\x0d\x00", 3);
+>  	cmd.wlen = 3;
+>  	cmd.rlen = 0;
+> -	ret = si2168_cmd_execute_unlocked(client, &cmd);
+> +	ret = si2168_cmd_execute(client, &cmd);
+>  	if (ret)
+>  		goto err;
+>  
+> @@ -717,6 +667,7 @@ static int si2168_probe(struct i2c_client *client,
+>  	dev->muxc->parent = client->adapter;
+>  	dev->muxc->select = si2168_select;
+>  	dev->muxc->deselect = si2168_deselect;
+> +	dev->muxc->i2c_controlled = true;
+>  
+>  	/* create mux i2c adapter for tuner */
+>  	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
+> 
