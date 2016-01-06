@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51022 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934187AbcAZMqn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 07:46:43 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v3 0/2] [media] tvp5150: Add MC support
-Date: Tue, 26 Jan 2016 09:46:22 -0300
-Message-Id: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:52549 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbcAFVSC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 16:18:02 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH] v4l-utils: mc_nextgen_test renable ALSA interfaces
+Date: Wed,  6 Jan 2016 14:17:59 -0700
+Message-Id: <1452115079-6040-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+ALSA interfaces were disable with #if 0. Renable
+them.
 
-This series is a split of patch [0] that was part of this series [1].
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ contrib/test/mc_nextgen_test.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-All patches in that series were picked besides [0] that Mauro asked
-to split in two different patches.
-
-I kept the version number of the previous series (v2) so the patches
-are marked as v3.
-
-[0]: http://lkml.iu.edu/hypermail/linux/kernel/1601.0/00923.html
-[1]: http://lkml.iu.edu/hypermail/linux/kernel/1601.0/00910.html
-
-Best regards,
-Javier
-
-Changes in v3:
-- Split the format fix and the MC support in different patches.
-  Suggested by Mauro Carvalho Chehab.
-
-Changes in v2:
-- Embed mbus_type into struct tvp5150. Suggested by Laurent Pinchart.
-- Remove platform data support. Suggested by Laurent Pinchart.
-- Check if the hsync, vsync and field even active properties are correct.
-  Suggested by Laurent Pinchart.
-
-Laurent Pinchart (2):
-  [media] tvp5150: fix tvp5150_fill_fmt()
-  [media] tvp5150: Add pad-level subdev operations
-
- drivers/media/i2c/tvp5150.c | 25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
-
+diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
+index 14a0917..7d0344b 100644
+--- a/contrib/test/mc_nextgen_test.c
++++ b/contrib/test/mc_nextgen_test.c
+@@ -184,7 +184,6 @@ static inline const char *intf_type(uint32_t intf_type)
+ 		return "v4l2-subdev";
+ 	case MEDIA_INTF_T_V4L_SWRADIO:
+ 		return "swradio";
+-#if 0
+ 	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+ 		return "pcm-capture";
+ 	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+@@ -197,7 +196,6 @@ static inline const char *intf_type(uint32_t intf_type)
+ 		return "rawmidi";
+ 	case MEDIA_INTF_T_ALSA_HWDEP:
+ 		return "hwdep";
+-#endif
+ 	default:
+ 		return "unknown_intf";
+ 	}
 -- 
 2.5.0
 
