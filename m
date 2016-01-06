@@ -1,110 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39718 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630AbcAFXhh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 18:37:37 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v6 1/3] media: ti-vpe: Document CAL driver
-Date: Wed, 6 Jan 2016 17:37:24 -0600
-Message-ID: <1452123446-5424-2-git-send-email-bparrot@ti.com>
-In-Reply-To: <1452123446-5424-1-git-send-email-bparrot@ti.com>
-References: <1452123446-5424-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout.easymail.ca ([64.68.201.169]:44734 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010AbcAFU5c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 15:57:32 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 04/31] media: Media Controller enable/disable source handler API
+Date: Wed,  6 Jan 2016 13:26:53 -0700
+Message-Id: <d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device Tree bindings for the Camera Adaptation Layer (CAL) driver
+Add new fields to struct media_device to add enable_source, and
+disable_source handlers, and source_priv to stash driver private
+data that is need to run these handlers. The enable_source handler
+finds source entity for the passed in entity and check if it is
+available, and activate the link using __media_entity_setup_link()
+interface. Bridge driver is expected to implement and set these
+handlers and private data when media_device is registered or when
+bridge driver finds the media_device during probe. This is to enable
+the use-case to find tuner entity connected to the decoder entity and
+check if it is available, and activate it and start pipeline between
+the source and the entity. The disable_source handler deactivates the
+link and stops the pipeline. This handler can be invoked from the
+media core (v4l-core, dvb-core) as well as other drivers such as ALSA
+that control the media device.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- Documentation/devicetree/bindings/media/ti-cal.txt | 72 ++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti-cal.txt
+ include/media/media-device.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/ti-cal.txt b/Documentation/devicetree/bindings/media/ti-cal.txt
-new file mode 100644
-index 000000000000..ae9b52f37576
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti-cal.txt
-@@ -0,0 +1,72 @@
-+Texas Instruments DRA72x CAMERA ADAPTATION LAYER (CAL)
-+------------------------------------------------------
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6520d1c..04b6c2e 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -333,6 +333,25 @@ struct media_device {
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
+ 
++	/* Handlers to find source entity for the sink entity and
++	 * check if it is available, and activate the link using
++	 * media_entity_setup_link() interface and start pipeline
++	 * from the source to the entity.
++	 * Bridge driver is expected to implement and set the
++	 * handler when media_device is registered or when
++	 * bridge driver finds the media_device during probe.
++	 * Bridge driver sets source_priv with information
++	 * necessary to run enable/disable source handlers.
++	 *
++	 * Use-case: find tuner entity connected to the decoder
++	 * entity and check if it is available, and activate the
++	 * using media_entity_setup_link() if it is available.
++	*/
++	void *source_priv;
++	int (*enable_source)(struct media_entity *entity,
++			     struct media_pipeline *pipe);
++	void (*disable_source)(struct media_entity *entity);
 +
-+The Camera Adaptation Layer (CAL) is a key component for image capture
-+applications. The capture module provides the system interface and the
-+processing capability to connect CSI2 image-sensor modules to the
-+DRA72x device.
-+
-+Required properties:
-+- compatible: must be "ti,dra72-cal"
-+- reg:	CAL Top level, Receiver Core #0, Receiver Core #1 and Camera RX
-+	control address space
-+- reg-names: cal_top, cal_rx_core0, cal_rx_core1, and camerrx_control
-+	     registers
-+- interrupts: should contain IRQ line for the CAL;
-+
-+CAL supports 2 camera port nodes on MIPI bus. Each CSI2 camera port nodes
-+should contain a 'port' child node with child 'endpoint' node. Please
-+refer to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example:
-+	cal: cal@4845b000 {
-+		compatible = "ti,dra72-cal";
-+		ti,hwmods = "cal";
-+		reg = <0x4845B000 0x400>,
-+		      <0x4845B800 0x40>,
-+		      <0x4845B900 0x40>,
-+		      <0x4A002e94 0x4>;
-+		reg-names = "cal_top",
-+			    "cal_rx_core0",
-+			    "cal_rx_core1",
-+			    "camerrx_control";
-+		interrupts = <GIC_SPI 119 IRQ_TYPE_LEVEL_HIGH>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			csi2_0: port@0 {
-+				reg = <0>;
-+				endpoint {
-+					slave-mode;
-+					remote-endpoint = <&ar0330_1>;
-+				};
-+			};
-+			csi2_1: port@1 {
-+				reg = <1>;
-+			};
-+		};
-+	};
-+
-+	i2c5: i2c@4807c000 {
-+		ar0330@10 {
-+			compatible = "ti,ar0330";
-+			reg = <0x10>;
-+
-+			port {
-+				#address-cells = <1>;
-+				#size-cells = <0>;
-+
-+				ar0330_1: endpoint {
-+					reg = <0>;
-+					clock-lanes = <1>;
-+					data-lanes = <0 2 3 4>;
-+					remote-endpoint = <&csi2_0>;
-+				};
-+			};
-+		};
-+	};
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
+ };
 -- 
-1.8.5.1
+2.5.0
 
