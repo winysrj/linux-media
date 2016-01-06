@@ -1,40 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f193.google.com ([209.85.217.193]:34734 "EHLO
-	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933194AbcAKREP (ORCPT
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:36801 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752066AbcAFU13 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 12:04:15 -0500
-MIME-Version: 1.0
-In-Reply-To: <56938265.6050803@xs4all.nl>
-References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-	<1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-	<56938265.6050803@xs4all.nl>
-Date: Mon, 11 Jan 2016 18:04:13 +0100
-Message-ID: <CAO3366xyEq-B+kFCS3DKZHLpZ31ZJgSKMMfUkO0Naw_c5u8Oug@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] media: adv7604: update timings on change of input signal
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent <laurent.pinchart@ideasonboard.com>,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, William Towle <william.towle@codethink.co.uk>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 6 Jan 2016 15:27:29 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 02/31] media: Add ALSA Media Controller function entities
+Date: Wed,  6 Jan 2016 13:26:51 -0700
+Message-Id: <ad778fbd7f61105b273d2a49dc91662c4bb255d7.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 11:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> If you detect a change in timings, then send the V4L2_EVENT_SOURCE_CHANGE event and leave
-> it to the app to query the new timings. Never do this in the driver itself.
->
-> The reason is that this will pull the rug out from under the application: the app thinks
-> it is using timings A but the driver is using timings B. Instead, tell the app that the
-> timings have changed and let the app handle this.
+Add ALSA Media Controller capture, playback, and mixer
+function entity defines.
 
-Thank you for your review.  It appears that code to that effect is in
-the driver already, and all that is necessary to make it work (on the
-adv7604 side) is the interrupt enablement ("[PATCH v2] adv7604: add
-direct interrupt handling"), which I will resend RSN.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ include/uapi/linux/media.h | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-CU
-Uli
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 75cbe92..53a96ae 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -89,6 +89,13 @@ struct media_device_info {
+ #define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 33)
+ 
+ /*
++ * ALSA entities MEDIA_ENT_F_AUDIO_IO is for Capture and Playback
++*/
++#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
++#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
++#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
++
++/*
+  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+  * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+  * with the legacy v1 API.The number range is out of range by purpose:
+@@ -130,7 +137,7 @@ struct media_device_info {
+ #define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
+ #define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+-#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
++#define MEDIA_ENT_T_DEVNODE_ALSA	MEDIA_ENT_F_AUDIO_IO
+ #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+ 
+ #define MEDIA_ENT_T_UNKNOWN		MEDIA_ENT_F_UNKNOWN
+-- 
+2.5.0
+
