@@ -1,159 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60879 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753530AbcANL3s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 06:29:48 -0500
-Date: Thu, 14 Jan 2016 13:29:14 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-Message-ID: <20160114112914.GM576@valkosipuli.retiisi.org.uk>
-References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
- <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
- <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38209 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbcAFNsa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 08:48:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/10] [media] tvp5150: Configure data interface via pdata or DT
+Date: Wed, 06 Jan 2016 15:48 +0200
+Message-ID: <1895052.dqIgFQaCHk@avalon>
+In-Reply-To: <568CFA1E.6060309@osg.samsung.com>
+References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com> <1743151.ozK6T8LOF3@avalon> <568CFA1E.6060309@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Javier,
 
-On Thu, Jan 14, 2016 at 12:12:08PM +0100, Guennadi Liakhovetski wrote:
-> Hi Sakari,
-> 
-> Thanks for a review! I'll fix all the cosmetic issues, thanks. As for 
-> other comments:
-> 
-> On Wed, 13 Jan 2016, Sakari Ailus wrote:
-> 
-> [snip]
-> 
-> > > --- /dev/null
-> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-> > > @@ -0,0 +1,49 @@
-> > > +<refentry id="V4L2-PIX-FMT-Y12I">
-> > > +  <refmeta>
-> > > +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
+On Wednesday 06 January 2016 08:27:26 Javier Martinez Canillas wrote:
+> On 01/06/2016 07:56 AM, Laurent Pinchart wrote:
+> > On Monday 04 January 2016 09:25:32 Javier Martinez Canillas wrote:
+> >> The video decoder supports either 8-bit 4:2:2 YUV with discrete syncs
+> >> or 8-bit ITU-R BT.656 with embedded syncs output format but currently
+> >> BT.656 it's always reported. Allow to configure the format to use via
+> >> either platform data or a device tree definition.
+> >> 
+> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> >> ---
+> >> 
+> >>  drivers/media/i2c/tvp5150.c | 61 +++++++++++++++++++++++++++++++++++++--
+> >>  include/media/i2c/tvp5150.h |  5 ++++
+> >>  2 files changed, 64 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> >> index fed89a811ab7..8bce45a6e264 100644
+> >> --- a/drivers/media/i2c/tvp5150.c
+> >> +++ b/drivers/media/i2c/tvp5150.c
+
+[snip]
+
+> >> @@ -940,6 +948,16 @@ static int tvp5150_cropcap(struct v4l2_subdev *sd,
+> >> struct v4l2_cropcap *a)
+> >>  static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
+> >>  				 struct v4l2_mbus_config *cfg)
+> >>  {
+> >> +	struct tvp5150_platform_data *pdata = to_tvp5150(sd)->pdata;
+> >> +
+> >> +	if (pdata) {
+> >> +		cfg->type = pdata->bus_type;
+> >> +		cfg->flags = pdata->parallel_flags;
 > > 
-> > Extra space after 4cc.                        ^
+> > The clock and sync signals polarity don't seem configurable, shouldn't
+> > they just be hardcoded as currently done ?
+> 
+> That's a very good question, I added the flags because according to
+> Documentation/devicetree/bindings/media/video-interfaces.txt, the way
+> to define that the output format will be BT.656 is to avoid defining
+> {hsync,vsync,field-even}-active properties.
+> 
+> IOW, if parallel sync is used, then these properties have to be defined
+> and it felt strange to not use in the driver what is defined in the DT.
+
+In that case we should restrict the values of the properties to what the 
+hardware actually supports. I would hardcode the flags here, and check them 
+when parsing the endpoint to make sure they're valid.
+
+If you find a register I have missed in the documentation with which 
+polarities could be configured then please also feel free to prove me wrong 
+:-)
+
+> >> +		return 0;
+> >> +	}
+> >> +
+> >> +	/* Default values if no platform data was provided */
+> >>  	cfg->type = V4L2_MBUS_BT656;
+> >>  	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING
+> >>  		   | V4L2_MBUS_FIELD_EVEN_LOW | V4L2_MBUS_DATA_ACTIVE_HIGH;
+
+[snip]
+
+> >> @@ -1228,11 +1253,42 @@ static inline int tvp5150_init(struct i2c_client
+> >> *c) return 0;
+> >> 
+> >>  }
+> >> 
+> >> +static struct tvp5150_platform_data *tvp5150_get_pdata(struct device
+> >> *dev)
+> >> +{
+> >> +	struct tvp5150_platform_data *pdata = dev_get_platdata(dev);
+> >> +	struct v4l2_of_endpoint bus_cfg;
+> >> +	struct device_node *ep;
+> >> +
+> >> +	if (pdata)
+> >> +		return pdata;
 > > 
-> > > +    &manvol;
-> > > +  </refmeta>
-> > > +  <refnamediv>
-> > > +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-> > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > +  </refnamediv>
-> > > +  <refsect1>
-> > > +    <title>Description</title>
-> > > +
-> > > +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-> > > +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-> > > +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
-> > > +machine can be deinterlaced using</para>
+> > Nobody uses platform data today, I wonder whether we shouldn't postpone
+> > adding support for it until we have a use case. Embedded systems (at
+> > least the ARM- based ones) should use DT.
+> 
+> Yes, I just added it for completeness since in other subsystems I've been
+> yelled in the past that not all the world is DT and that I needed a pdata :)
+> 
+> But I'll gladly remove it since it means less code which is always good.
+> 
+> >> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> >> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> >> +		if (!pdata)
+> >> +			return NULL;
+> >> +
+> >> +		ep = of_graph_get_next_endpoint(dev->of_node, NULL);
+> >> +		if (!ep)
+> >> +			return NULL;
+> >> +
+> >> +		v4l2_of_parse_endpoint(ep, &bus_cfg);
 > > 
-> > I think we should precisely define the format, either big or little. Is the
-> > endianness of the format affected by the machine endianness? (I'd guess no,
-> > but that's just a guess.)
+> > Shouldn't you check the return value of the function ?
 > 
-> Ok, since this works on a LE machine:
+> Right, the v4l2_of_parse_endpoint() kernel doc says "Return: 0." and most
+> drivers are not checking the return value so I thought that it couldn't
+> fail. But now looking at the implementation I see that's not true so I'll
+> add a check in v2.
 > 
-> left0 = 0xfff & *(__u16 *)buf;
-> 
-> I think we can call data LE in the buffer. But specifying left-right order 
-> cannot be done in terms of endianness, so, I provided that code snippet.
+> I'll also post patches to update v4l2_of_parse_endpoint() kernel-doc and
+> the drivers that are not currently checking for this return value.
 
-I meant that the the format definition should clearly say which one is the
-order.
+Thank you for that.
 
-> 
-> > I wonder if the format should convey the information which one is right and
-> > which one is left, e.g. by adding "LR" to the name.
-> 
-> You mean to distinguish between LR and RL? Can do in principle, yes.
-
-If we want the format to have an exact definition, we should have this as
-well.
-
-I think the formats increasingly have little details such as this one which
-require adding many format variants but I'm not sure if it's even a problem.
-
-I'd postfix the name with "LR" or at least document that this is the pixel
-order.
-
->
-> > No need to mention RealSense specifically IMO.
-> 
-> Ok.
-> 
-> > > +
-> > > +<para>
-> > > +<programlisting>
-> > > +__u8 *buf;
-> > > +left0 = 0xfff &amp; *(__u16 *)buf;
-> > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
+> >> +
+> >> +		pdata->bus_type = bus_cfg.bus_type;
+> >> +		pdata->parallel_flags = bus_cfg.bus.parallel.flags;
 > > 
-> > "right"
+> > The V4L2_MBUS_DATA_ACTIVE_HIGH flags set returned by
+> > tvp5150_g_mbus_config() when pdata is NULL is never set by
+> > v4l2_of_parse_endpoint(), should you add it unconditionally ?
 > 
-> [snip]
-> 
-> > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > new file mode 100644
-> > > index 0000000..fac3c68
-> > > --- /dev/null
-> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > @@ -0,0 +1,79 @@
-> > > +<refentry id="V4L2-PIX-FMT-Z16">
-> > > +  <refmeta>
-> > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-> > > +    &manvol;
-> > > +  </refmeta>
-> > > +  <refnamediv>
-> > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-> > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > +  </refnamediv>
-> > > +  <refsect1>
-> > > +    <title>Description</title>
-> > > +
-> > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
-> > > +distance in mm to the respective point in the image coordinates. Each pixel is
-> > > +stored in a 16-bit word in the little endian byte order.</para>
-> > 
-> > The format itself looks quite generic but the unit might be specific to the
-> > device. It'd sound silly to add a new format if just the unit is different.
-> 
-> My understanding is, that each format must have a fixed meaning, i.e. a 
-> fixed depth unit too, although it would definitely help to be able to 
-> relax that requirement in this case.
+> But v4l2_of_parse_endpoint() calls v4l2_of_parse_parallel_bus() which does
+> it or did I read the code incorrectly?
 
-Agreed.
-
-> > How about re-purpose the colourspace field for depth formats and
-> > add a flag telling the colour space field contains the unit and the unit
-> > prefix.
-> 
-> Hmmm... Not sure I find this a proper use of the .colorspace field...
-
-I think colour space doesn't make much sense in context of depth.
-
-> 
-> > Not something to have in this patch nor patchset though: controls
-> > should gain that as well.
-> 
-> Sorry, didn't get this - how can a control tell you what units a specific 
-> format uses? What if your camera can output depth in multiple units?
-
-Controls do not have units at the moment. The specification often suggests a
-unit but using the unit suggested by the spec isn't always possible, thus
-it'd be useful to have this available through VIDIOC_QUERYCTRL.
+No, you're right, I had overlooked the V4L2_MBUS_DATA_ACTIVE_HIGH flag when 
+reading v4l2_of_parse_parallel_bus(), probably a typo when searching. Please 
+ignore that comment.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
