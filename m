@@ -1,117 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:61104 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752194AbcAXSJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 13:09:46 -0500
-Date: Sun, 24 Jan 2016 19:09:14 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <rainyfeeling@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>
-Subject: Re: [PATCH 07/13] atmel-isi: move hw code into isi_hw_initialize()
-In-Reply-To: <1453121545-27528-2-git-send-email-rainyfeeling@gmail.com>
-Message-ID: <Pine.LNX.4.64.1601241906070.16570@axis700.grange>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-2-git-send-email-rainyfeeling@gmail.com>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:35435 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751936AbcAFNXn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 08:23:43 -0500
+Received: by mail-lb0-f175.google.com with SMTP id bc4so190264239lbc.2
+        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2016 05:23:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20160105184819.GA1743@katana>
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se> <20160105184819.GA1743@katana>
+From: Crt Mori <cmo@melexis.com>
+Date: Wed, 6 Jan 2016 14:23:02 +0100
+Message-ID: <CAKv63uvvdjmQj3J73UJZFLJ=U0c+Z=dmknm3UH=3MvYU0oqNNg@mail.gmail.com>
+Subject: Re: [PATCH v2 0/8] i2c mux cleanup and locking update
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Peter Rosin <peda@lysator.liu.se>, Peter Rosin <peda@axentia.se>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 18 Jan 2016, Josh Wu wrote:
+Hi Wolfram and Peter,
+I will give my opinion about the path chosen although it should be
+taken lightly.
 
-> That make hw operation code separate with general code.
-> 
-> Also since reset action can be failed, so add a return value for
-> isi_hw_initialze().
-> 
-> Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
-> ---
-> 
->  drivers/media/platform/soc_camera/atmel-isi.c | 34 +++++++++++++++++----------
->  1 file changed, 21 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index 4ddc309..ed4d04b 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -203,10 +203,27 @@ static int isi_hw_wait_status(struct atmel_isi *isi, int status_flag,
->  	return 0;
->  }
->  
-> -static void isi_hw_initialize(struct atmel_isi *isi)
-> +static int isi_hw_initialize(struct atmel_isi *isi)
->  {
->  	u32 common_flags = isi->bus_param;
->  	u32 cfg1 = 0;
-> +	int ret;
-> +
-> +	/* Reset ISI */
-> +	isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
-> +
-> +	/* Check Reset status */
-> +	ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
+I can see that hardware guys missed the software guys again on the
+development path, but since this happens more often than not, I would
+say it seems OK to have support for this as long as it does not make
+more complex (longer) standard i2c transfers. I would support to have
+additional mutex before mux as that will make less chance that someone
+forgets to lock mutex before mux and proposed solution seems valid.
 
-You could also remove the superfluous space while at it.
+Regards,
+Crt
 
-Thanks
-Guennadi
-
-> +	if (ret) {
-> +		dev_err(isi->soc_host.icd->parent, "Reset ISI timed out\n");
-> +		return ret;
-> +	}
-> +
-> +	/* Disable all interrupts */
-> +	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> +
-> +	/* Clear any pending interrupt */
-> +	isi_readl(isi, ISI_STATUS);
->  
->  	/* set bus param for ISI */
->  	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-> @@ -229,6 +246,8 @@ static void isi_hw_initialize(struct atmel_isi *isi)
->  
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->  	isi_writel(isi, ISI_CFG1, cfg1);
-> +
-> +	return 0;
->  }
->  
->  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-> @@ -453,27 +472,16 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
->  
->  	pm_runtime_get_sync(ici->v4l2_dev.dev);
->  
-> -	/* Reset ISI */
-> -	isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
-> -
-> -	/* Check Reset status */
-> -	ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
-> +	ret = isi_hw_initialize(isi);
->  	if (ret) {
-> -		dev_err(icd->parent, "Reset ISI timed out\n");
->  		pm_runtime_put(ici->v4l2_dev.dev);
->  		return ret;
->  	}
-> -	/* Disable all interrupts */
-> -	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-> -
-> -	isi_hw_initialize(isi);
->  
->  	configure_geometry(isi, icd->user_width, icd->user_height,
->  				icd->current_fmt);
->  
->  	spin_lock_irq(&isi->lock);
-> -	/* Clear any pending interrupt */
-> -	isi_readl(isi, ISI_STATUS);
->  
->  	if (count)
->  		start_dma(isi, isi->active);
-> -- 
-> 1.9.1
-> 
+On 5 January 2016 at 19:48, Wolfram Sang <wsa@the-dreams.de> wrote:
+> Peter,
+>
+>> PS. needs a bunch of testing, I do not have access to all the involved hw
+>
+> First of all, thanks for diving into this topic and the huge effort you
+> apparently have put into it.
+>
+> It is obviously a quite intrusive series, so it needs careful review.
+> TBH, I can't really tell when I have the bandwidth to do that, so I hope
+> other people will step up. And yes, it needs serious testing.
+>
+> To all: Although I appreciate any review support, I'd think the first
+> thing to be done should be a very high level review - is this series
+> worth the huge update? Is the path chosen proper? Stuff like this. I'd
+> appreciate Acks or Revs for that. Stuff like fixing checkpatch warnings
+> and other minor stuff should come later.
+>
+> Thanks,
+>
+>    Wolfram
+>
