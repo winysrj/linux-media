@@ -1,96 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34260 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754273AbcARLVs (ORCPT
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:45465 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752067AbcAFU1a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 06:21:48 -0500
-Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1496823.l1L2kFkYyq@avalon>
- <20151209110740.GI17128@valkosipuli.retiisi.org.uk>
- <1530239.WI7pDY4BZt@avalon>
-Cc: linux-media@vger.kernel.org,
-	Gjorgji Rosikopulos <grosikopulos@mm-sol.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <569CCAC2.5010001@xs4all.nl>
-Date: Mon, 18 Jan 2016 12:21:38 +0100
-MIME-Version: 1.0
-In-Reply-To: <1530239.WI7pDY4BZt@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 6 Jan 2016 15:27:30 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 08/31] media: v4l-core add v4l_enable/disable_media_tuner() helper functions
+Date: Wed,  6 Jan 2016 13:26:57 -0700
+Message-Id: <e642fee6e443170b33a8c69fbc21b409f7be5583.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Add a new interfaces to be used by v4l-core to invoke enable
+source and disable_source handlers in the media_device. The
+enable_source helper function invokes the enable_source handler
+to find tuner entity connected to the decoder and check is it
+is available or busy. If tuner is available, link is activated
+and pipeline is started. The disable_source helper function
+invokes the disable_source handler to deactivate and stop the
+pipeline.
 
-While going through patchwork I found this patch that does the same as this
-one from Tiffany:
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 27 +++++++++++++++++++++++++++
+ include/media/v4l2-dev.h           |  4 ++++
+ 2 files changed, 31 insertions(+)
 
-https://patchwork.linuxtv.org/patch/32631/
-
-I haven't seen a second version of this patch from Laurent with the requested
-changes fixed, so unless Laurent says otherwise I'd like to merge Tiffany's
-version.
-
-Laurent, is that OK for you?
-
-Regards,
-
-	Hans
-
-On 12/13/2015 09:40 PM, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Wednesday 09 December 2015 13:07:40 Sakari Ailus wrote:
->> On Wed, Dec 09, 2015 at 01:11:12AM +0200, Laurent Pinchart wrote:
->>> On Tuesday 08 December 2015 17:29:16 Sakari Ailus wrote:
->>>> On Mon, Dec 07, 2015 at 10:45:39AM +0200, Laurent Pinchart wrote:
->>>>> From: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
->>>>>
->>>>> Buffer length is needed for single plane as well, otherwise
->>>>> is uninitialized and behaviour is undetermined.
->>>>
->>>> How about:
->>>>
->>>> The v4l2_buffer length field must be passed as well from user to kernel
->>>> and back, otherwise uninitialised values will be used.
->>>>
->>>>> Signed-off-by: Gjorgji Rosikopulos <grosikopulos@mm-sol.com>
->>>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>
->>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>
->>>> Shouldn't this be submitted to stable as well?
->>>
->>> I'll CC stable.
->>>
->>>>> ---
->>>>>
->>>>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 +++++--
->>>>>  1 file changed, 5 insertions(+), 2 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>>>> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
->>>>> 8fd84a67478a..b0faa1f7e3a9 100644
->>>>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>>>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->>>>> @@ -482,8 +482,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer
->>>>> *kp, struct v4l2_buffer32 __user
->>>>>  				return -EFAULT;
->>>>>  			break;
->>>>>  		
->>>>>  		case V4L2_MEMORY_DMABUF:
->>>>> -			if (get_user(kp->m.fd, &up->m.fd))
->>>>> +			if (get_user(kp->m.fd, &up->m.fd) ||
->>>>> +			    get_user(kp->length, &up->length))
->>>>>  				return -EFAULT;
->>>>> +
->>
->> Without the extra newline, please?
-> 
-> Sure, I'll fix that in the pull request.
-> 
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index d8e5994..f06da6e 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -233,6 +233,33 @@ struct video_device *video_devdata(struct file *file)
+ }
+ EXPORT_SYMBOL(video_devdata);
+ 
++int v4l_enable_media_tuner(struct video_device *vdev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = vdev->entity.graph_obj.mdev;
++	int ret;
++
++	if (!mdev || !mdev->enable_source)
++		return 0;
++	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
++	if (ret)
++		return -EBUSY;
++	return 0;
++#endif /* CONFIG_MEDIA_CONTROLLER */
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l_enable_media_tuner);
++
++void v4l_disable_media_tuner(struct video_device *vdev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = vdev->entity.graph_obj.mdev;
++
++	if (mdev && mdev->disable_source)
++		mdev->disable_source(&vdev->entity);
++#endif /* CONFIG_MEDIA_CONTROLLER */
++}
++EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+ 
+ /* Priority handling */
+ 
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index eeabf20..68999a3 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -87,6 +87,7 @@ struct video_device
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_entity entity;
+ 	struct media_intf_devnode *intf_devnode;
++	struct media_pipeline pipe;
+ #endif
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
+@@ -176,6 +177,9 @@ void video_unregister_device(struct video_device *vdev);
+    latter can also be used for video_device->release(). */
+ struct video_device * __must_check video_device_alloc(void);
+ 
++int v4l_enable_media_tuner(struct video_device *vdev);
++void v4l_disable_media_tuner(struct video_device *vdev);
++
+ /* this release function frees the vdev pointer */
+ void video_device_release(struct video_device *vdev);
+ 
+-- 
+2.5.0
 
