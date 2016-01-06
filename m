@@ -1,68 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55334 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934052AbcAKQsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 11:48:08 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38053 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670AbcAFKjT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 05:39:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
 	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	linux-media@vger.kernel.org
-Subject: [PATCH v2 6/8] [media] tvp7002: Check v4l2_of_parse_endpoint() return value
-Date: Mon, 11 Jan 2016 13:47:14 -0300
-Message-Id: <1452530844-30609-7-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
-References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+Subject: Re: [PATCH 07/10] [media] tvp5150: Add device tree binding document
+Date: Wed, 06 Jan 2016 12:39:25 +0200
+Message-ID: <2787681.imkQ5NT8Qm@avalon>
+In-Reply-To: <1451910332-23385-8-git-send-email-javier@osg.samsung.com>
+References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com> <1451910332-23385-8-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint() function can fail so check the return value.
+Hi Javier,
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Thank you for the patch.
 
----
+On Monday 04 January 2016 09:25:29 Javier Martinez Canillas wrote:
+> Add a Device Tree binding document for the TVP5150 video decoder.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> ---
+> 
+>  .../devicetree/bindings/media/i2c/tvp5150.txt      | 35 +++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt new file mode
+> 100644
+> index 000000000000..bf0b3f3128ce
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+> @@ -0,0 +1,35 @@
+> +* Texas Instruments TVP5150 and TVP5151 video decoders
+> +
+> +The TVP5150 and TVP5151 are video decoders that convert baseband NTSC and
+> PAL
+> +(and also SECAM in the TVP5151 case) video signals to either 8-bit 4:2:2
+> YUV
+> +with discrete syncs or 8-bit ITU-R BT.656 with embedded syncs output
+> formats.
+> +
+> +Required Properties:
+> +- compatible: value must be "ti,tvp5150"
+> +- reg: I2C slave address
+> +
+> +Optional Properties:
+> +- powerdown-gpios: phandle for the GPIO connected to the PDN pin, if any.
 
-Changes in v2:
-- Assign pdata to NULL in case v4l2_of_parse_endpoint() fails before kzalloc.
-  Suggested by Sakari Ailus.
+The signal is called PDN in the datasheet, so it might make sense to call this 
+pdn-gpios. I have no strong opinion on this, I'll let you decide what you 
+think is best.
 
- drivers/media/i2c/tvp7002.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Apart from that (and the indentation issue pointed out by Rob),
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 83c79fa5f61d..4df640c3aa40 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -894,7 +894,7 @@ static struct tvp7002_config *
- tvp7002_get_pdata(struct i2c_client *client)
- {
- 	struct v4l2_of_endpoint bus_cfg;
--	struct tvp7002_config *pdata;
-+	struct tvp7002_config *pdata = NULL;
- 	struct device_node *endpoint;
- 	unsigned int flags;
- 
-@@ -905,11 +905,13 @@ tvp7002_get_pdata(struct i2c_client *client)
- 	if (!endpoint)
- 		return NULL;
- 
-+	if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
-+		goto done;
-+
- 	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
- 	if (!pdata)
- 		goto done;
- 
--	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +- reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +&i2c2 {
+> +	...
+> +	tvp5150@5c {
+> +			compatible = "ti,tvp5150";
+> +			reg = <0x5c>;
+> +			powerdown-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+> +			reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
+> +
+> +			port {
+> +				tvp5150_1: endpoint {
+> +					remote-endpoint = <&ccdc_ep>;
+> +				};
+> +			};
+> +	};
+> +};
+
 -- 
-2.4.3
+Regards,
+
+Laurent Pinchart
 
