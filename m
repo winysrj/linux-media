@@ -1,84 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:52406 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbcAXG4I (ORCPT
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:54535 "EHLO
+	resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751906AbcAFU1e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 01:56:08 -0500
-Message-ID: <1453618564.2497.51.camel@winder.org.uk>
-Subject: Re: SV: PCTV 292e support
-From: Russel Winder <russel@winder.org.uk>
-To: Peter =?ISO-8859-1?Q?F=E4ssberg?= <pf@leissner.se>,
-	DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Sun, 24 Jan 2016 06:56:04 +0000
-In-Reply-To: <1453615078.2497.29.camel@winder.org.uk>
-References: <1453613292.2497.26.camel@winder.org.uk>
-	 <ijvkgaod4jhqyaoroevcea7f.1453613737402@email.android.com>
-	 <1453615078.2497.29.camel@winder.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-qvRg2QPdhLMqKpu3Gc9s"
-Mime-Version: 1.0
+	Wed, 6 Jan 2016 15:27:34 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 14/31] media: Change v4l-core to check for tuner availability
+Date: Wed,  6 Jan 2016 13:27:03 -0700
+Message-Id: <8e31384a21e670e6b75dfbc1556f1e597a2184d8.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Change s_input, s_fmt, s_tuner, s_frequency, querystd,
+s_hw_freq_seek, and vb2_core_streamon interfaces that
+alter the tuner configuration to check for tuner availability
+by calling v4l_enable_media_tuner(). If tuner isn't free,
+return -EBUSY. v4l_disable_media_tuner() is called from
+v4l2_fh_exit() to release the tuner. vb2_core_streamon()
+uses v4l_vb2q_enable_media_tuner().
 
---=-qvRg2QPdhLMqKpu3Gc9s
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-fh.c        |  1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c     | 29 +++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/videobuf2-core.c |  4 ++++
+ 3 files changed, 34 insertions(+)
 
-Hi,
-
-I followed the instructions at=C2=A0http://blog.palosaari.fi/2014/04/naked-=
-h
-ardware-15-pctv-triplestick-292e.html
-
-|> md5sum dvb-demod-si2168-01.fw=C2=A0
-87c317e0b75ad49c2f2cbf35572a8093=C2=A0=C2=A0dvb-demod-si2168-01.fw
-
-which is as expected, and put a symbolic link to this file in
-/lib/firmware. Sadly this is not the file the driver is expecting:
-
-[68031.899042] si2168 2-0064: found a 'Silicon Labs Si2168-B40'
-[68031.899069] si2168 2-0064: firmware: failed to load dvb-demod-si2168-b40=
--01.fw (-2)
-[68031.899073] si2168 2-0064: Direct firmware load for dvb-demod-si2168-b40=
--01.fw failed with error -2
-[68031.899084] si2168 2-0064: firmware: failed to load dvb-demod-si2168-02.=
-fw (-2)
-[68031.899086] si2168 2-0064: Direct firmware load for dvb-demod-si2168-02.=
-fw failed with error -2
-[68031.899089] si2168 2-0064: firmware file 'dvb-demod-si2168-02.fw' not fo=
-und
-
-I am assuming that it is not a question of renaming the file (*), but
-that some other firmware needs to be extracted from the discs.
-
-(*) I did try that and it attempted to load the firmware but got an
-error -121.
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
-
---=-qvRg2QPdhLMqKpu3Gc9s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlakdYQACgkQ+ooS3F10Be9tWgCeJQPGtXdjAD8ZcpW+Xu7QHHc1
-0Q0AoOs7BDUvHIVc0H4v/pKh2t3tc/0b
-=zut3
------END PGP SIGNATURE-----
-
---=-qvRg2QPdhLMqKpu3Gc9s--
+diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
+index c97067a..538db62 100644
+--- a/drivers/media/v4l2-core/v4l2-fh.c
++++ b/drivers/media/v4l2-core/v4l2-fh.c
+@@ -92,6 +92,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+ {
+ 	if (fh->vdev == NULL)
+ 		return;
++	v4l_disable_media_tuner(fh->vdev);
+ 	v4l2_event_unsubscribe_all(fh);
+ 	fh->vdev = NULL;
+ }
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6..ed7f600 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1041,6 +1041,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
+ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++	struct video_device *vfd = video_devdata(file);
++	int ret;
++
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+ }
+ 
+@@ -1448,6 +1454,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	v4l_sanitize_format(p);
+ 
+ 	switch (p->type) {
+@@ -1637,7 +1646,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_tuner *p = arg;
++	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	return ops->vidioc_s_tuner(file, fh, p);
+@@ -1691,7 +1704,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
++	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+ 		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+@@ -1746,7 +1763,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
++	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	norm = id & vfd->tvnorms;
+ 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
+ 		return -EINVAL;
+@@ -1760,7 +1781,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	v4l2_std_id *p = arg;
++	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	/*
+ 	 * If no signal is detected, then the driver should return
+ 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
+@@ -1779,7 +1804,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_hw_freq_seek *p = arg;
+ 	enum v4l2_tuner_type type;
++	int ret;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
+ 	/* s_hw_freq_seek is not supported for SDR for now */
+ 	if (vfd->vfl_type == VFL_TYPE_SDR)
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 33bdd81..c9bbb87 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -25,6 +25,7 @@
+ #include <linux/kthread.h>
+ 
+ #include <media/videobuf2-core.h>
++#include <media/v4l2-dev.h>
+ 
+ #include <trace/events/vb2.h>
+ 
+@@ -1742,6 +1743,9 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+ 	 * are available.
+ 	 */
+ 	if (q->queued_count >= q->min_buffers_needed) {
++		ret = v4l_vb2q_enable_media_tuner(q);
++		if (ret)
++			return ret;
+ 		ret = vb2_start_streaming(q);
+ 		if (ret) {
+ 			__vb2_queue_cancel(q);
+-- 
+2.5.0
 
