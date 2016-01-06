@@ -1,59 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46103 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751092AbcAYPEc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 10:04:32 -0500
-Subject: Re: [PATCH v2 00/10] [media] tvp5150: add MC and DT support
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
- <56A63849.8040004@xs4all.nl>
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56A63978.5080204@osg.samsung.com>
-Date: Mon, 25 Jan 2016 12:04:24 -0300
-MIME-Version: 1.0
-In-Reply-To: <56A63849.8040004@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:52593 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751969AbcAFVSU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 16:18:20 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
+Subject: [PATCH RESEND] v4l-utils: mc_nextgen_test add ALSA capture, playback, and mixer
+Date: Wed,  6 Jan 2016 14:18:18 -0700
+Message-Id: <1452115098-6086-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Add support for ALSA capture, playback, and mixer entity functions.
 
-On 01/25/2016 11:59 AM, Hans Verkuil wrote:
-> On 01/07/2016 01:46 PM, Javier Martinez Canillas wrote:
->
-> FYI: this patch series no longer applies after the merge of 4.5-rc1.
->
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ contrib/test/mc_nextgen_test.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-That's actually not true :)
-
-I based this series on top of Mauro's latest MC next gen work since I
-knew that it was quite unlikely that this set would be applied before
-those changes. Sorry for missing mentioning that in the cover letter.
-  
-> So besides fixing Mauro's comment for 3/10 you need to respin this series
-> anyway.
->
-
-In fact, these patches besides 3/10 are already applied in media/master.
-
-> Regards,
->
-> 	Hans
->
-  
-Best regards,
+diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
+index e287096..e0d0ad2 100644
+--- a/contrib/test/mc_nextgen_test.c
++++ b/contrib/test/mc_nextgen_test.c
+@@ -227,6 +227,12 @@ static inline const char *ent_function(uint32_t function)
+ 		return "ATV decoder";
+ 	case MEDIA_ENT_F_TUNER:
+ 		return "tuner";
++	case MEDIA_ENT_F_AUDIO_CAPTURE:
++		return "Audio Capture";
++	case MEDIA_ENT_F_AUDIO_PLAYBACK:
++		return "Audio Playback";
++	case MEDIA_ENT_F_AUDIO_MIXER:
++		return "Audio Mixer";
+ 	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
+ 	default:
+ 		return "unknown entity type";
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.1.4
+
