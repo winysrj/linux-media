@@ -1,178 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36841 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712AbcAMQS2 (ORCPT
+Received: from resqmta-po-07v.sys.comcast.net ([96.114.154.166]:45461 "EHLO
+	resqmta-po-07v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751969AbcAFU13 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 11:18:28 -0500
-Received: by mail-wm0-f50.google.com with SMTP id l65so300202700wmf.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 08:18:27 -0800 (PST)
-From: Jean-Michel Hautbois <jhautbois@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, mchehab@osg.samsung.com, lars@metafoo.de,
-	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Subject: [PATCH] media: i2c: adv7604: Use v4l2-dv-timings helpers
-Date: Wed, 13 Jan 2016 17:18:26 +0100
-Message-Id: <1452701906-4774-1-git-send-email-jean-michel.hautbois@veo-labs.com>
+	Wed, 6 Jan 2016 15:27:29 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 03/31] media: Media Controller register/unregister entity_notify API
+Date: Wed,  6 Jan 2016 13:26:52 -0700
+Message-Id: <01a8373c514c6728094056532e82f13192dcbb3f.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the helper to enumerate and set DV timings instead of a custom code.
-This will ease debugging too, as it is consistent with other drivers.
+Add new interfaces to register and unregister entity_notify
+hook to media device to allow drivers to take appropriate
+actions when as new entities get added to the shared media
+device.When a new entity is registered, all registered
+entity_notify hooks are invoked to allow drivers or modules
+that registered hook to take appropriate action. For example,
+ALSA driver registers an entity_notify hook to parse the list
+of registered entities to determine if decoder has been linked
+to ALSA entity. au0828 bridge driver registers an entity_notify
+hook to create media graph for the device.
 
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/i2c/adv7604.c | 98 +++++++++++++++++++++++----------------------
- 1 file changed, 51 insertions(+), 47 deletions(-)
+ drivers/media/media-device.c | 61 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h | 25 ++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 7452862..19c1ccf 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -806,6 +806,36 @@ static inline bool is_digital_input(struct v4l2_subdev *sd)
- 	       state->selected_input == ADV7604_PAD_HDMI_PORT_D;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index b786b10..20c85a9 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -536,6 +536,7 @@ static void media_device_release(struct media_devnode *mdev)
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity_notify *notify, *next;
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -575,6 +576,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 			       &entity->pads[i].graph_obj);
+ 
++	/* invoke entity_notify callbacks */
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
++		(notify)->notify(entity, notify->notify_data);
++	}
++
+ 	spin_unlock(&mdev->lock);
+ 
+ 	return 0;
+@@ -608,6 +614,8 @@ static void __media_device_unregister_entity(struct media_entity *entity)
+ 	/* Remove the entity */
+ 	media_gobj_destroy(&entity->graph_obj);
+ 
++	/* invoke entity_notify callbacks to handle entity removal?? */
++
+ 	entity->graph_obj.mdev = NULL;
  }
  
-+static const struct v4l2_dv_timings_cap adv7604_timings_cap_analog = {
-+	.type = V4L2_DV_BT_656_1120,
-+	/* keep this initialization for compatibility with GCC < 4.4.6 */
-+	.reserved = { 0 },
-+	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 170000000,
-+		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-+			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
-+		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-+			V4L2_DV_BT_CAP_CUSTOM)
-+};
-+
-+static const struct v4l2_dv_timings_cap adv76xx_timings_cap_digital = {
-+	.type = V4L2_DV_BT_656_1120,
-+	/* keep this initialization for compatibility with GCC < 4.4.6 */
-+	.reserved = { 0 },
-+	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 225000000,
-+		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
-+			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
-+		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
-+			V4L2_DV_BT_CAP_CUSTOM)
-+};
-+
-+static inline const struct v4l2_dv_timings_cap *
-+adv76xx_get_dv_timings_cap(struct v4l2_subdev *sd)
+@@ -633,6 +641,7 @@ int __must_check media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
++	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+@@ -680,11 +689,59 @@ int __must_check __media_device_register(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
++/**
++ * media_device_register_entity_notify - Register a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ */
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
 +{
-+	return is_digital_input(sd) ? &adv76xx_timings_cap_digital :
-+				      &adv7604_timings_cap_analog;
++	spin_lock(&mdev->lock);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	spin_unlock(&mdev->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/**
++ * __media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ * Non-locking version. Should be called with mdev->lock held.
++ */
++static void __media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	list_del(&nptr->list);
 +}
 +
++/**
++ * media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ */
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	__media_device_unregister_entity_notify(mdev, nptr);
++	spin_unlock(&mdev->lock);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
 +
- /* ----------------------------------------------------------------------- */
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -1330,17 +1360,23 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
- 	u32 pix_clk;
- 	int i;
- 
--	for (i = 0; adv76xx_timings[i].bt.height; i++) {
--		if (vtotal(&adv76xx_timings[i].bt) != stdi->lcf + 1)
-+	for (i = 0; v4l2_dv_timings_presets[i].bt.width; i++) {
-+		const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[i].bt;
-+
-+		if (!v4l2_valid_dv_timings(&v4l2_dv_timings_presets[i],
-+					   adv76xx_get_dv_timings_cap(sd),
-+					   NULL, NULL))
-+			continue;
-+		if (vtotal(bt) != stdi->lcf + 1)
- 			continue;
--		if (adv76xx_timings[i].bt.vsync != stdi->lcvs)
-+		if (bt->vsync != stdi->lcvs)
- 			continue;
- 
--		pix_clk = hfreq * htotal(&adv76xx_timings[i].bt);
-+		pix_clk = hfreq * htotal(bt);
- 
--		if ((pix_clk < adv76xx_timings[i].bt.pixelclock + 1000000) &&
--		    (pix_clk > adv76xx_timings[i].bt.pixelclock - 1000000)) {
--			*timings = adv76xx_timings[i];
-+		if ((pix_clk < bt->pixelclock + 1000000) &&
-+		    (pix_clk > bt->pixelclock - 1000000)) {
-+			*timings = v4l2_dv_timings_presets[i];
- 			return 0;
- 		}
- 	}
-@@ -1431,9 +1467,8 @@ static int adv76xx_enum_dv_timings(struct v4l2_subdev *sd,
- 	if (timings->pad >= state->source_pad)
- 		return -EINVAL;
- 
--	memset(timings->reserved, 0, sizeof(timings->reserved));
--	timings->timings = adv76xx_timings[timings->index];
--	return 0;
-+	return v4l2_enum_dv_timings_cap(timings,
-+		adv76xx_get_dv_timings_cap(sd), NULL, NULL);
- }
- 
- static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
-@@ -1444,29 +1479,7 @@ static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
- 	if (cap->pad >= state->source_pad)
- 		return -EINVAL;
- 
--	cap->type = V4L2_DV_BT_656_1120;
--	cap->bt.max_width = 1920;
--	cap->bt.max_height = 1200;
--	cap->bt.min_pixelclock = 25000000;
--
--	switch (cap->pad) {
--	case ADV76XX_PAD_HDMI_PORT_A:
--	case ADV7604_PAD_HDMI_PORT_B:
--	case ADV7604_PAD_HDMI_PORT_C:
--	case ADV7604_PAD_HDMI_PORT_D:
--		cap->bt.max_pixelclock = 225000000;
--		break;
--	case ADV7604_PAD_VGA_RGB:
--	case ADV7604_PAD_VGA_COMP:
--	default:
--		cap->bt.max_pixelclock = 170000000;
--		break;
--	}
--
--	cap->bt.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
--			 V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT;
--	cap->bt.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
--		V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM;
-+	*cap = *adv76xx_get_dv_timings_cap(sd);
- 	return 0;
- }
- 
-@@ -1475,15 +1488,9 @@ static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
- static void adv76xx_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
- 		struct v4l2_dv_timings *timings)
+ void media_device_unregister(struct media_device *mdev)
  {
--	int i;
--
--	for (i = 0; adv76xx_timings[i].bt.width; i++) {
--		if (v4l2_match_dv_timings(timings, &adv76xx_timings[i],
--				is_digital_input(sd) ? 250000 : 1000000, false)) {
--			*timings = adv76xx_timings[i];
--			break;
--		}
--	}
-+	v4l2_find_dv_timings_cap(timings, adv76xx_get_dv_timings_cap(sd),
-+			is_digital_input(sd) ? 250000 : 1000000,
-+			NULL, NULL);
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
++	struct media_entity_notify *notify, *nextp;
+ 
+ 	if (mdev == NULL)
+ 		return;
+@@ -701,6 +758,10 @@ void media_device_unregister(struct media_device *mdev)
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		__media_device_unregister_entity(entity);
+ 
++	/* Remove all entity_notify callbacks from the media device */
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		__media_device_unregister_entity_notify(mdev, notify);
++
+ 	/* Remove all interfaces from the media device */
+ 	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+ 				 graph_obj.list) {
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 122963a..6520d1c 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -264,6 +264,12 @@
+ struct ida;
+ struct device;
+ 
++struct media_entity_notify {
++	struct list_head list;
++	void *notify_data;
++	void (*notify)(struct media_entity *entity, void *notify_data);
++};
++
+ /**
+  * struct media_device - Media device
+  * @dev:	Parent device
+@@ -319,6 +325,9 @@ struct media_device {
+ 	struct list_head pads;
+ 	struct list_head links;
+ 
++	/* notify callback list invoked when a new entity is registered */
++	struct list_head entity_notify;
++
+ 	/* Protects the graph objects creation/removal */
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+@@ -497,6 +506,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+  */
+ void media_device_unregister_entity(struct media_entity *entity);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++
+ /**
+  * media_device_get_devres() -	get media device as device resource
+  *				creates if one doesn't exist
+@@ -552,6 +566,17 @@ static inline int media_device_register_entity(struct media_device *mdev,
+ static inline void media_device_unregister_entity(struct media_entity *entity)
+ {
  }
- 
- static unsigned int adv7604_read_hdmi_pixelclock(struct v4l2_subdev *sd)
-@@ -1651,12 +1658,9 @@ static int adv76xx_s_dv_timings(struct v4l2_subdev *sd,
- 
- 	bt = &timings->bt;
- 
--	if ((is_analog_input(sd) && bt->pixelclock > 170000000) ||
--			(is_digital_input(sd) && bt->pixelclock > 225000000)) {
--		v4l2_dbg(1, debug, sd, "%s: pixelclock out of range %d\n",
--				__func__, (u32)bt->pixelclock);
-+	if (!v4l2_valid_dv_timings(timings, adv76xx_get_dv_timings_cap(sd),
-+				   NULL, NULL))
- 		return -ERANGE;
--	}
- 
- 	adv76xx_fill_optional_dv_timings_fields(sd, timings);
- 
++static inline int media_device_register_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++}
+ static inline struct media_device *media_device_get_devres(struct device *dev)
+ {
+ 	return NULL;
 -- 
-2.6.4
+2.5.0
 
