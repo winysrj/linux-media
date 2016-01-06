@@ -1,59 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41294 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752211AbcALOKt (ORCPT
+Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:37774 "EHLO
+	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752091AbcAFU1f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2016 09:10:49 -0500
-Date: Tue, 12 Jan 2016 16:10:43 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Wed, 6 Jan 2016 15:27:35 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>, hverkuil@xs4all.nl,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH] [media] media: Kconfig: add dependency of HAS_DMA
-Message-ID: <20160112141042.GI576@valkosipuli.retiisi.org.uk>
-References: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
- <20160111125310.GA19742@sudip-pc>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160111125310.GA19742@sudip-pc>
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 17/31] media: au0828 video change to use v4l_enable_media_tuner()
+Date: Wed,  6 Jan 2016 13:27:06 -0700
+Message-Id: <2d2392f96a7f10a8d94a4d7fa6d5657b56b75593.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 06:23:11PM +0530, Sudip Mukherjee wrote:
-> On Wed, Dec 30, 2015 at 06:56:03PM +0530, Sudip Mukherjee wrote:
-> > The build of m32r allmodconfig fails with the error:
-> > drivers/media/v4l2-core/videobuf2-dma-contig.c:484:2:
-> > 	error: implicit declaration of function 'dma_get_cache_alignment'
-> > 
-> > The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
-> > correctly mentioned in the Kconfig but the symbol VIDEO_STI_BDISP also
-> > selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
-> > videobuf2-dma-contig.c even though HAS_DMA is not defined.
-> > 
-> > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-> > ---
-> 
-> A gentle ping. m32r allmodconfig still fails with next-20160111. Build
-> log is at:
-> https://travis-ci.org/sudipm-mukherjee/parport/jobs/101536379
+au0828 is changed to use v4l_enable_media_tuner() to check for
+tuner availability from vidioc_g_tuner(), and au0828_v4l2_close(),
+before changing tuner settings. If tuner isn't free, return busy
+condition from vidioc_g_tuner() and in au0828_v4l2_close() tuner
+is left untouched without powering down to save energy.
 
-Hi Sudip,
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-Even though the issue now manifests itself on m32r, the problem is wider
-than that: dma_get_cache_alignment() is only defined if CONFIG_HAS_DMA is
-set.
-
-I wonder if using videobuf2-dma-contig makes any sense if HAS_DMA is
-disabled, so perhaps it'd be possible to make it depend on HAS_DMA.
-
-Cc others.
-
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 32bcc56..ed3ba05 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1010,8 +1010,12 @@ static int au0828_v4l2_close(struct file *filp)
+ 		goto end;
+ 
+ 	if (dev->users == 1) {
+-		/* Save some power by putting tuner to sleep */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
++		/* Save some power by putting tuner to sleep, if it is free */
++		/* What happens when radio is using tuner?? */
++		ret = v4l_enable_media_tuner(vdev);
++		if (ret == 0)
++			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
++					     s_power, 0);
+ 		dev->std_set_in_tuner_core = 0;
+ 
+ 		/* When close the device, set the usb intf0 into alt0 to free
+@@ -1412,10 +1416,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct au0828_dev *dev = video_drvdata(file);
++	struct video_device *vfd = video_devdata(file);
++	int ret;
+ 
+ 	if (t->index != 0)
+ 		return -EINVAL;
+ 
++	ret = v4l_enable_media_tuner(vfd);
++	if (ret)
++		return ret;
++
+ 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+ 		dev->std_set_in_tuner_core, dev->dev_state);
+ 
 -- 
-Kind regards,
+2.5.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
