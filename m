@@ -1,81 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:42642 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932300AbcANTCb (ORCPT
+Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:60709 "EHLO
+	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752289AbcAFU1k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 14:02:31 -0500
-Message-ID: <1452798133.3306.3.camel@collabora.com>
-Subject: Re: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Kamil Debski <k.debski@samsung.com>,
-	'Wu-Cheng Li' <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	standby24x7@gmail.com, ricardo.ribalda@gmail.com, ao2@ao2.it,
-	bparrot@ti.com, 'Andrzej Hajda' <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org
-Date: Thu, 14 Jan 2016 14:02:13 -0500
-In-Reply-To: <00ac01d14ef0$0702b2f0$150818d0$@samsung.com>
-References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
-	 <1452686611-145620-2-git-send-email-wuchengli@chromium.org>
-	 <003f01d14e21$78f7ad40$6ae707c0$@samsung.com>
-	 <1452783743.10009.18.camel@collabora.com>
-	 <00ac01d14ef0$0702b2f0$150818d0$@samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-brlVbyPf4xej2aoZ8DtX"
-Mime-Version: 1.0
+	Wed, 6 Jan 2016 15:27:40 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 24/31] media: au0828 fix null pointer reference in au0828_create_media_graph()
+Date: Wed,  6 Jan 2016 13:27:13 -0700
+Message-Id: <33b9da8f01b1d94844ac677efd31a66c40c39ecb.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a new wrapper function to au0828_create_media_graph()
+to be called as an entity_notify function to fix null
+pointer dereference. A rebasing mistake resulted in
+registering au0828_create_media_graph() without the
+correct parameters which lead to the following
+null pointer dereference:
 
---=-brlVbyPf4xej2aoZ8DtX
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+[   69.006164] Call Trace:
+[   69.006169]  [<ffffffff81a9a1b0>] dump_stack+0x44/0x64
+[   69.006175]  [<ffffffff81503af9>] print_trailer+0xf9/0x150
+[   69.006180]  [<ffffffff81509284>] object_err+0x34/0x40
+[   69.006185]  [<ffffffff815063c4>] ? ___slab_alloc+0x4c4/0x4e0
+[   69.006190]  [<ffffffff8150b732>] kasan_report_error+0x212/0x520
+[   69.006196]  [<ffffffff815063c4>] ? ___slab_alloc+0x4c4/0x4e0
+[   69.006201]  [<ffffffff8150ba83>] __asan_report_load1_noabort+0x43/0x50
+[   69.006208]  [<ffffffffa0d30991>] ? au0828_create_media_graph+0x641/0x730 [au0828]
+[   69.006215]  [<ffffffffa0d30991>] au0828_create_media_graph+0x641/0x730 [au0828]
+[   69.006221]  [<ffffffff82245c3d>] media_device_register_entity+0x33d/0x4f0
+[   69.006234]  [<ffffffffa0ebeb1c>] media_stream_init+0x2ac/0x610 [snd_usb_audio]
+[   69.006247]  [<ffffffffa0ea9a70>] snd_usb_pcm_open+0xcd0/0x1280 [snd_usb_audio]
 
-Le jeudi 14 janvier 2016 =C3=A0 18:21 +0100, Kamil Debski a =C3=A9crit=C2=
-=A0:
-> I had a look into the documentation of MFC. It is possible to force
-> two types of a frame to be coded.
-> The one is a keyframe, the other is a not coded frame. As I
-> understand this is a type of frame that means that image did not
-> change from previous frame. I am sure I seen it in an MPEG4 stream in
-> a movie trailer. The initial board with the age rating is displayed
-> for a couple of seconds and remains static. Thus there is one I-frame=20
-> and a number of non-coded frames.
->=20
-> That is the reason why the control was implemented in MFC as a menu
-> and not a button. Thus the question remains - is it better to leave
-> it as a menu, or should there be two (maybe more in the future)
-> buttons?
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-Then I believe we need both. Because with the menu, setting I-Frame, I
-would expect to only receive keyframes from now-on. While the useful
-feature we are looking for here, is to get the next buffer (or nearby)
-to be a keyframe. It's the difference between creating an I-Frame only
-stream and requesting a key-frame manually for recovery (RTP use case).
-In this end, we should probably take that time to review the features
-we have as we need:
-
-- A way to trigger a key frame to be produce
-- A way to produce a I-Frame only stream
-- A way to set the key-frame distance (in frames) even though this
-could possibly be emulated using the trigger.
-
-cheers,
-Nicolas
---=-brlVbyPf4xej2aoZ8DtX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlaX8LUACgkQcVMCLawGqBy+NgCgz5q9VWw+FIGC6xKtcn0MSEWn
-e9AAn0NzyR4+QkHx8o160oqZcv92dGoM
-=7kPt
------END PGP SIGNATURE-----
-
---=-brlVbyPf4xej2aoZ8DtX--
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index f8d2db3..9497ad1 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -370,6 +370,20 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 	return 0;
+ }
+ 
++void au0828_create_media_graph_notify(struct media_entity *new,
++				      void *notify_data)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
++	int ret;
++
++	ret = au0828_create_media_graph(dev);
++	if (ret)
++		pr_err("%s() media graph create failed for new entity %s\n",
++		       __func__, new->name);
++#endif
++}
++
+ static int au0828_enable_source(struct media_entity *entity,
+ 				struct media_pipeline *pipe)
+ {
+@@ -535,7 +549,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 	}
+ 	/* register entity_notify callback */
+ 	dev->entity_notify.notify_data = (void *) dev;
+-	dev->entity_notify.notify = (void *) au0828_create_media_graph;
++	dev->entity_notify.notify = au0828_create_media_graph_notify;
+ 	ret = media_device_register_entity_notify(dev->media_dev,
+ 						  &dev->entity_notify);
+ 	if (ret) {
+-- 
+2.5.0
 
