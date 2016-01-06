@@ -1,66 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58059 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967010AbcA1QqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 11:46:05 -0500
-Date: Thu, 28 Jan 2016 14:45:46 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 25/31] media: au0828 fix to not call
- media_device_unregister_entity_notify()
-Message-ID: <20160128144546.26eb3c4b@recife.lan>
-In-Reply-To: <19782c8250ea1297271506e6558c089d4b25e026.1452105878.git.shuahkh@osg.samsung.com>
+Received: from resqmta-po-02v.sys.comcast.net ([96.114.154.161]:37044 "EHLO
+	resqmta-po-02v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752213AbcAFU1d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 15:27:33 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 10/31] media: Move au8522_media_pads enum to au8522.h from au8522_priv.h
+Date: Wed,  6 Jan 2016 13:26:59 -0700
+Message-Id: <2ddb08cbf16b596034b145d092e5f815d6807424.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
 References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<19782c8250ea1297271506e6558c089d4b25e026.1452105878.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 14:01:54 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Move the au8522_media_pads enum to au8522.h from au8522_priv.h.
+This will allow au0828-core to use these defines instead of
+hard-coding the pad values when it creates media graph linking
+decode pads to other entities.
 
-> entity_notify handlers are removed from media_device_unregister().
-> There is no need to call media_device_unregister_entity_notify()
-> to do that right before calling media_device_unregister().
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522.h      | 7 +++++++
+ drivers/media/dvb-frontends/au8522_priv.h | 8 --------
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-Please merge with the patch that added it.
+diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
+index dde6158..3c72f40 100644
+--- a/drivers/media/dvb-frontends/au8522.h
++++ b/drivers/media/dvb-frontends/au8522.h
+@@ -90,4 +90,11 @@ enum au8522_audio_input {
+ 	AU8522_AUDIO_SIF,
+ };
+ 
++enum au8522_media_pads {
++	AU8522_PAD_INPUT,
++	AU8522_PAD_VID_OUT,
++	AU8522_PAD_VBI_OUT,
++
++	AU8522_NUM_PADS
++};
+ #endif /* __AU8522_H__ */
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index d6209d9..4c2a6ed 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -39,14 +39,6 @@
+ #define AU8522_DIGITAL_MODE 1
+ #define AU8522_SUSPEND_MODE 2
+ 
+-enum au8522_media_pads {
+-	AU8522_PAD_INPUT,
+-	AU8522_PAD_VID_OUT,
+-	AU8522_PAD_VBI_OUT,
+-
+-	AU8522_NUM_PADS
+-};
+-
+ struct au8522_state {
+ 	struct i2c_client *c;
+ 	struct i2c_adapter *i2c;
+-- 
+2.5.0
 
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-core.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index 9497ad1..722e073 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -137,8 +137,6 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	if (dev->media_dev &&
->  		media_devnode_is_registered(&dev->media_dev->devnode)) {
-> -		media_device_unregister_entity_notify(dev->media_dev,
-> -						      &dev->entity_notify);
->  		media_device_unregister(dev->media_dev);
->  		media_device_cleanup(dev->media_dev);
->  		dev->media_dev = NULL;
