@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44163 "EHLO lists.s-osg.org"
+Received: from mail.kernel.org ([198.145.29.136]:45125 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753242AbcAGMrU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 07:47:20 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
+	id S1751643AbcAFOty (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 09:49:54 -0500
+Date: Wed, 6 Jan 2016 08:49:47 -0600
+From: Rob Herring <robh@kernel.org>
+To: Peter Rosin <peda@lysator.liu.se>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v2 04/10] [media] tvp5150: Add pixel rate control support
-Date: Thu,  7 Jan 2016 09:46:44 -0300
-Message-Id: <1452170810-32346-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
-References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 8/8] i2c-mux: relax locking of the top i2c adapter
+ during i2c controlled muxing
+Message-ID: <20160106144947.GA13257@rob-hp-laptop>
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+ <1452009438-27347-9-git-send-email-peda@lysator.liu.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1452009438-27347-9-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Tue, Jan 05, 2016 at 04:57:18PM +0100, Peter Rosin wrote:
+> From: Peter Rosin <peda@axentia.se>
+> 
+> With a i2c topology like the following
+> 
+>                        GPIO ---|  ------ BAT1
+>                         |      v /
+>    I2C  -----+----------+---- MUX
+>              |                   \
+>            EEPROM                 ------ BAT2
 
-This patch adds support for the V4L2_CID_PIXEL_RATE control.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
-Changes in v2: None
-
- drivers/media/i2c/tvp5150.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 82fba9d46f30..71473cec236a 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1204,7 +1204,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->input = TVP5150_COMPOSITE1;
- 	core->enable = 1;
+Yuck. One would think you would just use an I2C controlled mux in this 
+case...
  
--	v4l2_ctrl_handler_init(&core->hdl, 4);
-+	v4l2_ctrl_handler_init(&core->hdl, 5);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
-@@ -1213,6 +1213,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 			V4L2_CID_SATURATION, 0, 255, 1, 128);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
- 			V4L2_CID_HUE, -128, 127, 1, 0);
-+	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
-+			V4L2_CID_PIXEL_RATE, 27000000,
-+			27000000, 1, 27000000);
- 	sd->ctrl_handler = &core->hdl;
- 	if (core->hdl.error) {
- 		res = core->hdl.error;
--- 
-2.4.3
+> there is a locking problem with the GPIO controller since it is a client
+> on the same i2c bus that it muxes. Transfers to the mux clients (e.g. BAT1)
+> will lock the whole i2c bus prior to attempting to switch the mux to the
+> correct i2c segment. In the above case, the GPIO device is an I/O expander
+> with an i2c interface, and since the GPIO subsystem knows nothing (and
+> rightfully so) about the lockless needs of the i2c mux code, this results
+> in a deadlock when the GPIO driver issues i2c transfers to modify the
+> mux.
+> 
+> So, observing that while it is needed to have the i2c bus locked during the
+> actual MUX update in order to avoid random garbage on the slave side, it
+> is not strictly a must to have it locked over the whole sequence of a full
+> select-transfer-deselect mux client operation. The mux itself needs to be
+> locked, so transfers to clients behind the mux are serialized, and the mux
+> needs to be stable during all i2c traffic (otherwise individual mux slave
+> segments might see garbage, or worse).
+> 
+> Add devive tree properties (bool named i2c-controlled) to i2c-mux-gpio and
+> i2c-mux-pinctrl that asserts that the the gpio/pinctrl is controlled via
+> the same i2c bus that it muxes.
 
+Can't you determine this condition by checking the mux parent and gpio 
+parent are the same i2c controller?
+
+Alternatively, can't you just always do the locking like i2c-controlled 
+is set when a mux is involved? What is the harm in doing that if the 
+GPIO is controlled somewhere else?
+
+I would prefer to see a solution not requiring DT updates to fix and 
+this change seems like it is working around kernel issues.
+
+Rob
