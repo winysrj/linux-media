@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:37968 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755175AbcARNbY (ORCPT
+Received: from resqmta-po-11v.sys.comcast.net ([96.114.154.170]:60332 "EHLO
+	resqmta-po-11v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752258AbcAFU1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 08:31:24 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] Removal of the Timberdale v4l2 drivers timblogiw & radio-timb
-Cc: richard@puffinpack.se, Samuel Ortiz <sameo@linux.intel.com>
-Message-ID: <569CE927.9040000@xs4all.nl>
-Date: Mon, 18 Jan 2016 14:31:19 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 6 Jan 2016 15:27:37 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 21/31] media: au0828 create tuner to decoder link in deactivated state
+Date: Wed,  6 Jan 2016 13:27:10 -0700
+Message-Id: <f0d079e87affcf64a3672c94b3f00991e609a44a.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Timberdale FPGA video and radio drivers have not seen any real
-development since 2011 (and very little before that).
+Create tuner to demod pad link in disabled state to help
+avoid disable step when tuner resource is requested by dvb.
 
-One of the problems with the timblogiw driver is that it uses videobuf
-instead of the newer vb2 framework. Our long term goal is to either
-convert or remove any driver still using videobuf. Since none of the
-core v4l developers has the hardware, we cannot convert it ourselves.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-As far as I can tell it was only used in an Intel demo board in 2009
-using Meego:
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index a381660..a15a61a 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -297,9 +297,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 
+ 	if (tuner  && !dev->tuner_linked) {
+ 		dev->tuner = tuner;
++		/* create tuner to decoder link in deactivated state */
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
+-					    decoder, 0,
+-					    MEDIA_LNK_FL_ENABLED);
++					    decoder, 0, 0);
+ 		if (ret)
+ 			return ret;
+ 		dev->tuner_linked = 1;
+-- 
+2.5.0
 
-http://www.chinait.com/intelcontent/intelprc/admin/PDFFile/20106411545.pdf
-
-which has since been superseded.
-
-I am inclined to remove the Timberdale support from drivers/media. First
-by moving it to staging for one or two kernel releases, and then removing
-it altogether.
-
-Anyone still using it today would almost certainly be stuck on an old kernel.
-
-Comments?
-
-Regards,
-
-	Hans
