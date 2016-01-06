@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:46621 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751213AbcAOD2o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 22:28:44 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [RESEND PATCH v2] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
-Date: Fri, 15 Jan 2016 11:28:37 +0800
-Message-ID: <1452828517-57392-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38667 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752630AbcAFXhz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 18:37:55 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v6 2/3] MAINTAINERS: Add ti-vpe maintainer entry
+Date: Wed, 6 Jan 2016 17:37:25 -0600
+Message-ID: <1452123446-5424-3-git-send-email-bparrot@ti.com>
+In-Reply-To: <1452123446-5424-1-git-send-email-bparrot@ti.com>
+References: <1452123446-5424-1-git-send-email-bparrot@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In v4l2-compliance utility, test QUERYBUF required correct length
-value to go through each planar to check planar's length in
-multi-planar buffer type
-
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
-Remove "Change-Id: I98faddc5711c24f17beda52e6d18c657add251ac"
----
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 327e83a..6c01920 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -516,6 +516,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->reserved, &up->reserved))
- 			return -EFAULT;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4635e1d14612..ebbdb410c0f0 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10631,6 +10631,14 @@ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	drivers/thermal/ti-soc-thermal/
  
-+	if (put_user(kp->length, &up->length))
-+		return -EFAULT;
++TI VPE/CAL DRIVERS
++M:	Benoit Parrot <bparrot@ti.com>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/platform/ti-vpe/
 +
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
- 		num_planes = kp->length;
- 		if (num_planes == 0)
+ TI CDCE706 CLOCK DRIVER
+ M:	Max Filippov <jcmvbkbc@gmail.com>
+ S:	Maintained
 -- 
-1.7.9.5
+1.8.5.1
 
