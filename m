@@ -1,74 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41841 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753197AbcA1JFG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 04:05:06 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 7/12] TW686x: Add enum_input() / g_input() / s_input()
-References: <m337tif6om.fsf@t19.piap.pl>
-Date: Thu, 28 Jan 2016 10:05:03 +0100
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Thu, 28 Jan 2016 09:29:29 +0100")
-Message-ID: <m3y4bacbwg.fsf@t19.piap.pl>
+Received: from blu004-omc4s19.hotmail.com ([65.55.111.158]:51540 "EHLO
+	BLU004-OMC4S19.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752562AbcAFVIt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 16:08:49 -0500
+From: =?iso-8859-1?Q?Alexandre-Xavier_Labont=E9-Lamoureux?=
+	<alexandrexavier@live.ca>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: em28xx driver for StarTech SVID2USB2
+Date: Wed, 6 Jan 2016 21:03:47 +0000
+Message-ID: <BY2PR20MB016853D2E3B3501FE70CCC3FBDF40@BY2PR20MB0168.namprd20.prod.outlook.com>
+References: <D98DB3C2FD3AF74BBBFA4EB47841381511C140B9@NDJSMBX104.ndc.nasa.gov>,<CAGoCfiyo369O2K_kEC+xnD5AFT7saqc3iMLuZMJtTMTOCmT-Vw@mail.gmail.com>
+In-Reply-To: <CAGoCfiyo369O2K_kEC+xnD5AFT7saqc3iMLuZMJtTMTOCmT-Vw@mail.gmail.com>
+Content-Language: en-CA
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+Hello, 
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index c781b3c..21efa30 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -466,6 +466,34 @@ static int tw686x_g_parm(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static int tw686x_enum_input(struct file *file, void *priv,
-+			     struct v4l2_input *inp)
-+{
-+	/* the chip has internal multiplexer, support can be added
-+	   if the actual hw uses it */
-+	if (inp->index)
-+		return -EINVAL;
-+
-+	snprintf(inp->name, sizeof(inp->name), "Composite");
-+	inp->type = V4L2_INPUT_TYPE_CAMERA;
-+  	inp->std = V4L2_STD_ALL;
-+	inp->capabilities = V4L2_IN_CAP_STD;
-+	return 0;
-+}
-+
-+static int tw686x_g_input(struct file *file, void *priv, unsigned *v)
-+{
-+	*v = 0;
-+	return 0;
-+}
-+
-+static int tw686x_s_input(struct file *file, void *priv, unsigned v)
-+{
-+	if (v)
-+		return -EINVAL;
-+	return 0;
-+}
-+
- const struct v4l2_file_operations tw686x_video_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= v4l2_fh_open,
-@@ -492,6 +520,9 @@ const struct v4l2_ioctl_ops tw686x_video_ioctl_ops = {
- 	.vidioc_g_std			= tw686x_g_std,
- 	.vidioc_s_std			= tw686x_s_std,
- 	.vidioc_g_parm			= tw686x_g_parm,
-+	.vidioc_enum_input		= tw686x_enum_input,
-+	.vidioc_g_input			= tw686x_g_input,
-+	.vidioc_s_input			= tw686x_s_input,
- 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
+I had the exact same problem. 
+Here's a question I asked on the Ubuntu but got no answer: http://askubuntu.com/questions/686779/video-recording-device-detected-but-cant-use-it
+
+Now I bought another device, an Ion Video 2 PC MKII, it uses the same chip and it won't work with Linux. 
+
+Here's a video were a guy compiles his own kernel and makes it work (the Ion Video 2 PC, not the StarTech Device)
+https://www.youtube.com/watch?v=30e-N5z51vU
+
+I tried the same thing (recompiling a new kernel) following his instructions without success. The sound didn't work and the only thing I got was a still image on VLC. Programs like guvcview and cheese didn't detect the  StarTech SVID2USB2. I firmly believe they use the same chip because they both use eb1a:5051 to identify themselves. 
+
+Many thanks if you guys can fix it. 
+Alexandre-Xavier 
+
+
+________________________________________
+From: linux-media-owner@vger.kernel.org <linux-media-owner@vger.kernel.org> on behalf of Devin Heitmueller <dheitmueller@kernellabs.com>
+Sent: January 6, 2016 2:21 PM
+To: Schubert, Matthew R. (LARC-D319)[TEAMS2]
+Cc: linux-media@vger.kernel.org
+Subject: Re: em28xx driver for StarTech SVID2USB2
+
+On Wed, Jan 6, 2016 at 1:27 PM, Schubert, Matthew R.
+(LARC-D319)[TEAMS2] <matthew.r.schubert@nasa.gov> wrote:
+> Hello,
+>
+> We are attempting to use a StarTech Video Capture cable (Part# SVID2USB2) with our CentOS 6.7 machine with no success. The em28xx driver seems to load but cannot properly ID the capture cable. Below are the outputs from "dmesg" and "lsusb -v" run after plugging in the device. Any advice is appreciated.
+
+Try adding "card=9" to the modprobe option.  If that doesn't work than
+try "card=29".  Most of those really cheap devices either have an
+saa7113 or tvp5150 video decoder, and one of those two board profiles
+should work.
+
+Devin
+
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
