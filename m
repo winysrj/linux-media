@@ -1,55 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42416 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755913AbcA2MML (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 07:12:11 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>
-Subject: [PATCH 11/13] [media] tvp5150: identify it as a MEDIA_ENT_F_ATV_DECODER
-Date: Fri, 29 Jan 2016 10:11:01 -0200
-Message-Id: <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout.easymail.ca ([64.68.201.169]:44718 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751969AbcAFU5c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 15:57:32 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 29/31] media: track media device unregister in progress
+Date: Wed,  6 Jan 2016 13:27:18 -0700
+Message-Id: <151cfbe0e59b3d5396951bdcc29666614575f5bc.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tvp5150 is an analog TV decoder. Identify as such at
-the media graph, or otherwise devices using it would fail.
+Add support to track media device unregister in progress
+state to prevent more than one driver entering unregister.
+This enables fixing the general protection faults while
+snd-usb-audio was cleaning up media resources for pcm
+streams and mixers. In this patch a new interface is added
+to return the unregister in progress state. Subsequent
+patches to snd-usb-audio and au0828-core use this interface
+to avoid entering unregister and attempting to unregister
+entities and remove devnodes while unregister is in progress.
+Media device unregister removes entities and interface nodes.
 
-That avoids the following warning:
-	[ 1546.669139] usb 2-3.3: Entity type for entity tvp5150 5-005c was not initialized!
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/i2c/tvp5150.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/media-device.c |  5 ++++-
+ include/media/media-device.h | 17 +++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 20428f052506..19b52736b24e 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1319,6 +1319,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 20c85a9..1bb9a5f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -749,10 +749,13 @@ void media_device_unregister(struct media_device *mdev)
+ 	spin_lock(&mdev->lock);
+ 
+ 	/* Check if mdev was ever registered at all */
+-	if (!media_devnode_is_registered(&mdev->devnode)) {
++	/* check if unregister is in progress */
++	if (!media_devnode_is_registered(&mdev->devnode) ||
++	    mdev->unregister_in_progress) {
+ 		spin_unlock(&mdev->lock);
+ 		return;
+ 	}
++	mdev->unregister_in_progress = true;
+ 
+ 	/* Remove all entities from the media device */
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 04b6c2e..0807292 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -332,6 +332,10 @@ struct media_device {
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
++	/* Tracks unregister in progress state to prevent
++	 * more than one driver entering unregister
++	*/
++	bool unregister_in_progress;
+ 
+ 	/* Handlers to find source entity for the sink entity and
+ 	 * check if it is available, and activate the link using
+@@ -365,6 +369,7 @@ struct media_device {
+ /* media_devnode to media_device */
+ #define to_media_device(node) container_of(node, struct media_device, devnode)
+ 
 +
-+	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ /**
+  * media_entity_enum_init - Initialise an entity enumeration
+  *
+@@ -553,6 +558,12 @@ struct media_device *media_device_get_devres(struct device *dev);
+  * @dev: pointer to struct &device.
+  */
+ struct media_device *media_device_find_devres(struct device *dev);
++/* return unregister in progress state */
++static inline bool media_device_is_unregister_in_progress(
++					struct media_device *mdev)
++{
++	return mdev->unregister_in_progress;
++}
+ 
+ /* Iterate over all entities. */
+ #define media_device_for_each_entity(entity, mdev)			\
+@@ -569,6 +580,7 @@ struct media_device *media_device_find_devres(struct device *dev);
+ /* Iterate over all links. */
+ #define media_device_for_each_link(link, mdev)			\
+ 	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
 +
- 	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
- 	if (res < 0)
- 		return res;
+ #else
+ static inline int media_device_register(struct media_device *mdev)
+ {
+@@ -604,5 +616,10 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
+ {
+ 	return NULL;
+ }
++static inline bool media_device_is_unregister_in_progress(
++					struct media_device *mdev)
++{
++	return false;
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ #endif
 -- 
 2.5.0
-
 
