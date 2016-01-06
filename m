@@ -1,361 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38835 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752884AbcA0ME4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 07:04:56 -0500
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Junghak Sung <jh1009.sung@samsung.com>,
-	Matthias Schwarzott <zzam@gentoo.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for v4.5] vb2: fix nasty vb2_thread regression
-Message-ID: <56A8B34A.7010606@xs4all.nl>
-Date: Wed, 27 Jan 2016 13:08:42 +0100
+Received: from mail.kapsi.fi ([217.30.184.167]:49233 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751341AbcAFRSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 12:18:02 -0500
+Subject: Re: [PATCH v2 0/8] i2c mux cleanup and locking update
+To: Peter Rosin <peda@lysator.liu.se>, Wolfram Sang <wsa@the-dreams.de>
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+Cc: Peter Rosin <peda@axentia.se>, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <568D4C3D.3000906@iki.fi>
+Date: Wed, 6 Jan 2016 19:17:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vb2_thread implementation was made generic and was moved from
-videobuf2-v4l2.c to videobuf2-core.c in commit af3bac1a. Unfortunately
-that clearly was never tested since it broke read() causing NULL address
-references.
+On 01/05/2016 05:57 PM, Peter Rosin wrote:
+> From: Peter Rosin <peda@axentia.se>
+>
+> Hi!
+>
+> I have a pair of boards with this i2c topology:
+>
+>                         GPIO ---|  ------ BAT1
+>                          |      v /
+>     I2C  -----+------B---+---- MUX
+>               |                   \
+>             EEPROM                 ------ BAT2
+>
+> 	(B denotes the boundary between the boards)
 
-The root cause was confused handling of vb2_buffer vs v4l2_buffer (the pb
-pointer in various core functions).
+Handling of I2C muxes that close channel automatically, after the first 
+I2C stop (P) is seen?
 
-The v4l2_buffer no longer exists after moving the code into the core and
-it is no longer needed. However, the vb2_thread code passed a pointer to
-a vb2_buffer to the core functions were a v4l2_buffer pointer was expected
-and vb2_thread expected that the vb2_buffer fields would be filled in
-correctly.
+For example channel is selected to BAT1 => there is EEPROM write => mux 
+closes channel BAT1 => access to BAT1 will fail. Is it possible to lock 
+whole adapter, but allow only traffic to i2c mux client?
 
-This is obviously wrong since v4l2_buffer != vb2_buffer. Note that the
-pb pointer is a void pointer, so no type-checking took place.
+regards
+Antti
 
-This patch fixes this problem:
+>
+> The problem with this is that the GPIO controller sits on the same i2c bus
+> that it MUXes. For pca954x devices this is worked around by using unlocked
+> transfers when updating the MUX. I have no such luck as the GPIO is a general
+> purpose IO expander and the MUX is just a random bidirectional MUX, unaware
+> of the fact that it is muxing an i2c bus, and extending unlocked transfers
+> into the GPIO subsystem is too ugly to even think about. But the general hw
+> approach is sane in my opinion, with the number of connections between the
+> two boards minimized. To put is plainly, I need support for it.
+>
+> So, I observe that while it is needed to have the i2c bus locked during the
+> actual MUX update in order to avoid random garbage on the slave side, it
+> is not strictly a must to have it locked over the whole sequence of a full
+> select-transfer-deselect operation. The MUX itself needs to be locked, so
+> transfers to clients behind the mux are serialized, and the MUX needs to be
+> stable during all i2c traffic (otherwise individual mux slave segments
+> might see garbage).
+>
+> This series accomplishes this by adding a dt property to i2c-mux-gpio and
+> i2c-mux-pinctrl that can be used to state that the mux is updated by means
+> of the muxed master bus, and that the select-transfer-deselect operations
+> should be locked individually. When this holds, the i2c bus *is* locked
+> during muxing, since the muxing happens as part of i2c transfers. This
+> is true even if the MUX is updated with several transfers to the GPIO (at
+> least as long as *all* MUX changes are using the i2s master bus). A lock
+> is added to the mux so that transfers through the mux are serialized.
+>
+> Concerns:
+> - The locking is perhaps too complex?
+> - I worry about the priority inheritance aspect of the adapter lock. When
+>    the transfers behind the mux are divided into select-transfer-deselect all
+>    locked individually, low priority transfers get more chances to interfere
+>    with high priority transfers.
+> - When doing an i2c_transfer() in_atomic() context of with irqs_disabled(),
+>    there is a higher possibility that the mux is not returned to its idle
+>    state after a failed (-EAGAIN) transfer due to trylock.
+>
+> To summarize the series, there's some i2c-mux infrastructure cleanup work
+> first (I think that part stands by itself as desireable regardless), the
+> locking changes are in the last three patches of the series, with the real
+> meat in 8/8.
+>
+> PS. needs a bunch of testing, I do not have access to all the involved hw
+>
+> Changes since v1:
+> - Allocate mux core and (optional) priv in a combined allocation.
+> - Killed dev_err messages triggered by memory allocation failure.
+> - Fix the device specific i2c muxes that I had overlooked.
+> - Rebased on top of v4.4-rc8 (was based on v4.4-rc6 previously).
+>
+> Cheers,
+> Peter
+>
+> Peter Rosin (8):
+>    i2c-mux: add common core data for every mux instance
+>    i2c-mux: move select and deselect ops to i2c_mux_core
+>    i2c-mux: move the slave side adapter management to i2c_mux_core
+>    i2c-mux: remove the mux dev pointer from the mux per channel data
+>    i2c-mux: pinctrl: get rid of the driver private struct device pointer
+>    i2c: allow adapter drivers to override the adapter locking
+>    i2c: muxes always lock the parent adapter
+>    i2c-mux: relax locking of the top i2c adapter during i2c controlled
+>      muxing
+>
+>   .../devicetree/bindings/i2c/i2c-mux-gpio.txt       |   2 +
+>   .../devicetree/bindings/i2c/i2c-mux-pinctrl.txt    |   4 +
+>   drivers/i2c/i2c-core.c                             |  59 ++---
+>   drivers/i2c/i2c-mux.c                              | 272 +++++++++++++++++----
+>   drivers/i2c/muxes/i2c-arb-gpio-challenge.c         |  46 ++--
+>   drivers/i2c/muxes/i2c-mux-gpio.c                   |  58 ++---
+>   drivers/i2c/muxes/i2c-mux-pca9541.c                |  58 +++--
+>   drivers/i2c/muxes/i2c-mux-pca954x.c                |  66 ++---
+>   drivers/i2c/muxes/i2c-mux-pinctrl.c                |  89 +++----
+>   drivers/i2c/muxes/i2c-mux-reg.c                    |  63 ++---
+>   drivers/iio/imu/inv_mpu6050/inv_mpu_core.c         |  33 +--
+>   drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h          |   2 +-
+>   drivers/media/dvb-frontends/m88ds3103.c            |  23 +-
+>   drivers/media/dvb-frontends/m88ds3103_priv.h       |   2 +-
+>   drivers/media/dvb-frontends/rtl2830.c              |  24 +-
+>   drivers/media/dvb-frontends/rtl2830_priv.h         |   2 +-
+>   drivers/media/dvb-frontends/rtl2832.c              |  30 ++-
+>   drivers/media/dvb-frontends/rtl2832_priv.h         |   2 +-
+>   drivers/media/dvb-frontends/si2168.c               |  29 ++-
+>   drivers/media/dvb-frontends/si2168_priv.h          |   2 +-
+>   drivers/media/usb/cx231xx/cx231xx-core.c           |   6 +-
+>   drivers/media/usb/cx231xx/cx231xx-i2c.c            |  48 ++--
+>   drivers/media/usb/cx231xx/cx231xx.h                |   4 +-
+>   drivers/of/unittest.c                              |  41 ++--
+>   include/linux/i2c-mux-gpio.h                       |   2 +
+>   include/linux/i2c-mux-pinctrl.h                    |   2 +
+>   include/linux/i2c-mux.h                            |  39 ++-
+>   include/linux/i2c.h                                |  28 ++-
+>   28 files changed, 612 insertions(+), 424 deletions(-)
+>
 
-1) allow pb to be NULL for vb2_core_(d)qbuf. The vb2_thread code will use
-   a NULL pointer here since they don't care about v4l2_buffer anyway.
-2) let vb2_core_dqbuf pass back the index of the received buffer. This is
-   all vb2_thread needs: this index is the index into the q->bufs array
-   and vb2_thread just gets the vb2_buffer from there.
-3) the fileio->b pointer (that originally contained a v4l2_buffer) is
-   removed altogether since it is no longer needed.
-
-Tested with vivid and the cobalt driver.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/v4l2-core/videobuf2-core.c | 95 +++++++++++++++-----------------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  2 +-
- include/media/videobuf2-core.h           |  3 +-
- 3 files changed, 46 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index c5d49d7..b53e42c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1063,8 +1063,11 @@ EXPORT_SYMBOL_GPL(vb2_discard_done);
-  */
- static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
- {
--	int ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
--			vb, pb, vb->planes);
-+	int ret = 0;
-+
-+	if (pb)
-+		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+				 vb, pb, vb->planes);
- 	return ret ? ret : call_vb_qop(vb, buf_prepare, vb);
- }
-
-@@ -1077,14 +1080,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 	struct vb2_queue *q = vb->vb2_queue;
- 	void *mem_priv;
- 	unsigned int plane;
--	int ret;
-+	int ret = 0;
- 	enum dma_data_direction dma_dir =
- 		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
-
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer, vb, pb, planes);
-+	if (pb)
-+		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+				 vb, pb, planes);
- 	if (ret)
- 		return ret;
-
-@@ -1192,14 +1197,16 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 	struct vb2_queue *q = vb->vb2_queue;
- 	void *mem_priv;
- 	unsigned int plane;
--	int ret;
-+	int ret = 0;
- 	enum dma_data_direction dma_dir =
- 		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
-
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
- 	/* Copy relevant information provided by the userspace */
--	ret = call_bufop(vb->vb2_queue, fill_vb2_buffer, vb, pb, planes);
-+	if (pb)
-+		ret = call_bufop(vb->vb2_queue, fill_vb2_buffer,
-+				 vb, pb, planes);
- 	if (ret)
- 		return ret;
-
-@@ -1520,7 +1527,8 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 	q->waiting_for_buffers = false;
- 	vb->state = VB2_BUF_STATE_QUEUED;
-
--	call_void_bufop(q, copy_timestamp, vb, pb);
-+	if (pb)
-+		call_void_bufop(q, copy_timestamp, vb, pb);
-
- 	trace_vb2_qbuf(q, vb);
-
-@@ -1532,7 +1540,8 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
- 		__enqueue_in_driver(vb);
-
- 	/* Fill buffer information for the userspace */
--	call_void_bufop(q, fill_user_buffer, vb, pb);
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
-
- 	/*
- 	 * If streamon has been called, and we haven't yet called
-@@ -1731,7 +1740,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
-  * The return values from this function are intended to be directly returned
-  * from vidioc_dqbuf handler in driver.
-  */
--int vb2_core_dqbuf(struct vb2_queue *q, void *pb, bool nonblocking)
-+int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-+		   bool nonblocking)
- {
- 	struct vb2_buffer *vb = NULL;
- 	int ret;
-@@ -1754,8 +1764,12 @@ int vb2_core_dqbuf(struct vb2_queue *q, void *pb, bool nonblocking)
-
- 	call_void_vb_qop(vb, buf_finish, vb);
-
-+	if (pindex)
-+		*pindex = vb->index;
-+
- 	/* Fill buffer information for the userspace */
--	call_void_bufop(q, fill_user_buffer, vb, pb);
-+	if (pb)
-+		call_void_bufop(q, fill_user_buffer, vb, pb);
-
- 	/* Remove from videobuf queue */
- 	list_del(&vb->queued_entry);
-@@ -1828,7 +1842,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
- 	 * that's done in dqbuf, but that's not going to happen when we
- 	 * cancel the whole queue. Note: this code belongs here, not in
- 	 * __vb2_dqbuf() since in vb2_internal_dqbuf() there is a critical
--	 * call to __fill_v4l2_buffer() after buf_finish(). That order can't
-+	 * call to __fill_user_buffer() after buf_finish(). That order can't
- 	 * be changed, so we can't move the buf_finish() to __vb2_dqbuf().
- 	 */
- 	for (i = 0; i < q->num_buffers; ++i) {
-@@ -2357,7 +2371,6 @@ struct vb2_fileio_data {
- 	unsigned int count;
- 	unsigned int type;
- 	unsigned int memory;
--	struct vb2_buffer *b;
- 	struct vb2_fileio_buf bufs[VB2_MAX_FRAME];
- 	unsigned int cur_index;
- 	unsigned int initial_index;
-@@ -2410,12 +2423,6 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	if (fileio == NULL)
- 		return -ENOMEM;
-
--	fileio->b = kzalloc(q->buf_struct_size, GFP_KERNEL);
--	if (fileio->b == NULL) {
--		kfree(fileio);
--		return -ENOMEM;
--	}
--
- 	fileio->read_once = q->fileio_read_once;
- 	fileio->write_immediately = q->fileio_write_immediately;
-
-@@ -2460,13 +2467,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			struct vb2_buffer *b = fileio->b;
--
--			memset(b, 0, q->buf_struct_size);
--			b->type = q->type;
--			b->memory = q->memory;
--			b->index = i;
--			ret = vb2_core_qbuf(q, i, b);
-+			ret = vb2_core_qbuf(q, i, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2511,7 +2512,6 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q)
- 		q->fileio = NULL;
- 		fileio->count = 0;
- 		vb2_core_reqbufs(q, fileio->memory, &fileio->count);
--		kfree(fileio->b);
- 		kfree(fileio);
- 		dprintk(3, "file io emulator closed\n");
- 	}
-@@ -2539,7 +2539,8 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 * else is able to provide this information with the write() operation.
- 	 */
- 	bool copy_timestamp = !read && q->copy_timestamp;
--	int ret, index;
-+	unsigned index;
-+	int ret;
-
- 	dprintk(3, "mode %s, offset %ld, count %zd, %sblocking\n",
- 		read ? "read" : "write", (long)*ppos, count,
-@@ -2564,22 +2565,20 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 */
- 	index = fileio->cur_index;
- 	if (index >= q->num_buffers) {
--		struct vb2_buffer *b = fileio->b;
-+		struct vb2_buffer *b;
-
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		memset(b, 0, q->buf_struct_size);
--		b->type = q->type;
--		b->memory = q->memory;
--		ret = vb2_core_dqbuf(q, b, nonblock);
-+		ret = vb2_core_dqbuf(q, &index, NULL, nonblock);
- 		dprintk(5, "vb2_dqbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
- 		fileio->dq_count += 1;
-
--		fileio->cur_index = index = b->index;
-+		fileio->cur_index = index;
- 		buf = &fileio->bufs[index];
-+		b = q->bufs[index];
-
- 		/*
- 		 * Get number of bytes filled by the driver
-@@ -2630,7 +2629,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 	 * Queue next buffer if required.
- 	 */
- 	if (buf->pos == buf->size || (!read && fileio->write_immediately)) {
--		struct vb2_buffer *b = fileio->b;
-+		struct vb2_buffer *b = q->bufs[index];
-
- 		/*
- 		 * Check if this is the last buffer to read.
-@@ -2643,15 +2642,11 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 		/*
- 		 * Call vb2_qbuf and give buffer to the driver.
- 		 */
--		memset(b, 0, q->buf_struct_size);
--		b->type = q->type;
--		b->memory = q->memory;
--		b->index = index;
- 		b->planes[0].bytesused = buf->pos;
-
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, b);
-+		ret = vb2_core_qbuf(q, index, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2713,10 +2708,9 @@ static int vb2_thread(void *data)
- {
- 	struct vb2_queue *q = data;
- 	struct vb2_threadio_data *threadio = q->threadio;
--	struct vb2_fileio_data *fileio = q->fileio;
- 	bool copy_timestamp = false;
--	int prequeue = 0;
--	int index = 0;
-+	unsigned prequeue = 0;
-+	unsigned index = 0;
- 	int ret = 0;
-
- 	if (q->is_output) {
-@@ -2728,37 +2722,34 @@ static int vb2_thread(void *data)
-
- 	for (;;) {
- 		struct vb2_buffer *vb;
--		struct vb2_buffer *b = fileio->b;
-
- 		/*
- 		 * Call vb2_dqbuf to get buffer back.
- 		 */
--		memset(b, 0, q->buf_struct_size);
--		b->type = q->type;
--		b->memory = q->memory;
- 		if (prequeue) {
--			b->index = index++;
-+			vb = q->bufs[index++];
- 			prequeue--;
- 		} else {
- 			call_void_qop(q, wait_finish, q);
- 			if (!threadio->stop)
--				ret = vb2_core_dqbuf(q, b, 0);
-+				ret = vb2_core_dqbuf(q, &index, NULL, 0);
- 			call_void_qop(q, wait_prepare, q);
- 			dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
-+			if (!ret)
-+				vb = q->bufs[index];
- 		}
- 		if (ret || threadio->stop)
- 			break;
- 		try_to_freeze();
-
--		vb = q->bufs[b->index];
--		if (b->state == VB2_BUF_STATE_DONE)
-+		if (vb->state == VB2_BUF_STATE_DONE)
- 			if (threadio->fnc(vb, threadio->priv))
- 				break;
- 		call_void_qop(q, wait_finish, q);
- 		if (copy_timestamp)
--			b->timestamp = ktime_get_ns();;
-+			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, b->index, b);
-+			ret = vb2_core_qbuf(q, vb->index, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index c9a2860..91f5521 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -625,7 +625,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b,
- 		return -EINVAL;
- 	}
-
--	ret = vb2_core_dqbuf(q, b, nonblocking);
-+	ret = vb2_core_dqbuf(q, NULL, b, nonblocking);
-
- 	return ret;
- }
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef03ae5..8a0f55b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -533,7 +533,8 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 		const unsigned int requested_sizes[]);
- int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
- int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
--int vb2_core_dqbuf(struct vb2_queue *q, void *pb, bool nonblocking);
-+int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
-+		   bool nonblocking);
-
- int vb2_core_streamon(struct vb2_queue *q, unsigned int type);
- int vb2_core_streamoff(struct vb2_queue *q, unsigned int type);
 -- 
-2.6.1
-
+http://palosaari.fi/
