@@ -1,53 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:39837 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753071AbcADIjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 03:39:47 -0500
-Subject: Re: [PATCH] [media] si2165: Refactoring for si2165_writereg_mask8()
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <568020CC.1060004@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-From: Matthias Schwarzott <zzam@gentoo.org>
-Message-ID: <568A2FB9.8040806@gentoo.org>
-Date: Mon, 4 Jan 2016 09:39:21 +0100
-MIME-Version: 1.0
-In-Reply-To: <568020CC.1060004@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:36825 "EHLO
+	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752160AbcAFU1c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2016 15:27:32 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 09/31] media: v4l2-core add v4l_vb2q_enable_media_tuner() helper
+Date: Wed,  6 Jan 2016 13:26:58 -0700
+Message-Id: <ac1ad6fc9832cb922ac02eba1f916a6fb4ef97a8.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 27.12.2015 um 18:33 schrieb SF Markus Elfring:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sun, 27 Dec 2015 18:23:57 +0100
-> 
-> This issue was detected by using the Coccinelle software.
-> 
-> 1. Let us return directly if a call of the si2165_readreg8()
->    function failed.
-> 
-> 2. Reduce the scope for the local variables "ret" and "tmp" to one branch
->    of an if statement.
-> 
-> 3. Delete the jump label "err" then.
-> 
-> 4. Return the value from a call of the si2165_writereg8() function
->    without using an extra assignment for the variable "ret" at the end.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Add a new v4l_vb2q_enable_media_tuner() wrapper function
+to be called from v4l2-core to enable the media tuner with
+videobuf2 queue, when the calling frunction has the videobuf2
+queue and doesn't have the struct video_device associated with
+the queue handy as in the case of vb2_core_streamon(). This
+function simply calls v4l_enable_media_tuner() passing in the
+pointer to struct video_device.
 
-The patch looks fine.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 21 +++++++++++++++++++++
+ include/media/v4l2-dev.h           |  1 +
+ 2 files changed, 22 insertions(+)
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-
-Regards
-Matthias
-
-PS: I am going to switch to regmap, but this change is not yet polished
-and until now does not touch this function.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index f06da6e..9ef675a 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -30,6 +30,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/videobuf2-core.h>
+ 
+ #define VIDEO_NUM_DEVICES	256
+ #define VIDEO_NAME              "video4linux"
+@@ -261,6 +262,26 @@ void v4l_disable_media_tuner(struct video_device *vdev)
+ }
+ EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+ 
++/**
++ * v4l_vb2q_enable_media_tuner - Wrapper for v4l_enable_media_tuner()
++ * @q:         videobuf2 queue
++ *
++ * This function is intended to be called from v4l2-core
++ * to enable the media tuner with videobuf2 queue, when
++ * the calling frunction has the videobuf2 queue and doesn't
++ * have the struct video_device associated with the
++ * queue handy as in the case of vb2_core_streamon(). This
++ * function simply calls v4l_enable_media_tuner() passing
++ * in the pointer to struct video_device.
++ */
++int v4l_vb2q_enable_media_tuner(struct vb2_queue *q)
++{
++	struct v4l2_fh *fh = q->owner;
++
++	return v4l_enable_media_tuner(fh->vdev);
++}
++EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_tuner);
++
+ /* Priority handling */
+ 
+ static inline bool prio_is_valid(enum v4l2_priority prio)
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 68999a3..1948097 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -179,6 +179,7 @@ struct video_device * __must_check video_device_alloc(void);
+ 
+ int v4l_enable_media_tuner(struct video_device *vdev);
+ void v4l_disable_media_tuner(struct video_device *vdev);
++int v4l_vb2q_enable_media_tuner(struct vb2_queue *q);
+ 
+ /* this release function frees the vdev pointer */
+ void video_device_release(struct video_device *vdev);
+-- 
+2.5.0
 
