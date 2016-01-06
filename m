@@ -1,274 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:58278 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932494AbcA0OBa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 09:01:30 -0500
-Subject: Re: [PATCH 3/5] v4l: Add generic pipeline power management code
-To: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-References: <1453902658-29783-1-git-send-email-sakari.ailus@iki.fi>
- <1453902658-29783-4-git-send-email-sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56A8CE9C.8090302@xs4all.nl>
-Date: Wed, 27 Jan 2016 15:05:16 +0100
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:35456 "EHLO
+	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605AbcAFTVY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 14:21:24 -0500
+Received: by mail-qk0-f175.google.com with SMTP id n135so158514177qka.2
+        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2016 11:21:23 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1453902658-29783-4-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <D98DB3C2FD3AF74BBBFA4EB47841381511C140B9@NDJSMBX104.ndc.nasa.gov>
+References: <D98DB3C2FD3AF74BBBFA4EB47841381511C140B9@NDJSMBX104.ndc.nasa.gov>
+Date: Wed, 6 Jan 2016 14:21:23 -0500
+Message-ID: <CAGoCfiyo369O2K_kEC+xnD5AFT7saqc3iMLuZMJtTMTOCmT-Vw@mail.gmail.com>
+Subject: Re: em28xx driver for StarTech SVID2USB2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Schubert, Matthew R. (LARC-D319)[TEAMS2]"
+	<matthew.r.schubert@nasa.gov>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/27/16 14:50, Sakari Ailus wrote:
-> When the Media controller framework was merged, it was decided not to add
-> pipeline power management code for it was not seen generic. As a result, a
-> number of drivers have copied the same piece of code, with same bugfixes
-> done to them at different points of time (or not at all).
-> 
-> Add these functions to V4L2. Their use is optional for drivers.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-common.c | 174 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-common.h           |  37 ++++++++
+On Wed, Jan 6, 2016 at 1:27 PM, Schubert, Matthew R.
+(LARC-D319)[TEAMS2] <matthew.r.schubert@nasa.gov> wrote:
+> Hello,
+>
+> We are attempting to use a StarTech Video Capture cable (Part# SVID2USB2) with our CentOS 6.7 machine with no success. The em28xx driver seems to load but cannot properly ID the capture cable. Below are the outputs from "dmesg" and "lsusb -v" run after plugging in the device. Any advice is appreciated.
 
-I think I would prefer to see a v4l2-mc.c source rather than adding it to common.
-Since this is specific to both v4l2 and MC it only has to be compiled
-if both config options are set.
+Try adding "card=9" to the modprobe option.  If that doesn't work than
+try "card=29".  Most of those really cheap devices either have an
+saa7113 or tvp5150 video decoder, and one of those two board profiles
+should work.
 
-Besides, I think we need to move more common mc code to such a file.
+Devin
 
-Regards,
-
-	Hans
-
->  2 files changed, 211 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 5b80850..0e063a9 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -405,3 +405,177 @@ void v4l2_get_timestamp(struct timeval *tv)
->  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> +
-> +/* -----------------------------------------------------------------------------
-> + * Pipeline power management
-> + *
-> + * Entities must be powered up when part of a pipeline that contains at least
-> + * one open video device node.
-> + *
-> + * To achieve this use the entity use_count field to track the number of users.
-> + * For entities corresponding to video device nodes the use_count field stores
-> + * the users count of the node. For entities corresponding to subdevs the
-> + * use_count field stores the total number of users of all video device nodes
-> + * in the pipeline.
-> + *
-> + * The v4l2_pipeline_pm_use() function must be called in the open() and
-> + * close() handlers of video device nodes. It increments or decrements the use
-> + * count of all subdev entities in the pipeline.
-> + *
-> + * To react to link management on powered pipelines, the link setup notification
-> + * callback updates the use count of all entities in the source and sink sides
-> + * of the link.
-> + */
-> +
-> +/*
-> + * pipeline_pm_use_count - Count the number of users of a pipeline
-> + * @entity: The entity
-> + *
-> + * Return the total number of users of all video device nodes in the pipeline.
-> + */
-> +static int pipeline_pm_use_count(struct media_entity *entity,
-> +	struct media_entity_graph *graph)
-> +{
-> +	int use = 0;
-> +
-> +	media_entity_graph_walk_start(graph, entity);
-> +
-> +	while ((entity = media_entity_graph_walk_next(graph))) {
-> +		if (is_media_entity_v4l2_io(entity))
-> +			use += entity->use_count;
-> +	}
-> +
-> +	return use;
-> +}
-> +
-> +/*
-> + * pipeline_pm_power_one - Apply power change to an entity
-> + * @entity: The entity
-> + * @change: Use count change
-> + *
-> + * Change the entity use count by @change. If the entity is a subdev update its
-> + * power state by calling the core::s_power operation when the use count goes
-> + * from 0 to != 0 or from != 0 to 0.
-> + *
-> + * Return 0 on success or a negative error code on failure.
-> + */
-> +static int pipeline_pm_power_one(struct media_entity *entity, int change)
-> +{
-> +	struct v4l2_subdev *subdev;
-> +	int ret;
-> +
-> +	subdev = is_media_entity_v4l2_subdev(entity)
-> +	       ? media_entity_to_v4l2_subdev(entity) : NULL;
-> +
-> +	if (entity->use_count == 0 && change > 0 && subdev != NULL) {
-> +		ret = v4l2_subdev_call(subdev, core, s_power, 1);
-> +		if (ret < 0 && ret != -ENOIOCTLCMD)
-> +			return ret;
-> +	}
-> +
-> +	entity->use_count += change;
-> +	WARN_ON(entity->use_count < 0);
-> +
-> +	if (entity->use_count == 0 && change < 0 && subdev != NULL)
-> +		v4l2_subdev_call(subdev, core, s_power, 0);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * pipeline_pm_power - Apply power change to all entities in a pipeline
-> + * @entity: The entity
-> + * @change: Use count change
-> + *
-> + * Walk the pipeline to update the use count and the power state of all non-node
-> + * entities.
-> + *
-> + * Return 0 on success or a negative error code on failure.
-> + */
-> +static int pipeline_pm_power(struct media_entity *entity, int change,
-> +	struct media_entity_graph *graph)
-> +{
-> +	struct media_entity *first = entity;
-> +	int ret = 0;
-> +
-> +	if (!change)
-> +		return 0;
-> +
-> +	media_entity_graph_walk_start(graph, entity);
-> +
-> +	while (!ret && (entity = media_entity_graph_walk_next(graph)))
-> +		if (is_media_entity_v4l2_subdev(entity))
-> +			ret = pipeline_pm_power_one(entity, change);
-> +
-> +	if (!ret)
-> +		return ret;
-> +
-> +	media_entity_graph_walk_start(graph, first);
-> +
-> +	while ((first = media_entity_graph_walk_next(graph))
-> +	       && first != entity)
-> +		if (is_media_entity_v4l2_subdev(first))
-> +			pipeline_pm_power_one(first, -change);
-> +
-> +	return ret;
-> +}
-> +
-> +int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
-> +{
-> +	struct media_device *mdev = entity->graph_obj.mdev;
-> +	int change = use ? 1 : -1;
-> +	int ret;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +
-> +	/* Apply use count to node. */
-> +	entity->use_count += change;
-> +	WARN_ON(entity->use_count < 0);
-> +
-> +	/* Apply power change to connected non-nodes. */
-> +	ret = pipeline_pm_power(entity, change, &mdev->pm_count_walk);
-> +	if (ret < 0)
-> +		entity->use_count -= change;
-> +
-> +	mutex_unlock(&mdev->graph_mutex);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_pipeline_pm_use);
-> +
-> +int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
-> +			      unsigned int notification)
-> +{
-> +	struct media_entity_graph *graph = &link->graph_obj.mdev->pm_count_walk;
-> +	struct media_entity *source = link->source->entity;
-> +	struct media_entity *sink = link->sink->entity;
-> +	int source_use;
-> +	int sink_use;
-> +	int ret = 0;
-> +
-> +	source_use = pipeline_pm_use_count(source, graph);
-> +	sink_use = pipeline_pm_use_count(sink, graph);
-> +
-> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-> +	    !(flags & MEDIA_LNK_FL_ENABLED)) {
-> +		/* Powering off entities is assumed to never fail. */
-> +		pipeline_pm_power(source, -sink_use, graph);
-> +		pipeline_pm_power(sink, -source_use, graph);
-> +		return 0;
-> +	}
-> +
-> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
-> +		(flags & MEDIA_LNK_FL_ENABLED)) {
-> +
-> +		ret = pipeline_pm_power(source, sink_use, graph);
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		ret = pipeline_pm_power(sink, source_use, graph);
-> +		if (ret < 0)
-> +			pipeline_pm_power(source, -sink_use, graph);
-> +	}
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_pipeline_link_notify);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1cc0c5b..0c23940 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -189,4 +189,41 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  
->  void v4l2_get_timestamp(struct timeval *tv);
->  
-> +/**
-> + * v4l2_pipeline_pm_use - Update the use count of an entity
-> + * @entity: The entity
-> + * @use: Use (1) or stop using (0) the entity
-> + *
-> + * Update the use count of all entities in the pipeline and power entities on or
-> + * off accordingly.
-> + *
-> + * This function is intended to be called in video node open (use ==
-> + * 1) and release (use == 0). It uses struct media_entity.use_count to
-> + * track the power status. The use of this function should be paired
-> + * with v4l2_pipeline_link_notify().
-> + *
-> + * Return 0 on success or a negative error code on failure. Powering entities
-> + * off is assumed to never fail. No failure can occur when the use parameter is
-> + * set to 0.
-> + */
-> +int v4l2_pipeline_pm_use(struct media_entity *entity, int use);
-> +
-> +
-> +/**
-> + * v4l2_pipeline_link_notify - Link management notification callback
-> + * @link: The link
-> + * @flags: New link flags that will be applied
-> + * @notification: The link's state change notification type (MEDIA_DEV_NOTIFY_*)
-> + *
-> + * React to link management on powered pipelines by updating the use count of
-> + * all entities in the source and sink sides of the link. Entities are powered
-> + * on or off accordingly. The use of this function should be paired
-> + * with v4l2_pipeline_pm_use().
-> + *
-> + * Return 0 on success or a negative error code on failure. Powering entities
-> + * off is assumed to never fail. This function will not fail for disconnection
-> + * events.
-> + */
-> +int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
-> +			      unsigned int notification);
->  #endif /* V4L2_COMMON_H_ */
-> 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
