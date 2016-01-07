@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:35747 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753605AbcASMTV (ORCPT
+Received: from snt004-omc4s25.hotmail.com ([65.55.90.228]:50182 "EHLO
+	SNT004-OMC4S25.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752181AbcAGXd2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 07:19:21 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Cc: linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	niklas.soderlund+renesas@ragnatech.se,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [RESEND PATCH] media: adv7180: increase delay after reset to 5ms
-Date: Tue, 19 Jan 2016 13:19:16 +0100
-Message-Id: <1453205956-9103-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Thu, 7 Jan 2016 18:33:28 -0500
+From: =?utf-8?B?QWxleGFuZHJlLVhhdmllciBMYWJvbnTDqS1MYW1vdXJldXg=?=
+	<alexandrexavier@live.ca>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Getting my Ion Video 2 PC to work
+Date: Thu, 7 Jan 2016 23:25:26 +0000
+Message-ID: <BY2PR20MB0168AC2381030DF251DF4424BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
+References: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
+ <CAGoCfix2v9PJK73s8qif4yaL86cBLsRrDpFm3tj30N2BpuKm7g@mail.gmail.com>
+In-Reply-To: <CAGoCfix2v9PJK73s8qif4yaL86cBLsRrDpFm3tj30N2BpuKm7g@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <A703C79064610E40985B0A3A6BA244FF@namprd20.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialization of the ADV7180 chip fails on the Renesas R8A7790-based
-Lager board about 50% of the time.  This patch resolves the issue by
-increasing the minimum delay after reset from 2 ms to 5 ms, following the
-recommendation in the ADV7180 datasheet:
-
-"Executing a software reset takes approximately 2 ms. However, it is
-recommended to wait 5 ms before any further I2C writes are performed."
-
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/media/i2c/adv7180.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index f82c8aa..3c3c4bf 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -1112,7 +1112,7 @@ static int init_device(struct adv7180_state *state)
- 	mutex_lock(&state->mutex);
- 
- 	adv7180_write(state, ADV7180_REG_PWR_MAN, ADV7180_PWR_MAN_RES);
--	usleep_range(2000, 10000);
-+	usleep_range(5000, 10000);
- 
- 	ret = state->chip_info->init(state);
- 	if (ret)
--- 
-2.6.4
-
+SGkgRGV2aW4sDQoNCkkgdG9vayBzb21lIHBpY3R1cmVzIG9mIG15IGRldmljZToNCmh0dHA6Ly9p
+LmltZ3VyLmNvbS9mdG9IZU92LmpwZw0KaHR0cDovL2kuaW1ndXIuY29tLzJqWlBkUVUuanBnDQpo
+dHRwOi8vaS5pbWd1ci5jb20vMHBvRFhDVC5qcGcNCg0KTWFpbiBjaGlwOiBodHRwOi8vd3d3LnN1
+bXppLmNvbS91cGxvYWQvZmlsZXMvMjAwNy8wNy8yMDA3MDcxMjE3NDgyOTc0NTU3LlBERg0KZU1Q
+SUENCkVNMjg2MA0KUEFXMzAtMDEyDQoxMjI2LTAxQUcNCg0KQUM5NyBBdWRpbyBDaGlwOiBodHRw
+Oi8vcGRmLmR6c2MuY29tLzIwMDkwMjI3LzIwMDkwMjE3MDMyNDAyOTg1OS5wZGYNCmVNUElBDQpU
+RUNITk9MT0dZDQpFTVAyMDINClQxMDM1NA0KMTIyMg0KDQoNCkRlY29kZXI6IGh0dHA6Ly93d3cu
+aGV5cmljay5jby51ay9ibG9nL2ZpbGVzL2RhdGFzaGVldHMvNTE1MGFtMS5wZGYNCjUxNTBBTTEN
+CjE4VA0KQ1RaSg0KDQoNCg0KT2xkZXIgdmVyc2lvbnMgb2YgdGhpcyBkZXZpY2UgdXNlZCBhIFRW
+TWFzdGVyIGNoaXAsIGFzIHNlZW4gaW4gdGhpcyANCnBpY3R1cmUgdGhhdCBJIGZvdW5kIG9uIHRo
+ZSBXZWI6IGh0dHA6Ly9zZWJicm8ubmwvSU1HXzIwMTQwMjE4XzEzMDE1Mi5qcGcNCg0KSW4gdGVy
+bXMgb2YgdmlkZW8sIEkgY2FuJ3Qgc2VsZWN0IHRoZSBkZXZpY2UgaW4gVkxDLCBDaGVlc2UgYW5k
+IGd1dmN2aWV3IA0KYmVjYXVzZSBpdCBkb2Vzbid0IGFwcGVhciBpbiB0aGUgdmlkZW8gZGV2aWNl
+IHNlbGVjdGlvbiBjb21ib2JveCBpbiBhbnkgDQpvZiB0aGVzZSBwcm9ncmFtcy4gVGhlIGF1ZGlv
+IGRvZXNuJ3Qgd29yayB0b28sIGxpa2UgSSBleHBsYWluZWQgaW4gbXkgDQpwcmV2aW91cyBtYWls
+LiBBbHNvLCBJIGNhbid0IHJ1biBUVnRpbWUgb24gbXkgY29tcHV0ZXIgYmVjYXVzZSBpdCANCnJl
+cXVpcmVzIGEgaGFyZHdhcmUgWVVZMiBvdmVybGF5IHN1cHBvcnQgZnJvbSBteSB2aWRlbyBjYXJk
+IGFuZCBBVEkncyANCmRyaXZlcnMgd29uJ3Qgd29yay4NCg0KT24gV2luZG93cywgaXQgd29ya3Mg
+ZmluZS4gSSd2ZSBkb3dubG9hZGVkIHRoZSBkcml2ZXJzIGZyb20gdGhlIA0KbWFudWZhY3R1cmVy
+J3Mgd2Vic2l0ZTogDQpodHRwOi8vd3d3LmlvbmF1ZGlvLmNvbS9wcm9kdWN0cy9kZXRhaWxzL3Zp
+ZGVvLTItcGMtbWtpaQ0KDQotLUFsZXhhbmRyZS1YYXZpZXINCg0KDQoNCg0KT24gMDcvMDEvMjAx
+NiAxMDowMyBBTSwgRGV2aW4gSGVpdG11ZWxsZXIgd3JvdGU6DQo+IEhpIEFsZXhhbmRyZSwNCj4N
+Cj4+IEJ1cyAwMDEgRGV2aWNlIDAwMjogSUQgZWIxYTo1MDUxIGVNUElBIFRlY2hub2xvZ3ksIElu
+Yy4NCj4gVGhlIGZhY3QgdGhhdCB0aGUgYm9hcmQgaWRlbnRpZmllcyB3aXRoIFVTQiBwcm9kdWN0
+IElEIDUwNTEgbWFrZXMgbWUNCj4gd29uZGVyIGlmIHBlcmhhcHMgdGhleSBtb3ZlZCBhd2F5IGZy
+b20gdGhlIHR2cDUxNTAgYW5kIHNhYTcxMTMgKGJvdGgNCj4gb2Ygd2hpY2ggd2VudCBFT0wgc29t
+ZSB0aW1lIGFnbyksIGFuZCBzd2l0Y2hlZCB0byB0aGUgdHZwNTE1MSBmb3IgdGhlDQo+IHZpZGVv
+IGRlY29kZXIuICBBbnkgY2hhbmNlIHlvdSBjYW4gdGFrZSB0aGUgdW5pdCBhcGFydCBhbmQgZ2V0
+IHNvbWUNCj4gcGhvdG9zPw0KPg0KPiBXaGF0IGJlaGF2aW9yIGFyZSB5b3Ugc2VlaW5nIGV4YWN0
+bHkgd2l0aCB0aGlzIGRldmljZSBpbiB0ZXJtcyBvZiB2aWRlbz8NCj4NCj4gQm90aCBDaGVlc2Ug
+YW5kIEdVQ1ZpZXcgYXJlIHRhcmdldGVkIHByaW1hcmlseSBhdCB3ZWJjYW1zLCBzbyB0aGV5IG1h
+eQ0KPiBub3Qgd29yayB2ZXJ5IHdlbGwgd2l0aCBnZW5lcmljIHZpZGVvIGNhcHR1cmUgZGV2aWNl
+cyBpbnRlbmRlZCBmb3IgVFYNCj4gc2lnbmFscy4gIFlvdSBtaWdodCBiZSBiZXR0ZXIgb2ZmIHRy
+eWluZyBhbiBhcHAgbGlrZSB0dnRpbWUuDQo+DQo+IERldmluDQo+DQoNCg==
