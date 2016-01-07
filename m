@@ -1,91 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43364 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758057AbcAKDJg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 22:09:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Add YUV 4:2:2 and YUV 4:4:4 tri-planar non-contiguous formats
-Date: Mon, 11 Jan 2016 05:09:45 +0200
-Message-ID: <1657661.CoXsjoUhCV@avalon>
-In-Reply-To: <56473C30.2090903@xs4all.nl>
-References: <1447507593-15016-1-git-send-email-laurent.pinchart@ideasonboard.com> <56473C30.2090903@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lists.s-osg.org ([54.187.51.154]:44163 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242AbcAGMrU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 07:47:20 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v2 04/10] [media] tvp5150: Add pixel rate control support
+Date: Thu,  7 Jan 2016 09:46:44 -0300
+Message-Id: <1452170810-32346-5-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thank you for the review.
+This patch adds support for the V4L2_CID_PIXEL_RATE control.
 
-On Saturday 14 November 2015 14:50:40 Hans Verkuil wrote:
-> On 11/14/2015 02:26 PM, Laurent Pinchart wrote:
-> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > 
-> > The formats use three planes through the multiplanar API, allowing for
-> > non-contiguous planes in memory.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml | 159 ++++++++++++++++
-> >  Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml | 171 ++++++++++++++++
-> >  Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml | 159 ++++++++++++++++
-> >  Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml | 171 ++++++++++++++++
-> >  Documentation/DocBook/media/v4l/pixfmt.xml         |   4 +
-> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   4 +
-> >  include/uapi/linux/videodev2.h                     |   4 +
-> >  7 files changed, 672 insertions(+)
-> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
-> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
-> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml
-> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml
-> > 
-> > Hello,
-> > 
-> > The driver using those formats should follow in the not too distant
-> > future, but I'd appreciate getting feedback on the definitions already.
-> 
-> Looks good, but I would combine yuv422m and yvu422m, and do the same for the
-> 444m variants. It's overkill to split this up.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
 
-The reason I've split them is that yuv420m and yvu420m are split. I can 
-combine them.
+Changes in v2: None
 
-> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
-> > b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml new file mode 100644
-> > index 000000000000..f4d8d74e7f74
-> > --- /dev/null
-> > +++ b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
-> > @@ -0,0 +1,159 @@
-> > +    <refentry id="V4L2-PIX-FMT-YUV422M">
-> > +      <refmeta>
-> > +	<refentrytitle>V4L2_PIX_FMT_YUV422M ('YM16')</refentrytitle>
-> > +	&manvol;
-> > +      </refmeta>
-> > +      <refnamediv>
-> > +	<refname> <constant>V4L2_PIX_FMT_YUV422M</constant></refname>
-> > +	<refpurpose>Planar formats with &frac12; horizontal resolution, also
-> > +	known as YUV 4:2:2</refpurpose>
-> > +      </refnamediv>
-> > +
-> > +      <refsect1>
-> > +	<title>Description</title>
-> > +
-> > +	<para>This is a multi-planar format, as opposed to a packed format.
-> > +The three components are separated into three sub- images or planes.
-> 
-> No space needed after 'sub-'.
+ drivers/media/i2c/tvp5150.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Will fix.
-
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 82fba9d46f30..71473cec236a 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1204,7 +1204,7 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	core->input = TVP5150_COMPOSITE1;
+ 	core->enable = 1;
+ 
+-	v4l2_ctrl_handler_init(&core->hdl, 4);
++	v4l2_ctrl_handler_init(&core->hdl, 5);
+ 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
+ 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+ 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
+@@ -1213,6 +1213,9 @@ static int tvp5150_probe(struct i2c_client *c,
+ 			V4L2_CID_SATURATION, 0, 255, 1, 128);
+ 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
+ 			V4L2_CID_HUE, -128, 127, 1, 0);
++	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
++			V4L2_CID_PIXEL_RATE, 27000000,
++			27000000, 1, 27000000);
+ 	sd->ctrl_handler = &core->hdl;
+ 	if (core->hdl.error) {
+ 		res = core->hdl.error;
 -- 
-Regards,
-
-Laurent Pinchart
+2.4.3
 
