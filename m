@@ -1,193 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:32982 "EHLO
-	mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933788AbcAKRbq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 12:31:46 -0500
-Received: by mail-pf0-f170.google.com with SMTP id e65so47920352pfe.0
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 09:31:46 -0800 (PST)
-From: Douglas Anderson <dianders@chromium.org>
-To: linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	robin.murphy@arm.com, tfiga@chromium.org, m.szyprowski@samsung.com
-Cc: pawel@osciak.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hch@infradead.org, Douglas Anderson <dianders@chromium.org>,
-	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v6 4/5] videobuf2-dc: Let drivers specify DMA attrs
-Date: Mon, 11 Jan 2016 09:30:26 -0800
-Message-Id: <1452533428-12762-5-git-send-email-dianders@chromium.org>
-In-Reply-To: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
+Received: from lists.s-osg.org ([54.187.51.154]:44198 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753379AbcAGMrj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 07:47:39 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v2 09/10] [media] tvp5150: Initialize the chip on probe
+Date: Thu,  7 Jan 2016 09:46:49 -0300
+Message-Id: <1452170810-32346-10-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Figa <tfiga@chromium.org>
+After power-up, the tvp5150 decoder is in a unknown state until the
+RESETB pin is driven LOW which reset all the registers and restarts
+the chip's internal state machine.
 
-DMA allocations might be subject to certain reqiurements specific to the
-hardware using the buffers, such as availability of kernel mapping (for
-contents fix-ups in the driver). The only entity that knows them is the
-driver, so it must share this knowledge with vb2-dc.
+The init sequence has some timing constraints and the RESETB signal
+can only be used if the PDN (Power-down) pin is first released.
 
-This patch extends the alloc_ctx initialization interface to let the
-driver specify DMA attrs, which are then stored inside the allocation
-context and will be used for all allocations with that context.
+So, the initialization sequence is as follows:
 
-As a side effect, all dma_*_coherent() calls are turned into
-dma_*_attrs() calls, because the attributes need to be carried over
-through all DMA operations.
+1- PDN (active-low) is driven HIGH so the chip is power-up
+2- A 20 ms delay is needed before sending a RESETB (active-low) signal.
+3- The RESETB pulse duration is 500 ns.
+4- A 200 us delay is needed for the I2C client to be active after reset.
 
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
+This patch used as a reference the logic in the IGEPv2 board file from
+the ISEE 2.6.37 vendor tree.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
-Changes in v6: None
-Changes in v5:
-- Let drivers specify DMA attrs new for v5
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
+Changes in v2:
+- Include missing linux/gpio/consumer.h header. Reported by kbuild test robot.
+- Keep the headers sorted alphabetically. Suggested by Laurent Pinchart.
+- Rename powerdown to pdn to match datasheet pin. Suggested by Laurent Pinchart.
 
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 33 +++++++++++++++++---------
- include/media/videobuf2-dma-contig.h           | 11 ++++++++-
- 2 files changed, 32 insertions(+), 12 deletions(-)
+ drivers/media/i2c/tvp5150.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index c33127284cfe..5361197f3e57 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -23,13 +23,16 @@
- 
- struct vb2_dc_conf {
- 	struct device		*dev;
-+	struct dma_attrs	attrs;
- };
- 
- struct vb2_dc_buf {
- 	struct device			*dev;
- 	void				*vaddr;
- 	unsigned long			size;
-+	void				*cookie;
- 	dma_addr_t			dma_addr;
-+	struct dma_attrs		attrs;
- 	enum dma_data_direction		dma_dir;
- 	struct sg_table			*dma_sgt;
- 	struct frame_vector		*vec;
-@@ -131,7 +134,8 @@ static void vb2_dc_put(void *buf_priv)
- 		sg_free_table(buf->sgt_base);
- 		kfree(buf->sgt_base);
- 	}
--	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
-+			&buf->attrs);
- 	put_device(buf->dev);
- 	kfree(buf);
- }
-@@ -147,14 +151,18 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
--						GFP_KERNEL | gfp_flags);
--	if (!buf->vaddr) {
-+	buf->attrs = conf->attrs;
-+	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
-+					GFP_KERNEL | gfp_flags, &buf->attrs);
-+	if (!buf->cookie) {
- 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-+	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &buf->attrs))
-+		buf->vaddr = buf->cookie;
-+
- 	/* Prevent the device from being released while the buffer is used */
- 	buf->dev = get_device(dev);
- 	buf->size = size;
-@@ -185,8 +193,8 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	 */
- 	vma->vm_pgoff = 0;
- 
--	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
--		buf->dma_addr, buf->size);
-+	ret = dma_mmap_attrs(buf->dev, vma, buf->cookie,
-+		buf->dma_addr, buf->size, &buf->attrs);
- 
- 	if (ret) {
- 		pr_err("Remapping memory failed, error: %d\n", ret);
-@@ -329,7 +337,7 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
- {
- 	struct vb2_dc_buf *buf = dbuf->priv;
- 
--	return buf->vaddr + pgnum * PAGE_SIZE;
-+	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index caac96a577f8..48df7615eb64 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -9,6 +9,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/delay.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/module.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+@@ -1197,6 +1198,36 @@ static int tvp5150_detect_version(struct tvp5150 *core)
+ 	return 0;
  }
  
- static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
-@@ -368,8 +376,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
- 		return NULL;
- 	}
- 
--	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
--		buf->size);
-+	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
-+		buf->size, &buf->attrs);
- 	if (ret < 0) {
- 		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
- 		kfree(sgt);
-@@ -721,7 +729,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
--void *vb2_dma_contig_init_ctx(struct device *dev)
-+void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
-+				    struct dma_attrs *attrs)
- {
- 	struct vb2_dc_conf *conf;
- 
-@@ -730,10 +739,12 @@ void *vb2_dma_contig_init_ctx(struct device *dev)
- 		return ERR_PTR(-ENOMEM);
- 
- 	conf->dev = dev;
-+	if (attrs)
-+		conf->attrs = *attrs;
- 
- 	return conf;
- }
--EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-+EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx_attrs);
- 
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- {
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index c33dfa69d7ab..2087c9a68be3 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -16,6 +16,8 @@
- #include <media/videobuf2-v4l2.h>
- #include <linux/dma-mapping.h>
- 
-+struct dma_attrs;
-+
- static inline dma_addr_t
- vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
- {
-@@ -24,7 +26,14 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
- 	return *addr;
- }
- 
--void *vb2_dma_contig_init_ctx(struct device *dev);
-+void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
-+				    struct dma_attrs *attrs);
-+
-+static inline void *vb2_dma_contig_init_ctx(struct device *dev)
++static int tvp5150_init(struct i2c_client *c)
 +{
-+	return vb2_dma_contig_init_ctx_attrs(dev, NULL);
++	struct gpio_desc *pdn_gpio;
++	struct gpio_desc *reset_gpio;
++
++	pdn_gpio = devm_gpiod_get_optional(&c->dev, "pdn", GPIOD_OUT_HIGH);
++	if (IS_ERR(pdn_gpio))
++		return PTR_ERR(pdn_gpio);
++
++	if (pdn_gpio) {
++		gpiod_set_value_cansleep(pdn_gpio, 0);
++		/* Delay time between power supplies active and reset */
++		msleep(20);
++	}
++
++	reset_gpio = devm_gpiod_get_optional(&c->dev, "reset", GPIOD_OUT_HIGH);
++	if (IS_ERR(reset_gpio))
++		return PTR_ERR(reset_gpio);
++
++	if (reset_gpio) {
++		/* RESETB pulse duration */
++		ndelay(500);
++		gpiod_set_value_cansleep(reset_gpio, 0);
++		/* Delay time between end of reset to I2C active */
++		usleep_range(200, 250);
++	}
++
++	return 0;
 +}
 +
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
+ static int tvp5150_probe(struct i2c_client *c,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -1209,6 +1240,10 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	     I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+ 		return -EIO;
  
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
++	res = tvp5150_init(c);
++	if (res)
++		return res;
++
+ 	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
+ 	if (!core)
+ 		return -ENOMEM;
 -- 
-2.6.0.rc2.230.g3dd15c0
+2.4.3
 
