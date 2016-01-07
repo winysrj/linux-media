@@ -1,67 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42919 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757216AbcAJQXp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 11:23:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] videobuf2-v4l2: Fix return with value warnings
-Date: Sun, 10 Jan 2016 18:23:55 +0200
-Message-ID: <8497172.cxLeiKAFLn@avalon>
-In-Reply-To: <1452441551-19426-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1452441551-19426-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:35913 "EHLO
+	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031AbcAGPDJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2016 10:03:09 -0500
+Received: by mail-qk0-f170.google.com with SMTP id q19so126020240qke.3
+        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 07:03:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
+References: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
+Date: Thu, 7 Jan 2016 10:03:08 -0500
+Message-ID: <CAGoCfix2v9PJK73s8qif4yaL86cBLsRrDpFm3tj30N2BpuKm7g@mail.gmail.com>
+Subject: Re: Getting my Ion Video 2 PC to work
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
+	<alexandrexavier@live.ca>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 10 January 2016 17:59:11 Laurent Pinchart wrote:
-> Commit 10cc3b1e1296 ("videobuf2-core: fill_user_buffer and
-> copy_timestamp should return void") forgot one return statement from the
-> videobuf2-v4l2 implementations of copy_timestamp and fill_user_buffer.
-> Remove them.
-> 
-> Fixes: 10cc3b1e1296 ("videobuf2-core: fill_user_buffer and copy_timestamp
-> should return void")
+Hi Alexandre,
 
-And that commit isn't upstream -_-'
+> Bus 001 Device 002: ID eb1a:5051 eMPIA Technology, Inc.
 
-Sorry for the noise.
+The fact that the board identifies with USB product ID 5051 makes me
+wonder if perhaps they moved away from the tvp5150 and saa7113 (both
+of which went EOL some time ago), and switched to the tvp5151 for the
+video decoder.  Any chance you can take the unit apart and get some
+photos?
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> b/drivers/media/v4l2-core/videobuf2-v4l2.c index a15cd1b4c7f0..bbbd8e1b1a99
-> 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -121,7 +121,7 @@ static void __copy_timestamp(struct vb2_buffer *vb,
-> const void *pb) struct vb2_queue *q = vb->vb2_queue;
-> 
->  	if (!pb)
-> -		return 0;
-> +		return;
-> 
->  	if (q->is_output) {
->  		/*
-> @@ -197,7 +197,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
-> void *pb) unsigned int plane;
-> 
->  	if (!pb)
-> -		return 0;
-> +		return;
-> 
->  	/* Copy back data such as timestamp, flags, etc. */
->  	b->index = vb->index;
+What behavior are you seeing exactly with this device in terms of video?
+
+Both Cheese and GUCView are targeted primarily at webcams, so they may
+not work very well with generic video capture devices intended for TV
+signals.  You might be better off trying an app like tvtime.
+
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
