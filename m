@@ -1,86 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:35352 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766AbcAHGZD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 01:25:03 -0500
-Received: by mail-io0-f177.google.com with SMTP id 77so246140217ioc.2
-        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 22:25:02 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:47071 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752055AbcAGU2F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 15:28:05 -0500
+Subject: Re: [PATCH 26/31] sound/usb: Update ALSA driver to use Managed Media
+ Controller API
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <ebef788534aae7fa740665660e04bdf1523fdbfe.1452105878.git.shuahkh@osg.samsung.com>
+ <s5ha8ohfl7f.wl-tiwai@suse.de>
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	clemens@ladisch.de, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, mchehab@osg.samsung.com,
+	alsa-devel@alsa-project.org, arnd@arndb.de,
+	ricard.wanderlof@axis.com, labbott@fedoraproject.org,
+	chehabrafael@gmail.com, misterpib@gmail.com,
+	prabhakar.csengg@gmail.com, ricardo.ribalda@gmail.com,
+	ruchandani.tina@gmail.com, takamichiho@gmail.com,
+	tvboxspy@gmail.com, dominic.sacre@gmx.de, crope@iki.fi,
+	julian@jusst.de, pierre-louis.bossart@linux.intel.com,
+	corbet@lwn.net, joe@oampo.co.uk, johan@oljud.se,
+	dan.carpenter@oracle.com, pawel@osciak.com, p.zabel@pengutronix.de,
+	perex@perex.cz, stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, k.kozlowski@samsung.com,
+	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linuxbugs@vittgam.net,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, daniel@zonque.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <568ECA48.1060908@osg.samsung.com>
+Date: Thu, 7 Jan 2016 13:27:52 -0700
 MIME-Version: 1.0
-Date: Fri, 8 Jan 2016 08:25:02 +0200
-Message-ID: <CAJ2oMhKLbDc1xBQgyz0Ga9K6PQ7M8OGTn7_dNywFs=3XrNrP6A@mail.gmail.com>
-Subject: Using v4l2 API example as-is for video capture
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <s5ha8ohfl7f.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 01/07/2016 08:44 AM, Takashi Iwai wrote:
+> On Wed, 06 Jan 2016 22:05:35 +0100,
+> Shuah Khan wrote:
+>>
+>> diff --git a/sound/usb/Makefile b/sound/usb/Makefile
+>> index 2d2d122..665fdd9 100644
+>> --- a/sound/usb/Makefile
+>> +++ b/sound/usb/Makefile
+>> @@ -2,6 +2,18 @@
+>>  # Makefile for ALSA
+>>  #
+>>  
+>> +# Media Controller
+>> +ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+>> +  ifeq ($(CONFIG_MEDIA_SUPPORT),y)
+>> +        KBUILD_CFLAGS += -DUSE_MEDIA_CONTROLLER
+>> +  endif
+>> +  ifeq ($(CONFIG_MEDIA_SUPPORT_MODULE),y)
+>> +    ifeq ($(MODULE),y)
+>> +          KBUILD_CFLAGS += -DUSE_MEDIA_CONTROLLER
+>> +    endif
+>> +  endif
+>> +endif
+> 
+> Can't we define this rather via Kconfig?
+> Doing this in Makefile is way too tricky, and it's unclear to users
+> whether MC is actually enabled or not.
+> 
 
-I am trying to use v4l2 example from API documentation:
-inhttp://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html .
-As a start, I wanted to first try uding it with vivid (virtual device driver).
-I found excelent vivid documentation in the kernel, which is very helpful:
-https://www.kernel.org/doc/Documentation/video4linux/vivid.txt
+Yeah doing this in Makefile is a bit tricky
+and can lead to confusion.
 
-But on trying to use the example as-is for capturing video frames into
-file, and playing the file, I encounter difficulties.
-I tried the example as-is, and then tried several resolution,
-pixelformat, different inputs, but it always result with video with a
-sync problems ( the test bars of the video are keep moving in the
-horizontal axis, or the text is changing its location for one frame to
-the next).
+I can't think of any specific reason why I added
+this check to the Makefile instead of Kconfig.
+Looks like I added this in my second version
+of the patch series several months ago and didn't
+revisit. I will add this to Kconfig.
+> 
+>> diff --git a/sound/usb/media.c b/sound/usb/media.c
+>> new file mode 100644
+>> index 0000000..747a66a
+>> --- /dev/null
+>> +++ b/sound/usb/media.c
+>> @@ -0,0 +1,214 @@
+>> +/*
+>> + * media.c - Media Controller specific ALSA driver code
+>> + *
+>> + * Copyright (c) 2015 Shuah Khan <shuahkh@osg.samsung.com>
+>> + * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+>> + *
+>> + * This file is released under the GPLv2.
+>> + */
+>> +
+>> +/*
+>> + * This file adds Media Controller support to ALSA driver
+>> + * to use the Media Controller API to share tuner with DVB
+>> + * and V4L2 drivers that control media device. Media device
+>> + * is created based on existing quirks framework. Using this
+>> + * approach, the media controller API usage can be added for
+>> + * a specific device.
+>> +*/
+>> +
+>> +#include <linux/init.h>
+>> +#include <linux/list.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/string.h>
+>> +#include <linux/ctype.h>
+>> +#include <linux/usb.h>
+>> +#include <linux/moduleparam.h>
+>> +#include <linux/mutex.h>
+>> +#include <linux/usb/audio.h>
+>> +#include <linux/usb/audio-v2.h>
+>> +#include <linux/module.h>
+>> +
+>> +#include <sound/control.h>
+>> +#include <sound/core.h>
+>> +#include <sound/info.h>
+>> +#include <sound/pcm.h>
+>> +#include <sound/pcm_params.h>
+>> +#include <sound/initval.h>
+>> +
+>> +#include "usbaudio.h"
+>> +#include "card.h"
+>> +#include "midi.h"
+>> +#include "mixer.h"
+>> +#include "proc.h"
+>> +#include "quirks.h"
+>> +#include "endpoint.h"
+>> +#include "helper.h"
+>> +#include "debug.h"
+>> +#include "pcm.h"
+>> +#include "format.h"
+>> +#include "power.h"
+>> +#include "stream.h"
+>> +#include "media.h"
+> 
+> I believe we can get rid of many include files just for MC support...
+> 
+> 
+>> +#ifdef USE_MEDIA_CONTROLLER
+> 
+> This ifdef can be removed once if we build this object file
+> conditionally in Makefile.
 
-I compiled the v4l2 API example AS-IS from:
-http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html with
-minor modification in the --force part of the example (I also tried
-the example as is without modifications but it did not help), so that
-I choose hd input , and 1920x1080 resolution, V4L2_PIX_FMT_YUV420
-(also tried V4L2_PIX_FMT_YUV422P) , progressive.
+Right.
 
-  if (force_format) {
-            input = 3;  // <<-- HD input device
-            if (-1==xioctl(fd,VIDIOC_S_INPUT,&input))
-            {
-             errno_exit("VIDIOC_S_INPUT");
-            }
-            fmt.fmt.pix.width       = 1920;
-            fmt.fmt.pix.height      = 1080;
-            fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; // <<-
-tried also V4L2_PIX_FMT_YUV422P
-            fmt.fmt.pix.field       = V4L2_FIELD_NONE; // <- trying to
-capture progressive
+> 
+> 
+>> @@ -1232,7 +1244,10 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
+>>  	subs->dsd_dop.channel = 0;
+>>  	subs->dsd_dop.marker = 1;
+>>  
+>> -	return setup_hw_info(runtime, subs);
+>> +	ret = setup_hw_info(runtime, subs);
+>> +	if (ret == 0)
+>> +		ret = media_stream_init(subs, as->pcm, direction);
+> 
+> Need to call snd_usb_autosuspend() in the error path.
 
-            if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
-                    errno_exit("VIDIOC_S_FMT");
+I will add it.
 
-    } else {
+> 
+> 
+>> --- a/sound/usb/quirks.c
+>> +++ b/sound/usb/quirks.c
+>> @@ -544,13 +545,19 @@ int snd_usb_create_quirk(struct snd_usb_audio *chip,
+>>  		[QUIRK_AUDIO_ALIGN_TRANSFER] = create_align_transfer_quirk,
+>>  		[QUIRK_AUDIO_STANDARD_MIXER] = create_standard_mixer_quirk,
+>>  	};
+>> +	int ret;
+>>  
+>> +	if (quirk->media_device) {
+>> +		/* don't want to fail when media_device_create() fails */
+>> +		media_device_create(chip, iface);
+>> +	}
+> 
+> So far, so good...
+> 
+>>  	if (quirk->type < QUIRK_TYPE_COUNT) {
+>> -		return quirk_funcs[quirk->type](chip, iface, driver, quirk);
+>> +		ret = quirk_funcs[quirk->type](chip, iface, driver, quirk);
+>>  	} else {
+>>  		usb_audio_err(chip, "invalid quirk type %d\n", quirk->type);
+>>  		return -ENXIO;
+>>  	}
+>> +	return ret;
+> 
+> Any reason to change this?
 
-I run the application with (the compiled code using pixelformat =
-V4L2_PIX_FMT_YUV420 trial ):
+Thanks for catching this. I think I might have
+added some debug code to print ret value and
+missed it when I cleaned up the debug code.
+I will fix it.
 
-./v4l2_example -f -o -c 10  > cap_yuv420p.yuv
+thanks,
+-- Shuah
 
-And (the compiled code using pixelformat = V4L2_PIX_FMT_YUV422P trial )
-
-./v4l2_example -f -o -c 10  > cap_yuv422p.yuv
-
-I've tried to play them with:
-
-ffplay -f rawvideo -pixel_format yuv420p -video_size 1920x1080 -i
-cap_yuv420p.yuv
-
-And
-
-ffplay -f rawvideo -pixel_format yuv422p -video_size 1920x1080 -i
-cap_yuv422p.yuv
-
-These are the captured video files from my above trials:
-
-https://drive.google.com/folderview?id=0B22GsWueReZTUS1tSHBraTAyZ00&usp=sharing
-
-I probably am doing something wrong. Is there any idea what's wrong in
-my configurations or how I can debug it better ?
-
-Best Regards,
-Ran
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
