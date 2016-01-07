@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback1.mail.ru ([94.100.181.184]:44466 "EHLO
-	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757592AbcAKKKH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 05:10:07 -0500
-Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
-	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 3CE40671A067
-	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 12:42:07 +0300 (MSK)
-From: andreykosh000@mail.ru
-To: linux-media@vger.kernel.org
-Cc: koshkoshka <andreykosh000@mail.ru>
-Subject: [PATCH] Fixed frequency range to 42-870 MHz
-Date: Mon, 11 Jan 2016 19:42:00 +1000
-Message-Id: <1452505320-10498-1-git-send-email-andreykosh000@mail.ru>
+Received: from lists.s-osg.org ([54.187.51.154]:45265 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324AbcAGS17 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 13:27:59 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/8] [media] adv7604: Check v4l2_of_parse_endpoint() return value
+Date: Thu,  7 Jan 2016 15:27:16 -0300
+Message-Id: <1452191248-15847-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: koshkoshka <andreykosh000@mail.ru>
+The v4l2_of_parse_endpoint() function can fail so check the return value.
 
-Signed-off-by: koshkoshka <andreykosh000@mail.ru>
-
-	modified:   drivers/media/tuners/si2157.c
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index ce157ed..86a753e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 55000000,
--		.frequency_max  = 862000000,
-+		.frequency_min  = 42000000,
-+		.frequency_max  = 870000000,
- 	},
+ drivers/media/i2c/adv7604.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index f8dd7505b529..ed3eccd94285 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2799,6 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
++	int ret;
+ 	u32 v;
  
- 	.init = si2157_init,
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+@@ -2808,7 +2809,11 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (!endpoint)
+ 		return -EINVAL;
+ 
+-	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	ret = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	if (ret) {
++		of_node_put(endpoint);
++		return ret;
++	}
+ 
+ 	if (!of_property_read_u32(endpoint, "default-input", &v))
+ 		state->pdata.default_input = v;
 -- 
-1.9.1
+2.4.3
 
