@@ -1,183 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:34146 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756874AbcALD3C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 22:29:02 -0500
-Received: by mail-lb0-f176.google.com with SMTP id cl12so47814018lbc.1
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 19:29:01 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 11 Jan 2016 22:29:00 -0500
-Message-ID: <CADe-3o1Q8OLHvwVem12=xRP3nWs-DiQzKOpkRONX++0=gbtFTw@mail.gmail.com>
-Subject: Bug 110671 - Sony DCR-TRV460 HandyCam Not Recognized Properly
-From: =?UTF-8?B?U2XCqm5uIEdpxpLGkmlu?= <seann.giffin@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001a11c33a668c465205291aa7e9
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:58049 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040AbcAGUoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2016 15:44:00 -0500
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Subject: [PATCH] uvc: Fix bytesperline calculation for planar YUV
+Date: Thu,  7 Jan 2016 15:43:48 -0500
+Message-Id: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=UTF-8
+The formula used to calculate bytesperline only works for packed format.
+So far, all planar format we support have their bytesperline equal to
+the image width (stride of the Y plane or a line of Y for M420).
 
-Bug #110671 - Sony DCR-TRV460 HandyCam Not Recognized Properly
+Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-I have a Sony HandyCam DCR-TRV460 which allows USB streaming from a
-live feed, from a Sony memory card, or from an 8mm tape.
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index d7723ce..ceb1d1b 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -142,6 +142,20 @@ static __u32 uvc_try_frame_interval(struct uvc_frame *frame, __u32 interval)
+ 	return interval;
+ }
+ 
++static __u32 uvc_v4l2_get_bytesperline(struct uvc_format *format,
++	struct uvc_frame *frame)
++{
++	switch (format->fcc) {
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_M420:
++		return frame->wWidth;
++	default:
++		return format->bpp * frame->wWidth / 8;
++	}
++}
++
+ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+ 	struct v4l2_format *fmt, struct uvc_streaming_control *probe,
+ 	struct uvc_format **uvc_format, struct uvc_frame **uvc_frame)
+@@ -245,7 +259,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+ 	fmt->fmt.pix.width = frame->wWidth;
+ 	fmt->fmt.pix.height = frame->wHeight;
+ 	fmt->fmt.pix.field = V4L2_FIELD_NONE;
+-	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
++	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
+ 	fmt->fmt.pix.sizeimage = probe->dwMaxVideoFrameSize;
+ 	fmt->fmt.pix.colorspace = format->colorspace;
+ 	fmt->fmt.pix.priv = 0;
+@@ -282,7 +296,7 @@ static int uvc_v4l2_get_format(struct uvc_streaming *stream,
+ 	fmt->fmt.pix.width = frame->wWidth;
+ 	fmt->fmt.pix.height = frame->wHeight;
+ 	fmt->fmt.pix.field = V4L2_FIELD_NONE;
+-	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
++	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
+ 	fmt->fmt.pix.sizeimage = stream->ctrl.dwMaxVideoFrameSize;
+ 	fmt->fmt.pix.colorspace = format->colorspace;
+ 	fmt->fmt.pix.priv = 0;
+-- 
+2.5.0
 
-The problem is that only the audio is recognized. I have tried every
-video-capture tool available for Linux and none of them (even VLC)
-recognize the camera.
-
-When the camera is set to "USB STREAM" I should be able to open it as
-a capture device. It worked fine under Windows XP with the official
-driver from Sony, but I have never been able to get it to work under
-Linux.
-
-In Windows XP, the device is identified as
-"USB\VID_054C&PID_00C0&REV_0100&MI_00". In Linux, using lsusb I get
-"ID 054c:00c0 Sony Corp. Handycam DCR-30".
-
-Attached are some details I hope you'll find helpful. I have no idea
-what kernel version this ever worked properly on, or if it ever did as
-I am new to Linux in the last 10 years and only discovered the problem
-after finding some old tapes I wished to convert to digital while
-cleaning out my attic this past weekend.
-
-Please have a look at
-https://bugzilla.kernel.org/show_bug.cgi?id=110671 for the log
-attachments in case the ones attached to this message don't show
-properly.
-
-----------
-"Yo, yo. I'm real happy for ya, and I'm glad you can read, but first,
-I wanna say that Seann has the best email signatures of all time. OF
-ALL TIME!" -- Kanye West, 2009 Email Signature Awards
-------------------------------------------------------------
-http://www.facebook.com/sdgiffin
-------------------------------------------------------------
-
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=US-ASCII; name="dmesg-usb.txt"
-Content-Disposition: attachment; filename="dmesg-usb.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ijau09mv0
-
-WzQxNzU5LjU5MzQ2OF0gdXNiIDItMjogVVNCIGRpc2Nvbm5lY3QsIGRldmljZSBudW1iZXIgNDYK
-WzQxNzU5Ljg2NDAyMF0gdXNiIDItMjogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIg
-NDcgdXNpbmcgZWhjaS1wY2kKWzQxNzU5Ljk5NjkzOV0gdXNiIDItMjogTmV3IFVTQiBkZXZpY2Ug
-Zm91bmQsIGlkVmVuZG9yPTA0ZTgsIGlkUHJvZHVjdD02ODYwCls0MTc1OS45OTY5NDRdIHVzYiAy
-LTI6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0xLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJl
-cj0zCls0MTc1OS45OTY5NDhdIHVzYiAyLTI6IFByb2R1Y3Q6IFNBTVNVTkdfQW5kcm9pZApbNDE3
-NTkuOTk2OTUxXSB1c2IgMi0yOiBNYW51ZmFjdHVyZXI6IFNBTVNVTkcKWzQxNzU5Ljk5Njk1NF0g
-dXNiIDItMjogU2VyaWFsTnVtYmVyOiBlNTU1YWZjZgpbNDE3NTkuOTk3Nzg3XSBjZGNfYWNtIDIt
-MjoxLjE6IHR0eUFDTTQ6IFVTQiBBQ00gZGV2aWNlCls1MjQ5MC42NDg1NDBdIHJldGlyZV9jYXB0
-dXJlX3VyYjogMTExIGNhbGxiYWNrcyBzdXBwcmVzc2VkCls1MjQ5MC44NDAwOTFdIHVzYiA2LTE6
-IFVTQiBkaXNjb25uZWN0LCBkZXZpY2UgbnVtYmVyIDMKWzUyNTAxLjMzMjAyOV0gdXNiIDYtMTog
-bmV3IGZ1bGwtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNCB1c2luZyB1aGNpX2hjZApbNTI1MDEu
-NDgzMDcyXSB1c2IgNi0xOiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MDU0YywgaWRQ
-cm9kdWN0PTAwYzAKWzUyNTAxLjQ4MzA3OF0gdXNiIDYtMTogTmV3IFVTQiBkZXZpY2Ugc3RyaW5n
-czogTWZyPTAsIFByb2R1Y3Q9MCwgU2VyaWFsTnVtYmVyPTAKWzUyOTE4LjYxNzQyM10gcmV0aXJl
-X2NhcHR1cmVfdXJiOiAxODIgY2FsbGJhY2tzIHN1cHByZXNzZWQKWzUyOTE4LjY0MDA2OF0gdXNi
-IDYtMTogVVNCIGRpc2Nvbm5lY3QsIGRldmljZSBudW1iZXIgNApbNTYwNjcuMTU2MDI2XSB1c2Ig
-Ni0xOiBuZXcgZnVsbC1zcGVlZCBVU0IgZGV2aWNlIG51bWJlciA1IHVzaW5nIHVoY2lfaGNkCls1
-NjA2Ny41MDcwODRdIHVzYiA2LTE6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0wNTRj
-LCBpZFByb2R1Y3Q9MDBjMApbNTYwNjcuNTA3MDg5XSB1c2IgNi0xOiBOZXcgVVNCIGRldmljZSBz
-dHJpbmdzOiBNZnI9MCwgUHJvZHVjdD0wLCBTZXJpYWxOdW1iZXI9MAo=
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=US-ASCII; name="lspci.txt"
-Content-Disposition: attachment; filename="lspci.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ijau0gt91
-
-MDA6MDAuMCBIb3N0IGJyaWRnZTogSW50ZWwgQ29ycG9yYXRpb24gODJQOTY1L0c5NjUgTWVtb3J5
-IENvbnRyb2xsZXIgSHViIChyZXYgMDIpCjAwOjAxLjAgUENJIGJyaWRnZTogSW50ZWwgQ29ycG9y
-YXRpb24gODJQOTY1L0c5NjUgUENJIEV4cHJlc3MgUm9vdCBQb3J0IChyZXYgMDIpCjAwOjFhLjAg
-VVNCIGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkpIFVT
-QiBVSENJIENvbnRyb2xsZXIgIzQgKHJldiAwMikKMDA6MWEuMSBVU0IgY29udHJvbGxlcjogSW50
-ZWwgQ29ycG9yYXRpb24gODI4MDFIIChJQ0g4IEZhbWlseSkgVVNCIFVIQ0kgQ29udHJvbGxlciAj
-NSAocmV2IDAyKQowMDoxYS43IFVTQiBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiA4Mjgw
-MUggKElDSDggRmFtaWx5KSBVU0IyIEVIQ0kgQ29udHJvbGxlciAjMiAocmV2IDAyKQowMDoxYi4w
-IEF1ZGlvIGRldmljZTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFIIChJQ0g4IEZhbWlseSkgSEQg
-QXVkaW8gQ29udHJvbGxlciAocmV2IDAyKQowMDoxYy4wIFBDSSBicmlkZ2U6IEludGVsIENvcnBv
-cmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkpIFBDSSBFeHByZXNzIFBvcnQgMSAocmV2IDAyKQow
-MDoxYy4zIFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkp
-IFBDSSBFeHByZXNzIFBvcnQgNCAocmV2IDAyKQowMDoxYy40IFBDSSBicmlkZ2U6IEludGVsIENv
-cnBvcmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkpIFBDSSBFeHByZXNzIFBvcnQgNSAocmV2IDAy
-KQowMDoxZC4wIFVTQiBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUggKElDSDgg
-RmFtaWx5KSBVU0IgVUhDSSBDb250cm9sbGVyICMxIChyZXYgMDIpCjAwOjFkLjEgVVNCIGNvbnRy
-b2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkpIFVTQiBVSENJIENv
-bnRyb2xsZXIgIzIgKHJldiAwMikKMDA6MWQuMiBVU0IgY29udHJvbGxlcjogSW50ZWwgQ29ycG9y
-YXRpb24gODI4MDFIIChJQ0g4IEZhbWlseSkgVVNCIFVIQ0kgQ29udHJvbGxlciAjMyAocmV2IDAy
-KQowMDoxZC43IFVTQiBjb250cm9sbGVyOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUggKElDSDgg
-RmFtaWx5KSBVU0IyIEVIQ0kgQ29udHJvbGxlciAjMSAocmV2IDAyKQowMDoxZS4wIFBDSSBicmlk
-Z2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxIFBDSSBCcmlkZ2UgKHJldiBmMikKMDA6MWYuMCBJ
-U0EgYnJpZGdlOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUhCL0hSIChJQ0g4L1IpIExQQyBJbnRl
-cmZhY2UgQ29udHJvbGxlciAocmV2IDAyKQowMDoxZi4yIElERSBpbnRlcmZhY2U6IEludGVsIENv
-cnBvcmF0aW9uIDgyODAxSCAoSUNIOCBGYW1pbHkpIDQgcG9ydCBTQVRBIENvbnRyb2xsZXIgW0lE
-RSBtb2RlXSAocmV2IDAyKQowMDoxZi4zIFNNQnVzOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUgg
-KElDSDggRmFtaWx5KSBTTUJ1cyBDb250cm9sbGVyIChyZXYgMDIpCjAwOjFmLjUgSURFIGludGVy
-ZmFjZTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFIUi9ITy9ISCAoSUNIOFIvRE8vREgpIDIgcG9y
-dCBTQVRBIENvbnRyb2xsZXIgW0lERSBtb2RlXSAocmV2IDAyKQowMTowMC4wIFZHQSBjb21wYXRp
-YmxlIGNvbnRyb2xsZXI6IEFkdmFuY2VkIE1pY3JvIERldmljZXMsIEluYy4gW0FNRC9BVEldIFR1
-cmtzIFhUIFtSYWRlb24gSEQgNjY3MC83NjcwXQowMTowMC4xIEF1ZGlvIGRldmljZTogQWR2YW5j
-ZWQgTWljcm8gRGV2aWNlcywgSW5jLiBbQU1EL0FUSV0gVHVya3MvV2hpc3RsZXIgSERNSSBBdWRp
-byBbUmFkZW9uIEhEIDYwMDAgU2VyaWVzXQowMjowMC4wIFNBVEEgY29udHJvbGxlcjogSk1pY3Jv
-biBUZWNobm9sb2d5IENvcnAuIEpNQjM2MyBTQVRBL0lERSBDb250cm9sbGVyIChyZXYgMDIpCjAy
-OjAwLjEgSURFIGludGVyZmFjZTogSk1pY3JvbiBUZWNobm9sb2d5IENvcnAuIEpNQjM2MyBTQVRB
-L0lERSBDb250cm9sbGVyIChyZXYgMDIpCjAzOjAwLjAgRXRoZXJuZXQgY29udHJvbGxlcjogUmVh
-bHRlayBTZW1pY29uZHVjdG9yIENvLiwgTHRkLiBSVEw4MTExLzgxNjgvODQxMSBQQ0kgRXhwcmVz
-cyBHaWdhYml0IEV0aGVybmV0IENvbnRyb2xsZXIgKHJldiAwMSkKMDU6MDIuMCBSQUlEIGJ1cyBj
-b250cm9sbGVyOiBQcm9taXNlIFRlY2hub2xvZ3ksIEluYy4gUERDMjAyNzAgKEZhc3RUcmFrMTAw
-IExQL1RYMi9UWDQpIChyZXYgMDIpCg==
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=US-ASCII; name="lsusb.txt"
-Content-Disposition: attachment; filename="lsusb.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ijau0m1y2
-
-QnVzIDAwMiBEZXZpY2UgMDA3OiBJRCAxM2IxOjAwMmYgTGlua3N5cyBBRTEwMDAgdjEgODAyLjEx
-biBbUmFsaW5rIFJUMzU3Ml0KQnVzIDAwMiBEZXZpY2UgMDA1OiBJRCAwNWUzOjA3MTggR2VuZXN5
-cyBMb2dpYywgSW5jLiBJREUvU0FUQSBBZGFwdGVyCkJ1cyAwMDIgRGV2aWNlIDA0NzogSUQgMDRl
-ODo2ODYwIFNhbXN1bmcgRWxlY3Ryb25pY3MgQ28uLCBMdGQgR1QtSTkxMDAgUGhvbmUgW0dhbGF4
-eSBTIElJXSwgR1QtSTkzMDAgUGhvbmUgW0dhbGF4eSBTIElJSV0sIEdULVA3NTAwIFtHYWxheHkg
-VGFiIDEwLjFdCkJ1cyAwMDIgRGV2aWNlIDAwMjogSUQgMGMwYjpiMTU5IER1cmEgTWljcm8sIElu
-Yy4gKEFjb21kYXRhKSAKQnVzIDAwMiBEZXZpY2UgMDAxOiBJRCAxZDZiOjAwMDIgTGludXggRm91
-bmRhdGlvbiAyLjAgcm9vdCBodWIKQnVzIDAwNyBEZXZpY2UgMDAyOiBJRCAwNDZkOmMwMTggTG9n
-aXRlY2gsIEluYy4gT3B0aWNhbCBXaGVlbCBNb3VzZQpCdXMgMDA3IERldmljZSAwMDE6IElEIDFk
-NmI6MDAwMSBMaW51eCBGb3VuZGF0aW9uIDEuMSByb290IGh1YgpCdXMgMDA2IERldmljZSAwMDU6
-IElEIDA1NGM6MDBjMCBTb255IENvcnAuIEhhbmR5Y2FtIERDUi0zMApCdXMgMDA2IERldmljZSAw
-MDE6IElEIDFkNmI6MDAwMSBMaW51eCBGb3VuZGF0aW9uIDEuMSByb290IGh1YgpCdXMgMDA1IERl
-dmljZSAwMDE6IElEIDFkNmI6MDAwMSBMaW51eCBGb3VuZGF0aW9uIDEuMSByb290IGh1YgpCdXMg
-MDAxIERldmljZSAwMDE6IElEIDFkNmI6MDAwMiBMaW51eCBGb3VuZGF0aW9uIDIuMCByb290IGh1
-YgpCdXMgMDA0IERldmljZSAwMDE6IElEIDFkNmI6MDAwMSBMaW51eCBGb3VuZGF0aW9uIDEuMSBy
-b290IGh1YgpCdXMgMDAzIERldmljZSAwMDE6IElEIDFkNmI6MDAwMSBMaW51eCBGb3VuZGF0aW9u
-IDEuMSByb290IGh1Ygo=
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=US-ASCII; name="syslog.txt"
-Content-Disposition: attachment; filename="syslog.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ijau0qwm3
-
-SmFuIDExIDEyOjM0OjMzIGJsYWNrLWJlYXN0IHN5c3RlbWRbMV06IFN0YXJ0ZWQgTmV0d29yayBN
-YW5hZ2VyIFNjcmlwdCBEaXNwYXRjaGVyIFNlcnZpY2UuCkphbiAxMSAxMjozOTowMSBibGFjay1i
-ZWFzdCBDUk9OWzMyOTVdOiAocm9vdCkgQ01EICggIFsgLXggL3Vzci9saWIvcGhwNS9zZXNzaW9u
-Y2xlYW4gXSAmJiAvdXNyL2xpYi9waHA1L3Nlc3Npb25jbGVhbikKSmFuIDExIDEzOjAwOjQ3IGJs
-YWNrLWJlYXN0IGtlcm5lbDogWzU2MDY3LjE1NjAyNl0gdXNiIDYtMTogbmV3IGZ1bGwtc3BlZWQg
-VVNCIGRldmljZSBudW1iZXIgNSB1c2luZyB1aGNpX2hjZApKYW4gMTEgMTM6MDA6NDcgYmxhY2st
-YmVhc3Qga2VybmVsOiBbNTYwNjcuNTA3MDg0XSB1c2IgNi0xOiBOZXcgVVNCIGRldmljZSBmb3Vu
-ZCwgaWRWZW5kb3I9MDU0YywgaWRQcm9kdWN0PTAwYzAKSmFuIDExIDEzOjAwOjQ3IGJsYWNrLWJl
-YXN0IGtlcm5lbDogWzU2MDY3LjUwNzA4OV0gdXNiIDYtMTogTmV3IFVTQiBkZXZpY2Ugc3RyaW5n
-czogTWZyPTAsIFByb2R1Y3Q9MCwgU2VyaWFsTnVtYmVyPTAKSmFuIDExIDEzOjAwOjQ4IGJsYWNr
-LWJlYXN0IG10cC1wcm9iZTogY2hlY2tpbmcgYnVzIDYsIGRldmljZSA1OiAiL3N5cy9kZXZpY2Vz
-L3BjaTAwMDA6MDAvMDAwMDowMDoxZC4xL3VzYjYvNi0xIgpKYW4gMTEgMTM6MDA6NDggYmxhY2st
-YmVhc3QgbXRwLXByb2JlOiBidXM6IDYsIGRldmljZTogNSB3YXMgbm90IGFuIE1UUCBkZXZpY2UK
---001a11c33a668c465205291aa7e9
-Content-Type: text/plain; charset=US-ASCII; name="uname.txt"
-Content-Disposition: attachment; filename="uname.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ijau0xfq4
-
-TGludXggYmxhY2stYmVhc3QgNC4zLjAtMDQwMzAwLWdlbmVyaWMgIzIwMTUxMTAyMDk0OSBTTVAg
-TW9uIE5vdiAyIDE0OjUwOjQ0IFVUQyAyMDE1IHg4Nl82NCB4ODZfNjQgeDg2XzY0IEdOVS9MaW51
-eAo=
---001a11c33a668c465205291aa7e9--
