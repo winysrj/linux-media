@@ -1,168 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-09v.sys.comcast.net ([96.114.154.168]:44691 "EHLO
-	resqmta-po-09v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064AbcAFU1c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:32 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 07/31] media: Media Controller non-locking __media_entity_pipeline_start/stop()
-Date: Wed,  6 Jan 2016 13:26:56 -0700
-Message-Id: <827307083c45909d1197a463a07dffc2f4fe3c83.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:34024 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbcAGRUx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2016 12:20:53 -0500
+Received: by mail-ob0-f175.google.com with SMTP id wp13so196939256obc.1
+        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 09:20:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <561B89FD.4010802@xs4all.nl>
+References: <CAH-u=81zwkTxjYEsO8rNLf687-nGuj3DdJNeF6bmnxSUSVYQQg@mail.gmail.com>
+ <561B89FD.4010802@xs4all.nl>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Thu, 7 Jan 2016 18:20:33 +0100
+Message-ID: <CAH-u=814zPmoMZ6JxChkk7KEXXP8AaX4tfao2urv+=sf44La9w@mail.gmail.com>
+Subject: Re: [RFC] ADV7604: VGA support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add non-locking __media_entity_pipeline_start/stop() interfaces
-to be called from code paths that hold the graph_mutex. For this
-change, the media_entity_pipeline_start() routine is renamed to
-__media_entity_pipeline_start() minus the graph_mutex lock and
-unlock. media_entity_pipeline_start() now calls the non-locking
-__media_entity_pipeline_start() holding the graph_lock. The stop
-interface, media_entity_pipeline_stop() routine is renamed to
-__media_entity_pipeline_stop() minus the graph_mutex lock and
-unlock. media_entity_pipeline_stop() now calls the non-locking
-__media_entity_pipeline_stop() holding the graph_lock.
+Hi Hans,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/media-entity.c | 34 ++++++++++++++++++++++++----------
- include/media/media-entity.h | 12 ++++++++++++
- 2 files changed, 36 insertions(+), 10 deletions(-)
+2015-10-12 12:22 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> On 10/04/2015 06:17 PM, Jean-Michel Hautbois wrote:
+>> Hi,
+>>
+>> I had another look into the ADV7604 HW manual, and I understand that
+>> in automatic mode, there is 4 AIN_SEL values possible, determining the
+>> connection on AIN pins.
+>> Now, having a look at the current ADV76xx files, I can see that two
+>> pads are there :
+>> ADV7604_PAD_VGA_RGB and ADV7604_PAD_VGA_COMP.
+>>
+>> According to the manual, my understanding is that we should have four
+>> HDMI pads and four analog pads. The latter would be configured as RGB
+>> or component, which allows four analog inputs as described in the HW
+>> manual.
+>
+> When I wrote the driver we only needed one VGA input receiving either RGB
+> or YCbCr. Hence there is only one analog input and two pads. I wouldn't have
+> been able to test the additional analog inputs anyway.
+>
+> I chose to use pads to select between the two modes, but that's something
+> that can be changed (it's not something you can autodetect, unfortunately).
+>
+> If you want to add support for all four analog inputs, then feel free to
+> do so.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index b8769aa..270ade2 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -361,8 +361,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-  * Pipeline management
-  */
- 
--__must_check int media_entity_pipeline_start(struct media_entity *entity,
--					     struct media_pipeline *pipe)
-+__must_check int __media_entity_pipeline_start(struct media_entity *entity,
-+					       struct media_pipeline *pipe)
- {
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct media_entity_graph *graph = &pipe->graph;
-@@ -370,8 +370,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 	struct media_link *link;
- 	int ret;
- 
--	mutex_lock(&mdev->graph_mutex);
--
- 	if (!pipe->streaming_count++) {
- 		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
- 		if (ret)
-@@ -452,8 +450,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 		}
- 	}
- 
--	mutex_unlock(&mdev->graph_mutex);
--
- 	return 0;
- 
- error:
-@@ -483,19 +479,28 @@ error_graph_walk_start:
- 	if (!--pipe->streaming_count)
- 		media_entity_graph_walk_cleanup(graph);
- 
--	mutex_unlock(&mdev->graph_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__media_entity_pipeline_start);
- 
-+__must_check int media_entity_pipeline_start(struct media_entity *entity,
-+					     struct media_pipeline *pipe)
-+{
-+	struct media_device *mdev = entity->graph_obj.mdev;
-+	int ret;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	ret = __media_entity_pipeline_start(entity, pipe);
-+	mutex_unlock(&mdev->graph_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
- 
--void media_entity_pipeline_stop(struct media_entity *entity)
-+void __media_entity_pipeline_stop(struct media_entity *entity)
- {
--	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct media_entity_graph *graph = &entity->pipe->graph;
- 	struct media_pipeline *pipe = entity->pipe;
- 
--	mutex_lock(&mdev->graph_mutex);
- 
- 	WARN_ON(!pipe->streaming_count);
- 	media_entity_graph_walk_start(graph, entity);
-@@ -512,6 +517,15 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- 	if (!--pipe->streaming_count)
- 		media_entity_graph_walk_cleanup(graph);
- 
-+}
-+EXPORT_SYMBOL_GPL(__media_entity_pipeline_stop);
-+
-+void media_entity_pipeline_stop(struct media_entity *entity)
-+{
-+	struct media_device *mdev = entity->graph_obj.mdev;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	__media_entity_pipeline_stop(entity);
- 	mutex_unlock(&mdev->graph_mutex);
- }
- EXPORT_SYMBOL_GPL(media_entity_pipeline_stop);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 79dd81f..3f4f577 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -781,6 +781,12 @@ media_entity_graph_walk_next(struct media_entity_graph *graph);
-  */
- __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 					     struct media_pipeline *pipe);
-+/**
-+ * non-locking __media_entity_pipeline_start() can be called from
-+ * code paths that hold the graph_mutex
-+ */
-+__must_check int __media_entity_pipeline_start(struct media_entity *entity,
-+					       struct media_pipeline *pipe);
- 
- /**
-  * media_entity_pipeline_stop - Mark a pipeline as not streaming
-@@ -797,6 +803,12 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- void media_entity_pipeline_stop(struct media_entity *entity);
- 
- /**
-+ * non-locking __media_entity_pipeline_stop() can be called from
-+ * code paths that hold the graph_mutex
-+ */
-+void __media_entity_pipeline_stop(struct media_entity *entity);
-+
-+/**
-  * media_devnode_create() - creates and initializes a device node interface
-  *
-  * @mdev:	pointer to struct &media_device
--- 
-2.5.0
+OK, I don't have anything to test the additional inputs either...
+Something else so, the adv7604_state struct constains two fields,
+.ain_sel and .bus_order.
+Should those be parsed from DT (I think so) ? If so, how should it be
+named in the port{} node ?
 
+Thanks,
+JM
