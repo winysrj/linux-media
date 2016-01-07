@@ -1,90 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:34156 "EHLO
-	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954AbcASLKt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 06:10:49 -0500
-Received: by mail-lf0-f50.google.com with SMTP id 17so133878661lfz.1
-        for <linux-media@vger.kernel.org>; Tue, 19 Jan 2016 03:10:48 -0800 (PST)
-Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
- Development
-To: Simon Horman <horms+renesas@verge.net.au>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
-Cc: linux-renesas-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+Received: from lists.s-osg.org ([54.187.51.154]:44184 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753242AbcAGMrb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 07:47:31 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Enrico Butera <ebutera@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Eduard Gavin <egavinc@gmail.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <569E19B5.1000206@cogentembedded.com>
-Date: Tue, 19 Jan 2016 14:10:45 +0300
-MIME-Version: 1.0
-In-Reply-To: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH v2 07/10] [media] tvp5150: Add device tree binding document
+Date: Thu,  7 Jan 2016 09:46:47 -0300
+Message-Id: <1452170810-32346-8-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Add a Device Tree binding document for the TVP5150 video decoder.
 
-On 1/18/2016 4:04 AM, Simon Horman wrote:
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Update the mailing list used for development of support for
-> Renesas SoCs and related drivers.
->
-> Up until now the linux-sh mailing list has been used, however,
-> Renesas SoCs are now much wider than the SH architecture and there
-> is some desire from some for the linux-sh list to refocus on
-> discussion of the work on the SH architecture.
->
-> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
->
-> ---
-> * This patch applies on top of Linus's tree where currently the head commit
->    is 984065055e6e ("Merge branch 'drm-next' of
->    git://people.freedesktop.org/~airlied/linux")
->
->    This has been used as a base instead of v4.4 so that it is based on the
->    following two commits which affect it:
->    - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
->    - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
-> ---
->   MAINTAINERS | 16 ++++++++--------
->   1 file changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1d23f701489c..52a6ba79fa3f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-[...]
-> @@ -8413,7 +8413,7 @@ F:	drivers/pinctrl/intel/
->   PIN CONTROLLER - RENESAS
->   M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->   M:	Geert Uytterhoeven <geert+renesas@glider.be>
-> -L:	linux-sh@vger.kernel.org
-> +L:	linux-renesas-soc@vger.kernel.org
->   S:	Maintained
->   F:	drivers/pinctrl/sh-pfc/
->
-> @@ -9019,13 +9019,13 @@ F:	include/linux/rpmsg.h
->   RENESAS ETHERNET DRIVERS
->   R:	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->   L:	netdev@vger.kernel.org
-> -L:	linux-sh@vger.kernel.org
-> +L:	linux-renesas-soc@vger.kernel.org
->   F:	drivers/net/ethernet/renesas/
->   F:	include/linux/sh_eth.h
+---
 
-    If SH people are OK with these 2 chunks (these entries cover the drivers 
-used by SH as well):
+Changes in v2:
+- Fix indentation of the DTS example. Suggested by Rob Herring.
+- Rename powerdown-gpios to pdn-gpios to match the pin name in
+  the datasheet. Suggested by Laurent Pinchart.
+- Add optional properties for the video endpoint and list the supported
+  values. Suggested by Laurent Pinchart.
 
-Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+ .../devicetree/bindings/media/i2c/tvp5150.txt      | 45 ++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp5150.txt
 
-MBR, Sergei
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+new file mode 100644
+index 000000000000..8c0fc1a26bf0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+@@ -0,0 +1,45 @@
++* Texas Instruments TVP5150 and TVP5151 video decoders
++
++The TVP5150 and TVP5151 are video decoders that convert baseband NTSC and PAL
++(and also SECAM in the TVP5151 case) video signals to either 8-bit 4:2:2 YUV
++with discrete syncs or 8-bit ITU-R BT.656 with embedded syncs output formats.
++
++Required Properties:
++- compatible: value must be "ti,tvp5150"
++- reg: I2C slave address
++
++Optional Properties:
++- pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
++- reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Required Endpoint Properties for parallel synchronization:
++
++- hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
++- vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
++- field-even-active: field signal level during the even field data
++  transmission. Must be <0>.
++
++If none of hsync-active, vsync-active and field-even-active is specified,
++the endpoint is assumed to use embedded BT.656 synchronization.
++
++Example:
++
++&i2c2 {
++	...
++	tvp5150@5c {
++		compatible = "ti,tvp5150";
++		reg = <0x5c>;
++		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
++		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
++
++		port {
++			tvp5150_1: endpoint {
++				remote-endpoint = <&ccdc_ep>;
++			};
++		};
++	};
++};
+-- 
+2.4.3
 
