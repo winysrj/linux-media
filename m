@@ -1,41 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:59135 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965983AbcAZPaD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 10:30:03 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] [media] pwc: hide unused label
-Date: Tue, 26 Jan 2016 16:29:18 +0100
-Message-ID: <2829409.X8sFnRsOHN@wuerfel>
-In-Reply-To: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
-References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+Received: from static.vdc.vn ([123.30.8.197]:44128 "EHLO mail.vksndtc.gov.vn"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752478AbcAHOmM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 09:42:12 -0500
+Date: Fri, 8 Jan 2016 16:57:34 +0700 (ICT)
+From: Finance Department <tk_danang@vksndtc.gov.vn>
+Reply-To: Finance Department <un44401@qq.com>
+Message-ID: <1422368440.864507.1452247054168.JavaMail.zimbra@vksndtc.gov.vn>
+Subject: Payment
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 26 January 2016 15:09:55 Arnd Bergmann wrote:
-> The pwc driver causes a warning when CONFIG_USB_PWC_INPUT_EVDEV is unset:
-> 
-> drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
-> drivers/media/usb/pwc/pwc-if.c:1115:1: warning: label 'err_video_unreg' defined but not used [-Wunused-label]
-> 
-> Obviously, the cleanup of &pdev->vdev is not needed without the input device,
-> so we can just move it inside of the existing #ifdef and remove the
-> extra label.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
+Hello,
 
-Please ignore patch 1. I made some late changes and failed to noticed
-the build failure I introduced in another configuration.
+We wish to inform you that your email as been selected and awarded the sum of Eight Million Pounds sterling (£8,000,000.00) with reference number 77100146. This compensation funds is from the United Nations. To receive payment Send us your full personal details to deliver your funds as soon as possible.
 
-	Arnd
+Gloria Peter
