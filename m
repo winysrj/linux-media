@@ -1,91 +1,338 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:36369 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125AbcANIgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 03:36:53 -0500
-Received: by mail-pa0-f50.google.com with SMTP id yy13so280730780pab.3
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2016 00:36:52 -0800 (PST)
-From: Wu-Cheng Li <wuchengli@chromium.org>
-To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
-	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
-	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	tiffany.lin@mediatek.com, djkurtz@chromium.org
-Subject: [PATCH v2 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
-Date: Thu, 14 Jan 2016 16:33:58 +0800
-Message-Id: <1452760439-35564-2-git-send-email-wuchengli@chromium.org>
-In-Reply-To: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
-References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
+Received: from mail.lysator.liu.se ([130.236.254.3]:55524 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932296AbcAHPFr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 10:05:47 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Peter Rosin <peda@axentia.se>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Peter Rosin <peda@lysator.liu.se>, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH v3 4/8] i2c-mux: remove the mux dev pointer from the mux per channel data
+Date: Fri,  8 Jan 2016 16:04:52 +0100
+Message-Id: <1452265496-22475-5-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
+References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some drivers also need a control like
-V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
-I frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
-so the new drivers and applications can use it.
+From: Peter Rosin <peda@axentia.se>
 
-Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+The dev pointer is readily available in the mux core struct, no point in
+keeping multiple copies around.
+
+The patch also fixes a bug in rtl2832, which attached its mux slave
+adapter to the device owning the mux parent adapter instead of
+attaching it to its own device.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
- include/uapi/linux/v4l2-controls.h           | 1 +
- 3 files changed, 11 insertions(+)
+ drivers/i2c/i2c-mux.c                      | 24 ++++++++++++------------
+ drivers/i2c/muxes/i2c-arb-gpio-challenge.c |  2 +-
+ drivers/i2c/muxes/i2c-mux-gpio.c           |  3 +--
+ drivers/i2c/muxes/i2c-mux-pca9541.c        |  2 +-
+ drivers/i2c/muxes/i2c-mux-pca954x.c        |  3 +--
+ drivers/i2c/muxes/i2c-mux-pinctrl.c        |  3 +--
+ drivers/i2c/muxes/i2c-mux-reg.c            |  3 +--
+ drivers/iio/imu/inv_mpu6050/inv_mpu_core.c |  2 +-
+ drivers/media/dvb-frontends/m88ds3103.c    |  2 +-
+ drivers/media/dvb-frontends/rtl2830.c      |  2 +-
+ drivers/media/dvb-frontends/rtl2832.c      |  2 +-
+ drivers/media/dvb-frontends/si2168.c       |  2 +-
+ drivers/media/usb/cx231xx/cx231xx-i2c.c    |  3 ---
+ drivers/of/unittest.c                      |  2 +-
+ include/linux/i2c-mux.h                    |  1 -
+ 15 files changed, 24 insertions(+), 32 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index f13a429..6760cf5 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
- 	      </row>
+diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+index 3c56625ce13c..9bdebbdcbc61 100644
+--- a/drivers/i2c/i2c-mux.c
++++ b/drivers/i2c/i2c-mux.c
+@@ -32,7 +32,6 @@ struct i2c_mux_priv {
+ 	struct i2c_adapter adap;
+ 	struct i2c_algorithm algo;
+ 	struct i2c_mux_core *muxc;
+-	struct device *mux_dev;
+ 	u32 chan_id;
+ };
  
- 	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-force-i-frame">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME</constant>&nbsp;</entry>
-+		<entry>button</entry>
-+	      </row><row><entry spanname="descr">Force an I frame for the next queued buffer. Applicable to encoders.
-+This is a general, codec-agnostic keyframe control.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
- 		<entry>integer</entry>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index c9d5537..33ecb7b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:		return "Horizontal MV Search Range";
- 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
- 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
-+	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:			return "Force an I frame";
+@@ -139,7 +138,6 @@ struct i2c_mux_core *i2c_mux_alloc(struct device *dev, int sizeof_priv)
+ EXPORT_SYMBOL_GPL(i2c_mux_alloc);
  
- 	/* VPX controls */
- 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
-@@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
- 	case V4L2_CID_PAN_RESET:
- 	case V4L2_CID_TILT_RESET:
- 	case V4L2_CID_FLASH_STROBE:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2d225bc..1c911b8 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
- #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
- #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
- #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
-+#define V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME		(V4L2_CID_MPEG_BASE+229)
+ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+-			struct device *mux_dev,
+ 			u32 force_nr, u32 chan_id,
+ 			unsigned int class)
+ {
+@@ -164,7 +162,6 @@ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
  
- #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
- #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+ 	/* Set up private adapter data */
+ 	priv->muxc = muxc;
+-	priv->mux_dev = mux_dev;
+ 	priv->chan_id = chan_id;
+ 
+ 	/* Need to do algo dynamically because we don't know ahead
+@@ -199,11 +196,11 @@ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+ 	 * Try to populate the mux adapter's of_node, expands to
+ 	 * nothing if !CONFIG_OF.
+ 	 */
+-	if (mux_dev->of_node) {
++	if (muxc->dev->of_node) {
+ 		struct device_node *child;
+ 		u32 reg;
+ 
+-		for_each_child_of_node(mux_dev->of_node, child) {
++		for_each_child_of_node(muxc->dev->of_node, child) {
+ 			ret = of_property_read_u32(child, "reg", &reg);
+ 			if (ret)
+ 				continue;
+@@ -217,8 +214,9 @@ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+ 	/*
+ 	 * Associate the mux channel with an ACPI node.
+ 	 */
+-	if (has_acpi_companion(mux_dev))
+-		acpi_preset_companion(&priv->adap.dev, ACPI_COMPANION(mux_dev),
++	if (has_acpi_companion(muxc->dev))
++		acpi_preset_companion(&priv->adap.dev,
++				      ACPI_COMPANION(muxc->dev),
+ 				      chan_id);
+ 
+ 	if (force_nr) {
+@@ -235,12 +233,14 @@ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+ 		return ret;
+ 	}
+ 
+-	WARN(sysfs_create_link(&priv->adap.dev.kobj, &mux_dev->kobj, "mux_device"),
+-			       "can't create symlink to mux device\n");
++	WARN(sysfs_create_link(&priv->adap.dev.kobj, &muxc->dev->kobj,
++			       "mux_device"),
++	     "can't create symlink to mux device\n");
+ 
+ 	snprintf(symlink_name, sizeof(symlink_name), "channel-%u", chan_id);
+-	WARN(sysfs_create_link(&mux_dev->kobj, &priv->adap.dev.kobj, symlink_name),
+-			       "can't create symlink for channel %u\n", chan_id);
++	WARN(sysfs_create_link(&muxc->dev->kobj, &priv->adap.dev.kobj,
++			       symlink_name),
++	     "can't create symlink for channel %u\n", chan_id);
+ 	dev_info(&parent->dev, "Added multiplexed i2c bus %d\n",
+ 		 i2c_adapter_id(&priv->adap));
+ 
+@@ -261,7 +261,7 @@ void i2c_del_mux_adapters(struct i2c_mux_core *muxc)
+ 
+ 		snprintf(symlink_name, sizeof(symlink_name),
+ 			 "channel-%u", priv->chan_id);
+-		sysfs_remove_link(&priv->mux_dev->kobj, symlink_name);
++		sysfs_remove_link(&muxc->dev->kobj, symlink_name);
+ 
+ 		sysfs_remove_link(&priv->adap.dev.kobj, "mux_device");
+ 		i2c_del_adapter(adap);
+diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+index e0558e8a0e74..c2bc18c7921f 100644
+--- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
++++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+@@ -204,7 +204,7 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Actually add the mux adapter */
+-	ret = i2c_add_mux_adapter(muxc, dev, 0, 0, 0);
++	ret = i2c_add_mux_adapter(muxc, 0, 0, 0);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to add adapter\n");
+ 		i2c_put_adapter(muxc->parent);
+diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
+index 6bd41ace81d4..e800c4597fa4 100644
+--- a/drivers/i2c/muxes/i2c-mux-gpio.c
++++ b/drivers/i2c/muxes/i2c-mux-gpio.c
+@@ -216,8 +216,7 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 		u32 nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
+ 		unsigned int class = mux->data.classes ? mux->data.classes[i] : 0;
+ 
+-		ret = i2c_add_mux_adapter(muxc, &pdev->dev, nr,
+-					  mux->data.values[i], class);
++		ret = i2c_add_mux_adapter(muxc, nr, mux->data.values[i], class);
+ 		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto add_adapter_failed;
+diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
+index 80de0a0977a5..0e18d25334b5 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca9541.c
++++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
+@@ -361,7 +361,7 @@ static int pca9541_probe(struct i2c_client *client,
+ 	force = 0;
+ 	if (pdata)
+ 		force = pdata->modes[0].adap_id;
+-	ret = i2c_add_mux_adapter(muxc, &client->dev, force, 0, 0);
++	ret = i2c_add_mux_adapter(muxc, force, 0, 0);
+ 	if (ret) {
+ 		dev_err(&client->dev, "failed to register master selector\n");
+ 		return ret;
+diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
+index 640670b604f5..2d15325b6282 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca954x.c
++++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
+@@ -256,8 +256,7 @@ static int pca954x_probe(struct i2c_client *client,
+ 					   || idle_disconnect_dt) << num;
+ 		}
+ 
+-		ret = i2c_add_mux_adapter(muxc, &client->dev,
+-					  force, num, class);
++		ret = i2c_add_mux_adapter(muxc, force, num, class);
+ 
+ 		if (ret) {
+ 			dev_err(&client->dev,
+diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
+index 3bbb3fb1d693..0dc912898813 100644
+--- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
++++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
+@@ -212,8 +212,7 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ 		u32 bus = mux->pdata->base_bus_num ?
+ 				(mux->pdata->base_bus_num + i) : 0;
+ 
+-		ret = i2c_add_mux_adapter(muxc, &pdev->dev,
+-					  bus, i, 0);
++		ret = i2c_add_mux_adapter(muxc, bus, i, 0);
+ 		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto err_del_adapter;
+diff --git a/drivers/i2c/muxes/i2c-mux-reg.c b/drivers/i2c/muxes/i2c-mux-reg.c
+index 5c004ff5b6ad..3c919e49260c 100644
+--- a/drivers/i2c/muxes/i2c-mux-reg.c
++++ b/drivers/i2c/muxes/i2c-mux-reg.c
+@@ -227,8 +227,7 @@ static int i2c_mux_reg_probe(struct platform_device *pdev)
+ 		nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
+ 		class = mux->data.classes ? mux->data.classes[i] : 0;
+ 
+-		ret = i2c_add_mux_adapter(muxc, &pdev->dev, nr,
+-					  mux->data.values[i], class);
++		ret = i2c_add_mux_adapter(muxc, nr, mux->data.values[i], class);
+ 		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto add_adapter_failed;
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+index af9f54a2111d..744c8760c1fe 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+@@ -849,7 +849,7 @@ static int inv_mpu_probe(struct i2c_client *client,
+ 	st->muxc->select = inv_mpu6050_select_bypass;
+ 	st->muxc->deselect = inv_mpu6050_deselect_bypass;
+ 
+-	result = i2c_add_mux_adapter(st->muxc, &client->dev, 0, 0, 0);
++	result = i2c_add_mux_adapter(st->muxc, 0, 0, 0);
+ 	if (result)
+ 		goto out_unreg_device;
+ 
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index deab5cdba01f..45ad3ef82b4f 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1476,7 +1476,7 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 	dev->muxc->select = m88ds3103_select;
+ 
+ 	/* create mux i2c adapter for tuner */
+-	ret = i2c_add_mux_adapter(dev->muxc, &client->dev, 0, 0, 0);
++	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 9864740722dd..1da8d2e22983 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -874,7 +874,7 @@ static int rtl2830_probe(struct i2c_client *client,
+ 	dev->muxc->select = rtl2830_select;
+ 
+ 	/* create muxed i2c adapter for tuner */
+-	ret = i2c_add_mux_adapter(dev->muxc, &client->dev, 0, 0, 0);
++	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
+ 	if (ret)
+ 		goto err_regmap_exit;
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 99d8dbf66fd7..c586150623f7 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -1271,7 +1271,7 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	dev->muxc->deselect = rtl2832_deselect;
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+-	ret = i2c_add_mux_adapter(dev->muxc, &i2c->dev, 0, 0, 0);
++	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
+ 	if (ret)
+ 		goto err_regmap_exit;
+ 
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 06aa496cc42c..ae217b5e6618 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -719,7 +719,7 @@ static int si2168_probe(struct i2c_client *client,
+ 	dev->muxc->deselect = si2168_deselect;
+ 
+ 	/* create mux i2c adapter for tuner */
+-	ret = i2c_add_mux_adapter(dev->muxc, &client->dev, 0, 0, 0);
++	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
+ 	if (ret)
+ 		goto err_kfree;
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index 2b5adb056827..bfa63cf69235 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -577,12 +577,9 @@ int cx231xx_i2c_mux_create(struct cx231xx *dev)
+ 
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
+ {
+-	/* what is the correct mux_dev? */
+-	struct device *mux_dev = dev->dev;
+ 	int rc;
+ 
+ 	rc = i2c_add_mux_adapter(dev->muxc,
+-				 mux_dev,
+ 				 0,
+ 				 mux_no /* chan_id */,
+ 				 0 /* class */);
+diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
+index 77ccc54cfdc9..46897ed4e396 100644
+--- a/drivers/of/unittest.c
++++ b/drivers/of/unittest.c
+@@ -1722,7 +1722,7 @@ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 	if (ret)
+ 		return ret;
+ 	for (i = 0; i < nchans; i++) {
+-		ret = i2c_add_mux_adapter(muxc, dev, 0, i, 0);
++		ret = i2c_add_mux_adapter(muxc, 0, i, 0);
+ 		if (ret) {
+ 			dev_err(dev, "Failed to register mux #%d\n", i);
+ 			i2c_del_mux_adapters(muxc);
+diff --git a/include/linux/i2c-mux.h b/include/linux/i2c-mux.h
+index bfcdcc46f2a6..d88e0a3b6768 100644
+--- a/include/linux/i2c-mux.h
++++ b/include/linux/i2c-mux.h
+@@ -56,7 +56,6 @@ int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters);
+  * mux control.
+  */
+ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+-			struct device *mux_dev,
+ 			u32 force_nr, u32 chan_id,
+ 			unsigned int class);
+ 
 -- 
-2.6.0.rc2.230.g3dd15c0
+2.1.4
 
