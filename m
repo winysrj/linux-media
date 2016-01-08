@@ -1,99 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55341 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934067AbcAKQsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 11:48:11 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 7/8] [media] exynos4-is: Check v4l2_of_parse_endpoint() return value
-Date: Mon, 11 Jan 2016 13:47:15 -0300
-Message-Id: <1452530844-30609-8-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
-References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+Received: from vpndallas.adeneo-embedded.us ([162.254.209.190]:29319 "EHLO
+	mxadeneo.adeneo-embedded.us" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752918AbcAHWCe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jan 2016 17:02:34 -0500
+From: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
+To: <linux-media@vger.kernel.org>
+CC: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
+Subject: [PATCH v2] [media] cx231xx: Fix memory leak
+Date: Fri, 8 Jan 2016 14:02:03 -0800
+Message-ID: <1452290523-28053-1-git-send-email-jtheou@adeneo-embedded.us>
+In-Reply-To: <1452287450-17623-1-git-send-email-jtheou@adeneo-embedded.us>
+References: <1452287450-17623-1-git-send-email-jtheou@adeneo-embedded.us>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint() function can fail so check the return value.
+dma_area needs to be freed when the device is closed.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Based on em23xx-audio.c
+
+Signed-off-by: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
 ---
+Changes in v2:
+    - Fix debug trace call
+---
+ drivers/media/usb/cx231xx/cx231xx-audio.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Changes in v2: None
-
- drivers/media/platform/exynos4-is/media-dev.c |  8 +++++++-
- drivers/media/platform/exynos4-is/mipi-csis.c | 10 +++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f3b2dd30ec77..662d4a5c584e 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -332,13 +332,19 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- 	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
- 	struct device_node *rem, *ep, *np;
- 	struct v4l2_of_endpoint endpoint;
-+	int ret;
- 
- 	/* Assume here a port node can have only one endpoint node. */
- 	ep = of_get_next_child(port, NULL);
- 	if (!ep)
- 		return 0;
- 
--	v4l2_of_parse_endpoint(ep, &endpoint);
-+	ret = v4l2_of_parse_endpoint(ep, &endpoint);
-+	if (ret) {
-+		of_node_put(ep);
-+		return ret;
-+	}
-+
- 	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
- 		return -EINVAL;
- 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index ac5e50e595be..bd5c46c3d4b7 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -736,6 +736,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- {
- 	struct device_node *node = pdev->dev.of_node;
- 	struct v4l2_of_endpoint endpoint;
-+	int ret;
- 
- 	if (of_property_read_u32(node, "clock-frequency",
- 				 &state->clk_frequency))
-@@ -751,7 +752,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 		return -EINVAL;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
+index de4ae5e..a6a9508 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-audio.c
++++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
+@@ -499,6 +499,11 @@ static int snd_cx231xx_pcm_close(struct snd_pcm_substream *substream)
  	}
- 	/* Get port node and validate MIPI-CSI channel id. */
--	v4l2_of_parse_endpoint(node, &endpoint);
-+	ret = v4l2_of_parse_endpoint(node, &endpoint);
-+	if (ret)
-+		goto err;
  
- 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
- 	if (state->index >= CSIS_MAX_ENTITIES)
-@@ -764,9 +767,10 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 					"samsung,csis-wclk");
+ 	dev->adev.users--;
++	if (substream->runtime->dma_area) {
++		dev_dbg(dev->dev, "freeing\n");
++		vfree(substream->runtime->dma_area);
++		substream->runtime->dma_area = NULL;
++	}
+ 	mutex_unlock(&dev->lock);
  
- 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
--	of_node_put(node);
- 
--	return 0;
-+err:
-+	of_node_put(node);
-+	return ret;
- }
- 
- static int s5pcsis_pm_resume(struct device *dev, bool runtime);
+ 	if (dev->adev.users == 0 && dev->adev.shutdown == 1) {
 -- 
-2.4.3
+2.6.4
 
