@@ -1,38 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36457 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757742AbcAKC4m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 21:56:42 -0500
-Date: Sun, 10 Jan 2016 20:56:37 -0600
-From: Rob Herring <robh@kernel.org>
-To: Simon Horman <horms+renesas@verge.net.au>
+Received: from userp1040.oracle.com ([156.151.31.81]:24672 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754557AbcAHK6O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 05:58:14 -0500
+Date: Fri, 8 Jan 2016 13:57:58 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jarod Wilson <jarod@wilsonet.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH v2] rcar_jpu: Add R-Car Gen2 Fallback Compatibility String
-Message-ID: <20160111025637.GA17825@rob-hp-laptop>
-References: <1452478400-4267-1-git-send-email-horms+renesas@verge.net.au>
+	Aya Mahfouz <mahfouz.saif.elyazal@gmail.com>,
+	Tapasweni Pathak <tapaswenipathak@gmail.com>,
+	Haneen Mohammed <hamohammed.sa@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] staging: media: lirc: fix MODULE_PARM_DESC typo
+Message-ID: <20160108105758.GC32195@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1452478400-4267-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 11:13:20AM +0900, Simon Horman wrote:
-> Add fallback compatibility string.
-> This is in keeping with the fallback scheme being adopted wherever
-> appropriate for drivers for Renesas SoCs.
-> 
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> 
-> ---
-> v2
-> * Make fallback compat string for R-Car Gen2 rather than all renesas
->   hardware: that seems too generic
-> ---
->  Documentation/devicetree/bindings/media/renesas,jpu.txt | 13 +++++++------
->  drivers/media/platform/rcar_jpu.c                       |  1 +
->  2 files changed, 8 insertions(+), 6 deletions(-)
+It "tx_mask" was intended instead of "tx_maxk".
 
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
+index d009bcb..19c101b 100644
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ b/drivers/staging/media/lirc/lirc_parallel.c
+@@ -730,7 +730,7 @@ module_param(irq, int, S_IRUGO);
+ MODULE_PARM_DESC(irq, "Interrupt (7 or 5)");
+ 
+ module_param(tx_mask, int, S_IRUGO);
+-MODULE_PARM_DESC(tx_maxk, "Transmitter mask (default: 0x01)");
++MODULE_PARM_DESC(tx_mask, "Transmitter mask (default: 0x01)");
+ 
+ module_param(debug, bool, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Enable debugging messages");
