@@ -1,85 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:35832 "EHLO
-	mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932633AbcAHXF6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 18:05:58 -0500
-Received: by mail-pf0-f174.google.com with SMTP id 65so15829585pff.2
-        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2016 15:05:57 -0800 (PST)
-From: Douglas Anderson <dianders@chromium.org>
-To: Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Tomasz Figa <tfiga@chromium.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Douglas Anderson <dianders@chromium.org>,
-	kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v5 5/5] [media] s5p-mfc: Set DMA_ATTR_NO_HUGE_PAGE
-Date: Fri,  8 Jan 2016 15:05:32 -0800
-Message-Id: <1452294332-23415-6-git-send-email-dianders@chromium.org>
-In-Reply-To: <1452294332-23415-1-git-send-email-dianders@chromium.org>
-References: <1452294332-23415-1-git-send-email-dianders@chromium.org>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:60051 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753718AbcAHEJe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2016 23:09:34 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 428E31810BB
+	for <linux-media@vger.kernel.org>; Fri,  8 Jan 2016 05:09:28 +0100 (CET)
+Date: Fri, 08 Jan 2016 05:09:28 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160108040928.428E31810BB@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We do video allocation all the time and we need it to be fast.  Plus TLB
-efficiency isn't terribly important for video.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-That means we want to set DMA_ATTR_NO_HUGE_PAGE.
+Results of the daily build of media_tree:
 
-See also the previous change ("ARM: dma-mapping: Use
-DMA_ATTR_NO_HUGE_PAGE hint to optimize allocation").
+date:		Fri Jan  8 04:00:20 CET 2016
+git branch:	test
+git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
----
-Changes in v5:
-- s5p-mfc patch new for v5
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-rc1-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
+Detailed results are available here:
 
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 927ab4928779..7ea5d0d262bb 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1095,6 +1095,7 @@ static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
- /* MFC probe function */
- static int s5p_mfc_probe(struct platform_device *pdev)
- {
-+	DEFINE_DMA_ATTRS(attrs);
- 	struct s5p_mfc_dev *dev;
- 	struct video_device *vfd;
- 	struct resource *res;
-@@ -1164,12 +1165,20 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
-+	/*
-+	 * We'll do mostly sequential access, so sacrifice TLB efficiency for
-+	 * faster allocation.
-+	 */
-+	dma_set_attr(DMA_ATTR_NO_HUGE_PAGE, &attrs);
-+
-+	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx_attrs(dev->mem_dev_l,
-+							  &attrs);
- 	if (IS_ERR(dev->alloc_ctx[0])) {
- 		ret = PTR_ERR(dev->alloc_ctx[0]);
- 		goto err_res;
- 	}
--	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
-+	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx_attrs(dev->mem_dev_r,
-+							  &attrs);
- 	if (IS_ERR(dev->alloc_ctx[1])) {
- 		ret = PTR_ERR(dev->alloc_ctx[1]);
- 		goto err_mem_init_ctx_1;
--- 
-2.6.0.rc2.230.g3dd15c0
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
