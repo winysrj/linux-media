@@ -1,56 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:42220 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934253AbcA1JTr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 04:19:47 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 4/12] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
-References: <m337tif6om.fsf@t19.piap.pl>
-Date: Thu, 28 Jan 2016 10:19:44 +0100
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Thu, 28 Jan 2016 09:29:29 +0100")
-Message-ID: <m3zivqawnj.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail.lysator.liu.se ([130.236.254.3]:36716 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932390AbcAHPGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 10:06:11 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Peter Rosin <peda@axentia.se>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	Peter Rosin <peda@lysator.liu.se>, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: [PATCH v3 7/8] i2c: muxes always lock the parent adapter
+Date: Fri,  8 Jan 2016 16:04:55 +0100
+Message-Id: <1452265496-22475-8-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
+References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+From: Peter Rosin <peda@axentia.se>
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 5a1b9ab..78f4f55 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -416,7 +416,7 @@ static int tw686x_querycap(struct file *file, void *priv,
- 
- static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+Instead of checking for i2c parent adapters for every lock/unlock, simply
+override the locking for muxes to always lock/unlock the parent adapter
+directly.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/i2c-core.c | 21 +++------------------
+ drivers/i2c/i2c-mux.c  | 27 +++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 34a7748b4652..4683777f81ca 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -963,12 +963,7 @@ static int i2c_check_addr_busy(struct i2c_adapter *adapter, int addr)
+  */
+ static void i2c_adapter_lock_bus(struct i2c_adapter *adapter, int flags)
  {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
- 	unsigned std, count = 0;
- 	u32 sdt, std_mask = 0;
+-	struct i2c_adapter *parent = i2c_parent_is_i2c_adapter(adapter);
+-
+-	if (parent)
+-		i2c_lock_adapter(parent);
+-	else
+-		rt_mutex_lock(&adapter->bus_lock);
++	rt_mutex_lock(&adapter->bus_lock);
+ }
  
-@@ -437,7 +437,7 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
- 
- static int tw686x_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ /**
+@@ -977,12 +972,7 @@ static void i2c_adapter_lock_bus(struct i2c_adapter *adapter, int flags)
+  */
+ static int i2c_adapter_trylock_bus(struct i2c_adapter *adapter, int flags)
  {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
+-	struct i2c_adapter *parent = i2c_parent_is_i2c_adapter(adapter);
+-
+-	if (parent)
+-		return parent->trylock_bus(parent, flags);
+-	else
+-		return rt_mutex_trylock(&adapter->bus_lock);
++	return rt_mutex_trylock(&adapter->bus_lock);
+ }
  
- 	*id = vc->video_standard;
- 	return 0;
-@@ -457,7 +457,7 @@ static int tw686x_enum_fmt_vid_cap(struct file *file, void *priv,
- static int tw686x_g_parm(struct file *file, void *priv,
- 			 struct v4l2_streamparm *sp)
+ /**
+@@ -991,12 +981,7 @@ static int i2c_adapter_trylock_bus(struct i2c_adapter *adapter, int flags)
+  */
+ static void i2c_adapter_unlock_bus(struct i2c_adapter *adapter, int flags)
  {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
+-	struct i2c_adapter *parent = i2c_parent_is_i2c_adapter(adapter);
+-
+-	if (parent)
+-		i2c_unlock_adapter(parent);
+-	else
+-		rt_mutex_unlock(&adapter->bus_lock);
++	rt_mutex_unlock(&adapter->bus_lock);
+ }
  
- 	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
+ static void i2c_dev_set_name(struct i2c_adapter *adap,
+diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+index 9bdebbdcbc61..fcfe51b023c0 100644
+--- a/drivers/i2c/i2c-mux.c
++++ b/drivers/i2c/i2c-mux.c
+@@ -98,6 +98,30 @@ static unsigned int i2c_mux_parent_classes(struct i2c_adapter *parent)
+ 	return class;
+ }
+ 
++static void i2c_parent_lock_bus(struct i2c_adapter *adapter, int flags)
++{
++	struct i2c_mux_priv *priv = adapter->algo_data;
++	struct i2c_adapter *parent = priv->muxc->parent;
++
++	parent->lock_bus(parent, flags);
++}
++
++static int i2c_parent_trylock_bus(struct i2c_adapter *adapter, int flags)
++{
++	struct i2c_mux_priv *priv = adapter->algo_data;
++	struct i2c_adapter *parent = priv->muxc->parent;
++
++	return parent->trylock_bus(parent, flags);
++}
++
++static void i2c_parent_unlock_bus(struct i2c_adapter *adapter, int flags)
++{
++	struct i2c_mux_priv *priv = adapter->algo_data;
++	struct i2c_adapter *parent = priv->muxc->parent;
++
++	parent->unlock_bus(parent, flags);
++}
++
+ int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters)
+ {
+ 	struct i2c_adapter **adapter;
+@@ -183,6 +207,9 @@ int i2c_add_mux_adapter(struct i2c_mux_core *muxc,
+ 	priv->adap.retries = parent->retries;
+ 	priv->adap.timeout = parent->timeout;
+ 	priv->adap.quirks = parent->quirks;
++	priv->adap.lock_bus = i2c_parent_lock_bus;
++	priv->adap.trylock_bus = i2c_parent_trylock_bus;
++	priv->adap.unlock_bus = i2c_parent_unlock_bus;
+ 
+ 	/* Sanity check on class */
+ 	if (i2c_mux_parent_classes(parent) & class)
+-- 
+2.1.4
+
