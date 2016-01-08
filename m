@@ -1,50 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:35501 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043AbcAEVlf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 16:41:35 -0500
-Message-ID: <1452030090.2881.13.camel@collabora.com>
-Subject: Re: Multiple open and read of vivi device
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-Date: Tue, 05 Jan 2016 16:41:30 -0500
-In-Reply-To: <CAJ2oMhJGt8gL9MBWoHq9X9LcrR0bwPVk20jvqnWRWrAuSa2T-Q@mail.gmail.com>
-References: <CAJ2oMhJGt8gL9MBWoHq9X9LcrR0bwPVk20jvqnWRWrAuSa2T-Q@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-+KM+EwpWg9wOp5r3Hi70"
-Mime-Version: 1.0
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:35955 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040AbcAHNga (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 08:36:30 -0500
+Received: by mail-wm0-f51.google.com with SMTP id l65so135028705wmf.1
+        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2016 05:36:29 -0800 (PST)
+Received: from [127.0.1.1] ([41.224.127.22])
+        by smtp.gmail.com with ESMTPSA id a126sm18593276wmh.0.2016.01.08.05.36.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 08 Jan 2016 05:36:27 -0800 (PST)
+Message-ID: <568fbb5b.84e31c0a.56c09.2f3c@mx.google.com>
+Date: Fri, 08 Jan 2016 05:36:27 -0800 (PST)
+From: tabkaslim@gmail.com
+Subject: scan single transponder and get its channels list
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---=-+KM+EwpWg9wOp5r3Hi70
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-Le mardi 05 janvier 2016 =C3=A0 23:18 +0200, Ran Shalit a =C3=A9crit=C2=A0:
-> Does anyone knows why vivi is limited to one open ?
-> Is there some way to patch it for multiple opens and reading ?
+I want  to scan a single transponder to get the channel list of that specific transponder I used the scan command with a file containing a single line:
 
-This is not fully exact. You can open vivid device multiple times.
-Though you can only have one instance streaming at one time. This is to
-mimic real hardware driver behaviour. Note that you can create multiple
-devices using n_devs module parameter.
+S 11938000 V 27500000 3/4
 
-cheers,
-Nicolas
---=-+KM+EwpWg9wOp5r3Hi70
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+the problem is after scanning that transponder it should give the channels list , but it continues to scan other transponder from the satellite.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Is there a way to force it , to only scan the needed transponder or is there any other tool that can perform this task.
 
-iEYEABECAAYFAlaMOIoACgkQcVMCLawGqBzE2gCePaR8LVL5gpKLObbaVK34F7dK
-eLsAoLnuUxPEM/QDya4c83ClqG2BlLDd
-=VSVX
------END PGP SIGNATURE-----
 
---=-+KM+EwpWg9wOp5r3Hi70--
-
+Thanks for you time and any help is appreciated.
