@@ -1,89 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:47812 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049AbcANRVm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 12:21:42 -0500
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	'Wu-Cheng Li' <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	standby24x7@gmail.com, ricardo.ribalda@gmail.com, ao2@ao2.it,
-	bparrot@ti.com, 'Andrzej Hajda' <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org
-References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
- <1452686611-145620-2-git-send-email-wuchengli@chromium.org>
- <003f01d14e21$78f7ad40$6ae707c0$@samsung.com>
- <1452783743.10009.18.camel@collabora.com>
-In-reply-to: <1452783743.10009.18.camel@collabora.com>
-Subject: RE: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
-Date: Thu, 14 Jan 2016 18:21:37 +0100
-Message-id: <00ac01d14ef0$0702b2f0$150818d0$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8BIT
-Content-language: pl
+Received: from gromit.nocabal.de ([78.46.53.8]:40359 "EHLO gromit.nocabal.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755517AbcAIVtz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jan 2016 16:49:55 -0500
+Date: Sat, 9 Jan 2016 22:42:37 +0100
+From: Ernst Martin Witte <emw@nocabal.de>
+To: Martin Witte <emw-linux-media-2016@nocabal.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REGRESSION/bisected] kernel panic after "rmmod cx23885" by
+ "si2157: implement signal strength stats"
+Message-ID: <20160109214237.GA25076@titiwu.nocabal.de>
+Reply-To: emw@nocabal.de
+References: <20160108121852.GA29971@[192.168.115.1]>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160108121852.GA29971@[192.168.115.1]>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi again,
 
-> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
-> Sent: Thursday, January 14, 2016 4:02 PM
-> To: Kamil Debski; 'Wu-Cheng Li'; pawel@osciak.com;
-> mchehab@osg.samsung.com; hverkuil@xs4all.nl; crope@iki.fi;
-> standby24x7@gmail.com; ricardo.ribalda@gmail.com; ao2@ao2.it;
-> bparrot@ti.com
-> Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> api@vger.kernel.org
-> Subject: Re: [PATCH] v4l: add
-> V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
-> 
-> Hi Kamil,
-> 
-> Le mercredi 13 janvier 2016 à 17:43 +0100, Kamil Debski a écrit :
-> > Good to hear that there are new codecs to use the V4L2 codec API :)
-> >
-> > My two cents are following - when you add a control that does the same
-> > work as a driver specific control then it would be great if you
-> > modified the driver that uses the specific control to also support the
-> > newly added control.
-> > This way future applications  could use the control you added for both
-> > new and old drivers.
-> 
-> When i first notice this MFC specific control, I believed it was use to produce
-> I-Frame only streams (rather then a toggle, to produce one key- frame on
-> demand). So I wanted to verify the implementation to make sure what Wu-
-> Cheng is doing make sense. Though, I found that we set:
-> 
->   ctx->force_frame_type = ctrl->val;
-> 
-> And never use that value anywhere else in the driver code. Hopefully I'm just
-> missing something, but if it's not implemented, maybe it's better not to
-> expose it. Otherwise, this may lead to hard to find streaming issues. I do
-> hope we can add this feature though, as it's very useful feature for real time
-> encoding.
+seems  that the  cause  for the  kernel  panic is  a  missing call  to
+cancel_delayed_work_sync in  si2157_remove before  the call  to kfree.
+After adding cancel_delayed_work_sync(&dev->stat_work), rmmod does not
+trigger the kernel panic any more.
 
-Ooops, you're right. It's not implemented. I am adding Andrzej Hajda to the CC loop, he may know more about this. I think it may have been implemented in some of our development branches, but somehow did not make it into the mainline kernel. That's one thing.
+However, very similar issues could be identified also in other modules:
 
-The other one is about your previous comment. I will quote it below, as it is in another email.
+   ts2020
+   af9013
+   af9033
+   rtl2830
 
-> I don't like the way it's implemented. I don't know any decoder that have
-> a frame type forcing feature other they I-Frame. It would be much more
-> natural to use a toggle button control (and add more controls for other
-> types when needed) then trying to merge hypothetical toggles into
->something that manually need to be set and disabled.
+when looking in drivers/media/tuners and drivers/media/dvb-frontends.
 
-I had a look into the documentation of MFC. It is possible to force two types of a frame to be coded.
-The one is a keyframe, the other is a not coded frame. As I understand this is a type of frame that means that image did not change from previous frame. I am sure I seen it in an MPEG4 stream in a movie trailer. The initial board with the age rating is displayed for a couple of seconds and remains static. Thus there is one I-frame and a number of non-coded frames.
+Therefore,  the submitted  patch  set contains  fixes  also for  those
+modules. The submitted patch set is:
 
-That is the reason why the control was implemented in MFC as a menu and not a button. Thus the question remains - is it better to leave it as a menu, or should there be two (maybe more in the future) buttons? 
+   [PATCH 0/5] [media] cancel_delayed_work_sync before device removal / kfree
 
-Wu-Cheng, does your hardware also supports inserting such a non-coded frame? I can imagine that there could be hardware (in the future or some current hardware that I am not aware of other than MFC) that could support this.
+I hope these patches completely fix the issue and are ok for inclusion
+in the kernel.
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
-
+BR and thx,
+   Martin
