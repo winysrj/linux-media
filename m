@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34860 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932963AbcA2SWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 13:22:25 -0500
-Subject: Re: [PATCH 11/13] [media] tvp5150: identify it as a
- MEDIA_ENT_F_ATV_DECODER
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
- <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56ABADDB.4080701@osg.samsung.com>
-Date: Fri, 29 Jan 2016 15:22:19 -0300
-MIME-Version: 1.0
-In-Reply-To: <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42883 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756583AbcAJP7C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2016 10:59:02 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] videobuf2-v4l2: Fix return with value warnings
+Date: Sun, 10 Jan 2016 17:59:11 +0200
+Message-Id: <1452441551-19426-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Commit 10cc3b1e1296 ("videobuf2-core: fill_user_buffer and
+copy_timestamp should return void") forgot one return statement from the
+videobuf2-v4l2 implementations of copy_timestamp and fill_user_buffer.
+Remove them.
 
-On 01/29/2016 09:11 AM, Mauro Carvalho Chehab wrote:
-> The tvp5150 is an analog TV decoder. Identify as such at
-> the media graph, or otherwise devices using it would fail.
->
-> That avoids the following warning:
-> 	[ 1546.669139] usb 2-3.3: Entity type for entity tvp5150 5-005c was not initialized!
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->   drivers/media/i2c/tvp5150.c | 3 +++
->   1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 20428f052506..19b52736b24e 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1319,6 +1319,9 @@ static int tvp5150_probe(struct i2c_client *c,
->   	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
->   	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
->   	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
-> +
->   	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
->   	if (res < 0)
->   		return res;
->
+Fixes: 10cc3b1e1296 ("videobuf2-core: fill_user_buffer and copy_timestamp should return void")
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index a15cd1b4c7f0..bbbd8e1b1a99 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -121,7 +121,7 @@ static void __copy_timestamp(struct vb2_buffer *vb, const void *pb)
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 
+ 	if (!pb)
+-		return 0;
++		return;
+ 
+ 	if (q->is_output) {
+ 		/*
+@@ -197,7 +197,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	unsigned int plane;
+ 
+ 	if (!pb)
+-		return 0;
++		return;
+ 
+ 	/* Copy back data such as timestamp, flags, etc. */
+ 	b->index = vb->index;
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.4.10
+
