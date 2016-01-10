@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:37720 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063AbcAXKH4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 05:07:56 -0500
-Received: by mail-wm0-f43.google.com with SMTP id n5so39591878wmn.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2016 02:07:55 -0800 (PST)
-Subject: Re: SV: PCTV 292e support
-To: Russel Winder <russel@winder.org.uk>,
-	=?UTF-8?Q?Peter_F=c3=a4ssberg?= <pf@leissner.se>,
-	DVB_Linux_Media <linux-media@vger.kernel.org>
-References: <1453613292.2497.26.camel@winder.org.uk>
- <ijvkgaod4jhqyaoroevcea7f.1453613737402@email.android.com>
- <1453615078.2497.29.camel@winder.org.uk>
- <1453618564.2497.51.camel@winder.org.uk>
- <1453625202.2497.54.camel@winder.org.uk>
-From: Andy Furniss <adf.lists@gmail.com>
-Message-ID: <56A4A262.1090708@gmail.com>
-Date: Sun, 24 Jan 2016 10:07:30 +0000
+Received: from mout.gmx.net ([212.227.15.18]:62568 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756333AbcAJSdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2016 13:33:08 -0500
+Received: from axis700.grange ([87.79.216.87]) by mail.gmx.com (mrgmx001) with
+ ESMTPSA (Nemesis) id 0LxPuE-1a6hlQ1Uy2-016yvl for
+ <linux-media@vger.kernel.org>; Sun, 10 Jan 2016 19:33:06 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id B7D9813EC9
+	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2016 19:33:04 +0100 (CET)
+Date: Sun, 10 Jan 2016 19:33:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] 3.5 fixes
+Message-ID: <Pine.LNX.4.64.1601101931050.24180@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <1453625202.2497.54.camel@winder.org.uk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Russel Winder wrote:
-> On Sun, 2016-01-24 at 06:56 +0000, Russel Winder wrote:
->> […] that some other firmware needs to be extracted from the discs.
->
-> If in doubt check out http://palosaari.fi/linux/v4l-dvb/firmware/
->
-> Firmware loaded and running. Device tuning and working.
->
-> Except that the T2 channels cannot be found properly. I guess this is
-> a "solved issue" as well, so back to the research.
->
-> Apologies for the earlier noise.
+Hi Mauro,
 
-Maybe your uk-CrystalPalace is old.
+Please, pull 2 fixes for 3.5, they should be also fine for -rc2 if it's 
+too late to push them for -rc1.
 
-There's something called w_scan which really does scan.
+The following changes since commit 768acf46e1320d6c41ed1b7c4952bab41c1cde79:
 
-Try distro install or searching for it.
+  [media] rc: sunxi-cir: Initialize the spinlock properly (2015-12-23 15:51:40 -0200)
 
-I don't use and haven't updated the dvb5 tools for ages. Looking back at
-experiments it seems I have T rather than T2 in my tuning files. Maybe
-that's something to keep in mind, also IIRC for T2 channels you do need
-each frequency (unlike the Ts whose details are found by tuning to any
-channel).
+are available in the git repository at:
 
-I don't know your setup or requirements, but using players to
-tune/record will avoid the "-p" issue. I run headless and use tvheadend.
-If I had an HTPC setup I would probably use kodi (xbmc).
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.5-2
 
+for you to fetch changes up to 9c09aca87e259e090250833989e855e5a84eaa45:
 
+  atmel-isi: fix debug message which only show the first format (2016-01-09 12:30:27 +0100)
+
+----------------------------------------------------------------
+Josh Wu (1):
+      atmel-isi: fix debug message which only show the first format
+
+Wolfram Sang (1):
+      soc_camera: cleanup control device on async_unbind
+
+ drivers/media/platform/soc_camera/atmel-isi.c  | 2 +-
+ drivers/media/platform/soc_camera/soc_camera.c | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+Thanks
+Guennadi
