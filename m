@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vpndallas.adeneo-embedded.us ([162.254.209.190]:29319 "EHLO
-	mxadeneo.adeneo-embedded.us" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752918AbcAHWCe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jan 2016 17:02:34 -0500
-From: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-To: <linux-media@vger.kernel.org>
-CC: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-Subject: [PATCH v2] [media] cx231xx: Fix memory leak
-Date: Fri, 8 Jan 2016 14:02:03 -0800
-Message-ID: <1452290523-28053-1-git-send-email-jtheou@adeneo-embedded.us>
-In-Reply-To: <1452287450-17623-1-git-send-email-jtheou@adeneo-embedded.us>
-References: <1452287450-17623-1-git-send-email-jtheou@adeneo-embedded.us>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lists.s-osg.org ([54.187.51.154]:55344 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934072AbcAKQsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 11:48:13 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v2 8/8] [media] omap3isp: Check v4l2_of_parse_endpoint() return value
+Date: Mon, 11 Jan 2016 13:47:16 -0300
+Message-Id: <1452530844-30609-9-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dma_area needs to be freed when the device is closed.
+The v4l2_of_parse_endpoint() function can fail so check the return value.
 
-Based on em23xx-audio.c
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
 ---
-Changes in v2:
-    - Fix debug trace call
----
- drivers/media/usb/cx231xx/cx231xx-audio.c | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
-index de4ae5e..a6a9508 100644
---- a/drivers/media/usb/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
-@@ -499,6 +499,11 @@ static int snd_cx231xx_pcm_close(struct snd_pcm_substream *substream)
- 	}
+Changes in v2: None
+
+ drivers/media/platform/omap3isp/isp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 79a0b953bba3..891e54394a1c 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2235,8 +2235,11 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ 	struct isp_bus_cfg *buscfg = &isd->bus;
+ 	struct v4l2_of_endpoint vep;
+ 	unsigned int i;
++	int ret;
  
- 	dev->adev.users--;
-+	if (substream->runtime->dma_area) {
-+		dev_dbg(dev->dev, "freeing\n");
-+		vfree(substream->runtime->dma_area);
-+		substream->runtime->dma_area = NULL;
-+	}
- 	mutex_unlock(&dev->lock);
+-	v4l2_of_parse_endpoint(node, &vep);
++	ret = v4l2_of_parse_endpoint(node, &vep);
++	if (ret)
++		return ret;
  
- 	if (dev->adev.users == 0 && dev->adev.shutdown == 1) {
+ 	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+ 		vep.base.port);
 -- 
-2.6.4
+2.4.3
 
