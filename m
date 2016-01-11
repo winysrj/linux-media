@@ -1,285 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57771 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965872AbcA1Px0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 10:53:26 -0500
-Date: Thu, 28 Jan 2016 13:53:04 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 15/31] media: dvb-frontend invoke enable/disable_source
- handlers
-Message-ID: <20160128135304.3daa79f1@recife.lan>
-In-Reply-To: <1591b6cf2025fa95a13e3b7dde52aa0e0bde0bb4.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<1591b6cf2025fa95a13e3b7dde52aa0e0bde0bb4.1452105878.git.shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43364 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758057AbcAKDJg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2016 22:09:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Add YUV 4:2:2 and YUV 4:4:4 tri-planar non-contiguous formats
+Date: Mon, 11 Jan 2016 05:09:45 +0200
+Message-ID: <1657661.CoXsjoUhCV@avalon>
+In-Reply-To: <56473C30.2090903@xs4all.nl>
+References: <1447507593-15016-1-git-send-email-laurent.pinchart@ideasonboard.com> <56473C30.2090903@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:27:04 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Hans,
 
-> Checking for tuner availability from frontend thread start
-> disrupts video stream. Change to check for tuner and start
-> pipeline from frontend open instead and stop pipeline from
-> frontend release.
+Thank you for the review.
 
-That's wrong, as DVB can be opened on read-only mode, where
-it won't be changing anything.
-
-Also, I don't think POSIX allows to return an error like EBUSY
-on open:
-	http://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html
-
-> In addition, make a change to invoke
-> enable_source and disable_source handlers to check for
-> tuner availability. The enable_source handler finds tuner
-> entity connected to the decoder and check is it is available
-> or busy. If tuner is available, link is activated and pipeline
-> is started. The disable_source handler to deactivate and stop
-> the pipeline. dvb_enable_media_tuner() is removed as it is no
-> longer necessary with dvb invoking enable_source and
-> disable_source handlers. pipe_start_entity field is removed
-> and pipe field is moved to dvb_frontend from dvb_frontend_private.
+On Saturday 14 November 2015 14:50:40 Hans Verkuil wrote:
+> On 11/14/2015 02:26 PM, Laurent Pinchart wrote:
+> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > 
+> > The formats use three planes through the multiplanar API, allowing for
+> > non-contiguous planes in memory.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml | 159 ++++++++++++++++
+> >  Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml | 171 ++++++++++++++++
+> >  Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml | 159 ++++++++++++++++
+> >  Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml | 171 ++++++++++++++++
+> >  Documentation/DocBook/media/v4l/pixfmt.xml         |   4 +
+> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   4 +
+> >  include/uapi/linux/videodev2.h                     |   4 +
+> >  7 files changed, 672 insertions(+)
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu422m.xml
+> >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yvu444m.xml
+> > 
+> > Hello,
+> > 
+> > The driver using those formats should follow in the not too distant
+> > future, but I'd appreciate getting feedback on the definitions already.
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c | 139 +++++-----------------------------
->  drivers/media/dvb-core/dvb_frontend.h |   3 +
->  2 files changed, 24 insertions(+), 118 deletions(-)
+> Looks good, but I would combine yuv422m and yvu422m, and do the same for the
+> 444m variants. It's overkill to split this up.
+
+The reason I've split them is that yuv420m and yvu420m are split. I can 
+combine them.
+
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml new file mode 100644
+> > index 000000000000..f4d8d74e7f74
+> > --- /dev/null
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+> > @@ -0,0 +1,159 @@
+> > +    <refentry id="V4L2-PIX-FMT-YUV422M">
+> > +      <refmeta>
+> > +	<refentrytitle>V4L2_PIX_FMT_YUV422M ('YM16')</refentrytitle>
+> > +	&manvol;
+> > +      </refmeta>
+> > +      <refnamediv>
+> > +	<refname> <constant>V4L2_PIX_FMT_YUV422M</constant></refname>
+> > +	<refpurpose>Planar formats with &frac12; horizontal resolution, also
+> > +	known as YUV 4:2:2</refpurpose>
+> > +      </refnamediv>
+> > +
+> > +      <refsect1>
+> > +	<title>Description</title>
+> > +
+> > +	<para>This is a multi-planar format, as opposed to a packed format.
+> > +The three components are separated into three sub- images or planes.
 > 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 4008064..c15f3d8 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -131,11 +131,6 @@ struct dvb_frontend_private {
->  	int quality;
->  	unsigned int check_wrapped;
->  	enum dvbfe_search algo_status;
-> -
-> -#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> -	struct media_pipeline pipe;
-> -	struct media_entity *pipe_start_entity;
-> -#endif
->  };
->  
->  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
-> @@ -596,104 +591,12 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
->  	wake_up_interruptible(&fepriv->wait_queue);
->  }
->  
-> -/**
-> - * dvb_enable_media_tuner() - tries to enable the DVB tuner
-> - *
-> - * @fe:		struct dvb_frontend pointer
-> - *
-> - * This function ensures that just one media tuner is enabled for a given
-> - * frontend. It has two different behaviors:
-> - * - For trivial devices with just one tuner:
-> - *   it just enables the existing tuner->fe link
-> - * - For devices with more than one tuner:
-> - *   It is up to the driver to implement the logic that will enable one tuner
-> - *   and disable the other ones. However, if more than one tuner is enabled for
-> - *   the same frontend, it will print an error message and return -EINVAL.
-> - *
-> - * At return, it will return the error code returned by media_entity_setup_link,
-> - * or 0 if everything is OK, if no tuner is linked to the frontend or if the
-> - * mdev is NULL.
-> - */
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -static int dvb_enable_media_tuner(struct dvb_frontend *fe)
-> -{
-> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-> -	struct dvb_adapter *adapter = fe->dvb;
-> -	struct media_device *mdev = adapter->mdev;
-> -	struct media_entity  *entity, *source;
-> -	struct media_link *link, *found_link = NULL;
-> -	int ret, n_links = 0, active_links = 0;
-> -
-> -	fepriv->pipe_start_entity = NULL;
-> -
-> -	if (!mdev)
-> -		return 0;
-> -
-> -	entity = fepriv->dvbdev->entity;
-> -	fepriv->pipe_start_entity = entity;
-> -
-> -	list_for_each_entry(link, &entity->links, list) {
-> -		if (link->sink->entity == entity) {
-> -			found_link = link;
-> -			n_links++;
-> -			if (link->flags & MEDIA_LNK_FL_ENABLED)
-> -				active_links++;
-> -		}
-> -	}
-> -
-> -	if (!n_links || active_links == 1 || !found_link)
-> -		return 0;
-> -
-> -	/*
-> -	 * If a frontend has more than one tuner linked, it is up to the driver
-> -	 * to select with one will be the active one, as the frontend core can't
-> -	 * guess. If the driver doesn't do that, it is a bug.
-> -	 */
-> -	if (n_links > 1 && active_links != 1) {
-> -		dev_err(fe->dvb->device,
-> -			"WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
-> -			active_links, n_links);
-> -		return -EINVAL;
-> -	}
-> -
-> -	source = found_link->source->entity;
-> -	fepriv->pipe_start_entity = source;
-> -	list_for_each_entry(link, &source->links, list) {
-> -		struct media_entity *sink;
-> -		int flags = 0;
-> -
-> -		sink = link->sink->entity;
-> -		if (sink == entity)
-> -			flags = MEDIA_LNK_FL_ENABLED;
-> -
-> -		ret = media_entity_setup_link(link, flags);
-> -		if (ret) {
-> -			dev_err(fe->dvb->device,
-> -				"Couldn't change link %s->%s to %s. Error %d\n",
-> -				source->name, sink->name,
-> -				flags ? "enabled" : "disabled",
-> -				ret);
-> -			return ret;
-> -		} else
-> -			dev_dbg(fe->dvb->device,
-> -				"link %s->%s was %s\n",
-> -				source->name, sink->name,
-> -				flags ? "ENABLED" : "disabled");
-> -	}
-> -	return 0;
-> -}
-> -#endif
-> -
->  static int dvb_frontend_thread(void *data)
->  {
->  	struct dvb_frontend *fe = data;
->  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->  	enum fe_status s;
->  	enum dvbfe_algo algo;
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	int ret;
-> -#endif
-> -
->  	bool re_tune = false;
->  	bool semheld = false;
->  
-> @@ -706,20 +609,6 @@ static int dvb_frontend_thread(void *data)
->  	fepriv->wakeup = 0;
->  	fepriv->reinitialise = 0;
->  
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	ret = dvb_enable_media_tuner(fe);
-> -	if (ret) {
-> -		/* FIXME: return an error if it fails */
-> -		dev_info(fe->dvb->device,
-> -			"proceeding with FE task\n");
-> -	} else if (fepriv->pipe_start_entity) {
-> -		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
-> -						  &fepriv->pipe);
-> -		if (ret)
-> -			return ret;
-> -	}
-> -#endif
-> -
->  	dvb_frontend_init(fe);
->  
->  	set_freezable();
-> @@ -829,12 +718,6 @@ restart:
->  		}
->  	}
->  
-> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	if (fepriv->pipe_start_entity)
-> -		media_entity_pipeline_stop(fepriv->pipe_start_entity);
-> -	fepriv->pipe_start_entity = NULL;
-> -#endif
-> -
->  	if (dvb_powerdown_on_sleep) {
->  		if (fe->ops.set_voltage)
->  			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
-> @@ -2612,9 +2495,20 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
->  		fepriv->tone = -1;
->  		fepriv->voltage = -1;
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
-> +			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
-> +							   &fe->pipe);
-> +			if (ret) {
-> +				dev_err(fe->dvb->device,
-> +					"Tuner is busy. Error %d\n", ret);
-> +				goto err2;
-> +			}
-> +		}
-> +#endif
->  		ret = dvb_frontend_start (fe);
->  		if (ret)
-> -			goto err2;
-> +			goto err3;
->  
->  		/*  empty event queue */
->  		fepriv->events.eventr = fepriv->events.eventw = 0;
-> @@ -2624,7 +2518,12 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
->  		mutex_unlock (&adapter->mfe_lock);
->  	return ret;
->  
-> +err3:
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-> +		fe->dvb->mdev->disable_source(dvbdev->entity);
->  err2:
-> +#endif
->  	dvb_generic_release(inode, file);
->  err1:
->  	if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl)
-> @@ -2653,6 +2552,10 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
->  
->  	if (dvbdev->users == -1) {
->  		wake_up(&fepriv->wait_queue);
-> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> +		if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-> +			fe->dvb->mdev->disable_source(dvbdev->entity);
-> +#endif
->  		if (fe->exit != DVB_FE_NO_EXIT)
->  			wake_up(&dvbdev->wait_queue);
->  		if (fe->ops.ts_bus_ctrl)
-> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-> index 458bcce..9466906 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb-core/dvb_frontend.h
-> @@ -686,6 +686,9 @@ struct dvb_frontend {
->  	int (*callback)(void *adapter_priv, int component, int cmd, int arg);
->  	int id;
->  	unsigned int exit;
-> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-> +	struct media_pipeline pipe;
-> +#endif
->  };
->  
->  /**
+> No space needed after 'sub-'.
+
+Will fix.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
