@@ -1,135 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59293 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845AbcA1URs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 15:17:48 -0500
-Subject: Re: [PATCH 28/31] media: au0828 create link between ALSA Mixer and
- decoder
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <1dcd64196cffd05bdaeb16c767ee8d2adb90e2e6.1452105878.git.shuahkh@osg.samsung.com>
- <20160128145824.3cf1a468@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA7768.2000109@osg.samsung.com>
-Date: Thu, 28 Jan 2016 13:17:44 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160128145824.3cf1a468@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from fallback1.mail.ru ([94.100.181.184]:44466 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757592AbcAKKKH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 05:10:07 -0500
+Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 3CE40671A067
+	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 12:42:07 +0300 (MSK)
+From: andreykosh000@mail.ru
+To: linux-media@vger.kernel.org
+Cc: koshkoshka <andreykosh000@mail.ru>
+Subject: [PATCH] Fixed frequency range to 42-870 MHz
+Date: Mon, 11 Jan 2016 19:42:00 +1000
+Message-Id: <1452505320-10498-1-git-send-email-andreykosh000@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 09:58 AM, Mauro Carvalho Chehab wrote:
-> Em Wed,  6 Jan 2016 13:27:17 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> Change au0828_create_media_graph() to create pad link
->> between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
->> AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
->> decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
->> mixer's source pad.
-> 
-> See my comments about doing only this asynchronously on the previous
-> patches.
-> 
+From: koshkoshka <andreykosh000@mail.ru>
 
-Yes. I responded to that one. I might collapse both ALSA
-patch that adds capture and mixer into one. Might make
-it lot easier and handle them at the same time.
+Signed-off-by: koshkoshka <andreykosh000@mail.ru>
 
-thanks,
--- Shuah
+	modified:   drivers/media/tuners/si2157.c
+---
+ drivers/media/tuners/si2157.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> 
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/usb/au0828/au0828-core.c | 17 ++++++++++++++---
->>  drivers/media/usb/au0828/au0828.h      |  1 +
->>  2 files changed, 15 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
->> index 722e073..886fb28 100644
->> --- a/drivers/media/usb/au0828/au0828-core.c
->> +++ b/drivers/media/usb/au0828/au0828-core.c
->> @@ -264,6 +264,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  	struct media_entity *entity;
->>  	struct media_entity *tuner = NULL, *decoder = NULL;
->>  	struct media_entity *audio_capture = NULL;
->> +	struct media_entity *mixer = NULL;
->>  	int i, ret;
->>  
->>  	if (!mdev)
->> @@ -284,6 +285,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  		case MEDIA_ENT_F_AUDIO_CAPTURE:
->>  			audio_capture = entity;
->>  			break;
->> +		case MEDIA_ENT_F_AUDIO_MIXER:
->> +			mixer = entity;
->> +			break;
->>  		}
->>  	}
->>  
->> @@ -356,14 +360,21 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  			}
->>  		}
->>  	}
->> -	if (audio_capture && !dev->audio_capture_linked) {
->> -		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
->> -					    audio_capture, 0,
->> +	if (mixer && audio_capture && !dev->audio_capture_linked) {
->> +		ret = media_create_pad_link(mixer, 1, audio_capture, 0,
->>  					    MEDIA_LNK_FL_ENABLED);
->>  		if (ret)
->>  			return ret;
->>  		dev->audio_capture_linked = 1;
->>  	}
->> +	if (mixer && !dev->mixer_linked) {
->> +		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
->> +					    mixer, 0,
->> +					    MEDIA_LNK_FL_ENABLED);
->> +		if (ret)
->> +			return ret;
->> +		dev->mixer_linked = 1;
->> +	}
->>  #endif
->>  	return 0;
->>  }
->> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
->> index 3707664..b9aa74f 100644
->> --- a/drivers/media/usb/au0828/au0828.h
->> +++ b/drivers/media/usb/au0828/au0828.h
->> @@ -289,6 +289,7 @@ struct au0828_dev {
->>  	bool vdev_linked;
->>  	bool vbi_linked;
->>  	bool audio_capture_linked;
->> +	bool mixer_linked;
->>  	struct media_link *active_link;
->>  	struct media_entity *active_link_owner;
->>  #endif
-
-
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index ce157ed..86a753e 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
+-		.frequency_min  = 55000000,
+-		.frequency_max  = 862000000,
++		.frequency_min  = 42000000,
++		.frequency_max  = 870000000,
+ 	},
+ 
+ 	.init = si2157_init,
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.9.1
+
