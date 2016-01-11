@@ -1,48 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:36989 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487AbcAERhh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 12:37:37 -0500
-Received: by mail-wm0-f43.google.com with SMTP id f206so40324842wmf.0
-        for <linux-media@vger.kernel.org>; Tue, 05 Jan 2016 09:37:36 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20151213003201.GQ20997@ZenIV.linux.org.uk>
-References: <20151213003201.GQ20997@ZenIV.linux.org.uk>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 5 Jan 2016 17:37:06 +0000
-Message-ID: <CA+V-a8v-NC9oToS5KcaGwuATAxvOaXE3p=uT769uaKoebBVeBg@mail.gmail.com>
-Subject: Re: [PATCH][davinci] ccdc_update_raw_params() frees the wrong thing
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp2.mail.ru ([94.100.179.91]:56008 "EHLO smtp2.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758175AbcAKJWl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 04:22:41 -0500
+From: andreykosh000@mail.ru
+To: linux-media@vger.kernel.org
+Cc: koshkoshka <andreykosh000@mail.ru>
+Subject: [PATCH] 	modified:   drivers/media/tuners/si2157.c Fixed frequency range to 42-870 MHz
+Date: Mon, 11 Jan 2016 19:22:18 +1000
+Message-Id: <1452504138-9783-1-git-send-email-andreykosh000@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 13, 2015 at 12:32 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
->         Passing a physical address to free_pages() is a bad idea.
-> config_params->fault_pxl.fpc_table_addr is set to virt_to_phys()
-> of __get_free_pages() return value; what we should pass to free_pages()
-> is its phys_to_virt().  ccdc_close() does that properly, but
-> ccdc_update_raw_params() doesn't.
->
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: koshkoshka <andreykosh000@mail.ru>
 
-Regards,
---Prabhakar Lad
+---
+ drivers/media/tuners/si2157.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-> index ffbefdf..6fba32b 100644
-> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
-> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-> @@ -261,7 +261,7 @@ static int ccdc_update_raw_params(struct ccdc_config_params_raw *raw_params)
->          */
->         if (raw_params->fault_pxl.fp_num != config_params->fault_pxl.fp_num) {
->                 if (fpc_physaddr != NULL) {
-> -                       free_pages((unsigned long)fpc_physaddr,
-> +                       free_pages((unsigned long)fpc_virtaddr,
->                                    get_order
->                                    (config_params->fault_pxl.fp_num *
->                                    FP_NUM_BYTES));
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index ce157ed..86a753e 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
+-		.frequency_min  = 55000000,
+-		.frequency_max  = 862000000,
++		.frequency_min  = 42000000,
++		.frequency_max  = 870000000,
+ 	},
+ 
+ 	.init = si2157_init,
+-- 
+1.9.1
+
