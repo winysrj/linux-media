@@ -1,87 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:36374 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116AbcAKL4a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 06:56:30 -0500
-Received: by mail-io0-f177.google.com with SMTP id g73so149549900ioe.3
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 03:56:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <56939234.3050305@xs4all.nl>
-References: <CAJ2oMhKLbDc1xBQgyz0Ga9K6PQ7M8OGTn7_dNywFs=3XrNrP6A@mail.gmail.com>
-	<56939234.3050305@xs4all.nl>
-Date: Mon, 11 Jan 2016 13:56:29 +0200
-Message-ID: <CAJ2oMhLnioF34P18SpLbRbbC7-ET1-Xi4EdPZ+eyEHP03C=dZA@mail.gmail.com>
-Subject: Re: Using v4l2 API example as-is for video capture
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from lists.s-osg.org ([54.187.51.154]:55341 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934067AbcAKQsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 11:48:11 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 7/8] [media] exynos4-is: Check v4l2_of_parse_endpoint() return value
+Date: Mon, 11 Jan 2016 13:47:15 -0300
+Message-Id: <1452530844-30609-8-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 1:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 01/08/2016 07:25 AM, Ran Shalit wrote:
->> Hello,
->>
->> I am trying to use v4l2 example from API documentation:
->> inhttp://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html .
->> As a start, I wanted to first try uding it with vivid (virtual device driver).
->> I found excelent vivid documentation in the kernel, which is very helpful:
->> https://www.kernel.org/doc/Documentation/video4linux/vivid.txt
->>
->> But on trying to use the example as-is for capturing video frames into
->> file, and playing the file, I encounter difficulties.
->> I tried the example as-is, and then tried several resolution,
->> pixelformat, different inputs, but it always result with video with a
->> sync problems ( the test bars of the video are keep moving in the
->> horizontal axis, or the text is changing its location for one frame to
->> the next).
->>
->> I compiled the v4l2 API example AS-IS from:
->> http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html with
->> minor modification in the --force part of the example (I also tried
->> the example as is without modifications but it did not help), so that
->> I choose hd input , and 1920x1080 resolution, V4L2_PIX_FMT_YUV420
->> (also tried V4L2_PIX_FMT_YUV422P) , progressive.
->>
->>   if (force_format) {
->>             input = 3;  // <<-- HD input device
->>             if (-1==xioctl(fd,VIDIOC_S_INPUT,&input))
->>             {
->>              errno_exit("VIDIOC_S_INPUT");
->>             }
->>             fmt.fmt.pix.width       = 1920;
->>             fmt.fmt.pix.height      = 1080;
->>             fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; // <<-
->> tried also V4L2_PIX_FMT_YUV422P
->>             fmt.fmt.pix.field       = V4L2_FIELD_NONE; // <- trying to
->> capture progressive
->>
->>             if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
->>                     errno_exit("VIDIOC_S_FMT");
->>
->>     } else {
->>
->> I run the application with (the compiled code using pixelformat =
->> V4L2_PIX_FMT_YUV420 trial ):
->>
->> ./v4l2_example -f -o -c 10  > cap_yuv420p.yuv
->
-> I'm not sure what you're doing, but this just works for me (I use yuv420p to
-> play this back).
->
-> Note: you can find the same code in v4l-utils in contrib/test. That's the code
-> I used (with you modifications).
->
-> Regards,
->
->         Hans
->
-Right,
-It works for me. I work with Centos 7.2 which comes with kernel
-3.10.0. The YUV420 format are missing there, I understood it after
-delving into this issue.
+The v4l2_of_parse_endpoint() function can fail so check the return value.
 
-Thanks you !
-Ran
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+
+Changes in v2: None
+
+ drivers/media/platform/exynos4-is/media-dev.c |  8 +++++++-
+ drivers/media/platform/exynos4-is/mipi-csis.c | 10 +++++++---
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index f3b2dd30ec77..662d4a5c584e 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -332,13 +332,19 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
+ 	struct device_node *rem, *ep, *np;
+ 	struct v4l2_of_endpoint endpoint;
++	int ret;
+ 
+ 	/* Assume here a port node can have only one endpoint node. */
+ 	ep = of_get_next_child(port, NULL);
+ 	if (!ep)
+ 		return 0;
+ 
+-	v4l2_of_parse_endpoint(ep, &endpoint);
++	ret = v4l2_of_parse_endpoint(ep, &endpoint);
++	if (ret) {
++		of_node_put(ep);
++		return ret;
++	}
++
+ 	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index ac5e50e595be..bd5c46c3d4b7 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -736,6 +736,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ {
+ 	struct device_node *node = pdev->dev.of_node;
+ 	struct v4l2_of_endpoint endpoint;
++	int ret;
+ 
+ 	if (of_property_read_u32(node, "clock-frequency",
+ 				 &state->clk_frequency))
+@@ -751,7 +752,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 		return -EINVAL;
+ 	}
+ 	/* Get port node and validate MIPI-CSI channel id. */
+-	v4l2_of_parse_endpoint(node, &endpoint);
++	ret = v4l2_of_parse_endpoint(node, &endpoint);
++	if (ret)
++		goto err;
+ 
+ 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
+ 	if (state->index >= CSIS_MAX_ENTITIES)
+@@ -764,9 +767,10 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 					"samsung,csis-wclk");
+ 
+ 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
+-	of_node_put(node);
+ 
+-	return 0;
++err:
++	of_node_put(node);
++	return ret;
+ }
+ 
+ static int s5pcsis_pm_resume(struct device *dev, bool runtime);
+-- 
+2.4.3
+
