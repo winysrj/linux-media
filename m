@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:51116 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757356AbcAZOMc (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43306 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757760AbcAKB5V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 09:12:32 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 7/7] [media] go7007: add MEDIA_CAMERA_SUPPORT dependency
-Date: Tue, 26 Jan 2016 15:10:01 +0100
-Message-Id: <1453817424-3080054-7-git-send-email-arnd@arndb.de>
-In-Reply-To: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
-References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	Sun, 10 Jan 2016 20:57:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Nikhil Devshatwar <nikhil.nd@ti.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] [media] v4l: of: Correct v4l2_of_parse_endpoint() kernel-doc
+Date: Mon, 11 Jan 2016 03:57:32 +0200
+Message-ID: <5744371.YiWThJLWUr@avalon>
+In-Reply-To: <1452191248-15847-2-git-send-email-javier@osg.samsung.com>
+References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com> <1452191248-15847-2-git-send-email-javier@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If MEDIA_SUBDRV_AUTOSELECT and VIDEO_GO7007 are both set, we
-automatically select VIDEO_OV7640, but that depends on MEDIA_CAMERA_SUPPORT,
-so we get a Kconfig warning if that is disabled:
+Hi Javier,
 
-warning: (VIDEO_GO7007) selects VIDEO_OV7640 which has unmet direct dependencies (MEDIA_SUPPORT && I2C && VIDEO_V4L2 && MEDIA_CAMERA_SUPPORT)
+Thank you for the patch.
 
-This adds another dependency so we don't accidentally select
-it when it is unavailable.
+On Thursday 07 January 2016 15:27:15 Javier Martinez Canillas wrote:
+> The v4l2_of_parse_endpoint function kernel-doc says that the return value
+> is always 0. But that is not true since the function can fail and a error
+> negative code is returned on failure. So correct the kernel-doc to match.
+> 
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/go7007/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/usb/go7007/Kconfig b/drivers/media/usb/go7007/Kconfig
-index 95a3af644a92..af1d02430931 100644
---- a/drivers/media/usb/go7007/Kconfig
-+++ b/drivers/media/usb/go7007/Kconfig
-@@ -11,7 +11,7 @@ config VIDEO_GO7007
- 	select VIDEO_TW2804 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_TW9903 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_TW9906 if MEDIA_SUBDRV_AUTOSELECT
--	select VIDEO_OV7640 if MEDIA_SUBDRV_AUTOSELECT
-+	select VIDEO_OV7640 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_CAMERA_SUPPORT
- 	select VIDEO_UDA1342 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
- 	  This is a video4linux driver for the WIS GO7007 MPEG
+> ---
+> 
+>  drivers/media/v4l2-core/v4l2-of.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+> b/drivers/media/v4l2-core/v4l2-of.c index b27cbb1f5afe..93b33681776c 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -146,7 +146,7 @@ static void v4l2_of_parse_parallel_bus(const struct
+> device_node *node, * variable without a low fixed limit. Please use
+>   * v4l2_of_alloc_parse_endpoint() in new drivers instead.
+>   *
+> - * Return: 0.
+> + * Return: 0 on success or a negative error code on failure.
+>   */
+>  int v4l2_of_parse_endpoint(const struct device_node *node,
+>  			   struct v4l2_of_endpoint *endpoint)
+
 -- 
-2.7.0
+Regards,
+
+Laurent Pinchart
 
