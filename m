@@ -1,65 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44652 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751977AbcA0Nbs (ORCPT
+Received: from mail-yk0-f195.google.com ([209.85.160.195]:36314 "EHLO
+	mail-yk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933599AbcAKSqC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 08:31:48 -0500
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2C22E180D43
-	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 14:31:44 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv3 0/5] v4l2: add support to set the InfoFrame content type
-Date: Wed, 27 Jan 2016 14:31:38 +0100
-Message-Id: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 11 Jan 2016 13:46:02 -0500
+MIME-Version: 1.0
+In-Reply-To: <5693F5E5.3060109@cogentembedded.com>
+References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
+	<1452535211-4869-4-git-send-email-ykaneko0929@gmail.com>
+	<5693F5E5.3060109@cogentembedded.com>
+Date: Tue, 12 Jan 2016 03:46:01 +0900
+Message-ID: <CAH1o70KEW5LkfsA=uAf6LeixmtPS2--EsWiFejPDFZpx_UK4JQ@mail.gmail.com>
+Subject: Re: [PATCH 3/3] media: soc_camera: rcar_vin: Add ARGB8888 caputre
+ format support
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sergei,
 
-The HDMI standard defines a Content Type field in the AVI InfoFrame that
-can tell the receiver what sort of video is being transferred. Based on
-that information the receiver can choose to optimize for that content type.
+2016-01-12 3:35 GMT+09:00 Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>:
+> Hello.
+>
+> On 01/11/2016 09:00 PM, Yoshihiro Kaneko wrote:
+>
+>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>>
+>> This patch adds ARGB8888 capture format support for R-Car Gen3.
+>>
+>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>> ---
+>>   drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
+>>   1 file changed, 19 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c
+>> b/drivers/media/platform/soc_camera/rcar_vin.c
+>> index cccd859..afe27bb 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>
+> [...]
+>>
+>> @@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>>                         dmr = VNDMR_EXRGB;
+>>                         break;
+>>                 }
+>> +       case V4L2_PIX_FMT_ARGB32:
+>> +               if (priv->chip == RCAR_GEN3)
+>> +                       dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
+>> +               else {
+>
+>
+>    Kernel coding style dictates using {} in all *if* branches if at least
+> one branch has them.
 
-A practical example is that if the content type is set to 'Game' then the
-TV might configure itself to a low-latency mode.
+Got it.
+Thanks!
 
-But this requires that applications can get/set the content type, and that's
-what this patch series does: it adds new content type controls and
-implements it in the adv7511 HDMI transmitter and adv7604/adv7842 receivers.
+>
+>> +                       dev_err(icd->parent, "Not support format\n");
+>> +                       return -EINVAL;
+>> +               }
+>> +               break;
+>>         default:
+>>                 dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+>>                          icd->current_fmt->host_fmt->fourcc);
+>
+> [...]
+>
+> MBR, Sergei
+>
 
-Regards,
-
-	Hans
-
-Changes since v2:
-
-- Now it also compiles! Always handy...
-
-Changes since v1:
-
-- Add the _IT_ prefix since this is about IT Content, not content in general.
-- Add documentation
-- Add V4L2_CID_DV_TX_IT_CONTENT_TYPE
-- Add V4L2_DV_IT_CONTENT_TYPE_NO_ITC
-- Support this in the adv receivers.
-
-Hans Verkuil (5):
-  v4l2-ctrls: add V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
-  DocBook media: document the new V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE
-    controls
-  adv7604: add support to for the content type control.
-  adv7842: add support to for the content type control.
-  adv7511: add support to for the content type control.
-
- Documentation/DocBook/media/v4l/controls.xml | 50 ++++++++++++++++++++++++++++
- drivers/media/i2c/adv7511.c                  | 22 ++++++++++--
- drivers/media/i2c/adv7604.c                  | 21 ++++++++++++
- drivers/media/i2c/adv7842.c                  | 20 +++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         | 16 +++++++++
- include/uapi/linux/v4l2-controls.h           | 10 ++++++
- 6 files changed, 137 insertions(+), 2 deletions(-)
-
--- 
-2.7.0.rc3
-
+Thanks,
+kaneko
