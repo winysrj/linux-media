@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62568 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756333AbcAJSdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 13:33:08 -0500
-Received: from axis700.grange ([87.79.216.87]) by mail.gmx.com (mrgmx001) with
- ESMTPSA (Nemesis) id 0LxPuE-1a6hlQ1Uy2-016yvl for
- <linux-media@vger.kernel.org>; Sun, 10 Jan 2016 19:33:06 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id B7D9813EC9
-	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2016 19:33:04 +0100 (CET)
-Date: Sun, 10 Jan 2016 19:33:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] 3.5 fixes
-Message-ID: <Pine.LNX.4.64.1601101931050.24180@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:36353 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757307AbcAKSAq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 13:00:46 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 2/3] media: soc_camera: rcar_vin: Add R-Car Gen3 support
+Date: Tue, 12 Jan 2016 03:00:10 +0900
+Message-Id: <1452535211-4869-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
+References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
 
-Please, pull 2 fixes for 3.5, they should be also fine for -rc2 if it's 
-too late to push them for -rc1.
+Simply documents new compatibility string.
+As a previous patch adds a generic R-Car Gen3 compatibility string
+there appears to be no need for a driver updates.
 
-The following changes since commit 768acf46e1320d6c41ed1b7c4952bab41c1cde79:
+Signed-off-by: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-  [media] rc: sunxi-cir: Initialize the spinlock properly (2015-12-23 15:51:40 -0200)
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index c13ec5a..e1a92c9 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -8,6 +8,7 @@ channel which can be either RGB, YUYV or BT656.
+  - compatible: Must be one of the following
+    - "renesas,rcar-gen2-vin" for R-Car Gen2 Series
+    - "renesas,rcar-gen3-vin" for R-Car Gen3 Series
++   - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7791" for the R8A7791 device
+-- 
+1.9.1
 
-are available in the git repository at:
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.5-2
-
-for you to fetch changes up to 9c09aca87e259e090250833989e855e5a84eaa45:
-
-  atmel-isi: fix debug message which only show the first format (2016-01-09 12:30:27 +0100)
-
-----------------------------------------------------------------
-Josh Wu (1):
-      atmel-isi: fix debug message which only show the first format
-
-Wolfram Sang (1):
-      soc_camera: cleanup control device on async_unbind
-
- drivers/media/platform/soc_camera/atmel-isi.c  | 2 +-
- drivers/media/platform/soc_camera/soc_camera.c | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
-
-Thanks
-Guennadi
