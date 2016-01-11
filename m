@@ -1,106 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:50990 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234AbcA1Olr (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58196 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758875AbcAKKWf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 09:41:47 -0500
-Received: from userv0021.oracle.com (userv0021.oracle.com [156.151.31.71])
-	by userp1040.oracle.com (Sentrion-MTA-4.3.2/Sentrion-MTA-4.3.2) with ESMTP id u0SEfkx3021551
-	(version=TLSv1 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2016 14:41:46 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-	by userv0021.oracle.com (8.13.8/8.13.8) with ESMTP id u0SEfkoB004410
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2016 14:41:46 GMT
-Received: from abhmp0018.oracle.com (abhmp0018.oracle.com [141.146.116.24])
-	by userv0122.oracle.com (8.14.4/8.13.8) with ESMTP id u0SEfkmF000348
-	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2016 14:41:46 GMT
-Date: Thu, 28 Jan 2016 17:41:38 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: linux-media@vger.kernel.org
-Subject: [bug report] ttusb-dec: read overflow in ttusb_dec_process_pva()
-Message-ID: <20160128144138.GA31320@mwanda>
+	Mon, 11 Jan 2016 05:22:35 -0500
+Subject: Re: [PATCH v2 2/2] media: adv7604: update timings on change of input
+ signal
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
+References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56938265.6050803@xs4all.nl>
+Date: Mon, 11 Jan 2016 11:22:29 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi linux media devs,
+On 12/22/2015 03:22 PM, Ulrich Hecht wrote:
+> Without this, .get_selection will always return the boot-time state.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/i2c/adv7604.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 8ad5c28..dcd659b 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -1945,6 +1945,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+>  	u8 fmt_change_digital;
+>  	u8 fmt_change;
+>  	u8 tx_5v;
+> +	int ret;
+>  
+>  	if (irq_reg_0x43)
+>  		io_write(sd, 0x44, irq_reg_0x43);
+> @@ -1968,6 +1969,14 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+>  
+>  		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
+>  
+> +		/* update timings */
+> +		ret = adv76xx_query_dv_timings(sd, &state->timings);
+> +		if (ret == -ENOLINK) {
+> +			/* no signal, fall back to default timings */
+> +			state->timings = (struct v4l2_dv_timings)
+> +				V4L2_DV_BT_CEA_640X480P59_94;
+> +		}
 
-I am getting the following static checker warning:
+Nack.
 
-	drivers/media/usb/ttusb-dec/ttusb_dec.c:474 ttusb_dec_process_pva()
-	error: __memcpy() '&pva[8]' too small (6140 vs 6144)
+If you detect a change in timings, then send the V4L2_EVENT_SOURCE_CHANGE event and leave
+it to the app to query the new timings. Never do this in the driver itself.
 
-drivers/media/usb/ttusb-dec/ttusb_dec.c
-   419  static void ttusb_dec_process_pva(struct ttusb_dec *dec, u8 *pva, int length)
-   420  {
-   421          if (length < 8) {
-   422                  printk("%s: packet too short - discarding\n", __func__);
-   423                  return;
-   424          }
-   425  
-   426          if (length > 8 + MAX_PVA_LENGTH) {
+The reason is that this will pull the rug out from under the application: the app thinks
+it is using timings A but the driver is using timings B. Instead, tell the app that the
+timings have changed and let the app handle this.
 
-length is capped here.
+Regards,
 
-   427                  printk("%s: packet too long - discarding\n", __func__);
-   428                  return;
-   429          }
-   430  
-   431          switch (pva[2]) {
-   432  
-   433          case 0x01: {            /* VideoStream */
-   434                  int prebytes = pva[5] & 0x03;
-   435                  int postbytes = (pva[5] & 0x0c) >> 2;
-   436                  __be16 v_pes_payload_length;
-   437  
-   438                  if (output_pva) {
-   439                          dec->video_filter->feed->cb.ts(pva, length, NULL, 0,
-   440                                  &dec->video_filter->feed->feed.ts);
-   441                          return;
-   442                  }
-   443  
-   444                  if (dec->v_pes_postbytes > 0 &&
-   445                      dec->v_pes_postbytes == prebytes) {
-   446                          memcpy(&dec->v_pes[dec->v_pes_length],
-   447                                 &pva[12], prebytes);
-   448  
-   449                          dvb_filter_pes2ts(&dec->v_pes2ts, dec->v_pes,
-   450                                            dec->v_pes_length + prebytes, 1);
-   451                  }
-   452  
-   453                  if (pva[5] & 0x10) {
-   454                          dec->v_pes[7] = 0x80;
-   455                          dec->v_pes[8] = 0x05;
-   456  
-   457                          dec->v_pes[9] = 0x21 | ((pva[8] & 0xc0) >> 5);
-   458                          dec->v_pes[10] = ((pva[8] & 0x3f) << 2) |
-   459                                           ((pva[9] & 0xc0) >> 6);
-   460                          dec->v_pes[11] = 0x01 |
-   461                                           ((pva[9] & 0x3f) << 2) |
-   462                                           ((pva[10] & 0x80) >> 6);
-   463                          dec->v_pes[12] = ((pva[10] & 0x7f) << 1) |
-   464                                           ((pva[11] & 0xc0) >> 7);
-   465                          dec->v_pes[13] = 0x01 | ((pva[11] & 0x7f) << 1);
-   466  
-   467                          memcpy(&dec->v_pes[14], &pva[12 + prebytes],
-   468                                 length - 12 - prebytes);
-   469                          dec->v_pes_length = 14 + length - 12 - prebytes;
-   470                  } else {
-   471                          dec->v_pes[7] = 0x00;
-   472                          dec->v_pes[8] = 0x00;
-   473  
-   474                          memcpy(&dec->v_pes[9], &pva[8], length - 8);
+	Hans
 
-The problem is that pva[] comes from (struct ttusb_dec)->packet which
-has MAX_PVA_LENGTH + 4 bytes and not + 8 bytes.  I am not sure how to
-fix this.
+> +
+>  		if (handled)
+>  			*handled = true;
+>  	}
+> 
 
-   475                          dec->v_pes_length = 9 + length - 8;
-   476                  }
-   477  
-
-regards,
-dan carpenter
