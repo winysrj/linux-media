@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:35453 "EHLO
-	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755387AbcAOAPg (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34184 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934344AbcAKTKc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 19:15:36 -0500
-Received: by mail-lf0-f53.google.com with SMTP id c192so273411942lfe.2
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2016 16:15:35 -0800 (PST)
-From: Anders Roxell <anders.roxell@linaro.org>
-To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-rt-users@vger.kernel.org,
-	Anders Roxell <anders.roxell@linaro.org>
-Subject: [PATCH] drivers/media: vsp1_video: fix compile error
-Date: Fri, 15 Jan 2016 01:09:43 +0100
-Message-Id: <1452816583-11036-1-git-send-email-anders.roxell@linaro.org>
+	Mon, 11 Jan 2016 14:10:32 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 2/3 v2] media: soc_camera: rcar_vin: Add R-Car Gen3 support
+Date: Tue, 12 Jan 2016 04:10:17 +0900
+Message-Id: <1452539418-28480-3-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1452539418-28480-1-git-send-email-ykaneko0929@gmail.com>
+References: <1452539418-28480-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This was found with the -RT patch enabled, but the fix should apply to
-non-RT also.
+From: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
 
-Compilation error without this fix:
-../drivers/media/platform/vsp1/vsp1_video.c: In function
-'vsp1_pipeline_stopped':
-../drivers/media/platform/vsp1/vsp1_video.c:524:2: error: expected
-expression before 'do'
-  spin_unlock_irqrestore(&pipe->irqlock, flags);
-    ^
+Simply documents new compatibility string.
+As a previous patch adds a generic R-Car Gen3 compatibility string
+there appears to be no need for a driver updates.
 
-Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+Signed-off-by: Yoshihiko Mori <yoshihiko.mori.nx@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 637d0d6..b4dca57 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -515,7 +515,7 @@ static bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe)
- 	bool stopped;
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
--	stopped = pipe->state == VSP1_PIPELINE_STOPPED,
-+	stopped = pipe->state == VSP1_PIPELINE_STOPPED;
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- 
- 	return stopped;
+v2 [Yoshihiro Kaneko]
+* no change
+
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index c13ec5a..e1a92c9 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -8,6 +8,7 @@ channel which can be either RGB, YUYV or BT656.
+  - compatible: Must be one of the following
+    - "renesas,rcar-gen2-vin" for R-Car Gen2 Series
+    - "renesas,rcar-gen3-vin" for R-Car Gen3 Series
++   - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7791" for the R8A7791 device
 -- 
-2.1.4
+1.9.1
 
