@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44191 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753349AbcAGMrf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 07:47:35 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v2 08/10] [media] tvp5150: Add OF match table
-Date: Thu,  7 Jan 2016 09:46:48 -0300
-Message-Id: <1452170810-32346-9-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
-References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:34423 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759526AbcAKSAv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 13:00:51 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 3/3] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
+Date: Tue, 12 Jan 2016 03:00:11 +0900
+Message-Id: <1452535211-4869-4-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
+References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Eduard Gavin <egavinc@gmail.com>
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-The Documentation/devicetree/bindings/media/i2c/tvp5150.txt DT binding doc
-lists "ti,tvp5150" as the device compatible string but the driver does not
-have an OF match table. Add the table to the driver so the I2C core can do
-an OF style match.
+This patch adds ARGB8888 capture format support for R-Car Gen3.
 
-Signed-off-by: Eduard Gavin <egavinc@gmail.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
+ drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-Changes in v2:
-- Add Reviewed-by tag from Laurent Pinchart to patch 8/10.
-
- drivers/media/i2c/tvp5150.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 105bd1c6b17f..caac96a577f8 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1295,8 +1295,17 @@ static const struct i2c_device_id tvp5150_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, tvp5150_id);
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index cccd859..afe27bb 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -124,7 +124,7 @@
+ #define VNDMR_EXRGB		(1 << 8)
+ #define VNDMR_BPSM		(1 << 4)
+ #define VNDMR_DTMD_YCSEP	(1 << 1)
+-#define VNDMR_DTMD_ARGB1555	(1 << 0)
++#define VNDMR_DTMD_ARGB		(1 << 0)
  
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp5150_of_match[] = {
-+	{ .compatible = "ti,tvp5150", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp5150_of_match);
-+#endif
-+
- static struct i2c_driver tvp5150_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp5150_of_match),
- 		.name	= "tvp5150",
+ /* Video n Data Mode Register 2 bits */
+ #define VNDMR2_VPS		(1 << 30)
+@@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		output_is_yuv = true;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555X:
+-		dmr = VNDMR_DTMD_ARGB1555;
++		dmr = VNDMR_DTMD_ARGB;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		dmr = 0;
+@@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 			dmr = VNDMR_EXRGB;
+ 			break;
+ 		}
++	case V4L2_PIX_FMT_ARGB32:
++		if (priv->chip == RCAR_GEN3)
++			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
++		else {
++			dev_err(icd->parent, "Not support format\n");
++			return -EINVAL;
++		}
++		break;
+ 	default:
+ 		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+ 			 icd->current_fmt->host_fmt->fourcc);
+@@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 		.layout			= SOC_MBUS_LAYOUT_PACKED,
  	},
- 	.probe		= tvp5150_probe,
++	{
++		.fourcc			= V4L2_PIX_FMT_ARGB32,
++		.name			= "ARGB8888",
++		.bits_per_sample	= 32,
++		.packing		= SOC_MBUS_PACKING_NONE,
++		.order			= SOC_MBUS_ORDER_LE,
++		.layout			= SOC_MBUS_LAYOUT_PACKED,
++	},
+ };
+ 
+ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+@@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_RGB32:
+ 		can_scale = priv->chip != RCAR_E1;
+ 		break;
++	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_RGB565:
 -- 
-2.4.3
+1.9.1
 
