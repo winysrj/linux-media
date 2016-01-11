@@ -1,86 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48235 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754466AbcA3M1E (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:32779 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933885AbcAKSfV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2016 07:27:04 -0500
-Subject: Re: dma start/stop & vb2 APIs
-To: Ran Shalit <ranshalit@gmail.com>
-References: <CAJ2oMhL=aaN+O0F+_Bo8mjnSEOSCkN3vGk9WB1GeC+1t1tDw5w@mail.gmail.com>
- <569D24D4.3040705@xs4all.nl>
- <CAJ2oMh+BXUnqehqGzaxqQK07+7HiEOpjRf4+GjqDNRbRNb5NKg@mail.gmail.com>
- <569DE6DF.3060508@xs4all.nl>
- <CAJ2oMhLUp-9svAXUBQt27AfEqn2X3vzMyU6nV0ROa4YzM=GuBg@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56ACAC0D.3070500@xs4all.nl>
-Date: Sat, 30 Jan 2016 13:26:53 +0100
+	Mon, 11 Jan 2016 13:35:21 -0500
+Received: by mail-lb0-f180.google.com with SMTP id x4so2269734lbm.0
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 10:35:20 -0800 (PST)
+Subject: Re: [PATCH 3/3] media: soc_camera: rcar_vin: Add ARGB8888 caputre
+ format support
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
+ <1452535211-4869-4-git-send-email-ykaneko0929@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <5693F5E5.3060109@cogentembedded.com>
+Date: Mon, 11 Jan 2016 21:35:17 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhLUp-9svAXUBQt27AfEqn2X3vzMyU6nV0ROa4YzM=GuBg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1452535211-4869-4-git-send-email-ykaneko0929@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello.
 
+On 01/11/2016 09:00 PM, Yoshihiro Kaneko wrote:
 
-On 01/30/2016 12:55 PM, Ran Shalit wrote:
-> On Tue, Jan 19, 2016 at 9:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 01/19/2016 05:45 AM, Ran Shalit wrote:
->>> On Mon, Jan 18, 2016 at 7:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> On 01/18/2016 05:26 PM, Ran Shalit wrote:
->>>>> Hello,
->>>>>
->>>>> I am trying to understand how to implement dma transfer correctly
->>>>> using videobuf2 APIs.
->>>>>
->>>>> Normally, application will do semthing like this (video test API):
->>>>>
->>>>>                 xioctl(fd, VIDIOC_DQBUF, &buf)
->>>>>                 process_image(buffers[buf.index].start, buf.bytesused);
->>>>>                 xioctl(fd, VIDIOC_QBUF, &buf)
->>>>>
->>>>> Therefore, in the driver below I will assume that:
->>>>> 1. VIDIOC_DQBUF -  trigger dma to start
->>>>
->>>> No. DMA typically starts when VIDIOC_STREAMON is called, although depending
->>>> on the hardware the start of the DMA may be delayed if insufficient buffers
->>>> have been queued. When the start_streaming op is called you know that STREAMON
->>>> has been called and that at least min_buffers_needed buffers have been queued.
->>>>
->>>>> 2. interrupt handler in driver - stop dma
->>>>
->>>> ??? No, this just passes the buffer that has been filled by the DMA engine
->>>> to vb2 via vb2_buffer_done. The DMA will continue filling the next queued buffer.
->>>>
->>>
->>> Hi,
->>> Just to be sure I got it all right:
->>> "The DMA will continue filling the next queued buffer" is usually the
->>> responsibility of the interrupt handler .
->>> Interrrupt will get the new buffer from list and trigger next dma
->>> transaction with that buffer.
->>>  Is that Right ?
->>
->> Usually that's true. Again, I can't give absolutes because it depends on
->> the DMA hardware details. There tend to be two main types of DMA:
->>
->> 1) the DMA engine has pointers to the current and next frame: in that case
->> the irq handler has to update the pointers once the current frame finishes
->> the DMA.
->>
->> 2) the DMA engine has a list of descriptors describing each frame and that
->> links each frame to the next one. In that case the list of descriptors is
->> updated whenever a new buffer is queued. For engines like this the interrupt
->> function just returns the DMAed buffer and doesn't have to do anything else.
->>
-> 
-> Hi,
-> 
-> Is the first dma engine type above is usually used with contigous dma
-> (videobuf2-dma-contig.h), while
-> the second type referese to sg (scatter-gather) mode (videobuf2-dma-sg.h ) ?
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>
+> This patch adds ARGB8888 capture format support for R-Car Gen3.
+>
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+>   drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
+>   1 file changed, 19 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index cccd859..afe27bb 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+> @@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>   			dmr = VNDMR_EXRGB;
+>   			break;
+>   		}
+> +	case V4L2_PIX_FMT_ARGB32:
+> +		if (priv->chip == RCAR_GEN3)
+> +			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
+> +		else {
 
-Yes.
+    Kernel coding style dictates using {} in all *if* branches if at least one 
+branch has them.
 
-	Hans
+> +			dev_err(icd->parent, "Not support format\n");
+> +			return -EINVAL;
+> +		}
+> +		break;
+>   	default:
+>   		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+>   			 icd->current_fmt->host_fmt->fourcc);
+[...]
+
+MBR, Sergei
+
